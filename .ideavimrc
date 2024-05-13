@@ -1,0 +1,798 @@
+" ================================ info ================================"
+" .ideavimrc i sa configuration file for IdeaVim plugin. It uses"
+"   the same commands as the original .vimrc configuration."
+" You can find a list of commands here: https://jb.gg/h38q75"
+" Find more examples here: https://jb.gg/share-ideavimrc"
+" plugin instuctions: https://github.com/JetBrains/ideavim/wiki/IdeaVim-Plugins"
+
+" Jetbrains Actions Mappings, all list of possible idea actions exec command :actionlist"
+"=======================██╗   ██╗██╗███╗   ███╗====================================="
+"=======================██║   ██║██║████╗ ████║====================================="
+"=======================██║   ██║██║██╔████╔██║====================================="
+"=======================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
+"======================= ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
+"=======================  ╚═══╝  ╚═╝╚═╝     ╚═╝====================================="
+" ============================== basic pre configuration ==========================="
+
+"============= learning
+
+" 1. use '*' to next, and '#' to prev search, on word, to auto apply in find command!
+" 2. 'i' inside, 'a' around 'vi(', 'va('
+" 3. '=' format (=ap) format around paragraph etc
+" 4. '%' next\prex braces
+
+"=============
+
+noremap <Up> <Nop>
+noremap <Down> <Nop>
+noremap <Left> <Nop>
+noremap <Right> <Nop>
+noremap <Right> <Nop>
+" use jj to move to normal mode
+"inoremap jj <esc>
+
+"cnoremap jj <C-c>
+
+" The timeoutlen controls how long to wait before recognizing it as a sequence.
+" set timeoutlen=1000 ""https://vi.stackexchange.com/questions/24925/usage-of-timeoutlen-and-ttimeoutlen"
+
+" all key mapping have unique mapping, if there some mapping when I need wait `timeoutlen` to exec, then
+" this mapping should be changed
+set timeoutlen=2000
+
+" repeat comand for visually selected block"
+vnoremap . :norm! .<CR>
+
+" ================================ basic settings ================================="
+" https://github.com/JetBrains/ideavim/blob/master/doc/set-commands.md
+
+set number relativenumber
+set idearefactormode=keep
+
+set ideajoin
+set incsearch
+set scrolloff=8
+set hlsearch
+set ignorecase
+set smartcase
+set ideaput
+
+" ================================== space as leader ===================================="
+nnoremap <SPACE> <Nop>
+let mapleader = " "
+
+"========================================== macro ======================================="
+nnoremap R @q " R to execute q macro
+
+"================================ (Move to line start/end)==============================="
+noremap H ^
+noremap L $
+
+"=================================== (Move between blocks)==============================="
+"noremap J }
+"noremap K {
+
+noremap J 6jzz
+noremap K 6kzz
+
+"vertically navigation
+noremap <C-u> <C-u>zz
+noremap <C-d> <C-d>zz
+
+"find
+noremap n nzz
+noremap N Nzz
+
+
+" (Block ident)"
+"vmap < <gv
+"vmap > >gv
+
+"===================================== just some testing space =========================="
+
+"(Copy to system clipboard)"
+"vmap <C-S-c> +y "
+
+"noremap x 5x
+"inoremap <C-X> 5x
+"inoremap <C-X> <esc>5xa " - remove 5 chard in insert mode and go back to insert mode
+
+
+
+" ============== plugins https://jb.gg/ideavim-plugins ================================="
+set surround            "https://github.com/tpope/vim-surround
+set multiple-cursors
+set easymotion
+set commentary
+set highlightedyank
+set NERDTree
+set exchange
+set textobj-indent
+" set clipboard+=unnamed
+set clipboard+=unnamedplus
+
+"========================================================================================"
+"========================================================================================"
+"========================================================================================"
+"============================██╗   ██╗██╗███╗   ███╗====================================="
+"============================██║   ██║██║████╗ ████║====================================="
+"============================██║   ██║██║██╔████╔██║====================================="
+"============================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
+"============================ ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
+"============================  ╚═══╝  ╚═╝╚═╝     ╚═╝====================================="
+"==========================VIM PLUGINS Mapping & Config=================================="
+"========================================================================================"
+"========================================================================================"
+"========================================================================================"
+"........................................................................................"
+"========================================================================================"
+"======================================= surround ======================================="
+
+" https://github.com/tpope/vim-surround
+" https://github.com/tpope/vim-surround/blob/master/doc/surround.txt
+
+" This plugin is a tool for dealing with pairs of "surroundings."  Examples
+" of `surroundings` include parentheses, quotes, and HTML tags.  They are
+" closely related to what Vim refers to as |text-objects|.  Provided
+" are mappings to allow for `removing`, `changing`, and `adding` surroundings.
+
+"surroundings": parentheses, brackets, quotes, XML tags, and more
+
+" ----------------------------------------------------------------------------------------------------------
+" | DESCRIPTION:    Delete command: *ds* - The next character given determines the target to delete        |
+" |--------------------------------------------------------------------------------------------------------|
+" | Old text           | Command  | New text                                                               |
+" |--------------------------------------------------------------------------------------------------------|
+" |  "Hello *world!"   | ds"      | Hello world!                                                           |
+" |  (123+4*56)/2      | ds)      | 123+456/2                                                              |
+" |  <div>Yo!*</div>   | dst      | Yo!                                                                    |
+" ----------------------------------------------------------------------------------------------------------
+
+" ----------------------------------------------------------------------------------------------------------
+" | DESCRIPTION: Change command: *cs* - It takes two arguments, a target like with |ds|, and a replacement |
+" |--------------------------------------------------------------------------------------------------------|
+" | Old text           | Command  | New text                                                               |
+" |--------------------------------------------------------------------------------------------------------|
+" | "Hello *world!"    | cs"'     | 'Hello world!'                                                         |
+" | "Hello *world!"    | cs"<q>   | <q>Hello world!</q>                                                    |
+" | (123+4*56)/2       | cs)]     | [123+456]/2                                                            |
+" | (123+4*56)/2       | cs)[     | [ 123+456 ]/2                                                          |
+" | <div>Yo!*</div>    | cst<p>   | <p>Yo!</p>                                                             |
+" ----------------------------------------------------------------------------------------------------------
+
+" ----------------------------------------------------------------------------------------------------------
+" | DESCRIPTION: Add command: *ys* - takes a valid Vim motion or text object as the first object, and wraps|
+" |              it using the second argument as with |cs|.  (It's a stretch, but a good                   |
+" |              mnemonic for "ys" is "you surround".)                                                     |
+" |--------------------------------------------------------------------------------------------------------|
+" | Old text           | Command   | New text                                                              |
+" |--------------------------------------------------------------------------------------------------------|
+" | Hello w*orld!      | ysiw)     | Hello (world)!                                                        |
+" ----------------------------------------------------------------------------------------------------------
+
+"========================================================================================"
+"================================== multiple-cursors ===================================="
+
+nmap <leader>n <Plug>NextWholeOccurrence
+xmap <leader>n <Plug>NextWholeOccurrence
+"nmap <C-n> <Plug>NextOccurrence
+"xmap <C-n> <Plug>NextOccurrence
+"xmap <C-x> <Plug>SkipOccurrence
+"xmap <C-p> <Plug>RemoveOccurrence
+
+" ----------------------------------------------------------------------------------------------------------
+" |   DESCRIPTION: (https://github.com/terryma/vim-multiple-cursors/blob/master/doc/multiple_cursors.txt)  |
+" |--------------------------------------------------------------------------------------------------------|
+" |   normal mode                                                                                          |
+" |--------------------------------------------------------------------------------------------------------|
+" |   - start:      `<C-n>` start multicursor and add a virtual cursor + visual selection on the match     |
+" |       + next:   `<C-n>` add a new virtual cursor + visual selection on the next match                  |
+" |       + skip:   `<C-x>` skip the next match                                                            |
+" |       + prev:   `<C-p>` remove current virtual cursor + visual selection and go back on previous match |
+" |   - select all: `<A-n>` start muticursor and directly select all matches                               |
+" |                                                                                                        |
+" |  You can now change the virtual cursors + visual selection with |visual-mode| commands.                |
+" |  For instance: `c`, `s`, `I`, `A` work without any issues.                                             |
+" |  You could also go to |normal-mode| by pressing `v` and use normal commands there.                     |
+" |                                                                                                        |
+" |  At any time, you can press `<Esc>` to exit back to regular Vim.                                       |
+" |                                                                                                        |
+" |  NOTE: start with `g<C-n>` to match without boundaries (behaves like `g*` instead of `*`, see |gstar|) |
+" |--------------------------------------------------------------------------------------------------------|
+" |--------------------------------------------------------------------------------------------------------|
+" |  visual mode when multiple lines are selected~                                                         |
+" |--------------------------------------------------------------------------------------------------------|
+" |      - start: `<C-n>` add virtual cursors on each line                                                 |
+" |                                                                                                        |
+" |  You can now change the virtual cursors with |normal-mode| commands.                                   |
+" |  For instance: `ciw`.                                                                                  |
+" ----------------------------------------------------------------------------------------------------------
+
+"========================================================================================"
+"===================================== easymotion ======================================="
+
+map <leader><leader>s <Plug>(easymotion-s)
+map <leader><leader>f <Plug>(easymotion-f)
+
+" https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
+" https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
+
+" <ll> == <leader><leader>
+" ---------------------------------------------------------------------------------------------------------
+" |Default Mapping |  <Plug> command       |  Description                                                 |
+" |-------------------------------------------------------------------------------------------------------|
+" | <ll>f{char}    |  <Plug>(easymotion-f) |  Find {char} to the right. See |f|.                          |
+" | <ll>F{char}    |  <Plug>(easymotion-F) |  Find {char} to the left. See |F|.                           |
+" | <ll>t{char}    |  <Plug>(easymotion-t) |  Till before the {char} to the right. See |t|.               |
+" | <ll>T{char}    |  <Plug>(easymotion-T) |  Till after the {char} to the left. See |T|.                 |
+" | <ll>s          |  <Plug>(easymotion-s) |  Find(Search) {char} forward and backward. See |f| and |F|." |
+
+" | <ll>w          |  <Plug>(easymotion-w) |  Beginning of word forward. See |w|.                         |
+" | <ll>W          |  <Plug>(easymotion-W) |  Beginning of WORD forward. See |W|.                         |
+" | <ll>b          |  <Plug>(easymotion-b) |  Beginning of word backward. See |b|.                        |
+" | <ll>B          |  <Plug>(easymotion-B) |  Beginning of WORD backward. See |B|.                        |
+" | <ll>e          |  <Plug>(easymotion-e) |  End of word forward. See |e|.                               |
+" | <ll>E          |  <Plug>(easymotion-E) |  End of WORD forward. See |E|.                               |
+" | <ll>ge         |  <Plug>(easymotion-ge |  End of word backward. See |ge|.                             |
+" | <ll>gE         |  <Plug>(easymotion-gE |  End of WORD backward. See |gE|.                             |
+" | <ll>j          |  <Plug>(easymotion-j) |  Line downward. See |j|.                                     |
+" | <ll>k          |  <Plug>(easymotion-k) |  Line upward. See |k|.                                       |
+" | <ll>n          |  <Plug>(easymotion-n) |  Jump to latest "/" or "?" forward. See |n|.                 |
+" | <ll>N          |  <Plug>(easymotion-N) |  Jump to latest "/" or "?" backward. See |N|.                |
+" ---------------------------------------------------------------------------------------------------------
+
+"========================================================================================"
+"===================================== commentary ======================================="
+
+" https://github.com/tpope/vim-commentary"
+" https://github.com/tpope/vim-commentary/blob/master/doc/commentary.txt
+
+" ---------------------------------------------------------------------------------
+" |Default Mapping |  Description                                                 |
+" |-------------------------------------------------------------------------------|
+" | gc{motion}     |  Comment or uncomment lines that {motion} moves over.        |
+" | gc{text object}|  (for example, `gcap` to comment out a paragraph)            |
+" | gcc            |  Comment or uncomment [count] lines.                         |
+" | {Visual}gc     |  Text object for a comment (operator pending mode only.)     |
+" | gc             |  Till after the {char} to the left. See |T|.                 |
+" | gcgc or gcu    |  Uncomment the current and adjacent commented lines.         |
+" ---------------------------------------------------------------------------------
+
+"========================================================================================"
+"==================================== highlightedyank ==================================="
+
+" https://github.com/machakann/vim-highlightedyank/blob/master/doc/highlightedyank.txt"
+
+"let g:highlightedyank_highlight_color = "rgba(172, 205, 218, 1)""
+let g:highlightedyank_highlight_duration = "300"
+
+"========================================================================================"
+"================================== NERDTree config ====================================="
+
+map <C-p> :NERDTree<CR>
+let g:NERDTreeMapActivateNode='l'
+let g:NERDTreeMapJumpParent='h'
+
+nmap <leader>pw <Action>(ActivateProjectToolWindow)
+nmap <leader>pv <Action>(SelectInProjectView)
+
+"nnoremap <leader>pw :NERDTree<CR>
+"nnoremap <leader>pv :NERDTreeFind<CR>
+
+" https://github.com/JetBrains/ideavim/blob/master/doc/NERDTree-support.md?plain=1
+" ------------------------------------------------------------------------------------------------------
+" | Key     |  Description                                            |  Map Setting                   |
+" |---------|---------------------------------------------------------|--------------------------------|
+" | `o`     |  Open files, directories and bookmarks                  | `g:NERDTreeMapActivateNode`    |
+" | `go`    |  Open selected file, but leave cursor in the NERDTree   | `g:NERDTreeMapPreview`         |
+
+" | `t`     |  Open selected node/bookmark in a new tab               | `g:NERDTreeMapOpenInTab`       |
+" | `s`     |  Open selected file in a new vsplit                     | `g:NERDTreeMapOpenVSplit`      |
+
+" | `T`     |  Same as 't' but keep the focus on the current tab      | `g:NERDTreeMapOpenInTabSilent` |
+" | `i`     |  Open selected file in a split window                   | `g:NERDTreeMapOpenSplit`       |
+" | `gi`    |  Same as i, but leave the cursor on the NERDTree        | `g:NERDTreeMapPreviewSplit`    |
+" | `gs`    |  Same as s, but leave the cursor on the NERDTree        | `g:NERDTreeMapPreviewVSplit`   |
+" | `O`     |  Recursively open the selected directory                | `g:NERDTreeMapOpenRecursively` |
+" | `x`     |  Close the current nodes parent                         | `g:NERDTreeMapCloseDir`        |
+" | `X`     |  Recursively close all children of the current node     | `g:NERDTreeMapCloseChildren`   |
+" | `P`     |  Jump to the root node                                  | `g:NERDTreeMapJumpRoot`        |
+" | `p`     |  Jump to current nodes parent                           | `g:NERDTreeMapJumpParent`      |
+" | `K`     |  Jump up inside directories at the current tree depth   | `g:NERDTreeMapJumpFirstChild`  |
+" | `J`     |  Jump down inside directories at the current tree depth | `g:NERDTreeMapJumpLastChild`   |
+" | `<C-J>` |  Jump down to next sibling of the current directory     | `g:NERDTreeMapJumpNextSibling` |
+" | `<C-K>` |  Jump up to previous sibling of the current directory   | `g:NERDTreeMapJumpPrevSibling` |
+" | `r`     |  Recursively refresh the current directory              | `g:NERDTreeMapRefresh`         |
+" | `R`     |  Recursively refresh the current root                   | `g:NERDTreeMapRefreshRoot`     |
+" | `m`     |  Display the NERDTree menu                              | `g:NERDTreeMapMenu`            |
+" | `q`     |  Close the NERDTree window                              | `g:NERDTreeMapQuit`            |
+" | `A`     |  Zoom (maximize/minimize) the NERDTree window           | `g:NERDTreeMapToggleZoom`      |
+" ------------------------------------------------------------------------------------------------------
+
+"========================================================================================"
+"======================================= exchange ======================================="
+
+" https://github.com/tommcdo/vim-exchange/blob/master/doc/exchange.txt
+" https://github.com/tommcdo/vim-exchange/tree/master
+
+" -------------------------------------------------------------------------------------------------------------------
+" |Default Mapping| <Plug> command        | Description                                                             |
+" |-----------------------------------------------------------------------------------------------------------------|
+" | cx{motion}    |  <Plug>(Exchange)     | Used in pairs.                                                          |
+" |               |                       |  FIRST USE: define the first region of text to be                       |
+" |               |                       |  exchanged. Any valid {motion} can be used.                             |
+" |               |                       |  SECOND USE: define the second region of text and                       |
+" |               |                       |  perform the exchange.                                                  |
+" |               |                       |  Note: If a region was defined accidentally, it can                     |
+" |               |                       |  be cleared with |cxc|                                                  |
+" |               |                       |                                                                         |
+" | cxx           |  <Plug>(ExchangeLine) | Like |cx|, but for the current line. |linewise|                         |
+" | cxc           |  <Plug>(ExchangeClear)| Clear any defined region of text (previously defined by a |cx| command) |
+" | {Visual}X     |  <Plug>(Exchange)     | Can be used in |visual-mode|.                                           |
+" |               |                       |                                                                         |
+" -------------------------------------------------------------------------------------------------------------------
+
+"========================================================================================"
+"====================================== textobj-indent =================================="
+
+" Plugin allows to visually select text block by indent levels (very convenient)
+
+" https://github.com/michaeljsmith/vim-indent-object/blob/master/doc/indent-object.txt
+" https://www.seanh.cc/2020/08/08/vim-indent-object/
+
+" ---------------------------------------------------------------------------------------------------------------------------------------------------------
+" |Mapping|  Description                                                                                                                                  |
+" |-------------------------------------------------------------------------------------------------------------------------------------------------------|
+" | `vii` | selects all lines at the same indentation level as the current line.                                                                          |
+" |       | (For example just the body of a method and not the method signatureor any empty lines below the method. Or just the body of a `try`           |
+" |       | clause and not the `try` line itself.)                                                                                                        |
+" |       |                                                                                                                                               |
+" | `vai` | selects all lines at the same indentation level as the current line, and the first unindented line above the indented block (e.g. the method  |
+" |       | signature, if the indented block is a method, or the `try` if the indented block is a `try` clause, etc).                                     |
+" |       |                                                                                                                                               |
+" | `vaI` | selects an indentation level and both the unindented line above and the unindented line below it.                                             |
+" |       | For a method this will select the method’s signature (unindented line above) and the signature of the next                                    |
+" |       | method below (unindented line below) (as well as any empty lines between the two methods).                                                    |
+" |       | For a `try` clause it’ll select both the `try` above and the first except below (but not the body of the `except` clause).                    |
+" ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+" In visual mode you can keep repeating one of the above mappings to keep extending the selection
+"   to more and more text at higher and higher indentation levels. For example:
+
+" `vii` (goes into visual mode and selects the body of a try clause), `ii` (widens the selection to the entire method),
+"    `ii` (widens the selection again, to the entire class body), `ii` (widens the selection to also include the class signature).
+"    After this, further `ii`’s start selecting lines and blocks above the class.
+
+
+" You can combine the `ai`, `ii` and `aI` text objects with other operators besides v for visual mode, e.g. `cii`, `dii`, `yii` etc.
+"   For example `>ii` or `<ii` will indent or dedent an indented block.
+"   If you have `vim-commentary` installed then `gcii` will comment out an indented block.
+
+"========================================================================================"
+"========================================================================================"
+"========================================================================================"
+"============================██╗   ██╗██╗███╗   ███╗====================================="
+"============================██║   ██║██║████╗ ████║====================================="
+"============================██║   ██║██║██╔████╔██║====================================="
+"============================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
+"============================ ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
+"============================  ╚═══╝  ╚═╝╚═╝     ╚═╝====================================="
+"==========================Idea Custom Actions Mapping =================================="
+"========================================================================================"
+"========================================================================================"
+"========================================================================================"
+"==:map  - creates mappings for Normal mode, Visual mode, and Operator-pending mode.
+"==:nmap - create mappings that are only active in Normal mode.
+"== https://vimdoc.sourceforge.net/htmldoc/intro.html#key-notation
+"========================================================================================"
+"===== All mapping based on leader (space) key
+"===== All Intellij actions grouped in logical groups with unique group key with leader key
+"==== There present next groups:
+"==== key: (e) - Run \ Debug \ Extract (execute)
+
+"==== key: (i) - Introduce
+"==== key: (r) - Refactoring \ Rename \ Recent \ Replace
+"==== key: (l) - Line
+"==== key: (c) - Comment \ Copy \ Code
+"==== key: (l) - Line
+
+"==== key: (n) - New
+"==== key: (f)(g) - Navigation (find, goto)
+"==== key: (h) - Hierarchy \ History
+"==== key: (q) - Quick
+"==== key: (s) - Show \ History
+"==== key: (v) - View mode
+"==== key: (w) - Windows
+"==== key: (t) - Tabs
+"==== key: (m) - Menu
+"==== key: (b) - Block (Code fold/expand)
+"==== key: (o) - Terminal (open in)
+"==== key: (z) - Zen
+"==== key: (p) - Project management
+
+" not used yet:
+"==== key: (?) - Bookmarks and buffer
+"==== key: (?) - Scroll
+"==== key: (?) - Debugger
+
+"==== Also there present many mapping based on modifier keys
+"==== (especially when need repeat action and not call same all combination again and again that is quite annoying some time)
+"==== for more info see separate mapping GROUP.
+
+" :actionlist
+"====================================== (e) Run \ Debug \ Extract ==============================================="
+
+nmap <leader>ee <Action>(Run)
+nmap <leader>ed <Action>(Debug)
+nmap <leader>es <Action>(Stop)
+nmap <leader>er <Action>(Rerun)
+
+nmap <leader>ec <Action>(RunClass)
+"nmap <leader>ecd <Action>(DebugClass)
+
+"nmap <leader>et <Action>(RunTests)
+"nmap <leader>et <Action>(RerunTests)
+nmap <leader>ef <Action>(RerunFailedTests)
+
+"nmap <leader>ea <Action>(RunAnything)
+"nmap <leader>ec <Action>(ContextRun)
+"nmap <leader>ecc <Action>(ChooseRunConfiguration)
+
+"====== extract
+nmap <leader>em <Action>(ExtractMethod)
+
+"======================================= (i) Introduce ================================================="
+
+map <leader>ic <Action>(IntroduceConstant)
+map <leader>if <Action>(IntroduceField)
+map <leader>ip <Action>(IntroduceParameter)
+map <leader>iv <Action>(IntroduceVariable)
+
+map <leader>iif <Action>(IntroduceFunctionalParameter)
+map <leader>iiv <Action>(IntroduceFunctionalVariable)
+map <leader>iop <Action>(IntroduceParameterObject)
+
+map <leader>im <Action>(IntroduceActionsGroup)
+
+"======================================= (r) Refactoring \ Rename \ Recent \ Replace ================================================="
+
+nmap <leader>ra <Action>(Refactorings.QuickListPopupAction)
+nmap <leader>ru <Action>(Unwrap)
+"map <leader>rsd <Action>(SafeDelete)
+
+"=== Rename
+nmap <leader>re <Action>(RenameElement)
+"nmap <leader>rrf <Action>(RenameFile)
+
+"=== Recent
+nmap <leader>rf <Action>(RecentFiles)
+nmap <leader>rff <Action>(RecentChangedFiles)
+nmap <leader>rl <Action>(RecentLocations)
+
+
+"======================================= (l) Line ================================================="
+
+" Join Lines, exactly the same as `ideajoin` default `J` (shift+j) "
+nmap <leader>lj <Action>(EditorJoinLines)
+nmap <leader>ls <Action>(EditorSplitLine)
+nmap <leader>lt <Action>(EditorSortLines)
+
+"map <M-k> <Action>(MoveLineUp)
+"map <M-j> <Action>(MoveLineDown)
+
+"======================================= (c) Comment \ Copy \ Code ================================================="
+
+nmap <leader>cf <Action>(FixDocComment)
+
+map <leader>cl <Action>(CommentByLineComment)
+map <leader>cb <Action>(CommentByBlockComment)
+
+"=== Code
+nmap <leader>cg       <Action>(Generate)
+
+nmap <leader>ci <Action>(ImplementMethods)
+nmap <leader>co <Action>(OverrideMethods)
+nmap <leader>cs <Action>(SurroundWith)
+"nmap <leader>gic <Action>(InspectCode)
+
+"=== Copy
+nmap <leader>cr <Action>(CopyReference)
+
+"======================================= (n) New ... ================================================="
+
+nmap <leader>nn <Action>(NewElement)
+nmap <leader>nd <Action>(NewDir)
+nmap <leader>nf <Action>(NewFile)
+nmap <leader>np <Action>(NewProject)
+nmap <leader>nm <Action>(NewModule)
+nmap <leader>nc <Action>(NewClass)
+
+"======================================= (s) Show \ History ================================================="
+
+nmap <leader>so <Action>(SelectAllOccurrences)
+
+map <leader>sf <Action>(FindUsages)
+map <leader>ss <Action>(ShowUsages)
+
+nmap <leader>se <Action>(ShowErrorDescription)
+
+map <leader>su <Action>(HighlightUsagesInFile)
+
+"=== git blame
+nmap <leader>sa <Action>(Annotate)
+
+"=== History
+nmap <leader>sgh <Action>(LocalHistory.ShowHistory)
+nmap <leader>sgs <Action>(LocalHistory.ShowSelectionHistory)
+
+"nmap <leader>sf <Action>(ShowFilePath)
+"map <leader>ssi <Action>(SelectIn)
+"nmap <leader>sw <Action>($SearchWeb)
+"======================================= (q) Quick ================================================="
+
+map <leader>qq <Action>(QuickJavaDoc)
+map <leader>qi <Action>(QuickImplementations)
+
+map <leader>qs <Action>(QuickChangeScheme)
+
+map <leader>qe <Action>(QuickEvaluateExpression)
+
+"map <leader>qa <Action>(QuickActions)
+"map <leader>qt <Action>(QuickTypeDefinition)
+
+"======================================= (h) Hierarchy \ Hide ================================================="
+
+nmap <leader>hc <Action>(CallHierarchy)
+nmap <leader>hm <Action>(MethodHierarchy)
+nmap <leader>ht <Action>(TypeHierarchy)
+
+"=== Hide
+nmap <leader>ha <Action>(HideAllWindows)
+nmap <leader>hh <Action>(HideActiveWindow)
+
+"======================================= (v) View mode ================================================="
+
+nmap <leader>vf <Action>(ToggleFullScreen)
+nmap <leader>vv <Action>(ToggleDistractionFreeMode)
+nmap <leader>vp <Action>(TogglePresentationMode)
+
+
+"======================================= (f)(g) Navigation ================================================="
+
+"=== (f)
+nmap <leader>fe <Action>(SearchEverywhere)
+nmap <leader>fp <Action>(FindInPath)
+nmap <leader>ff <Action>(Find)
+nmap <leader>ft <Action>(TextSearchAction)
+
+"=== Replace
+nmap <leader>fr <Action>(Replace)
+nmap <leader>fgr <Action>(ReplaceInPath)
+
+
+nmap <leader>gf <Action>(GotoFile)
+nmap <leader>gc <Action>(GotoClass)
+nmap <leader>gs <Action>(GotoSymbol)
+nmap <leader>ga <Action>(GotoAction)
+nmap <leader>gd <Action>(GotoDeclaration)
+nmap <leader>ggt <Action>(GotoTypeDeclaration)
+nmap <leader>gi <Action>(GotoImplementation)
+nmap <leader>gt <Action>(GotoTest)
+
+nmap <leader>gm <Action>(GoToSuperMethod)
+"=== Modifiers
+"nmap <C-u> <Action>(GotoNextElementUnderCaretUsage)
+nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
+
+"nmap <C-e> <Action>(GotoNextError)
+"nmap <A-e> <Action>(GotoPreviousError)
+
+nmap <C-m> <Action>(MethodDown)
+nmap <A-m> <Action>(MethodUp)
+
+nmap <C-o> <Action>(NextOccurence)
+nmap <A-o> <Action>(PreviousOccurence)
+
+nmap <C-n> <Action>(Forward)
+nmap <A-n> <Action>(Back)
+
+" move between active split window tabs
+nmap <C-t> <Action>(NextSplitter)
+nmap <A-t> <Action>(PrevSplitter)
+
+"=== Scroll
+nmap <A-h> <Action>(EditorScrollLeft)
+nmap <A-j> <Action>(EditorScrollDown)
+nmap <A-k> <Action>(EditorScrollUp)
+nmap <A-l> <Action>(EditorScrollRight)
+
+" move between active split window tabs
+"map <C-n> <Action>(MoveStatementUp)
+"map <D-n> <Action>(MoveStatementDown)
+
+"nmap <leader>gc <Action>(VcsShowPrevChangeMarker)
+"nmap <leader>ge <Action>(JumpToLastChange)
+"nmap <leader>fn <Action>(VcsShowNextChangeMarker)
+
+"nmap <leader>fb <Action>(Switcher)
+
+"nmap <leader>fdo <Action>(GotoDatabaseObject)
+
+"nmap <leader>j <Action>(ShowNavBar)
+
+"nmap ]c <Action>(JumpToNextChange)
+"nmap ]c <Action>(JumpToLastChange)
+"======================================= (t) Tabs ================================================="
+
+
+"nmap <Tab>     <Action>(NextTab)
+nmap <S-Tab>   <Action>(PreviousTab)
+nmap <leader>1 <Action>(GoToTab1)
+nmap <leader>2 <Action>(GoToTab2)
+nmap <leader>3 <Action>(GoToTab3)
+nmap <leader>4 <Action>(GoToTab4)
+nmap <leader>5 <Action>(GoToTab5)
+nmap <leader>6 <Action>(GoToTab6)
+nmap <leader>7 <Action>(GoToTab7)
+nmap <leader>8 <Action>(GoToTab8)
+nmap <leader>9 <Action>(GoToTab9)
+nmap <leader>0 <Action>(GoToLastTab)
+
+map <leader>th <Action>(MoveTabLeft)
+map <leader>tj <Action>(MoveTabDown)
+map <leader>tk <Action>(MoveTabUp)
+map <leader>tl <Action>(MoveTabRight)
+
+" (Move between panes top/bottom/left/right)"
+"noremap <C-k> <C-w>k
+"noremap <C-j> <C-w>j
+"noremap <C-h> <C-w>h
+"noremap <C-l> <C-w>l
+noremap <Tab>k <C-w>k
+noremap <Tab>j <C-w>j
+noremap <Tab>h <C-w>h
+noremap <Tab>l <C-w>l
+
+" (change size of active panes top/bottom/left/right)"
+"map <A-h> <Action>(StretchSplitToLeft)
+"map <A-l> <Action>(StretchSplitToRight)
+"map <A-k> <Action>(StretchSplitToTop)
+"map <A-j> <Action>(StretchSplitToBottom)
+
+nmap <Tab>ma <Action>(MaximizeEditorInSplit)
+
+
+nmap <Tab>mm <Action>(MoveEditorToOppositeTabGroup)
+nmap <Tab>oo <Action>(OpenEditorInOppositeTabGroup)
+
+nmap <Tab>ch <Action>(CloseAllToTheLeft)
+nmap <Tab>cl <Action>(CloseAllToTheRight)
+nmap <Tab>r <Action>(ReopenClosedTab)
+
+nmap <Tab>p <Action>(PinActiveEditorTab)
+
+nmap <Tab>cc <Action>(CloseEditor)
+"nmap <Tab>xx <Action>(CloseContent)
+nmap <Tab>ca <Action>(CloseAllEditors)
+nmap <Tab>ci <Action>(CloseAllEditorsButActive)
+nmap <Tab>cp <Action>(CloseAllUnpinnedEditors)
+
+" (Pane vertically split/horizontally split/close)"
+nmap <Tab>sh <Action>(SplitHorizontally)
+nmap <Tab>sj <Action>(SplitVertically)
+
+nmap <Tab>uu <Action>(Unsplit)
+nmap <Tab>ua <Action>(UnsplitAll)
+
+nmap <Action>tl <Action>(JumpToLastWindow)
+
+"======================================= (w) Windows ================================================="
+
+nmap <leader>wc <Action>(ActivateCommitToolWindow)
+nmap <leader>wd <Action>(ActivateDebugToolWindow)
+nmap <leader>wr <Action>(ActivateRunToolWindow)
+nmap <leader>wg <Action>(ActivateVersionControlToolWindow)
+"nmap <leader>tm <Action>(ActivateMavenToolWindow)
+
+"======================================= (m) Menu ================================================="
+
+nmap <leader>mm <Action>(MainMenu)
+nmap <leader>ma <Action>(AnalyzeMenu)
+nmap <leader>mb <Action>(BuildMenu)
+nmap <leader>mc <Action>(CodeMenu)
+nmap <leader>mf <Action>(FindMenuGroup)
+nmap <leader>mgm <Action>(GoToMenu)
+nmap <leader>ms <Action>(ScopeViewPopupMenu)
+nmap <leader>mt <Action>(EditorTabPopupMenu)
+nmap <leader>mw <Action>(ToolWindowsGroup)
+nmap <leader>mgg <Action>(Git.Menu)
+
+nmap <leader>mr <Action>(RefactoringMenu)
+
+" create method by call etc
+nmap <leader>mi <Action>(ShowIntentionActions)
+
+"======================================= (b) Block (Code fold/expand) ================================================="
+
+map <leader>bc <Action>(CollapseRegion)
+map <leader>be <Action>(ExpandRegion)
+
+map <leader>bbc <Action>(CollapseAllRegions)
+map <leader>bbe <Action>(ExpandAllRegions)
+
+map <leader>ba <Action>(ExpandCollapseToggleAction)
+
+map <leader>cc <Action>(CollapseDocComments)
+map <leader>ce <Action>(ExpandDocComments)
+
+"======================================= (o) Terminal ================================================="
+
+map <leader>ot <Action>(ActivateTerminalToolWindow)
+map <leader>oc <Action>(Terminal.OpenInTerminal)
+
+"======== Optimize
+map <leader>oo :action ReformatCode \| action OptimizeImports<CR>
+map <leader>oi <Action>(OptimizeImports)
+map <leader>or <Action>(ReformatCode)
+
+
+"======================================= (z) Zen ================================================="
+
+map <leader>z <Action>(ToggleZenMode)
+
+"======================================= (p) Project management ================================================="
+
+map <leader>pr <Action>(ManageRecentProjects)
+map <leader>pl <Action>(RecentProjectListGroup)
+map <leader>px <Action>(CloseProject)
+
+
+
+
+"======================================= (?) Bookmarks and buffer ================================================="
+"nmap <leader>bb <Action>(Bookmarks)
+"nmap <leader>bs <Action>(ShowBookmarks)
+"nmap <leader>bt <Action>(ToggleBookmark)
+"nmap <leader>bf <Action>(AddToFavorites)
+
+"======================================= (?) Scroll ================================================="
+"nmap <leader>eh <Action>(EditorScrollLeft)
+"nmap <leader>ej <Action>(EditorScrollDown)
+"nmap <leader>ek <Action>(EditorScrollUp)
+"nmap <leader>el <Action>(EditorScrollRight)
+
+"======================================= (?) Debugger ==============================================="
+
+"nmap <leader>dE <Action>(EvaluateExpression)
+"nmap <leader>di <Action>(Debugger.AddInlineWatch)
+"nmap <leader>dw <Action>(Debugger.AddToWatch)
+"nmap <leader>db <Action>(EditBrakpoint)
+"nmap <leader>dt <Action>(ToggleLineBreakpoint)
+"nmap <leader>dr <Action>(Debugger.RemoveAllBreakpointsInFile)
+"nmap <leader>dR <Action>(Debugger.RemoveAllBreakpoints)
+"nmap <leader>dm <Action>(XDebugger.MuteBreakpoints)
+"nmap <leader>dc <Action>(ForceRunToCursor)
+"nmap <C-j> <Action>(StepOver)
+"nmap <C-k> <Action>(Resume)
+"nmap <C-h> <Action>(StepOut)
+"nmap <C-l> <Action>(ForceStepInto)
+
+
+"========================================================================================"
+"========================================================================================"
+"============================██╗   ██╗██╗███╗   ███╗====================================="
+"============================██║   ██║██║████╗ ████║====================================="
+"============================██║   ██║██║██╔████╔██║====================================="
+"============================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
+"============================ ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
+"============================  ╚═══╝  ╚═╝╚═╝     ╚═╝====================================="
+"===================Changed Idea Keymapping to follow VIM================================"
+"========================================================================================"
+"========================================================================================"
+
+
+" (change size of active tool window top/bottom/left/right) - intellij keymapping"
+"ResizeToolWindowLeft         <A-h>
+"ResizeToolWindowRight        <A-l>
+"ResizeToolWindowUp           <A-k>
+"ResizeToolWindowDown         <A-j>
