@@ -186,6 +186,44 @@ alias short='tldr'
  
 alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'
 
+alias vim="nvim"
+alias vi="nvim"
+alias lg="lazygit"
+
+alias fz="fzf --preview='cat {}'"
+function fze() {
+    result=$(fzf --preview='cat {}')
+    if [ -n "$result" ]; then
+        $EDITOR $result
+    fi
+}
+
+function fzc() {
+     result=$( ( \
+        find \
+            /home/serhii/ \
+            /home/serhii/.local/bin \
+             -maxdepth 1 -type f \
+        ; \
+        find \
+            /home/serhii/.config/ranger \
+            /home/serhii/.config/rofi \
+            /home/serhii/.config/qtile \
+            /home/serhii/.config/nvim \
+            /home/serhii/.config/nitrogen \
+            /home/serhii/.config/awesome \
+            /home/serhii/.config/alacritty \
+            /etc/keyd \
+             -maxdepth 2 -type f \
+        ; \
+        find /home/serhii/serhii.home/work/git.work \
+            -maxdepth 1 -type d ) | ( fzf --preview='cat {}' ) )
+
+        if [ -n "$result" ]; then
+            $EDITOR $result
+        fi
+}
+
 function getLogLevel() {
     ports=(${(@s:,:)1})
     for port in "${ports[@]}"; do
@@ -275,11 +313,12 @@ function topCommands() {
 export PATH=$PATH:/home/serhii/homebrew/bin/
 #export PATH=$PATH:/snap/intellij-idea-ultimate/current/bin
 export PATH=$PATH:/snap/bin
+#export PATH=$PATH:/usr/bin/python3
 #export PATH=$HOME/.cargo/env
 #export PATH=$HOME/.cargo/bin
 
-export VISUAL=nvim
-export EDITOR=nvim
+export VISUAL='nvim'
+export EDITOR='nvim'
 
 export MANPAGER='nvim +Man!'
 export MANWIDTH=999

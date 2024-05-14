@@ -29,6 +29,7 @@ if [[ -z "$1" ]]; then
 
     # work projects    
     find /home/serhii/serhii.home/work/git.work \
+	 /home/serhii/serhii.home/personal/git \
         -maxdepth 1 -type d  | xargs -I {} printf "intellij-idea-ultimate {}\n" \
     )
 else
