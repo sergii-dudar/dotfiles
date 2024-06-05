@@ -1,27 +1,39 @@
 {
-    "workbench.colorTheme": "Default Dark Modern",
-    "workbench.iconTheme": "vscode-icons",
-    "security.workspace.trust.untrustedFiles": "open",
-    "editor.fontSize": 18,
-    "window.zoomLevel": 2,
-    "terminal.integrated.fontSize": 16,
-    "redhat.telemetry.enabled": true,
-    "explorer.confirmDelete": false,
-    "extensions.ignoreRecommendations": true,
-    "[shellscript]": { // настройки применимые только для shellscript файлов
-      "editor.rulers": [ // вертикальные лини подсветки столбцов 72, 80, 132 
-        { "column": 72,  "color": "#1e751633", },
-        { "column": 80,  "color": "#c2790b99", },
-        { "column": 132, "color": "#a10d2d99" }
-      ],
-      "editor.minimap.maxColumn": 132, // ширина миникарты
-      "editor.wordWrap": "off", // запрещаем перенос строк
-      "files.eol": "\n", // явно зададим LF формат EOL
-      "files.insertFinalNewline": true, // завершаем все файлы новой строкой
-      "files.trimFinalNewlines": true, // удалим лишние новые строки в конце файла
-      "files.trimTrailingWhitespace": true, // удалим лишние пробелы в конце строк
-      "editor.renderWhitespace": "boundary", // отобразим два и более пробелов
-      "editor.insertSpaces": true, // отступы делаем пробелами
-      "editor.tabSize": 2, // размер отступа в два пробела
+  "workbench.colorTheme": "Visual Studio Dark",
+  "workbench.iconTheme": "vscode-icons",
+  "security.workspace.trust.untrustedFiles": "open",
+  "editor.fontSize": 18,
+  "window.zoomLevel": 2,
+  "terminal.integrated.fontSize": 16,
+  "redhat.telemetry.enabled": true,
+  "explorer.confirmDelete": false,
+  "extensions.ignoreRecommendations": true,
+  "[shellscript]": {
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.renderWhitespace": "boundary",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.tabCompletion": "on",
+    "editor.wordWrap": "off",
+    "editor.rulers": [
+      {
+        "column": 72,
+        "color": "#1e751633",
+      },
+      {
+        "column": 80,
+        "color": "#c2790b99",
+      },
+      {
+        "column": 132,
+        "color": "#a10d2d99"
+      }
+    ],
+    "editor.minimap.maxColumn": 132,
   },
+  "git.enableSmartCommit": true,
+  "git.autofetch": true
 }

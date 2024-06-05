@@ -99,7 +99,6 @@ VI_MODE_DISABLE_CLIPBOARD=false
 # zsh-syntax-highlighting
 # git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
-
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -128,191 +127,15 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Define ANSI escape codes for colors
-BLACK='\033[0;30m'
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-BOLD_BLUE='\033[1;34m'
-BOLD_YELLOW='\033[1;33m'
-UNDERLINE='\033[4m'
-RESET='\033[0m' # Reset color to default
-
-alias rl='exec zsh' # reload shell 
-
-alias l='ls -l'         # ls with items and directory details
-alias la='ls -a'        # ls all items and directories within cd
-alias lA='ls -A'        # ls all items and directories within cd, EXCEPT "." and ".."
-alias lla='ls -la'      # combines "ls -l" and "ls -a"
-alias llA='ls -lA'      # combines "ls -l" and "ls -A"
-
-alias az_dev='az aks get-credentials --resource-group dev --name aks-dev'
-alias az_qa='az aks get-credentials --resource-group qa --name aks-qa'
-alias az_uat='az aks get-credentials --resource-group uat --name aks-uat'
-
-alias k9sa='k9s -n all'
-
-alias k9sd='az_dev ; k9sa'
-alias k9sq='az_qa ; k9sa'
-alias k9su='az_uat ; k9sa'
-
-alias msa='mvn spotless:apply'
-alias helmdu='helm dependency update'
-alias helmu='cd helm; helmdu'
-
-alias gitreset_comit='git reset HEAD~'
-
-alias tmuxan='tmux attach || tmux new' # connect to exists session or create new one
-# alias tmuxan='tmux attach || tmux new -s ''default'' -n ''ranger.h'' ''ranger .'''
-
-alias mvncc='msa ; mvn clean compile'
-alias mvncv='msa ; mvn clean verify'
-
-alias ideau='intellij-idea-ultimate'
- 
-alias dup='docker-compose up'
-alias ddown='docker-compose down'
-
-alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window name: " "rename-window ''%%''"'
-#alias tmuxan='tmux new-session -A -s default'
-
-#alias idea='intellij-idea-ultimate'
-
-alias short='tldr'
- 
-alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'
-
-alias vim="nvim"
-alias vi="nvim"
-alias lg="lazygit"
-
-alias fz="fzf --preview='cat {}'"
-function fze() {
-    result=$(fzf --preview='cat {}')
-    if [ -n "$result" ]; then
-        $EDITOR $result
-    fi
-}
-
-function fzc() {
-     result=$( ( \
-        find \
-            /home/serhii/ \
-            /home/serhii/.local/bin \
-             -maxdepth 1 -type f \
-        ; \
-        find \
-            /home/serhii/.config/ranger \
-            /home/serhii/.config/rofi \
-            /home/serhii/.config/qtile \
-            /home/serhii/.config/nvim \
-            /home/serhii/.config/nitrogen \
-            /home/serhii/.config/awesome \
-            /home/serhii/.config/alacritty \
-            /etc/keyd \
-             -maxdepth 2 -type f \
-        ; \
-        find /home/serhii/serhii.home/work/git.work \
-            -maxdepth 1 -type d ) | ( fzf --preview='cat {}' ) )
-
-        if [ -n "$result" ]; then
-            $EDITOR $result
-        fi
-}
-
-function getLogLevel() {
-    ports=(${(@s:,:)1})
-    for port in "${ports[@]}"; do
-            curl --silent --request GET \
-                 --url "http://localhost:$port/actuator/loggers/$2"
-    done
-}
-
-function changeLogLevel() {
-    ports=(${(@s:,:)1})
-    for port in "${ports[@]}"; do
-
-            curl --request POST \
-                --url "http://localhost:$port/actuator/loggers/$2" \
-                --header 'Content-Type: application/json' \
-                --data "{
-                \"configuredLevel\": \"$3\"
-                }"
-            echo -e ">>>> $port: Level to package: ${BOLD_BLUE}\"$2\"${RESET} successfully change to ${BOLD_YELLOW}\"$3\"${RESET}"
-            echo -e ">>>> $port: Actual level of package: ${BOLD_BLUE}\"$2\"${RESET} is: ${BOLD_YELLOW}$(getLogLevel $port "$2")${RESET}"
-    done
-}
-
-function getLogLevel8091() {
-    getLogLevel 8091 "$1"
-}
-
-function changeLogLevel8091() {
-    changeLogLevel 8091 "$1" "$2"
-}
-
-function chrome() {
-	google-chrome > /dev/null 2>&1 &
-}
-
-function findt() { 
-    egrep -ir "($1)" .
-}    
-
-function findt_in() {
-    grep -r -n -i --include="$2" "$1" .
-}
-
-function findt_in_r() {
-	find . -name $2 -exec sed -i "s/$1/$3/g" {} \;
-}
-
-function idea() {
-    intellij-idea-ultimate "$1" > /dev/null 2>&1 &
-}
-
-function open_terminal() {
-   alacritty
-}
-
-function files() {
-    nautilus "$1" > /dev/null 2>&1 &
-}
-
-function s_restart() {
-    sudo systemctl restart "$1"
-}
-
-function s_status() {
-    sudo systemctl status "$1"
-}
-
-function copy_content() {
-    xclip -selection clipboard $1
-}
-
-function topCommands() {
-    history | awk 'BEGIN {FS="[ \t]+|\\|"} {print $3}' | sort | uniq -c | sort -nr | head -$1
-}
-
-#function copy_file() {
-#    # mac
-#    # brew install findutils
-#    # brew install coreutils
-#      osascript -e{'on run{a}','set the clipboard to posix file a',end} "$(greadlink -f -- "$1")"
-#
-#      # linux
-#      # ...
-#}
+source "$HOME/serhii.shell/aliases.sh"
+source "$HOME/serhii.shell/scripts.sh"
+source "$HOME/serhii.shell/kafka.scripts.sh"
 
 #export HOMEBREW_FORCE_BREWED_CURL=1
 export PATH=$PATH:/home/serhii/homebrew/bin/
 #export PATH=$PATH:/snap/intellij-idea-ultimate/current/bin
 export PATH=$PATH:/snap/bin
+export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
 #export PATH=$PATH:/usr/bin/python3
 #export PATH=$HOME/.cargo/env
 #export PATH=$HOME/.cargo/bin
