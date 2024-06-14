@@ -11,6 +11,7 @@ configuration {
   icon-theme: "Papirus";
   kb-mode-next: "Shift+Right,Tab";
   kb-row-tab: "Control+Tab";
+  kb-screenshot: "Alt+s";
 }
 
 @theme "/dev/null"

@@ -50,3 +50,4 @@ alias lg="lazygit"
 
 alias fz="fzf --preview='cat {}'"
 
+alias psqlu="sudo -u postgres psql"

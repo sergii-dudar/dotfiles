@@ -3,4 +3,5 @@ DevAppRunner.java
 TestDevAppRunner.java
 dev.application.properties.evn
 application.yaml
+application-work.yaml
 **/dev/**
