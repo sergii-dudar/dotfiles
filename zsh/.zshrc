@@ -139,9 +139,9 @@ if isMacOs; then
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 else
-  export PATH=$PATH:/home/serhii/homebrew/bin/
-  export PATH=$PATH:/snap/bin
-  export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
+    export PATH=$PATH:/home/serhii/homebrew/bin/
+    export PATH=$PATH:/snap/bin
+    export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
 fi
 
 export VISUAL='nvim'
