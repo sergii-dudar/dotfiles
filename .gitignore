@@ -5,6 +5,7 @@
 *.iws
 *.ipr
 *.tgz
+**/.DS_Store
 
 # Build targets
 out/
