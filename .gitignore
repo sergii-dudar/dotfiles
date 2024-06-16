@@ -1,0 +1,31 @@
+# IDEA project files
+.idea
+.run
+*.iml
+*.iws
+*.ipr
+*.tgz
+
+# Build targets
+out/
+bin/
+.vscode/
+build/
+target/
+**/main/resources/logback-extend.xml
+**/test/resources/application.properties
+**/venv
+
+awesome/.config/awesome/themes
+ranger/.config/ranger/plugins
+
+# Generated classes
+**/main/generated/
+**/test/generated_tests/
+
+# Gradle tools
+.gradle/
+local.gradle.properties
+
+# Dev settings
+application-dev.yml
