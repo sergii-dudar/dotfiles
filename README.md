@@ -16,11 +16,20 @@ https://medium.com/quick-programming/managing-dotfiles-with-gnu-stow-9b04c155eba
 ```
 brew install stow
 
-#clone repo
+cd ~/
+git clone https://github.com/sergii-dudar/dotfiles.git
 cd dotfiles
 
-#install for example allacritty
+# install for example allacritty
 stow allacritty
+
+# in case we have existing config, that we want to override
+# we need apply kind of hack, as stow now supported it fully from box
+
+stow --adopt allacritty
+
+# after this, we need restore in git dotfiles alacritty configs
+# as --adopt just swapping existing configs with repo, and them make link with replacing existing config file 
 
 ```
 

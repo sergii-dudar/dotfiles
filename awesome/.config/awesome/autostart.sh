@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/bash
 
 #source ~/.zshrc
 #sh ~/offLaptopScreenIfClosed.sh
