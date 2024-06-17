@@ -202,4 +202,8 @@ function copy_file() {
 
 function mkcd () {  
     mkdir -p -- "$1" && cd -p -- "$1"  
-}  
+}
+
+function tmux_popup() {
+    tmux display-popup -E sh -c tmux attach -t popup_terminal || (tmux new-session -d -s popup_terminal -c "$PWD" && tmux attach -t popup_terminal)
+}
