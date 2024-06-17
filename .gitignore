@@ -19,10 +19,13 @@ target/
 
 awesome/.config/awesome/themes
 ranger/.config/ranger/plugins
+ranger/.config/ranger/colorschemes
+alacritty/.config/alacritty/themes
 
 # Generated classes
 **/main/generated/
 **/test/generated_tests/
+**/__pycache__
 
 # Gradle tools
 .gradle/

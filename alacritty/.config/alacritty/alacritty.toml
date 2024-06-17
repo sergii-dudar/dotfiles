@@ -12,7 +12,7 @@
 # alabaster_dark, google,
 
 import = [
-    "~/dotfiles.extensions/alacritty/alacritty-theme/themes/alabaster_dark.toml"
+    "~/.config/alacritty/themes/themes/alabaster_dark.toml"
 ]
 
 # Shell program and its arguments
@@ -119,7 +119,7 @@ italic = { style = "Italic" }  # Inherits family from normal, Default style: Ita
 bold_italic = { style = "Bold Italic" }  # Inherits family from normal, Default style: Bold Italic
 
 # Font size in points
-size = 25  # Default: 11.25
+size = 18  # Default: 11.25
 
 # Offset is extra space around each character
 offset = { x = 0, y = 0 }  # Default: x = 0, y = 0
