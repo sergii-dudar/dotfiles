@@ -28,6 +28,7 @@ alias tmuxan='tmux attach || tmux new' # connect to exists session or create new
 
 alias mvncc='msa ; mvn clean compile'
 alias mvncv='msa ; mvn clean verify'
+alias mcc='mvn clean compile'
 alias nativeb='time ./mvnw clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -DskipNativeTests -DquickBuild -Pnative native:compile'
 
 alias ideau='intellij-idea-ultimate'
@@ -51,3 +52,5 @@ alias lg="lazygit"
 alias fz="fzf --preview='cat {}'"
 
 alias psqlu="sudo -u postgres psql"
+alias postgres_start="systemctl start postgresql"
+alias postgres_start="systemctl stop postgresql"

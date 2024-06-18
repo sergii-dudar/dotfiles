@@ -41,6 +41,12 @@ if [[ -z "$1" ]]; then
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
 
+    find \
+        /home/serhii/dotfiles \
+         -type f | \
+    xargs -I {} printf "nvim {}\nsubl {}\n" \
+    ; \
+
     # books
     #find \
     #    /home/serhii/serhii.home/personal/books
