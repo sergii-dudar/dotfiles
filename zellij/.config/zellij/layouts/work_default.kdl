@@ -1,0 +1,46 @@
+layout {
+    tab name="ranger" focus=true {
+        // start_suspended=true
+        pane size=1 borderless=true {
+            plugin location="tab-bar"
+        }
+        pane {
+            name "ranger"
+            command "ranger"
+            args "."
+        }
+        //floating_panes {
+        //    pane {
+        //        name "greeting"
+        //        command "echo"
+        //        args "Welcome back!!!"
+        //    }
+        //}
+        pane size=2 borderless=true {
+            plugin location="status-bar"
+        }
+    }
+    tab name="k9s" {
+        pane size=1 borderless=true {
+            plugin location="tab-bar"
+        }
+        pane start_suspended=true {
+            name "k9s"
+            command "k9s"
+        }
+        //pane size=2 borderless=true {
+        //    plugin location="compact-bar"
+        //}
+    }
+    tab name="zsh" {
+        pane size=1 borderless=true {
+            plugin location="tab-bar"
+        }
+        pane {
+            name "zsh"
+        }
+        //pane size=2 borderless=true {
+        //    plugin location="compact-bar"
+        //}
+    }
+}

@@ -30,6 +30,8 @@ alias mvncc='msa ; mvn clean compile'
 alias mvncv='msa ; mvn clean verify'
 alias mcc='mvn clean compile'
 alias nativeb='time ./mvnw clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -DskipNativeTests -DquickBuild -Pnative native:compile'
+alias springbi='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true spring-boot:build-image'
+alias springbin='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -Pnative spring-boot:build-image'
 
 alias ideau='intellij-idea-ultimate'
  
@@ -54,3 +56,5 @@ alias fz="fzf --preview='cat {}'"
 alias psqlu="sudo -u postgres psql"
 alias postgres_start="systemctl start postgresql"
 alias postgres_start="systemctl stop postgresql"
+
+alias zj="zellij"
