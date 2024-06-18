@@ -1,19 +1,25 @@
 layout {
     tab name="ranger" focus=true {
-        // start_suspended=true
         pane size=1 borderless=true {
-            plugin location="tab-bar"
+            //plugin location="tab-bar"
+            plugin location="compact-bar"
         }
         pane {
             name "ranger"
             command "ranger"
             args "."
         }
-        //floating_panes {
+        //floating_panes close_on_exit=true {
         //    pane {
-        //        name "greeting"
-        //        command "echo"
-        //        args "Welcome back!!!"
+        //      plugin location="welcome-screen"
+        //    }
+        //}
+        //floating_panes close_on_exit=true {
+        //floating_panes close_on_exit=true {
+        //    pane {
+        //      name "greeting"
+        //        command "zsh"
+        //        args "-c" "echo hello && exit ; exit"
         //    }
         //}
         pane size=2 borderless=true {
@@ -22,7 +28,7 @@ layout {
     }
     tab name="k9s" {
         pane size=1 borderless=true {
-            plugin location="tab-bar"
+            plugin location="compact-bar"
         }
         pane start_suspended=true {
             name "k9s"
@@ -34,13 +40,23 @@ layout {
     }
     tab name="zsh" {
         pane size=1 borderless=true {
-            plugin location="tab-bar"
+            plugin location="compact-bar"
         }
         pane {
             name "zsh"
         }
-        //pane size=2 borderless=true {
-        //    plugin location="compact-bar"
-        //}
+    //pane size=2 borderless=true {
+    //    plugin location="compact-bar"
+    //}
     }
+    //tab name="tmux" {
+    //    pane size=1 borderless=true {
+    //        plugin location="tab-bar"
+    //    }
+    //    pane {
+    //        name "tmux"
+    //        command "zsh"
+    //        args "-c" "tmux attach || tmux new -s default ; command-prompt -p \"Window name: \" \"rename-window '%%'\""
+    //    }
+    //}
 }

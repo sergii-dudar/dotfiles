@@ -58,3 +58,4 @@ alias postgres_start="systemctl start postgresql"
 alias postgres_start="systemctl stop postgresql"
 
 alias zj="zellij"
+alias q="exit"
