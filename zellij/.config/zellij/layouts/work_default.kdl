@@ -1,9 +1,27 @@
 layout {
-    tab name="ranger" focus=true {
+    tab_template name="first_init_tab_template" {
         pane size=1 borderless=true {
             //plugin location="tab-bar"
             plugin location="compact-bar"
         }
+        children
+        pane size=2 borderless=true {
+            plugin location="status-bar"
+        }
+    }
+    tab_template name="init_tab_template" {
+        pane size=1 borderless=true {
+            plugin location="compact-bar"
+        }
+        children
+    }
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="compact-bar"
+        }
+        children
+    }
+    first_init_tab_template name="ranger" focus=true {
         pane {
             name "ranger"
             command "ranger"
@@ -22,32 +40,17 @@ layout {
         //        args "-c" "echo hello && exit ; exit"
         //    }
         //}
-        pane size=2 borderless=true {
-            plugin location="status-bar"
-        }
     }
-    tab name="k9s" {
-        pane size=1 borderless=true {
-            plugin location="compact-bar"
-        }
+    init_tab_template name="k9s" {
         pane start_suspended=true {
             name "k9s"
             command "k9s"
         }
-        //pane size=2 borderless=true {
-        //    plugin location="compact-bar"
-        //}
     }
-    tab name="zsh" {
-        pane size=1 borderless=true {
-            plugin location="compact-bar"
-        }
+    init_tab_template name="zsh" {
         pane {
             name "zsh"
         }
-    //pane size=2 borderless=true {
-    //    plugin location="compact-bar"
-    //}
     }
     //tab name="tmux" {
     //    pane size=1 borderless=true {
