@@ -44,7 +44,9 @@ layout {
     init_tab_template name="k9s" {
         pane start_suspended=true {
             name "k9s"
-            command "k9s"
+            //command "k9s"
+            command "zsh"
+            args "-c" "k9s"
         }
     }
     init_tab_template name="zsh" {
