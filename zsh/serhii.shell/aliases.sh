@@ -59,3 +59,10 @@ alias postgres_start="systemctl stop postgresql"
 
 alias zj="zellij"
 alias q="exit"
+
+alias python="/usr/bin/python3.12"
+alias py="/usr/bin/python3.12"
+
+alias cat='bat'
+
+

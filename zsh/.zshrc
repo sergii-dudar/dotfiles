@@ -127,35 +127,16 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/scripts.sh"
+source "$HOME/serhii.shell/variables.sh"
+source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/kafka.scripts.sh"
+source "$HOME/serhii.shell/fzf.scripts.sh"
 
-if isMacOs; then
-    export PATH="/usr/local/opt/python@3.9/libexec/bin:$PATH"
-    export PATH="/usr/local/opt/python/libexec/bin:$PATH"
-    export PATH="/Applications/IntelliJ IDEA.app/Contents/MacOS:$PATH"
-
-    # Add Docker Desktop for Mac (docker)
-    export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
-else
-    export PATH=$PATH:/home/serhii/homebrew/bin/
-    export PATH=$PATH:/snap/bin
-    export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
-fi
-
-export VISUAL='nvim'
-export EDITOR='nvim'
-
-export MANPAGER='nvim +Man!'
-export MANWIDTH=999
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-# Set up fzf key bindings and fuzzy completion
-eval "$(fzf --zsh)"
 
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm

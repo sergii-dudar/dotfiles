@@ -12,6 +12,12 @@ BOLD_YELLOW='\033[1;33m'
 UNDERLINE='\033[4m'
 RESET='\033[0m' # Reset color to default
 
+#TGREEN='%F{green}'
+#TRESET='%f'  # Reset color to default
+#NL='
+#'
+#PS1="${PS1}${NL}${TGREEN}> ${TRESET}"
+
 OS_TYPE=$(uname)
 function isMacOs() {
     if [[ "$OS_TYPE" == "Darwin" ]]; then
@@ -21,39 +27,6 @@ function isMacOs() {
         #echo "current is Linux..."
         return 1  # false
     fi
-}
-
-function fze() {
-    result=$(fzf --preview='cat {}')
-    if [ -n "$result" ]; then
-        $EDITOR $result
-    fi
-}
-
-function fzc() {
-     result=$( ( \
-        find \
-            /home/serhii/ \
-            /home/serhii/.local/bin \
-             -maxdepth 1 -type f \
-        ; \
-        find \
-            /home/serhii/.config/ranger \
-            /home/serhii/.config/rofi \
-            /home/serhii/.config/qtile \
-            /home/serhii/.config/nvim \
-            /home/serhii/.config/nitrogen \
-            /home/serhii/.config/awesome \
-            /home/serhii/.config/alacritty \
-            /etc/keyd \
-             -maxdepth 2 -type f \
-        ; \
-        find /home/serhii/serhii.home/work/git.work \
-            -maxdepth 1 -type d ) | ( fzf --preview='cat {}' ) )
-
-        if [ -n "$result" ]; then
-            $EDITOR $result
-        fi
 }
 
 function getLogLevel() {
@@ -117,32 +90,6 @@ EOF
 
 function chrome() {
 	google-chrome > /dev/null 2>&1 &
-}
-
-function findt() { 
-    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-        cat << EOF
-find text in files from currect dir: findt [text]
-EOF
-        return 0
-    fi
-
-    egrep -ir "($1)" .
-}    
-
-function findt_in() {
-    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-        cat << EOF
-find text in files from currect dir: findt [text] [*.yaml]
-EOF
-        return 0
-    fi
-
-    grep -r -n -i --include="$2" "$1" .
-}
-
-function findt_in_r() {
-	find . -name $2 -exec sed -i "s/$1/$3/g" {} \;
 }
 
 function idea() {

@@ -22,39 +22,30 @@ funciton getMapValueOrKey() {
 if [[ -z "$1" ]]; then
     ( 
     # configs    
-    find \
+    /home/serhii/homebrew/bin//fd . --type f --max-depth 1 --hidden --no-follow \
         /home/serhii/ \
-        /home/serhii/serhii.shell \
-        /home/serhii/.local/bin \
-         -maxdepth 1 -type f | \
+        /home/serhii/serhii.shell | \
+        #/home/serhii/.local/bin | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-    find \
+    /home/serhii/homebrew/bin//fd . --max-depth 2 --type f --hidden --no-follow \
         /home/serhii/.config/ranger \
         /home/serhii/.config/rofi \
         /home/serhii/.config/qtile \
         /home/serhii/.config/nvim \
         /home/serhii/.config/nitrogen \
         /home/serhii/.config/awesome \
-        /home/serhii/.config/alacritty \
-         -maxdepth 2 -type f | \
+        /home/serhii/.config/alacritty | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-
-    find \
-        /home/serhii/dotfiles \
-         -type f | \
+    /home/serhii/homebrew/bin//fd . --type f --hidden --no-follow \
+        /home/serhii/dotfiles | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-
-    # books
-    #find \
-    #    /home/serhii/serhii.home/personal/books
-
-    # work projects    
-    find /home/serhii/serhii.home/work/git.work \
-	 /home/serhii/serhii.home/personal/git \
-        -maxdepth 1 -type d  | xargs -I {} printf "$intellijView {}\n$vscodeView {}\n" \
+    /home/serhii/homebrew/bin//fd. --type d --max-depth 1 --hidden \
+     /home/serhii/serhii.home/work/git.work \
+	 /home/serhii/serhii.home/personal/git | \
+    xargs -I {} printf "$intellijView {}\n$vscodeView {}\n" \
     )
 else
     if [[ $1 =~ "nvim" ]]; then
