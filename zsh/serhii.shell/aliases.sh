@@ -1,11 +1,24 @@
 alias rl='exec zsh' # reload shell 
 
-alias l='ls -l'         # ls with items and directory details
-alias la='ls -a'        # ls all items and directories within cd
-alias lA='ls -A'        # ls all items and directories within cd, EXCEPT "." and ".."
-alias lla='ls -la'      # combines "ls -l" and "ls -a"
-alias llA='ls -lA'      # combines "ls -l" and "ls -A"
-alias ll='ls -la'
+# Changing "ls" to "eza"
+alias ls='eza -al --color=always --group-directories-first' # my preferred listing
+alias la='eza -a --color=always --group-directories-first'  # all files and dirs
+alias ll='eza -l --color=always --group-directories-first'  # long format
+alias lt='eza -aT --color=always --group-directories-first' # tree listing
+alias lh='eza -a | rg --color=always "^\."'
+alias l.='eza -al --color=always --group-directories-first ../' # ls on the PARENT directory
+alias l..='eza -al --color=always --group-directories-first ../../' # ls on directory 2 levels up
+alias l...='eza -al --color=always --group-directories-first ../../../' # ls on directory 3 levels up
+
+# Changing "ps" to "procs"
+alias ps="procs"
+
+# navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias .3='cd ../../..'
+alias .4='cd ../../../..'
+alias .5='cd ../../../../..'
 
 alias az_dev='az aks get-credentials --resource-group dev --name aks-dev'
 alias az_qa='az aks get-credentials --resource-group qa --name aks-qa'
@@ -51,7 +64,7 @@ alias vim="nvim"
 alias vi="nvim"
 alias lg="lazygit"
 
-alias fz="fzf --preview='cat {}'"
+alias fz="fzf --preview='bat {}'"
 
 alias psqlu="sudo -u postgres psql"
 alias postgres_start="systemctl start postgresql"

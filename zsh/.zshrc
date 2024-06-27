@@ -127,6 +127,15 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# ============================== Dependencies:
+# https://github.com/junegunn/fzf
+# https://github.com/sharkdp/fd
+# https://github.com/BurntSushi/ripgrep
+# https://github.com/sharkdp/bat
+# https://formulae.brew.sh/formula/tree
+# https://github.com/eza-community/eza
+# https://github.com/dalance/procs
+
 source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
 source "$HOME/serhii.shell/aliases.sh"

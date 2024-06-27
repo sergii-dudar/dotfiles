@@ -12,13 +12,6 @@ HISTSIZE=50000
 SAVEHIST=10000
 setopt appendhistory
 
-# ==============================
-# https://github.com/junegunn/fzf
-# https://github.com/sharkdp/fd
-# https://github.com/BurntSushi/ripgrep
-# https://github.com/sharkdp/bat
-# https://formulae.brew.sh/formula/tree
-
 # ===============================
 # ===============Fuzzy completion
 # vim **<TAB>               - Files under the current directory
