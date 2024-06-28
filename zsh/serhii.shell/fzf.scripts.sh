@@ -14,6 +14,7 @@ setopt appendhistory
 
 # ===============================
 # ===============Fuzzy completion
+# https://github.com/junegunn/fzf?tab=readme-ov-file#files-and-directories
 # vim **<TAB>               - Files under the current directory
 # vim ../**<TAB>            - Files under parent directory
 # vim ../fzf**<TAB>         - Files under parent directory that match `fzf`
@@ -58,23 +59,35 @@ export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target
   --preview 'tree -C -L 1 {}'"
 
+if isMacOs; then
+    # workaround for fzf keybinding with alt+
+    bindkey "ç" fzf-cd-widget
+    bindkey "†" fzf-file-widget
+    bindkey "®" fzf-history-widget
+fi
+
 # ==================================================
 # ================= searching file content \ replace
 
-function rgf() {
-    # 1. Search for text in files using Ripgrep
-    # 2. Interactively narrow down the list using fzf
-    # 3. Open the file in Vim
-    rg --color=always --line-number --no-heading --smart-case "${*:-}" |
+alias grepid="grepf idea";
+alias grepco="grepf code";
+alias grepvi="grepf nvim";
+alias grepsu="grepf subl";
+
+function grepf() {
+    local editor="${1:-nvim}"
+    shift
+    # echo $editor
+
+    rg --color=always --line-number --no-heading --smart-case "${*:-}" "$PWD" |
       fzf --ansi \
           --exact \
           --color "hl:-1:underline,hl+:-1:underline:reverse" \
           --delimiter : \
           --preview 'bat --color=always {1} --highlight-line {2}' \
           --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
-          --bind 'enter:become(nvim {1} +{2})'
+          --bind "enter:become($editor {1})"
 }
-
 
 function findt() {
     if [[ "$1" == "--help" || "$1" == "-h" ]]; then

@@ -1,0 +1,93 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "display": {
+        "size": {
+            "maxPrefix": "MB",
+            "ndigits": 0
+        }
+    },
+    "logo": {
+        "type": "builtin",
+        //"source": "Xenia"
+        //"source": "arco"
+        "source": "ARCHlabs"
+        //"source": "Windows"
+        //"source": "slackware"
+        //"source": "rhel"
+    },
+    "modules": [
+        {
+            "type": "title",
+            "key": "User",
+            "format": "{1}"
+        },
+        //"separator",
+        "os",
+        "host",
+        "kernel",
+        "processes",
+        //"uptime",
+        //"packages",
+        "shell",
+        {
+            "type": "display",
+            "compactType": "original",
+            "key": "Resolution"
+        },
+        "editor",
+        //"de",
+        //"wm",
+        //"wmtheme",
+        "theme",
+        "icons",
+        "terminal",
+        "terminalfont",
+        "terminalsize",
+        //"cpu",
+        //{
+        //    "type": "gpu",
+        //    "format": "{2}"
+        //},
+        //"cpuusage",
+        //{
+        //    "type": "gpu",
+        //    "temp": true
+        //},
+
+        "terminaltheme",
+        {
+            "type": "cpu",
+            "showPeCoreCount": true,
+            "temp": true
+        },
+
+        //{
+        //    "type": "cpu",
+        //    "key": "CPU",
+        //    "format": "{4} x {1}"
+        //},
+
+        //"cpucache",
+        //"cpuusage",
+
+
+        "memory",
+        {
+            "type": "disk",
+            "key": "Disk",
+            "folders": "/"
+        },
+        "battery",
+        //"publicip",
+        //{
+        //    "type": "localip",
+        //    "showIpv6": true,
+        //    "showMac": true
+        //},
+        "datetime",
+        "sound",
+        //"netio",
+        "break",
+        "colors"
+    ]
+}

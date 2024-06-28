@@ -13,6 +13,15 @@ alias l...='eza -al --color=always --group-directories-first ../../../' # ls on 
 # Changing "ps" to "procs"
 alias ps="procs"
 
+# Changing "grep" to "repgrep"
+alias grep="rg"
+
+# Changing "find" to "fd"
+#alias find="fd"
+
+# Changing "cat" to "bat"
+alias cat='bat'
+
 # navigation
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -76,6 +85,12 @@ alias q="exit"
 alias python="/usr/bin/python3.12"
 alias py="/usr/bin/python3.12"
 
-alias cat='bat'
-
+# copy input to buffer depends on OS
+if isMacOs; then
+    alias buff="pbcopy"
+    alias b="buff"
+else
+    alias buff="xclip clipboard"
+    alias b="buff"
+fi
 

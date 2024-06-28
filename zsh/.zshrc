@@ -128,6 +128,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # ============================== Dependencies:
+# https://formulae.brew.sh/formula/tldr
 # https://github.com/junegunn/fzf
 # https://github.com/sharkdp/fd
 # https://github.com/BurntSushi/ripgrep
@@ -135,6 +136,8 @@ source $ZSH/oh-my-zsh.sh
 # https://formulae.brew.sh/formula/tree
 # https://github.com/eza-community/eza
 # https://github.com/dalance/procs
+# https://github.com/starship/starship
+# https://github.com/fastfetch-cli/fastfetch
 
 source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
@@ -142,6 +145,8 @@ source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 
+fastfetch
+eval "$(starship init zsh)"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
@@ -150,3 +155,7 @@ export SDKMAN_DIR="$HOME/.sdkman"
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Changing "find" to "fd"
+alias find="fd"
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
