@@ -66,6 +66,12 @@ if isMacOs; then
     bindkey "®" fzf-history-widget
 fi
 
+# function reread_zshrc() {
+#    echo 'Hello bind'
+#}
+#zle -N reread_zshrc
+#bindkey "ƒ" reread_zshrc
+
 # ==================================================
 # ================= searching file content \ replace
 
