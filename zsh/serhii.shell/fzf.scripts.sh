@@ -74,7 +74,7 @@ fi
 
 # ==================================================
 # ================= searching file content \ replace
-
+# fd [OPTIONS] [pattern] [path].
 alias grepid="grepf idea";
 alias grepco="grepf code";
 alias grepvi="grepf nvim";
@@ -103,7 +103,12 @@ EOF
         return 0
     fi
 
-    egrep -ir "($1)" .
+    # egrep -ir "($1)" .
+    rg -i -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+}
+
+function findtc() {
+   rg -I -i -c -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | awk '{sum += $1} END {print sum}'
 }
 
 function findt_in() {
@@ -114,11 +119,28 @@ EOF
         return 0
     fi
 
-    grep -r -n -i --include="$2" "$1" .
+    #    grep -r -n -i --include="$2" "$1" .
+    #    rg -n -i --glob "$2" "$1" .
+    # rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    # rg -t java -t js "$1"
+    # rg -i -f "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+
+    # rg -i -g '*user*.java' "test"
+    # rg -i -g 'pom.*ml' "spring"
+    rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findt_in_r() {
-	find . -name $2 -exec sed -i "s/$1/$3/g" {} \;
+	#fd --max-depth 3 "$2" . --exec sed -i "s/$1/$3/g" {} \;
+
+	 # fd -f "$2" . --exec sed -i "s/$1/$3/g" {} \;
+
+	 #rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
+	 rg -l -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
+
+	 # fd -e $2 | xargs sed -i "s/$1/$3/g"
+	# fd -f "$1" .
+	# fd -i -e js 'User' .
 }
 
 # ============================

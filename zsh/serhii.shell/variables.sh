@@ -15,4 +15,5 @@ export VISUAL='nvim'
 export EDITOR='nvim'
 
 export MANPAGER='nvim +Man!'
+# export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANWIDTH=999

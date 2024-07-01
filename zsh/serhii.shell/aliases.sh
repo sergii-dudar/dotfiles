@@ -1,4 +1,4 @@
-alias rl='exec zsh' # reload shell 
+alias rl='export MANUAL_RL=1 ; exec zsh' # reload shell with variable
 
 # Changing "ls" to "eza"
 alias ls='eza -al --color=always --group-directories-first' # my preferred listing
@@ -13,6 +13,7 @@ alias l...='eza -al --color=always --group-directories-first ../../../' # ls on 
 # Changing "ps" to "procs"
 alias ps="procs"
 
+# alias grep='grep --color=auto'
 # Changing "grep" to "repgrep"
 alias grep="rg"
 
@@ -93,4 +94,18 @@ else
     alias buff="xclip clipboard"
     alias b="buff"
 fi
+
+# git
+alias addup='git add -u'
+alias addall='git add .'
+alias branch='git branch'
+alias checkout='git checkout'
+alias clone='git clone'
+alias commit='git commit -m'
+alias fetch='git fetch'
+alias pull='git pull origin'
+alias push='git push origin'
+alias stat='git status'  # 'status' is protected name so using 'stat' instead
+alias tag='git tag'
+alias newtag='git tag -a'
 

@@ -145,7 +145,12 @@ source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 
-fastfetch
+
+if [[ -z "$MANUAL_RL" ]]; then
+    fastfetch
+    #colorscript random
+fi
+
 eval "$(starship init zsh)"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!

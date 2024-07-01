@@ -155,10 +155,6 @@ function tmux_popup() {
     tmux display-popup -E sh -c tmux attach -t popup_terminal || (tmux new-session -d -s popup_terminal -c "$PWD" && tmux attach -t popup_terminal)
 }
 
-function h() {
-    $1 --help | fzf
-}
-
-function m() {
-    man $1 | fzf
+function help() {
+    $1 --help | nvim -R
 }
