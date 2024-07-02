@@ -42,7 +42,10 @@ On mac can be installed by brew, or manually downloaded and imported by standard
 
 On linux the easiest way is
 ```
-wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip \
+https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip
+https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip
+
+wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip \
 && cd ~/.local/share/fonts \
 && unzip JetBrainsMono.zip \
 && rm JetBrainsMono.zip \
@@ -58,3 +61,42 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #### Ranger
  - https://github.com/maximtrp/ranger-archives
  - https://github.com/alexanderjeurissen/ranger_devicons
+
+#### Alacritty
+- https://github.com/alacritty/alacritty-theme
+
+#### ZSH
+- https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+
+#### tmux
+- https://github.com/tmux-plugins/tpm
+
+#### keyd
+- https://github.com/rvaiya/keyd
+
+#### neovim
+- https://github.com/junegunn/vim-plug
+
+#### https://flameshot.org/
+#### https://github.com/keshavbhatt/glate
+#### https://wiki.gnome.org/Apps/Rhythmbox
+
+#### Key binds
+##### System
+ - Show the overview - disabled
+
+##### Window
+ - Activate the window menu - disabled
+ - Close window - Shift+Super+C
+ - Resize Window - Super+W
+ - Toggle Fullscreen mode - Super+F11
+
+##### Custom Shortcuts
+ - Flameshot:           [ flameshot gui ]  key:Print
+ - chrome:              [ google-chrome ]  key:Super+B
+ - file manager:        [ nautilus ]  key:Super+F
+ - intellij:            [ intellij-idea-ultimate ]  key:Super+I
+   - ranger:            [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
+     - rofi run:        [ rofi -show open ]  key:Super+S
+ - terminal alacritty:  [ alacritty ]  key:Super+Enter
+
