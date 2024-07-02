@@ -53,3 +53,8 @@ wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/do
 ### Dotfiles external extensions.
 To easily install dotfile tools extensions as third party themes, extension etc
 from third party repos using directory `dotfiles.extensions` near `dotfiles`.
+
+### Dependencies
+#### Ranger
+ - https://github.com/maximtrp/ranger-archives
+ - https://github.com/alexanderjeurissen/ranger_devicons
