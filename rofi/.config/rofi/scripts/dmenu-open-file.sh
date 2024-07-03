@@ -22,13 +22,13 @@ funciton getMapValueOrKey() {
 if [[ -z "$1" ]]; then
     ( 
     # configs    
-    /home/serhii/homebrew/bin//fd . --type f --max-depth 1 --hidden --no-follow \
+    /usr/bin/fd . --type f --max-depth 1 --hidden --no-follow \
         /home/serhii/ \
         /home/serhii/serhii.shell | \
         #/home/serhii/.local/bin | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-    /home/serhii/homebrew/bin//fd . --max-depth 2 --type f --hidden --no-follow \
+    /usr/bin/fd . --max-depth 2 --type f --hidden --no-follow \
         /home/serhii/.config/ranger \
         /home/serhii/.config/rofi \
         /home/serhii/.config/qtile \
@@ -38,11 +38,11 @@ if [[ -z "$1" ]]; then
         /home/serhii/.config/alacritty | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-    /home/serhii/homebrew/bin//fd . --type f --hidden --no-follow \
+    /usr/bin/fd . --type f --hidden --no-follow \
         /home/serhii/dotfiles | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-    /home/serhii/homebrew/bin//fd. --type d --max-depth 1 --hidden \
+    /usr/bin/fd. --type d --max-depth 1 --hidden \
      /home/serhii/serhii.home/work/git.work \
 	 /home/serhii/serhii.home/personal/git | \
     xargs -I {} printf "$intellijView {}\n$vscodeView {}\n" \

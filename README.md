@@ -51,6 +51,11 @@ wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/do
 && rm JetBrainsMono.zip \
 && fc-cache -fv
 
+wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip \
+&& cd ~/.local/share/fonts \
+&& unzip Hack.zip \
+&& rm Hack.zip \
+&& fc-cache -fv
 ```
 
 ### Dotfiles external extensions.
@@ -66,6 +71,8 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 - https://github.com/alacritty/alacritty-theme
 
 #### ZSH
+- sudo pacman -S zsh
+- https://ohmyz.sh/#install
 - https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
 
 #### tmux
@@ -93,15 +100,16 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 ##### Custom Shortcuts
  - Flameshot:           [ flameshot gui ]  key:Print
- - chrome:              [ google-chrome ]  key:Super+B
+ - chrome:              [ google-chrome ]  key:Super+B (google-chrome-stable)
  - file manager:        [ nautilus ]  key:Super+F
  - intellij:            [ intellij-idea-ultimate ]  key:Super+I
    - ranger:            [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
      - rofi run:        [ rofi -show open ]  key:Super+S
  - terminal alacritty:  [ alacritty ]  key:Super+Enter
 
-/usr/share/X11/xkb/rules
 ````
+/usr/share/X11/xkb/rules/evdev.xml
+
 <configItem>
     <name>ua</name>
     <!-- Keyboard indicator for Ukranian layouts -->
