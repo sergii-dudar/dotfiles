@@ -153,6 +153,7 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 ````
 
 #### Install Arch as by - `archinstall` script pre-actions
+# https://phoenixnap.com/kb/linux-format-disk
 - format system disc fully
 - lsblk (find sys disc name, fot example it's sda)
 - sudo mkfs -t ext4 /dev/sda (fully, with sub partitions)
