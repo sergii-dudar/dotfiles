@@ -149,4 +149,5 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 - sudo fdisk -l | grep "Disk /dev/s"
 - ls | grep '.iso'
 - sudo dd bs=4M if=./archlinux-2024.07.01-x86_64.iso of=/dev/sda status=progress oflag=sync
+- (optionally) we can download iso.sig to check iso sign to verify: gpg --keyserver-options auto-key-retrieve --verify archlinux-2024.07.01-x86_64.iso.sig archlinux-2024.07.01-x86_64.iso
 ````
