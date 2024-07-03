@@ -151,3 +151,8 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 - sudo dd bs=4M if=./archlinux-2024.07.01-x86_64.iso of=/dev/sda status=progress oflag=sync
 - (optionally) we can download iso.sig to check iso sign to verify: gpg --keyserver-options auto-key-retrieve --verify archlinux-2024.07.01-x86_64.iso.sig archlinux-2024.07.01-x86_64.iso
 ````
+
+#### Install Arch as by - `archinstall` script pre-actions
+- format system disc fully
+- lsblk (find sys disc name, fot example it's sda)
+- sudo mkfs -t ext4 /dev/sda (fully, with sub partitions)
