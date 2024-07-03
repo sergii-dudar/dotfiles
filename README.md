@@ -142,3 +142,11 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 /etc/gdm/custom.conf file and uncomment the following line:
 #WaylandEnable=false
 ````
+
+#### Burn iso from linux
+````
+- connect USB
+- sudo fdisk -l | grep "Disk /dev/s"
+- ls | grep '.iso'
+- sudo dd bs=4M if=./archlinux-2024.07.01-x86_64.iso of=/dev/sda status=progress oflag=sync
+````
