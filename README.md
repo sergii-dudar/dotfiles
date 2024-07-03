@@ -81,7 +81,7 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #### https://github.com/keshavbhatt/glate
 #### https://wiki.gnome.org/Apps/Rhythmbox
 
-#### Key binds
+#### Key binds (GNOME)
 ##### System
  - Show the overview - disabled
 
@@ -100,3 +100,33 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
      - rofi run:        [ rofi -show open ]  key:Super+S
  - terminal alacritty:  [ alacritty ]  key:Super+Enter
 
+/usr/share/X11/xkb/rules
+````
+<configItem>
+    <name>ua</name>
+    <!-- Keyboard indicator for Ukranian layouts -->
+    <shortDescription>🇺🇦</shortDescription>
+    <description>Ukrainian</description>
+    <languageList>
+      <iso639Id>ukr</iso639Id>
+    </languageList>
+  </configItem>
+
+<configItem>
+    <name>gb</name>
+    <!-- Keyboard indicator for English layouts -->
+    <shortDescription>🇺🇸</shortDescription>
+    <description>English (UK)</description>
+    <languageList>
+      <iso639Id>eng</iso639Id>
+    </languageList>
+</configItem>
+````
+
+##### /etc/pacman.conf
+- Color
+- ILoveCandy
+
+#### /etc/default/grub
+- GRUB_TIMEOUT_STYLE=hidden
+- sudo update-grub
