@@ -130,3 +130,9 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #### /etc/default/grub
 - GRUB_TIMEOUT_STYLE=hidden
 - sudo update-grub
+
+#### systray
+- https://linuxiac.com/how-to-enable-system-tray-icons-in-gnome/
+
+#### remove windows title bar
+- https://stackoverflow.com/questions/71204126/how-to-remove-the-title-bar-of-gnome-applications
