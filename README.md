@@ -109,7 +109,6 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 ````
 /usr/share/X11/xkb/rules/evdev.xml
-
 <configItem>
     <name>ua</name>
     <!-- Keyboard indicator for Ukranian layouts -->
