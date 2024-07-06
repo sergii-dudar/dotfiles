@@ -143,6 +143,7 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 #### remove windows title bar
 - https://stackoverflow.com/questions/71204126/how-to-remove-the-title-bar-of-gnome-applications
+- https://www.baeldung.com/linux/gnome-remove-title-bar
 
 #### disable Wayland and use Xorg
 ````
