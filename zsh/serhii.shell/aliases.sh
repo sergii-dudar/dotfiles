@@ -15,13 +15,13 @@ alias ps="procs"
 
 # alias grep='grep --color=auto'
 # Changing "grep" to "repgrep"
-alias grep="rg"
+alias grep="rg --color=always"
 
 # Changing "find" to "fd"
 #alias find="fd"
 
 # Changing "cat" to "bat"
-alias cat='bat'
+alias cat='bat --decorations=always --color=always'
 
 # navigation
 alias ..='cd ..'
@@ -66,6 +66,7 @@ alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window na
 
 #alias idea='intellij-idea-ultimate'
 
+alias tldr='tldr --color=always'
 alias short='tldr'
  
 alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'

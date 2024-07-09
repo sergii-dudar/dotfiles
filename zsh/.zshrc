@@ -162,5 +162,5 @@ export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Changing "find" to "fd"
-alias find="fd"
+alias find="fd --color=always"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
