@@ -165,3 +165,6 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 - format system disc fully
 - lsblk (find sys disc name, fot example it's sda)
 - sudo mkfs -t ext4 /dev/sda (fully, with sub partitions)
+
+# connect to internet by wify from tty
+# https://wiki.archlinux.org/title/Iwd#iwctl

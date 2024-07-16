@@ -12,6 +12,7 @@ configuration {
   kb-mode-next: "Shift+Right,Tab";
   kb-row-tab: "Control+Tab";
   kb-screenshot: "Alt+s";
+  kb-element-next: "";
 }
 
 @theme "/dev/null"

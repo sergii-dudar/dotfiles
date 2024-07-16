@@ -1,6 +1,4 @@
-#!/bin/zsh
-
-sorce ~/.zshrc
+#!/bin/bash
 
 intellijView="intellij"
 vscodeView="vscode"
@@ -42,7 +40,7 @@ if [[ -z "$1" ]]; then
         /home/serhii/dotfiles | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
-    /usr/bin/fd. --type d --max-depth 1 --hidden \
+    /usr/bin/fd . --type d --max-depth 1 --hidden \
      /home/serhii/serhii.home/work/git.work \
 	 /home/serhii/serhii.home/personal/git | \
     xargs -I {} printf "$intellijView {}\n$vscodeView {}\n" \
@@ -57,7 +55,7 @@ else
         #    originalCmd=$(echo "$originalCmd" | sed "s/$key/${nameToCommandMap[$key]}/")
         #done
 
-        for key val in "${(@kv)nameToCommandMap}" ; do
+        for key in "${!nameToCommandMap[@]}"; do
             originalCmd=$(echo "$originalCmd" | sed "s/$key/${nameToCommandMap[$key]}/")
         done
 
