@@ -10,7 +10,7 @@ sudo pacman -S nvim ranger rofi
 sudo pacman -S tmux zellij flameshot
 sudo pacman -S man-db
 sudo pacman -S wget k9s vlc qbittorrent
-sudo pacman -S kolourpaint pinta
+sudo pacman -S kolourpaint pinta evince
 
 
 
