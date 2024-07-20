@@ -151,6 +151,12 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #WaylandEnable=false
 ````
 
+#### disable logout on close laptop (Lid Switch)
+````
+sudo nvim /etc/systemd/logind.conf
+HandleLidSwitch=ignore
+````
+
 #### Burn iso from linux
 ````
 - connect USB

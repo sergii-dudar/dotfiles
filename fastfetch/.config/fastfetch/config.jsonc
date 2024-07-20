@@ -25,7 +25,7 @@
         "os",
         "host",
         "kernel",
-        "processes",
+        //"processes",
         //"uptime",
         //"packages",
         "shell",
@@ -36,13 +36,13 @@
         },
         "editor",
         //"de",
-        //"wm",
+        "wm",
         //"wmtheme",
         "theme",
-        "icons",
+        //"icons",
         "terminal",
-        "terminalfont",
-        "terminalsize",
+        //"terminalfont",
+        //"terminalsize",
         //"cpu",
         //{
         //    "type": "gpu",
@@ -60,7 +60,7 @@
             "showPeCoreCount": true,
             "temp": true
         },
-
+        "gpu",
         //{
         //    "type": "cpu",
         //    "key": "CPU",
@@ -77,7 +77,7 @@
             "key": "Disk",
             "folders": "/"
         },
-        "battery",
+        //"battery",
         //"publicip",
         //{
         //    "type": "localip",
