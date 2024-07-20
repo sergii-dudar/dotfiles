@@ -158,3 +158,18 @@ function tmux_popup() {
 function help() {
     $1 --help | nvim -R
 }
+
+function find_git_root() {
+    local dir="$PWD"
+
+    while [ "$dir" != "/" ]; do
+        if /usr/bin/find "$dir" -maxdepth 1 -name ".git" -type d | grep -q .; then
+            # echo "Found .git directory in: $dir"
+            return 0
+        fi
+        dir=$(dirname "$dir")
+    done
+
+    # echo "No .git directory found in any parent directory."
+    return 1
+}

@@ -146,7 +146,8 @@ source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 
 
-if [[ -z "$MANUAL_RL" && ! -d "./.git" ]]; then
+# if [[ -z "$MANUAL_RL" && ! -d "./.git" ]]; then
+if [[ -z "$MANUAL_RL" && ! find_git_root ]]; then
     fastfetch
     #colorscript random
 fi
