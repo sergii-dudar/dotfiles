@@ -66,7 +66,7 @@ alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window na
 
 #alias idea='intellij-idea-ultimate'
 
-alias tldr='tldr --color=always'
+#alias tldr='tldr --color=always'
 alias short='tldr'
  
 alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'
