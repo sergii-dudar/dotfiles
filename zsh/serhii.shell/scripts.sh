@@ -147,8 +147,8 @@ function copy_file() {
     fi
 }
 
-function mkcd () {  
-    mkdir -p -- "$1" && cd -p -- "$1"  
+function mkcd () {
+    mkdir -p -- "$1" && cd -p -- "$1"
 }
 
 function tmux_popup() {
@@ -160,16 +160,17 @@ function help() {
 }
 
 function find_git_root() {
+    local home="$HOME"
     local dir="$PWD"
 
-    while [ "$dir" != "/" ]; do
-        if /usr/bin/find "$dir" -maxdepth 1 -name ".git" -type d | grep -q .; then
-            # echo "Found .git directory in: $dir"
+    while [ "$dir" != "$home" ]; do
+        echo "$dir"
+        found_files=$(fd -d 1 -t d -H "\.git\b" "$dir")
+        if [[ -n $found_files ]]; then
             return 0
         fi
         dir=$(dirname "$dir")
     done
 
-    # echo "No .git directory found in any parent directory."
     return 1
 }
