@@ -55,7 +55,7 @@ element-text {
 }
 
 element-icon {
-  size: 70;
+  size: 50;
   padding: 0 10 0 0;
   background-color: transparent;
 }
