@@ -39,7 +39,7 @@ export FZF_DEFAULT_OPTS="--ansi --info=inline --height 80% --layout reverse --bo
 export FZF_CTRL_T_COMMAND='fd --color=always --hidden --exclude .git'
 export FZF_CTRL_T_OPTS="
 --walker-skip .git,node_modules,target
---preview 'bat --color=always --line-range :50 {}'
+--preview '[ -d {} ] && tree -C -L 1 {} || bat --color=always --line-range :50 {}'
 --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 
 # ===== CTRL-R - Paste the selected command from history onto the command-line

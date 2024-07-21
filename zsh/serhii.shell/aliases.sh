@@ -18,10 +18,11 @@ alias ps="procs"
 alias grep="rg --color=always"
 
 # Changing "find" to "fd"
-#alias find="fd"
+alias find="fd"
 
 # Changing "cat" to "bat"
-alias cat='bat --decorations=always --color=always'
+#alias cat='bat --decorations=always --color=always' # present issue with ansi
+alias cat='bat'
 
 # navigation
 alias ..='cd ..'

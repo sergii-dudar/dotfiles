@@ -164,7 +164,7 @@ function find_git_root() {
     local dir="$PWD"
 
     while [ "$dir" != "$home" ]; do
-        echo "$dir"
+        #echo "$dir"
         found_files=$(fd -d 1 -t d -H "\.git\b" "$dir")
         if [[ -n $found_files ]]; then
             return 0
