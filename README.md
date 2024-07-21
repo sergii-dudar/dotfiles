@@ -151,6 +151,9 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #WaylandEnable=false
 ````
 
+#### translate apps
+- https://github.com/keshavbhatt/glate
+
 #### Burn iso from linux
 ````
 - connect USB
