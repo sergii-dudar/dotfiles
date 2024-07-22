@@ -18,7 +18,7 @@ alias ps="procs"
 alias grep="rg --color=always"
 
 # Changing "find" to "fd"
-alias find="fd"
+# defined after sdkman definition
 
 # Changing "cat" to "bat"
 #alias cat='bat --decorations=always --color=always' # present issue with ansi
@@ -73,7 +73,7 @@ alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window na
 
 #alias tldr='tldr --color=always'
 alias short='tldr'
- 
+
 alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'
 
 alias vim="nvim"
