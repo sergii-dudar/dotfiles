@@ -56,6 +56,10 @@ alias mcc='mvn clean compile'
 alias nativeb='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -DskipNativeTests -DquickBuild -Pnative native:compile'
 alias springbi='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true spring-boot:build-image'
 alias springbi_n='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -Pnative spring-boot:build-image'
+# ./target/user-service -Dspring.profiles.active=work,default
+# java -Dspring.profiles.active=work,default -jar ./target/user-service-local.jar
+# export GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS=8
+# export APP_CLIENT_SERVICE_AUTH_URL=http://traefik-internal.test/auth/system
 
 alias ideau='intellij-idea-ultimate'
  
@@ -111,3 +115,7 @@ alias stat='git status'  # 'status' is protected name so using 'stat' instead
 alias tag='git tag'
 alias newtag='git tag -a'
 
+# docker
+alias dcu='docker-compose up'
+alias dcd='docker-compose down'
+alias dps='docker ps'

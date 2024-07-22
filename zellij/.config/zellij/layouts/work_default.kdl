@@ -49,6 +49,12 @@ layout {
             args "-c" "k9s"
         }
     }
+    init_tab_template name="docker" {
+        pane {
+            name "zsh"
+            cwd "~/serhii.home/work/git.work"
+        }
+    }
     init_tab_template name="zsh" {
         pane {
             name "zsh"
