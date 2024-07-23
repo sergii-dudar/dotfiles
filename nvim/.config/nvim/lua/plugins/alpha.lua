@@ -242,18 +242,6 @@ local neovim2 = {
     [[                                [ Welcome to Neovim! ] ]]
 }
 
---            "",
---            "",
---            " ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗",
---            " ████╗  ██║ ██╔════╝██╔═══██╗ ██║   ██║ ██║ ████╗ ████║",
---            " ██╔██╗ ██║ █████╗  ██║   ██║ ██║   ██║ ██║ ██╔████╔██║",
---            " ██║╚██╗██║ ██╔══╝  ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╔╝██║",
---            " ██║ ╚████║ ███████╗╚██████╔╝  ╚████╔╝  ██║ ██║ ╚═╝ ██║",
---            " ╚═╝  ╚═══╝ ╚══════╝ ╚═════╝    ╚═══╝   ╚═╝ ╚═╝     ╚═╝",
---            "",
---            " [ TIP: Welcome to Neovim! ] ",
---            "",
-
 local function lineColor(lines, popStart, popEnd)
     local out = {}
     for i, line in ipairs(lines) do
@@ -265,7 +253,7 @@ local function lineColor(lines, popStart, popEnd)
         else
             hi = "StartLogo" .. i
         end
-        table.insert(out, { hi = hi, line = line})
+        table.insert(out, { hi = hi, line = line })
     end
     return out
 end
@@ -285,11 +273,49 @@ local function header_chars()
     return headers[math.random(#headers)]
 end
 
+--[[vim.api.nvim_set_hl(0, "NeovimDashboardLogo1", { fg = "#ff0086" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo2", { fg = "#9624ff" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo3", { fg = "#22cb34" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo4", { fg = "#2346ff" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo5", { fg = "#259baa" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo6", { fg = "#faff3b" })
+vim.api.nvim_set_hl(0, "NeovimDashboardLogo7", { fg = "#cbc90a" })]]
+
+vim.api.nvim_set_hl(0, "DashboardColor1", { fg = "#ff0086" })
+vim.api.nvim_set_hl(0, "DashboardColor2", { fg = "#9624ff" })
+vim.api.nvim_set_hl(0, "DashboardColor3", { fg = "#22cb34" })
+vim.api.nvim_set_hl(0, "DashboardColor4", { fg = "#2346ff" })
+vim.api.nvim_set_hl(0, "DashboardColor5", { fg = "#259baa" })
+vim.api.nvim_set_hl(0, "DashboardColor6", { fg = "#faff3b" })
+vim.api.nvim_set_hl(0, "DashboardColor7", { fg = "#cbc90a" })
+
+local function pick_color()
+    local colors = {
+        "String",
+        "Keyword",
+        "Number",
+        "DashboardColor1",
+        "DashboardColor2",
+        "DashboardColor3",
+        "DashboardColor4",
+        "DashboardColor5",
+        "DashboardColor6",
+        "DashboardColor7",
+        "Type",
+        "Function",
+        "DevIconVim"
+    }
+
+    math.randomseed(os.time() + math.random() * 1000)
+    return colors[math.random(#colors)]
+end
+
 -- Map over the headers, setting a different color for each line.
 -- This is done by setting the Highligh to StartLogoN, where N is the row index.
 -- Define StartLogo1..StartLogoN to get a nice gradient.
 local function header_color()
     local lines = {}
+    local color = pick_color()
     for _, lineConfig in pairs(header_chars()) do
         local hi = lineConfig.hi
         local line_chars = lineConfig.line
@@ -297,7 +323,8 @@ local function header_color()
             type = "text",
             val = line_chars,
             opts = {
-                hl = hi,
+                --hl = hi,
+                hl = color,
                 shrink_margin = false,
                 position = "center",
             },
@@ -323,12 +350,12 @@ local function configure()
         val = {
             { type = "text", val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
             { type = "padding", val = 1 },
-            dashboard.button("e",     "  New file",        "<cmd>ene<CR>"),
-            dashboard.button("SPC f", "  Find file",       ":Telescope find_files find_command=rg,--hidden,--files<CR>"),
-            dashboard.button("SPC F", "  Find text",       ":Telescope live_grep<CR>"),
-            dashboard.button("u",     "󱐥  Update plugins", "<cmd>Lazy sync<CR>"),
-            dashboard.button("t",     "  Install language tools", "<cmd>Mason<CR>"),
-            dashboard.button("q",     "󰩈  Quit", "<cmd>qa<CR>"),
+            dashboard.button("e", "  New file", "<cmd>ene<CR>"),
+            dashboard.button("SPC f", "  Find file", ":Telescope find_files find_command=rg,--hidden,--files<CR>"),
+            dashboard.button("SPC F", "  Find text", ":Telescope live_grep<CR>"),
+            dashboard.button("u", "󱐥  Update plugins", "<cmd>Lazy sync<CR>"),
+            dashboard.button("t", "  Install language tools", "<cmd>Mason<CR>"),
+            dashboard.button("q", "󰩈  Quit", "<cmd>qa<CR>"),
 
 
             dashboard.button('r', '  Recent files', ':Telescope oldfiles<CR>'),
@@ -341,7 +368,7 @@ local function configure()
         val = {
             { type = "padding", val = 2 },
             { type = "text", val = "🎉 It's always good to return to Neovim   It's like returning to home   🎉",
-              opts = { hl = "SpecialComment", position = "center" } },
+              opts = { hl = pick_color(), position = "center" } },
             { type = "padding", val = 2 },
         },
         position = "footer",
@@ -357,7 +384,7 @@ end
 return {
     'goolord/alpha-nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
-    config = function ()
-        require'alpha'.setup(configure())
+    config = function()
+        require 'alpha'.setup(configure())
     end
 };
