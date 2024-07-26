@@ -24,6 +24,10 @@ alias grep="rg --color=always"
 #alias cat='bat --decorations=always --color=always' # present issue with ansi
 alias cat='bat'
 
+# linux
+alias uubuntu="sudo apt update && sudo apt upgrade"
+alias uarch="sudo pacman -Syu"
+
 # navigation
 alias ..='cd ..'
 alias ...='cd ../..'
