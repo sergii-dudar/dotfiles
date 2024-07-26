@@ -1,7 +1,10 @@
 aliases:
-  dp: deployments
+  de: deployments
   se: v1/secrets
+  co: Configmaps
+  po: Pods
   jo: jobs
+  pu: Pulses
   cr: clusterroles
   crb: clusterrolebindings
   ro: roles
