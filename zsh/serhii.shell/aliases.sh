@@ -119,3 +119,7 @@ alias newtag='git tag -a'
 alias dcu='docker-compose up'
 alias dcd='docker-compose down'
 alias dps='docker ps'
+
+# temporal (localhost:7233, UI http://localhost:8233.)
+#alias temporal_start='temporal server start-dev'
+alias temporal_start='temporal server start-dev --db-filename temporal_dev_store.db'

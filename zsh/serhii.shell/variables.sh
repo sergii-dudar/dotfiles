@@ -9,6 +9,7 @@ else
     export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
     export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
+    export PATH=$PATH:/home/serhii/tools/temporal
 
     # in case installed by brew
     # sudo ln -s /home/serhii/homebrew/bin//brew /usr/local/bin/brew
