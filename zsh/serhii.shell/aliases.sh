@@ -25,8 +25,10 @@ alias grep="rg --color=always"
 alias cat='bat'
 
 # linux
-alias uubuntu="sudo apt update && sudo apt upgrade"
-alias uarch="sudo pacman -Syu"
+alias ubuntuu="sudo apt update && sudo apt upgrade"
+alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
+alias ubuntuar="sudo apt autoremove"
+alias archu="sudo pacman -Syu"
 
 # navigation
 alias ..='cd ..'
