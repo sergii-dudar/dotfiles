@@ -10,4 +10,7 @@ sudo systemctl enable --now snapd.socket && \
 sudo pacman -S apparmor && \
 sudo systemctl enable --now snapd.apparmor.service && \
 sudo ln -s /var/lib/snapd/snap /snap && \
-snap install glate
+echo "Please reboot! after reboot we can start installing packages from snap store."
+
+# after reboot:
+# snap install glate
