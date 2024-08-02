@@ -11,9 +11,6 @@ else
     export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
     export PATH=$PATH:/home/serhii/tools/temporal
 
-    # in case installed by brew
-    # sudo ln -s /home/serhii/homebrew/bin//brew /usr/local/bin/brew
-
     # sudo ln -s /home/serhii/homebrew/bin//fd /usr/local/bin/fd
     # sudo ln -s /home/serhii/homebrew/bin//bat /usr/local/bin/bat
     # sudo ln -s /home/serhii/homebrew/bin//fastfetch /usr/local/bin/fastfetch
