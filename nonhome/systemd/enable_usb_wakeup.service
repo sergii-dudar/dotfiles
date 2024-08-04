@@ -1,0 +1,9 @@
+[Unit]
+Description=Power usb ports wakeup enabling startup script
+
+[Service]
+ExecStart=/home/serhii/dotfiles/nonhome/systemd/scripts/enable_usb_wakeup.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
