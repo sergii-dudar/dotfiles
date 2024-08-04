@@ -175,11 +175,24 @@ function find_git_root() {
     return 1
 }
 
+ranger() {
+    tmp="$(mktemp)"
+    command ranger --choosedir="$tmp" "$@"
+    if [ -f "$tmp" ]; then
+        dir="$(cat "$tmp")"
+        rm -f "$tmp"
+        if [ -d "$dir" ]; then
+            if [ "$dir" != "$(pwd)" ]; then
+                builtin cd "$dir" || return
+            fi
+        fi
+    fi
+}
 function yy() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
 	yazi "$@" --cwd-file="$tmp"
 	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		builtin cd -- "$cwd"
+		builtin cd -- "$cwd" || return
 	fi
 	rm -f -- "$tmp"
 }

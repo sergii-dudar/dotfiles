@@ -151,7 +151,9 @@ if [[ -z "$MANUAL_RL" ]] && ! find_git_root; then
     #colorscript random
 fi
 
-eval "$(starship init zsh)"
+# init zoxide and replace cd to zoxide
+eval "$(zoxide init zsh)"
+#eval "$(zoxide init --cmd cd zsh)" # cd, cdi
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"

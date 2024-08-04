@@ -12,9 +12,10 @@ sudo pacman -S man-db
 sudo pacman -S wget k9s vlc qbittorrent
 sudo pacman -S kolourpaint pinta evince
 sudo pacman -S fuse # to run app images
+sudo pacman -S ffmpegthumbnailer ffmpeg
+sudo pacman -S usbutils
 
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
-sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler zoxide
-
+sudo pacman -S yazi unarchiver jq poppler zoxide
 
 

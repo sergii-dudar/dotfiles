@@ -37,6 +37,17 @@ alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
+# changing cd to zoxide
+alias cd='z'
+alias cdi='zi'
+
+alias work="cd ~/serhii.home/git/"
+alias video="cd ~/serhii.home/videos/"
+bindkey -s "^w" "work\n"
+
+# ranger with cd to current dir on quit
+#alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; /usr/bin/zoxide "$LASTDIR"'
+
 alias az_dev='az aks get-credentials --resource-group dev --name aks-dev'
 alias az_qa='az aks get-credentials --resource-group qa --name aks-qa'
 alias az_uat='az aks get-credentials --resource-group uat --name aks-uat'

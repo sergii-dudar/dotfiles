@@ -66,6 +66,7 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 #### Ranger
  - https://github.com/maximtrp/ranger-archives
  - https://github.com/alexanderjeurissen/ranger_devicons
+ - https://github.com/jchook/ranger-zoxide
 
 #### Alacritty
 - https://github.com/alacritty/alacritty-theme
