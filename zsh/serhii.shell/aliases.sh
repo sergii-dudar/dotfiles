@@ -41,7 +41,7 @@ alias .5='cd ../../../../..'
 alias cd='z'
 alias cdi='zi'
 
-alias work="cd ~/serhii.home/git/"
+alias work="cd ~/serhii.home/work/"
 alias video="cd ~/serhii.home/videos/"
 bindkey -s "^w" "work\n"
 
