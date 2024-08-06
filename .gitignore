@@ -16,6 +16,8 @@ target/
 **/main/resources/logback-extend.xml
 **/test/resources/application.properties
 **/venv
+**/DO_NOT_MODIFY_ANYTHING_IN_THIS_DIRECTORY
+**/LICENSE
 
 awesome/.config/awesome/themes
 ranger/.config/ranger/plugins
