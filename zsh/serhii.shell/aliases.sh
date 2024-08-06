@@ -37,6 +37,8 @@ alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
+alias portsStatus='for device in /sys/bus/usb/devices/*/power/wakeup; do cat "$device"; done'
+
 # changing cd to zoxide
 alias cd='z'
 alias cdi='zi'

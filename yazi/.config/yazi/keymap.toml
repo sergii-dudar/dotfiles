@@ -4,6 +4,31 @@
 
 [manager]
 
+prepend_keymap = [
+
+    # relative motions
+    { on = "1", run = "plugin relative-motions --args=1", desc = "Move in relative steps" },
+    { on = "2", run = "plugin relative-motions --args=2", desc = "Move in relative steps" },
+    { on = "3", run = "plugin relative-motions --args=3", desc = "Move in relative steps" },
+    { on = "4", run = "plugin relative-motions --args=4", desc = "Move in relative steps" },
+    { on = "5", run = "plugin relative-motions --args=5", desc = "Move in relative steps" },
+    { on = "6", run = "plugin relative-motions --args=6", desc = "Move in relative steps" },
+    { on = "7", run = "plugin relative-motions --args=7", desc = "Move in relative steps" },
+    { on = "8", run = "plugin relative-motions --args=8", desc = "Move in relative steps" },
+    { on = "9", run = "plugin relative-motions --args=9", desc = "Move in relative steps" },
+
+    # max preview
+    { on = "i", run  = "plugin --sync max-preview", desc = "Maximize or restore preview" },
+
+    # development --confirm, --interactive
+    { on = [ "t", "t" ], run = 'shell "alacritty" --orphan --confirm',        desc = "open terminal" },
+    { on = [ "s", "u" ], run = 'shell "subl \"$@\"" --orphan --confirm',        desc = "open in sublime" },
+    { on = [ "v", "i" ], run = 'shell "alacritty -e nvim \"$@\"" --orphan --confirm',        desc = "open in neovim" },
+    { on = [ "e", "i" ], run = 'shell "intellij-idea-ultimate $1" --orphan --confirm',      desc = "open in intellij" },
+    { on = [ "e", "c" ], run = 'shell "code $1" --orphan --confirm',                              desc = "open in vscode" },
+    { on = [ "e", "e" ], run = 'shell "nautilus ." --orphan --confirm',                          desc = "open in nautilus" }
+]
+
 keymap = [
     { on = "<Esc>", run = "escape",             desc = "Exit visual mode, clear selected, or cancel search" },
     { on = "<C-[>", run = "escape",             desc = "Exit visual mode, clear selected, or cancel search" },
@@ -109,8 +134,8 @@ keymap = [
     { on = [ ",", "M" ], run = [ "sort modified --reverse", "linemode mtime" ],    desc = "Sort by modified time (reverse)" },
     { on = [ ",", "c" ], run = [ "sort created --reverse=no", "linemode ctime" ],  desc = "Sort by created time" },
     { on = [ ",", "C" ], run = [ "sort created --reverse", "linemode ctime" ],     desc = "Sort by created time (reverse)" },
-    { on = [ ",", "e" ], run = "sort extension --reverse=no",                      desc = "Sort by extension" },
-    { on = [ ",", "E" ], run = "sort extension --reverse",                         desc = "Sort by extension (reverse)" },
+    #{ on = [ ",", "e" ], run = "sort extension --reverse=no",                      desc = "Sort by extension" },
+    #{ on = [ ",", "E" ], run = "sort extension --reverse",                         desc = "Sort by extension (reverse)" },
     { on = [ ",", "a" ], run = "sort alphabetical --reverse=no",                   desc = "Sort alphabetically" },
     { on = [ ",", "A" ], run = "sort alphabetical --reverse",                      desc = "Sort alphabetically (reverse)" },
     { on = [ ",", "n" ], run = "sort natural --reverse=no",                        desc = "Sort naturally" },
@@ -126,7 +151,7 @@ keymap = [
     { on = [ "g", "<Space>" ], run = "cd --interactive", desc = "Go to a directory interactively" },
 
     # Tabs
-    { on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },
+    #{ on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },
 
     { on = "1", run = "tab_switch 0", desc = "Switch to the first tab" },
     { on = "2", run = "tab_switch 1", desc = "Switch to the second tab" },
@@ -302,8 +327,3 @@ keymap = [
     # Filtering
     { on = "/", run = "filter", desc = "Apply a filter for the help items" },
 ]
-
-[[manager.prepend_keymap]]
-on   = "T"
-run  = "plugin --sync max-preview"
-desc = "Maximize or restore preview"
