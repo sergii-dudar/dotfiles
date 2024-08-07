@@ -12,14 +12,18 @@ cd ~/Downloads && \
 tar -xzf ideaIU-*.tar.gz && \
 rm ideaIU-*.tar.gz && \
 sudo mv idea-IU* /opt/intellij && \
-sudo ln -s /opt/intellij/bin/idea.sh /usr/local/bin/intellij-idea-ultimate
+sudo ln -s /opt/intellij/bin/idea /usr/local/bin/intellij-idea-ultimate
+
+# if installed
+#sudo rm /usr/share/applications/intellij-idea.desktop && \
+#sudo mv intellij-idea-ultimate intellij-idea-ultimate1
 
 desktop_entry="[Desktop Entry]
 Version=1.0
 Type=Application
 Name=IntelliJ IDEA
 Icon=/opt/intellij/bin/idea.png
-Exec=\"/opt/intellij/bin/idea.sh\" %f
+Exec=\"/usr/local/bin/intellij-idea-ultimate\" %f
 Comment=Integrated Development Environment
 Categories=Development;IDE;
 Terminal=false
