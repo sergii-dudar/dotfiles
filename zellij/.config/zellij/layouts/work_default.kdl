@@ -21,26 +21,35 @@ layout {
         }
         children
     }
-    first_init_tab_template name="ranger" focus=true {
+    first_init_tab_template name="yazi" focus=true {
         pane {
-            name "ranger"
-            command "ranger"
-            args "."
+            name "yazi"
+            command "yazi"
+            //name "ranger"
+            //command "ranger"
+            //args "."
         }
-        //floating_panes close_on_exit=true {
-        //    pane {
-        //      plugin location="welcome-screen"
-        //    }
-        //}
-        //floating_panes close_on_exit=true {
-        //floating_panes close_on_exit=true {
-        //    pane {
-        //      name "greeting"
-        //        command "zsh"
-        //        args "-c" "echo hello && exit ; exit"
-        //    }
-        //}
     }
+    //first_init_tab_template name="ranger" focus=true {
+    //    pane {
+    //        name "ranger"
+    //        command "ranger"
+    //        args "."
+    //    }
+    //    //floating_panes close_on_exit=true {
+    //    //    pane {
+    //    //      plugin location="welcome-screen"
+    //    //    }
+    //    //}
+    //    //floating_panes close_on_exit=true {
+    //    //floating_panes close_on_exit=true {
+    //    //    pane {
+    //    //      name "greeting"
+    //    //        command "zsh"
+    //    //        args "-c" "echo hello && exit ; exit"
+    //    //    }
+    //    //}
+    //}
     init_tab_template name="k9s" {
         pane start_suspended=true {
             name "k9s"

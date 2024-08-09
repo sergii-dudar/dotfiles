@@ -6,7 +6,7 @@ sudo pacman -S tldr fzf fd
 sudo pacman -S ripgrep bat tree
 sudo pacman -S eza procs fastfetch
 sudo pacman -S stow kitty git lazygit
-sudo pacman -S nvim ranger rofi
+sudo pacman -S nvim ranger rofi starship
 sudo pacman -S tmux zellij flameshot
 sudo pacman -S man-db
 sudo pacman -S wget k9s vlc qbittorrent
@@ -17,5 +17,7 @@ sudo pacman -S usbutils p7zip # 7-zip
 
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
 sudo pacman -S yazi unarchiver jq poppler zoxide
+
+# curl -sS https://starship.rs/install.sh | sh
 
 
