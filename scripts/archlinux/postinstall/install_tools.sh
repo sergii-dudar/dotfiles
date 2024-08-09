@@ -15,8 +15,9 @@ sudo mv idea-IU* /opt/intellij && \
 sudo ln -s /opt/intellij/bin/idea /usr/local/bin/intellij-idea-ultimate
 
 # if installed
+#sudo mv /opt/intellij /opt/old-intellij && \
 #sudo rm /usr/share/applications/intellij-idea.desktop && \
-#sudo mv intellij-idea-ultimate intellij-idea-ultimate1
+#sudo mv /usr/local/bin/intellij-idea-ultimate /usr/local/bin/intellij-idea-ultimate1
 
 desktop_entry="[Desktop Entry]
 Version=1.0
