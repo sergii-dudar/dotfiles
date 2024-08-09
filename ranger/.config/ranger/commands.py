@@ -176,11 +176,14 @@ class open_in_vscode(Command):
 class open_in_nvim_tab(Command):
     def execute(self):
         if is_macos():
-            self.fm.run('alacritty --command nvim ' + self.fm.thisfile.path,
+            #self.fm.run('alacritty --command nvim ' + self.fm.thisfile.path,
+            self.fm.run('kitty --hold zsh -c "nvim ' + self.fm.thisfile.path + '"',
                         flags='f')
             # subprocess.Popen(["nvim", self.fm.thisfile.path])
         else:
-            self.fm.run('alacritty -e nvim ' + self.fm.thisfile.path, flags='f')
+            #self.fm.run('alacritty -e nvim ' + self.fm.thisfile.path, flags='f')
+            self.fm.run('kitty --hold zsh -c "nvim ' + self.fm.thisfile.path + '"',
+                        flags='f')
 
 
 class open_in_sublime(Command):
@@ -190,7 +193,7 @@ class open_in_sublime(Command):
 
 class open_terminal(Command):
     def execute(self):
-        self.fm.run('alacritty', flags='f')
+        self.fm.run('kitty', flags='f')
 
 
 class copy_file_content_to_clipboard(Command):

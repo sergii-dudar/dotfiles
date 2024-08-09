@@ -104,9 +104,12 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
  - chrome:              [ google-chrome ]  key:Super+B (google-chrome-stable)
  - file manager:        [ nautilus ]  key:Super+F
  - intellij:            [ intellij-idea-ultimate ]  key:Super+I
-   - ranger:            [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
-     - rofi run:        [ rofi -show open ]  key:Super+S
+ - rofi run:            [ rofi -show open ]  key:Super+S
+ - zellij:              [ kitty --hold zsh -c "zellij" ]  key:Super+R
+ - terminal kitty:      [ kitty ]  key:Super+Enter
+
  - terminal alacritty:  [ alacritty ]  key:Super+Enter
+ - ranger:              [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
 
 ````
 /usr/share/X11/xkb/rules/evdev.xml

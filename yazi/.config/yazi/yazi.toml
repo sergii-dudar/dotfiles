@@ -35,7 +35,8 @@ edit = [
 ]
 folder = [
     { run = 'nautilus "$1"',   desc = "Nautilus", for = "linux" },
-    { run = 'alacritty', orphan = true,  desc = "Alacritty", for = "linux" },
+    #{ run = 'alacritty', orphan = true,  desc = "Alacritty", for = "linux" },
+    { run = 'kitty', orphan = true,  desc = "Terminal", for = "linux" },
 ]
 develop = [
     { run = 'intellij-idea-ultimate "$1"', orphan = true,  desc = "intellij", for = "linux" },
@@ -62,6 +63,12 @@ play = [
     { run = 'mpv --force-window %*', orphan = true, for = "windows" },
     { run = '''mediainfo "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
 ]
+image = [
+    { run = 'eog "$1"',         orphan = true,  desc = "eog viewer", for = "linux" },
+    # gsettings get org.gnome.desktop.interface color-scheme -> prefer-dark -> picture-uri-dark
+    { run = 'gsettings set org.gnome.desktop.background picture-uri-dark "file://$1"',  orphan = true,  desc = "Set as backgroupd", for = "linux" },
+    { run = 'nautilus . "$1"',  orphan = true,  desc = "Open in Nautilus", for = "linux" }
+]
 
 [open]
 rules = [
@@ -71,7 +78,8 @@ rules = [
     # Text
     { mime = "text/*", use = [ "edit", "reveal" ] },
     # Image
-    { mime = "image/*", use = [ "open", "reveal" ] },
+    #{ mime = "image/*", use = [ "open", "reveal" ] },
+    { mime = "image/*", use = [ "image" ] },
     # Media
     { mime = "{audio,video}/*", use = [ "play", "reveal" ] },
     # Archive

@@ -6,7 +6,7 @@
 #: individual font faces and even specify special fonts for particular
 #: characters.
 
-# font_family      monospace
+font_family Hack Nerd Font
 # bold_font        auto
 # italic_font      auto
 # bold_italic_font auto
@@ -24,7 +24,7 @@
 #:     italic_font      Operator Mono Book Italic
 #:     bold_italic_font Operator Mono Medium Italic
 
-font_size 19.0
+font_size 18
 
 #: Font size (in pts).
 
@@ -786,7 +786,7 @@ copy_on_select yes
 
 #: Window layout {{{
 
-# remember_window_size  yes
+remember_window_size  yes
 # initial_window_width  640
 # initial_window_height 400
 
@@ -1139,7 +1139,7 @@ tab_title_template "{index}:{title}"
 
 #: The foreground and background colors.
 
-background_opacity 0.95
+#background_opacity 0.9
 
 #: The opacity of the background. A number between zero and one, where
 #: one is opaque and zero is fully transparent. This will only work if
@@ -1176,10 +1176,12 @@ background_opacity 0.95
 #: macOS and KDE.
 
 # background_image none
+#background_image /home/serhii/Downloads/wp2618279-blackarch-wallpaper_.png
+background_image /home/serhii/serhii.home/personal/walpapers/nice-blue-background.png
 
 #: Path to a background image. Must be in PNG format.
 
-# background_image_layout tiled
+background_image_layout cscaled
 
 #: Whether to tile, scale or clamp the background image. The value can
 #: be one of tiled, mirror-tiled, scaled, clamped, centered or
@@ -1198,7 +1200,7 @@ background_opacity 0.95
 #: decrease_background_opacity) or the remote control facility.
 #: Changing this option by reloading the config is not supported.
 
-# background_tint 0.0
+background_tint 0.99
 
 #: How much to tint the background image by the background color. This
 #: option makes it easier to read the text. Tinting is done using the
@@ -1766,6 +1768,7 @@ background_opacity 0.95
 #: windows.
 
 # linux_display_server auto
+linux_display_server x11
 
 #: Choose between Wayland and X11 backends. By default, an appropriate
 #: backend based on the system state is chosen automatically. Set it
@@ -1854,7 +1857,7 @@ background_opacity 0.95
 #: Copy to clipboard
 
 # map kitty_mod+c copy_to_clipboard
-# map cmd+c       copy_to_clipboard
+map ctrl+c       copy_to_clipboard
 
 #::  There is also a copy_or_interrupt action that can be optionally
 #::  mapped to Ctrl+C. It will copy only if there is a selection and
@@ -1865,7 +1868,7 @@ background_opacity 0.95
 #: Paste from clipboard
 
 # map kitty_mod+v paste_from_clipboard
-# map cmd+v       paste_from_clipboard
+map ctrl+v       paste_from_clipboard
 
 #: Paste from selection
 
@@ -2210,6 +2213,7 @@ background_opacity 0.95
 
 #: Increase font size
 
+map ctrl+equal   change_font_size all +2.0
 # map kitty_mod+equal  change_font_size all +2.0
 # map kitty_mod+plus   change_font_size all +2.0
 # map kitty_mod+kp_add change_font_size all +2.0
@@ -2219,6 +2223,7 @@ background_opacity 0.95
 
 #: Decrease font size
 
+map ctrl+minus       change_font_size all -2.0
 # map kitty_mod+minus       change_font_size all -2.0
 # map kitty_mod+kp_subtract change_font_size all -2.0
 # map cmd+minus             change_font_size all -2.0
@@ -2227,6 +2232,7 @@ background_opacity 0.95
 #: Reset font size
 
 # map kitty_mod+backspace change_font_size all 0
+map ctrl+backspace change_font_size all 0
 # map cmd+0               change_font_size all 0
 
 
@@ -2427,7 +2433,8 @@ background_opacity 0.95
 
 #: Reload kitty.conf
 
-# map kitty_mod+f5 load_config_file
+map ctrl+f5 load_config_file
+map kitty_mod+f5 load_config_file
 # map ctrl+cmd+,   load_config_file
 
 #::  Reload kitty.conf, applying any changes since the last time it
@@ -2507,3 +2514,9 @@ background_opacity 0.95
 #: }}}
 
 #: }}}
+
+
+# BEGIN_KITTY_THEME
+# GitHub Dark
+include current-theme.conf
+# END_KITTY_THEME

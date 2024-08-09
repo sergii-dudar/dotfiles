@@ -43,7 +43,8 @@ if [[ -z "$1" ]]; then
     )
 else
     if [[ $1 =~ "nvim" ]]; then
-        ( alacritty -e zsh -i -c "$1" > /dev/null 2>&1 & )
+        #( alacritty -e zsh -i -c "$1" > /dev/null 2>&1 & )
+        ( kitty --hold zsh -c "$1" > /dev/null 2>&1 & )
     else
 
         originalCmd=$(replaceToRealIdeCommand "$1")

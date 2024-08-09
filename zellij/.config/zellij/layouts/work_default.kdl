@@ -24,7 +24,7 @@ layout {
     first_init_tab_template name="yazi" focus=true {
         pane {
             name "yazi"
-            command "yazi"
+            command "/usr/local/bin/yazi"
             //name "ranger"
             //command "ranger"
             //args "."
