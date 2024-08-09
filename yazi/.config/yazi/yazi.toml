@@ -69,12 +69,16 @@ image = [
     { run = 'gsettings set org.gnome.desktop.background picture-uri-dark "file://$1"',  orphan = true,  desc = "Set as backgroupd", for = "linux" },
     { run = 'nautilus . "$1"',  orphan = true,  desc = "Open in Nautilus", for = "linux" }
 ]
+run_sh = [
+    { run = '"$1"', desc = "run shell", for = "linux" },
+]
 
 [open]
 rules = [
     # Folder
     { name = "*/", use = [ "folder", "develop" ] },
-    { name = "{*.java,*.sh,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
+    { name = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
+    { name = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
     # Text
     { mime = "text/*", use = [ "edit", "reveal" ] },
     # Image
