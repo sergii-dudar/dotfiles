@@ -21,9 +21,9 @@ layout {
         }
         children
     }
-    first_init_tab_template name="yazi" focus=true {
+    first_init_tab_template name="files" focus=true {
         pane {
-            name "yazi"
+            name "files"
             command "/usr/local/bin/yazi"
             //name "ranger"
             //command "ranger"
