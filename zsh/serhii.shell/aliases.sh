@@ -24,6 +24,8 @@ alias grep="rg --color=always"
 #alias cat='bat --decorations=always --color=always' # present issue with ansi
 alias cat='bat'
 
+alias yyc='yazi --clear-cache && yy'
+
 # linux
 alias ubuntuu="sudo apt update && sudo apt upgrade"
 alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
