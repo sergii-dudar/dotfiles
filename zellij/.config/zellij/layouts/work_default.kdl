@@ -69,7 +69,8 @@ layout {
             name "temporal"
             command "zsh"
             //args "-c" "./temporal server start-dev --db-filename temporal_dev_store.db"
-            args "-c" "./temporal server start-dev --dynamic-config-value frontend.enableUpdateWorkflowExecution=true --db-filename temporal_dev_store.db"
+            //args "-c" "./temporal server start-dev --dynamic-config-value frontend.enableUpdateWorkflowExecution=true --db-filename temporal_dev_store.db"
+            args "-c" "./temporal server start-dev"
             cwd "~/tools/temporal"
         }
     }

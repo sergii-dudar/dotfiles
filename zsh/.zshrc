@@ -139,6 +139,11 @@ source $ZSH/oh-my-zsh.sh
 # https://github.com/starship/starship
 # https://github.com/fastfetch-cli/fastfetch
 
+if command -v /home/linuxbrew/.linuxbrew/bin/brew >/dev/null 2>&1; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    # echo "Homebrew is installed."
+fi
+
 source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
 source "$HOME/serhii.shell/aliases.sh"
@@ -167,4 +172,3 @@ export NVM_DIR="$HOME/.config/nvm"
 
 # Changing "find" to "fd"
 alias find="fd --color=always"
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

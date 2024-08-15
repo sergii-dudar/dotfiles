@@ -11,22 +11,10 @@ else
     export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
     export PATH=$PATH:/home/serhii/tools/temporal
 
-    # sudo ln -s /home/serhii/homebrew/bin//yazi /usr/local/bin/yazi
-    # sudo ln -s /home/serhii/homebrew/bin//yazi /usr/bin/yazi
-
-    # sudo ln -s /home/serhii/homebrew/bin//fd /usr/local/bin/fd
-    # sudo ln -s /home/serhii/homebrew/bin//bat /usr/local/bin/bat
-    # sudo ln -s /home/serhii/homebrew/bin//fastfetch /usr/local/bin/fastfetch
-    # sudo ln -s /home/serhii/homebrew/bin//rg /usr/local/bin/rg
-    # sudo ln -s /home/serhii/homebrew/bin//nvim /usr/local/bin/nvim
-    # sudo ln -s /home/serhii/homebrew/bin//eza /usr/local/bin/eza
-    # sudo ln -s /home/serhii/homebrew/bin//k9s /usr/local/bin/k9s
-    # sudo ln -s /home/serhii/homebrew/bin//tldr /usr/local/bin/tldr
-    # sudo ln -s /home/serhii/homebrew/bin//fzf /usr/local/bin/fzf
-    # sudo ln -s /home/serhii/homebrew/bin//zellij /usr/local/bin/zellij
-    # sudo ln -s /home/serhii/homebrew/bin//procs /usr/local/bin/procs
-
-    # to rofi: sudo ln -s /home/serhii/homebrew/bin//fd /usr/bin/fd
+    # integration between ubuntu\arch (brew/pacman)
+    # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi
+    # sudo ln -s /home/linuxbrew/.linuxbrew/bin/fd /usr/bin/fd
+    # sudo ln -s /home/linuxbrew/.linuxbrew/bin/zellij /usr/bin/zellij
 fi
 
 export VISUAL='nvim'
