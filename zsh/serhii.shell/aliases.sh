@@ -99,6 +99,7 @@ alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/
 
 alias vim="nvim"
 alias vi="nvim"
+alias vit="nvim -p"
 alias lg="lazygit"
 
 alias fz="fzf --preview='bat {}'"
