@@ -150,6 +150,8 @@ source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 
+setopt no_beep
+
 # if [[ -z "$MANUAL_RL" && ! -d "./.git" ]]; then
 if [[ -z "$MANUAL_RL" ]] && ! find_git_root; then
     fastfetch

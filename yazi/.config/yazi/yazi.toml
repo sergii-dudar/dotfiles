@@ -49,7 +49,8 @@ open = [
     { run = 'start "" "%1"', orphan = true, desc = "Open", for = "windows" },
 ]
 reveal = [
-    { run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
+    #{ run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
+    { run = 'xdg-open "$1"',           desc = "Reveal", for = "linux" },
     { run = 'open -R "$1"',                         desc = "Reveal", for = "macos" },
     { run = 'explorer /select,"%1"', orphan = true, desc = "Reveal", for = "windows" },
     { run = '''exiftool "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show EXIF", for = "unix" },
@@ -59,7 +60,8 @@ extract = [
     { run = 'ya pub extract --list %*',   desc = "Extract here", for = "windows" },
 ]
 play = [
-    { run = 'mpv --force-window "$@"', orphan = true, for = "unix" },
+    { run = 'vlc "$@"', orphan = true, desc = "vlc", for = "unix" },
+    #{ run = 'mpv --force-window "$@"', orphan = true, for = "unix" },
     { run = 'mpv --force-window %*', orphan = true, for = "windows" },
     { run = '''mediainfo "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
 ]
@@ -70,7 +72,8 @@ image = [
     { run = 'nautilus . "$1"',  orphan = true,  desc = "Open in Nautilus", for = "linux" }
 ]
 run_sh = [
-    { run = '"$1"', desc = "run shell", for = "linux" },
+    #{ run = '"$1"', desc = "run shell", for = "linux" },
+    { run = 'kitty --hold zsh -c "$1"', desc = "run shell", for = "linux" },
 ]
 
 [open]
@@ -85,6 +88,7 @@ rules = [
     #{ mime = "image/*", use = [ "open", "reveal" ] },
     { mime = "image/*", use = [ "image" ] },
     # Media
+    { mime = "application/octet-stream", use = [ "play", "reveal" ] },
     { mime = "{audio,video}/*", use = [ "play", "reveal" ] },
     # Archive
     { mime = "application/{,g}zip", use = [ "extract", "reveal" ] },
