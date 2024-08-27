@@ -12,6 +12,10 @@ return {
         opts = {
             auto_install = true,
         },
+        config = function()
+            require("mason-lspconfig").setup()
+        end,
+
     },
     {
         "neovim/nvim-lspconfig",
