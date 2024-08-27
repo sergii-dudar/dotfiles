@@ -6,6 +6,15 @@ curl -sS https://starship.rs/install.sh | sh
 sudo chsh -s "$(which zsh)" serhii
 echo 'SHELL was changed to zsh, need make logout to apply changes'
 
+# sdkman
+curl -s "https://get.sdkman.io" | bash
+# sdk list gradle
+# sdk list java
+# sdk list maven
+sdk install gradle 8.10
+sdk install maven 3.8.8
+sdk install java 21.0.4-oracle
+
 # install dotfiles my custom configurations
 cd ~/ && \
 git clone https://github.com/sergii-dudar/dotfiles.git && \

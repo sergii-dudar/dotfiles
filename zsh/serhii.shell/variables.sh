@@ -11,6 +11,9 @@ else
     export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
     export PATH=$PATH:/home/serhii/tools/temporal
 
+    # in case commented nvm (as slow)
+    export PATH=$PATH:/home/serhii/.nvm/versions/node/v22.7.0/bin
+
     # integration between ubuntu\arch (brew/pacman)
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/fd /usr/bin/fd

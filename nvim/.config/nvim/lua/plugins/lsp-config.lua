@@ -13,14 +13,29 @@ return {
             auto_install = true,
         },
         config = function()
-            require("mason-lspconfig").setup()
+            require("mason-lspconfig").setup({
+                ensure_installed = {
+                    "lua_ls",
+                    "bashls",
+                    "gradle_ls",
+                    "helm_ls",
+                    "java_language_server",
+                    --"jdtls"
+                    "jsonls",
+                    "sqlls",
+                    "harper_ls",
+                    "jedi_language_server"
+                }
+            })
         end,
-
     },
     {
         "neovim/nvim-lspconfig",
         lazy = false,
         config = function()
+            -- :Mason
+            -- :LspInfo
+            -- :h vim.lsp.buf
             local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
             local lspconfig = require("lspconfig")
@@ -39,8 +54,11 @@ return {
             lspconfig.lua_ls.setup({
                 capabilities = capabilities
             })
+            lspconfig.java_language_server.setup({
+                capabilities = capabilities
+            })
 
-            --vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
+            vim.keymap.set("n", "<leader>lq", vim.lsp.buf.hover, {})
             vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, {})
             vim.keymap.set("n", "<leader>la", vim.lsp.buf.code_action, {})
 
