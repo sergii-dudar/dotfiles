@@ -9,7 +9,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
     callback = function()
         -- Wait briefly just in case we immediately switch out of the buffer (e.g. Neotest)
         vim.defer_fn(function()
-            if vim.api.nvim_buf_get_option(0, 'buftype') == 'terminal' then
+            if vim.api.nvim_buf_get_option(0, "buftype") == "terminal" then
                 vim.cmd([[startinsert]])
             end
         end, 100)
@@ -20,7 +20,9 @@ vim.api.nvim_create_autocmd("TermOpen", {
 vim.api.nvim_create_autocmd("TextYankPost", {
     group = "custom_buffer",
     pattern = "*",
-    callback = function() vim.highlight.on_yank { timeout = 300 } end
+    callback = function()
+        vim.highlight.on_yank({ timeout = 300 })
+    end,
 })
 
 -- auto indent on save

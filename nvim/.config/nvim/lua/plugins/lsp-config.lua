@@ -24,8 +24,8 @@ return {
                     "jsonls",
                     "sqlls",
                     "harper_ls",
-                    "jedi_language_server"
-                }
+                    "jedi_language_server",
+                },
             })
         end,
     },
@@ -36,30 +36,33 @@ return {
             -- :Mason
             -- :LspInfo
             -- :h vim.lsp.buf
-            local capabilities = require('cmp_nvim_lsp').default_capabilities()
+            local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
             local lspconfig = require("lspconfig")
             lspconfig.tailwindcss.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
             })
             lspconfig.tsserver.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
             })
             lspconfig.solargraph.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
             })
             lspconfig.html.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
             })
             lspconfig.lua_ls.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
             })
             lspconfig.java_language_server.setup({
-                capabilities = capabilities
+                capabilities = capabilities,
+            })
+            lspconfig.bashls.setup({
+                capabilities = capabilities,
             })
 
             vim.keymap.set("n", "<leader>lq", vim.lsp.buf.hover, {})
-            vim.keymap.set('n', '<leader>lr', vim.lsp.buf.rename, {})
+            vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, {})
             vim.keymap.set("n", "<leader>la", vim.lsp.buf.code_action, {})
 
             vim.keymap.set("n", "<leader>ld", vim.lsp.buf.definition, {})
