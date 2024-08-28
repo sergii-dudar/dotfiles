@@ -16,15 +16,15 @@ return {
             require("mason-lspconfig").setup({
                 ensure_installed = {
                     "lua_ls",
-                    "bashls",
-                    "gradle_ls",
-                    "helm_ls",
-                    "java_language_server",
-                    --"jdtls"
-                    "jsonls",
-                    "sqlls",
-                    "harper_ls",
-                    "jedi_language_server",
+                    -- "bashls",
+                    -- "gradle_ls",
+                    -- "helm_ls",
+                    -- "java_language_server",
+                    -- --"jdtls"
+                    -- "jsonls",
+                    -- "sqlls",
+                    -- "harper_ls",
+                    -- "jedi_language_server",
                 },
             })
         end,
@@ -36,7 +36,12 @@ return {
             -- :Mason
             -- :LspInfo
             -- :h vim.lsp.buf
-            local capabilities = require("cmp_nvim_lsp").default_capabilities()
+            --local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+
+            -- Manual autocompletion ('omnifunc'): <C-X><C-O>
+
+
 
             local lspconfig = require("lspconfig")
             --  lspconfig.tailwindcss.setup({
@@ -52,7 +57,7 @@ return {
             --      capabilities = capabilities,
             --  })
             lspconfig.lua_ls.setup({
-                capabilities = capabilities,
+                --capabilities = capabilities,
             })
             --  lspconfig.java_language_server.setup({
             --      capabilities = capabilities,
@@ -60,6 +65,7 @@ return {
             --  lspconfig.bashls.setup({
             --      capabilities = capabilities,
             --  })
+
 
             vim.keymap.set("n", "<leader>lq", vim.lsp.buf.hover, {})
             vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, {})

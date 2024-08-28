@@ -5,6 +5,7 @@ return {
             "mfussenegger/nvim-dap",
             "nvim-neotest/nvim-nio",
         },
+        enabled = false,
         config = function()
             local dap, dapui = require("dap"), require("dapui")
             dapui.setup()
@@ -28,10 +29,12 @@ return {
         dependencies = {
             "leoluz/nvim-dap-go",
         },
+        enabled = false,
         config = function()
             local dap = require("dap")
 
             --
+            --TODO: try manage dap tools by mason
             require("dap-go").setup()
             --
 
