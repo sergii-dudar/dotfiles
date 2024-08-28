@@ -39,27 +39,27 @@ return {
             local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
             local lspconfig = require("lspconfig")
-            lspconfig.tailwindcss.setup({
-                capabilities = capabilities,
-            })
-            lspconfig.tsserver.setup({
-                capabilities = capabilities,
-            })
-            lspconfig.solargraph.setup({
-                capabilities = capabilities,
-            })
-            lspconfig.html.setup({
-                capabilities = capabilities,
-            })
+            --  lspconfig.tailwindcss.setup({
+            --      capabilities = capabilities,
+            --  })
+            --  lspconfig.tsserver.setup({
+            --      capabilities = capabilities,
+            --  })
+            --  lspconfig.solargraph.setup({
+            --      capabilities = capabilities,
+            --  })
+            --  lspconfig.html.setup({
+            --      capabilities = capabilities,
+            --  })
             lspconfig.lua_ls.setup({
                 capabilities = capabilities,
             })
-            lspconfig.java_language_server.setup({
-                capabilities = capabilities,
-            })
-            lspconfig.bashls.setup({
-                capabilities = capabilities,
-            })
+            --  lspconfig.java_language_server.setup({
+            --      capabilities = capabilities,
+            --  })
+            --  lspconfig.bashls.setup({
+            --      capabilities = capabilities,
+            --  })
 
             vim.keymap.set("n", "<leader>lq", vim.lsp.buf.hover, {})
             vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, {})
