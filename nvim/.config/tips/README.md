@@ -1,4 +1,4 @@
-### source %
+### source %    [so]
 source (or execute) the current file as a Vimscript file.
 If you are editing your init.vim or init.lua file and want to apply changes immediately:
 

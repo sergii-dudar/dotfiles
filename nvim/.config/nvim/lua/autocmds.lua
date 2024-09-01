@@ -37,3 +37,22 @@ vim.api.nvim_create_autocmd("BufWritePre", {
         vim.lsp.buf.format({ async = false })
     end,
 })
+
+--vim.api.nvim_create_autocmd("VimEnter", {
+--    pattern = "*",
+--    group = "custom_buffer",
+--    callback = function()
+--        vim.cmd("Neotree filesystem reveal left")
+--    end,
+--})
+
+vim.api.nvim_create_autocmd("UiEnter", {
+    desc = "Open Neotree automatically",
+    group = "custom_buffer",
+    callback = function()
+        if vim.fn.argc() == 0 then
+            --vim.cmd "Neotree toggle"
+            vim.cmd("Neotree filesystem reveal left")
+        end
+    end,
+})

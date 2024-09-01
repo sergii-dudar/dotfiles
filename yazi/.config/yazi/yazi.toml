@@ -28,12 +28,15 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 
 [opener]
 edit = [
-    { run = '${EDITOR:=vi} "$@"', desc = "NeoVim", block = true, for = "unix" },
+    { run = '${EDITOR:=vi} "$@"', desc = "NeoVim [selected file]", block = true, for = "unix" },
+    { run = '${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
     { run = 'subl "$@"', desc = "Sublime", for = "unix" },
     { run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
     { run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
 folder = [
+    #{ run = '${EDITOR:=vi} "$@"', desc = "NeoVim", block = true, for = "unix" },
+    { run = '${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
     { run = 'nautilus "$1"',   desc = "Nautilus", for = "linux" },
     #{ run = 'alacritty', orphan = true,  desc = "Alacritty", for = "linux" },
     { run = 'kitty', orphan = true,  desc = "Terminal", for = "linux" },

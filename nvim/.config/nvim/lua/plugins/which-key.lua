@@ -16,68 +16,68 @@ return
             desc = "Buffer Local Keymaps (which-key)",
         },
     },
-        opts = {
-            defaults = {},
-            spec = {
-                {
-                    mode = { "n", "v" },
-                   { "<leader>h", group = "harpoon" },
-                   { "<leader>n", group = "neo-tree" },
-                   { "<leader>s", group = "session" },
-                   { "<leader>z", group = "zen-mode" },
+    opts = {
+        defaults = {},
+        spec = {
+            {
+                mode = { "n", "v" },
+                { "<leader>h", group = "[H]arpoon" },
+                { "<leader>n", group = "[N]eo-tree" },
+                { "<leader>s", group = "[S]ession" },
+                { "<leader>z", group = "[Z]en-mode" },
 
 
-                   -- { "<leader><tab>", group = "tabs" },
-                   -- { "<leader>c", group = "code" },
-                   -- { "<leader>f", group = "file/find" },
-                   -- { "<leader>g", group = "git" },
-                   -- { "<leader>gh", group = "hunks" },
-                   -- { "<leader>q", group = "quit/session" },
-                   -- { "<leader>s", group = "search" },
-                   -- { "<leader>u", group = "ui", icon = { icon = "󰙵 ", color = "cyan" } },
-                   -- { "<leader>x", group = "diagnostics/quickfix", icon = { icon = "󱖫 ", color = "green" } },
-                   -- { "[", group = "prev" },
-                   -- { "]", group = "next" },
-                   -- { "g", group = "goto" },
-                   -- { "gs", group = "surround" },
-                   -- { "z", group = "fold" },
-                   -- {
-                   --     "<leader>b",
-                   --     group = "buffer",
-                   --     expand = function()
-                   --         return require("which-key.extras").expand.buf()
-                   --     end,
-                   -- },
-                   -- {
-                   --     "<leader>w",
-                   --     group = "windows",
-                   --     proxy = "<c-w>",
-                   --     expand = function()
-                   --         return require("which-key.extras").expand.win()
-                   --     end,
-                   -- },
-                   -- -- better descriptions
-                   -- { "gx", desc = "Open with system app" },
-                },
+                -- { "<leader><tab>", group = "tabs" },
+                -- { "<leader>c", group = "code" },
+                -- { "<leader>f", group = "file/find" },
+                -- { "<leader>g", group = "git" },
+                -- { "<leader>gh", group = "hunks" },
+                -- { "<leader>q", group = "quit/session" },
+                -- { "<leader>s", group = "search" },
+                -- { "<leader>u", group = "ui", icon = { icon = "󰙵 ", color = "cyan" } },
+                -- { "<leader>x", group = "diagnostics/quickfix", icon = { icon = "󱖫 ", color = "green" } },
+                -- { "[", group = "prev" },
+                -- { "]", group = "next" },
+                -- { "g", group = "goto" },
+                -- { "gs", group = "surround" },
+                -- { "z", group = "fold" },
+                -- {
+                --     "<leader>b",
+                --     group = "buffer",
+                --     expand = function()
+                --         return require("which-key.extras").expand.buf()
+                --     end,
+                -- },
+                -- {
+                --     "<leader>w",
+                --     group = "windows",
+                --     proxy = "<c-w>",
+                --     expand = function()
+                --         return require("which-key.extras").expand.win()
+                --     end,
+                -- },
+                -- -- better descriptions
+                -- { "gx", desc = "Open with system app" },
             },
         },
+    },
     plugins = {
-        marks = true, -- shows a list of your marks on ' and `
+        marks = true,     -- shows a list of your marks on ' and `
         registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
         -- the presets plugin, adds help for a bunch of default keybindings in Neovim
         -- No actual key bindings are created
         spelling = {
-            enabled = true, -- enabling this will show WhichKey when pressing z= to select spelling suggestions
+            enabled = true,   -- enabling this will show WhichKey when pressing z= to select spelling suggestions
             suggestions = 20, -- how many suggestions should be shown in the list?
         },
         presets = {
-            operators = true, -- adds help for operators like d, y, ...
-            motions = true, -- adds help for motions
+            operators = true,    -- adds help for operators like d, y, ...
+            motions = true,      -- adds help for motions
             text_objects = true, -- help for text objects triggered after entering an operator
-            windows = true, -- default bindings on <c-w>
-            nav = true, -- misc bindings to work with windows
-            z = true, -- bindings for folds, spelling and others prefixed with z
-            g = true, -- bindings for prefixed with g
+            windows = true,      -- default bindings on <c-w>
+            nav = true,          -- misc bindings to work with windows
+            z = true,            -- bindings for folds, spelling and others prefixed with z
+            g = true,            -- bindings for prefixed with g
         },
         operators = { gc = "Comments" },
         icons = {
