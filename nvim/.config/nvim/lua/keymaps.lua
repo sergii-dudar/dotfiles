@@ -29,8 +29,8 @@ vim.api.nvim_set_keymap('v', '.', ':norm! .<CR>', { noremap = true, silent = tru
 
 --nnoremap <SPACE> <Nop>
 
---vim.api.nvim_set_keymap('n', 'J', '6jzz', { noremap = true, silent = true }) -- Mapping J to 6jzz
---vim.api.nvim_set_keymap('n', 'K', '6kzz', { noremap = true, silent = true }) -- Mapping K to 6kzz
+vim.api.nvim_set_keymap('n', 'J', '6jzz', { noremap = true, silent = true }) -- Mapping J to 6jzz
+vim.api.nvim_set_keymap('n', 'K', '6kzz', { noremap = true, silent = true }) -- Mapping K to 6kzz
 
 --vertically navigation with keep cursor on center
 vim.api.nvim_set_keymap('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true }) -- Mapping <C-u> to <C-u>zz
@@ -50,7 +50,7 @@ vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 --stay curson in plase during joining lines
-vim.keymap.set("n", "J", "mzJ`z")
+--vim.keymap.set("n", "J", "mzJ`z")
 
 --yank(copy) to system clipboard
 vim.keymap.set({ "n", "v" }, "<leader>y", "\"+yy")

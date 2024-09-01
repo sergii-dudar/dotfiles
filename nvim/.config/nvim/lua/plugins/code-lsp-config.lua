@@ -1,4 +1,4 @@
-return {
+local a = {
     {
         "williamboman/mason.nvim",
         lazy = false,
@@ -77,4 +77,6 @@ return {
             vim.keymap.set("n", "<leader>ll", vim.lsp.buf.references, {})
         end,
     },
+}
+return {
 }
