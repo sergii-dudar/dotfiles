@@ -28,8 +28,17 @@ return {
             require("mason-lspconfig").setup({
                 ensure_installed = {
                     "lua_ls",
-                    "rust_analyzer",
-                    "gopls",
+                    --"rust_analyzer",
+                    --"gopls",
+                    --"java_language_server",
+                    "bashls",
+                    "gradle_ls",
+                    "helm_ls",
+                    --"jdtls"
+                    "jsonls",
+                    "sqlls",
+                    --"harper_ls",
+                    "jedi_language_server"
                 },
                 handlers = {
                     function(server_name) -- default handler (optional)

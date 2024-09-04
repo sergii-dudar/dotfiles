@@ -4,6 +4,7 @@ return {
     ---@module "ibl"
     ---@type ibl.config
     opts = {},
+    enabled = false,
     config = function ()
         require("ibl").setup({
             scope = { enabled = false },

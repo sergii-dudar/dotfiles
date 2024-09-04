@@ -3,6 +3,7 @@ return {
   dependencies = {
     "preservim/vimux"
   },
+  enabled = false,
   config = function()
    -- vim.keymap.set("n", "<leader>", ":TestNearest<CR>", {})
    -- vim.keymap.set("n", "<leader>", ":TestFile<CR>", {})
