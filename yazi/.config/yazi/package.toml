@@ -1,9 +1,9 @@
 [plugin]
 deps = [
-    { use = "yazi-rs/plugins#full-border", commit = "06e5fe1" },
-    { use = "yazi-rs/plugins#max-preview", commit = "06e5fe1" },
-    { use = "dedukun/relative-motions", commit = "73f5542" },
-    { use = "Rolv-Apneseth/starship", commit = "5abe29e" }]
+    { use = "yazi-rs/plugins:full-border", rev = "06e5fe1" },
+    { use = "yazi-rs/plugins:max-preview", rev = "06e5fe1" },
+    { use = "dedukun/relative-motions", rev = "73f5542" },
+    { use = "Rolv-Apneseth/starship", rev = "5abe29e" }, { use = "yazi-rs/plugins:git", rev = "9a1129c" }]
 
 [flavor]
 deps = []

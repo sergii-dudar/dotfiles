@@ -12,3 +12,5 @@ require("relative-motions"):setup(
 require("starship"):setup(
     --{ config_file = "/home/serhii/dotfiles/starship/.config/starship.toml" }
 )
+
+require("git"):setup()
