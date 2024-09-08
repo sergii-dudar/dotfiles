@@ -23,7 +23,7 @@ awesome/.config/awesome/themes
 ranger/.config/ranger/plugins
 ranger/.config/ranger/colorschemes
 alacritty/.config/alacritty/themes
-nvim*/.config/nvim/plugin
+nvim/.config/nvim.bak/plugin
 
 # Generated classes
 **/main/generated/
