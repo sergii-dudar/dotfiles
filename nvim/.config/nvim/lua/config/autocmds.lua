@@ -4,36 +4,33 @@
 
 local augroup = vim.api.nvim_create_augroup
 local customBuffer = augroup("custom_buffer", { clear = true })
-local myCustomGroup = augroup('myCustomGroup', {})
-local yank_group = augroup('HighlightYank', {})
+local myCustomGroup = augroup("myCustomGroup", {})
+local yank_group = augroup("HighlightYank", {})
 
 local autocmd = vim.api.nvim_create_autocmd
 
-
-
-
 -- start terminal in insert mode
 autocmd("TermOpen", {
-    desc = "Auto enter insert mode when opening a terminal",
-    group = customBuffer,
-    pattern = "*",
-    callback = function()
-        -- Wait briefly just in case we immediately switch out of the buffer (e.g. Neotest)
-        vim.defer_fn(function()
-            if vim.api.nvim_buf_get_option(0, "buftype") == "terminal" then
-                vim.cmd([[startinsert]])
-            end
-        end, 100)
-    end,
+  desc = "Auto enter insert mode when opening a terminal",
+  group = customBuffer,
+  pattern = "*",
+  callback = function()
+    -- Wait briefly just in case we immediately switch out of the buffer (e.g. Neotest)
+    vim.defer_fn(function()
+      if vim.api.nvim_buf_get_option(0, "buftype") == "terminal" then
+        vim.cmd([[startinsert]])
+      end
+    end, 100)
+  end,
 })
 
 -- highlight yanks
 autocmd("TextYankPost", {
-    group = yank_group,
-    pattern = "*",
-    callback = function()
-        vim.highlight.on_yank({ timeout = 300 })
-    end,
+  group = yank_group,
+  pattern = "*",
+  callback = function()
+    vim.highlight.on_yank({ timeout = 300 })
+  end,
 })
 
 --autocmd("BufWritePre", {
@@ -42,7 +39,6 @@ autocmd("TextYankPost", {
 --        vim.lsp.buf.format({ async = false })
 --    end,
 --})
-
 
 --print("UiEnter1")
 --vim.api.nvim_create_autocmd("VimEnter", {
