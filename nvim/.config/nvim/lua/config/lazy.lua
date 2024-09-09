@@ -23,6 +23,7 @@ require("lazy").setup({
     --{ import = "lazyvim.plugins.extras.editor.inc-rename" },
     --{ import = "lazyvim.plugins.extras.editor.fzf" },
     { import = "lazyvim.plugins.extras.editor.telescope" },
+    --{ import = "lazyvim.plugins.extras.editor.refactoring" },
 
     -- import/override with your plugins
     { import = "plugins.ui" },
