@@ -78,6 +78,12 @@ return {
                     --winblend = 0,
                 },
             }
+
+            local cmp = require("cmp")
+            opts.mapping = vim.tbl_deep_extend("force", opts.mapping, {
+                ["<C-k>"] = cmp.mapping.select_prev_item(),
+                ["<C-j>"] = cmp.mapping.select_next_item()
+            })
         end,
     }
 }
