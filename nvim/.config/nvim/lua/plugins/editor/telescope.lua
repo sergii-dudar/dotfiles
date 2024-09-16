@@ -1,6 +1,9 @@
 return {
     {
         "nvim-telescope/telescope.nvim",
+        keys = {
+            { "<leader>fl", "<cmd>Telescope notify<cr>", desc = "Find Logs" },
+        },
         opts = function(_, opts)
             opts.defaults.path_display = { "smart" }
 

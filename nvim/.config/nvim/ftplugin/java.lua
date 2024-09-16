@@ -22,7 +22,8 @@ local config = {
         '-Declipse.product=org.eclipse.jdt.ls.core.product',
         '-Dlog.protocol=true',
         '-Dlog.level=ALL',
-        '-javaagent: /home/serhii/.local/share/nvim/mason/share/jdtls/lombok.jar',
+        --'-javaagent: /home/serhii/.local/share/nvim/mason/packages/jdtls/lombok.jar',
+        '-javaagent: /home/serhii/.m2/repository/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar',
         '-Xmx4g',
         '--add-modules=ALL-SYSTEM',
         '--add-opens', 'java.base/java.util=ALL-UNNAMED',
@@ -92,6 +93,7 @@ local config = {
                 --   profile = "GoogleStyle",
                 -- },
             },
+            contentProvider = { preferred = 'fernflower' },  -- For decompiling sources with Lombok annotations
         },
         completion = {
             favoriteStaticMembers = {
