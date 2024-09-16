@@ -15,8 +15,9 @@ local function extend_or_override(config, custom, ...)
   return config
 end
 
-return {
-  recommended = function()
+--return {
+local t = {
+    recommended = function()
     return LazyVim.extras.wants({
       ft = "java",
       root = {
@@ -275,3 +276,4 @@ return {
     end,
   },
 }
+return {}

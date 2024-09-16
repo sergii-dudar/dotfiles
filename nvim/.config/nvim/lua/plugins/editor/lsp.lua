@@ -45,6 +45,17 @@ return {
     },
     {
         "hrsh7th/nvim-cmp",
+        dependencies = {
+            -- Autocompletion
+            --{ "hrsh7th/nvim-cmp" }, -- Required
+            --{ "hrsh7th/cmp-nvim-lsp" }, -- Required
+            --{ "L3MON4D3/LuaSnip" }, -- Required
+            --{ "rafamadriz/friendly-snippets" },
+            --{ "hrsh7th/cmp-buffer" },
+            --{ "hrsh7th/cmp-path" },
+            --{ "hrsh7th/cmp-cmdline" },
+            --{ "saadparwaiz1/cmp_luasnip" }
+        },
         opts = function(_, opts)
             --opts.completion.autocomplete = false
             --opts.mapping["<CR>"] = nil
@@ -84,6 +95,60 @@ return {
                 ["<C-k>"] = cmp.mapping.select_prev_item(),
                 ["<C-j>"] = cmp.mapping.select_next_item()
             })
+
+
+            --table.insert(opts.sources, { name = "path" })
+
+            --opts.sources = {
+            --    { name = "nvim_lsp" }
+            --}
+            --opts.sources = {
+            --    { name = "nvim_lsp" },
+            --    { name = "luasnip", keyword_length = 2 },
+            --    { name = "buffer", keyword_length = 3 },
+            --    { name = "path" },
+            --}
+
+           --opts.sources = cmp.config.sources({
+           --    { name = "nvim_lsp" },
+           --    { name = "path" },
+           --}, {
+           --    { name = "buffer" },
+           --})
         end,
+    },
+    {
+        "hrsh7th/cmp-cmdline",
+        dependencies = {
+            "hrsh7th/nvim-cmp"
+        },
+        config = function()
+            local cmp = require("cmp")
+
+            -- `/` cmdline setup.
+            cmp.setup.cmdline("/", {
+                mapping = cmp.mapping.preset.cmdline(),
+                --mapping = opts.mapping;
+                sources = {
+                    { name = "buffer" },
+                },
+            })
+
+            -- `:` cmdline setup.
+            cmp.setup.cmdline(":", {
+                mapping = cmp.mapping.preset.cmdline(),
+                --mapping = opts.mapping;
+                sources = cmp.config.sources({
+                    { name = "path" },
+                }, {
+                    {
+                        name = "cmdline",
+                        option = {
+                            ignore_cmds = { "Man", "!", "q", "w", "wa", "qa" },
+                        },
+                    },
+                }),
+            })
+        end
     }
 }

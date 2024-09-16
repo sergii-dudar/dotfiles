@@ -51,6 +51,7 @@ require("lazy").setup({
     { import = "plugins.navigation" },
     { import = "plugins.editor" },
     { import = "plugins.lang" },
+    { import = "plugins.fun" },
     { import = "plugins" },
   },
   defaults = {
