@@ -24,6 +24,10 @@ vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     return vim.lsp.util.open_floating_preview(markdown_lines, "markdown", config)
 end
 
+vim.diagnostic.config {
+    float = { border = "rounded" },
+}
+
 return {
     {
         "williamboman/mason.nvim",
@@ -35,13 +39,23 @@ return {
             }
         },
     },
+    --{
+    --    "neovim/nvim-lspconfig",
+    --      opts = function()
+    --          local keys = require("lazyvim.plugins.lsp.keymaps").get()
+    --          keys[#keys + 1] = { "K", false }
+    --          keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
+    --      end,
+    --},
     {
-        "neovim/nvim-lspconfig",
-          opts = function()
-              local keys = require("lazyvim.plugins.lsp.keymaps").get()
-              keys[#keys + 1] = { "K", false }
-              keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
-          end,
+        'dgagn/diagflow.nvim',
+        -- event = 'LspAttach', This is what I use personnally and it works great
+        opts = {
+            show_borders = true
+        },
+        config = function()
+            require('diagflow').setup()
+        end
     },
     {
         "hrsh7th/nvim-cmp",
