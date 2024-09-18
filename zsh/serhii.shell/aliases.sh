@@ -31,7 +31,8 @@ alias yyc='yazi --clear-cache && yy'
 alias ubuntuu="sudo apt update && sudo apt upgrade"
 alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
 alias ubuntuar="sudo apt autoremove"
-alias archu="sudo pacman -Syu"
+alias archu="sudo pacman -Syu && yay -Syu"
+alias brewu="brew update && brew upgrade"
 
 # navigation
 alias ..='cd ..'

@@ -41,7 +41,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.typescript" },
     { import = "lazyvim.plugins.extras.lang.yaml" },
     { import = "lazyvim.plugins.extras.lang.helm" },
-    --{ import = "lazyvim.plugins.extras.lang.java" }, custom
+    { import = "lazyvim.plugins.extras.lang.java" },
     { import = "lazyvim.plugins.extras.lang.sql" },
 
     --{ import = "lazyvim.plugins.extras.coding.luasnip" }, --for now use nvim-snippets
@@ -50,7 +50,7 @@ require("lazy").setup({
     { import = "plugins.ui" },
     { import = "plugins.navigation" },
     { import = "plugins.editor" },
-    { import = "plugins.lang" },
+    --{ import = "plugins.lang" },
     { import = "plugins.fun" },
     { import = "plugins" },
   },

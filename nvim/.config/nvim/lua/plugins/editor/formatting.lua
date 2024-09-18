@@ -17,11 +17,24 @@ return {
         opts = {
             formatters_by_ft = {
                 xml = { "xmlformatter" },
-                java = { "google-java-format" },
                 kotlin = { "ktfmt" },
                 sh = { "beautysh" },
                 python = { "black", },
                 lua = { "stylua" },
+                --java = { "google-java-format" },
+                java = {
+                    inherit = false,
+                    command = "cd /home/serhii/serhii.home/work/git.work/ticket-service && ./mvnw spotless:apply", -- Use 'cmd' instead of 'command'
+                    args = {  }, -- These are correct
+                    stdin = false, -- 'mvn spotless:apply' doesn't use stdin, so set this to false
+                },
+                --java = {
+                --    inherit = false,
+                --    command = "mvn",
+                --    args = { "spotless:apply" },
+                --    --args = { "spotless:apply", "-DspotlessFiles", "$FILENAME"},
+                --    --args = { "spotless:apply", "-DspotlessFiles=/home/serhii/serhii.home/work/git.work/ticket-service/src/main/java/com/hitachirail/pass/service/ticket/api/service/TicketService.java"},
+                --}
             }
         }
     }
