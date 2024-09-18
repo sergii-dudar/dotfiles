@@ -1,14 +1,57 @@
---local jdtls = require('jdtls')
---local mason = require('mason-registry')
+local system = 'linux'
+--if vim.fn.has 'win32' then
+--    system = 'win'
+--elseif vim.fn.has 'mac' then
+--    system = 'mac'
+--end
 
 local home = os.getenv('HOME')
-local java21_dir = home .. "/.sdkman/candidates/java/21.0.2-oracle"
-local java21_bin = java21_dir .. "/bin/java";
-local java_google_style_file = home .. "/dotfiles/work/eclipse-java-google-style.xml";
+local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
+local workspace_dir = vim.env.HOME .. '/jdtls-workspace/' .. project_name
 
+local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle")
+local java21_bin = java21_dir .. "/bin/java";
+--local java_google_style_file = home .. "/dotfiles/work/eclipse-java-google-style.xml";
+
+--local mason = require('mason-registry')
+--local jdtls_path = mason.get_package('jdtls'):get_install_path()
+local jdtls_path = home .. "/.local/share/nvim/mason/packages/jdtls"
+local lombok_path = jdtls_path .. '/lombok.jar'
+local equinox_launcher_path = vim.fn.glob(jdtls_path .. '/plugins/org.eclipse.equinox.launcher_*.jar')
+local config_path = vim.fn.glob(jdtls_path .. '/config_' .. system)
+--print("config_path: "..config_path)
+--print("config.cmd" .. vim.inspect(config.cmd))
 return {
     "mfussenegger/nvim-jdtls",
+    dependencies = {
+        "williamboman/mason.nvim",
+    },
+    keys = {
+            { "<leader>jc", ":JdtCompile<CR>", desc = "JDTLS Compile" },
+            { "<leader>jf", ":JdtCompile full<CR>", desc = "JDTLS Compile Full" },
+            { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
+    },
     opts = {
+        cmd = {
+            java21_bin,
+            --'-Declipse.application=org.eclipse.jdt.ls.core.id1',
+            --'-Dosgi.bundles.defaultStartLevel=4',
+            --'-Declipse.product=org.eclipse.jdt.ls.core.product',
+            --'-Dlog.protocol=true',
+            --'-Dlog.level=ALL',
+            --'-javaagent:' .. lombok_path,
+            --'-Xmx4g',
+            --'--add-modules=ALL-SYSTEM',
+            --'--add-opens', 'java.base/java.util=ALL-UNNAMED',
+            --'--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+            -- Eclipse jdtls location
+            '-jar', equinox_launcher_path,
+            --'-configuration', config_path,
+            --'-data', workspace_dir
+        },
+        --full_cmd = function(opts)
+        --    return opts
+        --end,
         settings = {
             java = {
                 autobuild = {
