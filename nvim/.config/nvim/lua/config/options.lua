@@ -29,6 +29,7 @@ vim.opt.swapfile = false
 vim.opt.number = true
 vim.wo.number = true
 vim.opt.relativenumber = true
+vim.opt.numberwidth = 2 -- set width of line number column
 
 -- clipboard
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default register
@@ -37,9 +38,11 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 
 
 vim.opt.showmode = false
-vim.opt.scrolloff = 8
+vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
+vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
 vim.opt.signcolumn = "yes"
-vim.opt.smartindent = true
+vim.opt.smartindent = true -- enable smart indentation
+vim.opt.breakindent = true -- enable line breaking indentation
 
 vim.opt.termguicolors = true
 vim.opt.background = "dark"
