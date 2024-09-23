@@ -165,8 +165,13 @@ function find_git_root() {
 
     while [ "$dir" != "$home" ]; do
         #echo "$dir"
-        found_files=$(fd -d 1 -t d -H "\.git\b" "$dir")
-        if [[ -n $found_files ]]; then
+        found_dir=$(fd -d 1 -t d -H "\.git\b" "$dir")
+        if [[ -n $found_dir ]]; then
+            return 0
+        fi
+
+        found_file=$(fd -d 1 -t f -H "(pom.xml|build.gradle)" "$dir")
+        if [[ -n $found_file ]]; then
             return 0
         fi
         dir=$(dirname "$dir")

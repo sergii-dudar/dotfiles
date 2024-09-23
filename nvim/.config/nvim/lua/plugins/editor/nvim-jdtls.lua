@@ -32,26 +32,32 @@ return {
             { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
     },
     opts = {
-        cmd = {
-            java21_bin,
-            --'-Declipse.application=org.eclipse.jdt.ls.core.id1',
-            --'-Dosgi.bundles.defaultStartLevel=4',
-            --'-Declipse.product=org.eclipse.jdt.ls.core.product',
-            --'-Dlog.protocol=true',
-            --'-Dlog.level=ALL',
-            --'-javaagent:' .. lombok_path,
-            --'-Xmx4g',
-            --'--add-modules=ALL-SYSTEM',
-            --'--add-opens', 'java.base/java.util=ALL-UNNAMED',
-            --'--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-            -- Eclipse jdtls location
-            '-jar', equinox_launcher_path,
-            --'-configuration', config_path,
-            --'-data', workspace_dir
-        },
+        --cmd = {
+        --    java21_bin,
+        --    --'-Declipse.application=org.eclipse.jdt.ls.core.id1',
+        --    --'-Dosgi.bundles.defaultStartLevel=4',
+        --    --'-Declipse.product=org.eclipse.jdt.ls.core.product',
+        --    --'-Dlog.protocol=true',
+        --    --'-Dlog.level=ALL',
+        --    --'-javaagent:' .. lombok_path,
+        --    --'-Xmx4g',
+        --    --'--add-modules=ALL-SYSTEM',
+        --    --'--add-opens', 'java.base/java.util=ALL-UNNAMED',
+        --    --'--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+        --    -- Eclipse jdtls location
+        --    '-jar', equinox_launcher_path,
+        --    --'-configuration', config_path,
+        --    --'-data', workspace_dir
+        --},
         --full_cmd = function(opts)
         --    return opts
         --end,
+        --[[
+            By default LazyVim java are using - ~/.local/share/nvim/mason/packages/jdtls/bin/jdtls pythod wrapper
+            that comes with jdtls server that automatically detect all optimal cmd values need to start jdtls server,
+            because of that, no need to do it manually for 99.9% cases!
+            SEE: ~/.local/share/nvim/mason/packages/jdtls/bin/jdtls.py for more details
+        ]]
         settings = {
             java = {
                 autobuild = {
