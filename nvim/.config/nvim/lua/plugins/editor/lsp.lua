@@ -141,7 +141,7 @@ return {
 
             -- `/` cmdline setup.
             cmp.setup.cmdline("/", {
-                --mapping = cmp.mapping.preset.cmdline(),
+                mapping = cmp.mapping.preset.cmdline(),
                 --mapping = opts.mapping;
                 sources = {
                     { name = "buffer" },
@@ -150,7 +150,7 @@ return {
 
             -- `:` cmdline setup.
             cmp.setup.cmdline(":", {
-                --mapping = cmp.mapping.preset.cmdline(),
+                mapping = cmp.mapping.preset.cmdline(),
                 --mapping = opts.mapping;
                 sources = cmp.config.sources({
                     { name = "path" },

@@ -5,13 +5,25 @@ local system = 'linux'
 --    system = 'mac'
 --end
 
+--[[
+additional navigation:
+
+1. Using Neovim's Built-in Navigation
+Neovim has built-in commands to move through jump locations:
+Ctrl+o: Move to the previous location (similar to "back" in IntelliJ).
+Ctrl+i: Move to the next location (similar to "forward" in IntelliJ).
+
+]]
+
+
 local home = os.getenv('HOME')
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
 local workspace_dir = vim.env.HOME .. '/jdtls-workspace/' .. project_name
 
 local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle")
 local java21_bin = java21_dir .. "/bin/java";
---local java_google_style_file = home .. "/dotfiles/work/eclipse-java-google-style.xml";
+local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml";
+--local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml";
 
 --local mason = require('mason-registry')
 --local jdtls_path = mason.get_package('jdtls'):get_install_path()
@@ -75,11 +87,11 @@ return {
                     },
                 },
                 format = {
-                    enabled = false, -- see conform.nvim
-                    --settings = {
-                    --    url = java_google_style_file,
-                    --    profile = "GoogleStyle",
-                    --},
+                    enabled = true,
+                    settings = {
+                        url = java_google_style_file,
+                        profile = "GoogleStyle",
+                    },
                 },
                 eclipse = {
                     downloadSources = true,
