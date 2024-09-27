@@ -19,6 +19,6 @@ return {
             "java",
             "kotlin",
             "xml",
-        },
+        }
     },
 }

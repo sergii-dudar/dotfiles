@@ -13,6 +13,10 @@ vim.g.maplocalleader = " "
 vim.g.background = "light"
 vim.g.have_nerd_font = true
 
+vim.scriptencoding = "utf-8"
+vim.opt.encoding = "utf-8"
+vim.opt.fileencoding = "utf-8"
+
 vim.opt.wrap = false
 vim.opt.swapfile = false
 -- vim.opt.showtabline = 2
@@ -30,6 +34,7 @@ vim.opt.number = true
 vim.wo.number = true
 vim.opt.relativenumber = true
 vim.opt.numberwidth = 2 -- set width of line number column
+vim.opt.backup = false
 
 -- clipboard
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default register

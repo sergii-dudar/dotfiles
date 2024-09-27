@@ -5,3 +5,5 @@ dev.application.properties.evn
 application.yaml
 application-work.yaml
 **/dev/**
+.gitignore
+.project
