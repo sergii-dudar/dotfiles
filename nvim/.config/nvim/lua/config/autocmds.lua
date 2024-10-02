@@ -33,6 +33,25 @@ autocmd("TextYankPost", {
   end,
 })
 
+-- try: silent grep vim %
+--vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+--    callback = function()
+--        vim.cmd([[Trouble qflist open]])
+--    end,
+--})
+
+--vim.api.nvim_create_autocmd("BufReadCmd", {
+--    pattern = "*.class",
+--    callback = function()
+--        if vim.lsp.buf.server_ready() then
+--            require('jdtls').open_classfile()
+--        else
+--            print("JDTLS client is not available")
+--        end
+--    end
+--})
+
+
 --autocmd("BufWritePre", {
 --    pattern = "*",
 --    callback = function()

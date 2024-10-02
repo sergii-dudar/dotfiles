@@ -66,6 +66,9 @@ vim.opt.splitbelow = true -- split horizontal window to the bottom
 local augroup = vim.api.nvim_create_augroup
 local myCustomGroup = augroup('myCustomStartupGroup', {})
 
+-- gf, gF, gx
+vim.opt.path:append("**")
+
 -- by some reasons not firing from `autocmds`
 vim.api.nvim_create_autocmd("UiEnter", {
     desc = "Open Neotree automatically",
@@ -76,8 +79,8 @@ vim.api.nvim_create_autocmd("UiEnter", {
         -- restore current proj session
         require("persistence").load()
 
-        if vim.fn.argc() == 0 then
-            vim.cmd("Neotree filesystem reveal left")
-        end
+        --if vim.fn.argc() == 0 then
+        --    vim.cmd("Neotree filesystem reveal left")
+        --end
     end,
 })

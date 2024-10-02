@@ -19,6 +19,7 @@ return {
             "java",
             "kotlin",
             "xml",
+            "strace"
         }
     },
 }

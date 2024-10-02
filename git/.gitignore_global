@@ -7,3 +7,7 @@ application-work.yaml
 **/dev/**
 .gitignore
 .project
+.classpath
+.classpath.cache
+.factorypath
+.trouble.trace

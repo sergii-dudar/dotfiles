@@ -12,7 +12,24 @@ return {
             opts.defaults.mappings.i["<esc>"] = actions.close
             opts.defaults.mappings.i["<C-k>"] = actions.move_selection_previous
             opts.defaults.mappings.i["<C-j>"] = actions.move_selection_next
-            opts.defaults.mappings.i["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
+
+            opts.defaults.vimgrep_arguments = {
+                "rg",
+                "--color=never",
+                "--no-heading",
+                "--with-filename",
+                "--line-number",
+                "--column",
+                "--smart-case",
+                "--fixed-strings"
+            }
+
+            -- Telescope find_files find_command=fd,--glob prompt_prefix=🔍
+
+            -- opts.defaults.file_ignore_patterns = {}
+
+            --opts.defaults.mappings.i["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist
+            --opts.defaults.mappings.i["<C-q>"] = actions.send_selection_to_qflist + actions.open_qflist
             -- table.insert(opts.sources, { name = 'emoji' })
         end
     }

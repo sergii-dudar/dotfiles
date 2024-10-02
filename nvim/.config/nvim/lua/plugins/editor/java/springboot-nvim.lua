@@ -1,5 +1,6 @@
 return {
     "elmcgill/springboot-nvim",
+    enabled = false,
     dependencies = {
         "neovim/nvim-lspconfig",
         "mfussenegger/nvim-jdtls"
