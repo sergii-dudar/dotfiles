@@ -106,8 +106,14 @@ return {
 
             local cmp = require("cmp")
             opts.mapping = vim.tbl_deep_extend("force", opts.mapping, {
-                ["<C-k>"] = cmp.mapping.select_prev_item(),
-                ["<C-j>"] = cmp.mapping.select_next_item()
+                --["<C-k>"] = cmp.mapping.select_prev_item(),
+                --["<C-j>"] = cmp.mapping.select_next_item()
+                ["<C-k>"] = cmp.mapping.select_prev_item({
+                    behavior = cmp.SelectBehavior.Insert,
+                }),
+                ["<C-j>"] = cmp.mapping.select_next_item({
+                    behavior = cmp.SelectBehavior.Insert,
+                })
             })
 
 
@@ -133,6 +139,7 @@ return {
     },
     {
         "hrsh7th/cmp-cmdline",
+        enabled = false,
         dependencies = {
             "hrsh7th/nvim-cmp"
         },

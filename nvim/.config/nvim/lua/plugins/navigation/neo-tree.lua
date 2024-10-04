@@ -5,6 +5,11 @@ return {
             winbar = true,
             statusline = false
         },
+        window = {
+            --mappings = { e = 'none' },
+            position = 'float',
+        },
+        popup_border_style = 'solid',
         filesystem = {
             filtered_items = {
                 visible = true,
