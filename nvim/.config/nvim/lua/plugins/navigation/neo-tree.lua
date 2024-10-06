@@ -22,6 +22,22 @@ return {
                 leave_dirs_open = true, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
             group_empty_dirs = true
+        },
+        event_handlers = {
+            {
+                event = "neo_tree_buffer_enter",
+                handler = function()
+                    vim.opt_local.relativenumber = true
+                end,
+            }
+        },
+        default_component_configs = {
+            last_modified = {
+                enabled = false
+            },
+            file_size = {
+                enabled = false
+            }
         }
     }
 }

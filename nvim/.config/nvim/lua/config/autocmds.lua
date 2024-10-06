@@ -33,6 +33,14 @@ autocmd("TextYankPost", {
   end,
 })
 
+-- to be able to close dap hover popup by `q`: require("dap.ui.widgets").hover()
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "dap-float",
+    callback = function()
+        vim.api.nvim_buf_set_keymap(0, "n", "q", "<cmd>close!<CR>", { noremap = true, silent = true })
+    end
+})
+
 -- try: silent grep vim %
 --vim.api.nvim_create_autocmd("QuickFixCmdPost", {
 --    callback = function()

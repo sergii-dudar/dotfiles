@@ -1,4 +1,3 @@
-local system = 'linux'
 
 --[[
 additional navigation:
@@ -21,24 +20,8 @@ cfdo %s/just_serhii/serhii_dudar/g | update | bd
 
 ]]
 
+local java_util = require("utils.java-util")
 
-local home = os.getenv('HOME')
-local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
-local workspace_dir = vim.env.HOME .. '/jdtls-workspace/' .. project_name
-
-local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle")
-local java21_bin = java21_dir .. "/bin/java";
-local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml";
---local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml";
-
---local mason = require('mason-registry')
---local jdtls_path = mason.get_package('jdtls'):get_install_path()
-local jdtls_path = home .. "/.local/share/nvim/mason/packages/jdtls"
-local lombok_path = jdtls_path .. '/lombok.jar'
-local equinox_launcher_path = vim.fn.glob(jdtls_path .. '/plugins/org.eclipse.equinox.launcher_*.jar')
-local config_path = vim.fn.glob(jdtls_path .. '/config_' .. system)
---print("config_path: "..config_path)
---print("config.cmd" .. vim.inspect(config.cmd))
 return {
     "mfussenegger/nvim-jdtls",
     dependencies = {
@@ -58,7 +41,7 @@ return {
         ]]
         settings = {
             java = {
-                home = java21_dir,
+                home = java_util.java21_dir,
                 autobuild = {
                     enabled = false
                 },
@@ -70,7 +53,7 @@ return {
                     runtimes = {
                         {
                             name = "JavaSE-21",
-                            path = java21_dir,
+                            path = java_util.java21_dir,
                         }
                     },
                     -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
@@ -81,7 +64,7 @@ return {
                     enabled = true,
                     -- Use the Google Style guide for code formattingh
                     settings = {
-                        url = java_google_style_file,
+                        url = java_util.java_google_style_file,
                         profile = "GoogleStyle",
                     },
                 },

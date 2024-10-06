@@ -56,19 +56,19 @@ map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 vim.opt.path:append("**")
 
 map("v", "<leader>xp", function()
-    local helpers = require("utils.helpers")
+    local helpers = require("utils.common-util")
     local stack_trace = helpers.get_visual_selection()
     helpers.show_stack_trace_qflist(stack_trace)
-end, {})
+end, { desc = "Parse trace to quick fix list" })
 
 map("n", "<leader>xp", function()
-    local helpers = require("utils.helpers")
+    local helpers = require("utils.common-util")
     local stack_trace = helpers.get_current_buffer_text()
     helpers.show_stack_trace_qflist(stack_trace)
-end, {})
+end, { desc = "Parse trace to quick fix list" })
 
 map("n", "<leader>fs", function()
-    local helpers = require("utils.helpers")
+    local helpers = require("utils.common-util")
 
     local jdtls_client_id = helpers.get_client_id_by_name("jdtls")
     if jdtls_client_id then
@@ -88,9 +88,9 @@ map("n", "<leader>fs", function()
         symbols = LazyVim.config.get_kind_filter(),
         default_text = fileName
     })
-end, {})
+end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
 -- debug purposes
 _G.log_table = function (table)
-    require("utils.helpers").log_table(table);
+    require("utils.common-util").log_table(table);
 end
