@@ -1,18 +1,5 @@
 return {
     {
-        "williamboman/mason.nvim",
-        opts = {
-            ensure_installed = {
-                "xmlformatter",
-                "google-java-format",
-                "ktfmt",
-                "beautysh",
-                "black",
-                "stylua"
-            }
-        },
-    },
-    {
         "stevearc/conform.nvim",
         opts = function(_, opts)
             opts.formatters_by_ft.xml = { "xmlformatter" }

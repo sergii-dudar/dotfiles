@@ -1,24 +1,12 @@
 return {
     {
-        "williamboman/mason.nvim",
-        opts = {
-            ensure_installed = {
-                "checkstyle",
-                "ktlint",
-                "shellcheck",
-                "ruff",
-                "luacheck"
-            }
-        },
-    },
-    {
         "mfussenegger/nvim-lint",
         opts = {
             linters_by_ft = {
                 --xml = { "" },
                 --java = { "checkstyle" },
                 kotlin = { "ktlint" },
-                sh = { "shellcheck" },
+                --sh = { "shellcheck" },
                 python = { "ruff", },
                 lua = { "luacheck" },
                 -- Use the "*" filetype to run linters on all filetypes.

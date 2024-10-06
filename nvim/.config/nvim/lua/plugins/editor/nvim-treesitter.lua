@@ -20,7 +20,12 @@ return {
             "kotlin",
             "xml",
             "strace",
-            "groovy"
+            "groovy",
+            "terraform"
         }
     },
+    {
+        "nvim-treesitter/nvim-treesitter-context",
+        enabled = false
+    }
 }

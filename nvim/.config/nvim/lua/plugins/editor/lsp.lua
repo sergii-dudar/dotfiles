@@ -30,22 +30,12 @@ vim.diagnostic.config {
 
 return {
     {
-        "williamboman/mason.nvim",
-        opts = {
-            ensure_installed = {
-                "lemminx",
-                -- "bashls",
-                "shellcheck",
-            }
-        },
-    },
-    {
         "neovim/nvim-lspconfig",
-          opts = function()
-              local keys = require("lazyvim.plugins.lsp.keymaps").get()
-              keys[#keys + 1] = { "K", false }
-              keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
-          end,
+        opts = function()
+            local keys = require("lazyvim.plugins.lsp.keymaps").get()
+            keys[#keys + 1] = { "K", false }
+            keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
+        end,
     },
     {
         'dgagn/diagflow.nvim',
@@ -129,12 +119,12 @@ return {
             --    { name = "path" },
             --}
 
-           --opts.sources = cmp.config.sources({
-           --    { name = "nvim_lsp" },
-           --    { name = "path" },
-           --}, {
-           --    { name = "buffer" },
-           --})
+            --opts.sources = cmp.config.sources({
+            --    { name = "nvim_lsp" },
+            --    { name = "path" },
+            --}, {
+            --    { name = "buffer" },
+            --})
         end,
     },
     {
