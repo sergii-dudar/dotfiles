@@ -22,8 +22,10 @@ return {
                     "java -classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes",
                     "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
                 },
-                python = "python3 -u",
+                python = "python3.12 -u",
                 typescript = "deno run",
+                lua = "lua $dir/$fileName",
+                sh = "bash $dir/$fileName",
                 rust = {
                     "cd $dir &&",
                     "rustc $fileName &&",
@@ -44,7 +46,8 @@ return {
                         vim.print(vim.tbl_extend("force", c_base, c_exec))
                         require("code_runner.commands").run_from_fn(vim.list_extend(c_base, c_exec))
                     end)
-                end
+                end,
+
             },
             --project = {
             --    ["/home/serhii/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {

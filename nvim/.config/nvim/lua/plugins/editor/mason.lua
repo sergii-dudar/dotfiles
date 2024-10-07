@@ -22,7 +22,8 @@ return {
             "ktfmt",
             "beautysh",
             "black",
-            "stylua"
+            "stylua",
+            "shellharden"
         }
     }
 }

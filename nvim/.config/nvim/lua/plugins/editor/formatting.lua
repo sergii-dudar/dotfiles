@@ -5,7 +5,11 @@ return {
             opts.formatters_by_ft.xml = { "xmlformatter" }
             opts.formatters_by_ft.kotlin = { "ktfmt" }
             opts.formatters_by_ft.sh = { "beautysh" }
-            opts.formatters_by_ft.python = { "black", }
+            -- for beautysh need:
+            -- source /home/serhii/.local/share/nvim/mason/packages/beautysh/venv/bin/activate
+            -- pip install setuptools
+
+            opts.formatters_by_ft.python = { "black" }
             opts.formatters_by_ft.lua = { "stylua" }
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }

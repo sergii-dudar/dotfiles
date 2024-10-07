@@ -3,6 +3,8 @@ return {
     -- It will download the JUnit standalone jar from https://mvnrepository.com/artifact/org.junit.platform/junit-platform-console-standalone
 
     -- TODO: working not very good for now, there problem with mvn project compilation of big projects
+    -- waiting to stable version of `neotest-java` or `neotest-jdtls` adapters
+
     --[[{
         "nvim-neotest/neotest",
         dependencies = {
