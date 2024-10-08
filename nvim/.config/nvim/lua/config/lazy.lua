@@ -46,11 +46,18 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.java" },
     { import = "lazyvim.plugins.extras.lang.sql" },
     { import = "lazyvim.plugins.extras.lang.terraform" },
+    { import = "lazyvim.plugins.extras.lang.docker" },
+    { import = "lazyvim.plugins.extras.lang.git" },
+    { import = "lazyvim.plugins.extras.lang.kotlin" },
+    --{ import = "lazyvim.plugins.extras.lang.scala" },
+    { import = "lazyvim.plugins.extras.lang.toml" },
+    --{ import = "lazyvim.plugins.extras.lang.rust" },
+    --{ import = "lazyvim.plugins.extras.lang.go" },
+
 
     -- util
     --{ import = "lazyvim.plugins.extras.util.rest" },
     --{ import = "lazyvim.plugins.extras.util.project" },
-
     --{ import = "lazyvim.plugins.extras.coding.luasnip" }, --for now use nvim-snippets
 
     -- import/override with your plugins
