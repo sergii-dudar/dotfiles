@@ -1,5 +1,5 @@
 function kafkaExport() {
-	cd ~/serhii.home/kafka-exports
+	cd ~/serhii.home/kafka-exports || exit
 
 	kafka-console-consumer.sh --bootstrap-server localhost:9092 \
                           --topic com.hitachirail.pass.notification \
