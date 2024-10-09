@@ -1,9 +1,9 @@
 function sesh-sessions() {
-  {
-    exec </dev/tty
-    exec <&1
-    ~/dotfiles/zsh/serhii.shell/util/sesh.sessions.sh
-  }
+    {
+        exec </dev/tty
+        exec <&1
+        ~/dotfiles/zsh/serhii.shell/util/sesh.sessions.sh
+    }
 }
 
 zle     -N             sesh-sessions
