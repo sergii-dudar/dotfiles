@@ -66,7 +66,7 @@ M.get_spring_boot_tools_path_ls_path = function()
     --return spring_boot_tools_path .. "/extension/language-server"
 
     --local mason_reg = require('mason-registry')
-    return home .. "/.local/share/nvim/mason/packages/spring-boot-tools/extension/language-server"
+    return home .. "/.local/share/nvim/mason/packages/spring-boot-tools/extension"
 end
 
 return M
