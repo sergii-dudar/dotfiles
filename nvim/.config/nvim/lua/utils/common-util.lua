@@ -114,4 +114,6 @@ M.log_table = function(table)
     LazyVim.info("lua talbe: " .. str_table)
 end
 
+--lua print(vim.inspect(vim.lsp.get_active_clients()[1].name))
+
 return M;

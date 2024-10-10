@@ -61,7 +61,7 @@ return {
                 },
                 -- Enable code formatting
                 format = {
-                    enabled = true,
+                    enabled = false,
                     -- Use the Google Style guide for code formattingh
                     settings = {
                         url = java_util.java_google_style_file,

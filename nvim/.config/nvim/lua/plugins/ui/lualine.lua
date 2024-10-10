@@ -11,6 +11,13 @@ return {
             section_separators = '',
             component_separators = ' '
         },
+        sections = {
+            lualine_y = {
+                { "progress", separator = " ", padding = { left = 1, right = 0 } },
+                { "location", padding = { left = 0, right = 0 } },
+                { "table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\",\")", padding = { left = 0, right = 1 } }
+            }
+        }
         --sections = {
         --    lualine_a = { 'mode' },
         --    --lualine_b = { 'branch', 'diff', 'diagnostics' },

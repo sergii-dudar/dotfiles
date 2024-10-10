@@ -4,3 +4,5 @@ If you are editing your init.vim or init.lua file and want to apply changes imme
 
 After making changes, run :source %.
 The changes will take effect without needing to restart Neovim.
+
+### NVIM_APPNAME=nvim-lazyvim nvim

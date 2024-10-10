@@ -24,6 +24,11 @@ vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     return vim.lsp.util.open_floating_preview(markdown_lines, "markdown", config)
 end
 
+-- disable lsp right bottom message spam about lsp progress\status
+-- but maybe useful in case debugging, then comment next handlers:
+vim.lsp.handlers['language/status'] = function(_, result) end
+vim.lsp.handlers['$/progress'] = function(_, result, ctx) end
+
 vim.diagnostic.config {
     float = { border = "rounded" },
 }
@@ -59,6 +64,7 @@ return {
             --{ "hrsh7th/cmp-path" },
             --{ "hrsh7th/cmp-cmdline" },
             --{ "saadparwaiz1/cmp_luasnip" }
+            "hrsh7th/cmp-nvim-lsp-signature-help"
         },
         opts = function(_, opts)
             --opts.completion.autocomplete = false
@@ -103,11 +109,15 @@ return {
                 }),
                 ["<C-j>"] = cmp.mapping.select_next_item({
                     behavior = cmp.SelectBehavior.Insert,
-                })
+                }),
+                --["<CR>"] = LazyVim.cmp.confirm({ select = true, cmp.ConfirmBehavior.Replace }),
+                --["<CR>"] = LazyVim.cmp.confirm({ select = auto_select }),
+                --["<C-y>"] = LazyVim.cmp.confirm({ select = true }),
+                --["<S-CR>"] = LazyVim.cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace }),
             })
 
-
-            --table.insert(opts.sources, { name = "path" })
+            --table.insert(opts.sources, 1, { name = "nvim_lsp_signature_help" })
+            --log_table(opts.sources)
 
             --opts.sources = {
             --    { name = "nvim_lsp" }
@@ -129,37 +139,37 @@ return {
     },
     {
         "hrsh7th/cmp-cmdline",
-        enabled = false,
         dependencies = {
-            "hrsh7th/nvim-cmp"
+            "rcarriga/cmp-dap",
+            "hrsh7th/nvim-cmp",
+            "hrsh7th/cmp-nvim-lsp-document-symbol",
         },
-        config = function()
+        keys = { ":", "/", "?" },
+        config = function(_, opts)
             local cmp = require("cmp")
-
-            -- `/` cmdline setup.
-            cmp.setup.cmdline("/", {
-                mapping = cmp.mapping.preset.cmdline(),
-                --mapping = opts.mapping;
-                sources = {
-                    { name = "buffer" },
+            cmp.setup.cmdline({ "/", "?" }, {
+                completion = {
+                    completeopt = "menu,menuone,noselect",
                 },
+                mapping = cmp.mapping.preset.cmdline(),
+                sources = cmp.config.sources({
+                    { name = "nvim_lsp_document_symbol" },
+                }, {
+                    { name = "buffer" },
+                }),
             })
 
-            -- `:` cmdline setup.
             cmp.setup.cmdline(":", {
+                completion = {
+                    completeopt = "menu,menuone,noselect",
+                },
                 mapping = cmp.mapping.preset.cmdline(),
-                --mapping = opts.mapping;
                 sources = cmp.config.sources({
                     { name = "path" },
                 }, {
-                    {
-                        name = "cmdline",
-                        option = {
-                            ignore_cmds = { "Man", "!", "q", "w", "wa", "qa" },
-                        },
-                    },
-                }),
+                    { name = "cmdline" },
+                })
             })
-        end
+        end,
     }
 }

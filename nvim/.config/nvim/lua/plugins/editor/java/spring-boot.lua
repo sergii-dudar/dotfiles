@@ -3,14 +3,19 @@ local java_util = require("utils.java-util")
 return {
     {
         "JavaHello/spring-boot.nvim",
-        ft = {"java", "yaml"},
+        enabled = false,
+        ft = "java",
         dependencies = {
             "mfussenegger/nvim-jdtls", -- or nvim-java, nvim-lspconfig
-            "ibhagwan/fzf-lua", -- 可选
+            "ibhagwan/fzf-lua", -- optional
         },
         config = function()
+            require("spring_boot").setup({
+                ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
+                --jdtls_name = "jdtls"
+            })
 
-            local boot = require('spring_boot')
+            --[[local boot = require('spring_boot')
 
             local spring_boot_tools_path = java_util.get_spring_boot_tools_path_ls_path()
             vim.g.spring_boot = {
@@ -27,32 +32,18 @@ return {
                 jdtls_name = "jdtls",
                 log_file = nil,
                 java_cmd = nil,
-            })
-
-
-            --local file_path = vim.fn.glob(path .. "/vmware.vscode-spring-boot")
-
-
-            --boot.setup({
-            --    ls_path = spring_boot_tools_path .. "/language-server",
-            --})
-
-
-           --local jdtls_config = {
-           --    bundles = {}
-           --}
-           ---- 添加 spring-boot jdtls 扩展 jar 包
-           --vim.list_extend(jdtls_config.bundles, boot.java_extensions())
-
-            --boot.init_lsp_commands()
-
-            --require("lspconfig").jdtls.setup {
-            --    init_options = {
-            --        bundles = boot.java_extensions(),
-            --    },
-            --}
-        end
+            })]]
+        end,
     },
+    -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
+    --{
+    --    "simaxme/java.nvim",
+    --    ft = "java",
+    --    dependencies = { "mfussenegger/nvim-jdtls" },
+    --    config = function()
+    --        require("simaxme-java").setup()
+    --    end,
+    --},
     --{
     --    "elmcgill/springboot-nvim",
     --    enabled = false,
@@ -77,4 +68,44 @@ return {
     --        springboot_nvim.setup({})
     --    end
     --}
+
+    -- Sonarlint plugin
+    --[[{
+        "https://gitlab.com/schrieveslaach/sonarlint.nvim",
+        ft = { "java", "python", "cpp", "typescript", "typescriptreact", "html", "text", "yaml", "yml", "toml" },
+        config = function()
+            require("sonarlint").setup({
+                server = {
+                    cmd = {
+                        "sonarlint-language-server",
+                        -- Ensure that sonarlint-language-server uses stdio channel
+                        "-stdio",
+                        "-analyzers",
+                        -- paths to the analyzers you need, using those for python and java in this example
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarpython.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarcfamily.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarjava.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarjs.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarhtml.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonartext.jar.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonariac.jar"),
+                        vim.fn.expand("$MASON/share/sonarlint-analyzers/sonarjavasymbolicexecution.jar"),
+                    },
+                    settings = {
+                        sonarlint = {
+                            pathToCompileCommands = vim.fn.getcwd() .. "/compile_commands.json",
+                        },
+                    },
+                },
+                filetypes = {
+                    -- Tested and working
+                    "python",
+                    "cpp",
+                    "java",
+                    "typescript",
+                    "html",
+                },
+            })
+        end,
+    },]]
 }

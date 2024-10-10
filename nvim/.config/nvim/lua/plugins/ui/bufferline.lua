@@ -8,7 +8,10 @@ return {
         options = {
             separator_style = 'slant', --'thick'
             show_buffer_close_icons = false,
-            show_close_icon = true,
+            show_close_icon = false,
+            always_show_bufferline = true,
+            show_tab_indicators = false,
+            --show_duplicate_prefix = false
         }
     }
 }
