@@ -70,4 +70,137 @@ M.get_spring_boot_tools_path_ls_path = function()
     return home .. "/.local/share/nvim/mason/packages/spring-boot-tools/extension"
 end
 
+M.jdtls_settings = {
+    java = {
+        home = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
+        autobuild = {
+            enabled = false
+        },
+        -- Setup automatical package import oranization on file save
+        saveActions = {
+            organizeImports = true
+        },
+        configuration = {
+            runtimes = {
+                {
+                    name = "JavaSE-17",
+                    path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
+                },
+                {
+                    name = "JavaSE-21",
+                    path = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
+                }
+            },
+            -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
+            updateBuildConfiguration = "interactive"
+        },
+        -- Enable code formatting
+        format = {
+            enabled = true,
+            -- Use the Google Style guide for code formattingh
+            settings = {
+                url = java_google_style_file,
+                profile = "GoogleStyle",
+            },
+        },
+        -- Enable downloading archives from eclipse automatically
+        eclipse = {
+            downloadSources = true,
+        },
+        -- enable inlay hints for parameter names,
+        inlayHints = {
+            parameterNames = {
+                enabled = "all" --none, all,
+            },
+        },
+        -- Enable downloading archives from maven automatically
+        maven = {
+            downloadSources = true,
+        },
+        -- Enable method signature help
+        signatureHelp = {
+            enabled = true,
+            description = {
+                enabled = true,
+            }
+        },
+        -- Use the fernflower decompiler when using the javap command to decompile byte code back to java code
+        contentProvider = {
+            preferred = "fernflower"
+        },
+        references = {
+            includeDecompiledSources = true,
+        },
+        implementationsCodeLens = {
+            enabled = true,
+        },
+        -- enable code lens in the lsp
+        referencesCodeLens = {
+            enabled = true,
+        },
+        -- Customize completion options
+        completion = {
+            favoriteStaticMembers = {
+                "org.hamcrest.MatcherAssert.assertThat",
+                "org.hamcrest.Matchers.*",
+                "org.hamcrest.CoreMatchers.*",
+                "org.junit.jupiter.api.Assertions.*",
+                "java.util.Objects.requireNonNull",
+                "java.util.Objects.requireNonNullElse",
+                "org.mockito.Mockito.*",
+            },
+            -- Try not to suggest imports from these packages in the code action window
+            filteredTypes = {
+                "com.sun.*",
+                "io.micrometer.shaded.*",
+                "java.awt.*",
+                "jdk.*",
+                "sun.*",
+            },
+            -- Set the order in which the language server should organize imports
+            importOrder = {
+                "com",
+                "jakarta",
+                "javax",
+                "java",
+                "org"
+            },
+            chain = {
+                enabled = false,
+            },
+        },
+        sources = {
+            -- How many classes from a specific package should be imported before automatic imports combine them all into a single import
+            organizeImports = {
+                starThreshold = 9999,
+                staticStarThreshold = 9999,
+            },
+        },
+        redhat = { telemetry = { enabled = false } },
+        -- How should different pieces of code be generated?
+        codeGeneration = {
+            -- When generating toString use a json format
+            toString = {
+                template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}"
+            },
+            -- When generating hashCode and equals methods use the java 7 objects method
+            hashCodeEquals = {
+                useJava7Objects = true
+            },
+            -- When generating code use code blocks
+            useBlocks = true
+        },
+        jdt = {
+            ls = {
+                lombokSupport = {
+                    enabled = true
+                },
+                protofBufSupport = {
+                    enabled = true
+                }
+            }
+        }
+    }
+}
+
 return M

@@ -43,7 +43,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.typescript" },
     { import = "lazyvim.plugins.extras.lang.yaml" },
     { import = "lazyvim.plugins.extras.lang.helm" },
-    -- { import = "lazyvim.plugins.extras.lang.java" },
+    --{ import = "lazyvim.plugins.extras.lang.java" }, using original with one line ext, see immutable-java.lua
     { import = "lazyvim.plugins.extras.lang.sql" },
     { import = "lazyvim.plugins.extras.lang.terraform" },
     { import = "lazyvim.plugins.extras.lang.docker" },
