@@ -154,9 +154,14 @@ return {
         end
       end
 
-      local on_attach_run = function(args)
-          vim.notify("on_attach_run");
+      --############################
+      vim.list_extend(bundles, require("spring_boot").java_extensions())
+
+      local jdtls_on_attach = function(args)
+          --[[vim.notify("on_attach_run");]]
+          require("spring_boot").init_lsp_commands()
       end
+      --############################
 
       local function attach_jdtls()
         local fname = vim.api.nvim_buf_get_name(0)
@@ -167,7 +172,7 @@ return {
 
         -- Configuration can be augmented and overridden by opts.jdtls
         local config = extend_or_override({
-          on_attach = on_attach_run,
+          on_attach = jdtls_on_attach,
           cmd = opts.full_cmd(opts),
           root_dir = opts.root_dir(fname),
           init_options = {
