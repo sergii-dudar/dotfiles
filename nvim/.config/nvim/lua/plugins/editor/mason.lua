@@ -1,7 +1,6 @@
 return {
     "williamboman/mason.nvim",
     opts = {
-        -- add registry to packages not available in mason main registry
         registries = {
             'github:mason-org/mason-registry',
             'github:nvim-java/mason-registry'
@@ -10,7 +9,7 @@ return {
             -- LSP
             "bash-language-server",
             "lemminx",
-            'spring-boot-tools', -- nvim-java/mason-registry
+            "spring-boot-tools", -- nvim-java/mason-registry
 
             -- DAP
             "bash-debug-adapter",

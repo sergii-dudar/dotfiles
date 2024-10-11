@@ -52,8 +52,9 @@ require("lazy").setup({
     --{ import = "lazyvim.plugins.extras.lang.scala" },
     { import = "lazyvim.plugins.extras.lang.toml" },
     --{ import = "lazyvim.plugins.extras.lang.rust" },
-    --{ import = "lazyvim.plugins.extras.lang.go" },
-
+    { import = "lazyvim.plugins.extras.lang.go" },
+    --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
+    --{ import = "lazyvim.plugins.extras.lang.clangd" },
 
     -- util
     --{ import = "lazyvim.plugins.extras.util.rest" },

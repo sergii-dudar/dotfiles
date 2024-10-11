@@ -1,59 +1,32 @@
---[[
-additional navigation:
-
-1. Using Neovim's Built-in Navigation
-Neovim has built-in commands to move through jump locations:
-Ctrl+o: Move to the previous location (similar to "back" in IntelliJ).
-Ctrl+i: Move to the next location (similar to "forward" in IntelliJ).
-
-2.
-gf - go to file under cursor,
-gF - go to file under cursor and to number after : (File.java:20)
-
-3.
-:[line number] - got to line number in buffer
-
-4.
-cfdo %s/serhii_dudar/just_serhii/g | update | bd
-cfdo %s/just_serhii/serhii_dudar/g | update | bd
-
-]]
-
 local home = os.getenv('HOME')
 local java_util = require("utils.java-util")
 local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
 return {
-    -- vs spring-boot tools ls with integration in jdtls
+    -- vs spring-boot tools ls to integrate in jdtls
     {
         "JavaHello/spring-boot.nvim",
+        -- latest working only with vmware.vscode-spring-boot-1.57.0, need manual install tools
+        -- "commit": "7c2c9d90691e536bb00941a143e961f4c8db647d"
+        commit = "218c0c26c14d99feca778e4d13f5ec3e8b1b60f0", -- stable, working with mason spring-boot-tools@1.55.1
         ft = "java",
         dependencies = {
-            "mfussenegger/nvim-jdtls", -- or nvim-java, nvim-lspconfig
-            "ibhagwan/fzf-lua", -- optional
+            "mfussenegger/nvim-jdtls",
+            "ibhagwan/fzf-lua",
         },
         config = function()
             -- requiring install https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot
             -- https://github.com/spring-projects/sts4/releases
-            -- not was problems on versions >= 1.57.0
 
             require("spring_boot").setup({
+                --ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.57.0/language-server")
                 --ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.56.0/language-server")
                 ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
             })
         end,
     },
-    -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
-    {
-        "simaxme/java.nvim",
-        ft = "java",
-        dependencies = { "mfussenegger/nvim-jdtls" },
-        config = function()
-            require("simaxme-java").setup()
-        end,
-    },
-    -- JDTLS config based on LazyVim
+    -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
         dependencies = {
@@ -78,7 +51,16 @@ return {
             end,
             settings = java_util.jdtls_settings
         }
-    }
+    },
+    -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
+    {
+        "simaxme/java.nvim",
+        ft = "java",
+        dependencies = { "mfussenegger/nvim-jdtls" },
+        config = function()
+            require("simaxme-java").setup()
+        end,
+    },
     --{
     --    "elmcgill/springboot-nvim",
     --    enabled = false,

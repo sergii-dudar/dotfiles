@@ -1,3 +1,18 @@
+local clients_lsp = function ()
+    local bufnr = vim.api.nvim_get_current_buf()
+
+    local clients = vim.lsp.buf_get_clients(bufnr)
+    if next(clients) == nil then
+        return ''
+    end
+
+    local c = {}
+    for _, client in pairs(clients) do
+        table.insert(c, client.name)
+    end
+    return '\u{f085} ' .. table.concat(c, ' | \u{f085} ')
+end
+
 return {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons'  },
@@ -13,9 +28,10 @@ return {
         },
         sections = {
             lualine_y = {
+                { clients_lsp, color = { fg = 'black', bg = '#676868', gui='bold' } },
                 { "progress", separator = " ", padding = { left = 1, right = 0 } },
                 { "location", padding = { left = 0, right = 0 } },
-                { "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
+                --{ "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
             }
         }
         --sections = {

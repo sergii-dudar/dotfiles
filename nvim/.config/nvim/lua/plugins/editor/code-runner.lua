@@ -33,6 +33,13 @@ return {
                     "rustc $fileName &&",
                     "$dir/$fileNameWithoutExt"
                 },
+                go = { "go run $dir/$fileName" },
+                cpp = {
+                    "cd $dir &&",
+                    "g++ $fileName",
+                    "-o $fileNameWithoutExt &&",
+                    "$dir/$fileNameWithoutExt",
+                },
                 c = function(...)
                     c_base = {
                         "cd $dir &&",
