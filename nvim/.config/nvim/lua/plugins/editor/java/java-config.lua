@@ -35,6 +35,7 @@ return {
         },
         config = function()
             -- requiring install https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot
+            -- https://github.com/spring-projects/sts4/releases
             -- not was problems on versions >= 1.57.0
 
             require("spring_boot").setup({
