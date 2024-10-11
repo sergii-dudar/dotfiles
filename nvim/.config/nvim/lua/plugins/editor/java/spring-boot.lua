@@ -1,5 +1,5 @@
 local java_util = require("utils.java-util")
-
+local home = os.getenv('HOME')
 return {
     {
         "JavaHello/spring-boot.nvim",
@@ -11,7 +11,8 @@ return {
         },
         config = function()
             require("spring_boot").setup({
-                ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
+                --ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
+                ls_path = vim.fn.glob(home.."/.vscode/extensions/vmware.vscode-spring-boot-*/language-server")
                 --jdtls_name = "jdtls"
             })
 

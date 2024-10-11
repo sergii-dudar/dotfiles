@@ -21,6 +21,8 @@ cfdo %s/just_serhii/serhii_dudar/g | update | bd
 ]]
 
 local java_util = require("utils.java-util")
+local home = os.getenv('HOME')
+--vim.lsp.set_log_level("warn")
 
 return {
     "mfussenegger/nvim-jdtls",
@@ -41,7 +43,7 @@ return {
         ]]
         settings = {
             java = {
-                home = java_util.java21_dir,
+                home = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
                 autobuild = {
                     enabled = false
                 },
@@ -52,8 +54,12 @@ return {
                 configuration = {
                     runtimes = {
                         {
+                            name = "JavaSE-17",
+                            path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
+                        },
+                        {
                             name = "JavaSE-21",
-                            path = java_util.java21_dir,
+                            path = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
                         }
                     },
                     -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
@@ -61,7 +67,7 @@ return {
                 },
                 -- Enable code formatting
                 format = {
-                    enabled = false,
+                    enabled = true,
                     -- Use the Google Style guide for code formattingh
                     settings = {
                         url = java_util.java_google_style_file,

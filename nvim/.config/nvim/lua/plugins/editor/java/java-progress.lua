@@ -154,11 +154,20 @@ return {
         end
       end
 
+      local on_attach_run = function(args)
+          vim.notify("on_attach_run");
+      end
+
       local function attach_jdtls()
         local fname = vim.api.nvim_buf_get_name(0)
 
+          --####################################
+          log_table(bundles)
+          --####################################
+
         -- Configuration can be augmented and overridden by opts.jdtls
         local config = extend_or_override({
+          on_attach = on_attach_run,
           cmd = opts.full_cmd(opts),
           root_dir = opts.root_dir(fname),
           init_options = {
