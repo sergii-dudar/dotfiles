@@ -34,12 +34,12 @@ return {
             "ibhagwan/fzf-lua", -- optional
         },
         config = function()
-            --requiring install https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot
-            -- the easiest way until it will be added to mason is install [vscode and add extension vmware.vscode-spring-boot]
+            -- requiring install https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot
+            -- not was problems on versions >= 1.57.0
 
             require("spring_boot").setup({
-                --ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
-                ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.56.0/language-server")
+                --ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.56.0/language-server")
+                ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
             })
         end,
     },
