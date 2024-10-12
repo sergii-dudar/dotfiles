@@ -6,3 +6,4 @@ After making changes, run :source %.
 The changes will take effect without needing to restart Neovim.
 
 ### NVIM_APPNAME=nvim-lazyvim nvim
+
