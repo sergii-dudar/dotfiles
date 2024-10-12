@@ -153,9 +153,12 @@ return {
                     end
                 end
             end
+
             --#####################################
-            -- all the same as in original LazyVim `java.lua`, except this line to ability to extend bundles
-            opts.extend_jdtls_bundles(bundles)
+            -- User can extend bundles to extend jdtls functionality
+            if opts.extend_jdtls_bundles then
+                opts.extend_jdtls_bundles(bundles)
+            end
             --#####################################
 
             local function attach_jdtls()
