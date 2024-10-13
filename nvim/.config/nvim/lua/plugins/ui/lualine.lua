@@ -28,9 +28,9 @@ return {
         },
         sections = {
             lualine_y = {
+                { "progress", separator = " ", padding = { left = 1, right = 1 } },
+                { "location", padding = { left = 0, right = 1 } },
                 { clients_lsp, color = { fg = 'black', bg = '#676868', gui='bold' } },
-                { "progress", separator = " ", padding = { left = 1, right = 0 } },
-                { "location", padding = { left = 0, right = 0 } },
                 --{ "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
             }
         }

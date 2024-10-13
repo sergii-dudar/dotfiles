@@ -11,7 +11,6 @@ return {
         -- "commit": "7c2c9d90691e536bb00941a143e961f4c8db647d"
         commit = "218c0c26c14d99feca778e4d13f5ec3e8b1b60f0", -- stable, working with mason spring-boot-tools@1.55.1
         ft = "java",
-        enabled = false, -- present issues with inlayHint, disabled for now
         dependencies = {
             "mfussenegger/nvim-jdtls",
             "ibhagwan/fzf-lua",
