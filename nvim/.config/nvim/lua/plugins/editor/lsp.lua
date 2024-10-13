@@ -28,6 +28,7 @@ end
 -- but maybe useful in case debugging, then comment next handlers:
 vim.lsp.handlers['language/status'] = function(_, result) end
 vim.lsp.handlers['$/progress'] = function(_, result, ctx) end
+-- vim.lsp.handlers['textDocument/inlayHint'] = function() end
 
 vim.diagnostic.config {
     float = { border = "rounded" },

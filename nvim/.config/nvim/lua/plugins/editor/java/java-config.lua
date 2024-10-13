@@ -5,12 +5,13 @@ local notify_title = { title = "Spring Boot Tools LS" }
 
 return {
     -- vs spring-boot tools ls to integrate in jdtls
-    {
+    --[[{
         "JavaHello/spring-boot.nvim",
         -- latest working only with vmware.vscode-spring-boot-1.57.0, need manual install tools
         -- "commit": "7c2c9d90691e536bb00941a143e961f4c8db647d"
         commit = "218c0c26c14d99feca778e4d13f5ec3e8b1b60f0", -- stable, working with mason spring-boot-tools@1.55.1
         ft = "java",
+        enabled = false, -- present issues with inlayHint, disabled for now
         dependencies = {
             "mfussenegger/nvim-jdtls",
             "ibhagwan/fzf-lua",
@@ -25,7 +26,7 @@ return {
                 ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
             })
         end,
-    },
+    },]]
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
@@ -39,7 +40,7 @@ return {
             { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
         },
         opts = {
-            jdtls = {
+            --[[jdtls = {
                 on_attach = function()
                     require("spring_boot").init_lsp_commands()
                     LazyVim.info("jdtls lsp initialized", notify_title)
@@ -48,7 +49,7 @@ return {
             extend_jdtls_bundles = function(bundles)
                 vim.list_extend(bundles, require("spring_boot").java_extensions())
                 LazyVim.info("jdtls bundles extended", notify_title)
-            end,
+            end,]]
             settings = java_util.jdtls_settings
         }
     },
