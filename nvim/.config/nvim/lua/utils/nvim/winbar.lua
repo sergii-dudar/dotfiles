@@ -26,6 +26,8 @@ M.eval = function()
 		.. '%*'
 		.. '%#WinBarSeparator#'
 		.. '%*'
+        --.. ' '
+        --.. "%{%v:lua.require'nvim-navic'.get_location()%}"
 end
 
 return M
