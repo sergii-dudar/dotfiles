@@ -3,16 +3,19 @@ if isMacOs; then
     export PATH="/usr/local/opt/python/libexec/bin:$PATH"
     export PATH="/Applications/IntelliJ IDEA.app/Contents/MacOS:$PATH"
 
+    # in case commented nvm (as slow)
+    export PATH=$PATH:$HOME/.nvm/versions/node/v20.18.0/bin
+
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 else
-    export PATH=$PATH:/home/serhii/homebrew/bin/
+    # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
-    export PATH=$PATH:/home/serhii/serhii.home/tools/kafka/bin
-    export PATH=$PATH:/home/serhii/tools/temporal
+    export PATH=$PATH:$HOME/serhii.home/tools/kafka/bin
+    export PATH=$PATH:$HOME/tools/temporal
 
     # in case commented nvm (as slow)
-    export PATH=$PATH:/home/serhii/.nvm/versions/node/v20.17.0/bin
+    export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
 
     # integration between ubuntu\arch (brew/pacman)
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi

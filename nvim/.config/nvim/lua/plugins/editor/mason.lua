@@ -9,6 +9,7 @@ return {
             -- LSP
             "bash-language-server",
             "lemminx",
+            "jdtls",
             "spring-boot-tools", -- nvim-java/mason-registry
 
             -- DAP

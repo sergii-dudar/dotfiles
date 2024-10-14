@@ -41,7 +41,7 @@
         "theme",
         //"icons",
         "terminal",
-        //"terminalfont",
+        "terminalfont",
         //"terminalsize",
         //"cpu",
         //{

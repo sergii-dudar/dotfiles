@@ -9,3 +9,6 @@ wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/do
 && unzip Hack.zip \
 && rm Hack.zip \
 && fc-cache -fv
+
+# brew install --cask font-hack-nerd-font
+# brew install --cask font-jetbrains-mono-nerd-font

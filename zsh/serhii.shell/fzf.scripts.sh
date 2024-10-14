@@ -180,22 +180,22 @@ function fze() {
 function fzc() {
      result=$( ( \
         fd . --type f --color=always --hidden --exclude .git \
-            /home/serhii/ \
-            /home/serhii/.local/bin \
+            $HOME/ \
+            $HOME/.local/bin \
              --max-depth 1 \
         ; \
         fd . --type f --color=always --hidden --exclude .git \
-            /home/serhii/.config/ranger \
-            /home/serhii/.config/rofi \
-            /home/serhii/.config/qtile \
-            /home/serhii/.config/nvim \
-            /home/serhii/.config/nitrogen \
-            /home/serhii/.config/awesome \
-            /home/serhii/.config/alacritty \
+            $HOME/.config/ranger \
+            $HOME/.config/rofi \
+            $HOME/.config/qtile \
+            $HOME/.config/nvim \
+            $HOME/.config/nitrogen \
+            $HOME/.config/awesome \
+            $HOME/.config/alacritty \
             /etc/keyd \
              --max-depth 2 \
         ; \
-        fd . --type d --color=always --hidden --exclude .git /home/serhii/serhii.home/work/git.work \
+        fd . --type d --color=always --hidden --exclude .git $HOME/serhii.home/work/git.work \
             --max-depth 1 ) | ( fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}' ) )
 
         if [ -n "$result" ]; then
