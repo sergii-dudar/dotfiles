@@ -5,6 +5,8 @@ if isMacOs; then
 
     # in case commented nvm (as slow)
     export PATH=$PATH:$HOME/.nvm/versions/node/v20.18.0/bin
+    export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+    export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin/"
 
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"

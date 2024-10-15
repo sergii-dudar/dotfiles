@@ -92,13 +92,13 @@ function chrome() {
 	google-chrome > /dev/null 2>&1 &
 }
 
-function idea() {
-    if isMacOs; then
-        '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea'
-    else
-        intellij-idea-ultimate "$1" > /dev/null 2>&1 &
-    fi
-}
+#function idea() {
+#    if isMacOs; then
+#        '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea'
+#    else
+#        intellij-idea-ultimate "$1" > /dev/null 2>&1 &
+#    fi
+#}
 
 function open_terminal() {
     alacritty

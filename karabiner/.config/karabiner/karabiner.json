@@ -113,6 +113,39 @@
                         ]
                     },
                     {
+                        "description": "print screen",
+                        "manipulators": [
+                            {
+                                "from": { "consumer_key_code": "scan_previous_track"  },
+                                "to": [
+                                    {
+                                        "key_code": "4",
+                                        "modifiers": ["left_command", "left_shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "print screen to clipboard",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "consumer_key_code": "scan_previous_track",
+                                    "modifiers": { "mandatory": ["left_command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "4",
+                                        "modifiers": [ "left_control","left_command", "left_shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "apostrof",
                         "manipulators": [
                             {
