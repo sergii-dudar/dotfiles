@@ -49,45 +49,13 @@ alias cdi='zi'
 
 alias work="cd ~/serhii.home/work/"
 alias video="cd ~/serhii.home/videos/"
-bindkey -s "^w" "work\n"
+#bindkey -s "^w" "work\n"
 
 # ranger with cd to current dir on quit
 #alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; /usr/bin/zoxide "$LASTDIR"'
 
-alias az_dev='az aks get-credentials --resource-group dev --name aks-dev'
-alias az_qa='az aks get-credentials --resource-group qa --name aks-qa'
-alias az_uat='az aks get-credentials --resource-group uat --name aks-uat'
-
-alias k9sa='k9s -n all'
-
-alias k9sd='az_dev ; k9sa'
-alias k9sq='az_qa ; k9sa'
-alias k9su='az_uat ; k9sa'
-
-alias msa='mvn spotless:apply'
-alias helmdu='helm dependency update'
-alias helmu='cd helm; helmdu'
-
-alias gitreset_comit='git reset HEAD~'
-
 alias tmuxan='tmux attach || tmux new' # connect to exists session or create new one
 # alias tmuxan='tmux attach || tmux new -s ''default'' -n ''ranger.h'' ''ranger .'''
-
-alias mvncc='msa ; mvn clean compile'
-alias mvncv='msa ; mvn clean verify'
-alias mcc='mvn clean compile'
-alias nativeb='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -DskipNativeTests -DquickBuild -Pnative native:compile'
-alias springbi='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true spring-boot:build-image'
-alias springbi_n='mvn clean -Dcyclonedx.skip=true -Djacoco.skip=true -Dmaven.test.skip=true -DskipTests=true -Pnative spring-boot:build-image'
-# ./target/user-service -Dspring.profiles.active=work,default
-# java -Dspring.profiles.active=work,default -jar ./target/user-service-local.jar
-# export GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS=8
-# export APP_CLIENT_SERVICE_AUTH_URL=http://traefik-internal.test/auth/system
-
-alias ideau='intellij-idea-ultimate'
- 
-alias dup='docker-compose up'
-alias ddown='docker-compose down'
 
 alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window name: " "rename-window ''%%''"'
 #alias tmuxan='tmux new-session -A -s default'
@@ -96,8 +64,6 @@ alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window na
 
 #alias tldr='tldr --color=always'
 alias short='tldr'
-
-alias git_dotfiles='/usr/bin/git --git-dir=/home/serhii/.dotfiles/ --work-tree=/home/serhii'
 
 alias vim="nvim"
 alias vi="nvim"
@@ -138,12 +104,3 @@ alias push='git push origin'
 alias stat='git status'  # 'status' is protected name so using 'stat' instead
 alias tag='git tag'
 alias newtag='git tag -a'
-
-# docker
-alias dcu='docker-compose up'
-alias dcd='docker-compose down'
-alias dps='docker ps'
-
-# temporal (localhost:7233, UI http://localhost:8233.)
-#alias temporal_start='temporal server start-dev'
-alias temporal_start='temporal server start-dev --db-filename temporal_dev_store.db'

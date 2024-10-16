@@ -92,6 +92,10 @@ function chrome() {
 	google-chrome > /dev/null 2>&1 &
 }
 
+#function iterm() {
+#    osascript -e 'tell application "iTerm2" to create window with default profile'
+#}
+
 #function idea() {
 #    if isMacOs; then
 #        '/Applications/IntelliJ IDEA.app/Contents/MacOS/idea'

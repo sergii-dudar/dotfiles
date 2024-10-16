@@ -150,6 +150,7 @@ source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 source "$HOME/serhii.shell/tmux.scripts.sh"
+source "$HOME/serhii.shell/work.sh"
 
 setopt no_beep
 

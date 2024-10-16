@@ -10,6 +10,9 @@ if isMacOs; then
 
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
+
+    # iterm:
+    # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
 else
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin

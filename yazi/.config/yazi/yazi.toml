@@ -41,7 +41,8 @@ folder = [
     { run = 'open .',   desc = "Finder", for = "macos" },
     #{ run = 'alacritty', orphan = true,  desc = "Alacritty", for = "linux" },
     { run = 'kitty', orphan = true,  desc = "Terminal", for = "linux" },
-    { run = 'open -a iTerm .', orphan = true,  desc = "Terminal", for = "macos" },
+    #{ run = 'open -a iTerm .', orphan = true,  desc = "Terminal", for = "macos" },
+    { run = 'iterm', orphan = true,  desc = "Terminal", for = "macos" },
 ]
 develop = [
     { run = 'intellij-idea-ultimate "$1"', orphan = true,  desc = "intellij", for = "linux" },
