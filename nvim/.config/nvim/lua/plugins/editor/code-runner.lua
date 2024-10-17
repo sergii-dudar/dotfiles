@@ -19,7 +19,7 @@ return {
                     --"java -classpath $(mvn -o -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout -DincludeScope=runtime):target/classes",
                     --"$(grep '^package' $dir/$fileName | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
 
-                    "/home/serhii/.jdks/corretto-21.0.4/bin/java",
+                    "~/.jdks/corretto-21.0.4/bin/java",
                     --"java"
                     "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes",
                     "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
@@ -59,14 +59,14 @@ return {
 
             },
             --project = {
-            --    ["/home/serhii/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {
+            --    ["~/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {
             --        name = "Run Profile1",
             --        description = "Run Profile1",
             --        --file_name = "POO/main.py"
             --        command = "java -classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes "
             --            .."$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
             --    },
-            --    --["/home/serhii/serhii.home/prev_work/GL_WORK/git.work/ticket-service"] = {
+            --    --["~/serhii.home/prev_work/GL_WORK/git.work/ticket-service"] = {
             --    --    name = "Run Profile2",
             --    --    description = "Run Profile2",
             --    --    --file_name = "POO/main.py"

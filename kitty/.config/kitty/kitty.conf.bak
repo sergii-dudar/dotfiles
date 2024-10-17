@@ -843,7 +843,7 @@ remember_window_size  yes
 #: set the vertical and horizontal sides. Three values set top,
 #: horizontal and bottom. Four values set top, right, bottom and left.
 
-# window_padding_width 0
+window_padding_width 0
 
 #: The window padding (in pts) (blank area between the text and the
 #: window border). A single value sets all four sides. Two values set
@@ -933,7 +933,7 @@ remember_window_size  yes
 #: number is used so that kitty is "ready" quickly after the end of
 #: resizing, while not also continuously redrawing, to save energy.
 
-# resize_in_steps no
+resize_in_steps yes
 
 #: Resize the OS window in steps as large as the cells, instead of
 #: with the usual pixel accuracy. Combined with initial_window_width
@@ -950,6 +950,7 @@ remember_window_size  yes
 #: preference as a string of characters.
 
 # confirm_os_window_close -1
+confirm_os_window_close 0
 
 #: Ask for confirmation when closing an OS window or a tab with at
 #: least this number of kitty windows in it by window manager (e.g.
@@ -1176,12 +1177,21 @@ tab_title_template "{index}:{title}"
 #: macOS and KDE.
 
 # background_image none
-#background_image /home/serhii/Downloads/wp2618279-blackarch-wallpaper_.png
-background_image /home/serhii/serhii.home/personal/walpapers/nice-blue-background.png
+#background_image ~/Downloads/wp2618279-blackarch-wallpaper_.png
+#background_image ~/serhii.home/personal/walpapers/nice-blue-background.png
+#background_image ~/wallpapers/png/different/dark_forest.png
+#background_image ~/wallpapers/png/different/icondesire-train-cross.png
+#background_image ~/wallpapers/png/different/jonadinges-getaway.png
+#background_image ~/wallpapers/png/different/plane_sunset.png
+#background_image ~/wallpapers/png/general/CustomKeyboard.png
+
+background_image ~/wallpapers/png/a_cat_walking_on_a_hill.png
+#background_image ~/wallpapers/png/a_silhouette_of_a_person_standing_in_a_room_with_a_window.png
 
 #: Path to a background image. Must be in PNG format.
 
 background_image_layout cscaled
+background_tint 0.92
 
 #: Whether to tile, scale or clamp the background image. The value can
 #: be one of tiled, mirror-tiled, scaled, clamped, centered or
@@ -1200,7 +1210,7 @@ background_image_layout cscaled
 #: decrease_background_opacity) or the remote control facility.
 #: Changing this option by reloading the config is not supported.
 
-background_tint 0.99
+# background_tint 0.99
 
 #: How much to tint the background image by the background color. This
 #: option makes it easier to read the text. Tinting is done using the
@@ -2517,6 +2527,6 @@ map kitty_mod+f5 load_config_file
 
 
 # BEGIN_KITTY_THEME
-# GitHub Dark
+# Alabaster Dark
 include current-theme.conf
 # END_KITTY_THEME

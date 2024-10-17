@@ -1,11 +1,11 @@
 [core]
-	excludesfile = /home/serhii/.gitignore_global
+	excludesfile = ~/.gitignore_global
 	autocrlf = input
 	pager = delta
 
 [user]
 	name = serhii.dudar
-	email = serhii.dudar@globallogic.com
+	email = serhii.dudar@raiffeisen.ua
 
 [interactive]
     diffFilter = delta --color-only

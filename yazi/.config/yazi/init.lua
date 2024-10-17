@@ -10,7 +10,7 @@ require("relative-motions"):setup(
 
 -- https://github.com/Rolv-Apneseth/starship.yazi
 require("starship"):setup(
-    --{ config_file = "/home/serhii/dotfiles/starship/.config/starship.toml" }
+    --{ config_file = "~/dotfiles/starship/.config/starship.toml" }
 )
 
 require("git"):setup()

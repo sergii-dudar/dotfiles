@@ -173,7 +173,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/bin/zsh ~/dotfiles/work/bash/iterm.sh || open ~/dotfiles/work/bash/iterm.sh"
+                                        "shell_command": "open ~/dotfiles/work/bash/iterm.sh"
                                     }
                                 ],
                                 "type": "basic"

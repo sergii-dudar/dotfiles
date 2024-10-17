@@ -6,7 +6,7 @@ return {
             opts.formatters_by_ft.kotlin = { "ktfmt" }
             opts.formatters_by_ft.sh = { "beautysh" }
             -- for beautysh need:
-            -- source /home/serhii/.local/share/nvim/mason/packages/beautysh/venv/bin/activate
+            -- source ~/.local/share/nvim/mason/packages/beautysh/venv/bin/activate
             -- pip install setuptools
 
             opts.formatters_by_ft.python = { "black" }
@@ -28,7 +28,7 @@ return {
 
             --opts.formatters.spotless_custom = {
             --    --command = "google-java-format",
-            --    command = "/home/serhii/dotfiles/work/formatter/spotless.sh",
+            --    command = "~/dotfiles/work/formatter/spotless.sh",
             --    --args = { "-" },
             --    args = {
             --      "$FILENAME",
@@ -37,7 +37,7 @@ return {
             --}
             --formatters = {
             --    --spotless_custom = {
-            --    --    command = "/home/serhii/dotfiles/work/formatter/spotless.sh",
+            --    --    command = "~/dotfiles/work/formatter/spotless.sh",
             --    --    args = { "-" }
             --    --}
             --},

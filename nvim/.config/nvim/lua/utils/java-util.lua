@@ -17,7 +17,9 @@ local system = 'linux'
 local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle")
 local java21_bin = java21_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
-local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+--local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
+--vim.notify(java_google_style_file)
 
 local M = {}
 

@@ -34,7 +34,7 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.editor.mini-move" },
     { import = "lazyvim.plugins.extras.editor.inc-rename" },
     { import = "lazyvim.plugins.extras.coding.neogen" }, -- some issues with `JavaHello/spring-boot.nvim` disabled for now
-    { import = "lazyvim.plugins.extras.editor.navic" },
+    --{ import = "lazyvim.plugins.extras.editor.navic" },
     { import = "lazyvim.plugins.extras.editor.outline" },
     { import = "lazyvim.plugins.extras.editor.overseer" },
     --{ import = "lazyvim.plugins.extras.editor.fzf" },

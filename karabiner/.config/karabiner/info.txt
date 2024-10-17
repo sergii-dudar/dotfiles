@@ -1,0 +1,1 @@
+"shell_command": "/bin/zsh ~/dotfiles/work/bash/iterm.sh || open ~/dotfiles/work/bash/iterm.sh"

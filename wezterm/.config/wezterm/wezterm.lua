@@ -62,7 +62,7 @@ local dimmer = { brightness = 0.2 }
 config.background = {
     {
         source = {
-            File = '/home/serhii/wallpapers/png/a_cat_walking_on_a_hill.png',
+            File = '~/wallpapers/png/a_cat_walking_on_a_hill.png',
         },
         -- The texture tiles vertically but not horizontally.
         -- When we repeat it, mirror it so that it appears "more seamless".

@@ -18,27 +18,27 @@ if [[ -z "$1" ]]; then
     (
     # configs
     /usr/bin/fd . --type f --max-depth 1 --hidden --no-follow \
-        /home/serhii/ \
-        /home/serhii/serhii.shell | \
+        ~/ \
+        ~/serhii.shell | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
     /usr/bin/fd . --max-depth 2 --type f --no-follow \
-        /home/serhii/.config/ranger \
-        /home/serhii/.config/rofi \
-        /home/serhii/.config/qtile \
-        /home/serhii/.config/nvim \
-        /home/serhii/.config/nitrogen \
-        /home/serhii/.config/awesome \
-        /home/serhii/.config/alacritty | \
+        ~/.config/ranger \
+        ~/.config/rofi \
+        ~/.config/qtile \
+        ~/.config/nvim \
+        ~/.config/nitrogen \
+        ~/.config/awesome \
+        ~/.config/alacritty | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
     /usr/bin/fd . --type f --no-follow \
-        /home/serhii/dotfiles | \
+        ~/dotfiles | \
     xargs -I {} printf "nvim {}\nsubl {}\n" \
     ; \
     /usr/bin/fd . --type d --max-depth 1 \
-     /home/serhii/serhii.home/work/git.work \
-	 /home/serhii/serhii.home/personal/git | \
+     ~/serhii.home/work/git.work \
+	 ~/serhii.home/personal/git | \
     xargs -I {} printf "$intellijView {}\n$vscodeView {}\n" \
     )
 else
