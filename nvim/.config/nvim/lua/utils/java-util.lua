@@ -75,6 +75,9 @@ end
 M.jdtls_settings = {
     java = {
         home = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
+        project = {
+            importHint = true
+        },
         autobuild = {
             enabled = false
         },
@@ -232,6 +235,29 @@ M.jdtls_settings = {
                     "org.eclipse.jdt.annotation.NonNull",
                     "org.springframework.lang.NonNull",
                 }
+            }
+        },
+        import = {
+            exclusions = {
+                "**/node_modules/**",
+                "**/.metadata/**",
+                "**/archetype-resources/**",
+                "**/META-INF/maven/**"
+            },
+            maven = {
+                enabled = true,
+                offline = {
+                    enabled = false,
+                }
+            },
+            gradle = {
+                enabled = true,
+                offline = {
+                    enabled = false,
+                },
+                wrapper = {
+                    enabled = true,
+                },
             }
         }
     }
