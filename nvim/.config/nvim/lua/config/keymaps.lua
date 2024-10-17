@@ -56,6 +56,12 @@ map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 --vim.keymap.set("n", "<leader>r", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
 --    { desc = "Start replacing word under cursor" })
 
+-- Function to create a visual mode substitution with prompt on every replace
+-- help to replace intellij - replace qualified name with import
+vim.api.nvim_set_keymap('v', '<leader>r', '"hy:%s/<C-r>h//gc<Left><Left><Left>',
+    { noremap = true, silent = false, desc = "Replace with prompt" })
+
+
 -- Example usage for jdtls
 vim.opt.path:append("**")
 
