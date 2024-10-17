@@ -93,3 +93,52 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
     end,
     group = vim.api.nvim_create_augroup('WinBar', {}),
 })
+
+-- Lua function for Java indentation
+-- TODO: implement better behavior as current default
+function GetJavaIndent()
+
+    vim.notify("test")
+
+    -- Get the current line number
+    local lnum = vim.v.lnum
+    -- Get the previous non-blank line number
+    local prev_lnum = vim.fn.prevnonblank(lnum - 1)
+
+    -- If there's no previous line, return 0 indentation
+    if prev_lnum == 0 then
+        return 0
+    end
+
+    -- Get the indentation level of the previous non-blank line
+    local prev_indent = vim.fn.indent(prev_lnum)
+    -- Get the content of the previous line
+    local prev_line = vim.fn.getline(prev_lnum)
+
+    -- Continuation indent: If the previous line does NOT end with ;, {, or }
+    if not prev_line:find('[;{}]%s*$') then
+        -- Apply continuation indent by adding 2 levels of shiftwidth
+        return prev_indent + vim.bo.shiftwidth * 2
+    end
+
+    -- Normal indentation (like smartindent behavior)
+    if prev_line:find('{%s*$') then
+        -- Increase indent after an opening brace '{'
+        return prev_indent + vim.bo.shiftwidth
+    elseif prev_line:find('}%s*$') then
+        -- Decrease indent after a closing brace '}'
+        return prev_indent - vim.bo.shiftwidth
+    end
+
+    -- Default: Maintain the same indent as the previous line
+    return prev_indent
+end
+
+-- Disable Tree-sitter indent for Java files
+vim.api.nvim_create_autocmd({"FileType"}, {
+    pattern = "java",
+    callback = function()
+        vim.bo.indentexpr = ""
+        --vim.bo.indentexpr = "v:lua.GetJavaIndent()"
+    end
+})

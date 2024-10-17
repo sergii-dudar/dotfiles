@@ -23,7 +23,7 @@ return {
             "groovy",
             "terraform"
         },
-        indent = { enable = false },
+        indent = { enable = true, disable = { "java" } },
     },
     {
         "nvim-treesitter/nvim-treesitter-context",

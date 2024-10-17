@@ -102,6 +102,7 @@ M.jdtls_settings = {
             -- Use the Google Style guide for code formattingh
             settings = {
                 url = java_google_style_file,
+                -- Optional formatter profile name from the Eclipse formatter settings.
                 profile = "GoogleStyle",
             },
         },
@@ -142,6 +143,9 @@ M.jdtls_settings = {
         },
         -- Customize completion options
         completion = {
+            enabled = true,
+            -- Defines a list of static members or types with static members. Content
+            -- assist will propose those static members even if the import is missing.
             favoriteStaticMembers = {
                 "org.hamcrest.MatcherAssert.assertThat",
                 "org.hamcrest.Matchers.*",
@@ -151,7 +155,10 @@ M.jdtls_settings = {
                 "java.util.Objects.requireNonNullElse",
                 "org.mockito.Mockito.*",
             },
-            -- Try not to suggest imports from these packages in the code action window
+            -- Defines the type filters. All types whose fully qualified name matches
+            -- the selected filter strings will be ignored in content assist or quick
+            -- fix proposals and when organizing imports. For example 'java.awt.*' will
+            -- hide all types from the awt packages.
             filteredTypes = {
                 "com.sun.*",
                 "io.micrometer.shaded.*",
@@ -159,13 +166,15 @@ M.jdtls_settings = {
                 "jdk.*",
                 "sun.*",
             },
-            -- Set the order in which the language server should organize imports
+            -- Defines the sorting order of import statements. A package or type name
+            -- prefix (e.g. 'org.eclipse') is a valid entry. An import is always added
+            -- to the most specific group.
             importOrder = {
-                "com",
-                "jakarta",
-                "javax",
-                "java",
-                "org"
+                "", -- Import all other imports
+                "java", -- java.*
+                "javax", -- javax.*
+                "jakarta", -- jakarta.*
+                "#"        -- Import static all other imports
             },
             chain = {
                 enabled = false,
@@ -174,8 +183,12 @@ M.jdtls_settings = {
         sources = {
             -- How many classes from a specific package should be imported before automatic imports combine them all into a single import
             organizeImports = {
-                starThreshold = 9999,
-                staticStarThreshold = 9999,
+                -- Specifies the number of imports added before a star-import declaration is used.
+                --starThreshold = 9999,
+                starThreshold = 5,
+                -- Specifies the number of static imports added before a star-import declaration is used.
+                --staticStarThreshold = 9999,
+                staticStarThreshold = 3,
             },
         },
         redhat = { telemetry = { enabled = false } },
@@ -195,10 +208,29 @@ M.jdtls_settings = {
         jdt = {
             ls = {
                 lombokSupport = {
+                    -- Whether to load lombok processors from project classpath
                     enabled = true
                 },
                 protofBufSupport = {
+                    -- Specify whether to automatically add Protobuf output source directories to the classpath.
                     enabled = true
+                }
+            }
+        },
+        compile = {
+            nullAnalysis = {
+                mode = "automatic",
+                nullable = {
+                    "javax.annotation.Nullable",
+                    "jakarta.annotation.Nullable",
+                    "org.eclipse.jdt.annotation.Nullable",
+                    "org.springframework.lang.Nullable"
+                },
+                nonnull = {
+                    "javax.annotation.Nonnull",
+                    "jakarta.annotation.Nonnull",
+                    "org.eclipse.jdt.annotation.NonNull",
+                    "org.springframework.lang.NonNull",
                 }
             }
         }

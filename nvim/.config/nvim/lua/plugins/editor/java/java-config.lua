@@ -37,6 +37,8 @@ return {
             { "<leader>jc", ":JdtCompile<CR>", desc = "JDTLS Compile" },
             { "<leader>jf", ":JdtCompile full<CR>", desc = "JDTLS Compile Full" },
             { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
+            { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests" },
+            { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests " },
         },
         opts = {
             --[[jdtls = {
