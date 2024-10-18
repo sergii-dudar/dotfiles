@@ -26,8 +26,10 @@ end
 
 -- disable lsp right bottom message spam about lsp progress\status
 -- but maybe useful in case debugging, then comment next handlers:
-vim.lsp.handlers['language/status'] = function(_, result) end
-vim.lsp.handlers['$/progress'] = function(_, result, ctx) end
+vim.lsp.handlers['language/status'] = function(_, result)
+end
+vim.lsp.handlers['$/progress'] = function(_, result, ctx)
+end
 -- vim.lsp.handlers['textDocument/inlayHint'] = function() end
 
 vim.diagnostic.config {
@@ -53,6 +55,43 @@ return {
             require('diagflow').setup()
         end
     },
+    {
+        "rmagatti/goto-preview",
+        event = "BufEnter",
+        dependencies = { "folke/which-key.nvim" },
+        config = function()
+            require('goto-preview').setup({
+                default_mappings = false,
+                preview_window_title = { enable = false },
+                post_open_hook = function(buffer, window)
+                    vim.api.nvim_buf_set_keymap(0, "n", "q", ":q<CR>", { noremap = true, silent = true })
+                end
+            })
+
+            local preview = require('goto-preview')
+            local wk = require("which-key")
+            wk.add({
+                {
+                    mode = { "n" },
+                    { "<leader>p", group = "LPS [P]review" },
+                    { "<leader>pd", preview.goto_preview_definition, desc = "Preview [d]efinition" },
+                    { "<leader>pt", preview.goto_preview_type_definition, desc = "Preview [t]ype definition" },
+                    { "<leader>pi", preview.goto_preview_implementation, desc = "Preview [i]implementation" },
+                    { "<leader>pD", preview.goto_preview_declaration, desc = "Preview [D]declaration" },
+                    { "<leader>pr", preview.goto_preview_references, desc = "Preview [r]references" },
+                    { "<leader>pP", preview.close_all_win, desc = "close all preview windows" },
+                },
+            })
+        end
+    },
+    --{
+    --    "ray-x/lsp_signature.nvim",
+    --    event = "VeryLazy",
+    --    opts = {},
+    --    config = function(_, opts)
+    --        require('lsp_signature').setup(opts)
+    --    end
+    --},
     {
         "hrsh7th/nvim-cmp",
         dependencies = {

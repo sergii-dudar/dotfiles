@@ -9,7 +9,7 @@ return {
             --mappings = { e = 'none' },
             position = 'float',
         },
-        popup_border_style = 'solid',
+        popup_border_style = 'rounded', --'solid',
         filesystem = {
             filtered_items = {
                 visible = true,

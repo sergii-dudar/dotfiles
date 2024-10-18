@@ -72,6 +72,11 @@ M.get_spring_boot_tools_path_ls_path = function()
     return home .. "/.local/share/nvim/mason/packages/spring-boot-tools/extension"
 end
 
+-- not using sources:
+-- mvn dependency:sources
+-- mvn dependency:resolve -Dclassifier=javadoc
+-- rm ~/.cache/nvim/jdtls/[project] (or all projects)
+
 M.jdtls_settings = {
     java = {
         home = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),

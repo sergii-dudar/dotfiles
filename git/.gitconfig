@@ -22,4 +22,4 @@
     conflictstyle = diff3
 
 [diff]
-    colorMoved = default	
+    colorMoved = default
