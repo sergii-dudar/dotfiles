@@ -1,3 +1,13 @@
+function clean_javadoc(javadoc)
+    --javadoc = javadoc:gsub(" %* ", ""):gsub("%[(.-)%]%((jdt://.-)%)", "**%1**"):gsub("(%*%*)\n", "%1")
+    --javadoc = javadoc:gsub("%[(.-)%]%((jdt://.-)%)", "**%1**")
+    javadoc = javadoc:gsub("%[(.-)%]%((jdt://.-)%)", "**%1**")
+        --:gsub("%[(.-)%]%((https://.-)%)", "**%1**")
+        --:gsub("%[(.-)%]%((http://.-)%)", "**%1**")
+        :gsub("(%*%*)\n", "%1")
+    return javadoc
+end
+
 vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     config = config
         or {
@@ -16,6 +26,18 @@ vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     if not (result and result.contents) then
         return
     end
+
+    -- javadoc
+    local bufnr = vim.api.nvim_get_current_buf()
+    local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+    if filetype == "java" and result.contents[2] and type(result.contents[2]) == "string" then
+        if result.contents[3] then
+            result.contents[2] = clean_javadoc(result.contents[2])
+        else
+            result.contents[1] = clean_javadoc(result.contents[2])
+        end
+    end
+
     local markdown_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
     markdown_lines = vim.lsp.util.trim_empty_lines(markdown_lines)
     if vim.tbl_isempty(markdown_lines) then
@@ -45,6 +67,7 @@ return {
             keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
         end,
     },
+    -- LSP diagnostics in virtual text at the top right of your screen
     {
         'dgagn/diagflow.nvim',
         -- event = 'LspAttach', This is what I use personnally and it works great
@@ -55,6 +78,7 @@ return {
             require('diagflow').setup()
         end
     },
+    -- A small Neovim plugin for previewing definitions using floating windows.
     {
         "rmagatti/goto-preview",
         event = "BufEnter",

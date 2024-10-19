@@ -27,6 +27,9 @@ alias cat='bat'
 
 alias yyc='yazi --clear-cache && yy'
 
+# java
+alias mvn_sources="mvn dependency:sources && mvn dependency:resolve -Dclassifier=javadoc"
+
 # linux
 alias ubuntuu="sudo apt update && sudo apt upgrade"
 alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
