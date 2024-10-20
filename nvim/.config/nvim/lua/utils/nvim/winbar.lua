@@ -9,7 +9,7 @@ vim.api.nvim_set_hl(0, 'WinBarPath', { fg = '#676868', bg = existing_path_hi.bg,
 vim.api.nvim_set_hl(0, 'WinBarContentModified', { fg = '#f54257', bg = existing_hi.bg })
 
 function split_str_by_src(str)
-    local root, package = str:match("^.*/src/(%w*)/java/(.*)")
+    local root, package = str:match("^.*src/(%w*)/java/(.*)")
 
     if package then
         return root.."  "..package

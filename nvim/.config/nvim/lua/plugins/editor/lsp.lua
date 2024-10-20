@@ -2,9 +2,9 @@ function clean_javadoc(javadoc)
     --javadoc = javadoc:gsub(" %* ", ""):gsub("%[(.-)%]%((jdt://.-)%)", "**%1**"):gsub("(%*%*)\n", "%1")
     --javadoc = javadoc:gsub("%[(.-)%]%((jdt://.-)%)", "**%1**")
     javadoc = javadoc:gsub("%[(.-)%]%((jdt://.-)%)", "**%1**")
-        --:gsub("%[(.-)%]%((https://.-)%)", "**%1**")
-        --:gsub("%[(.-)%]%((http://.-)%)", "**%1**")
-        :gsub("(%*%*)\n", "%1")
+    --:gsub("%[(.-)%]%((https://.-)%)", "**%1**")
+    --:gsub("%[(.-)%]%((http://.-)%)", "**%1**")
+                     :gsub("(%*%*)\n", "%1")
     return javadoc
 end
 
@@ -118,6 +118,7 @@ return {
     --},
     {
         "hrsh7th/nvim-cmp",
+        event = 'VeryLazy',
         dependencies = {
             -- Autocompletion
             --{ "hrsh7th/nvim-cmp" }, -- Required
@@ -128,11 +129,10 @@ return {
             --{ "hrsh7th/cmp-path" },
             --{ "hrsh7th/cmp-cmdline" },
             --{ "saadparwaiz1/cmp_luasnip" }
-            "hrsh7th/cmp-nvim-lsp-signature-help"
+            --"hrsh7th/cmp-nvim-lsp-signature-help",
+            'onsails/lspkind.nvim'
         },
         opts = function(_, opts)
-            --opts.completion.autocomplete = false
-            --opts.mapping["<CR>"] = nil
             opts.window = {
                 completion = {
                     border = {
@@ -179,6 +179,81 @@ return {
                 --["<C-y>"] = LazyVim.cmp.confirm({ select = true }),
                 --["<S-CR>"] = LazyVim.cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace }),
             })
+
+            --local current_format = opts.formatting.format
+            local lspkind = require('lspkind')
+            opts.formatting = {
+                fields = { 'kind', 'abbr', 'menu' },
+                format = function(entry, vim_item)
+                    local kind = lspkind.cmp_format({
+                        mode = 'symbol_text',
+                        maxwidth = 50,
+                    })(entry, vim_item)
+                    local strings = vim.split(kind.kind, '%s', { trimempty = true })
+                    kind.kind = ' ' .. (strings[1] or '') .. ' '
+                    kind.menu = '    ' .. (strings[2] or '')
+
+                    return kind
+                end,
+            }
+
+            --table.insert(opts.sources, { name = "nvim_lsp_signature_help" })
+
+            local buffer_util = require("utils.buffer-util")
+            local custom_sources = {
+                {
+                    name = 'nvim_lsp_signature_help',
+                    priority = 100,
+                    group_index = 1,
+                },
+                {
+                    name = 'nvim_lsp',
+                    priority = 100,
+                    group_index = 1,
+                },
+                {
+                    name = 'nvim_lua',
+                    priority = 100,
+                    group_index = 1,
+                },
+                {
+                    name = 'path',
+                    priority = 90,
+                    group_index = 1,
+                },
+                {
+                    name = 'luasnip',
+                    keyword_length = 3,
+                    max_item_count = 3,
+                    autocomplete = false,
+                    priority = 80,
+                    group_index = 3,
+                },
+                {
+                    name = 'buffer',
+                    keyword_length = 3,
+                    autocomplete = false,
+                    max_item_count = 3,
+                    priority = 50,
+                    group_index = 3,
+                    option = {
+                        get_bufnrs = buffer_util.get_active_ls_buffers
+                    }
+                },
+            }
+
+            local list_util = require("utils.list")
+
+            for i, source in ipairs(opts.sources) do
+                local custom_source = list_util
+                    .find_by(custom_sources, "name", source.name)
+
+                if custom_source then
+                    opts.sources[i] = vim.tbl_deep_extend('force', source, custom_source)
+                end
+            end
+
+            --log_table(opts.sources)
 
             --table.insert(opts.sources, 1, { name = "nvim_lsp_signature_help" })
             --log_table(opts.sources)
