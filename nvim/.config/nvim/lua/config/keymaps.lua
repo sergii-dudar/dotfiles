@@ -101,6 +101,6 @@ map("n", "<leader>fs", function()
 end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
 -- debug purposes
-_G.log_table = function (table)
+_G.log_table = function(table)
     require("utils.common-util").log_table(table);
 end

@@ -1,5 +1,11 @@
 return {
-  { "catppuccin/nvim" },
+  {
+      "catppuccin/nvim",
+      --[[opts = {
+          term_colors = true,
+          transparent_background = true
+      }]]
+  },
   --[[{
       "rebelot/kanagawa.nvim",
       priority = 1000

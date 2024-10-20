@@ -39,6 +39,9 @@ return {
             { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests" },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests " },
+
+            { "<leader>ci", function() require("utils.java-import-util").import_class_and_replace() end,
+              desc = "[I]mport class package and apply simple name" },
         },
         opts = {
             --[[jdtls = {
