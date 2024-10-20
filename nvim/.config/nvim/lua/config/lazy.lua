@@ -64,7 +64,7 @@ require("lazy").setup({
     -- util
     --{ import = "lazyvim.plugins.extras.util.rest" },
     --{ import = "lazyvim.plugins.extras.util.project" },
-    { import = "lazyvim.plugins.extras.coding.luasnip" }, --for now use nvim-snippets
+    --{ import = "lazyvim.plugins.extras.coding.luasnip" }, --for now use nvim-snippets
 
     -- import/override with your plugins
     { import = "plugins.ui" },

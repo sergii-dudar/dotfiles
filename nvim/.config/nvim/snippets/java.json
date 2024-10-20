@@ -1,0 +1,19 @@
+{
+    "Create Mapstruct Mapping": {
+        "prefix": "mapclass",
+        "body": [
+            "vim.api.nvim_create_autocmd(\"${1:event}\", {",
+            "  group = vim.api.nvim_create_augroup(\"${2:group}\", { clear = true }),",
+            "  callback = function(ev)",
+            "    ${0}",
+            "  end",
+            "})"
+        ]
+    },
+    "Mapstruct Mapping": {
+        "prefix": "mapmap",
+        "body": [
+            "@Mapping(source = \"${1:source}\", target = \"${2:target}\")"
+        ]
+    }
+}
