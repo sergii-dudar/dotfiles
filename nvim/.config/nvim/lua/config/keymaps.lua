@@ -104,3 +104,9 @@ end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 _G.log_table = function(table)
     require("utils.common-util").log_table(table);
 end
+
+--local buff_utils = require("utils.buffer-util")
+--_G.get_goto_preview_buffers = function()
+--    log_table(buff_utils.get_active_ls_buffers())
+--end
+

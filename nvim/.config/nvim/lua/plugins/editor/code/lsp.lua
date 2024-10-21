@@ -88,8 +88,13 @@ return {
                 default_mappings = false,
                 preview_window_title = { enable = false },
                 post_open_hook = function(buffer, window)
-                    vim.api.nvim_buf_set_keymap(0, "n", "q", ":q<CR>", { noremap = true, silent = true })
-                end
+                    --vim.api.nvim_buf_set_keymap(0, "n", "q", ":q<CR>", { noremap = true, silent = true })
+                    vim.api.nvim_buf_set_keymap(0, "n", "q", ":bdelete<CR>", { noremap = true, silent = true })
+                end,
+                --[[post_close_hook = function(buffer, window)
+                    --vim.api.nvim_buf_delete(buffer, {})
+                    vim.notify('deleted' .. buffer)
+                end]]
             })
 
             local preview = require('goto-preview')

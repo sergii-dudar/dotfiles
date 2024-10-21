@@ -26,10 +26,10 @@ if isMacOs; then
             --bind 'ctrl-a:change-prompt(⚡ Sesh All: )+reload(sesh list -i)' \
             --bind 'ctrl-t:change-prompt( Tmux: )+reload(sesh list -t -i)' \
             --bind 'ctrl-x:change-prompt(📁 Zoxide: )+reload(sesh list -z -i)' \
-            --bind 'ctrl-f:change-prompt(🔎 Find: )+reload((fd -H -d 5 -t d -E ".*" -E "*books*" . ~ | xargs -I folder printf "📁 folder\n" ; \
-                                                      fd -H -d 3 -t d -p ~/.tmux ~ | xargs -I folder printf "📁 folder\n" ; \
-                                                      fd -H -d 2 -t d -p ~/.config ~ | xargs -I folder printf "📁 folder\n" ; \
-                                                      fd -H -d 5 -t d -p ~/.local/share/nvim/lazy ~ | xargs -I folder printf "📁 folder\n"))' \
+            --bind 'ctrl-f:change-prompt(🔎 Find: )+reload((fd -H -d 5 -t d -E ".*" -E "*books*" . ~ | xargs -I folder printf " folder\n" ; \
+                                                      fd -H -d 3 -t d -p ~/.tmux ~ | xargs -I folder printf " folder\n" ; \
+                                                      fd -H -d 2 -t d -p ~/.config ~ | xargs -I folder printf " folder\n" ; \
+                                                      fd -H -d 5 -t d -p ~/.local/share/nvim/lazy ~ | xargs -I folder printf " folder\n"))' \
             --bind 'ctrl-d:execute(tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux kill-session -t $(echo {} | cut -c3-))+change-prompt(❌ Tmux Kill: )+reload(sesh list -t -i)' \
             --bind 'ctrl-n:execute([ -n "{q}" ] && (tmux has-session -t {q} 2>/dev/null || tmux new-session -s {q} -n {q} -d))+change-prompt(🆕 Tmux New: )+reload(sesh list -t -i)' \
             --preview 'tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux capture-pane -peJt $(echo {} | cut -c3-) || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo $(echo {} | cut -c3-))"' \
@@ -37,6 +37,7 @@ if isMacOs; then
     )"
 
 [[ -n "$session" ]] && sesh connect "$session"
+#echo "$session"
 
 else
 
