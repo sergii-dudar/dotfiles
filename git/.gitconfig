@@ -4,8 +4,8 @@
 	pager = delta
 
 [user]
-	name = IUADA144
-	email = serhii.dudar@raiffeisen.ua
+	name = serhii.dudar
+	email = shtanga.net@gmail.com
 
 [interactive]
     diffFilter = delta --color-only
