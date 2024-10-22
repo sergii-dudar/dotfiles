@@ -13,6 +13,9 @@ if isMacOs; then
 
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
+
+    # lazygit
+    export XDG_CONFIG_HOME="$HOME/.config"
 else
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
