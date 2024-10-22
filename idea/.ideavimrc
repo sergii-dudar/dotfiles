@@ -441,6 +441,7 @@ nmap <leader>ef <Action>(RerunFailedTests)
 "====== extract
 nmap <leader>em <Action>(ExtractMethod)
 
+map s <Action>(flash.search)
 "======================================= (i) Introduce ================================================="
 
 map <leader>ic <Action>(IntroduceConstant)

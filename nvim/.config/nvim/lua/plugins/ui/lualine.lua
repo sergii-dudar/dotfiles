@@ -1,4 +1,4 @@
-local clients_lsp = function ()
+local clients_lsp = function()
     local bufnr = vim.api.nvim_get_current_buf()
 
     local clients = vim.lsp.buf_get_clients(bufnr)
@@ -13,9 +13,10 @@ local clients_lsp = function ()
     return '\u{f085} ' .. table.concat(c, ' | \u{f085} ')
 end
 
+local icons = LazyVim.config.icons
 return {
     'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons'  },
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = {
         options = {
             -- theme = "catppuccin"
@@ -27,10 +28,24 @@ return {
             component_separators = ' '
         },
         sections = {
+            lualine_c = {
+                LazyVim.lualine.root_dir(),
+                {
+                    "diagnostics",
+                    symbols = {
+                        error = icons.diagnostics.Error,
+                        warn = icons.diagnostics.Warn,
+                        info = icons.diagnostics.Info,
+                        hint = icons.diagnostics.Hint,
+                    },
+                },
+                { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
+                { LazyVim.lualine.pretty_path({ length = 0 }) },
+            },
             lualine_y = {
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
                 { "location", padding = { left = 0, right = 1 } },
-                { clients_lsp, color = { fg = 'black', bg = '#676868', gui='bold' } },
+                { clients_lsp, color = { fg = 'black', bg = '#676868', gui = 'bold' } },
                 --{ "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
             }
         }

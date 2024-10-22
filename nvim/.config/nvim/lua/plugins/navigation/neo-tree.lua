@@ -6,8 +6,11 @@ return {
             statusline = false
         },
         window = {
-            --mappings = { e = 'none' },
-            position = 'float',
+            mappings = {
+            --    e = 'none'
+                ["/"] = "noop"
+            },
+            --position = 'float',
         },
         popup_border_style = 'rounded', --'solid',
         filesystem = {
@@ -33,7 +36,8 @@ return {
         },
         default_component_configs = {
             last_modified = {
-                enabled = false
+                enabled = true,
+                required_width = 75
             },
             file_size = {
                 enabled = false
