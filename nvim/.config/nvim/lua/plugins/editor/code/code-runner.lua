@@ -1,7 +1,7 @@
 return {
     "CRAG666/code_runner.nvim",
     config = function()
-        require('code_runner').setup({
+        require("code_runner").setup({
             -- choose default mode (valid term, tab, float, toggle, vimux)
             mode = "term",
             -- add hot reload
@@ -22,7 +22,7 @@ return {
                     "~/.jdks/corretto-21.0.4/bin/java",
                     --"java"
                     "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes",
-                    "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
+                    "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
                 },
                 python = "python3.12 -u",
                 typescript = "deno run",
@@ -31,7 +31,7 @@ return {
                 rust = {
                     "cd $dir &&",
                     "rustc $fileName &&",
-                    "$dir/$fileNameWithoutExt"
+                    "$dir/$fileNameWithoutExt",
                 },
                 go = { "go run $dir/$fileName" },
                 cpp = {
@@ -56,7 +56,6 @@ return {
                         require("code_runner.commands").run_from_fn(vim.list_extend(c_base, c_exec))
                     end)
                 end,
-
             },
             --project = {
             --    ["~/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {
@@ -76,10 +75,10 @@ return {
             --}
         })
 
-        vim.keymap.set('n', '<leader>rr', ':RunCode<CR>', { noremap = true, silent = false, desc = "Run Code" })
-        vim.keymap.set('n', '<leader>rf', ':RunFile<CR>', { noremap = true, silent = false, desc = "Run File" })
-        vim.keymap.set('n', '<leader>rp', ':RunProject<CR>', { noremap = true, silent = false, desc = "Run Project" })
-        vim.keymap.set('n', '<leader>rc', ':RunClose<CR>', { noremap = true, silent = false, desc = "Run Close" })
+        vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "Run Code" })
+        vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "Run File" })
+        vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "Run Project" })
+        vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "Run Close" })
 
         --vim.keymap.set('n', '<leader>rft', ':RunFile tab<CR>', { noremap = true, silent = false, desc = "Run File tab" })
         --vim.keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false, desc = "CRF iletype" })
@@ -92,5 +91,5 @@ return {
                 vim.keymap.set("n", "q", "<cmd>RunClose<cr>", { buffer = true })
             end,
         })
-    end
+    end,
 }

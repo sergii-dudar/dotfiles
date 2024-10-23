@@ -26,7 +26,7 @@ return {
             bg_x_padding = 0,
             bg_y_padding = 0,
             bg_padding = 0,
-            save_path = os.getenv("XDG_PICTURES_DIR") or (os.getenv("HOME").. "/Pictures")
+            save_path = os.getenv("XDG_PICTURES_DIR") or (os.getenv("HOME") .. "/Pictures"),
         })
-    end
+    end,
 }

@@ -8,7 +8,7 @@ return {
     },
     config = function(_, opts)
         require("overseer").setup(opts)
-        require("overseer").register_template {
+        require("overseer").register_template({
             name = "Maven",
             params = function()
                 return {
@@ -37,7 +37,7 @@ return {
             builder = function(params)
                 local maven = require("utils.maven")
                 local settings = maven.get_maven_settings()
-                local file = vim.fn.expand "%"
+                local file = vim.fn.expand("%")
                 local cmd = { "mvn" }
                 vim.list_extend(cmd, params.subcommand)
                 if settings then
@@ -57,11 +57,11 @@ return {
                 callback = function(param)
                     if param.filetype == "xml" then
                         local maven = require("utils.maven")
-                        return maven.is_pom_file(vim.fn.expand "%")
+                        return maven.is_pom_file(vim.fn.expand("%"))
                     end
                     return true
                 end,
             },
-        }
+        })
     end,
 }

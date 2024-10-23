@@ -11,26 +11,26 @@ local autocmd = vim.api.nvim_create_autocmd
 
 -- start terminal in insert mode
 autocmd("TermOpen", {
-  desc = "Auto enter insert mode when opening a terminal",
-  group = customBuffer,
-  pattern = "*",
-  callback = function()
-    -- Wait briefly just in case we immediately switch out of the buffer (e.g. Neotest)
-    vim.defer_fn(function()
-      if vim.api.nvim_buf_get_option(0, "buftype") == "terminal" then
-        vim.cmd([[startinsert]])
-      end
-    end, 100)
-  end,
+    desc = "Auto enter insert mode when opening a terminal",
+    group = customBuffer,
+    pattern = "*",
+    callback = function()
+        -- Wait briefly just in case we immediately switch out of the buffer (e.g. Neotest)
+        vim.defer_fn(function()
+            if vim.api.nvim_buf_get_option(0, "buftype") == "terminal" then
+                vim.cmd([[startinsert]])
+            end
+        end, 100)
+    end,
 })
 
 -- highlight yanks
 autocmd("TextYankPost", {
-  group = yank_group,
-  pattern = "*",
-  callback = function()
-    vim.highlight.on_yank({ timeout = 300 })
-  end,
+    group = yank_group,
+    pattern = "*",
+    callback = function()
+        vim.highlight.on_yank({ timeout = 300 })
+    end,
 })
 
 -- to be able to close dap hover popup by `q`: require("dap.ui.widgets").hover()
@@ -38,7 +38,7 @@ vim.api.nvim_create_autocmd("FileType", {
     pattern = "dap-float",
     callback = function()
         vim.api.nvim_buf_set_keymap(0, "n", "q", "<cmd>close!<CR>", { noremap = true, silent = true })
-    end
+    end,
 })
 
 -- try: silent grep vim %
@@ -59,7 +59,6 @@ vim.api.nvim_create_autocmd("FileType", {
 --    end
 --})
 
-
 --autocmd("BufWritePre", {
 --    pattern = "*",
 --    callback = function()
@@ -76,28 +75,27 @@ vim.api.nvim_create_autocmd("FileType", {
 --})
 
 -- winbar file path
-vim.api.nvim_create_autocmd('BufWinEnter', {
-    pattern = '*',
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    pattern = "*",
     callback = function()
         -- skip if a pop up window
-        if vim.fn.win_gettype() == 'popup' then
+        if vim.fn.win_gettype() == "popup" then
             return
         end
 
         -- skip if new buffer
-        if vim.bo.filetype == '' then
+        if vim.bo.filetype == "" then
             return
         end
 
         vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar'.eval()%}"
     end,
-    group = vim.api.nvim_create_augroup('WinBar', {}),
+    group = vim.api.nvim_create_augroup("WinBar", {}),
 })
 
 -- Lua function for Java indentation
 -- TODO: implement better behavior as current default
 function GetJavaIndent()
-
     vim.notify("test")
 
     -- Get the current line number
@@ -116,16 +114,16 @@ function GetJavaIndent()
     local prev_line = vim.fn.getline(prev_lnum)
 
     -- Continuation indent: If the previous line does NOT end with ;, {, or }
-    if not prev_line:find('[;{}]%s*$') then
+    if not prev_line:find("[;{}]%s*$") then
         -- Apply continuation indent by adding 2 levels of shiftwidth
         return prev_indent + vim.bo.shiftwidth * 2
     end
 
     -- Normal indentation (like smartindent behavior)
-    if prev_line:find('{%s*$') then
+    if prev_line:find("{%s*$") then
         -- Increase indent after an opening brace '{'
         return prev_indent + vim.bo.shiftwidth
-    elseif prev_line:find('}%s*$') then
+    elseif prev_line:find("}%s*$") then
         -- Decrease indent after a closing brace '}'
         return prev_indent - vim.bo.shiftwidth
     end
@@ -135,10 +133,10 @@ function GetJavaIndent()
 end
 
 -- Disable Tree-sitter indent for Java files
-vim.api.nvim_create_autocmd({"FileType"}, {
+vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = "java",
     callback = function()
         vim.bo.indentexpr = ""
         --vim.bo.indentexpr = "v:lua.GetJavaIndent()"
-    end
+    end,
 })

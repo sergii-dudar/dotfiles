@@ -21,12 +21,12 @@ return {
             "xml",
             "strace",
             "groovy",
-            "terraform"
+            "terraform",
         },
         indent = { enable = true, disable = { "java" } },
     },
     {
         "nvim-treesitter/nvim-treesitter-context",
-        enabled = false
-    }
+        enabled = false,
+    },
 }

@@ -1,58 +1,48 @@
 local customMapping = function()
-    local api = require('Comment.api')
+    local api = require("Comment.api")
 
     -- Toggle current line (linewise) using C-/
-    vim.keymap.set('n', '<C-_>', api.toggle.linewise.current)
+    vim.keymap.set("n", "<C-_>", api.toggle.linewise.current)
 
     -- Toggle current line (blockwise) using C-\
-    vim.keymap.set('n', '<C-\\>', api.toggle.blockwise.current)
+    vim.keymap.set("n", "<C-\\>", api.toggle.blockwise.current)
 
     -- Toggle lines (linewise) with dot-repeat support
     -- Example: <leader>gc3j will comment 4 lines
-    vim.keymap.set(
-        'n', '<leader>gc', api.call('toggle.linewise', 'g@'),
-        { expr = true }
-    )
+    vim.keymap.set("n", "<leader>gc", api.call("toggle.linewise", "g@"), { expr = true })
 
     -- Toggle lines (blockwise) with dot-repeat support
     -- Example: <leader>gb3j will comment 4 lines
-    vim.keymap.set(
-        'n', '<leader>gb', api.call('toggle.blockwise', 'g@'),
-        { expr = true }
-    )
-
+    vim.keymap.set("n", "<leader>gb", api.call("toggle.blockwise", "g@"), { expr = true })
 
     -- vim mode
-    local esc = vim.api.nvim_replace_termcodes(
-        '<ESC>', true, false, true
-    )
+    local esc = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
 
     -- Toggle selection (linewise)
-    vim.keymap.set('x', '<leader>c', function()
-        vim.api.nvim_feedkeys(esc, 'nx', false)
+    vim.keymap.set("x", "<leader>c", function()
+        vim.api.nvim_feedkeys(esc, "nx", false)
         api.toggle.linewise(vim.fn.visualmode())
     end)
 
     -- Toggle selection (blockwise)
-    vim.keymap.set('x', '<leader>b', function()
-        vim.api.nvim_feedkeys(esc, 'nx', false)
+    vim.keymap.set("x", "<leader>b", function()
+        vim.api.nvim_feedkeys(esc, "nx", false)
         api.toggle.blockwise(vim.fn.visualmode())
     end)
 end
 
 return {
     {
-        'numToStr/Comment.nvim',
+        "numToStr/Comment.nvim",
         opts = {
             -- add any options here
         },
         config = function()
-
             --vim.api.nvim_del_keymap("n", "gco")
             --vim.api.nvim_del_keymap("n", "gcO")
             vim.api.nvim_del_keymap("n", "gcc") -- disable default comment
 
-            require('Comment').setup()
+            require("Comment").setup()
 
             -- NORMAL mode
             -- `gcc` - Toggles the current line using linewise comment
@@ -66,8 +56,7 @@ return {
             -- `gc` - Toggles the region using linewise comment
             -- `gb` - Toggles the region using blockwise comment
 
-
             -- customMapping()
-        end
-    }
+        end,
+    },
 }

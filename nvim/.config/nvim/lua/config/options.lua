@@ -41,7 +41,6 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 --vim.opt.clipboard = 'unnamedplus'
 --vim.opt.clipboard = ''
 
-
 vim.opt.showmode = false
 vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
 vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
@@ -56,7 +55,7 @@ vim.opt.cursorline = true
 vim.opt.cursorline = true
 
 -- Enable mouse mode, useful for resizing splits, debugging etc
-vim.opt.mouse = 'a'
+vim.opt.mouse = "a"
 vim.opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or insert mode start position
 
 -- split windows
@@ -67,7 +66,7 @@ vim.opt.splitbelow = true -- split horizontal window to the bottom
 vim.g.trouble_lualine = false
 
 local augroup = vim.api.nvim_create_augroup
-local myCustomGroup = augroup('myCustomStartupGroup', {})
+local myCustomGroup = augroup("myCustomStartupGroup", {})
 
 -- gf, gF, gx
 vim.opt.path:append("**")
@@ -78,7 +77,6 @@ vim.api.nvim_create_autocmd("UiEnter", {
     group = myCustomGroup,
     --pattern = { "*" },
     callback = function()
-
         -- restore current proj session
         require("persistence").load()
 

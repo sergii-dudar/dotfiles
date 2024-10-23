@@ -38,15 +38,14 @@ end
 
 -- Import java class name under cursor, and apply simple class name in all buffer
 local function import_class_and_replace()
-    local simple_class_name = vim.fn.expand('<cword>')
+    local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
 
     --local remove_all_part = full_name_under_cursor:match("^(.*)%." .. simple_class_name)
     local remove_all_part = full_name_under_cursor:match("^([%a%.]+)%." .. simple_class_name .. "%(?")
 
-
     if not remove_all_part then
-        vim.notify('class \'' .. simple_class_name .. '\' already was imported!', vim.log.levels.INFO)
+        vim.notify("class '" .. simple_class_name .. "' already was imported!", vim.log.levels.INFO)
         return
     end
 

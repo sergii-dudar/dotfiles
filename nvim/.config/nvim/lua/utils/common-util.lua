@@ -23,9 +23,9 @@ cfdo %s/just_serhii/serhii_dudar/g | update | bd
 
 M.get_visual_selection = function()
     vim.cmd('noau normal! "vy"')
-    local text = vim.fn.getreg('v')
-    vim.fn.setreg('v', {})
-    return text;
+    local text = vim.fn.getreg("v")
+    vim.fn.setreg("v", {})
+    return text
 end
 
 M.parse_java_stack_trace = function(trace)
@@ -34,15 +34,14 @@ M.parse_java_stack_trace = function(trace)
     -- Match patterns like "Class.method(FileName.java:LineNumber)"
     --for cp_path, method, file, line in string.gmatch(trace, "at (.*)%.([%w_-]+)%(([%w%.%/%_-]+%.java):(%d+)") do
     for cp_path, method, file, line in string.gmatch(trace, "([%w%.%/%_-]*)%.([%w_-]+)%(([%w%.%/%_-]+%.java):(%d+)") do
-
         local file_no_ex = string.match(file, "([^.]+)")
-        cp_path = string.gsub(cp_path, "."..file_no_ex, "")
+        cp_path = string.gsub(cp_path, "." .. file_no_ex, "")
         local path = string.gsub(cp_path, "%.", "/")
         --print(path .. ", " .. method .. ", " .. file .. ", " .. line)
 
         -- local file_path = vim.fn.findfile(file)
         -- resolve file full path from root
-        local file_path = vim.fn.glob("*/**/" .. path .. "/" ..file)
+        local file_path = vim.fn.glob("*/**/" .. path .. "/" .. file)
 
         --LazyVim.info("path: " .. file_path .. " file: " .. file)
         if file_path ~= nil and #file_path ~= 0 then
@@ -51,9 +50,9 @@ M.parse_java_stack_trace = function(trace)
             table.insert(items, {
                 filename = file_path,
                 lnum = tonumber(line),
-                col = 1,  -- Default to column 1
+                col = 1, -- Default to column 1
                 --text = file .. " error location from stack trace"
-                text = method
+                text = method,
             })
         end
     end
@@ -73,13 +72,13 @@ end
 
 M.show_stack_trace_qflist = function(stack_trace)
     local trace_items = M.parse_java_stack_trace(stack_trace)
-    vim.fn.setqflist({}, 'r', { title = 'Trace Quickfix List', items = trace_items })
+    vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
     vim.cmd("Trouble qflist toggle")
 end
 
 M.get_file_with_line = function()
     -- Get the text under the cursor (assuming it's a file and line number)
-    local cursor_word = vim.fn.expand('<cfile>')
+    local cursor_word = vim.fn.expand("<cfile>")
     local full_word = vim.fn.expand("<cWORD>")
 
     local result_expr
@@ -109,7 +108,7 @@ M.get_client_id_by_name = function(name)
         end
     end
 
-    return nil  -- Return nil if no client with the specified name is found
+    return nil -- Return nil if no client with the specified name is found
 end
 
 M.table_to_string = function(tbl, indent)
@@ -137,4 +136,4 @@ end
 
 --lua print(vim.inspect(vim.lsp.get_active_clients()[1].name))
 
-return M;
+return M

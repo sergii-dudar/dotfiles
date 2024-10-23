@@ -1,15 +1,14 @@
 local M = {}
 
 function M.find(tbl, finder)
-	for _, v in ipairs(tbl) do
-		if finder(v) then
-			return v
-		end
-	end
+    for _, v in ipairs(tbl) do
+        if finder(v) then
+            return v
+        end
+    end
 
-	return nil
+    return nil
 end
-
 
 function M.find_by(tbl, key, value)
     for _, subtable in ipairs(tbl) do

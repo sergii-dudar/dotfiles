@@ -13,21 +13,41 @@ return {
             -- needed until neotest-java is integrated in LazyVim
             local keys = require("lazyvim.plugins.lsp.keymaps").get()
             -- run test file
-            keys[#keys + 1] = { "<leader>tt", function()
-                require("neotest").run.run(vim.fn.expand("%"))
-            end, mode = "n", desc = "Run File"}
+            keys[#keys + 1] = {
+                "<leader>tt",
+                function()
+                    require("neotest").run.run(vim.fn.expand "%")
+                end,
+                mode = "n",
+                desc = "Run File",
+            }
             -- run nearest test
-            keys[#keys + 1] = { "<leader>tr", function()
-                require("neotest").run.run()
-            end, mode = "n", desc = "Run Nearest"}
+            keys[#keys + 1] = {
+                "<leader>tr",
+                function()
+                    require("neotest").run.run()
+                end,
+                mode = "n",
+                desc = "Run Nearest",
+            }
             -- debug test file
-            keys[#keys + 1] = { "<leader>tD", function()
-                require("neotest").run.run({ strategy = "dap" })
-            end, mode = "n", desc = "Debug File"}
+            keys[#keys + 1] = {
+                "<leader>tD",
+                function()
+                    require("neotest").run.run { strategy = "dap" }
+                end,
+                mode = "n",
+                desc = "Debug File",
+            }
             -- debug nearest test
-            keys[#keys + 1] = { "<leader>td", function()
-                require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" })
-            end, mode = "n", desc = "Debug Nearest"}
+            keys[#keys + 1] = {
+                "<leader>td",
+                function()
+                    require("neotest").run.run { vim.fn.expand "%", strategy = "dap" }
+                end,
+                mode = "n",
+                desc = "Debug Nearest",
+            }
         end,
     },
     {
@@ -36,7 +56,7 @@ return {
             "nvim-neotest/nvim-nio",
             "nvim-lua/plenary.nvim",
             "antoinemadec/FixCursorHold.nvim",
-            "nvim-treesitter/nvim-treesitter"
+            "nvim-treesitter/nvim-treesitter",
         },
         opts = {
             adapters = {

@@ -25,13 +25,13 @@ return {
             symbols = {
                 --win = { position = "right" },
                 win = { position = "bottom" },
-            }
-        }
+            },
+        },
     },
     keys = {
         { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix List (Trouble)" },
         { "<leader>xl", "<cmd>Trouble loclist toggle<cr>", desc = "Location List (Trouble)" },
         { "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" } },
-        { "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" } }
-    }
+        { "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" } },
+    },
 }

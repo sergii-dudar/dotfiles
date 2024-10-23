@@ -14,7 +14,7 @@ return {
     "nvimdev/dashboard-nvim",
     opts = {
         config = {
-            header = vim.split(logo, "\n")
-        }
-    }
+            header = vim.split(logo, "\n"),
+        },
+    },
 }

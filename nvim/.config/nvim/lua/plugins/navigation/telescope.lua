@@ -1,6 +1,6 @@
 local telescope_path_display_opts = { "filename_first" }
 local telescope_rg_opts = {
-    path_display = telescope_path_display_opts
+    path_display = telescope_path_display_opts,
 }
 
 return {
@@ -20,23 +20,34 @@ return {
         },
         keys = {
             { "<leader>fl", "<cmd>Telescope notify<cr>", desc = "Find Logs" },
-            { "<leader>sii", function()
-                require('search_dir_picker').search_dir()
-            end, desc = "[S]earch [i]n [d]ir" },
-
-            { "<leader>sia", function()
-                require("telescope").extensions.ripgrep.ripgrep_text(telescope_rg_opts)
-            end,
-              desc = "[S]earch text [i]n [a]rgs" },
-            { "<leader>sil", function()
-                require('telescope').extensions.live_grep_args.live_grep_args()
-            end,
-              desc = "Telescope live grep [a]rgs" },
-
-            { "<leader>fi", function()
-                require("telescope").extensions.ripgrep.ripgrep_files(telescope_rg_opts)
-            end,
-              desc = "Telescope [f]iles [i]n args" },
+            {
+                "<leader>sii",
+                function()
+                    require("search_dir_picker").search_dir()
+                end,
+                desc = "[S]earch [i]n [d]ir",
+            },
+            {
+                "<leader>sia",
+                function()
+                    require("telescope").extensions.ripgrep.ripgrep_text(telescope_rg_opts)
+                end,
+                desc = "[S]earch text [i]n [a]rgs",
+            },
+            {
+                "<leader>sil",
+                function()
+                    require("telescope").extensions.live_grep_args.live_grep_args()
+                end,
+                desc = "Telescope live grep [a]rgs",
+            },
+            {
+                "<leader>fi",
+                function()
+                    require("telescope").extensions.ripgrep.ripgrep_files(telescope_rg_opts)
+                end,
+                desc = "Telescope [f]iles [i]n args",
+            },
         },
         opts = function(_, opts)
             --opts.defaults.path_display = { "smart" }
@@ -72,13 +83,12 @@ return {
 
             --telescope.load_extension("file_browser")
             telescope.load_extension("live_grep_args")
-            telescope.load_extension('search_dir_picker')
+            telescope.load_extension("search_dir_picker")
             telescope.load_extension("ripgrep")
 
             --local telescope_util = require("utils.telescope-util")
             --vim.api.nvim_set_keymap('n', '<leader>sg', telescope_util.grep_with_dynamic_options, { noremap = true, silent = true })
             --vim.api.nvim_set_keymap('n', '<leader>fg', "<cmd>lua require('utils.telescope-util').grep_with_dynamic_options()<CR>", { noremap = true, silent = true })
-
-        end
-    }
+        end,
+    },
 }

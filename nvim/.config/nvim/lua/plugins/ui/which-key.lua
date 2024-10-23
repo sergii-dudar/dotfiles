@@ -1,5 +1,4 @@
-return
-{
+return {
     "folke/which-key.nvim",
     opts = {
         -- your configuration comes here

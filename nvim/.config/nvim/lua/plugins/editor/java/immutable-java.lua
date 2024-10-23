@@ -173,7 +173,8 @@ return {
                     },
                     settings = opts.settings,
                     -- enable CMP capabilities
-                    capabilities = LazyVim.has("cmp-nvim-lsp") and require("cmp_nvim_lsp").default_capabilities() or nil,
+                    capabilities = LazyVim.has("cmp-nvim-lsp") and require("cmp_nvim_lsp").default_capabilities()
+                        or nil,
                 }, opts.jdtls)
                 --log_table(config.init_options.bundles)
 
@@ -233,7 +234,11 @@ return {
                             },
                         })
 
-                        if opts.dap and LazyVim.has("nvim-dap") and mason_registry.is_installed("java-debug-adapter") then
+                        if
+                            opts.dap
+                            and LazyVim.has("nvim-dap")
+                            and mason_registry.is_installed("java-debug-adapter")
+                        then
                             -- custom init for Java debugger
                             require("jdtls").setup_dap(opts.dap)
                             require("jdtls.dap").setup_dap_main_class_configs(opts.dap_main)
@@ -250,7 +255,9 @@ return {
                                             "<leader>tt",
                                             function()
                                                 require("jdtls.dap").test_class({
-                                                    config_overrides = type(opts.test) ~= "boolean" and opts.test.config_overrides or nil,
+                                                    config_overrides = type(opts.test) ~= "boolean"
+                                                            and opts.test.config_overrides
+                                                        or nil,
                                                 })
                                             end,
                                             desc = "Run All Test",
@@ -259,7 +266,9 @@ return {
                                             "<leader>tr",
                                             function()
                                                 require("jdtls.dap").test_nearest_method({
-                                                    config_overrides = type(opts.test) ~= "boolean" and opts.test.config_overrides or nil,
+                                                    config_overrides = type(opts.test) ~= "boolean"
+                                                            and opts.test.config_overrides
+                                                        or nil,
                                                 })
                                             end,
                                             desc = "Run Nearest Test",

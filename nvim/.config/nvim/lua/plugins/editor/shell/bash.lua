@@ -6,8 +6,8 @@ return {
                 bashls = {
                     filetypes = { "sh", "zsh" },
                 },
-            }
-        }
+            },
+        },
     },
     -- Add debugger
     {
@@ -17,14 +17,13 @@ return {
         opts = function()
             local dap = require("dap")
 
-            local mason = require('mason-registry')
-            local bash_debug_adapter_path =
-                mason.get_package('bash-debug-adapter'):get_install_path()
+            local mason = require("mason-registry")
+            local bash_debug_adapter_path = mason.get_package("bash-debug-adapter"):get_install_path()
             local bashdb_dir = bash_debug_adapter_path .. "/extension/bashdb_dir"
 
             dap.adapters.sh = {
                 type = "executable",
-                command = bash_debug_adapter_path .. "/bash-debug-adapter"
+                command = bash_debug_adapter_path .. "/bash-debug-adapter",
             }
             dap.configurations.sh = {
                 {
@@ -43,7 +42,7 @@ return {
                     args = {},
                     -- showDebugOutput = true,
                     -- trace = true,
-                }
+                },
             }
         end,
     },

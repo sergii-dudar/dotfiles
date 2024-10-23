@@ -5,7 +5,7 @@
 local map = LazyVim.safe_keymap_set
 
 --Clear highlights on search when pressing <Esc> in normal mode
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- Select all
 vim.keymap.set("n", "<C-a>", "gg<S-v>G")
@@ -21,24 +21,23 @@ vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>wa<cr><esc>", { desc = "Sa
 -- Exit Vim's terminal mode
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
-vim.api.nvim_set_keymap('n', 'J', '6jzz', { noremap = true, silent = true }) -- Mapping J to 6jzz
-vim.api.nvim_set_keymap('n', 'K', '6kzz', { noremap = true, silent = true }) -- Mapping K to 6kzz
-vim.api.nvim_set_keymap('n', '<leader>J', ':join<CR>', { noremap = true, silent = true, desc = "Join with next line" })
+vim.api.nvim_set_keymap("n", "J", "6jzz", { noremap = true, silent = true }) -- Mapping J to 6jzz
+vim.api.nvim_set_keymap("n", "K", "6kzz", { noremap = true, silent = true }) -- Mapping K to 6kzz
+vim.api.nvim_set_keymap("n", "<leader>J", ":join<CR>", { noremap = true, silent = true, desc = "Join with next line" })
 --vim.api.nvim_set_keymap('n', '<leader>J', ':<C-u>join!<CR>', { noremap = true, silent = true })
 --vim.api.nvim_set_keymap('n', '<Leader>J', 'J:s/\\s\\+//<CR>', { noremap = true, silent = true })
 
-
 --vertically navigation with keep cursor on center
-vim.api.nvim_set_keymap('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true }) -- Mapping <C-u> to <C-u>zz
-vim.api.nvim_set_keymap('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true }) -- Mapping <C-d> to <C-d>zz
+vim.api.nvim_set_keymap("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true }) -- Mapping <C-u> to <C-u>zz
+vim.api.nvim_set_keymap("n", "<C-d>", "<C-d>zz", { noremap = true, silent = true }) -- Mapping <C-d> to <C-d>zz
 
 --find
-vim.api.nvim_set_keymap('n', 'n', 'nzz', { noremap = true, silent = true }) -- Mapping n to nzz
-vim.api.nvim_set_keymap('n', 'N', 'Nzz', { noremap = true, silent = true }) -- Mapping N to Nzz
+vim.api.nvim_set_keymap("n", "n", "nzz", { noremap = true, silent = true }) -- Mapping n to nzz
+vim.api.nvim_set_keymap("n", "N", "Nzz", { noremap = true, silent = true }) -- Mapping N to Nzz
 
 --vim.keymap.set('n', '<leader>a', 'ggVG')
-vim.api.nvim_set_keymap('n', '<leader>\\', ':vsplit | wincmd l<CR>', { noremap = true, silent = true, desc = "VSplit" })
-vim.api.nvim_set_keymap('n', '<leader>|', ':split | wincmd j<CR>', { noremap = true, silent = true, desc = "HSplit" })
+vim.api.nvim_set_keymap("n", "<leader>\\", ":vsplit | wincmd l<CR>", { noremap = true, silent = true, desc = "VSplit" })
+vim.api.nvim_set_keymap("n", "<leader>|", ":split | wincmd j<CR>", { noremap = true, silent = true, desc = "HSplit" })
 
 -- standard vim quickfix (ad default replaced to trouble.nvim)
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
@@ -58,9 +57,12 @@ map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 
 -- Function to create a visual mode substitution with prompt on every replace
 -- help to replace intellij - replace qualified name with import
-vim.api.nvim_set_keymap('v', '<leader>r', '"hy:%s/<C-r>h//gc<Left><Left><Left>',
-    { noremap = true, silent = false, desc = "Replace with prompt" })
-
+vim.api.nvim_set_keymap(
+    "v",
+    "<leader>r",
+    '"hy:%s/<C-r>h//gc<Left><Left><Left>',
+    { noremap = true, silent = false, desc = "Replace with prompt" }
+)
 
 -- Example usage for jdtls
 vim.opt.path:append("**")
@@ -96,17 +98,16 @@ map("n", "<leader>fs", function()
 
     require("telescope.builtin").lsp_dynamic_workspace_symbols({
         symbols = LazyVim.config.get_kind_filter(),
-        default_text = fileName
+        default_text = fileName,
     })
 end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
 -- debug purposes
 _G.log_table = function(table)
-    require("utils.common-util").log_table(table);
+    require("utils.common-util").log_table(table)
 end
 
 --local buff_utils = require("utils.buffer-util")
 --_G.get_goto_preview_buffers = function()
 --    log_table(buff_utils.get_active_ls_buffers())
 --end
-

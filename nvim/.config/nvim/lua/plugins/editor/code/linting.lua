@@ -7,7 +7,7 @@ return {
                 --java = { "checkstyle" },
                 kotlin = { "ktlint" },
                 --sh = { "shellcheck" },
-                python = { "ruff", },
+                python = { "ruff" },
                 --lua = { "luacheck" },
                 -- Use the "*" filetype to run linters on all filetypes.
                 -- ['*'] = { 'global linter' },
@@ -29,5 +29,5 @@ return {
                 -- },
             },
         },
-    }
+    },
 }

@@ -3,29 +3,29 @@ local clients_lsp = function()
 
     local clients = vim.lsp.buf_get_clients(bufnr)
     if next(clients) == nil then
-        return ''
+        return ""
     end
 
     local c = {}
     for _, client in pairs(clients) do
         table.insert(c, client.name)
     end
-    return '\u{f085} ' .. table.concat(c, ' | \u{f085} ')
+    return "\u{f085} " .. table.concat(c, " | \u{f085} ")
 end
 
 local icons = LazyVim.config.icons
 return {
-    'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {
         options = {
             -- theme = "catppuccin"
             -- ... the rest of your lualine config
             --codedark,ayu_dark,iceberg_dark,nightfly,palenight,
             --onedark, pywal
-            theme = 'iceberg_dark',
-            section_separators = '',
-            component_separators = ' '
+            theme = "iceberg_dark",
+            section_separators = "",
+            component_separators = " ",
         },
         sections = {
             lualine_c = {
@@ -45,10 +45,10 @@ return {
             lualine_y = {
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
                 { "location", padding = { left = 0, right = 1 } },
-                { clients_lsp, color = { fg = 'black', bg = '#676868', gui = 'bold' } },
+                { clients_lsp, color = { fg = "black", bg = "#676868", gui = "bold" } },
                 --{ "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
-            }
-        }
+            },
+        },
         --sections = {
         --    lualine_a = { 'mode' },
         --    --lualine_b = { 'branch', 'diff', 'diagnostics' },
@@ -70,5 +70,5 @@ return {
         --    lualine_y = {},
         --    lualine_z = {}
         --},
-    }
+    },
 }
