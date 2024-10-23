@@ -9,6 +9,7 @@ return {
       mappings = {
         --    e = 'none'
         ["/"] = "noop",
+        ["<esc>"] = "noop",
       },
       --position = 'float',
     },
