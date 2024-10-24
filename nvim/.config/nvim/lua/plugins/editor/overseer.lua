@@ -35,7 +35,7 @@ return {
                 }
             end,
             builder = function(params)
-                local maven = require("utils.maven")
+                local maven = require("utils.java.maven-util")
                 local settings = maven.get_maven_settings()
                 local file = vim.fn.expand("%")
                 local cmd = { "mvn" }
@@ -56,7 +56,7 @@ return {
                 filetype = { "java", "xml" },
                 callback = function(param)
                     if param.filetype == "xml" then
-                        local maven = require("utils.maven")
+                        local maven = require("utils.java.maven-util")
                         return maven.is_pom_file(vim.fn.expand("%"))
                     end
                     return true

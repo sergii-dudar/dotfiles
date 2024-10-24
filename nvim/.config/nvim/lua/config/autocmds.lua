@@ -88,7 +88,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
             return
         end
 
-        vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar'.eval()%}"
+        vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar-util'.eval()%}"
     end,
     group = vim.api.nvim_create_augroup("WinBar", {}),
 })

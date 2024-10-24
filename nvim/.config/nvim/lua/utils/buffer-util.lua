@@ -6,7 +6,7 @@ local work_buffer_types = {
 }
 
 -- get loaded buffers, same as by `:ls` command or telescope buffers
-function M.get_active_ls_buffers()
+M.get_active_ls_buffers = function()
     local buffers = vim.api.nvim_list_bufs()
     local active_buffers = {}
     for _, buf in ipairs(buffers) do

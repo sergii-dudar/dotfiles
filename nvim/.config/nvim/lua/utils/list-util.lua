@@ -1,6 +1,6 @@
 local M = {}
 
-function M.find(tbl, finder)
+M.find = function(tbl, finder)
     for _, v in ipairs(tbl) do
         if finder(v) then
             return v
@@ -10,7 +10,7 @@ function M.find(tbl, finder)
     return nil
 end
 
-function M.find_by(tbl, key, value)
+M.find_by = function(tbl, key, value)
     for _, subtable in ipairs(tbl) do
         if subtable[key] == value then
             return subtable

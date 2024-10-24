@@ -251,7 +251,7 @@ return {
                 },
             }
 
-            local list_util = require("utils.list")
+            local list_util = require("utils.list-util")
 
             for i, source in ipairs(opts.sources) do
                 local custom_source = list_util.find_by(custom_sources, "name", source.name)

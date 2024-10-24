@@ -1,5 +1,5 @@
 local home = os.getenv("HOME")
-local java_util = require("utils.java-util")
+local java_util = require("utils.java.java-util")
 local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
@@ -55,7 +55,7 @@ return {
             {
                 "<leader>ci",
                 function()
-                    require("utils.java-import-util").import_class_and_replace()
+                    require("utils.java.java-import-util").import_class_and_replace()
                 end,
                 desc = "[I]mport class package and apply simple name",
             },
