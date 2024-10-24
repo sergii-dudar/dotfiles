@@ -104,7 +104,7 @@ EOF
     fi
 
     # egrep -ir "($1)" .
-    rg -i -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    rg -i -C 5 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findtc() {
