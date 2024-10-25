@@ -83,6 +83,13 @@ return {
             require("simaxme-java").setup()
         end,
     },
+    -- Fully customizable previewer for LSP code actions.
+    --{
+    --    "aznhe21/actions-preview.nvim",
+    --    config = function()
+    --        vim.keymap.set({ "v", "n" }, "gf", require("actions-preview").code_actions)
+    --    end,
+    --}
     --{
     --    "elmcgill/springboot-nvim",
     --    enabled = false,
