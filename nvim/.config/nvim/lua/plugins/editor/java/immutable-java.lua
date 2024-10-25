@@ -251,7 +251,8 @@ return {
                                         mode = "n",
                                         buffer = args.buf,
                                         { "<leader>t", group = "test" },
-                                        {
+                                        -- neotest-java
+                                        --[[{
                                             "<leader>tt",
                                             function()
                                                 require("jdtls.dap").test_class({
@@ -273,7 +274,7 @@ return {
                                             end,
                                             desc = "Run Nearest Test",
                                         },
-                                        { "<leader>tT", require("jdtls.dap").pick_test, desc = "Run Test" },
+                                        { "<leader>tT", require("jdtls.dap").pick_test, desc = "Run Test" },]]
                                     },
                                 })
                             end
