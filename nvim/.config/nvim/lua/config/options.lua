@@ -84,10 +84,11 @@ vim.api.nvim_create_autocmd("UiEnter", {
         vim.cmd("Neotree filesystem reveal left")
 
         -- open load buffer if opened in tab, or skip
-        pcall(vim.cmd, "wincmd l")
-        vim.schedule(function()
-            pcall(vim.cmd, "e")
-        end)
+        if pcall(vim.cmd, "wincmd l") then
+            vim.schedule(function()
+                pcall(vim.cmd, "e")
+            end)
+        end
         -- end
     end,
 })
