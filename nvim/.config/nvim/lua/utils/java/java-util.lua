@@ -58,6 +58,7 @@ M.install_pkgs = function(packages)
 end
 
 M.java21_dir = java21_dir
+M.java21_bin = java21_bin
 M.java_google_style_file = java_google_style_file
 M.get_spring_boot_tools_path_ls_path = function()
     --M.install_pkgs({{ name = 'spring-boot-tools', version = '1.55.1' }})
@@ -77,7 +78,7 @@ end
 
 M.jdtls_settings = {
     java = {
-        home = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
+        home = java21_dir,
         project = {
             importHint = true,
         },
@@ -96,7 +97,7 @@ M.jdtls_settings = {
                 -- },
                 {
                     name = "JavaSE-21",
-                    path = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle/"),
+                    path = java21_dir,
                 },
             },
             -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change

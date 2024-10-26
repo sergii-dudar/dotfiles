@@ -16,7 +16,7 @@ sudo pacman -S ffmpegthumbnailer ffmpeg
 sudo pacman -S usbutils eog p7zip zip, gum # 7-zip
 
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
-sudo pacman -S yazi unarchiver jq poppler zoxide
+sudo pacman -S yazi unarchiver jq poppler zoxide bc
 
 # curl -sS https://starship.rs/install.sh | sh
 

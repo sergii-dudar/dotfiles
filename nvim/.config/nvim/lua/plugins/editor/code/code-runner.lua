@@ -1,3 +1,5 @@
+local java_util = require("utils.java.java-util")
+
 return {
     "CRAG666/code_runner.nvim",
     config = function()
@@ -18,11 +20,10 @@ return {
                 java = {
                     --"java -classpath $(mvn -o -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout -DincludeScope=runtime):target/classes",
                     --"$(grep '^package' $dir/$fileName | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
-
                     --"~/.jdks/corretto-21.0.4/bin/java",
-                    --"java",
                     --"~/.sdkman/candidates/java/21.*-amzn/bin/java",
-                    "~/.sdkman/candidates/java/21.*-oracle/bin/java",
+                    --"~/.sdkman/candidates/java/21.*-oracle/bin/java",
+                    java_util.java21_bin,
                     "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)",
                     "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
 
