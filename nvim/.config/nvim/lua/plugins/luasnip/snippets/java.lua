@@ -1,37 +1,24 @@
-local ls = require("luasnip")
-local s = ls.snippet
-local sn = ls.snippet_node
-local isn = ls.indent_snippet_node
-local t = ls.text_node
-local i = ls.insert_node
-local f = ls.function_node
-local c = ls.choice_node
-local d = ls.dynamic_node
-local r = ls.restore_node
-local events = require("luasnip.util.events")
-local ai = require("luasnip.nodes.absolute_indexer")
-local extras = require("luasnip.extras")
-local l = extras.lambda
-local rep = extras.rep
-local p = extras.partial
-local m = extras.match
-local n = extras.nonempty
-local dl = extras.dynamic_lambda
-local fmt = require("luasnip.extras.fmt").fmt
-local fmta = require("luasnip.extras.fmt").fmta
-local conds = require("luasnip.extras.expand_conditions")
-local postfix = require("luasnip.extras.postfix").postfix
-local types = require("luasnip.util.types")
-local parse = require("luasnip.util.parser").parse_snippet
-local ms = ls.multi_snippet
-local k = require("luasnip.nodes.key_indexer").new_key
+local common = require('snips.common')
 
 local M = {}
 
-M.setup = function()
-    ls.add_snippets('java', {
-        s('maphello', t('hello test wolrd!')),
-    })
+function M.setup()
+	local ls = require('luasnip')
+	local java = require('snips.java')
+
+	local s = ls.s
+
+	ls.add_snippets('java', {
+		s('o', java.primitives.stdout()),
+		s('c', java.primitives.class()),
+		s('main', java.primitives.main()),
+		s('mainc', java.primitives.main_class()), -- generates a class with a main
+		s('f', java.primitives.method()), -- generates a class with a main
+		s('for', java.primitives['for']()), -- generates a class with a main
+		s('r', common.primitives.returns()),
+
+		s('v', java.choices.variable()),
+	})
 end
 
 return M

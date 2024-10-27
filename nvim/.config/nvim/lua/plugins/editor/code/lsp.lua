@@ -282,7 +282,7 @@ return {
                 end
             end
 
-            vim.notify(vim.inspect(opts.sources))
+            --vim.notify(vim.inspect(opts.sources))
 
             --log_table(opts.sources)
 
