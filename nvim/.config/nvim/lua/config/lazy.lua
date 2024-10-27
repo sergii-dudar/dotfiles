@@ -41,7 +41,8 @@ require("lazy").setup({
         --{ import = "lazyvim.plugins.extras.editor.refactoring" },
         --{ import = "lazyvim.plugins.extras.vscode" },
 
-        --{ import = "lazyvim.plugins.extras.coding.luasnip" }, --for now use nvim-snippets
+        --comment it if want to use `nvim-snippets`
+        { import = "lazyvim.plugins.extras.coding.luasnip" },
 
         -- lang
         { import = "lazyvim.plugins.extras.lang.markdown" },
