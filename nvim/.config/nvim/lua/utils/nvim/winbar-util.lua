@@ -28,7 +28,8 @@ M.eval = function()
     local has_modified = vim.api.nvim_eval_statusline("%m", {}).str == "[+]"
     local modified_status = has_modified and "  " or ""
 
-    file_path = " " .. file_path:gsub("/", " ➤ ")
+    --file_path = " " .. file_path:gsub("/", " ➤ ")
+    file_path = " " .. file_path:gsub("/", ".")
 
     --vim.notify(file_path)
     return "%#WinBarSeparator#"

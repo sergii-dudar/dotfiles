@@ -12,6 +12,11 @@ local clients_lsp = function()
     end
     return "\u{f085} " .. table.concat(c, " | \u{f085} ")
 end
+local get_filename = function()
+    -- print(vim.fn.expand("%:p"):match("^.+/(.+)$"))
+    local path = vim.api.nvim_eval_statusline('%f', {}).str
+    return path:match("^.+/(.+)$")
+end
 
 local icons = LazyVim.config.icons
 return {
@@ -40,7 +45,8 @@ return {
                     },
                 },
                 { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-                { LazyVim.lualine.pretty_path({ length = 0 }) },
+                --{ LazyVim.lualine.pretty_path({ length = 0 }) },
+                { get_filename, color = { gui = "bold" } },
             },
             lualine_y = {
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
