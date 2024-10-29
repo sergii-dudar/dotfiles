@@ -45,8 +45,8 @@ return {
                     },
                 },
                 { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-                --{ LazyVim.lualine.pretty_path({ length = 0 }) },
-                { get_filename, color = { gui = "bold" } },
+                { LazyVim.lualine.pretty_path({ length = 0 }) },
+                --{ get_filename, color = { gui = "bold" } },
             },
             lualine_y = {
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
