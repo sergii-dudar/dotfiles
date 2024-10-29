@@ -13,7 +13,8 @@ k9s:
     reactive: false
     noIcons: false
     defaultsToFullScreen: false
-    skin: stock
+    #skin: stock
+    skin: skin-omerxx
     #skin: catppuccin-mocha
     #skin: catppuccin-macchiato
     #skin: catppuccin-frappe

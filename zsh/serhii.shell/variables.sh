@@ -14,7 +14,7 @@ if isMacOs; then
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
 
-    # tell specific tools where need seek config (lazygit etc)
+    # tell specific tools where need seek config (lazygit, aerospace etc)
     export XDG_CONFIG_HOME="$HOME/.config"
 else
     # export PATH=$PATH:/home/serhii/homebrew/bin/
