@@ -54,11 +54,11 @@ on-focus-changed = "move-mouse window-lazy-center"
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
 inner.horizontal = 5
-inner.vertical =   5
-outer.left =       5
-outer.bottom =     5
-outer.top =        5
-outer.right =      5
+inner.vertical = 5
+outer.left = 5
+outer.bottom = 5
+outer.top = 5
+outer.right = 5
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -124,9 +124,9 @@ alt-shift-1 = 'move-node-to-workspace 1'
 alt-shift-2 = 'move-node-to-workspace 2'
 alt-shift-3 = 'move-node-to-workspace 3'
 alt-shift-4 = 'move-node-to-workspace 4'
-alt-shift-5 = 'move-node-to-workspace 5'
-alt-shift-6 = 'move-node-to-workspace 6'
-alt-shift-7 = 'move-node-to-workspace 7'
+alt-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
+alt-shift-6 = ['move-node-to-workspace 6', 'workspace 7']
+alt-shift-7 = ['move-node-to-workspace 7', 'workspace 7']
 #alt-shift-8 = 'move-node-to-workspace 8'
 alt-shift-9 = 'move-node-to-workspace 9'
 #alt-shift-b = 'move-node-to-workspace B'
@@ -137,12 +137,14 @@ alt-shift-9 = 'move-node-to-workspace 9'
 #alt-shift-t = 'move-node-to-workspace T'
 #alt-shift-v = 'move-node-to-workspace V'
 
-alt-shift-f = 'fullscreen'
-
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
 alt-tab = 'workspace-back-and-forth'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+alt-n = 'workspace next'
+alt-p = 'workspace prev'
+alt-shift-f = 'fullscreen'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
@@ -220,11 +222,11 @@ run = "move-node-to-workspace 9"
 
 # Force float all the windows (or windows of a particular app)
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi'
+if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna'
+if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
 run = 'layout floating'
 
 [[on-window-detected]]
