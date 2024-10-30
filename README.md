@@ -32,7 +32,7 @@ Why `Kitty`?
 
 - `Ghosty` - I'm waiting to a public beta to try it out, by reviews and information I have, can replace my preferred `kitty` choice :)
 
-- `Kitty` - [kitty](kitty) for me at the moment, it's the best terminal to use daily with all features I need. great performance, GPU rendering, great image protocol implementation (that `Ghosty` also using), great and accurate color rendering and so on. I have only one point to `kitty` it's monospace font only, and I don't very like related issue with it - smalled font icons, but it's not critical for me with comparison to another terminals I had used before.
+- `Kitty` - [kitty](kitty) for me at the moment, it's the best terminal to use daily with all features I need. great performance, GPU rendering, great image protocol implementation (that `Ghosty` also using), great and accurate color rendering and so on. I have only one point to `kitty` it's monospace font only, and I don't very like related issue with it - smaller than regular font icons, but it's not critical for me with comparison to another terminals I had used before.
 
 ### Random screenshots (MACOS, AEROSPACE, KITTY, TMUX):
 
