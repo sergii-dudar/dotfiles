@@ -1,9 +1,16 @@
 -- Pull in the wezterm API
-local wezterm = require 'wezterm'
+local wezterm = require('wezterm')
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
+wezterm.log_info("reloading")
+
+require("mouse").setup(config)
+require("keys").setup(config)
+require("links").setup(config)
+
 local act = wezterm.action
+local home = os.getenv("HOME")
 
 --print('hello')
 
@@ -28,29 +35,30 @@ local act = wezterm.action
 -- 'ChallengerDeep',
 -- 'Catppuccin Mocha'
 
-config.color_scheme = 'Elementary (Gogh)'
+--config.color_scheme = 'Elementary (Gogh)'
+config.color_scheme = 'Andromeda'
 
 --wezterm.gui.get_appearance()
-config.font = wezterm.font 'Hack Nerd Font'
+config.font = wezterm.font 'CaskaydiaCove Nerd Font' --'Hack Nerd Font'
+config.harfbuzz_features = { 'calt=0' }
 
-config.font_size = 18.0
+config.font_size = 21.0
 config.freetype_load_target = 'Light'
 config.freetype_render_target = 'HorizontalLcd'
 
-config.initial_cols = 120
-config.initial_rows = 40
-
+config.initial_cols = 160
+config.initial_rows = 54
+config.webgpu_power_preference = "HighPerformance"
 config.enable_tab_bar = false
+config.window_close_confirmation = 'NeverPrompt'
 
 -- Remove all padding
 config.window_padding = { left = 0, right = 0, top = 0, bottom = 0 }
 
-config.keys = {
-    { key = 'F11', action = wezterm.action.ToggleFullScreen },
-}
-
 -- Remove the title bar from the window
 config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
+--config.window_background_opacity = 0.75
+--config.macos_window_background_blur = 10
 
 -- Use zsh by default
 config.default_prog = { '/usr/bin/zsh' }
@@ -62,7 +70,7 @@ local dimmer = { brightness = 0.2 }
 config.background = {
     {
         source = {
-            File = '~/wallpapers/png/a_cat_walking_on_a_hill.png',
+            File = home..'/wallpapers/png/a_cat_walking_on_a_hill.png',
         },
         -- The texture tiles vertically but not horizontally.
         -- When we repeat it, mirror it so that it appears "more seamless".

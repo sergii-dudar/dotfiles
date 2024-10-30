@@ -1,4 +1,4 @@
-## Collection of my personal dotfiles I use everywhere
+## My dotfiles
 
 All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/)
 
@@ -8,11 +8,11 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 It's also required to have wallpaper in home directory `~/wallpapers`
 
 My current tool preferences:
- - Terminal: [kitty](kitty) + [tmux](tmux) + [nvim](nvim)
+ - Terminal: [kitty](kitty)|[wezterm](wezterm) + [tmux](tmux) + [nvim](nvim)
  - SHELL: [zsh](zsh) + [ohmyz](https://ohmyz.sh/) + [starship](https://starship.rs/) + [fastfetch](https://github.com/fastfetch-cli/fastfetch) and so on
  - Editor: [nvim](nvim)
  - Tmux extensions: [tmux-powerline](tmux/.tmux/plugins/tmux-powerline) (customized), [sesh](https://github.com/joshmedeski/sesh) (as sessions manager + own customizations based on it and tmux api)   
- - Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
+ - Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [FiraCode](https://www.programmingfonts.org/#firacode), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
  - File Manager: [yazi](yazi) (used [ranger](ranger) in past)
  - OS: linux (arch, ubuntu), macos
  - Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [awesome](https://awesomewm.org/) / [qtile](https://qtile.org/), planning to try [hyprland](https://github.com/hyprwm/Hyprland)
@@ -21,18 +21,6 @@ My current tool preferences:
  - Keyboard programming mapping: macos - [karabiner](karabiner), linux - [keyd](nonhome/keyd)
  - Theme: [catppuccin-mocha](https://github.com/catppuccin/nvim)
  - Intellij: [.ideavimrc](idea/.ideavimrc), my [customized catppuccin-mocha](idea/Catppuccin_Mocha.icls) of [catppuccin theme](https://github.com/catppuccin/jetbrains) that I'm very used to in neovim
-
-Why `Kitty`?
-
-- `Alacritty` - In the past I have used [alacritty](alacritty) and it's awesome terminal emulator, and it's very fast, but no good support of image rendering that some time quite important to me, also have issues with installing, especially on `macos` (my working OS).
-
-- `WezTerm` - [wezterm](wezterm) great and fast terminal emulator, and I had tried to use it, but have found image support not so good, and present some issues with proper color rendering\matching, especially dark colors, maybe it's OS related, maybe it's already fixed, but I have found, that in `kitty` it's implemented better for my point of view.
-
-- `Iterm2` - In comparison with another terminals, it's quite slow for me, especially when working with neovim, not using GPU rendering that sometimes it's quite noticeable. Available only on macos, but I want to have configuration that working the same on both `macos` and `linux`.
-
-- `Ghosty` - I'm waiting to a public beta to try it out, by reviews and information I have, can replace my preferred `kitty` choice :)
-
-- `Kitty` - [kitty](kitty) for me at the moment, it's the best terminal to use daily with all features I need. great performance, GPU rendering, great image protocol implementation (that `Ghosty` also using), great and accurate color rendering and so on. I have only one point to `kitty` it's monospace font only, and I don't very like related issue with it - smaller than regular font icons, but it's not critical for me with comparison to another terminals I had used before.
 
 ### Random screenshots (MACOS, AEROSPACE, KITTY, TMUX):
 
