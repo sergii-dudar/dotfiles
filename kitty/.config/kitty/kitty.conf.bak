@@ -5,8 +5,7 @@
 #: kitty has very powerful font management. You can configure
 #: individual font faces and even specify special fonts for particular
 #: characters.
-
-font_family Hack Nerd Font
+# font_family Hack Nerd Font
 # bold_font        auto
 # italic_font      auto
 # bold_italic_font auto
@@ -24,7 +23,7 @@ font_family Hack Nerd Font
 #:     italic_font      Operator Mono Book Italic
 #:     bold_italic_font Operator Mono Medium Italic
 
-font_size 18
+font_size 21
 
 #: Font size (in pts).
 
@@ -886,7 +885,18 @@ window_padding_width 0
 #: Fade the text in inactive windows by the specified amount (a number
 #: between zero and one, with zero being fully faded).
 
+# hide_window_decorations
 # hide_window_decorations no
+#hide_window_decorations yes
+#hide_window_decorations titlebar-and-corners
+
+hide_window_decorations titlebar-only
+
+# top, right, bottom and left.
+#window_margin_width 10
+#window_margin_width 0 0 0 5
+#window_padding_width 0
+#placement_strategy center
 
 #: Hide the window decorations (title-bar and window borders) with
 #: yes. On macOS, titlebar-only and titlebar-and-corners can be used
@@ -1494,6 +1504,7 @@ background_tint 0.92
 #: line arguments specifying a command to run, this option is ignored.
 
 # clipboard_control write-clipboard write-primary read-clipboard-ask read-primary-ask
+# clipboard_control write-primary write-clipboard no-append
 
 #: Allow programs running in kitty to read and write from the
 #: clipboard. You can control exactly which actions are allowed. The
@@ -2440,6 +2451,7 @@ map ctrl+backspace change_font_size all 0
 #: Clear up to cursor line
 
 # map cmd+k clear_terminal to_cursor active
+map cmd+k no_op # remove as it's using in neovim to [Move Up]
 
 #: Reload kitty.conf
 
@@ -2530,3 +2542,12 @@ map kitty_mod+f5 load_config_file
 # Alabaster Dark
 include current-theme.conf
 # END_KITTY_THEME
+
+# initial_window_title "Your Default Window Title"
+
+# BEGIN_KITTY_FONTS
+font_family      family="Hack Nerd Font Mono"
+bold_font        auto
+italic_font      auto
+bold_italic_font auto
+# END_KITTY_FONTS

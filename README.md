@@ -12,7 +12,7 @@ My current tool preferences:
  - SHELL: [zsh](zsh) + [ohmyz](https://ohmyz.sh/) + [starship](https://starship.rs/) + [fastfetch](https://github.com/fastfetch-cli/fastfetch) and so on
  - Editor: [nvim](nvim)
  - Tmux extensions: [tmux-powerline](tmux/.tmux/plugins/tmux-powerline) (customized), [sesh](https://github.com/joshmedeski/sesh) (as sessions manager + own customizations based on it and tmux api)   
- - Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
+ - Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
  - File Manager: [yazi](yazi) (used [ranger](ranger) in past)
  - OS: linux (arch, ubuntu), macos
  - Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [awesome](https://awesomewm.org/) / [qtile](https://qtile.org/), planning to try [hyprland](https://github.com/hyprwm/Hyprland)
@@ -51,7 +51,7 @@ Why `Kitty`?
 ### Intellij
 ![intellij.png](images/intellij.png)
 
-#### In many places of my dotfiles I have been inspired to learn so many new cool things (and new programming languages), mostly by next cool guys:
+#### In many places of my dotfiles I have been inspired to learn so many new cool things (even new programming languages), mostly because of next cool guys:
 - [typecraft_dev](https://www.youtube.com/@typecraft_dev)
 - [teej_dv](https://www.youtube.com/@teej_dv)
 - [ThePrimeagen](https://www.youtube.com/@ThePrimeagen)
