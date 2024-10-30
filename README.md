@@ -1,4 +1,4 @@
-## Collection of all dotfiles I use
+## Collection of my personal dotfiles I use everywhere
 
 All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/)
 
