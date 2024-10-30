@@ -17,10 +17,10 @@ My current tool preferences:
  - OS: linux (arch, ubuntu), macos
  - Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [awesome](https://awesomewm.org/) / [qtile](https://qtile.org/), planning to try [hyprland](https://github.com/hyprwm/Hyprland)
  - Display server: [X11](https://www.x.org/wiki/) (Don't see that [Wayland](https://wayland.freedesktop.org/) is well-supported by tools I prefer for now)
- - Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim) with focus on effective working with many programming languages I'm working (java, gradle, maven, yaml, bash, lua, python, js/ts etc). My nvim configuration still evolving and I have many commented parts, but finished on ~85-90%, and I'm quite effectively using it in my daily workflow as `s/l java engineear`. Yes I still have to use intellij to do many specific tasks that have grate support in intellij (working with RDBMD, generation, previvion openapi etc), by using [.ideavimrc](idea/.ideavimrc) but in 80% cases I'm using neovim for all, especially for codding.
+ - Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim) with focus on effective working with many programming languages I'm working (java, gradle, maven, yaml, bash, lua, python, js/ts etc). My nvim configuration still evolving and I have many commented parts, but finished on ~85-90%, and I'm quite effectively using it in my daily workflow as `s/l java engineear`. Yes I still have to use intellij to do many specific tasks that have better support in intellij or no alternative in neovim (working with RDBMD (yes vim-dadbod is cool but not for professional using by my point of view for now), generation, previewing openapi etc), but in 80% cases I'm using neovim for all, especially for codding.
  - Keyboard programming mapping: macos - [karabiner](karabiner), linux - [keyd](nonhome/keyd)
  - Theme: [catppuccin-mocha](https://github.com/catppuccin/nvim)
- - Intellij: [.ideavimrc](idea/.ideavimrc), customized [catppuccin-mocha](idea/Catppuccin_Mocha.icls) theme
+ - Intellij: [.ideavimrc](idea/.ideavimrc), my [customized catppuccin-mocha](idea/Catppuccin_Mocha.icls) of [catppuccin theme](https://github.com/catppuccin/jetbrains) that I'm very used to in neovim
 
 Why `Kitty`?
 
