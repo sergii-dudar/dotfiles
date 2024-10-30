@@ -236,6 +236,10 @@ if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytyp
 run = 'layout floating'
 
 [[on-window-detected]]
+if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
+run = 'layout floating'
+
+[[on-window-detected]]
 if.app-id = 'com.apple.iCal'
 run = 'layout floating'
 

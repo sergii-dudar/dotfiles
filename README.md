@@ -51,4 +51,15 @@ Why `Kitty`?
 ### Intellij
 ![intellij.png](images/intellij.png)
 
+#### In many places of my dotfiles I have been inspired to learn so many new cool things (and new programming languages), mostly by next cool guys:
+- [typecraft_dev](https://www.youtube.com/@typecraft_dev)
+- [teej_dv](https://www.youtube.com/@teej_dv)
+- [ThePrimeagen](https://www.youtube.com/@ThePrimeagen)
+- [joseanmartinez](https://www.youtube.com/@joseanmartinez)
+- [devopstoolbox](https://www.youtube.com/@devopstoolbox)
+- [ascourter](https://www.youtube.com/@ascourter)
+- [folke](https://github.com/folke)
+- [s1n7ax](https://github.com/s1n7ax)
+- [lukesmith](https://lukesmith.xyz/)
+- [DistroTube](https://www.youtube.com/@DistroTube)
 
