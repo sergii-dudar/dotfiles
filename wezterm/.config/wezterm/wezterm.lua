@@ -8,6 +8,7 @@ wezterm.log_info("reloading")
 require("mouse").setup(config)
 require("keys").setup(config)
 require("links").setup(config)
+local util = require("util")
 
 local act = wezterm.action
 local home = os.getenv("HOME")
@@ -56,12 +57,13 @@ config.window_close_confirmation = 'NeverPrompt'
 config.window_padding = { left = 0, right = 0, top = 0, bottom = 0 }
 
 -- Remove the title bar from the window
-config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
+--config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
+config.window_decorations = "RESIZE"
 --config.window_background_opacity = 0.75
 --config.macos_window_background_blur = 10
 
 -- Use zsh by default
-config.default_prog = { '/usr/bin/zsh' }
+--config.default_prog = { '/bin/zsh' } -- util.isMac() and { '/bin/zsh' } or { '/usr/bin/zsh' }
 
 -- Don't hide cursor when typing
 config.hide_mouse_cursor_when_typing = false
