@@ -15,7 +15,6 @@ config.initial_cols = 160
 config.initial_rows = 54
 config.webgpu_power_preference = "HighPerformance"
 config.enable_tab_bar = false
-config.window_close_confirmation = 'NeverPrompt'
 
 -- Remove all padding
 config.window_padding = { left = 0, right = 0, top = 0, bottom = 0 }
@@ -33,8 +32,13 @@ config.window_decorations = "RESIZE"
 -- Don't hide cursor when typing
 config.hide_mouse_cursor_when_typing = false
 
+-- disable cursor blinking
+config.cursor_blink_rate = 0
+
 -- enable kitty keyboard protocol to support recognizing external keys, like `CMD` on macos
-config.enable_kitty_keyboard = true
-config.enable_csi_u_key_encoding = false
+--config.enable_kitty_keyboard = true
+--config.enable_csi_u_key_encoding = false
+
+config.window_close_confirmation = 'NeverPrompt'
 
 return config

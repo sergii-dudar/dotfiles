@@ -13,7 +13,7 @@ function M.setup(config)
         -- Clipboard
         { mods = 'CTRL', key = "c", action = act.CopyTo("Clipboard") },
         { mods = 'CTRL', key = "v", action = act.PasteFrom("Clipboard") },
-        { mods = 'CMD', key = 'k', action = act.DisableDefaultAssignment },
+        --{ mods = 'CMD', key = 'k', action = act.DisableDefaultAssignment },
 
         --[[{ key = 'F11', action = wezterm.action.ToggleFullScreen },
         {

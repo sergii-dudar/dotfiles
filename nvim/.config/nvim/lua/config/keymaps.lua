@@ -18,27 +18,17 @@ vim.keymap.set("n", "<leader>qQ", "<cmd>qa<cr>", { desc = "Quit All" })
 -- vim.api.nvim_set_keymap("n", "", "<C-o>", { noremap = true, silent = true, desc = "Go To Previour Position" })
 -- vim.api.nvim_set_keymap("n", "", "<C-i>", { noremap = true, silent = true, desc = "Go To Next Position" })
 
-if vim.fn.has("mac") == 1 then
+--[[if vim.fn.has("mac") == 1 then
     -- Move Lines (default lazyvim is alt <A-...> for linux\windows)
-    --[[
-        map("n", "<M-j>", "<cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
-        map("n", "<M-k>", "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = "Move Up" })
-        map("i", "<M-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "Move Down" })
-        map("i", "<M-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move Up" })
-        map("v", "<M-j>", ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
-        map("v", "<M-k>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
-    ]]
-
-    -- changed from `option` to `command` as `option` using by aerospace WM
-    map("n", "<D-j>", "<cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
-    map("n", "<D-k>", "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = "Move Up" })
-    map("i", "<D-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "Move Down" })
-    map("i", "<D-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move Up" })
-    map("v", "<D-j>", ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
-    map("v", "<D-k>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
+    map("n", "<M-j>", "<cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
+    map("n", "<M-k>", "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = "Move Up" })
+    map("i", "<M-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "Move Down" })
+    map("i", "<M-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move Up" })
+    map("v", "<M-j>", ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
+    map("v", "<M-k>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
 
     map({ "i", "x", "n", "s" }, "<D-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
-end
+end]]
 
 --vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
 vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>wa<cr><esc>", { desc = "Save All Files" })

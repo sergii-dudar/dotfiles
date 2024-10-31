@@ -16,4 +16,4 @@ bindkey '^F' sesh-sessions
 bindkey '^F' sesh-sessions
 
 # kitty/mac
-bindkey "ß" sesh-sessions
+#bindkey "ß" sesh-sessions
