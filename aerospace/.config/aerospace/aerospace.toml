@@ -232,7 +232,7 @@ run = "move-node-to-workspace 9"
 # Force float all the windows (or windows of a particular app)
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
-run = 'layout floating'
+run = ['layout floating', 'move-node-to-workspace 9']
 
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype

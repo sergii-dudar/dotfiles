@@ -8,30 +8,31 @@ M.mod = "SUPER"
 
 ---@param config Config
 function M.setup(config)
-  --config.disable_default_key_bindings = true
-  config.keys = {
-    -- Clipboard
-    { mods = 'CTRL', key = "c", action = act.CopyTo("Clipboard") },
-    { mods = 'CTRL', key = "v", action = act.PasteFrom("Clipboard") },
+    --config.disable_default_key_bindings = true
+    config.keys = {
+        -- Clipboard
+        { mods = 'CTRL', key = "c", action = act.CopyTo("Clipboard") },
+        { mods = 'CTRL', key = "v", action = act.PasteFrom("Clipboard") },
+        { mods = 'CMD', key = 'k', action = act.DisableDefaultAssignment },
 
-    --[[{ key = 'F11', action = wezterm.action.ToggleFullScreen },
-    {
-        key = 'c',
-        mods = 'CTRL',
-        action = wezterm.action_callback(function(window, pane)
-            local sel = window:get_selection_text_for_pane(pane)
-            if (not sel or sel == '') then
-                window:perform_action(wezterm.action.SendKey{ key='c', mods='CTRL' }, pane)
-            else
-                window:perform_action(wezterm.action{ CopyTo = 'ClipboardAndPrimarySelection' }, pane)
-            end
-        end),
-    },
-    { key = 'v', mods = 'CTRL', action = wezterm.action{ PasteFrom = 'Clipboard' } },
-      -- MAC
-    { key = 'c', mods = 'ALT', action = wezterm.action{ CopyTo = 'ClipboardAndPrimarySelection' } },
-    { key = 'v', mods = 'ALT', action = wezterm.action{ PasteFrom = 'Clipboard' } },]]
-  }
+        --[[{ key = 'F11', action = wezterm.action.ToggleFullScreen },
+        {
+            key = 'c',
+            mods = 'CTRL',
+            action = wezterm.action_callback(function(window, pane)
+                local sel = window:get_selection_text_for_pane(pane)
+                if (not sel or sel == '') then
+                    window:perform_action(wezterm.action.SendKey{ key='c', mods='CTRL' }, pane)
+                else
+                    window:perform_action(wezterm.action{ CopyTo = 'ClipboardAndPrimarySelection' }, pane)
+                end
+            end),
+        },
+        { key = 'v', mods = 'CTRL', action = wezterm.action{ PasteFrom = 'Clipboard' } },
+          -- MAC
+        { key = 'c', mods = 'ALT', action = wezterm.action{ CopyTo = 'ClipboardAndPrimarySelection' } },
+        { key = 'v', mods = 'ALT', action = wezterm.action{ PasteFrom = 'Clipboard' } },]]
+    }
 end
 
 return M
