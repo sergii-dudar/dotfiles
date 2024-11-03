@@ -15,7 +15,10 @@ picom --config ~/.config/picom/picom.conf --vsync &
 
 #bg
 #nitrogen --restore &
-~/.fehbg &
+#~/.fehbg &
+#feh --bg-scale ~/wallpapers/png/wall.png &
+#feh --bg-fill --randomize ~/wallpapers/png &
+feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
 #clipmenud &
 #ssh-add &
 #dunst &
