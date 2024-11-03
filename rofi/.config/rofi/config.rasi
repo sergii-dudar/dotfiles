@@ -4,9 +4,9 @@ configuration {
   display-open: "🏃 Open:";
   drun-display-format: "{icon} {name}";
   open-display-format: "{name}";
-  font: "JetBrainsMono Nerd Font Medium 10";
-  modi: "open:~/.config/rofi/scripts/dmenu-open-file.sh,drun";
-  combi-modes: "Open:~/.config/rofi/scripts/dmenu-open-file.sh,drun";
+  font: "CaskaydiaCove Nerd Font Bold 18";
+  modi: "drun,open:~/.config/rofi/scripts/dmenu-open-file.sh";
+  combi-modes: "drun,Open:~/.config/rofi/scripts/dmenu-open-file.sh";
   show-icons: true;
   icon-theme: "Papirus";
   kb-mode-next: "Shift+Right,Tab";
@@ -88,4 +88,3 @@ prompt {
   background-color: @bg-alt;
   text-color: @fg;
 }
-

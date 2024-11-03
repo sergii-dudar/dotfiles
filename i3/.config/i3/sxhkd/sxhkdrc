@@ -1,0 +1,131 @@
+super + Escape
+    pkill -USR1 -x sxhkd && sxhkd -c ~/.config/i3/sxhkd/sxhkdrc
+
+super + shift + Return
+    krusader
+
+#Rofi & dmenu
+
+super + d
+    rofi -show drun -show-icons -font "Noto Sans 14"
+
+super + p
+    rofi -show power-menu -modi power-menu:rofi-power-menu
+
+super + g
+    geany
+
+super + s
+ rofi -show
+
+# Application Keybindings
+
+#ctrl + alt + s
+Print
+    flameshot gui
+
+#Audio Keybindings
+
+XF86AudioRaiseVolume
+        amixer -c 1 -- sset Master 2db+
+
+XF86AudioLowerVolume
+        amixer -c 1 -- sset Master 2db-
+
+XF97AudioMute
+        amixer -c 1 -- sset Master toggle
+
+alt + d
+        pactl set-sink-volume 0 +5% 
+
+alt + a
+        pactl set-sink-volume 0 -5% 
+
+XF86AudioPlay
+    playerctl play-pause
+
+ctrl + alt + p
+    playerctl play-pause
+
+XF86AudioNext
+    playerctl next
+
+XF86AudioPrev
+    playerctl previous
+
+ctrl + shift + period
+    playerctl next
+
+ctrl + shift + comma
+    playerctl previous
+
+XF86AudioStop
+    playerctl stop
+
+alt + {h,j,k,l}
+   mpc {prev,next,play,pause}
+
+#i3 Specific Keybindings
+
+#movement
+
+super+{h,j,k,l}
+    i3-msg focus {left,down,up,right}
+
+super+shift+{h,j,k,l}
+    i3-msg move {left,down,up,right}
+
+super + {z,x}
+    i3-msg split {v,h}
+
+super + f
+    i3-msg fullscreen toggle
+
+super + shift + space
+    i3-msg floating toggle
+
+super + space
+    i3-msg focus mode_toggle
+
+super + a
+    i3-msg focus parent
+
+
+#workspaces
+
+super + shift + b
+    i3-msg move workspace to output next
+
+#super + {1-9,0}
+#    /usr/local/bin/i3_workspace_swapper.sh {1-9,0}
+
+#super + {1-9,0}
+ #   i3-msg workspace {1-9,10}
+
+#alt + {0,1,2,3,4,5,6,7,8,9}
+ #  i3-msg workspace {10,11,12,13,14,15,16,17,18,19}
+
+super + shift+{1-9,0}
+    i3-msg move container to workspace number {1-9,0}
+
+#alt+shift+{0,1,2,3,4,5,6,7,8,9}
+#    i3-msg move container to workspace number {10,11,12,13,14,15,16,17,18,19}
+
+
+super + Return
+    kitty
+
+super + shift + c
+    i3-msg kill
+
+super + F10
+    i3-msg reload
+
+super + F9
+    i3-msg restart
+
+super + ctrl + {h,j,k,l}
+    i3-msg resize {grow width 1 px or 1 ppt, shrink height 1 px or 1 ppt, grow height 1 px or 1 ppt, shrink width 1 px or 1 ppt}
+
+super + y
+    polybar-msg cmd toggle
