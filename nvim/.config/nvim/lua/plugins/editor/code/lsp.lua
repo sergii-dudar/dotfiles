@@ -227,50 +227,46 @@ return {
             local buffer_util = require("utils.buffer-util")
             local custom_sources = {
                 {
-                    name = "nvim_lsp_signature_help",
+                    name = 'nvim_lsp_signature_help',
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = "nvim_lsp",
+                    name = 'nvim_lsp',
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = "nvim_lua",
+                    name = 'nvim_lua',
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = "buffer",
-                    --keyword_length = 3,
-                    --autocomplete = false,
-                    --max_item_count = 3,
+                    name = 'path',
                     priority = 90,
-                    --group_index = 2,
+                    --group_index = 1,
+                },
+                {
+                    name = 'luasnip',
+                    keyword_length = 3,
+                    max_item_count = 3,
+                    autocomplete = true,
+                    priority = 80,
+                    --group_index = 3,
+                },
+                {
+                    name = 'buffer',
+                    keyword_length = 3,
+                    autocomplete = true,
+                    max_item_count = 3,
+                    priority = 50,
+                    --group_index = 3,
                     option = {
                         get_bufnrs = buffer_util.get_active_ls_buffers,
                     },
                 },
-                {
-                    name = "snippets",
-                    priority = 80,
-                },
-                {
-                    name = "luasnip",
-                    --keyword_length = 3,
-                    --max_item_count = 3,
-                    --autocomplete = false,
-                    priority = 80,
-                    --group_index = 2,
-                },
-
-                {
-                    name = "path",
-                    priority = 80,
-                    --group_index = 2,
-                },
             }
+
 
             local list_util = require("utils.list-util")
 

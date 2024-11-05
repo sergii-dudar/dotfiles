@@ -196,15 +196,6 @@
                     "identifiers": {
                         "is_keyboard": true,
                         "is_pointing_device": true,
-                        "product_id": 6,
-                        "vendor_id": 41219
-                    },
-                    "ignore": false
-                },
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
                         "product_id": 5,
                         "vendor_id": 41219
                     },
@@ -313,6 +304,14 @@
                             "to": [{ "key_code": "left_command" }]
                         }
                     ]
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 6,
+                        "vendor_id": 41219
+                    },
+                    "ignore": true
                 }
             ],
             "name": "Default profile",
