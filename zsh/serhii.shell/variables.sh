@@ -17,6 +17,9 @@ if isMacOs; then
     # tell specific tools where need seek config (lazygit, aerospace etc)
     export XDG_CONFIG_HOME="$HOME/.config"
 else
+
+    alias out="sudo pkill -KILL -u serhii"
+
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
     export PATH=$PATH:$HOME/serhii.home/tools/kafka/bin
@@ -25,6 +28,7 @@ else
     # in case commented nvm (as slow)
     export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
 
+    export QT_SCALE_FACTOR=1.75
     # integration between ubuntu\arch (brew/pacman)
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/fd /usr/bin/fd

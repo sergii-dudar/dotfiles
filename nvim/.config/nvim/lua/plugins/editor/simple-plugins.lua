@@ -2,7 +2,9 @@ return {
     { "mg979/vim-visual-multi" },
     {
         "norcalli/nvim-colorizer.lua",
-        cmd = { "ColorizerToggle" },
+        config = function()
+            require("colorizer").setup()
+        end,
     },
     {
         "akinsho/toggleterm.nvim",
