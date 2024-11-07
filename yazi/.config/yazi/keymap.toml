@@ -23,8 +23,8 @@ prepend_keymap = [
     # development --confirm, --interactive
     #{ on = [ "t", "t" ], run = 'shell "alacritty" --orphan --confirm',        desc = "open terminal" },
     #{ on = [ "v", "i" ], run = 'shell "alacritty -e nvim \"$@\"" --orphan --confirm',        desc = "open in neovim" },
-    { on = [ "v", "v" ], run = 'shell "cd "$1" && nvim" --block --confirm', desc = "NeoVim . [PWD]" },
-    { on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block --confirm', desc = "NeoVim [selected file]" },
+    #{ on = [ "v", "v" ], run = 'shell "cd "$1" && nvim" --block --confirm', desc = "NeoVim . [PWD]" },
+    #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block --confirm', desc = "NeoVim [selected file]" },
     #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan --confirm', desc = "open terminal" },
     #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan --confirm', desc = "open terminal" },
     { on = [ "t", "t" ], run = 'shell "kitty" --orphan --confirm', desc = "open terminal" },
