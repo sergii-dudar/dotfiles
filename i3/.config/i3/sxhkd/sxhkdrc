@@ -6,6 +6,9 @@ super + shift + Return
 alt + space
     rofi -show
 
+super + q
+    {rofi -show drun,sh $HOME/dotfiles/bin/powermenu.sh}
+
 super + space
     bash $HOME/dotfiles/bin/change_language.sh 
 # ---------- Application Keybindings ----------- #
