@@ -4,8 +4,10 @@ super + shift + Return
 # ---------- Rofi & dmenu ------------ #
 
 alt + space
- rofi -show
+    rofi -show
 
+super + space
+    bash $HOME/dotfiles/bin/change_language.sh 
 # ---------- Application Keybindings ----------- #
 
 #ctrl + alt + s

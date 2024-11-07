@@ -5,7 +5,7 @@ include ~/.config/i3/themes/nord.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-exec ~/dotfiles/scripts/offlaptop-screen-if-closed.sh &
+exec ~/dotfiles/bin/offlaptop-screen-if-closed.sh &
 
 exec_always --no-startup-id ~/.config/i3/autostart.sh
 exec_always --no-startup-id /usr/bin/autotiling
@@ -15,8 +15,6 @@ set $mod Mod4
 floating_modifier $mod
 font pango:monospace 0
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
-
-
 
 #mouse_warping none
 # switch to workspace using script

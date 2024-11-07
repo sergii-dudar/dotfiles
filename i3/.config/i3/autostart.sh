@@ -4,6 +4,7 @@
 
 # compositor
 killall picom; picom -b --config ~/.config/picom/picom.conf --vsync &
+#killall picom; picom -b --config ~/.config/i3/picom_configurations/1.conf &
 #flatpak run com.borgbase.Vorta &
 
 ~/.config/polybar/launch.sh &
