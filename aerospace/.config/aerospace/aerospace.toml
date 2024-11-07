@@ -198,7 +198,7 @@ alt-shift-l = ['join-with right', 'mode main']
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
-run = "move-node-to-workspace 1"
+run = "move-node-to-workspace 4"
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
