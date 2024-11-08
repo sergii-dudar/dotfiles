@@ -1,10 +1,16 @@
 #!/bin/env bash
 
-choice=$(printf "Lock\nLogout\nSuspend\nReboot\nShutdown" | rofi -dmenu)
+LOCK="🔒 Lock"
+LOGOUT="🚪 Logout"
+SUSPEND="⏸ Suspend"
+REBOOT="🔁 Reboot"
+SHUTDOWN="⛔ Shutdown"
+
+choice=$(printf "$LOCK\n$LOGOUT\n$SUSPEND\n$REBOOT\n$SHUTDOWN" | rofi -dmenu)
 case "$choice" in
-  Lock) sh $HOME/dotfiles/bin/screen-lock ;;
-  Logout) pkill -KILL -u "$USER" ;;
-  Suspend) systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
-  Reboot) systemctl reboot ;;
-  Shutdown) systemctl poweroff ;;
+  "$LOCK") sh $HOME/dotfiles/bin/screen-lock ;;
+  "$LOGOUT") pkill -KILL -u "$USER" ;;
+  "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
+  "$REBOOT") systemctl reboot ;;
+  "$SHUTDOWN") systemctl poweroff ;;
 esac

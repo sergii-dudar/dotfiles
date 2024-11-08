@@ -5,7 +5,9 @@ include ~/.config/i3/themes/nord.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-exec ~/dotfiles/bin/offlaptop-screen-if-closed.sh &
+#exec_always --no-startup-id xrandr --dpi 100
+exec --no-startup-id xrdb -merge ~/.Xresources
+exec ~/dotfiles/bin/apply-display-settings.sh
 
 exec_always --no-startup-id ~/.config/i3/autostart.sh
 exec_always --no-startup-id /usr/bin/autotiling
