@@ -16,7 +16,7 @@ sudo pacman -S ffmpegthumbnailer ffmpeg
 sudo pacman -S usbutils eog p7zip zip, gum # 7-zip
 sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol volumeicon \
 alsa-utils pulseaudio-alsa xss-lock dunst
-
+# dmenu
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 

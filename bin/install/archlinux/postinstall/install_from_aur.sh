@@ -18,3 +18,4 @@ yay -S appimagelauncher && \
 yay -S ueberzugpp && \
 yay -S sesh-bin && \
 yay -S i3lock-color
+yay -S networkmanager-dmenu-git
