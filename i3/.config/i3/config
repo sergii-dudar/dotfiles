@@ -13,7 +13,7 @@ exec_always --no-startup-id /usr/bin/autotiling
 workspace_auto_back_and_forth yes
 set $mod Mod4
 floating_modifier $mod
-font pango:monospace 0
+font pango:CaskaydiaCove Nerd Font 18
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
 #mouse_warping none
