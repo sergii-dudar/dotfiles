@@ -16,13 +16,23 @@ killall picom; picom -b --config ~/.config/picom/picom.conf --vsync &
 #feh --bg-fill --randomize ~/wallpapers/png &
 feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
 #clipmenud &
-#ssh-add &
-#dunst &
+ssh-add &
+dunst &
 autotiling &
+#killall volumeicon; volumeicon &
 
 #[ ! -s ~/.config/mpd/pid ] && mpd &
 #/usr/libexec/polkit-gnome-authentication-agent-1 &
-#/usr/lib/polkit-kde-authentication-agent-1 &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
-#sxhkd >/dev/null 2>&1 &
+# NetworkManager is the most popular way to manage wireless networks on Linux,
+# and nm-applet is a desktop environment-independent system tray GUI for it.
+nm-applet &
+
+# auto lock screen
+# xss-lock grabs a logind suspend inhibit lock and will use i3lock-color to lock the
+# screen before suspend.
+#xss-lock --transfer-sleep-lock -- i3lock --nofork
+
 killall sxhkd; sxhkd -c ~/.config/i3/sxhkd/sxhkdrc &
+

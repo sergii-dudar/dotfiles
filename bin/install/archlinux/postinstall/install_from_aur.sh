@@ -17,7 +17,4 @@ yay -S appimagelauncher && \
 # https://github.com/jstkdng/ueberzugpp
 yay -S ueberzugpp && \
 yay -S sesh-bin && \
-
-
-
-
+yay -S i3lock-color

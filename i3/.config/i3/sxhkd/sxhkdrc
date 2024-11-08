@@ -7,10 +7,22 @@ alt + space
     rofi -show
 
 super + q
-    {rofi -show drun,sh $HOME/dotfiles/bin/powermenu.sh}
+    bash $HOME/dotfiles/bin/powermenu
+
+ctrl + alt + q
+    bash $HOME/dotfiles/bin/screen-lock
 
 super + space
-    bash $HOME/dotfiles/bin/change_language.sh 
+    bash $HOME/dotfiles/bin/change_language.sh
+
+# general:
+# XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#   lxqt-config
+# volume:
+#   pavucontrol
+# netrork
+#   nm-connection-editor
+
 # ---------- Application Keybindings ----------- #
 
 #ctrl + alt + s
@@ -19,44 +31,26 @@ Print
 
 # ---------- Audio Keybindings ------------- #
 
-XF86AudioRaiseVolume
-        amixer -c 1 -- sset Master 2db+
+super + Left
+    amixer -D pulse sset Master 5%-
 
-XF86AudioLowerVolume
-        amixer -c 1 -- sset Master 2db-
+super + Right
+    amixer -D pulse sset Master 5%+
 
-XF97AudioMute
-        amixer -c 1 -- sset Master toggle
+#{ Left, Down, Up, Right }
+super + Down
+    amixer -D pulse sset Master toggle
 
-alt + d
-        pactl set-sink-volume 0 +5% 
+# Also `pactl`` to adjust volume in PulseAudio.
+#pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
+#pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
+#pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
+#pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+#brightnessctl set +5%
+#brightnessctl set 5%-
 
-alt + a
-        pactl set-sink-volume 0 -5% 
-
-XF86AudioPlay
-    playerctl play-pause
-
-ctrl + alt + p
-    playerctl play-pause
-
-XF86AudioNext
-    playerctl next
-
-XF86AudioPrev
-    playerctl previous
-
-ctrl + shift + period
-    playerctl next
-
-ctrl + shift + comma
-    playerctl previous
-
-XF86AudioStop
-    playerctl stop
-
-alt + {h,j,k,l}
-   mpc {prev,next,play,pause}
+#alt + {h,j,k,l}
+#   mpc {prev,next,play,pause}
 
 #-------------------------------#
 #   i3 Specific Keybindings     #
