@@ -23,7 +23,7 @@ My current tool preferences:
 
 ## Random screenshots:
 
-#### MACOS + AEROSPACE + KITTY + TMUX:
+#### MACOS + AEROSPACE:
 
 ###### NEOVIM
 ![img.png](images/mac/nvim.png)
@@ -40,5 +40,21 @@ My current tool preferences:
 ###### Intellij
 ![intellij.png](images/mac/intellij.png)
 
-#### ARCH LINUX + HYPRLAND + WEZTERM + TMUX:
+#### ARCH LINUX + I3WM + Polybar:
+###### DESKTOP
+![desk.png](images/i3wm/desk.png)
+
+###### NEOVIM
+![nvim.png](images/i3wm/nvim.png)
+
+###### SCRATCHPAD
+![scratchpad.png](images/i3wm/scratchpad.png)
+
+###### Intellij
+![idea.png](images/i3wm/idea.png)
+
+#### ARCH LINUX + QTILE:
+...
+
+#### ARCH LINUX + HYPRLAND:
 ...
