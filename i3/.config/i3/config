@@ -5,42 +5,99 @@ include ~/.config/i3/themes/nord.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-#exec_always --no-startup-id xrandr --dpi 100
 exec --no-startup-id xrdb -merge ~/.Xresources
 exec ~/dotfiles/bin/apply-display-settings.sh
 
-exec_always --no-startup-id ~/.config/i3/autostart.sh
-exec_always --no-startup-id /usr/bin/autotiling
+exec --no-startup-id ~/.config/i3/autostart_once.sh
+exec_always --no-startup-id ~/.config/i3/autostart_always.sh
+
+exec --no-startup-id i3-msg 'workspace 1'
 
 workspace_auto_back_and_forth yes
+focus_on_window_activation focus
 set $mod Mod4
 floating_modifier $mod
 font pango:CaskaydiaCove Nerd Font 18
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+#
+# Bind a switch key, which focuses the previously focused window (based on i3-back)
+bindsym $mod+Tab [con_mark=_back] focus
 
-#mouse_warping none
-# switch to workspace using script
-# bindsym $mod+0 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws0
-# bindsym $mod+1 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws1
-# bindsym $mod+2 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws2
-# bindsym $mod+3 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws3
-# bindsym $mod+4 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws4
-# bindsym $mod+5 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws5
-# bindsym $mod+6 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws6
-# bindsym $mod+7 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws7
-# bindsym $mod+8 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws8
-# bindsym $mod+9 exec --no-startup-id ~/.config/i3/scripts/i3_workspace_swapper.sh $ws9
+# move focused container to workspace and switch it
+# NOTE: cant move to sxhkrc shortcut as present strange behavior
+bindsym $mod+Shift+1 move container to workspace number 1, workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2, workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3, workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4, workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5, workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6, workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7, workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8, workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9, workspace number 9
 
-bindsym $mod+Shift+s layout stacking
-bindsym $mod+Shift+t layout tabbed
-bindsym $mod+e layout toggle split
-bindsym $mod+v [class="vol"] scratchpad show; move position center
-bindsym $mod+n [class="ttrm"] scratchpad show; move position center
-bindsym $mod+m [class="mus"] scratchpad show; move position center
-bindsym $mod+b [class="news"] scratchpad show; move position center
-bindsym $mod+c [class="fm"] scratchpad show; move position center
-exec_always --no-startup-id pgrep -f '^kitty --class ttrm,ttrm' || kitty --class ttrm,ttrm
-exec_always --no-startup-id pgrep -f '^kitty --class vol,vol' || kitty --class vol,vol -e pulsemixer
-exec_always --no-startup-id pgrep -f '^kitty --class news,news' || kitty --class news,news -e newsboat
-exec_always --no-startup-id pgrep -f '^kitty --class mus,mus' || kitty --class mus,mus -e ncmpcpp
-exec_always --no-startup-id pgrep -f '^kitty --class fm,fm' || kitty --class fm,fm -e ranger
+# exec_always --no-startup-id pgrep -f '^kitty --class ttrm,ttrm' || kitty --class ttrm,ttrm
+# exec_always --no-startup-id pgrep -f '^kitty --class vol,vol' || kitty --class vol,vol -e pulsemixer
+# exec_always --no-startup-id pgrep -f '^kitty --class news,news' || kitty --class news,news -e newsboat
+# exec_always --no-startup-id pgrep -f '^kitty --class mus,mus' || kitty --class mus,mus -e ncmpcpp
+# exec_always --no-startup-id pgrep -f '^kitty --class fm,fm' || kitty --class fm,fm -e ranger
+
+# set $mode_launcher Launch: [f]irefox [t]hunderbird
+# bindsym $mod+o mode "$mode_launcher"
+
+# mode "$mode_launcher" {
+#     bindsym f exec firefox
+#     bindsym t exec thunderbird
+#
+#     bindsym Escape mode "default"
+#     bindsym Return mode "default"
+# }
+
+bindsym $mod+r mode "resize"
+
+mode "resize" {
+        # These bindings trigger as soon as you enter the resize mode
+
+        # Pressing down will grow the window’s height.
+        bindsym h resize shrink width 10 px or 10 ppt
+        bindsym j resize grow height 10 px or 10 ppt
+        bindsym k resize shrink height 10 px or 10 ppt
+        bindsym l resize grow width 10 px or 10 ppt
+
+        # same bindings, but for the arrow keys
+        bindsym Left resize shrink width 10 px or 10 ppt
+        bindsym Down resize grow height 10 px or 10 ppt
+        bindsym Up resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        # back to normal: Enter or Escape or $mod+r
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+r mode "default"
+}
+
+# bindsym $mod+p scratchpad show; resize set 65ppt 70ppt; move position center
+# bindsym $mod+p move scratchpad; resize set 65ppt 70ppt; move position center
+
+bindsym $mod+m mode "layout"
+
+mode "layout" {
+
+        bindsym s layout stacking
+        bindsym t layout tabbed
+        bindsym e layout toggle split
+        bindsym f floating toggle
+
+        # Toggle between stacking/tabbed/splith:
+        bindsym r layout toggle stacking tabbed splith
+
+        # use `f` - floating toggle to toggle scratchpad window back
+        bindsym p move scratchpad; resize set 65ppt 70ppt; move position center
+        
+        # rotate [cycle] active scratchpads [show current, hide, show next]
+        bindsym c scratchpad show
+
+        # back to normal: Enter or Escape or $mod+r
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+r mode "default"
+}

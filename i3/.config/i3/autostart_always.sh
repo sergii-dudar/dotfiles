@@ -7,27 +7,16 @@ killall picom; picom -b --config ~/.config/picom/picom.conf --vsync &
 #killall picom; picom -b --config ~/.config/i3/picom_configurations/1.conf &
 #flatpak run com.borgbase.Vorta &
 
+# be careful with autotiming if you are using tabbed or stacking can be strange, as sub tree will be diff, because it's became dymanic
+# but it's ok it you will switch parent window to needed layout, and then all fine with `autotiling`.
+# autotiling &
+
 ~/.config/polybar/launch.sh &
-
-#bg
-#nitrogen --restore &
-#~/.fehbg &
-#feh --bg-scale ~/wallpapers/png/wall.png &
-#feh --bg-fill --randomize ~/wallpapers/png &
-feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
-#clipmenud &
-ssh-add &
-dunst &
-autotiling &
-#killall volumeicon; volumeicon &
-
-#[ ! -s ~/.config/mpd/pid ] && mpd &
-#/usr/libexec/polkit-gnome-authentication-agent-1 &
-/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
-
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 nm-applet &
+
+feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
 
 # auto lock screen
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock-color to lock the
@@ -35,4 +24,3 @@ nm-applet &
 #xss-lock --transfer-sleep-lock -- i3lock --nofork
 
 killall sxhkd; sxhkd -c ~/.config/i3/sxhkd/sxhkdrc &
-
