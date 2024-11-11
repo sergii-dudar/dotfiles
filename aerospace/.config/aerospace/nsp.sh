@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/opt/homebrew/bin/bash
 
 set -euo pipefail
 
@@ -27,9 +27,9 @@ is_app_closed() {
 move_app_to_scratchpad() {
     local app_window_id
     app_window_id=$(aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{window-id}%{right-padding} | %{app-name}" |
-                    grep "$APP_NAME" |
-                    cut -d' ' -f1 |
-                    head -n1)
+        grep "$APP_NAME" |
+        cut -d' ' -f1 |
+    head -n1)
     aerospace move-node-to-workspace NSP --window-id "$app_window_id"
 }
 

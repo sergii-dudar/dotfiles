@@ -14,6 +14,12 @@ return {
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }
 
+            opts.formatters = {
+                black = {
+                    prepend_args = { "--line-length", "1000" },
+                },
+            }
+
             opts.default_format_opts.timeout_ms = 3000
 
             --formatters_by_ft = {

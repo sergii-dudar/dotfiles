@@ -19,7 +19,7 @@ discord = "webcord"
 todoist = "flatpak run com.todoist.Todoist"
 screenie = "flameshot gui"
 
-colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
+colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.gruvbox()
 
 keys = [
     Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
@@ -134,13 +134,13 @@ keys.extend(
 
 
 # Define layouts and layout themes
-layout_theme = {"margin": 20, "border_width": 4, "border_focus": colors[11], "border_normal": colors[0]}
+layout_theme = {"margin": 20, "border_width": 4, "border_focus": colors[6], "border_normal": colors[2]}
 
 layouts = [layout.MonadTall(**layout_theme), layout.MonadWide(**layout_theme), layout.MonadThreeCol(**layout_theme), layout.MonadWide(**layout_theme), layout.Floating(**layout_theme), layout.Spiral(**layout_theme), layout.RatioTile(**layout_theme), layout.Max(**layout_theme)]
 
 sep = widget.Sep(linewidth=1, paddog=15, foreground=colors[0], background=colors[0])
-spacer = widget.Spacer(background=colors[11])
-groupbox = widget.GroupBox(font="JetBrainsMono Nerd Font Mono", fontsize=20, margin_y=4, margin_x=4, padding_y=6, padding_x=6, borderwidth=2, disable_drag=True, active=colors[2], inactive=colors[0], hide_unused=True, rounded=True, highlight_method="text", highlight_color=colors[0], this_current_screen_border=colors[6], this_screen_border=colors[10], other_current_screen_border=colors[2], block_highlight_text_color=colors[6], other_screen_border=colors[6], urgent_alert_method="line", urgent_border=colors[6], urgent_text=colors[1], foreground=colors[0], background=colors[0], use_mouse_wheel=False)  # unfocused  # box color
+spacer = widget.Spacer(background=colors[0])
+groupbox = widget.GroupBox(font="JetBrainsMono Nerd Font Mono", fontsize=20, margin_y=4, margin_x=4, padding_y=6, padding_x=6, borderwidth=2, disable_drag=True, active=colors[7], inactive=colors[0], hide_unused=True, rounded=True, highlight_method="block", highlight_color=colors[0], this_current_screen_border=colors[11], this_screen_border=colors[10], other_current_screen_border=colors[8], block_highlight_text_color=colors[0], other_screen_border=colors[6], urgent_alert_method="line", urgent_border=colors[6], urgent_text=colors[1], foreground=colors[0], background=colors[0], use_mouse_wheel=False)  # unfocused  # box color
 weather = widget.OpenWeather(
     app_key="4cf3731a25d1d1f4e4a00207afd451a2",
     cityid="4997193",
@@ -154,26 +154,25 @@ weather = widget.OpenWeather(
 volicon = widget.TextBox(text="󰕾", fontsize=25, font="JetBrainsMono Nerd Font Mono", foreground=colors[2], background=colors[0])
 volume = widget.Volume(foreground=colors[2], padding=10, background=colors[0])
 cpuicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[3])
-cpu = widget.CPU(font="JetBrainsMono Nerd Font", update_interval=1.0, format="{load_percent}%", foreground=colors[2], background=colors[0], padding=5)
+cpu = widget.CPU(font="JetBrainsMono Nerd Font Mono", update_interval=1.0, format="{load_percent}%", foreground=colors[2], background=colors[0], padding=5)
 memicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[6])
 mem = widget.Memory(
-    font="JetBrainsMono Nerd Font",
+    font="JetBrainsMono Nerd Font Mono",
     foreground=colors[2],
     background=colors[0],
     format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm}",
     measure_mem="G",
     padding=5,
 )
-clockicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[5])
-clock = widget.Clock(format="%I:%M %p", font="JetBrainsMono Nerd Font", padding=10, background=colors[0], foreground=colors[2])
+clockicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[6])
+clock = widget.Clock(format="%I:%M %p", font="JetBrainsMono Nerd Font Mono", padding=10, background=colors[0], foreground=colors[2])
 curlayout = widget.CurrentLayoutIcon(
     scale=0.5,
     foreground=colors[0],
-    background=colors[11],
+    background=colors[4],
     padding=10,
 )
 tray = widget.Systray(background=colors[0])
-windowname = widget.WindowName(font="JetBrainsMono Nerd Font", foreground=colors[0], background=colors[6])
 
 screens = [
     Screen(
@@ -181,10 +180,9 @@ screens = [
             [
                 groupbox,
                 sep,
-                curlayout,
+                weather,
                 spacer,
                 sep,
-                weather,
                 volicon,
                 volume,
                 cpuicon,
@@ -193,9 +191,10 @@ screens = [
                 mem,
                 clockicon,
                 clock,
+                curlayout,
             ],
-            margin=0,
-            size=22,
+            margin=6,
+            size=30,
         ),
     ),
     Screen(
@@ -203,10 +202,9 @@ screens = [
             [
                 groupbox,
                 sep,
-                curlayout,
+                weather,
                 spacer,
                 sep,
-                weather,
                 volicon,
                 volume,
                 cpuicon,
@@ -219,9 +217,10 @@ screens = [
                 sep,
                 sep,
                 tray,
+                curlayout,
             ],
-            size=22,
-            margin=0,
+            size=30,
+            margin=6,
         ),
     ),
     Screen(
@@ -229,10 +228,9 @@ screens = [
             [
                 groupbox,
                 sep,
-                curlayout,
+                weather,
                 spacer,
                 sep,
-                weather,
                 volicon,
                 volume,
                 cpuicon,
@@ -241,9 +239,10 @@ screens = [
                 mem,
                 clockicon,
                 clock,
+                curlayout,
             ],
-            size=22,
-            margin=0,
+            size=30,
+            margin=6,
         ),
     ),
 ]
@@ -279,14 +278,8 @@ reconfigure_screens = True
 
 
 @hook.subscribe.startup_once
-def autostart_once():
-    home = os.path.expanduser("~/.config/qtile/autostart_once.sh")
-    subprocess.Popen([home])
-
-
-@hook.subscribe.startup
 def autostart():
-    home = os.path.expanduser("~/.config/qtile/autostart_always.sh")
+    home = os.path.expanduser("~/.config/qtile/autostart.sh")
     subprocess.Popen([home])
 
 

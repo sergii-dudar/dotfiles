@@ -8,7 +8,7 @@ sudo pacman -S eza procs fastfetch
 sudo pacman -S stow kitty wezterm git lazygit git-delta
 sudo pacman -S nvim ranger rofi starship
 sudo pacman -S tmux zellij flameshot
-sudo pacman -S man-db
+sudo pacman -S man-db ueberzugpp
 sudo pacman -S wget k9s vlc qbittorrent
 sudo pacman -S kolourpaint pinta evince
 sudo pacman -S fuse # to run app images

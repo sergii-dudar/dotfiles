@@ -156,7 +156,7 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 # left, down, up, right
 alt-right = 'workspace next'
-alt-left  = 'workspace prev'
+alt-left = 'workspace prev'
 
 alt-shift-f = 'fullscreen'
 
@@ -167,9 +167,10 @@ alt-shift-r = 'mode resize'
 
 # scratchpads
 #cmd-shift-a = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh com.aptakube.Aptakube Aptakube'
-#cmd-shift-s = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh org.whispersystems.signal-desktop Signal'
+#cmd-shift-s = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh org.whispersystems.signal-desktop Signal'
 #cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh org.gnu.Emacs Emacs'
-#alt-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh net.kovidgoyal.kitty yazi'
+#cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh net.kovidgoyal.kitty file_namager'
+# kitty --hold --name file_namager -e yazi &
 
 [mode.resize.binding]
 h = 'resize width -50'
@@ -192,7 +193,10 @@ esc = 'mode main'
 esc = ['reload-config', 'mode main']
 r = ['flatten-workspace-tree', 'mode main'] # reset layout
 #s = ['layout sticky tiling', 'mode main'] # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
-f = ['layout floating tiling', 'mode main'] # Toggle between floating and tiling layout
+f = [
+    'layout floating tiling',
+    'mode main',
+] # Toggle between floating and tiling layout
 backspace = ['close-all-windows-but-current', 'mode main']
 
 alt-shift-h = ['join-with left', 'mode main']
