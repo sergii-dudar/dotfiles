@@ -165,6 +165,12 @@ alt-shift-semicolon = 'mode service'
 
 alt-shift-r = 'mode resize'
 
+# scratchpads
+#cmd-shift-a = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh com.aptakube.Aptakube Aptakube'
+#cmd-shift-s = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh org.whispersystems.signal-desktop Signal'
+#cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh org.gnu.Emacs Emacs'
+#alt-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh net.kovidgoyal.kitty yazi'
+
 [mode.resize.binding]
 h = 'resize width -50'
 j = 'resize height +50'
