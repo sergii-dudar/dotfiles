@@ -91,7 +91,6 @@ for i in groups:
         ]
     )
 
-
 # Add key bindings to switch VTs in Wayland.
 # We can't check qtile.core.name in default config as it is loaded before qtile is started
 # We therefore defer the check until the key binding is run by using .when(func=...)

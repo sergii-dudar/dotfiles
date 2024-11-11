@@ -31,9 +31,7 @@ class MultiColorTag(widget.GroupBox):
         if not isinstance(self.tag_colors, list):
             raise ConfigError("MultiColorTag: tag_colors must be a list")
         if not isinstance(self.this_current_screen_border, list):
-            raise ConfigError(
-                "MultiColorTag: this_current_screen_border must be a list"
-            )
+            raise ConfigError("MultiColorTag: this_current_screen_border must be a list")
 
     def draw(self):
         self.drawer.clear(self.background or self.bar.background)
@@ -71,9 +69,7 @@ class MultiColorTag(widget.GroupBox):
                         text_color = self.block_highlight_text_color
                     if self.bar.screen.group.name == g.name:
                         if self.qtile.current_screen == self.bar.screen:
-                            border = self.this_current_screen_border[
-                                effective_border_index
-                            ]
+                            border = self.this_current_screen_border[effective_border_index]
                             to_highlight = True
                         else:
                             border = self.this_screen_border
