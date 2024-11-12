@@ -1,6 +1,6 @@
 ## My dotfiles
 
-All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/). Tools that not managed by stow, located in [nonhome](nonhome)
+All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/), where config location is - [app name]/[path to symlink config from repository], for example [nvim]/[.config/nvim]. Tools that not managed by stow, located in [nonhome](nonhome)
 
 All scripts that using by dot configurations required to have `dotfiles` to be cloned directly in `$HOME` directory as `~/dotfiles`
 
