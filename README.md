@@ -36,6 +36,12 @@ My current tool preferences:
 
 ![img.png](images/mac/nvim.png)
 
+###### SCRATCHPAD
+
+![scratchpad.png](images/mac/scratchpad_iterm.png)
+
+![scratchpad.png](images/mac/scratchpad_music.png)
+
 ###### TMUX POPUP
 
 ![img.png](images/mac/tmux_popup.png)

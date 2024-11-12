@@ -57,12 +57,12 @@ on-focus-changed = "move-mouse window-lazy-center"
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-inner.horizontal = 8
-inner.vertical = 8
-outer.left = 8
-outer.bottom = 8
-outer.top = 8
-outer.right = 8
+inner.horizontal = 15
+inner.vertical = 15
+outer.left = 15
+outer.bottom = 10
+outer.top = 15
+outer.right = 15
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -169,12 +169,31 @@ alt-shift-semicolon = 'mode service'
 
 alt-shift-r = 'mode resize'
 
-# scratchpads
-#cmd-shift-a = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh com.aptakube.Aptakube Aptakube'
-#cmd-shift-s = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh org.whispersystems.signal-desktop Signal'
-#cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/nsp.sh org.gnu.Emacs Emacs'
-#cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/nsp.sh net.kovidgoyal.kitty file_namager'
-# kitty --hold --name file_namager -e yazi &
+################################################################
+# ------------------------- Scratchpads -----------------------#
+################################################################
+
+#cmd-shift-a = 'exec-and-forget /Users/me/.config/scratchpad/scratchpad.sh com.aptakube.Aptakube Aptakube'
+#cmd-shift-s = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh org.whispersystems.signal-desktop Signal'
+#cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/scratchpad.sh org.gnu.Emacs Emacs'
+#cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
+
+#cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.finder Finder'
+cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
+cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
+cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
+
+# need terminal that all the time planning to be used only in float\scratchpad mode,
+# unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
+# for me it's iterm2 :)
+cmd-shift-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+
+# NOTE: not that script not centering scratchpad floadtin window, you need do it manually (one time if need)
+# the sortest way: `option` + mouse left double click (to full), then in the corner hold `option` + mouse left click and hold move to centeres size
+
+################################################################
+# ------------------------- Roles -----------------------------#
+################################################################
 
 [mode.resize.binding]
 h = 'resize width -50'
@@ -230,17 +249,9 @@ run = "move-node-to-workspace 2"
 if.app-id = 'com.google.Chrome'
 run = "move-node-to-workspace 3"
 
-[[on-window-detected]]
-if.app-id = 'com.sublimetext.4'
-run = "move-node-to-workspace 3"
-
 # second monitor configuration
 [workspace-to-monitor-force-assignment]
 9 = 'secondary'
-
-[[on-window-detected]]
-if.app-id = 'com.apple.Music'
-run = "move-node-to-workspace 9"
 
 [[on-window-detected]]
 if.app-id = 'com.microsoft.teams2'
@@ -254,7 +265,8 @@ run = "move-node-to-workspace 9"
 # Force float all the windows (or windows of a particular app)
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
-run = ['layout floating', 'move-node-to-workspace 9']
+run = 'layout floating'
+#run = ['layout floating', 'move-node-to-workspace 9']
 
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
@@ -270,4 +282,18 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.sublimetext.4'
+#run = "move-node-to-workspace 3"
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.googlecode.iterm2'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Music'
+#run = "move-node-to-workspace 9"
 run = 'layout floating'

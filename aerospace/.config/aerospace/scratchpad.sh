@@ -7,7 +7,7 @@ APP_NAME="$2"
 CURRENT_WORKSPACE=$(aerospace list-workspaces --focused)
 
 get_window_id() {
-    aerospace list-windows --all --format "%{window-id}%{right-padding} | %{app-name}" |
+    aerospace list-windows --all --format "%{window-id}%{right-padding} | '%{app-name}'" |
     grep "$APP_NAME" |
     cut -d' ' -f1 |
     head -n1
@@ -26,9 +26,9 @@ is_app_closed() {
 
 move_app_to_scratchpad() {
     local app_window_id
-    app_window_id=$(aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{window-id}%{right-padding} | %{app-name}" |
+    app_window_id=$(aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{window-id}%{right-padding} | '%{app-name}'" |
         grep "$APP_NAME" |
-        cut -d' ' -f1 |
+        cut -d ' ' -f1 |
     head -n1)
     aerospace move-node-to-workspace NSP --window-id "$app_window_id"
 }
@@ -37,7 +37,8 @@ main() {
     if is_app_closed; then
         open -a "$APP_NAME"
         sleep 0.5
-    elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-bundle-id}" | grep -q "$APP_ID"; then
+    #elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-bundle-id}" | grep -q "$APP_ID"; then
+    elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-name}" | grep "$APP_NAME"; then
         move_app_to_scratchpad
     else
         focus_app
