@@ -16,7 +16,7 @@ My current tool preferences:
 - Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [FiraCode](https://www.programmingfonts.org/#firacode), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
 - File Manager: [yazi](yazi) (used [ranger](ranger) in past)
 - OS: linux (arch, ubuntu), macos
-- Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [qtile](https://qtile.org/) (is the best for me!) / [i3wm](https://i3wm.org/) / [hyprland](https://github.com/hyprwm/Hyprland)
+- Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [qtile](https://qtile.org/) (my daily driver) / [i3wm](https://i3wm.org/) / [hyprland](https://github.com/hyprwm/Hyprland)
 - Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim) with focus on effective working with many programming languages I'm working (java, gradle, maven, yaml, bash, lua, python, js/ts etc). My nvim configuration still evolving and I have many commented parts, but finished on ~85-90%, and I'm quite effectively using it in my daily workflow as `s/l java engineear`. Yes I still have to use intellij to do many specific tasks that have better support in intellij or no alternative in neovim (working with RDBMD (yes vim-dadbod is cool but not for professional using by my point of view for now), generation, previewing openapi etc), but in 80% cases I'm using neovim for all, especially for codding.
 - Keyboard OS level tools: macos - [karabiner](karabiner), linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
 - Theme: [catppuccin-mocha](https://github.com/catppuccin/nvim)
