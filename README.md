@@ -1,6 +1,6 @@
 ## My dotfiles
 
-All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/), where config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example `nvim/.config/nvim`, where `stow nvim` will create symlink under `~/config/nvim` with link to `~/dotfiles/nvim/.config/nvim`. Tools that not managed by stow, located in [nonhome](nonhome)
+All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/), where config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example `nvim/.config/nvim`, where `stow nvim` will create symlink under `~/.config/nvim` with link to `~/dotfiles/nvim/.config/nvim`. Tools that not managed by stow, located in [nonhome](nonhome)
 
 All scripts that using by dot configurations required to have `dotfiles` to be cloned directly in `$HOME` directory as `~/dotfiles`
 
@@ -24,6 +24,12 @@ My current tool preferences:
 
 ## Random screenshots
 
+---
+
+---
+
+---
+
 #### MACOS + AEROSPACE
 
 ###### NEOVIM
@@ -46,6 +52,12 @@ My current tool preferences:
 
 ![intellij.png](images/mac/intellij.png)
 
+---
+
+---
+
+---
+
 #### ARCH LINUX + I3WM + Polybar
 
 ###### DESKTOP
@@ -63,6 +75,12 @@ My current tool preferences:
 ###### Intellij
 
 ![idea.png](images/i3wm/idea.png)
+
+---
+
+---
+
+---
 
 #### ARCH LINUX + QTILE
 
