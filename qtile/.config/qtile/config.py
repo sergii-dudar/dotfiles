@@ -1,6 +1,5 @@
 import os
 import subprocess
-from typing import List  # noqa: F401
 
 import colors
 from libqtile import bar, hook, layout, qtile, widget
@@ -17,6 +16,8 @@ discord = "webcord"
 todoist = "flatpak run com.todoist.Todoist"
 screenie = "flameshot gui"
 
+default_font = "CaskaydiaCove Nerd Font"
+default_font_widget = "CaskaydiaCove Nerd Font"
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 
 keys = [
@@ -61,19 +62,19 @@ keys = [
 # Create labels for groups and assign them a default layout.
 groups = []
 
-group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "minus", "equal", "F1", "F2", "F3", "F4", "F5"]
+group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
-# group_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+#group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
+group_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-group_layouts = ["monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall"]
+group_layout = "columns"
 
 # Add group names, labels, and default layouts to the groups object.
 for i in range(len(group_names)):
     groups.append(
         Group(
             name=group_names[i],
-            layout=group_layouts[i].lower(),
+            layout=group_layout,
             label=group_labels[i],
         )
     )
@@ -132,78 +133,91 @@ keys.extend(
 
 # Define layouts and layout themes
 layout_theme = {
-    "margin": 20, 
-    "border_width": 4,
-    "border_focus": colors[11], 
+    "margin": 5,
+    "border_width": 3,
+    "border_focus": colors[5],
     "border_normal": colors[0]
 }
 
 layouts = [
-    layout.MonadTall(**layout_theme),
-    layout.MonadWide(**layout_theme),
-    layout.MonadThreeCol(**layout_theme), 
-    layout.MonadWide(**layout_theme),
-    layout.Floating(**layout_theme),
-    layout.Spiral(**layout_theme), 
-    layout.RatioTile(**layout_theme), 
+    layout.Columns(**layout_theme),
     layout.Max(**layout_theme)
+    # layout.MonadTall(**layout_theme),
+    # layout.MonadWide(**layout_theme),
+    # layout.MonadThreeCol(**layout_theme),
+    # layout.MonadWide(**layout_theme),
+    # layout.Floating(**layout_theme),
+    # layout.Spiral(**layout_theme),
+    # layout.RatioTile(**layout_theme),
+
+    # Try more layouts by unleashing below layouts.
+    # layout.Stack(num_stacks=2),
+    # layout.Bsp(),
+    # layout.Matrix(),
+    # layout.MonadTall(),
+    # layout.MonadWide(),
+    # layout.RatioTile(),
+    # layout.Tile(),
+    # layout.TreeTab(),
+    # layout.VerticalTile(),
+    # layout.Zoomy(),
 ]
 
 sep = widget.Sep(linewidth=1, paddog=15, foreground=colors[0], background=colors[0])
 spacer = widget.Spacer(background=colors[11])
 groupbox = widget.GroupBox(
-    font="JetBrainsMono Nerd Font Mono", 
-    fontsize=20, 
-    margin_y=4, 
-    margin_x=4, 
+    font="CaskaydiaCove Nerd Font",
+    fontsize=20,
+    margin_y=4,
+    margin_x=4,
     padding_y=6,
     padding_x=6,
     borderwidth=2,
-    disable_drag=True, 
+    disable_drag=True,
     active=colors[2], # unfocused
-    inactive=colors[0],
-    hide_unused=True,
+    inactive=colors[3],
+    hide_unused=False,
     rounded=True,
     highlight_method="text",
     highlight_color=colors[0], # box color
-    this_current_screen_border=colors[6], 
-    this_screen_border=colors[10], 
-    other_current_screen_border=colors[2], 
+    this_current_screen_border=colors[6],
+    this_screen_border=colors[10],
+    other_current_screen_border=colors[2],
     block_highlight_text_color=colors[6],
-    other_screen_border=colors[6], 
-    urgent_alert_method="line", 
-    urgent_border=colors[6], 
-    urgent_text=colors[1], 
-    foreground=colors[0], 
+    other_screen_border=colors[6],
+    urgent_alert_method="line",
+    urgent_border=colors[6],
+    urgent_text=colors[1],
+    foreground=colors[0],
     background=colors[0],
-    use_mouse_wheel=False)    
+    use_mouse_wheel=False)
 
-weather = widget.OpenWeather(
-    app_key="4cf3731a25d1d1f4e4a00207afd451a2",
-    cityid="4997193",
-    format="{icon} {main_temp}°",
-    metric=False,
-    font="JetBrainsMono Nerd Font Mono",
-    fontsize=13,
-    background=colors[0],
-    foreground=colors[2],
-)
+# weather = widget.OpenWeather(
+#     app_key="4cf3731a25d1d1f4e4a00207afd451a2",
+#     cityid="4997193",
+#     format="{icon} {main_temp}°",
+#     metric=False,
+#     font=default_font,
+#     fontsize=13,
+#     background=colors[0],
+#     foreground=colors[2],
+# )
 
-volicon = widget.TextBox(text="󰕾", fontsize=25, font="JetBrainsMono Nerd Font Mono", foreground=colors[2], background=colors[0])
+volicon = widget.TextBox(text="󰕾", fontsize=25, font=default_font, foreground=colors[2], background=colors[0])
 volume = widget.Volume(foreground=colors[2], padding=10, background=colors[0])
-cpuicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[3])
-cpu = widget.CPU(font="JetBrainsMono Nerd Font", update_interval=1.0, format="{load_percent}%", foreground=colors[2], background=colors[0], padding=5)
-memicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[6])
+cpuicon = widget.TextBox(text="", fontsize=20, font=default_font, background=colors[0], foreground=colors[3])
+cpu = widget.CPU(font=default_font_widget, update_interval=1.0, format="{load_percent}%", foreground=colors[2], background=colors[0], padding=5)
+memicon = widget.TextBox(text="", fontsize=20, font=default_font, background=colors[0], foreground=colors[6])
 mem = widget.Memory(
-    font="JetBrainsMono Nerd Font",
+    font=default_font_widget,
     foreground=colors[2],
     background=colors[0],
     format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm}",
     measure_mem="G",
     padding=5,
 )
-clockicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[5])
-clock = widget.Clock(format="%I:%M %p", font="JetBrainsMono Nerd Font", padding=10, background=colors[0], foreground=colors[2])
+clockicon = widget.TextBox(text="", fontsize=20, font=default_font, background=colors[0], foreground=colors[5])
+clock = widget.Clock(format="%I:%M %p", font=default_font_widget, padding=10, background=colors[0], foreground=colors[2])
 curlayout = widget.CurrentLayoutIcon(
     scale=0.5,
     foreground=colors[0],
@@ -211,7 +225,11 @@ curlayout = widget.CurrentLayoutIcon(
     padding=10,
 )
 tray = widget.Systray(background=colors[0])
-windowname = widget.WindowName(font="JetBrainsMono Nerd Font", foreground=colors[0], background=colors[6])
+windowname = widget.WindowName(
+    font=default_font_widget,
+    foreground=colors[0],
+    background=colors[6]
+)
 
 screens = [
     # Screen(
@@ -239,20 +257,25 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                groupbox,
+                # left
                 sep,
                 curlayout,
+                windowname,
                 spacer,
-                sep,
-                weather,
+
+                # center
+                groupbox,
+                clockicon,
+                clock,
+                spacer,
+
+                # right
                 volicon,
                 volume,
                 cpuicon,
                 cpu,
                 memicon,
                 mem,
-                clockicon,
-                clock,
                 sep,
                 sep,
                 sep,
@@ -300,7 +323,7 @@ dgroups_app_rules = []  # type: list
 follow_mouse_focus = True
 bring_front_click = False
 floats_kept_above = True
-cursor_warp = True
+cursor_warp = False
 floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.

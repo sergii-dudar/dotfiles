@@ -6,14 +6,14 @@ requires = [
     "setuptools-scm>=7.0",
     "wheel",
 ]
-backend-path=["."]
+backend-path = ["."]
 build-backend = "builder"
 
 [project]
 name = "qtile"
 description = "A pure-Python tiling window manager."
 dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
-license = {text = "MIT"}
+license = { text = "MIT" }
 classifiers = [
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: MIT License",
@@ -44,38 +44,46 @@ include = ["libqtile*"]
 [tool.setuptools_scm]
 
 [tool.setuptools.dynamic]
-readme = {file = "README.rst"}
+readme = { file = "README.rst" }
 
 [tool.ruff]
 line-length = 98
-exclude = ["libqtile/_ffi.*.py", "libqtile/backend/x11/_ffi.*.py", "test/configs/syntaxerr.py"]
+exclude = [
+    "libqtile/_ffi.*.py",
+    "libqtile/backend/x11/_ffi.*.py",
+    "test/configs/syntaxerr.py",
+]
 target-version = "py310"
 
 [tool.ruff.lint]
 select = [
-	"F",       # pyflakes
-	"E",       # pycodestyle errors
-	"W",       # pycodestyle warnings
-	"I",       # isort
-	"N",       # pep8-naming
-	"G",       # flake8-logging-format
-	"PIE",     # flake8-pie
-	"UP",      # pyupgrade
+    "F",   # pyflakes
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "N",   # pep8-naming
+    "G",   # flake8-logging-format
+    "PIE", # flake8-pie
+    "UP",  # pyupgrade
 ]
 
 ignore = [
-    "E501",    # ignore due to conflict with formatter
-    "N818",    # exceptions don't need the Error suffix
-    "E741",    # allow ambiguous variable names
+    "E501", # ignore due to conflict with formatter
+    "N818", # exceptions don't need the Error suffix
+    "E741", # allow ambiguous variable names
+    "N816",
+    "W191",
+    "N806",
+    "E101",
 ]
 
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
 "stubs/*" = [
-    "N",       # naming conventions don't matter in stubs
-    "F403",    # star imports are okay in stubs
-    "F405",    # star imports are okay in stubs
+    "N",    # naming conventions don't matter in stubs
+    "F403", # star imports are okay in stubs
+    "F405", # star imports are okay in stubs
 ]
 
 [tool.ruff.format]
@@ -119,6 +127,4 @@ min_confidence = 100
 [tool.pytest.ini_options]
 python_files = "test_*.py"
 testpaths = ["test"]
-filterwarnings = [
-    "error:::libqtile",
-]
+filterwarnings = ["error:::libqtile"]
