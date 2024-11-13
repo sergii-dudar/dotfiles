@@ -11,7 +11,7 @@ killall picom; picom -b --config ~/.config/picom/picom.conf --vsync &
 # but it's ok it you will switch parent window to needed layout, and then all fine with `autotiling`.
 # autotiling &
 
-~/.config/polybar/launch.sh &
+#~/.config/polybar/launch.sh &
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 nm-applet &

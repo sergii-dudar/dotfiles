@@ -8,10 +8,11 @@ from libqtile.config import Click, Drag, DropDown, Group, Key, Match, ScratchPad
 from libqtile.lazy import lazy
 
 mod = "mod4"
-terminal = "kitty"
+terminal_kitty = "kitty"
+terminal = "wezterm"
 mymenu = "rofi -show drun"
-browser = "flatpak run com.vivaldi.Vivaldi"
-files = "krusader"
+browser = "google-chrome-stable"
+files = "nautilus"
 discord = "webcord"
 todoist = "flatpak run com.todoist.Todoist"
 screenie = "flameshot gui"
@@ -24,11 +25,11 @@ keys = [
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
     Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
-    Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    #Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([mod], "d", lazy.spawn(mymenu)),
+    Key(["mod1"], "space", lazy.spawn(mymenu)),
     Key([mod], "w", lazy.spawn(browser)),
     Key([mod, "shift"], "Return", lazy.spawn(files)),
     Key([mod, "mod1"], "s", lazy.spawn(screenie)),
@@ -119,24 +120,62 @@ groups.append(
 # Scratchpad keybindings
 keys.extend(
     [
-        Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
-        Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
-        Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
-        Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
-        Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
-        Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
+        #Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
+        #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
+        #Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
+        #Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
+        #Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
+        #Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
     ]
 )
 
 
 # Define layouts and layout themes
-layout_theme = {"margin": 20, "border_width": 4, "border_focus": colors[11], "border_normal": colors[0]}
+layout_theme = {"margin": 20,
+                "border_width": 4, 
+                "border_focus": colors[11], 
+                "border_normal": colors[0]
+                 }
 
-layouts = [layout.MonadTall(**layout_theme), layout.MonadWide(**layout_theme), layout.MonadThreeCol(**layout_theme), layout.MonadWide(**layout_theme), layout.Floating(**layout_theme), layout.Spiral(**layout_theme), layout.RatioTile(**layout_theme), layout.Max(**layout_theme)]
+layouts = [
+    layout.MonadTall(**layout_theme), 
+    layout.MonadWide(**layout_theme), 
+    layout.MonadThreeCol(**layout_theme), 
+    layout.MonadWide(**layout_theme), 
+    layout.Floating(**layout_theme), 
+    layout.Spiral(**layout_theme), 
+    layout.RatioTile(**layout_theme),
+    layout.Max(**layout_theme)
+]
 
 sep = widget.Sep(linewidth=1, paddog=15, foreground=colors[0], background=colors[0])
 spacer = widget.Spacer(background=colors[11])
-groupbox = widget.GroupBox(font="JetBrainsMono Nerd Font Mono", fontsize=20, margin_y=4, margin_x=4, padding_y=6, padding_x=6, borderwidth=2, disable_drag=True, active=colors[2], inactive=colors[0], hide_unused=True, rounded=True, highlight_method="text", highlight_color=colors[0], this_current_screen_border=colors[6], this_screen_border=colors[10], other_current_screen_border=colors[2], block_highlight_text_color=colors[6], other_screen_border=colors[6], urgent_alert_method="line", urgent_border=colors[6], urgent_text=colors[1], foreground=colors[0], background=colors[0], use_mouse_wheel=False)  # unfocused  # box color
+groupbox = widget.GroupBox(
+    font="JetBrainsMono Nerd Font Mono", 
+                           fontsize=20,
+    margin_y=4,
+    margin_x=4, 
+    padding_y=6, 
+    padding_x=6, 
+    borderwidth=2,
+    disable_drag=True, 
+    active=colors[2], 
+    inactive=colors[0],  # unfocused 
+    hide_unused=True,
+    rounded=True, 
+    highlight_method="text", 
+    highlight_color=colors[0], # box color
+    this_current_screen_border=colors[6], 
+    this_screen_border=colors[10],
+    other_current_screen_border=colors[2], 
+    block_highlight_text_color=colors[6],
+    other_screen_border=colors[6],
+    urgent_alert_method="line",
+    urgent_border=colors[6],
+    urgent_text=colors[1], 
+    foreground=colors[0],
+    background=colors[0], 
+    use_mouse_wheel=False)  
 weather = widget.OpenWeather(
     app_key="4cf3731a25d1d1f4e4a00207afd451a2",
     cityid="4997193",
@@ -172,28 +211,28 @@ tray = widget.Systray(background=colors[0])
 windowname = widget.WindowName(font="JetBrainsMono Nerd Font", foreground=colors[0], background=colors[6])
 
 screens = [
-    Screen(
-        top=bar.Bar(
-            [
-                groupbox,
-                sep,
-                curlayout,
-                spacer,
-                sep,
-                weather,
-                volicon,
-                volume,
-                cpuicon,
-                cpu,
-                memicon,
-                mem,
-                clockicon,
-                clock,
-            ],
-            margin=0,
-            size=22,
-        ),
-    ),
+    # Screen(
+    #     top=bar.Bar(
+    #         [
+    #             groupbox,
+    #             sep,
+    #             curlayout,
+    #             spacer,
+    #             sep,
+    #             weather,
+    #             volicon,
+    #             volume,
+    #             cpuicon,
+    #             cpu,
+    #             memicon,
+    #             mem,
+    #             clockicon,
+    #             clock,
+    #         ],
+    #         margin=0,
+    #         size=22,
+    #     ),
+    # ),
     Screen(
         top=bar.Bar(
             [
@@ -215,33 +254,35 @@ screens = [
                 sep,
                 sep,
                 tray,
+                sep,
+                sep,
             ],
-            size=22,
+            size=35,
             margin=0,
         ),
     ),
-    Screen(
-        top=bar.Bar(
-            [
-                groupbox,
-                sep,
-                curlayout,
-                spacer,
-                sep,
-                weather,
-                volicon,
-                volume,
-                cpuicon,
-                cpu,
-                memicon,
-                mem,
-                clockicon,
-                clock,
-            ],
-            size=22,
-            margin=0,
-        ),
-    ),
+    # Screen(
+    #     top=bar.Bar(
+    #         [
+    #             groupbox,
+    #             sep,
+    #             curlayout,
+    #             spacer,
+    #             sep,
+    #             weather,
+    #             volicon,
+    #             volume,
+    #             cpuicon,
+    #             cpu,
+    #             memicon,
+    #             mem,
+    #             clockicon,
+    #             clock,
+    #         ],
+    #         size=22,
+    #         margin=0,
+    #     ),
+    # ),
 ]
 
 # Drag floating layouts.
