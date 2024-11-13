@@ -3,8 +3,8 @@
 #xrandr --output DP-1 --off --output DP-2 --mode 1920x1080 --pos 0x654 --rotate normal --output DP-3 --primary --mode 1920x1080 --pos 1920x0 --rotate normal --output HDMI-1 --mode 1920x1080 --pos 1920x1080 --rotate normal
 
 # compositor
-killall picom; picom --backend glx -b --config ~/.config/picom/picom.conf --vsync &
-#killall picom; picom -b --config ~/.config/i3/picom_configurations/1.conf &
+#killall picom; picom --backend glx -b --config ~/.config/picom/picom.conf --vsync &
+killall picom; picom -b --corner-radius 0 --config ~/.config/picom/picom.conf --vsync &
 #flatpak run com.borgbase.Vorta &
 
 # be careful with autotiming if you are using tabbed or stacking can be strange, as sub tree will be diff, because it's became dymanic
