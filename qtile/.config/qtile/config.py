@@ -28,7 +28,7 @@ keys = [
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
     Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
-    #Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    # Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
@@ -123,31 +123,32 @@ groups.append(
 # Scratchpad keybindings
 keys.extend(
     [
-        #Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
-        #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
-        #Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
-        #Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
-        #Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
-        #Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
+        # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
+        # Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
+        # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
+        # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
+        # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
+        # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
     ]
 )
 
 
 # Define layouts and layout themes
-layout_theme = {"margin": 20,
-                "border_width": 4, 
-                "border_focus": colors[11], 
-                "border_normal": colors[0]
-                 }
+layout_theme = {
+    "margin": 20, 
+    "border_width": 4,
+    "border_focus": colors[11], 
+    "border_normal": colors[0]
+}
 
 layouts = [
-    layout.MonadTall(**layout_theme), 
-    layout.MonadWide(**layout_theme), 
+    layout.MonadTall(**layout_theme),
+    layout.MonadWide(**layout_theme),
     layout.MonadThreeCol(**layout_theme), 
-    layout.MonadWide(**layout_theme), 
-    layout.Floating(**layout_theme), 
+    layout.MonadWide(**layout_theme),
+    layout.Floating(**layout_theme),
     layout.Spiral(**layout_theme), 
-    layout.RatioTile(**layout_theme),
+    layout.RatioTile(**layout_theme), 
     layout.Max(**layout_theme)
 ]
 
@@ -155,30 +156,31 @@ sep = widget.Sep(linewidth=1, paddog=15, foreground=colors[0], background=colors
 spacer = widget.Spacer(background=colors[11])
 groupbox = widget.GroupBox(
     font="JetBrainsMono Nerd Font Mono", 
-                           fontsize=20,
-    margin_y=4,
+    fontsize=20, 
+    margin_y=4, 
     margin_x=4, 
-    padding_y=6, 
-    padding_x=6, 
+    padding_y=6,
+    padding_x=6,
     borderwidth=2,
     disable_drag=True, 
-    active=colors[2], 
-    inactive=colors[0],  # unfocused 
+    active=colors[2], # unfocused
+    inactive=colors[0],
     hide_unused=True,
-    rounded=True, 
-    highlight_method="text", 
+    rounded=True,
+    highlight_method="text",
     highlight_color=colors[0], # box color
     this_current_screen_border=colors[6], 
-    this_screen_border=colors[10],
+    this_screen_border=colors[10], 
     other_current_screen_border=colors[2], 
     block_highlight_text_color=colors[6],
-    other_screen_border=colors[6],
-    urgent_alert_method="line",
-    urgent_border=colors[6],
+    other_screen_border=colors[6], 
+    urgent_alert_method="line", 
+    urgent_border=colors[6], 
     urgent_text=colors[1], 
-    foreground=colors[0],
-    background=colors[0], 
-    use_mouse_wheel=False)  
+    foreground=colors[0], 
+    background=colors[0],
+    use_mouse_wheel=False)    
+
 weather = widget.OpenWeather(
     app_key="4cf3731a25d1d1f4e4a00207afd451a2",
     cityid="4997193",
@@ -189,6 +191,7 @@ weather = widget.OpenWeather(
     background=colors[0],
     foreground=colors[2],
 )
+
 volicon = widget.TextBox(text="󰕾", fontsize=25, font="JetBrainsMono Nerd Font Mono", foreground=colors[2], background=colors[0])
 volume = widget.Volume(foreground=colors[2], padding=10, background=colors[0])
 cpuicon = widget.TextBox(text="", fontsize=20, font="JetBrainsMono Nerd Font Mono", background=colors[0], foreground=colors[3])
