@@ -1,14 +1,11 @@
-from typing import List  # noqa: F401
 import os
 import subprocess
-from os import path
+from typing import List  # noqa: F401
 
-from libqtile import bar, layout, widget, hook, qtile
-from libqtile.config import Click, Drag, Group, ScratchPad, DropDown, Key, Match, Screen
-from libqtile.lazy import lazy
-from settings.path import qtile_path
-from extra import multiColorTag
 import colors
+from libqtile import bar, hook, layout, qtile, widget
+from libqtile.config import Click, Drag, DropDown, Group, Key, Match, ScratchPad, Screen
+from libqtile.lazy import lazy
 
 mod = "mod4"
 terminal_kitty = "kitty"

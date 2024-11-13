@@ -9,16 +9,16 @@ return {
             -- source ~/.local/share/nvim/mason/packages/beautysh/venv/bin/activate
             -- pip install setuptools
 
-            opts.formatters_by_ft.python = { "black" }
+            opts.formatters_by_ft.python = { "ruff" } --{ "black" }
             opts.formatters_by_ft.lua = { "stylua" }
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }
 
-            opts.formatters = {
-                black = {
-                    prepend_args = { "--line-length", "1000" },
-                },
-            }
+            -- opts.formatters = {
+            --     black = {
+            --         prepend_args = { "--line-length", "1000" },
+            --     },
+            -- }
 
             opts.default_format_opts.timeout_ms = 3000
 
