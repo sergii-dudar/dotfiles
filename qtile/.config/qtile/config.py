@@ -17,7 +17,10 @@ todoist = "flatpak run com.todoist.Todoist"
 screenie = "flameshot gui"
 
 default_font = "CaskaydiaCove Nerd Font"
-default_font_widget = "CaskaydiaCove Nerd Font"
+default_font_size = 16
+default_font_widget = "CaskaydiaCove Nerd Font Bold"
+default_font_widget_size = 18
+
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 
 keys = [
@@ -41,7 +44,7 @@ keys = [
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    # Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
     Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
     Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"),
     Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
@@ -57,6 +60,8 @@ keys = [
     # Switch focus of monitors
     Key([mod], "period", lazy.next_screen()),
     Key([mod], "comma", lazy.prev_screen()),
+
+    # Key([mod], "space", lazy.widget["keyboardlayout"].next_keyboard(), desc="Next keyboard layout."),
 ]
 
 # Create labels for groups and assign them a default layout.
@@ -230,7 +235,12 @@ windowname = widget.WindowName(
     foreground=colors[0],
     background=colors[6]
 )
-
+keyboard = widget.KeyboardLayout(
+    configured_keyboards=['us','ua'],
+    font = default_font_widget,
+    fontsize = 18,
+    fmt = "  {}"
+)
 screens = [
     # Screen(
     #     top=bar.Bar(
@@ -270,6 +280,9 @@ screens = [
                 spacer,
 
                 # right
+                #keyboard,
+                keyboard,
+                sep,
                 volicon,
                 volume,
                 cpuicon,

@@ -1,78 +1,42 @@
-super + p
-    pkill -USR1 -x sxhkd
+# ---------- Rofi & dmenu ------------ #
 
-super + shift + Return
-    krusader
+#alt + space
+#    rofi -show
 
-#Rofi & dmenu
+super + q
+    bash $HOME/dotfiles/bin/powermenu
 
-super + d
-    rofi -show drun -show-icons -font "Noto Sans 14"
+ctrl + alt + q
+    bash $HOME/dotfiles/bin/screen-lock
 
-alt + z; {a,s}
-   {viddesc, poddesc}
+super + space
+    bash $HOME/dotfiles/bin/change_language.sh
 
-super + t
-    qtheme.sh
+# general:
+# XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#   lxqt-config
+# volume:
+#   pavucontrol
+# netrork
+#   nm-connection-editor
 
-super + g
-    kate
+# ---------- Application Keybindings ----------- #
 
-# Application Keybindings
-
-super + w
-    flatpak run com.vivaldi.Vivaldi
-
-super + shift + w
-   flatpak run com.vivaldi.Vivaldi --private-window
-
-alt + s
- flatpak run com.todoist.Todoist
-
-alt + n 
- flatpak run com.discordapp.Discord
-
-ctrl + alt + s
+#ctrl + alt + s
+Print
     flameshot gui
 
-#Audio Keybindings
+# ---------- Audio Keybindings ------------- #
 
-XF86AudioRaiseVolume
-        amixer -c 1 -- sset Master 2db+
+super + Left
+    amixer -D pulse sset Master 5%-
 
-XF86AudioLowerVolume
-        amixer -c 1 -- sset Master 2db-
+super + Right
+    amixer -D pulse sset Master 5%+
 
-XF97AudioMute
-        amixer -c 1 -- sset Master toggle
+#{ Left, Down, Up, Right }
+super + Down
+    amixer -D pulse sset Master toggle
 
-alt + d
-        pactl set-sink-volume 0 +5% 
 
-alt + a
-        pactl set-sink-volume 0 -5% 
-
-XF86AudioPlay
-    playerctl play-pause
-
-ctrl + alt + p
-    playerctl play-pause
-
-XF86AudioNext
-    playerctl next
-
-XF86AudioPrev
-    playerctl previous
-
-ctrl + shift + period
-    playerctl next
-
-ctrl + shift + comma
-    playerctl previous
-
-XF86AudioStop
-    playerctl stop
-
-alt + {h,j,k,l}
-   mpc {prev,next,play,pause}
-
+# Application Keybindings
