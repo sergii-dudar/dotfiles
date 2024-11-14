@@ -356,13 +356,13 @@ reconfigure_screens = True
 
 @hook.subscribe.startup_once
 def autostart_once():
-    home = os.path.expanduser("~/.config/qtile/autostart_once.sh")
+    home = os.path.expanduser("~/.config/qtile/shell/autostart_once.sh")
     subprocess.Popen([home])
 
 
 @hook.subscribe.startup
 def autostart():
-    home = os.path.expanduser("~/.config/qtile/autostart_always.sh")
+    home = os.path.expanduser("~/.config/qtile/shell/autostart_always.sh")
     subprocess.Popen([home])
 
 
