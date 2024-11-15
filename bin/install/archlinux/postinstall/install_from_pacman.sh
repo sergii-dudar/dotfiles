@@ -20,4 +20,10 @@ sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol vo
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools # need for nvim Conform plugin
+
+
+sudo pacman -S lxappearance
+
+# wayland
+sudo pacman -S nwg-look catppuccin-gtk-theme-mocha
 # curl -sS https://starship.rs/install.sh | sh

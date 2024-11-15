@@ -5,9 +5,6 @@ include ~/.config/i3/themes/nord.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-exec --no-startup-id xrdb -merge ~/.Xresources
-exec ~/dotfiles/bin/apply-display-settings.sh
-
 exec --no-startup-id ~/.config/i3/autostart_once.sh
 exec_always --no-startup-id ~/.config/i3/autostart_always.sh
 

@@ -2,9 +2,10 @@ import os
 import subprocess
 
 import colors
-from libqtile import bar, hook, layout, qtile, widget
-from libqtile.config import Click, Drag, DropDown, Group, Key, Match, ScratchPad, Screen
+from libqtile import bar, group, hook, layout, qtile, widget
+from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
+from libqtile.log_utils import logger
 
 mod = "mod4"
 terminal_kitty = "kitty"
@@ -89,8 +90,8 @@ for i in groups:
     keys.extend(
         [
             Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Mod + number to move to that group."),
-            Key(["mod1"], "Tab", lazy.screen.next_group(), desc="Move to next group."),
-            Key(["mod1", "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
+            #Key(["mod1"], "Tab", lazy.screen.next_group(), desc="Move to next group."),
+            #Key(["mod1", "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
             Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="Move focused window to new group."),
         ]
     )
@@ -108,32 +109,58 @@ for vt in range(1, 8):
         )
     )
 
+############################################################
+###### Open specific applications in scratchpad mode #######
+############################################################
+
+def to_center_x(width: float) -> float:
+    return (1 - width) / 2
+
+def to_center_y(height: float) -> float:
+    return (1 - height) / 2
+
+telegram_width=0.55
+telegram_height=0.6
+telegram_x=to_center_x(width=telegram_width)
+telegram_y=to_center_y(height=telegram_height)
+
+yazi_width=0.8
+yazi_height=yazi_width
+yazi_x=to_center_x(width=yazi_width)
+yazi_y=to_center_y(height=yazi_height)
+
 # Define scratchpads
-groups.append(
-    ScratchPad(
-        "scratchpad",
-        [
-            DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-            DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-            DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-        ],
-    )
-)
+# groups.append(
+#     ScratchPad(
+#         "scratchpad",
+#         [
+#             # DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
+#             # DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
+#             # DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+#             # DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+#             # DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+#             # DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+#
+#             #DropDown("telegram", "telegram-desktop &", width=telegram_width, height=telegram_height, x=telegram_x, y=telegram_y, opacity=1),
+#             #DropDown("yazi", "kitty --class=yazi -e yazi", width=yazi_width, height=yazi_height, x=yazi_x, y=yazi_y, opacity=0.9),
+#         ],
+#     )
+# )
 
 # Scratchpad keybindings
-keys.extend(
-    [
-        # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
-        # Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
-        # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
-        # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
-        # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
-        # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
-    ]
-)
+# keys.extend(
+#     [
+#         # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
+#         #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
+#         # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
+#         # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
+#         # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
+#         # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
+#
+#         #Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
+#         #Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
+#     ]
+# )
 
 
 # Define layouts and layout themes
@@ -242,28 +269,6 @@ keyboard = widget.KeyboardLayout(
     fmt = "  {}"
 )
 screens = [
-    # Screen(
-    #     top=bar.Bar(
-    #         [
-    #             groupbox,
-    #             sep,
-    #             curlayout,
-    #             spacer,
-    #             sep,
-    #             weather,
-    #             volicon,
-    #             volume,
-    #             cpuicon,
-    #             cpu,
-    #             memicon,
-    #             mem,
-    #             clockicon,
-    #             clock,
-    #         ],
-    #         margin=0,
-    #         size=22,
-    #     ),
-    # ),
     Screen(
         top=bar.Bar(
             [
@@ -300,28 +305,6 @@ screens = [
             margin=0,
         ),
     ),
-    # Screen(
-    #     top=bar.Bar(
-    #         [
-    #             groupbox,
-    #             sep,
-    #             curlayout,
-    #             spacer,
-    #             sep,
-    #             weather,
-    #             volicon,
-    #             volume,
-    #             cpuicon,
-    #             cpu,
-    #             memicon,
-    #             mem,
-    #             clockicon,
-    #             clock,
-    #         ],
-    #         size=22,
-    #         margin=0,
-    #     ),
-    # ),
 ]
 
 # Drag floating layouts.
@@ -337,6 +320,11 @@ follow_mouse_focus = True
 bring_front_click = False
 floats_kept_above = True
 cursor_warp = False
+
+############################################################
+####### Open specific applications in floating mode ########
+############################################################
+
 floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
@@ -347,12 +335,55 @@ floating_layout = layout.Floating(
         Match(wm_class="ssh-askpass"),  # ssh-askpass
         Match(title="branchdialog"),  # gitk
         Match(title="pinentry"),  # GPG key password entry
+
+        Match(wm_class="qBittorrent"),
+        Match(wm_class="pavucontrol"),
+        Match(wm_class="org.gnome.Nautilus"),
+        Match(wm_class="gnome-system-monitor"),
+        Match(wm_class="Nm-connection-editor"),
+        Match(wm_class="ViberPC"),
+        Match(wm_class="vlc"),
+        Match(wm_class="gnome-calculator"),
+        Match(wm_class="snapshot"),
+        Match(wm_class="Gcolor3"),
+        Match(wm_class="org.gnome.Characters"),
+        Match(wm_class="org.gnome.clocks"),
+        Match(wm_class="gnome-calendar"),
+        Match(wm_class="Gnome-disks"),
+        Match(wm_class="Glate"),
+
+        #Match(title="Telegram"),
+
+        # Google Chat
+        #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
+        # Monkeytype
+        #Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
     ]
 )
+
+############################################################
+######## Open applications on specific workspaces ##########
+############################################################
+
+# Define rules to assign specific applications to groups
+# rules_list = [
+#         { "rule": Rule(Match(wm_class="org.wezfurlong.wezterm")), "group": "1" },
+#         { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
+#         { "rule": Rule(Match(wm_class="Code")), "group": "2" },
+#         { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
+#         { "rule": Rule(Match(wm_class="kitty")), "group": "4" },
+# ]
+
+# @hook.subscribe.client_new
+# def assign_app_group(client):
+#     for item in rules_list:
+#         if item["rule"].matches(client):
+#             client.togroup(item["group"])
+#             break
+
 auto_fullscreen = True
 focus_on_window_activation = "smart"
 reconfigure_screens = True
-
 
 @hook.subscribe.startup_once
 def autostart_once():
@@ -361,7 +392,7 @@ def autostart_once():
 
 
 @hook.subscribe.startup
-def autostart():
+def autostart_always():
     home = os.path.expanduser("~/.config/qtile/shell/autostart_always.sh")
     subprocess.Popen([home])
 
