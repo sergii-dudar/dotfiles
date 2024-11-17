@@ -25,10 +25,20 @@ default_font_widget_size = 18
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 
+# TODO:
+def focus_previous_window(qtile):
+    # Access the focus history
+    if len(qtile.current_screen.group.focus_history) > 1:
+        # Get the last focused window in the current group
+        last_window = qtile.current_screen.group.focus_history[-2]
+        if last_window:
+            qtile.current_screen.set_group(last_window.group)
+            last_window.group.focus(last_window, warp=True)
+
 keys = [
     Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    #Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
     Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
     # Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
@@ -62,39 +72,41 @@ keys = [
     # Switch focus of monitors
     Key([mod], "period", lazy.next_screen()),
     Key([mod], "comma", lazy.prev_screen()),
+    # Key([mod], "Tab", lazy.group.focus_back(), desc="Alternate between two most recent windows")
+    Key([mod], "Tab", lazy.function(focus_previous_window)),
 
     # Key([mod], "space", lazy.widget["keyboardlayout"].next_keyboard(), desc="Next keyboard layout."),
 ]
 
 # Create labels for groups and assign them a default layout.
-#groups = []
+groups = []
 
-#group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 #group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
-#group_labels = group_names
+group_labels = group_names
 
-#group_layout = "columns"
+group_layout = "columns"
 
 # Add group names, labels, and default layouts to the groups object.
-# for i in range(len(group_names)):
-#     groups.append(
-#         Group(
-#             name=group_names[i],
-#             layout=group_layout,
-#             label=group_labels[i],
-#         )
-#     )
+for i in range(len(group_names)):
+    groups.append(
+        Group(
+            name=group_names[i],
+            layout=group_layout,
+            label=group_labels[i],
+        )
+    )
 
-groups = [Group(i) for i in "123456789"]
+#groups = [Group(i) for i in "123456789"]
 
 # Add group specific keybindings
 for i in groups:
     keys.extend(
         [
             Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Mod + number to move to that group."),
-            #Key(["mod1"], "Tab", lazy.screen.next_group(), desc="Move to next group."),
-            #Key(["mod1", "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
+            Key(["mod1"], "Tab", lazy.screen.next_group(), desc="Move to next group."),
+            Key(["mod1", "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
             Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="Move focused window to new group."),
         ]
     )
@@ -133,42 +145,42 @@ yazi_x=to_center_x(width=yazi_width)
 yazi_y=to_center_y(height=yazi_height)
 
 # Define scratchpads
-# groups.append(
-#     ScratchPad(
-#         "scratchpad",
-#         [
-#             # DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-#             # DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-#             # DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-#             # DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-#             # DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-#             # DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-#
-#             #DropDown("telegram", "telegram-desktop &", width=telegram_width, height=telegram_height, x=telegram_x, y=telegram_y, opacity=1),
-#             #DropDown("yazi", "kitty --class=yazi -e yazi", width=yazi_width, height=yazi_height, x=yazi_x, y=yazi_y, opacity=0.9),
-#         ],
-#     )
-# )
+groups.append(
+    ScratchPad(
+        "scratchpad",
+        [
+            # DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
+            # DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
+            # DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+            # DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+            # DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+            # DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
+
+            DropDown("telegram", "telegram-desktop &", width=telegram_width, height=telegram_height, x=telegram_x, y=telegram_y, opacity=0.98),
+            DropDown("yazi", "kitty --class=yazi -e yazi", width=yazi_width, height=yazi_height, x=yazi_x, y=yazi_y, opacity=0.9),
+        ],
+    )
+)
 
 # Scratchpad keybindings
-# keys.extend(
-#     [
-#         # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
-#         #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
-#         # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
-#         # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
-#         # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
-#         # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
-#
-#         #Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
-#         #Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
-#     ]
-# )
+keys.extend(
+    [
+        # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
+        #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
+        # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
+        # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
+        # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
+        # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
+
+        Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
+        Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
+    ]
+)
 
 
 # Define layouts and layout themes
 layout_theme = {
-    "margin": 10,
+    "margin": 4,
     "border_width": 3,
     "border_focus": colors[5],
     "border_normal": colors[0],
@@ -216,7 +228,7 @@ groupbox = widget.GroupBox(
     active=colors[2], # unfocused
     inactive=colors[3],
     hide_unused=False,
-    rounded=True,
+    rounded=False,
     highlight_method="text",
     highlight_color=colors[0], # box color
     this_current_screen_border=colors[6],
@@ -277,6 +289,9 @@ keyboard = widget.KeyboardLayout(
 )
 screens = [
     Screen(
+        right=bar.Gap(7),
+        left=bar.Gap(7),
+        bottom=bar.Gap(7),
         top=bar.Bar(
             [
                 # left
@@ -309,7 +324,7 @@ screens = [
                 sep,
             ],
             size=35,
-            margin=0,
+            margin=[ 0, 0, 7, 0 ],
         ),
     ),
 ]
@@ -332,61 +347,61 @@ cursor_warp = False
 ####### Open specific applications in floating mode ########
 ############################################################
 
-# floating_layout = layout.Floating(
-#     float_rules=[
-#         # Run the utility of `xprop` to see the wm class and name of an X client.
-#         *layout.Floating.default_float_rules,
-#         Match(wm_class="confirmreset"),  # gitk
-#         Match(wm_class="makebranch"),  # gitk
-#         Match(wm_class="maketag"),  # gitk
-#         Match(wm_class="ssh-askpass"),  # ssh-askpass
-#         Match(title="branchdialog"),  # gitk
-#         Match(title="pinentry"),  # GPG key password entry
-#
-#         Match(wm_class="qBittorrent"),
-#         Match(wm_class="pavucontrol"),
-#         Match(wm_class="org.gnome.Nautilus"),
-#         Match(wm_class="gnome-system-monitor"),
-#         Match(wm_class="Nm-connection-editor"),
-#         Match(wm_class="ViberPC"),
-#         Match(wm_class="vlc"),
-#         Match(wm_class="gnome-calculator"),
-#         Match(wm_class="snapshot"),
-#         Match(wm_class="Gcolor3"),
-#         Match(wm_class="org.gnome.Characters"),
-#         Match(wm_class="org.gnome.clocks"),
-#         Match(wm_class="gnome-calendar"),
-#         Match(wm_class="Gnome-disks"),
-#         Match(wm_class="Glate"),
-#
-#         #Match(title="Telegram"),
-#
-#         # Google Chat
-#         #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
-#         # Monkeytype
-#         #Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
-#     ]
-# )
+floating_layout = layout.Floating(
+    float_rules=[
+        # Run the utility of `xprop` to see the wm class and name of an X client.
+        *layout.Floating.default_float_rules,
+        Match(wm_class="confirmreset"),  # gitk
+        Match(wm_class="makebranch"),  # gitk
+        Match(wm_class="maketag"),  # gitk
+        Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(title="branchdialog"),  # gitk
+        Match(title="pinentry"),  # GPG key password entry
+
+        Match(wm_class="qBittorrent"),
+        Match(wm_class="pavucontrol"),
+        Match(wm_class="org.gnome.Nautilus"),
+        Match(wm_class="gnome-system-monitor"),
+        Match(wm_class="Nm-connection-editor"),
+        Match(wm_class="ViberPC"),
+        Match(wm_class="vlc"),
+        Match(wm_class="gnome-calculator"),
+        Match(wm_class="snapshot"),
+        Match(wm_class="Gcolor3"),
+        Match(wm_class="org.gnome.Characters"),
+        Match(wm_class="org.gnome.clocks"),
+        Match(wm_class="gnome-calendar"),
+        Match(wm_class="Gnome-disks"),
+        Match(wm_class="Glate"),
+
+        #Match(title="Telegram"),
+
+        # Google Chat
+        #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
+        # Monkeytype
+        Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
+    ]
+)
 
 ############################################################
 ######## Open applications on specific workspaces ##########
 ############################################################
 
 # Define rules to assign specific applications to groups
-# rules_list = [
-#         { "rule": Rule(Match(wm_class="org.wezfurlong.wezterm")), "group": "1" },
-#         { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
-#         { "rule": Rule(Match(wm_class="Code")), "group": "2" },
-#         { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
-#         { "rule": Rule(Match(wm_class="kitty")), "group": "4" },
-# ]
+rules_list = [
+        { "rule": Rule(Match(wm_class="org.wezfurlong.wezterm")), "group": "1" },
+        { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
+        { "rule": Rule(Match(wm_class="Code")), "group": "2" },
+        { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
+        { "rule": Rule(Match(wm_class="kitty")), "group": "4" },
+]
 
-# @hook.subscribe.client_new
-# def assign_app_group(client):
-#     for item in rules_list:
-#         if item["rule"].matches(client):
-#             client.togroup(item["group"])
-#             break
+@hook.subscribe.client_new
+def assign_app_group(client):
+    for item in rules_list:
+        if item["rule"].matches(client):
+            client.togroup(item["group"])
+            break
 
 auto_fullscreen = True
 focus_on_window_activation = "smart"
@@ -397,11 +412,10 @@ reconfigure_screens = True
 #     # Force Qtile to reconfigure screens and groups
 #      lazy.reload_config()
 
-@hook.subscribe.startup_complete
-def run_every_startup():
-    lazy.reload_config()
-    send_notification("qtile", "startup_complete")
-
+# @hook.subscribe.startup_complete
+# def run_every_startup():
+#     lazy.reload_config()
+#     send_notification("qtile", "startup_complete")
 
 @hook.subscribe.screen_change
 def screen_change():
@@ -413,12 +427,10 @@ def autostart_once():
     home = os.path.expanduser("~/.config/qtile/shell/autostart_once.sh")
     subprocess.Popen([home])
 
-
 @hook.subscribe.startup
 def autostart_always():
     home = os.path.expanduser("~/.config/qtile/shell/autostart_always.sh")
     subprocess.Popen([home])
-
 
 # If things like steam games want to auto-minimize themselves when losing
 # focus, should we respect this or not?
