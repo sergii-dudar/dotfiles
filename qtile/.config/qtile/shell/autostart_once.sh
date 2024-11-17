@@ -1,14 +1,16 @@
 #!/bin/bash
 
-xrdb -merge ~/.Xresources &
 ~/dotfiles/bin/apply-display-settings.sh &
 #xsettingsd &
-
-glate &
-#kitty --hold zsh -c "yazi" &
-wezterm &
 ssh-add &
 dunst &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+
+#glate &
+#kitty --hold zsh -c "yazi" &
+wezterm &
+kitty &
+
 #killall volumeicon; volumeicon &
 google-chrome-stable &
 
@@ -22,4 +24,3 @@ google-chrome-stable &
 
 #[ ! -s ~/.config/mpd/pid ] && mpd &
 #/usr/libexec/polkit-gnome-authentication-agent-1 &
-/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &

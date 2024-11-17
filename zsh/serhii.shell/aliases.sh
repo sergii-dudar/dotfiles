@@ -1,5 +1,8 @@
 alias rl='export MANUAL_RL=1 ; exec zsh' # reload shell with variable
 
+# short edit
+alias dots="cd ~/dotfiles && nvim"
+
 # Changing "ls" to "eza"
 alias ls='eza -al --icons --color=always --group-directories-first'
 alias ls2='eza -al --tree --icons --level=2 --color=always --group-directories-first'
@@ -7,8 +10,8 @@ alias la='eza -a --icons --color=always --group-directories-first'  # all files 
 alias ll='eza -l --icons --color=always --group-directories-first'  # long format
 alias lt='eza -aT --icons --color=always --group-directories-first' # tree listing
 alias lh='eza -a | rg --color=always "^\."'
-alias l.='eza -al --icons --color=always --group-directories-first ../' # ls on the PARENT directory
-alias l..='eza -al --icons --color=always --group-directories-first ../../' # ls on directory 2 levels up
+alias l.='eza -al --icons --color=always --group-directories-first ../'         # ls on the PARENT directory
+alias l..='eza -al --icons --color=always --group-directories-first ../../'     # ls on directory 2 levels up
 alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
 
 # Changing "ps" to "procs"

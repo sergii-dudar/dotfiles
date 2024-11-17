@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Qtile
+Comment=Qtile Session
+Exec=$HOME/dotfiles/bin/desc/qtile.desktop.runner.sh
+Type=Application
+Keywords=wm;tiling

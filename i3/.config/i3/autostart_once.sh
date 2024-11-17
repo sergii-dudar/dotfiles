@@ -1,7 +1,6 @@
-xrdb -merge ~/.Xresources &
 ~/dotfiles/bin/apply-display-settings.sh &
 
-glate &
+#glate &
 kitty --hold zsh -c "yazi" &
 wezterm &
 #clipmenud &

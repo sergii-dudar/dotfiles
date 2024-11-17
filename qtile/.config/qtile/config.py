@@ -6,6 +6,7 @@ from libqtile import bar, group, hook, layout, qtile, widget
 from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
+from libqtile.utils import send_notification
 
 mod = "mod4"
 terminal_kitty = "kitty"
@@ -66,24 +67,26 @@ keys = [
 ]
 
 # Create labels for groups and assign them a default layout.
-groups = []
+#groups = []
 
-group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+#group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 #group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
-group_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+#group_labels = group_names
 
-group_layout = "columns"
+#group_layout = "columns"
 
 # Add group names, labels, and default layouts to the groups object.
-for i in range(len(group_names)):
-    groups.append(
-        Group(
-            name=group_names[i],
-            layout=group_layout,
-            label=group_labels[i],
-        )
-    )
+# for i in range(len(group_names)):
+#     groups.append(
+#         Group(
+#             name=group_names[i],
+#             layout=group_layout,
+#             label=group_labels[i],
+#         )
+#     )
+
+groups = [Group(i) for i in "123456789"]
 
 # Add group specific keybindings
 for i in groups:
@@ -165,15 +168,19 @@ yazi_y=to_center_y(height=yazi_height)
 
 # Define layouts and layout themes
 layout_theme = {
-    "margin": 5,
+    "margin": 10,
     "border_width": 3,
     "border_focus": colors[5],
-    "border_normal": colors[0]
+    "border_normal": colors[0],
+    "border_on_single": True
 }
 
 layouts = [
     layout.Columns(**layout_theme),
     layout.Max(**layout_theme)
+    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    # layout.Max(),
+    #
     # layout.MonadTall(**layout_theme),
     # layout.MonadWide(**layout_theme),
     # layout.MonadThreeCol(**layout_theme),
@@ -325,41 +332,41 @@ cursor_warp = False
 ####### Open specific applications in floating mode ########
 ############################################################
 
-floating_layout = layout.Floating(
-    float_rules=[
-        # Run the utility of `xprop` to see the wm class and name of an X client.
-        *layout.Floating.default_float_rules,
-        Match(wm_class="confirmreset"),  # gitk
-        Match(wm_class="makebranch"),  # gitk
-        Match(wm_class="maketag"),  # gitk
-        Match(wm_class="ssh-askpass"),  # ssh-askpass
-        Match(title="branchdialog"),  # gitk
-        Match(title="pinentry"),  # GPG key password entry
-
-        Match(wm_class="qBittorrent"),
-        Match(wm_class="pavucontrol"),
-        Match(wm_class="org.gnome.Nautilus"),
-        Match(wm_class="gnome-system-monitor"),
-        Match(wm_class="Nm-connection-editor"),
-        Match(wm_class="ViberPC"),
-        Match(wm_class="vlc"),
-        Match(wm_class="gnome-calculator"),
-        Match(wm_class="snapshot"),
-        Match(wm_class="Gcolor3"),
-        Match(wm_class="org.gnome.Characters"),
-        Match(wm_class="org.gnome.clocks"),
-        Match(wm_class="gnome-calendar"),
-        Match(wm_class="Gnome-disks"),
-        Match(wm_class="Glate"),
-
-        #Match(title="Telegram"),
-
-        # Google Chat
-        #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
-        # Monkeytype
-        #Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
-    ]
-)
+# floating_layout = layout.Floating(
+#     float_rules=[
+#         # Run the utility of `xprop` to see the wm class and name of an X client.
+#         *layout.Floating.default_float_rules,
+#         Match(wm_class="confirmreset"),  # gitk
+#         Match(wm_class="makebranch"),  # gitk
+#         Match(wm_class="maketag"),  # gitk
+#         Match(wm_class="ssh-askpass"),  # ssh-askpass
+#         Match(title="branchdialog"),  # gitk
+#         Match(title="pinentry"),  # GPG key password entry
+#
+#         Match(wm_class="qBittorrent"),
+#         Match(wm_class="pavucontrol"),
+#         Match(wm_class="org.gnome.Nautilus"),
+#         Match(wm_class="gnome-system-monitor"),
+#         Match(wm_class="Nm-connection-editor"),
+#         Match(wm_class="ViberPC"),
+#         Match(wm_class="vlc"),
+#         Match(wm_class="gnome-calculator"),
+#         Match(wm_class="snapshot"),
+#         Match(wm_class="Gcolor3"),
+#         Match(wm_class="org.gnome.Characters"),
+#         Match(wm_class="org.gnome.clocks"),
+#         Match(wm_class="gnome-calendar"),
+#         Match(wm_class="Gnome-disks"),
+#         Match(wm_class="Glate"),
+#
+#         #Match(title="Telegram"),
+#
+#         # Google Chat
+#         #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
+#         # Monkeytype
+#         #Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
+#     ]
+# )
 
 ############################################################
 ######## Open applications on specific workspaces ##########
@@ -384,6 +391,22 @@ floating_layout = layout.Floating(
 auto_fullscreen = True
 focus_on_window_activation = "smart"
 reconfigure_screens = True
+
+# @hook.subscribe.screen_change
+# def screen_change():
+#     # Force Qtile to reconfigure screens and groups
+#      lazy.reload_config()
+
+@hook.subscribe.startup_complete
+def run_every_startup():
+    lazy.reload_config()
+    send_notification("qtile", "startup_complete")
+
+
+@hook.subscribe.screen_change
+def screen_change():
+    lazy.reload_config()
+    send_notification("qtile", "screen_change")
 
 @hook.subscribe.startup_once
 def autostart_once():

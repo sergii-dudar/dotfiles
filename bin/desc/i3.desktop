@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=i3
+Comment=improved dynamic tiling window manager
+Exec=$HOME/dotfiles/bin/desc/i3.desktop.runner.sh
+TryExec=i3
+Type=Application
+X-LightDM-DesktopName=i3
+DesktopNames=i3
+Keywords=tiling;wm;windowmanager;window;manager;
