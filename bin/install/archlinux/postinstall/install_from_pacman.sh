@@ -21,9 +21,6 @@ sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol vo
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools # need for nvim Conform plugin
 
-
-sudo pacman -S lxappearance
-
-# wayland
-sudo pacman -S nwg-look catppuccin-gtk-theme-mocha
+# gtk
+sudo pacman -S nwg-look catppuccin-gtk-theme-mocha xdg-desktop-portal gnome-settings-daemon adwaita-gtk-theme xsettings-client xdg-desktop-portal-gtk
 # curl -sS https://starship.rs/install.sh | sh
