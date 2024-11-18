@@ -22,5 +22,9 @@ sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools # need for nvim Conform plugin
 
 # gtk
-sudo pacman -S nwg-look catppuccin-gtk-theme-mocha xdg-desktop-portal gnome-settings-daemon adwaita-gtk-theme xsettings-client xdg-desktop-portal-gtk
+sudo pacman -S nwg-look xdg-desktop-portal \
+    gnome-settings-daemon gnome-themes-extra xsettings-client xdg-desktop-portal-gtk
+
+# catppuccin-gtk-theme-mocha
+
 # curl -sS https://starship.rs/install.sh | sh
