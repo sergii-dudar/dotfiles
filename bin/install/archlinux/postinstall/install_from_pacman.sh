@@ -21,7 +21,7 @@ sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol vo
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools # need for nvim Conform plugin
 
-# gtk
+# gtk-section
 sudo pacman -S nwg-look xdg-desktop-portal \
     gnome-settings-daemon gnome-themes-extra xsettings-client xdg-desktop-portal-gtk
 
