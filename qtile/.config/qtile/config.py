@@ -9,6 +9,7 @@ from libqtile.log_utils import logger
 from libqtile.utils import send_notification
 
 mod = "mod4"
+alt="mod1"
 terminal_kitty = "kitty"
 terminal = "wezterm"
 mymenu = "rofi -show drun"
@@ -25,15 +26,25 @@ default_font_widget_size = 18
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 
-# TODO:
+previous_focused = []
+@hook.subscribe.client_focus
+def client_focused(window):
+    global previous_focused
+    if len(previous_focused) < 2:
+        previous_focused.append(window)
+    elif previous_focused[1] != window:
+        previous_focused[0] = previous_focused[1]
+        previous_focused[1] = window
+    # logger.info(f"FOCUSED {window}, {previous_focused}")
+
+@lazy.function
 def focus_previous_window(qtile):
-    # Access the focus history
-    if len(qtile.current_screen.group.focus_history) > 1:
-        # Get the last focused window in the current group
-        last_window = qtile.current_screen.group.focus_history[-2]
-        if last_window:
-            qtile.current_screen.set_group(last_window.group)
-            last_window.group.focus(last_window, warp=True)
+    global previous_focused
+    if len(previous_focused) == 2:
+        group = previous_focused[0].group
+        qtile.current_screen.set_group(group)
+        # logger.info(f"FOCUS PREVIOUS {previous_focused[0]}")
+        group.focus(previous_focused[0])
 
 keys = [
     Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
@@ -45,12 +56,12 @@ keys = [
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key(["mod1"], "space", lazy.spawn(mymenu)),
+    Key([alt], "space", lazy.spawn(mymenu)),
     Key([mod], "w", lazy.spawn(browser)),
     Key([mod, "shift"], "Return", lazy.spawn(files)),
-    Key([mod, "mod1"], "s", lazy.spawn(screenie)),
-    Key(["mod1"], "s", lazy.spawn(todoist)),
-    Key(["mod1"], "n", lazy.spawn(discord)),
+    Key([mod, alt], "s", lazy.spawn(screenie)),
+    Key([alt], "s", lazy.spawn(todoist)),
+    Key([alt], "n", lazy.spawn(discord)),
     # Movement Keys
     Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
@@ -73,9 +84,19 @@ keys = [
     Key([mod], "period", lazy.next_screen()),
     Key([mod], "comma", lazy.prev_screen()),
     # Key([mod], "Tab", lazy.group.focus_back(), desc="Alternate between two most recent windows")
-    Key([mod], "Tab", lazy.function(focus_previous_window)),
+    #Key([mod], "Tab", lazy.function(focus_previous_window)),
+    Key([alt], "Tab", focus_previous_window()),
 
     # Key([mod], "space", lazy.widget["keyboardlayout"].next_keyboard(), desc="Next keyboard layout."),
+
+     # Left, Up, Right, Down
+    # Key([alt], "Right", lazy.screen.next_group(), desc="Move to next group."),
+    # Key([alt], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
+    Key([mod], "Right", lazy.screen.next_group(), desc="Move to next group."),
+    Key([mod], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
+
+    Key([mod], "Tab", lazy.screen.next_group(), desc="Move to next group."),
+    Key([mod, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
 ]
 
 # Create labels for groups and assign them a default layout.
@@ -105,9 +126,9 @@ for i in groups:
     keys.extend(
         [
             Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Mod + number to move to that group."),
-            Key(["mod1"], "Tab", lazy.screen.next_group(), desc="Move to next group."),
-            Key(["mod1", "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
             Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="Move focused window to new group."),
+            # Key([alt], "Tab", lazy.screen.next_group(), desc="Move to next group."),
+            # Key([alt, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
         ]
     )
 
@@ -117,7 +138,7 @@ for i in groups:
 for vt in range(1, 8):
     keys.append(
         Key(
-            ["control", "mod1"],
+            ["control", alt],
             f"f{vt}",
             lazy.core.change_vt(vt).when(func=lambda: qtile.core.name == "wayland"),
             desc=f"Switch to VT{vt}",
