@@ -44,3 +44,6 @@ export EDITOR='nvim'
 export MANPAGER='nvim +Man!'
 # export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANWIDTH=999
+
+# enable Go modules to install the packages
+export GO111MODULE=on

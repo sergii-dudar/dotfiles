@@ -187,7 +187,7 @@ cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music
 # need terminal that all the time planning to be used only in float\scratchpad mode,
 # unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
 # for me it's iterm2 :)
-cmd-shift-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+alt-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
 
 # NOTE: not that script not centering scratchpad floadtin window, you need do it manually (one time if need)
 # the sortest way: `option` + mouse left double click (to full), then in the corner hold `option` + mouse left click and hold move to centeres size
