@@ -165,10 +165,14 @@ alt-left = 'workspace prev'
 
 alt-shift-f = 'fullscreen'
 
+################################################################
+# -------------------------- Modes-----------------------------#
+################################################################
+
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
-
 alt-shift-r = 'mode resize'
+ctrl-r = 'mode scratchpad'
 
 ################################################################
 # ------------------------- Scratchpads -----------------------#
@@ -180,21 +184,28 @@ alt-shift-r = 'mode resize'
 #cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
 
 #cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.finder Finder'
-cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
-cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
-cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
+# cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
+# cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
+# cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
 # need terminal that all the time planning to be used only in float\scratchpad mode,
 # unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
 # for me it's iterm2 :)
-alt-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+#alt-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
 
 # NOTE: not that script not centering scratchpad floadtin window, you need do it manually (one time if need)
 # the sortest way: `option` + mouse left double click (to full), then in the corner hold `option` + mouse left click and hold move to centeres size
 
-################################################################
-# ------------------------- Roles -----------------------------#
-################################################################
+# TODO:
+ctrl-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh iTerm, "Google Chat", "Sublime Text", Music'
+
+[mode.scratchpad.binding]
+t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
+s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
+m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
+enter = 'mode main'
+esc = 'mode main'
 
 [mode.resize.binding]
 h = 'resize width -50'
@@ -202,12 +213,9 @@ j = 'resize height +50'
 k = 'resize height -50'
 l = 'resize width +50'
 b = 'balance-sizes'
-
-
 # See: https://nikitabobko.github.io/AeroSpace/commands#resize
 minus = 'resize smart -50'
 equal = 'resize smart +50'
-
 enter = 'mode main'
 esc = 'mode main'
 
@@ -228,6 +236,10 @@ alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
 
+
+################################################################
+# ------------------------- Roles -----------------------------#
+################################################################
 # command to get application id: osascript -e 'id of app "Google Chat"'
 
 [[on-window-detected]]
