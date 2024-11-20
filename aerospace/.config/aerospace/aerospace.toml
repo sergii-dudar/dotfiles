@@ -15,7 +15,7 @@ after-login-command = []
 
 # https://github.com/FelixKratz/JankyBorders
 after-startup-command = [
-    'exec-and-forget borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0',
+    'exec-and-forget borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0',
 ]
 
 # Start AeroSpace at login
@@ -61,9 +61,9 @@ inner.horizontal = 10
 inner.vertical = 10
 
 outer.left = 10
-outer.bottom = 10
-outer.top = 10
 outer.right = 10
+outer.bottom = 2
+outer.top = 2
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -197,14 +197,26 @@ ctrl-r = 'mode scratchpad'
 # the sortest way: `option` + mouse left double click (to full), then in the corner hold `option` + mouse left click and hold move to centeres size
 
 # TODO:
-ctrl-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh iTerm, "Google Chat", "Sublime Text", Music'
+# ctrl-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm", "Google Chat", "Sublime Text", "Music"'
+cmd-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm", "Google Chat", "Sublime Text", "Music"'
 
 [mode.scratchpad.binding]
-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
-enter = 'mode main'
+t = [
+    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm',
+    #'mode main',
+]
+g = [
+    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"',
+    #'mode main',
+]
+s = [
+    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"',
+    #'mode main',
+]
+m = [
+    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music',
+    #'mode main',
+]
 esc = 'mode main'
 
 [mode.resize.binding]

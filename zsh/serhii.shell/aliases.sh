@@ -14,6 +14,11 @@ alias l.='eza -al --icons --color=always --group-directories-first ../'         
 alias l..='eza -al --icons --color=always --group-directories-first ../../'     # ls on directory 2 levels up
 alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
 
+if isMacOs; then
+    # https://github.com/FelixKratz/JankyBorders
+    alias run_borders="borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0 &"
+fi
+
 # Changing "ps" to "procs"
 alias ps="procs"
 
