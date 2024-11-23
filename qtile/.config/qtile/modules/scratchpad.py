@@ -1,24 +1,13 @@
-import colors
-import colors_dt
-import keybind
-from libqtile import bar, group, hook, layout, widget
 from libqtile.config import (
-    Click,
-    Drag,
     DropDown,
-    Group,
     Key,
-    KeyChord,
-    Match,
-    Rule,
     ScratchPad,
-    Screen,
 )
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from libqtile.utils import send_notification
+from modules.variables import mod
 
-mod = keybind.mod
 
 def to_center_x(width: float) -> float:
     return (1 - width) / 2
@@ -65,11 +54,11 @@ def add_scratchpad(groups, keys):
             # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
             # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
 
-            # Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
-            # Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
-            KeyChord(["control"], "r", [
-                Key([], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
-                Key([], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
-            ])
+            Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
+            Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
+            # KeyChord(["control"], "r", [
+            #     Key([], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
+            #     Key([], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
+            # ])
         ]
     )

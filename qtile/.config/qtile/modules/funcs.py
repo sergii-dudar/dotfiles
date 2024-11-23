@@ -1,9 +1,8 @@
-import colors
-import colors_dt
-from libqtile import bar, group, hook, layout, widget
-from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
+import os
+import subprocess
+
+from libqtile import hook
 from libqtile.lazy import lazy
-from libqtile.log_utils import logger
 from libqtile.utils import send_notification
 
 previous_focused = []
@@ -46,3 +45,18 @@ def maximize_by_switching_layout(qtile):
 def layout_change(layout, group):
 	for window in group.windows:
 		window.floating = False
+
+@hook.subscribe.screen_change
+def screen_change():
+    lazy.reload_config()
+    send_notification("qtile", "screen_change")
+
+@hook.subscribe.startup_once
+def autostart_once():
+    home = os.path.expanduser("~/.config/qtile/shell/autostart_once.sh")
+    subprocess.Popen([home])
+
+@hook.subscribe.startup
+def autostart_always():
+    home = os.path.expanduser("~/.config/qtile/shell/autostart_always.sh")
+    subprocess.Popen([home])
