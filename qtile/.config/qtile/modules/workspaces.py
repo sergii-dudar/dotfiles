@@ -26,6 +26,11 @@ groups = []
 group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 #group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
+#group_labels = ["DEV", "WWW", "SYS", "DOC", "VBOX", "CHAT", "MUS", "VID", "GFX",]
+#group_labels = ["", "", "", "", "", "", "", "", "",]
+
+
+
 group_labels = group_names
 
 group_layout = "columns"
@@ -58,8 +63,10 @@ def extend_keys_with_groups(keys):
 layout_theme = {
     "margin": 4,
     "border_width": 3,
-    "border_focus": colors[5],
-    "border_normal": colors[0],
+    # "border_focus": colors[5],
+    # "border_normal": colors[0],
+    "border_focus": colors_dt[8],
+    "border_normal": colors_dt[0],
     "border_on_single": True
 }
 

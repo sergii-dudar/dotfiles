@@ -80,8 +80,6 @@ groups = []
 group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9",]
 
 group_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9",]
-#group_labels = ["DEV", "WWW", "SYS", "DOC", "VBOX", "CHAT", "MUS", "VID", "GFX",]
-#group_labels = ["", "", "", "", "", "", "", "", "",]
 
 group_layouts = ["monadtall", "monadtall", "tile", "tile", "monadtall", "monadtall", "monadtall", "monadtall", "monadtall"]
 
@@ -95,13 +93,6 @@ for i in range(len(group_names)):
 
 
 colors = colors.DoomOne
-
-layout_theme = {"border_width": 2,
-                "margin": 8,
-                "border_focus": colors[8],
-                "border_normal": colors[0]
-                }
-
 
 widget_defaults = dict(
     font="Ubuntu Bold",

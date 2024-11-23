@@ -19,7 +19,7 @@ if isMacOs; then
 else
 
     alias out="sudo pkill -KILL -u serhii"
-    alias app_class="xprop | grep -i wm_class"
+    alias window_type="xprop | grep -i wm_class"
 
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
