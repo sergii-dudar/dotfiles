@@ -1,23 +1,16 @@
 import os
 import subprocess
 
-import colors
+# Make sure 'qtile-extras' is installed or this config will not work.
+from qtile_extras import widget
+from qtile_extras.widget.decorations import BorderDecoration
+
 from libqtile import bar, group, hook, layout, qtile, widget
 from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from libqtile.utils import send_notification
-
-mod = "mod4"
-alt="mod1"
-terminal_kitty = "kitty"
-terminal = "wezterm"
-mymenu = "rofi -show drun"
-browser = "google-chrome-stable"
-files = "nautilus"
-discord = "webcord"
-todoist = "flatpak run com.todoist.Todoist"
-screenie = "flameshot gui"
+from modules import colors, colors_dt, funcs, keybind, scratchpad
 
 default_font = "CaskaydiaCove Nerd Font"
 default_font_size = 16
@@ -25,58 +18,65 @@ default_font_widget = "CaskaydiaCove Nerd Font Bold"
 default_font_widget_size = 18
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
+colors_dt = colors_dt.DoomOne
 
-previous_focused = []
-@hook.subscribe.client_focus
-def client_focused(window):
-    global previous_focused
-    if len(previous_focused) < 2:
-        previous_focused.append(window)
-    elif previous_focused[1] != window:
-        previous_focused[0] = previous_focused[1]
-        previous_focused[1] = window
-    # logger.info(f"FOCUSED {window}, {previous_focused}")
-
-@lazy.function
-def focus_previous_window(qtile):
-    global previous_focused
-    if len(previous_focused) == 2:
-        group = previous_focused[0].group
-        qtile.current_screen.set_group(group)
-        # logger.info(f"FOCUS PREVIOUS {previous_focused[0]}")
-        group.focus(previous_focused[0])
+mod = keybind.mod
+alt = keybind.alt
 
 keys = [
-    Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
+    Key([mod], "Return", lazy.spawn(keybind.terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
     #Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
-    Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
-    # Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+
+    # Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
+    Key([mod], "f", funcs.maximize_by_switching_layout(), lazy.window.toggle_fullscreen(), desc='toggle fullscreen'),
+    Key([mod, "shift"], "m", funcs.minimize_all(), desc="Toggle hide/show all windows on current group"),
+    Key([mod], "m", lazy.layout.maximize(), desc='Toggle between min and max sizes'),
+
+    Key([mod], "b", lazy.hide_show_bar(position='all'), desc="Toggles the bar to show/hide"),
+
+    #Key([mod], "w", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    #Key([mod], "w", telegram(),desc="Toggle floating on the focused window"),
+
+    # Toggle between split and unsplit sides of stack.
+    # Split = all windows displayed
+    # Unsplit = 1 window displayed, like Max layout, but still with
+    # multiple stack panes
+
+
+
+
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([alt], "space", lazy.spawn(mymenu)),
-    Key([mod], "w", lazy.spawn(browser)),
-    Key([mod, "shift"], "Return", lazy.spawn(files)),
-    Key([mod, alt], "s", lazy.spawn(screenie)),
-    Key([alt], "s", lazy.spawn(todoist)),
-    Key([alt], "n", lazy.spawn(discord)),
+    #Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([alt], "space", lazy.spawn(keybind.mymenu)),
+    #Key([mod], "w", lazy.spawn(browser)),
+    Key([mod, "shift"], "Return", lazy.spawn(keybind.files)),
+    # Key([mod, alt], "s", lazy.spawn(screenie)),
+    Key([alt], "s", lazy.spawn(keybind.todoist)),
+    Key([alt], "n", lazy.spawn(keybind.discord)),
+
     # Movement Keys
     Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
+
     # Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
     Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
     Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"),
     Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
     Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+
+    # Grow windows up, down, left, right.  Only works in certain layouts.
+    # Works in 'bsp' and 'columns' layout.
     Key([mod, "control"], "h", lazy.layout.grow_left(), desc="Grow window to the left"),
     Key([mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"),
     Key([mod, "control"], "j", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+
     # Switch focus to specific monitor (out of three)
     Key([mod], "i", lazy.to_screen(0)),
     Key([mod], "o", lazy.to_screen(1)),
@@ -85,18 +85,21 @@ keys = [
     Key([mod], "comma", lazy.prev_screen()),
     # Key([mod], "Tab", lazy.group.focus_back(), desc="Alternate between two most recent windows")
     #Key([mod], "Tab", lazy.function(focus_previous_window)),
-    Key([alt], "Tab", focus_previous_window()),
+    Key([alt], "Tab", funcs.focus_previous_window()),
 
     # Key([mod], "space", lazy.widget["keyboardlayout"].next_keyboard(), desc="Next keyboard layout."),
 
      # Left, Up, Right, Down
     # Key([alt], "Right", lazy.screen.next_group(), desc="Move to next group."),
     # Key([alt], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
-    Key([mod], "Right", lazy.screen.next_group(), desc="Move to next group."),
-    Key([mod], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
+    #Key([mod], "Right", lazy.screen.next_group(), desc="Move to next group."),
+    #Key([mod], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
 
     Key([mod], "Tab", lazy.screen.next_group(), desc="Move to next group."),
     Key([mod, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
+
+    #----------------------
+
 ]
 
 # Create labels for groups and assign them a default layout.
@@ -145,59 +148,7 @@ for vt in range(1, 8):
         )
     )
 
-############################################################
-###### Open specific applications in scratchpad mode #######
-############################################################
-
-def to_center_x(width: float) -> float:
-    return (1 - width) / 2
-
-def to_center_y(height: float) -> float:
-    return (1 - height) / 2
-
-telegram_width=0.55
-telegram_height=0.6
-telegram_x=to_center_x(width=telegram_width)
-telegram_y=to_center_y(height=telegram_height)
-
-yazi_width=0.8
-yazi_height=yazi_width
-yazi_x=to_center_x(width=yazi_width)
-yazi_y=to_center_y(height=yazi_height)
-
-# Define scratchpads
-groups.append(
-    ScratchPad(
-        "scratchpad",
-        [
-            # DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-            # DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-            # DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            # DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            # DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-            # DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-
-            DropDown("telegram", "telegram-desktop &", width=telegram_width, height=telegram_height, x=telegram_x, y=telegram_y, opacity=0.98),
-            DropDown("yazi", "kitty --class=yazi -e yazi", width=yazi_width, height=yazi_height, x=yazi_x, y=yazi_y, opacity=0.9),
-        ],
-    )
-)
-
-# Scratchpad keybindings
-keys.extend(
-    [
-        # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("term")),
-        #Key([mod], "c", lazy.group["scratchpad"].dropdown_toggle("ranger")),
-        # Key([mod], "v", lazy.group["scratchpad"].dropdown_toggle("volume")),
-        # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("mus")),
-        # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
-        # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
-
-        Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
-        Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
-    ]
-)
-
+scratchpad.add_scratchpad(groups, keys)
 
 # Define layouts and layout themes
 layout_theme = {
@@ -381,7 +332,7 @@ floating_layout = layout.Floating(
 
         Match(wm_class="qBittorrent"),
         Match(wm_class="pavucontrol"),
-        Match(wm_class="org.gnome.Nautilus"),
+        # Match(wm_class="org.gnome.Nautilus"),
         Match(wm_class="gnome-system-monitor"),
         Match(wm_class="Nm-connection-editor"),
         Match(wm_class="ViberPC"),

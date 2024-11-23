@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 ~/dotfiles/bin/apply-display-settings.sh &
 
 #glate &
