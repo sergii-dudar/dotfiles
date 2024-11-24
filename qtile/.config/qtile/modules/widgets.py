@@ -106,9 +106,9 @@ groupbox = widget.GroupBox(
     hide_unused=False,
     #highlight_method="text", # 'border', 'block', 'text', or 'line'
     highlight_method="line", # 'border', 'block', 'text', or 'line'
-    borderwidth=3,
+    borderwidth=5,
     rounded=False,
-    highlight_color=colors[0], # box color
+    highlight_color=["#44475a", "#44475a"], #["#282a36", "#282a36"],#colors[1], # box color
     this_current_screen_border=colors[8], #color_overlay1,
     this_screen_border=colors[10],
     other_current_screen_border=colors[2],
@@ -119,7 +119,7 @@ groupbox = widget.GroupBox(
     foreground=foregroundColor,
     background=backgroundColor,
     use_mouse_wheel=False,
-    spacing=3,
+    spacing=0,
     center_aligned=True,
 )
 
