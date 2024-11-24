@@ -1,5 +1,8 @@
 #import colors_dt
 from libqtile import bar, group, hook, layout, widget
+
+#from qtile_extras import widget
+#from qtile_extras.widget.decorations import RectDecoration  # for decorations
 from libqtile.config import (
     Click,
     Drag,
@@ -87,24 +90,26 @@ space = widget.TextBox(
 spacer = widget.Spacer(
     background=backgroundColor
 )
+
 groupbox = widget.GroupBox(
     font=default_font_widget,
     fontsize=default_font_widget_size,
-    margin_y=3,
-    margin_x=3,
+    margin_y=5,
+    margin_x=5,
     padding_y=6,
     padding_x=6,
+    #padding=6, #[ 0, 0, 7, 0 ],
     disable_drag=True,
     active=colors[3], # unfocused
     inactive=colors[1],
-    block_highlight_text_color=colors[8],
+    block_highlight_text_color=colors[5],
     hide_unused=False,
     #highlight_method="text", # 'border', 'block', 'text', or 'line'
-    highlight_method="block", # 'border', 'block', 'text', or 'line'
-    borderwidth=2,
-    rounded=True,
-    highlight_color=colors[4], # box color
-    this_current_screen_border=color_overlay1,
+    highlight_method="line", # 'border', 'block', 'text', or 'line'
+    borderwidth=3,
+    rounded=False,
+    highlight_color=colors[0], # box color
+    this_current_screen_border=colors[8], #color_overlay1,
     this_screen_border=colors[10],
     other_current_screen_border=colors[2],
     other_screen_border=colors[6],
@@ -113,7 +118,10 @@ groupbox = widget.GroupBox(
     urgent_text=colors[1],
     foreground=foregroundColor,
     background=backgroundColor,
-    use_mouse_wheel=False)
+    use_mouse_wheel=False,
+    spacing=3,
+    center_aligned=True,
+)
 
 volicon = widget.TextBox(
     text="󰕾",
