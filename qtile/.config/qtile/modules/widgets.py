@@ -1,5 +1,3 @@
-import colors
-
 #import colors_dt
 from libqtile import bar, group, hook, layout, widget
 from libqtile.config import (
@@ -17,6 +15,17 @@ from libqtile.config import (
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from libqtile.utils import send_notification
+from modules import (
+    colors,
+    colors_dt,
+    funcs,
+    keybind,
+    scratchpad,
+    variables,
+    widgets,
+    winrules,
+    workspaces,
+)
 from modules.variables import (
     default_font,
     default_font_size,
@@ -81,22 +90,23 @@ spacer = widget.Spacer(
 groupbox = widget.GroupBox(
     font=default_font_widget,
     fontsize=default_font_widget_size,
-    margin_y=4,
-    margin_x=4,
+    margin_y=3,
+    margin_x=3,
     padding_y=6,
     padding_x=6,
-    borderwidth=2,
     disable_drag=True,
-    active=colors[2], # unfocused
-    inactive=colors[3],
+    active=colors[3], # unfocused
+    inactive=colors[1],
+    block_highlight_text_color=colors[8],
     hide_unused=False,
-    rounded=False,
-    highlight_method="text",
-    highlight_color=colors[0], # box color
-    this_current_screen_border=colors[6],
+    #highlight_method="text", # 'border', 'block', 'text', or 'line'
+    highlight_method="block", # 'border', 'block', 'text', or 'line'
+    borderwidth=2,
+    rounded=True,
+    highlight_color=colors[4], # box color
+    this_current_screen_border=color_overlay1,
     this_screen_border=colors[10],
     other_current_screen_border=colors[2],
-    block_highlight_text_color=colors[6],
     other_screen_border=colors[6],
     urgent_alert_method="line",
     urgent_border=colors[6],

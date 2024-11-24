@@ -27,11 +27,9 @@ group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 #group_labels = ["󰖟", "", "", "", "", "", "", "", "ﭮ", "", "", "﨣", "F1", "F2", "F3", "F4", "F5"]
 #group_labels = ["DEV", "WWW", "SYS", "DOC", "VBOX", "CHAT", "MUS", "VID", "GFX",]
+group_labels = ["VIM", "IDE", "WWW", "FILES", "5", "6", "7", "8", "9",]
 #group_labels = ["", "", "", "", "", "", "", "", "",]
-
-
-
-group_labels = group_names
+#group_labels = group_names
 
 group_layout = "columns"
 
