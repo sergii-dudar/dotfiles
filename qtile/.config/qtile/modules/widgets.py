@@ -1,4 +1,6 @@
 #import colors_dt
+import subprocess
+
 from libqtile import bar, group, hook, layout, widget
 
 #from qtile_extras import widget
@@ -66,13 +68,6 @@ widget_defaults = dict(
 )
 extension_defaults = widget_defaults.copy()
 
-# sep = widget.Sep(
-#     linewidth=1,
-#     paddog=15,
-#     # foreground=foregroundColor,
-#     background=backgroundColor,
-#     text = "||"
-# )
 sep = widget.TextBox(
     text=" 󱋱 ",
     fontsize=default_font_widget_size,
@@ -133,7 +128,9 @@ volicon = widget.TextBox(
 volume = widget.Volume(
     padding=10,
     foreground=colors[2],
-    background=backgroundColor
+    background=backgroundColor,
+    font=default_font_widget,
+    fontsize=default_font_widget_size,
 )
 cpuicon = widget.TextBox(
     text=" ",
@@ -148,7 +145,8 @@ cpu = widget.CPU(
     format="{load_percent}%",
     padding=5,
     foreground=colors[2],
-    background=backgroundColor
+    background=backgroundColor,
+    fontsize=default_font_widget_size,
 )
 memicon = widget.TextBox(
     text="",
@@ -161,7 +159,9 @@ mem = widget.Memory(
     font=default_font_widget,
     foreground=foregroundColor,
     background=backgroundColor,
+    fontsize=default_font_widget_size,
     format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm}",
+    #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
     padding=5,
 )
@@ -172,19 +172,72 @@ clockicon = widget.TextBox(
     foreground=colors[5],
     background=backgroundColor
 )
+
+@lazy.function
+def toggle_clock_format(qtile):
+    cwidget = next(w for w in qtile.widgets_map.values() if isinstance(w, widget.Clock))
+    if cwidget.format == "%I:%M %p":  # Current format is clock
+        cwidget.format = "%Y-%m-%d"   # Switch to date
+    else:
+       cwidget.format = "%I:%M %p"   # Switch back to clock
+    cwidget.tick()  # Force the widget to refresh immediately
+
 clock = widget.Clock(
     format="%I:%M %p",
+    #format = "%a, %b %d - %I:%M %p",
     font=default_font_widget,
     fontsize = default_font_widget_size,
     padding=10,
     foreground=colors[2],
-    background=backgroundColor
+    background=backgroundColor,
+    mouse_callbacks={"Button1": toggle_clock_format},
 )
+class MouseOverClock(widget.Clock):
+    defaults = [
+        (
+            "long_format",
+            "%A %d %B %Y | %H:%M",
+            "Format to show when mouse is over widget."
+        )
+    ]
+
+    def __init__(self, **config):
+        widget.Clock.__init__(self, **config)
+        self.add_defaults(MouseOverClock.defaults)
+        self.short_format = self.format
+
+    def mouse_enter(self, *args, **kwargs):
+        self.format = self.long_format
+        self.bar.draw()
+
+    def mouse_leave(self, *args, **kwargs):
+        self.format = self.short_format
+        self.bar.draw()
+
+clock_cust = MouseOverClock(
+    format="%I:%M %p",
+    #format = "%a, %b %d - %I:%M %p",
+    font=default_font_widget,
+    fontsize = default_font_widget_size,
+    padding=10,
+    foreground=colors[2],
+    background=backgroundColor,
+    mouse_callbacks={"Button1": toggle_clock_format},
+)
+
 curlayout = widget.CurrentLayoutIcon(
     scale=0.5,
     padding=10,
     foreground=foregroundColor,
     background=backgroundColor,
+    fontsize=default_font_widget_size,
+)
+curlayoutText = widget.CurrentLayout(
+    foreground=foregroundColor,
+    background=backgroundColor,
+    font=default_font_widget,
+    fontsize = default_font_widget_size,
+    padding = 5
 )
 tray = widget.Systray(
     background=backgroundColor
@@ -203,13 +256,38 @@ keyboard = widget.KeyboardLayout(
     foreground=foregroundColor,
     background=backgroundColor,
 )
+arch_icon = widget.TextBox(
+    text="❤ ",
+    fontsize=25,
+    font=default_font_widget,
+    foreground=colors[6],
+    background=backgroundColor
+)
+arch_version = widget.GenPollText(
+    update_interval = 9999,
+    func = lambda: subprocess.check_output("printf $(uname -r)", shell=True, text=True),
+    fmt = '{}',
+    font=default_font_widget,
+    fontsize = default_font_widget_size,
+    foreground=colors[3],
+    background=backgroundColor,
+)
 
 bar_widgers = [
+        # widget.Image(
+        #          filename = "~/.config/qtile/Assets/logo.png",
+        #          scale = "False",
+        #          mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm)},
+        #          ),
+
+
     # left
     curlayout,
+    curlayoutText,
     sep,
     windowname,
     spacer,
+
 
     # center
     groupbox,
@@ -217,6 +295,7 @@ bar_widgers = [
     clockicon,
     clock,
     spacer,
+    clock_cust,
 
     # right
     #keyboard,
@@ -232,6 +311,9 @@ bar_widgers = [
     mem,
     sep,
     tray,
+    sep,
+    arch_icon,
+    arch_version,
     space
     # sep,
     # sep,
