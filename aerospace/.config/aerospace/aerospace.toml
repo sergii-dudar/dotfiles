@@ -160,8 +160,8 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 #alt-p = 'workspace prev'
 
 # left, down, up, right
-alt-right = 'workspace next'
-alt-left = 'workspace prev'
+#alt-right = 'workspace next'
+#alt-left = 'workspace prev'
 
 alt-shift-f = 'fullscreen'
 

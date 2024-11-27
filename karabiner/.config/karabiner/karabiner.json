@@ -90,19 +90,6 @@
                         ]
                     },
                     {
-                        "description": "open terminal",
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "return_or_enter",
-                                    "modifiers": { "mandatory": ["left_control", "left_command"] }
-                                },
-                                "to": [{ "shell_command": "open ~/dotfiles/work/bash/iterm.sh" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
                         "description": "home",
                         "manipulators": [
                             {
@@ -312,6 +299,14 @@
                         "vendor_id": 41219
                     },
                     "ignore": true
+                },
+                {
+                    "identifiers": {
+                        "is_pointing_device": true,
+                        "product_id": 50504,
+                        "vendor_id": 1133
+                    },
+                    "ignore": false
                 }
             ],
             "name": "Default profile",
