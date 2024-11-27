@@ -13,17 +13,17 @@ add_newline = false
 disabled = true
 
 # Replace the "❯" symbol in the prompt with "➜"
-[character]                            # The name of the module we are configuring is "character"
-success_symbol = "[❯](bold cyan)"     # The "success_symbol" segment is being set to "➜" with the color "bold green"
+[character] # The name of the module we are configuring is "character"
+success_symbol = "[❯](bold cyan)" # The "success_symbol" segment is being set to "➜" with the color "bold green"
 error_symbol = "[❯](bold red)"
 
 # configure directory
 [directory]
 read_only = " 󰌾"
 truncation_length = 2
-truncate_to_repo = false # truncates directory to root folder if in github repo
+truncate_to_repo = false      # truncates directory to root folder if in github repo
 style = "bold italic blue"
-fish_style_pwd_dir_length=1
+fish_style_pwd_dir_length = 1
 
 [cmd_duration]
 min_time = 1000
@@ -33,20 +33,22 @@ style = "bold italic yellow"
 
 [git_branch]
 symbol = " "
+truncation_length = 27
+truncation_symbol = '…'
 
 [git_status]
 format = '([\[$all_status$ahead_behind\]]($style) )'
 stashed = "[${count}*](green)"
 modified = "[${count}+](yellow)"
-deleted =  "[${count}-](red)"
-conflicted =  "[${count}~](red)"
+deleted = "[${count}-](red)"
+conflicted = "[${count}~](red)"
 ahead = "⇡${count}"
 behind = "⇣${count}"
 untracked = "[${count}?](blue)"
 staged = "[${count}+](green)"
 
 [git_state]
-style =	"bold red"
+style = "bold red"
 format = "[$state( $progress_current/$progress_total) ]($style)"
 rebase = "rebase"
 merge = "merge"

@@ -1,1 +1,16 @@
 "shell_command": "/bin/zsh ~/dotfiles/work/bash/iterm.sh || open ~/dotfiles/work/bash/iterm.sh"
+
+
+{
+                        "description": "open terminal",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "return_or_enter",
+                                    "modifiers": { "mandatory": ["left_control", "left_command"] }
+                                },
+                                "to": [{ "shell_command": "open ~/dotfiles/work/bash/iterm.sh" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
