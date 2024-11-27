@@ -172,7 +172,7 @@ alt-shift-f = 'fullscreen'
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
 alt-shift-r = 'mode resize'
-ctrl-r = 'mode scratchpad'
+alt-shift-p = 'mode scratchpad'
 
 ################################################################
 # ------------------------- Scratchpads -----------------------#
