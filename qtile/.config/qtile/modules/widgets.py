@@ -230,7 +230,7 @@ powermenu = widget.TextBox(
     **decorations_no_round
 )
 windowname = widget.WindowName(
-    foreground=foregroundColor,
+    foreground=colors[8],
     **text_widget_defaults,
     # decorations=[
     #     BorderDecoration(
