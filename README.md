@@ -90,4 +90,24 @@ My current tool preferences:
 
 #### ARCH LINUX + QTILE
 
+###### DESKTOP
+![desktop.png](images/qtile/desktop.png)
+
+###### NEOVIM
+![nvim.png](images/qtile/nvim.png)
+
+###### SCRATCHPAD
+![scratchpad.png](images/qtile/scratchpad.png)
+
+###### Intellij
+![intellij.png](images/qtile/intellij.png)
+
+---
+
+---
+
+---
+
+#### ARCH LINUX + AWESOME WM
+
 ...
