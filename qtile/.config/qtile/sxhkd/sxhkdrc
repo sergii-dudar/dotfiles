@@ -30,6 +30,7 @@ Print
 
 super + Left
     amixer -D pulse sset Master 5%-
+#   amixer -c 1 sset IEC958 toggle
 
 super + Right
     amixer -D pulse sset Master 5%+
@@ -37,6 +38,7 @@ super + Right
 #{ Left, Down, Up, Right }
 super + Down
     amixer -D pulse sset Master toggle
+    #amixer -c 1 sset IEC958 toggle
 
 
 # Application Keybindings

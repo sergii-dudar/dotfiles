@@ -2,15 +2,15 @@
 
 LOCK="🔒 Lock"
 LOGOUT="🚪 Logout"
-SUSPEND="⏸ Suspend"
-REBOOT="🔁 Reboot"
+SUSPEND="⏸ Sleep"
+REBOOT="🔁 Restart"
 SHUTDOWN="⛔ Shutdown"
 
 choice=$(printf "$LOCK\n$LOGOUT\n$SUSPEND\n$REBOOT\n$SHUTDOWN" | rofi -dmenu)
 case "$choice" in
-  "$LOCK") sh $HOME/dotfiles/bin/screen-lock ;;
-  "$LOGOUT") pkill -KILL -u "$USER" ;;
-  "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
-  "$REBOOT") systemctl reboot ;;
-  "$SHUTDOWN") systemctl poweroff ;;
+    "$LOCK") sh $HOME/dotfiles/bin/screen-lock ;;
+    "$LOGOUT") pkill -KILL -u "$USER" ;;
+    "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
+    "$REBOOT") systemctl reboot ;;
+    "$SHUTDOWN") systemctl poweroff ;;
 esac

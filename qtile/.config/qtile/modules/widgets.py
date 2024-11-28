@@ -4,38 +4,14 @@ import subprocess
 from qtile_extras import widget
 from qtile_extras.widget.decorations import BorderDecoration, RectDecoration  # for decorations
 
-#from libqtile import bar, group, hook, layout, widget
 from libqtile import qtile
-from libqtile.config import (
-    Click,
-    Drag,
-    DropDown,
-    Group,
-    Key,
-    KeyChord,
-    Match,
-    Rule,
-    ScratchPad,
-    Screen,
-)
 from libqtile.lazy import lazy
-from libqtile.log_utils import logger
-from libqtile.utils import send_notification
 from modules import (
     colors,
-    colors_dt,
-    funcs,
-    keybind,
-    scratchpad,
     variables,
-    widgets,
     widgets_custom,
-    winrules,
-    workspaces,
 )
 from modules.variables import (
-    default_font,
-    default_font_size,
     default_font_widget,
     default_font_widget_size,
 )
@@ -57,15 +33,37 @@ rect_decoraiton_defaults=dict(
     filled=True,
     padding_y=0,
 )
-dec_radius_left=dict(
-   radius=[ 17, 0, 0, 17 ],
-)
-dec_radius_right=dict(
-   radius=[ 0, 17, 17, 0 ],
-)
+decorations_no_round=dict(
+    decorations=[
+        RectDecoration(
+            radius=[ 0, 0, 0, 0 ],
+            **rect_decoraiton_defaults
+        )
+])
+decorations_round=dict(
+    decorations=[
+        RectDecoration(
+            radius=[ 17, 17, 17, 17 ],
+            **rect_decoraiton_defaults
+        )
+])
+decorations_round_left=dict(
+    decorations=[
+        RectDecoration(
+            radius=[ 17, 0, 0, 17 ],
+            **rect_decoraiton_defaults
+        )
+])
+decorations_round_right=dict(
+    decorations=[
+        RectDecoration(
+            radius=[ 0, 17, 17, 0 ],
+            **rect_decoraiton_defaults
+        )
+])
 
 sep = widget.TextBox(
-    text=" 󱋱 ",
+    text="󱋱",
     foreground=color_overlay1,
     **text_widget_defaults
 )
@@ -78,23 +76,13 @@ space_rec_left = widget.TextBox(
     text=" ",
     foreground=color_overlay1,
     **text_widget_defaults,
-    decorations=[
-        RectDecoration(
-            **dec_radius_left,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_left
 )
 space_rec_right = widget.TextBox(
     text=" ",
     foreground=color_overlay1,
     **text_widget_defaults,
-        decorations=[
-        RectDecoration(
-            **dec_radius_right,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_right
 )
 spacer = widget.Spacer(
     **text_widget_defaults
@@ -110,12 +98,7 @@ applications = widget.TextBox(
     foreground="#61afef",
     **applications_launcher,
     **icon_widget_defaults,
-    decorations=[
-        RectDecoration(
-            radius=[ 17, 17, 17, 17 ],
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round
 )
 
 groupbox = widget.GroupBox(
@@ -146,53 +129,63 @@ groupbox = widget.GroupBox(
     **text_widget_defaults
 )
 
-volicon = widget.TextBox(
-    text="󰕾 ",
-    fontsize=25,
-    foreground=colors[2],
-    **icon_widget_defaults
-)
-volume = widget.Volume(
+volume_dynamic_icon = widget.Volume(
     padding=0,
+    fmt=" {} ",
+    unmute_format='{volume}%',
+    emoji=True,
+    emoji_list=['', '', '', ''],
+    mute_foreground="#d35f5e",
+    foreground=colors[9],
+    **text_widget_defaults,
+    **decorations_round_left
+)
+volume_percentage_level = widget.Volume(
+    padding=0,
+    fmt="{} ",
+    mute_format=" Mut",
+    mute_foreground="#d35f5e",
+    unmute_format=' {volume}%',
     foreground=colors[2],
-    **text_widget_defaults
+    **text_widget_defaults,
+    **decorations_round_right
 )
 cpuicon = widget.TextBox(
-    text=" ",
+    text="  ",
     fontsize=20,
     foreground=colors[3],
-    **icon_widget_defaults
+    **icon_widget_defaults,
+    **decorations_round_left
 )
 cpu = widget.CPU(
     update_interval=1.0,
-    format="{load_percent}%",
+    format="{load_percent}% ",
     foreground=colors[2],
-    **text_widget_defaults
+    **text_widget_defaults,
+    **decorations_round_right
 )
 memicon = widget.TextBox(
-    text="",
+    text="  ",
     fontsize=20,
-    foreground=colors[6],
-    **icon_widget_defaults
+    foreground="#a6e3a1",
+    **icon_widget_defaults,
+    **decorations_round_left
 )
 mem = widget.Memory(
-    format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm}",
+    #format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm} ",
+    format="{MemPercent}% ",
     #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
     foreground=foregroundColor,
-    **text_widget_defaults
+    **text_widget_defaults,
+    **decorations_round_right
 )
 
 clockicon_ext = widget.TextBox(
     text="  ",
     fontsize=20,
     foreground=colors[5],
-    decorations=[
-        RectDecoration(
-            **dec_radius_left,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_left,
     **icon_widget_defaults
 )
 
@@ -200,32 +193,29 @@ clock_ext = widgets_custom.MouseClickClock(
     format="%I:%M %p",
     foreground=colors[2],
     padding=15,
-    decorations=[
-        RectDecoration(
-            **dec_radius_right,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_right,
     **text_widget_defaults,
 )
 
 curlayout = widget.CurrentLayoutIcon(
-    scale=0.6,
+    scale=0.7,
+    use_mask=True,
+    foreground=colors[3],
     **icon_widget_defaults,
+    **decorations_no_round
 )
 curlayoutText = widget.CurrentLayout(
     foreground=foregroundColor,
-    **text_widget_defaults
+    fmt="[<i>{}</i>] ",
+    **text_widget_defaults,
+    **decorations_round_right
 )
 tray = widget.Systray(
     foreground=foregroundColor,
+    icon_size=22,
+    padding=12,
     **text_widget_defaults,
-    decorations=[
-        RectDecoration(
-            radius=[ 0, 0, 0, 0 ],
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_no_round
 )
 powermenu = widget.TextBox(
     text="  ",
@@ -235,21 +225,9 @@ powermenu = widget.TextBox(
         Button1=lambda: qtile.spawn(os.path.expanduser("~/dotfiles/bin/powermenu"))
     ),
     **icon_widget_defaults,
-    decorations=[
-        RectDecoration(
-            radius=[ 0, 0, 0, 0 ],
-            **rect_decoraiton_defaults
-        )
-    ],
-
+    **decorations_no_round
 )
 windowname = widget.WindowName(
-    foreground=foregroundColor,
-    **text_widget_defaults
-)
-keyboard = widget.KeyboardLayout(
-    configured_keyboards=['us','ua'],
-    fmt = "  {}",
     foreground=foregroundColor,
     **text_widget_defaults,
     # decorations=[
@@ -259,18 +237,52 @@ keyboard = widget.KeyboardLayout(
     #     )
     # ],
 )
+
+disc_icon = widget.TextBox(
+    text="  ",
+    fontsize=20,
+    foreground=colors[11],
+    **decorations_round_left,
+    **icon_widget_defaults
+)
+disc_usage=widget.DF(
+    # String format (p: partition, s: size, f: free space, uf: user free space, m: measure, r: ratio (uf/s))
+    format = "{r:.0f}%",
+    visible_on_warn=False,
+    foreground=foregroundColor,
+    **text_widget_defaults,
+    **decorations_no_round,
+)
+disc_ssd_text = widget.TextBox(
+    text="SSD ",
+    fontsize=20,
+    foreground=colors[11],
+    **decorations_round_right,
+    **icon_widget_defaults
+)
+
+keyboard_icon = widget.TextBox(
+    text="  ",
+    fontsize=20,
+    foreground=colors[3],
+    **icon_widget_defaults,
+    **decorations_round_left
+)
+keyboard = widget.KeyboardLayout(
+    configured_keyboards=['us','ua'],
+    fmt = "{} ",
+    foreground=foregroundColor,
+    **text_widget_defaults,
+    **decorations_round_right
+
+)
 arch_icon = widget.TextBox(
     text=" ❤ ",
     fontsize=25,
     foreground=colors[6],
     **applications_launcher,
     **icon_widget_defaults,
-    decorations=[
-        RectDecoration(
-            **dec_radius_left,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_left
 )
 arch_version = widget.GenPollText(
     update_interval = 9999,
@@ -279,24 +291,31 @@ arch_version = widget.GenPollText(
     foreground=colors[3],
     **applications_launcher,
     **text_widget_defaults,
-    decorations=[
-        RectDecoration(
-            **dec_radius_right,
-            **rect_decoraiton_defaults
-        )
-    ],
+    **decorations_round_right
 )
+# battery_icon = widget.BatteryIcon(
+#     fontsize=20,
+#     foreground=colors[11],
+#     padding=6,
+#     scale=1,
+#     **decorations_round,
+#     **icon_widget_defaults
+# )
+
+battery_text = widget.TextBox()
+battery_icon = widget.UPowerWidget()
+    # fontsize=20,
+    # foreground=colors[11],
+    # **decorations_round,
+    # **icon_widget_defaults
+
 
 bar_widgers = [
     # left
     applications,
     sep,
+    space_rec_left,
     curlayout,
-    widget.TextBox(
-        text="",
-        foreground=color_overlay1,
-        **text_widget_defaults
-    ),
     curlayoutText,
     sep,
     windowname,
@@ -315,17 +334,23 @@ bar_widgers = [
     spacer,
 
     # right
-    #keyboard,
+    keyboard_icon,
     keyboard,
     sep,
-    volicon,
-    volume,
+    volume_dynamic_icon,
+    volume_percentage_level,
+    sep,
+    battery_icon,
+    sep,
+    memicon,
+    mem,
     sep,
     cpuicon,
     cpu,
     sep,
-    memicon,
-    mem,
+    disc_icon,
+    disc_usage,
+    disc_ssd_text,
     sep,
     arch_icon,
     arch_version,
