@@ -316,7 +316,18 @@ battery = widget.Battery(format="{percent:2.0%} ",
     **text_widget_defaults,
     **decorations_round_right
 )
+task_list = widget.TaskList(
+    highlight_method='block',
+    borderwidth=0,
+    max_title_width=100,
+    **text_widget_defaults,
+    icon_size=24,
+    theme_mode='fallback'
+)
+music_control = widget.Mpris2(
 
+    **icon_widget_defaults
+)
 
 bar_widgers = [
     # left
@@ -326,17 +337,9 @@ bar_widgers = [
     curlayout,
     curlayoutText,
     sep,
-    widget.TaskList(
-		highlight_method='block',
-        borderwidth=0,
-		max_title_width=200,
-        **text_widget_defaults,
-        icon_size=24,
-        theme_mode='fallback'
-		),
-    #sep,
+    task_list,
+    music_control,
     #windowname,
-    #spacer,
 
     # center
     groupbox,
