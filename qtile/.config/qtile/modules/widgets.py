@@ -93,8 +93,8 @@ applications_launcher=dict(
     ),
 )
 applications = widget.TextBox(
-    text="           ",
-    fontsize=20,
+    text="   <span color='" + colors[9][1] + "'></span>      <span color='" + colors[10][1] + "'> </span> ",
+    fontsize=18,
     foreground="#61afef",
     **applications_launcher,
     **icon_widget_defaults,
@@ -295,21 +295,27 @@ arch_version = widget.GenPollText(
     **text_widget_defaults,
     **decorations_round_right
 )
-# battery_icon = widget.BatteryIcon(
-#     fontsize=20,
-#     foreground=colors[11],
-#     padding=6,
-#     scale=1,
-#     **decorations_round,
-#     **icon_widget_defaults
-# )
 
-battery_text = widget.TextBox()
-battery_icon = widget.UPowerWidget()
-    # fontsize=20,
-    # foreground=colors[11],
-    # **decorations_round,
-    # **icon_widget_defaults
+battery_icon = widget.TextBox(
+    text="  ",
+    fontsize=25,
+    foreground=colors[5],
+    **applications_launcher,
+    **icon_widget_defaults,
+    **decorations_round_left
+)
+battery = widget.Battery(format="{percent:2.0%} ",
+    charge_char="⚡",
+    discharge_char="🔋",
+    full_char="⚡",
+    unknown_char="⚡",
+    empty_char="⁉️ ",
+    update_interval=120,
+    show_short_text=True,
+    default_text="",
+    **text_widget_defaults,
+    **decorations_round_right
+)
 
 
 bar_widgers = [
@@ -320,9 +326,17 @@ bar_widgers = [
     curlayout,
     curlayoutText,
     sep,
-    windowname,
-    spacer,
-
+    widget.TaskList(
+		highlight_method='block',
+        borderwidth=0,
+		max_title_width=200,
+        **text_widget_defaults,
+        icon_size=24,
+        theme_mode='fallback'
+		),
+    #sep,
+    #windowname,
+    #spacer,
 
     # center
     groupbox,
@@ -341,9 +355,13 @@ bar_widgers = [
     sep,
     volume_dynamic_icon,
     volume_percentage_level,
-    sep,
-    battery_icon,
-    sep,
+    sep
+] + (
+        # add battery modules only in case battery is present in the system
+        [battery_icon, battery, sep]
+        if os.path.isdir("/sys/module/battery")
+        else []
+    ) + [
     memicon,
     mem,
     sep,
