@@ -125,8 +125,9 @@ groupbox = widget.GroupBox(
     use_mouse_wheel=False,
     spacing=0,
     center_aligned=True,
+    fontsize=22,
     foreground=foregroundColor,
-    **text_widget_defaults
+    **icon_widget_defaults
 )
 
 volume_dynamic_icon = widget.Volume(
@@ -183,7 +184,7 @@ mem = widget.Memory(
 
 clockicon_ext = widget.TextBox(
     text="  ",
-    fontsize=20,
+    fontsize=22,
     foreground=colors[5],
     **decorations_round_left,
     **icon_widget_defaults
@@ -191,10 +192,11 @@ clockicon_ext = widget.TextBox(
 
 clock_ext = widgets_custom.MouseClickClock(
     format="%I:%M %p",
+    fontsize=22,
     foreground=colors[2],
     padding=15,
     **decorations_round_right,
-    **text_widget_defaults,
+    **icon_widget_defaults,
 )
 
 curlayout = widget.CurrentLayoutIcon(
