@@ -18,7 +18,7 @@ target/
 **/DO_NOT_MODIFY_ANYTHING_IN_THIS_DIRECTORY
 **/LICENSE
 
-awesome/.config/awesome/themes
+#awesome/.config/awesome/themes
 ranger/.config/ranger/plugins
 ranger/.config/ranger/colorschemes
 alacritty/.config/alacritty/themes

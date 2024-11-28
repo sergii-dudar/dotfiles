@@ -1,0 +1,44 @@
+# ---------- Rofi & dmenu ------------ #
+
+#alt + space
+#    rofi -show
+
+super + q
+    bash $HOME/dotfiles/bin/powermenu
+
+ctrl + alt + q
+    bash $HOME/dotfiles/bin/screen-lock
+
+super + space
+    bash $HOME/dotfiles/bin/change_language.sh
+
+# general:
+# XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#   lxqt-config
+# volume:
+#   pavucontrol
+# netrork
+#   nm-connection-editor
+
+# ---------- Application Keybindings ----------- #
+
+#ctrl + alt + s
+Print
+    flameshot gui
+
+# ---------- Audio Keybindings ------------- #
+
+super + Left
+    amixer -D pulse sset Master 5%-
+#   amixer -c 1 sset IEC958 toggle
+
+super + Right
+    amixer -D pulse sset Master 5%+
+
+#{ Left, Down, Up, Right }
+super + Down
+    amixer -D pulse sset Master toggle
+    #amixer -c 1 sset IEC958 toggle
+
+
+# Application Keybindings
