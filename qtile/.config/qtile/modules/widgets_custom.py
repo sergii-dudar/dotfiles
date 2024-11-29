@@ -1,5 +1,7 @@
 from qtile_extras import widget
 
+from libqtile import qtile
+
 
 class MouseClickClock(widget.Clock):
     # defaults = [
@@ -33,12 +35,12 @@ class MouseClickClock(widget.Clock):
         self.formats = ["%I:%M %p", "%A, %B %d"]
         self.current_format_index = 0
         self.format = self.formats[self.current_format_index]
-        self.add_callbacks({
-                "Button1": self.button_press,
-            }
-        )
+        self.add_callbacks(dict(
+            Button1=self.change_format,
+            Button3=lambda: qtile.spawn("gnome-calendar"),
+        ))
 
-    def button_press(self, x, y, button):
+    def change_format(self):
         self.current_format_index = (self.current_format_index + 1) % len(self.formats)
         self.format = self.formats[self.current_format_index]
         self.bar.draw()

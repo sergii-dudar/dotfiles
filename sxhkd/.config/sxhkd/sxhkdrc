@@ -40,5 +40,14 @@ super + Down
     amixer -D pulse sset Master toggle
     #amixer -c 1 sset IEC958 toggle
 
+# Media
+#super + F9
 
-# Application Keybindings
+super + shift + Down
+    playerctl play-pause
+
+super + shift + Right
+    playerctl next
+
+super + shift + Left
+    playerctl previous

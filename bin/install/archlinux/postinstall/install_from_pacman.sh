@@ -25,7 +25,9 @@ sudo pacman -S python-setuptools python-dbus-next # need for nvim Conform plugin
 # gtk-section
 sudo pacman -S nwg-look xdg-desktop-portal \
     gnome-settings-daemon gnome-themes-extra xsettings-client xdg-desktop-portal-gtk
-
 # catppuccin-gtk-theme-mocha
+
+#music
+sudo pacman -S playerctl
 
 # curl -sS https://starship.rs/install.sh | sh

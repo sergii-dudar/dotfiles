@@ -20,7 +20,7 @@ alt = variables.alt
 keys = [
     Key([mod], "Return", lazy.spawn(variables.terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
-    #Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
 
     # Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
@@ -87,8 +87,8 @@ keys = [
     #Key([mod], "Right", lazy.screen.next_group(), desc="Move to next group."),
     #Key([mod], "Left", lazy.screen.prev_group(), desc="Move to previous group."),
 
-    Key([mod], "Tab", lazy.screen.next_group(), desc="Move to next group."),
-    Key([mod, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
+    #Key([mod], "Tab", lazy.screen.next_group(), desc="Move to next group."),
+    #Key([mod, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
 
 
 ]

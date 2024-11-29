@@ -24,4 +24,4 @@ feh --bg-fill ~/wallpapers/png/anime/Arch-chan_to.png &
 # screen before suspend.
 #xss-lock --transfer-sleep-lock -- i3lock --nofork
 
-killall sxhkd; sxhkd -c ~/.config/qtile/sxhkd/sxhkdrc &
+killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &

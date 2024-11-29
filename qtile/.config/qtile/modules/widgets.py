@@ -2,6 +2,7 @@ import os
 import subprocess
 
 from qtile_extras import widget
+from qtile_extras.popup.templates.mpris2 import COMPACT_LAYOUT, DEFAULT_LAYOUT
 from qtile_extras.widget.decorations import BorderDecoration, RectDecoration  # for decorations
 
 from libqtile import qtile
@@ -93,7 +94,8 @@ applications_launcher=dict(
     ),
 )
 applications = widget.TextBox(
-    text="   <span color='" + colors[9][1] + "'></span>      <span color='" + colors[10][1] + "'> </span> ",
+    #text="   <span color='" + colors[9][1] + "'></span>      <span color='" + colors[10][1] + "'> </span> ",
+    text="  ",
     fontsize=18,
     foreground="#61afef",
     **applications_launcher,
@@ -146,7 +148,7 @@ volume_percentage_level = widget.Volume(
     fmt="{} ",
     mute_format=" Mut",
     mute_foreground="#d35f5e",
-    unmute_format=' {volume}%',
+    unmute_format=' {volume:2.0f}%',
     foreground=colors[2],
     **text_widget_defaults,
     **decorations_round_right
@@ -160,7 +162,7 @@ cpuicon = widget.TextBox(
 )
 cpu = widget.CPU(
     update_interval=1.0,
-    format="{load_percent}% ",
+    format="{load_percent:2.0f}% ",
     foreground=colors[2],
     **text_widget_defaults,
     **decorations_round_right
@@ -174,7 +176,7 @@ memicon = widget.TextBox(
 )
 mem = widget.Memory(
     #format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm} ",
-    format="{MemPercent}% ",
+    format="{MemPercent:2.0f}% ",
     #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
     foreground=foregroundColor,
@@ -317,29 +319,57 @@ battery = widget.Battery(format="{percent:2.0%} ",
     **decorations_round_right
 )
 task_list = widget.TaskList(
+    theme_path = "/usr/share/icons/Dracula",
     highlight_method='block',
     borderwidth=0,
     max_title_width=100,
-    **text_widget_defaults,
+    **icon_widget_defaults,
     icon_size=24,
-    theme_mode='fallback'
+    #theme_mode='fallback',
+    stretch=False,
+    padding=5,
+    theme_mode = "preferred",
+    fontsize=18,
+    foreground=colors[3][1],
+    border=colors[1][1],
 )
-music_control = widget.Mpris2(
 
-    **icon_widget_defaults
+music_control = widget.Mpris2(
+    #format = "{xesam:title} - {xesam:artist}",
+    foreground=colors[5],
+    format = "{xesam:title}",
+    max_chars = 30,
+    paused_text = " ⏸️ {track} ",
+    playing_text = " ▶️ {track} ",
+    mouse_callbacks={
+        "Button3": lazy.widget["mpris2"].toggle_player()
+    },
+    #popup_layout=COMPACT_LAYOUT
+    popup_layout=DEFAULT_LAYOUT,
+    popup_show_args=dict(
+        relative_to=2,
+        x=-1700,
+        relative_to_bar=True,
+        hide_on_timeout=5
+    ),
+    #width=200,
+    scroll=False,
+    **text_widget_defaults,
+    **decorations_round
 )
 
 bar_widgers = [
     # left
     applications,
+    music_control,
     sep,
     space_rec_left,
     curlayout,
     curlayoutText,
     sep,
     task_list,
-    music_control,
     #windowname,
+    spacer,
 
     # center
     groupbox,
@@ -361,8 +391,11 @@ bar_widgers = [
     sep
 ] + (
         # add battery modules only in case battery is present in the system
+        # upower -e
+        # upower -i /org/freedesktop/UPower/devices/battery_BAT0
+        # /sys/class/power_supply/BAT0
         [battery_icon, battery, sep]
-        if os.path.isdir("/sys/module/battery")
+        if os.path.isdir("/sys/class/power_supply/BAT0")
         else []
     ) + [
     memicon,
@@ -374,9 +407,9 @@ bar_widgers = [
     disc_icon,
     disc_usage,
     disc_ssd_text,
-    sep,
-    arch_icon,
-    arch_version,
+    # sep,
+    # arch_icon,
+    # arch_version,
     sep,
     space_rec_left,
     tray,
