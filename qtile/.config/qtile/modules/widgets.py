@@ -358,6 +358,13 @@ music_control = widget.Mpris2(
     **decorations_round
 )
 
+chord=widget.Chord(
+    **text_widget_defaults,
+    **decorations_round,
+    foreground=colors[5],
+    fmt=" <span color='" + colors[9][1] + "'></span> {} <span color='" + colors[9][1] + "'></span> "
+)
+
 bar_widgers = [
     # left
     applications,
@@ -383,6 +390,7 @@ bar_widgers = [
     spacer,
 
     # right
+    chord,
     keyboard_icon,
     keyboard,
     sep,

@@ -37,10 +37,12 @@ floating_layout = layout.Floating(
 
         #Match(title="Telegram"),
 
+        # Monkeytype
+        Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna"),
         # Google Chat
         #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
-        # Monkeytype
-        Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")
+        # Youtube music
+        #Match(wm_class="Google-chrome", wm_instance_class="crx_cinhimbnkkaeohfgghhklpknlkffjgod")
     ]
 )
 

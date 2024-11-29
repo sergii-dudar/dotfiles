@@ -117,3 +117,15 @@ super + F9
 
 #super + y
 #    polybar-msg cmd toggle
+
+# ------- Media
+#super + F9
+
+super + shift + Down
+    playerctl play-pause
+
+super + shift + Right
+    playerctl next
+
+super + shift + Left
+    playerctl previous
