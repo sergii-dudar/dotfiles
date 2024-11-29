@@ -31,3 +31,6 @@ sudo pacman -S nwg-look xdg-desktop-portal \
 sudo pacman -S playerctl
 
 # curl -sS https://starship.rs/install.sh | sh
+
+# detect keys
+sudo pacman -S xorg-xev

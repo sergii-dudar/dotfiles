@@ -51,3 +51,12 @@ super + shift + Right
 
 super + shift + Left
     playerctl previous
+
+XF86AudioPlay
+    playerctl play-pause
+
+XF86AudioNext
+    playerctl next
+
+XF86AudioPrev
+    playerctl previous
