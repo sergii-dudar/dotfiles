@@ -331,7 +331,8 @@ task_list = widget.TaskList(
     theme_mode = "preferred",
     fontsize=18,
     foreground=colors[3][1],
-    border=colors[1][1],
+    #border=colors[1][1],
+    border="#44475a"
 )
 
 music_control = widget.Mpris2(

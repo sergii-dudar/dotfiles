@@ -68,11 +68,21 @@ run_once({ "unclutter -root" }) -- entries must be comma-separated
 local chosen_theme = "msjche"
 local modkey = "Mod4"
 local altkey = "Mod1"
-local terminal = "kitty"
 local editor = os.getenv("EDITOR") or "vim"
 local browser = "google-chrome-stable"
+local terminal_kitty = "kitty"
+local terminal = "wezterm"
+local mymenu = "rofi -show drun"
+local files = "nautilus"
+local screenie = "flameshot gui"
+
+local default_font = "CaskaydiaCove Nerd Font"
+local default_font_size = 16
+local default_font_widget = "CaskaydiaCove Nerd Font Bold"
+local default_font_widget_size = 18
 
 awful.util.terminal = terminal
+-- eautiful.useless_gap = 10
 
 awful.layout.layouts = {
     awful.layout.suit.floating, --1
@@ -266,6 +276,9 @@ globalkeys = awful.util.table.join(
     end),
     awful.key({ modkey, "Shift" }, "k", function()
         awful.util.spawn("xscreensaver-command -lock")
+    end),
+    awful.key({ altkey }, "space", function()
+        awful.util.spawn(mymenu)
     end),
 
     -- Hotkeys
@@ -766,5 +779,5 @@ end)
 -- }}}
 
 -- Autostart applications
-awful.spawn.with_shell("~/.config/awesome/shell/autostart_once.sh")
+awful.spawn.once("~/.config/awesome/shell/autostart_once.sh")
 awful.spawn.with_shell("~/.config/awesome/shell/autostart_always.sh")

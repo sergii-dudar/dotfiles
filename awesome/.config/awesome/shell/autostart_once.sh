@@ -14,6 +14,9 @@ kitty &
 #killall volumeicon; volumeicon &
 google-chrome-stable &
 
+#feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
+#feh --bg-fill ~/wallpapers/png/anime/Arch-chan_to.png &
+
 # google chat
 # google-chrome-stable --app-id=crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi &
 #telegram-desktop &
