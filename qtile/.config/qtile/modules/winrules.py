@@ -3,11 +3,20 @@ from libqtile.config import (
     Match,
     Rule,
 )
+from modules import (
+    colors,
+    colors_dt,
+)
+
+colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dracula()
 
 ############################################################
 ####### Open specific applications in floating mode ########
 ############################################################
-
+floating_layout_theme = {
+    "border_width": 3,
+    "border_focus": colors[8],
+}
 floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
@@ -43,8 +52,11 @@ floating_layout = layout.Floating(
         #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
         # Youtube music
         #Match(wm_class="Google-chrome", wm_instance_class="crx_cinhimbnkkaeohfgghhklpknlkffjgod")
-    ]
+    ],
+    **floating_layout_theme
+    #border_focus=3
 )
+#floating_layout.border_focus=3
 
 ############################################################
 ######## Open applications on specific workspaces ##########

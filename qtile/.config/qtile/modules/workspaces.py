@@ -7,13 +7,6 @@ from libqtile.lazy import lazy
 from modules import (
     colors,
     colors_dt,
-    funcs,
-    keybind,
-    scratchpad,
-    variables,
-    widgets,
-    winrules,
-    workspaces,
 )
 from modules.variables import alt, mod
 
