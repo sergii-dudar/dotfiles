@@ -53,10 +53,10 @@ def screen_change():
 
 @hook.subscribe.startup_once
 def autostart_once():
-    home = os.path.expanduser("~/.config/qtile/shell/autostart_once.sh")
+    home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_once.sh")
     subprocess.Popen([home])
 
 @hook.subscribe.startup
 def autostart_always():
-    home = os.path.expanduser("~/.config/qtile/shell/autostart_always.sh")
+    home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_always.sh")
     subprocess.Popen([home])
