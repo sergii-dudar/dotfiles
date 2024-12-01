@@ -54,7 +54,7 @@ confirm_exit() {
 
 # Pass variables to rofi dmenu
 run_rofi() {
-    echo -e "$lock\n$suspend\n$logout\n$reboot\n$shutdown" | rofi_cmd
+    echo -e "$lock\n$logout\n$reboot\n$shutdown\n$suspend" | rofi_cmd
 }
 
 # Execute Command
@@ -66,19 +66,11 @@ run_cmd() {
         elif [[ $1 == '--reboot' ]]; then
             systemctl reboot
         elif [[ $1 == '--suspend' ]]; then
-            mpc -q pause
-            amixer set Master mute
+            # mpc -q pause
+            # amixer set Master mute
             systemctl suspend
         elif [[ $1 == '--logout' ]]; then
-            if [[ "$DESKTOP_SESSION" == 'openbox' ]]; then
-                openbox --exit
-            elif [[ "$DESKTOP_SESSION" == 'bspwm' ]]; then
-                bspc quit
-            elif [[ "$DESKTOP_SESSION" == 'i3' ]]; then
-                i3-msg exit
-            elif [[ "$DESKTOP_SESSION" == 'plasma' ]]; then
-                qdbus org.kde.ksmserver /KSMServer logout 0 0 0
-            fi
+            pkill -KILL -u "$USER"
         fi
     else
         exit 0
@@ -89,22 +81,22 @@ run_cmd() {
 chosen="$(run_rofi)"
 case ${chosen} in
     $shutdown)
-        run_cmd --shutdown
+        #run_cmd --shutdown
+        systemctl poweroff
         ;;
     $reboot)
-        run_cmd --reboot
+        #run_cmd --reboot
+        systemctl reboot
         ;;
     $lock)
-        if [[ -x '/usr/bin/betterlockscreen' ]]; then
-            betterlockscreen -l
-        elif [[ -x '/usr/bin/i3lock' ]]; then
-            i3lock
-        fi
+        sh "$HOME/dotfiles/bin/screen-lock"
         ;;
     $suspend)
-        run_cmd --suspend
+        #run_cmd --suspend
+        systemctl suspend
         ;;
     $logout)
-        run_cmd --logout
+        #run_cmd --logout
+        pkill -KILL -u "$USER"
         ;;
 esac

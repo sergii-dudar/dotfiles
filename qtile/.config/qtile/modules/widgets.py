@@ -226,7 +226,7 @@ powermenu = widget.TextBox(
     fontsize=20,
     foreground="#d35f5e",
     mouse_callbacks = dict(
-        Button1=lambda: qtile.spawn(os.path.expanduser("~/dotfiles/bin/powermenu"))
+        Button1=lambda: qtile.spawn(variables.powermenu)
     ),
     **icon_widget_defaults,
     **decorations_no_round

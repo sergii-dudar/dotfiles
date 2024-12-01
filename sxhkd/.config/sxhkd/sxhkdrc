@@ -4,8 +4,8 @@
 #    rofi -show
 
 super + q
-    bash $HOME/dotfiles/bin/powermenu
-# TODO: $HOME/.config/rofi/scripts/powermenu_t1
+    bash $HOME/.config/rofi/scripts/powermenu_t1
+#bash $HOME/dotfiles/bin/powermenu
 
 ctrl + alt + q
     bash $HOME/dotfiles/bin/screen-lock
