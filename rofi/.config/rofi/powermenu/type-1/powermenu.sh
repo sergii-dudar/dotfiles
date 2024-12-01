@@ -77,15 +77,21 @@ run_cmd() {
     fi
 }
 
+exec_on_exit_action() {
+    ~/dotfiles/bin/wmscripts/on_logout_action.sh
+}
+
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
     $shutdown)
         #run_cmd --shutdown
+        exec_on_exit_action
         systemctl poweroff
         ;;
     $reboot)
         #run_cmd --reboot
+        exec_on_exit_action
         systemctl reboot
         ;;
     $lock)
@@ -93,10 +99,12 @@ case ${chosen} in
         ;;
     $suspend)
         #run_cmd --suspend
+        exec_on_exit_action
         systemctl suspend
         ;;
     $logout)
         #run_cmd --logout
+        exec_on_exit_action
         pkill -KILL -u "$USER"
         ;;
 esac

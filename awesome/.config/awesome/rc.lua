@@ -45,33 +45,38 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+beautiful.init(gears.filesystem.get_themes_dir() .. "gtk/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "alacritty"
-editor = os.getenv("EDITOR") or "nano"
-editor_cmd = terminal .. " -e " .. editor
+local terminal = "wezterm"
+local editor = os.getenv("EDITOR") or "neovim"
+local editor_cmd = terminal .. " -e " .. editor
+
+local home_dir = os.getenv("HOME")
+local mymenu = home_dir .. "/.config/rofi/scripts/launcher_t1"
+local powermenu = home_dir .. "/.config/rofi/scripts/powermenu_t1"
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod4"
+local modkey = "Mod4"
+local altkey = "Mod1"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.floating,
+    --awful.layout.suit.floating,
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
-    awful.layout.suit.fair,
-    awful.layout.suit.fair.horizontal,
+    --awful.layout.suit.fair,
+    --awful.layout.suit.fair.horizontal,
     awful.layout.suit.spiral,
     awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
-    awful.layout.suit.max.fullscreen,
+    -- awful.layout.suit.max.fullscreen,
     awful.layout.suit.magnifier,
     awful.layout.suit.corner.nw,
     -- awful.layout.suit.corner.ne,
@@ -149,24 +154,24 @@ local tasklist_buttons = gears.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
-local function set_wallpaper(s)
-    -- Wallpaper
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        gears.wallpaper.maximized(wallpaper, s, true)
-    end
-end
+-- local function set_wallpaper(s)
+--     -- Wallpaper
+--     if beautiful.wallpaper then
+--         local wallpaper = beautiful.wallpaper
+--         -- If wallpaper is a function, call it with the screen
+--         if type(wallpaper) == "function" then
+--             wallpaper = wallpaper(s)
+--         end
+--         gears.wallpaper.maximized(wallpaper, s, true)
+--     end
+-- end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+-- screen.connect_signal("property::geometry", set_wallpaper)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
-    set_wallpaper(s)
+    --set_wallpaper(s)
 
     -- Each screen has its own tag table.
     awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
@@ -252,6 +257,8 @@ globalkeys = gears.table.join(
     ),
     awful.key({ modkey,           }, "w", function () mymainmenu:show() end,
               {description = "show main menu", group = "awesome"}),
+    awful.key({ altkey }, "space", function () awful.util.spawn(mymenu) end,
+              {description = "show my applications menu", group = "awesome"}),
 
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end,
@@ -276,7 +283,7 @@ globalkeys = gears.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
               {description = "open a terminal", group = "launcher"}),
-    awful.key({ modkey, "Control" }, "r", awesome.restart,
+    awful.key({ modkey, "Shift" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit,
               {description = "quit awesome", group = "awesome"}),
@@ -442,6 +449,10 @@ root.keys(globalkeys)
 -- }}}
 
 -- {{{ Rules
+
+beautiful.gap_single_client = true
+beautiful.useless_gap = 5
+
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
     -- All clients will match this rule.
@@ -490,7 +501,7 @@ awful.rules.rules = {
 
     -- Add titlebars to normal clients and dialogs
     { rule_any = {type = { "normal", "dialog" }
-      }, properties = { titlebars_enabled = true }
+      }, properties = { titlebars_enabled = false }
     },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
@@ -504,7 +515,7 @@ awful.rules.rules = {
 client.connect_signal("manage", function (c)
     -- Set the windows at the slave,
     -- i.e. put it at the end of others instead of setting it master.
-    -- if not awesome.startup then awful.client.setslave(c) end
+    if not awesome.startup then awful.client.setslave(c) end
 
     if awesome.startup
       and not c.size_hints.user_position
@@ -564,5 +575,16 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 -- }}}
 
 -- Autostart applications
-awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_once.sh")
+
+-- if awesome.startup then
+--     awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_once.sh")
+-- end
+
+awful.spawn.with_shell([[
+  if [ ! -f /tmp/awesome_startup_done ]; then
+    ~/dotfiles/bin/wmscripts/autostart_once.sh
+    touch /tmp/awesome_startup_done
+  fi
+]])
+
 awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_always.sh")
