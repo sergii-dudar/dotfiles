@@ -5,6 +5,7 @@
 
 super + q
     bash $HOME/dotfiles/bin/powermenu
+# TODO: $HOME/.config/rofi/scripts/powermenu_t1
 
 ctrl + alt + q
     bash $HOME/dotfiles/bin/screen-lock
