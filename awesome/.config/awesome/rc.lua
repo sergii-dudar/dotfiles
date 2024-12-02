@@ -19,6 +19,9 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 local variables = require("modules.variables")
 
+-- local scratchpad = require("scratchpad")
+local scratchpads = require("modules.scratchpads")
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -265,6 +268,21 @@ root.buttons(gears.table.join(
 ))
 -- }}}
 
+local function keychord(chords)
+    local g = awful.keygrabber({
+        stop_key = "Escape",
+        keypressed_callback = function(self, _, key)
+            if chords[key] then
+                chords[key]()
+            end
+            self:stop()
+        end,
+    })
+    return function()
+        g:start()
+    end
+end
+
 -- {{{ Key bindings
 globalkeys = gears.table.join(
     awful.key({ modkey }, "s", hotkeys_popup.show_help, { description = "show help", group = "awesome" }),
@@ -360,6 +378,41 @@ globalkeys = gears.table.join(
             c:emit_signal("request::activate", "key.unminimize", { raise = true })
         end
     end, { description = "restore minimized", group = "client" }),
+
+    -- Scratchpads
+    awful.key({ modkey }, "y", function()
+        -- naughty.notify({ text = "Choose: [t] Terminal, [f] Firefox" })
+        awful.util.spawn('notify-send "📂 Yazi File Manager started" -t 700')
+        scratchpads.yazi:toggle()
+    end),
+    awful.key({ modkey }, "t", function()
+        scratchpads.telegram:toggle()
+    end),
+    awful.key({ modkey }, "m", function()
+        scratchpads.youtube_music:toggle()
+    end),
+    awful.key({ modkey }, "g", function()
+        scratchpads.google_chat:toggle()
+    end),
+
+    awful.key(
+        { modkey },
+        "p",
+        keychord({
+            y = function()
+                scratchpads.yazi:toggle()
+            end,
+            t = function()
+                scratchpads.telegram:toggle()
+            end,
+            m = function()
+                scratchpads.youtube_music:toggle()
+            end,
+            g = function()
+                scratchpads.google_chat:toggle()
+            end,
+        })
+    ),
 
     -- Prompt
     awful.key({ modkey }, "r", function()
@@ -538,6 +591,26 @@ awful.rules.rules = {
             },
         },
         properties = { floating = true },
+    },
+
+    -- Scratchpads
+    {
+        rule = { class = "yazi" },
+        properties = { opacity = 0.85 },
+    },
+    {
+        rule = { class = "telegram-desktop" },
+        properties = { opacity = 0.9 },
+    },
+    {
+        -- music
+        rule = { class = "Google-chrome", instance = "crx_cinhimbnkkaeohfgghhklpknlkffjgod" },
+        properties = { opacity = 0.9 },
+    },
+    {
+        -- chat
+        rule = { class = "Google-chrome", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
+        properties = { opacity = 0.9 },
     },
 
     -- Add titlebars to normal clients and dialogs
