@@ -461,7 +461,7 @@ clientkeys = gears.table.join(
     --     -- minimized, since minimized clients can't have the focus.
     --     c.minimized = true
     -- end, { description = "minimize", group = "client" }),
-    awful.key({ modkey }, "m", function(c)
+    awful.key({ modkey, "Shift" }, "f", function(c)
         c.maximized = not c.maximized
         c:raise()
     end, { description = "(un)maximize", group = "client" })
@@ -611,6 +611,28 @@ awful.rules.rules = {
         -- chat
         rule = { class = "Google-chrome", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
         properties = { opacity = 0.9 },
+    },
+
+    -- Apps start on tag roles
+    {
+        rule = { class = "org.wezfurlong.wezterm" },
+        properties = { tag = "1" },
+    },
+    {
+        rule = { class = "jetbrains-idea" },
+        properties = { tag = "2" },
+    },
+    {
+        rule = { class = "Code" },
+        properties = { tag = "2" },
+    },
+    {
+        rule = { class = "Google-chrome", instance = "google-chrome" },
+        properties = { tag = "3" },
+    },
+    {
+        rule = { class = "kitty" },
+        properties = { tag = "4" },
     },
 
     -- Add titlebars to normal clients and dialogs

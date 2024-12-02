@@ -9,15 +9,21 @@
 # ==========================================================================
 
 cd ~/Downloads && \
-tar -xzf ideaIU-*.tar.gz && \
-rm ideaIU-*.tar.gz && \
-sudo mv idea-IU* /opt/intellij && \
-sudo ln -s /opt/intellij/bin/idea /usr/local/bin/intellij-idea-ultimate
+    tar -xzf ideaIU-*.tar.gz && \
+    rm ideaIU-*.tar.gz && \
+    sudo mv idea-IU* /opt/intellij && \
+    sudo ln -s /opt/intellij/bin/idea /usr/local/bin/intellij-idea-ultimate
+
+# update
+sudo rm -r /opt/intellij
+cd ~/Downloads && \
+    tar -xzf ideaIU-*.tar.gz && \
+    sudo mv idea-IU* /opt/intellij
 
 # if installed
 #sudo mv /opt/intellij /opt/old-intellij && \
-#sudo rm /usr/share/applications/intellij-idea.desktop && \
-#sudo mv /usr/local/bin/intellij-idea-ultimate /usr/local/bin/intellij-idea-ultimate1
+    #sudo rm /usr/share/applications/intellij-idea.desktop && \
+    #sudo mv /usr/local/bin/intellij-idea-ultimate /usr/local/bin/intellij-idea-ultimate1
 
 desktop_entry="[Desktop Entry]
 Version=1.0
@@ -62,5 +68,4 @@ desktop_vs_code_file="/usr/share/applications/vscode.desktop"
 echo "$desktop_vscode_entry" | sudo tee "$desktop_vs_code_file" > /dev/null
 sudo update-desktop-database
 echo "Desktop entry created at: $desktop_vs_code_file"
-
 
