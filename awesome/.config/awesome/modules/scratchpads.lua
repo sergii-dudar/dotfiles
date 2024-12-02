@@ -38,8 +38,8 @@ local function new_scratchpad(id, cmd)
             },
         },
         scratchpad_options = {
-            reapply_options = false,
-            only_one = false,
+            reapply_options = true,
+            only_one = true,
         },
     })
 end
@@ -52,13 +52,15 @@ M.youtube_music = new_scratchpad(
     "google-chrome-stable --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
 )
 M.google_chat = new_scratchpad(
-    "google_chat",
+    "google_chat_scratchpad-id-4",
     "google-chrome-stable --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
 )
+M.nautilus = new_scratchpad("nautilus-scratchpad-id-5", "nautilus")
 
 pads:add_scratchpad(M.yazi)
 pads:add_scratchpad(M.telegram)
 pads:add_scratchpad(M.youtube_music)
 pads:add_scratchpad(M.google_chat)
+pads:add_scratchpad(M.nautilus)
 
 return M

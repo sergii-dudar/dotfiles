@@ -21,6 +21,7 @@ local variables = require("modules.variables")
 
 -- local scratchpad = require("scratchpad")
 local scratchpads = require("modules.scratchpads")
+local util = require("util.common-util")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -56,7 +57,16 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 -- beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-beautiful.init(variables.custom_theme)
+--beautiful.init(variables.custom_theme)
+local all_themes = {
+    "personal",
+    "blackburn",
+}
+local choosen_theme = all_themes[1]
+local theme_path = string.format("%s/.config/awesome/themes/%s/theme.lua", variables.home_dir, choosen_theme)
+print("theme path" .. theme_path)
+beautiful.init(theme_path)
+--beautiful.init(variables.custom_theme)
 
 -- This is used later as the default terminal and editor to run.
 local terminal = "wezterm"
@@ -72,7 +82,8 @@ local modkey = "Mod4"
 local altkey = "Mod1"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
-awful.layout.layouts = {
+--awful.layout.layouts = {
+awful.layout.append_default_layouts({
     awful.layout.suit.tile,
     awful.layout.suit.max,
 
@@ -93,7 +104,7 @@ awful.layout.layouts = {
     -- awful.layout.suit.corner.ne,
     -- awful.layout.suit.corner.sw,
     -- awful.layout.suit.corner.se,
-}
+})
 -- }}}
 
 -- {{{ Menu
@@ -381,18 +392,24 @@ globalkeys = gears.table.join(
 
     -- Scratchpads
     awful.key({ modkey }, "y", function()
-        -- naughty.notify({ text = "Choose: [t] Terminal, [f] Firefox" })
-        awful.util.spawn('notify-send "📂 Yazi File Manager started" -t 700')
+        util.notify("📂 Yazi File Manager")
         scratchpads.yazi:toggle()
     end),
     awful.key({ modkey }, "t", function()
+        util.notify("💬 Telegram")
         scratchpads.telegram:toggle()
     end),
     awful.key({ modkey }, "m", function()
+        util.notify("💽 Music")
         scratchpads.youtube_music:toggle()
     end),
     awful.key({ modkey }, "g", function()
+        util.notify("✉️ Chat")
         scratchpads.google_chat:toggle()
+    end),
+    awful.key({ modkey }, "n", function()
+        util.notify("📂 Nautilus")
+        scratchpads.nautilus:toggle()
     end),
 
     awful.key(
@@ -626,10 +643,10 @@ awful.rules.rules = {
         rule = { class = "Code" },
         properties = { tag = "2" },
     },
-    {
-        rule = { class = "Google-chrome", instance = "google-chrome" },
-        properties = { tag = "3" },
-    },
+    -- {
+    --     rule = { class = "Google-chrome", instance = "google-chrome" },
+    --     properties = { tag = "3" },
+    -- },
     {
         rule = { class = "kitty" },
         properties = { tag = "4" },

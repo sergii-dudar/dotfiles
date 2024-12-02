@@ -21,6 +21,9 @@ else
     alias out="sudo pkill -KILL -u serhii"
     alias window_type="xprop | grep -i wm_class"
 
+    # sudo pacman -S xorg-server-xephyr
+    alias awesome_debug="Xephyr :5 & sleep 1 ; DISPLAY=:5 awesome"
+
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
     export PATH=$PATH:$HOME/serhii.home/tools/kafka/bin
@@ -31,6 +34,7 @@ else
 
     export QT_SCALE_FACTOR=1.75
     export LC_CTYPE=en_US.UTF-8
+
     # LC_CTYPE=en_US.UTF-8 > /etc/locale.conf
     # integration between ubuntu\arch (brew/pacman)
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi
