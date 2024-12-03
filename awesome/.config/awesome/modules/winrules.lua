@@ -1,10 +1,10 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
-local keybing = require("modules.keybind")
 
 local M = {}
 
-M.setup = function()
+---@param opts { keybind: {} }
+M.setup = function(opts)
     -- Table of layouts to cover with awful.layout.inc, order matters.
     --awful.layout.layouts = {
     awful.layout.append_default_layouts({
@@ -46,8 +46,8 @@ M.setup = function()
                 border_color = beautiful.border_normal,
                 focus = awful.client.focus.filter,
                 raise = true,
-                keys = keybing.clientkeys,
-                buttons = keybing.clientbuttons,
+                keys = opts.keybind.clientkeys,
+                buttons = opts.keybind.clientbuttons,
                 screen = awful.screen.preferred,
                 placement = awful.placement.no_overlap + awful.placement.no_offscreen,
             },

@@ -1,6 +1,5 @@
 pcall(require, "luarocks.loader")
 
-local awful = require("awful")
 require("awful.autofocus")
 -- Theme handling library
 local beautiful = require("beautiful")
@@ -11,22 +10,17 @@ require("awful.hotkeys_popup.keys")
 
 -- Modules
 local vars = require("modules.variables")
+local funcs = require("modules.funcs")
 local keybind = require("modules.keybind")
+
 beautiful.init(vars.current_theme_path)
 
+local opts = { keybind = keybind }
 require("modules.error-handling").setup()
-require("modules.winrules").setup()
+require("modules.winrules").setup(opts)
 require("modules.signals").setup()
-require("modules.wibar")
+require("modules.wibar").setup(opts)
 
 root.keys(keybind.globalkeys)
 
--- Autostart applications
-awful.spawn.with_shell([[
-  if [ ! -f /tmp/awesome_startup_done ]; then
-    ~/dotfiles/bin/wmscripts/autostart_once.sh
-    touch /tmp/awesome_startup_done
-  fi
-]])
-
-awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_always.sh")
+funcs.run_shell_autostarts()
