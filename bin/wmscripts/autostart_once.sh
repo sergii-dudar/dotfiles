@@ -6,6 +6,10 @@ ssh-add &
 dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
+# NetworkManager is the most popular way to manage wireless networks on Linux,
+# and nm-applet is a desktop environment-independent system tray GUI for it.
+
+nm-applet &
 #glate &
 #kitty --hold zsh -c "yazi" &
 wezterm &
@@ -24,3 +28,7 @@ google-chrome-stable &
 
 #[ ! -s ~/.config/mpd/pid ] && mpd &
 #/usr/libexec/polkit-gnome-authentication-agent-1 &
+
+# move it move autostart always, in case want to add change and apply on rm restart
+killall picom; picom --backend glx -b --config ~/.config/picom/picom.conf --vsync &
+killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &

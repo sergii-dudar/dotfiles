@@ -41,11 +41,11 @@ else
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/zellij /usr/bin/zellij
 
     # debug qtile wm
-    alias awesome_debug=""
+    alias qtile_debug="tail -f ~/.local/share/qtile/qtile.log"
 
     # debug awesome wm
     # sudo pacman -S xorg-server-xephyr
-    alias awesome_debug="Xephyr :5 & sleep 1 ; DISPLAY=:5 awesome"
+    alias awesome_debug="Xephyr :5 -screen 1920x1080 & sleep 1 ; DISPLAY=:5 awesome"
 fi
 
 export VISUAL='nvim'
