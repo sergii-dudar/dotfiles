@@ -75,7 +75,7 @@
   "persistence.nvim": { "branch": "main", "commit": "f6aad7dde7fcf54148ccfc5f622c6d5badd0cc3d" },
   "plenary.nvim": { "branch": "master", "commit": "2d9b06177a975543726ce5c73fca176cedbffe9d" },
   "render-markdown.nvim": { "branch": "main", "commit": "61850bf7df4af8398e97559a35b62378ba8435b1" },
-  "snacks.nvim": { "branch": "main", "commit": "736ce447e8815eb231271abf7d49d8fa7d96e225" },
+  "snacks.nvim": { "branch": "main", "commit": "60bd4e108cf7b2df0c0f578815b2b985d2cc2871" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "cf48d4dfce44e0b9a2e19a008d6ec6ea6f01a83b" },
   "telescope-live-grep-args.nvim": { "branch": "master", "commit": "649b662a8f476fd2c0289570764459e95ebaa3f3" },
   "telescope-rg.nvim": { "branch": "master", "commit": "51407c057cc571b38f52c63391182ef79937fe4c" },
