@@ -11,16 +11,16 @@ local focused      = require("awful.screen").focused
 local escape_f     = require("awful.util").escape
 local naughty      = require("naughty")
 local wibox        = require("wibox")
-local os           = { getenv = os.getenv }
-local string       = { format = string.format,
-                       gmatch = string.gmatch }
+local os           = os
+local string       = string
 
 -- MOC audio player
 -- lain.widget.contrib.moc
 
 local function factory(args)
-    local moc           = { widget = wibox.widget.textbox() }
-    local args          = args or {}
+    args                = args or {}
+
+    local moc           = { widget = args.widget or wibox.widget.textbox() }
     local timeout       = args.timeout or 2
     local music_dir     = args.music_dir or os.getenv("HOME") .. "/Music"
     local cover_pattern = args.cover_pattern or "*\\.(jpg|jpeg|png|gif)$"

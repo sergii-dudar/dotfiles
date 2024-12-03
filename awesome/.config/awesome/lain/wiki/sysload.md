@@ -1,6 +1,6 @@
 ## Usage
 
-[Read here.](https://github.com/copycat-killer/lain/wiki/Widgets#usage)
+[Read here.](https://github.com/lcpz/lain/wiki/Widgets#usage)
 
 ### Description
 
@@ -14,8 +14,9 @@ mysysload = lain.widget.sysload()
 
 Variable | Meaning | Type | Default
 --- | --- | --- | ---
-`timeout` | Refresh timeout seconds | number | 2
+`timeout` | Refresh timeout (in seconds) | integer | 2
 `settings` | User settings | function | empty function
+`widget` | Widget to render | function | `wibox.widget.textbox`
 
 `settings` can use strings `load_1`, `load_5` and `load_15`, which are the load averages over 1, 5, and 15 minutes.
 

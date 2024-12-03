@@ -1,12 +1,12 @@
 ## Usage
 
-[Read here.](https://github.com/copycat-killer/lain/wiki/Widgets#usage)
+[Read here.](https://github.com/lcpz/lain/wiki/Widgets#usage)
 
 ### Description
 
-Shows disk space usage for a set partition.
+Shows file systems informations.
 
-Displays a notification when the partition is full or has low space.
+If a partition is given in input, a notification will be displayed when it is almost full.
 
 ```lua
 local mypartition = lain.widget.fs()
@@ -16,52 +16,39 @@ local mypartition = lain.widget.fs()
 
 Variable | Meaning | Type | Default
 --- | --- | --- | ---
-`timeout` | Refresh timeout seconds -| number | 600
-`partition` | Partition to monitor | string | "/"
-`options` | Additional options to pass to [`dfs`](https://github.com/copycat-killer/lain/blob/master/scripts/dfs) | string, in the form `--type='fstype' | --exclude-type='fstype'` | nil
-`notification_preset` | Notification preset | table | See [default `notification_preset`](https://github.com/copycat-killer/lain/wiki/fs#default-notification_preset)
+`timeout` | Refresh timeout (in seconds) | integer | 600
+`partition` | (Optional) Partition to watch: a notification will be displayed when full | string | `nil`
+`threshold` | Percentage threshold at which the notification is triggered | integer | 99
+`notification_preset` | Notification preset | table | See [default `notification_preset`](https://github.com/lcpz/lain/wiki/fs#default-notification_preset)
 `followtag` | Display the notification on currently focused screen | boolean | false
-`notify` | Display notifications | string | "on"
 `showpopup` | Display popups with mouse hovering | string, possible values: "on", "off" | "on"
 `settings` | User settings | function | empty function
+`widget` | Widget to render | function | `wibox.widget.textbox`
 
-`settings` can use the following `partition` related strings:
+`settings` can use the table `fs_now`, which contains a string entry for each file system path available. For instance, root infos are located in the variable `fs_now["/"]`. Every entry in this table have the following variables:
 
-* `fs_now.size_mb`
-* `fs_now.size_gb`
-* `fs_now.used`
-* `fs_now.used_mb`
-* `fs_now.used_gb`
-* `fs_now.available`
-* `fs_now.available_mb`
-* `fs_now.available_gb`
+Variable | Meaning | Type
+--- | --- | ---
+`units` | (multiple of) units used | string ("Kb", "Mb", "Gb", and so on)
+`percentage` | the used percentage | integer
+`size` | size in `units` of the given fs | float
+`used` | amount of space used in the given fs, expressed in `units` | float
+`free` | amount of free space in the given fs, expressed in `units` | float
 
-Within `settings`, you can obtain other partition values from internal `fs_info` table. For each partition, the following indexes are available:
-
-*  `fs_info[other_partition .. " size_mb"]`
-*  `fs_info[other_partition .. " size_gb"]`
-*  `fs_info[other_partition .. " used_p"]`
-*  `fs_info[other_partition .. " used_mb"]`
-*  `fs_info[other_partition .. " used_gb"]`
-*  `fs_info[other_partition .. " avail_p"]`
-*  `fs_info[other_partition .. " avail_mb"]`
-*  `fs_info[other_partition .. " avail_gb"]`
-
-just like the variables of `fs_now`. Example:
+Usage example:
 
 ```lua
--- shows root and home partitions percentage used
+-- shows used (percentage) and remaining space in home partition
 local fsroothome = lain.widget.fs({
     settings  = function()
-        local home_used = tonumber(fs_info["/home used_p"]) or 0
-        widget:set_text("/ " .. fs_now.used .. "% | /home " .. home_used .. "% ")
+        widget:set_text("/home: " ..  fs_now["/home"].percentage .. "% (" ..
+        fs_now["/home"].free .. " " .. fs_now["/home"].units .. " left)")
     end
 })
+-- output example: "/home: 37% (239.4 Gb left)"
 ```
 
-Also, `settings` can modify `notification_preset` table. This table will be the preset for the naughty notifications. Check [here](https://awesomewm.org/doc/api/libraries/naughty.html#notify) for the list of variables it can contain.
-
-In multiple screen setups, the default behaviour is to show a visual notification pop-up window on the first screen. By setting `followtag` to `true` it will be shown on the currently focused tag screen.
+With multiple screens, the default behaviour is to show a visual notification pop-up window on the first screen. By setting `followtag` to `true` it will be shown on the currently focused tag screen.
 
 ### Default `notification_preset`
 

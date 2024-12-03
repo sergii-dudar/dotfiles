@@ -1,8 +1,8 @@
 Welcome to the Lain wiki!
 
-If you spot a typo or have a suggestion, please notify me opening an [issue](https://github.com/copycat-killer/lain/issues) format. Thank you.
+If you spot a typo or have a suggestion to improve these pages, please notify me opening an [issue](https://github.com/lcpz/lain/issues) format. Thank you.
 
-Dependency
+Dependencies
 ------------
 
 Package | Requested by | Reasons of choice
@@ -19,10 +19,14 @@ Installation
 ### Other distributions
 
 ```shell
-git clone https://github.com/copycat-killer/lain.git ~/.config/awesome/lain
+git clone https://github.com/lcpz/lain.git ~/.config/awesome/lain
 ```
 
-Also available via [LuaRocks](https://luarocks.org/modules/aajjbb/lain).
+Also available via [LuaRocks](https://luarocks.org/modules/lcpz/lain):
+
+```shell
+luarocks install lain
+```
 
 Usage
 --------
@@ -35,6 +39,6 @@ local lain = require("lain")
 
 Then check out the submodules you want:
 
-- [Layouts](https://github.com/copycat-killer/lain/wiki/Layouts)
-- [Widgets](https://github.com/copycat-killer/lain/wiki/Widgets)
-- [Utilities](https://github.com/copycat-killer/lain/wiki/Utilities)
+- [Layouts](https://github.com/lcpz/lain/wiki/Layouts)
+- [Widgets](https://github.com/lcpz/lain/wiki/Widgets)
+- [Utilities](https://github.com/lcpz/lain/wiki/Utilities)

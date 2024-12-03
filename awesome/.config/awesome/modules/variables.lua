@@ -25,8 +25,17 @@ M.key.altkey = "Mod1"
 -- beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 --beautiful.init(variables.custom_theme)
 local all_themes = {
-    "personal",
-    "blackburn",
+    "personal", --1
+    "blackburn", -- 2
+    "copland", -- 3
+    "dremora", -- 4
+    "holo", -- 5
+    "multicolor", -- 6
+    "powerarrow", -- 7
+    "powerarrow-dark", -- 8
+    "rainbow", -- 9
+    "steamburn", -- 10
+    "vertex", -- 11
 }
 local choosen_theme_name = all_themes[1]
 M.current_theme_path = string.format("%s/.config/awesome/themes/%s/theme.lua", M.path.home_dir, choosen_theme_name)

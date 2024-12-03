@@ -2,6 +2,7 @@
     lain/layout
     .
     |-- termfair
+    |-- termfair.stable
     |-- termfair.center
     |-- cascade
     |-- cascade.tile
@@ -51,17 +52,38 @@ another row above it will be created.
 Default number of columns and rows are respectively taken from `nmaster`
 and `ncol` values in `awful.tag`, but you can set your own.
 
-For example, this sets `termfair` to 3 columns and at least 1 row:
+For example, this sets `termfair`, `termfair.center`, and `termfair.stable` to 3 columns and at least 1 row:
 
 ```lua
 lain.layout.termfair.nmaster = 3
 lain.layout.termfair.ncol    = 1
 ```
 
+`termfair.stable`
+-----------------
+Similar to `termfair`, but new rows are created below existing rows.
+
+            (1)                (2)                (3)
+       +---+---+---+      +---+---+---+      +---+---+---+
+       |   |   |   |      |   |   |   |      |   |   |   |
+       | 1 |   |   |  ->  | 1 | 2 |   |  ->  | 1 | 2 | 3 |  ->
+       |   |   |   |      |   |   |   |      |   |   |   |
+       +---+---+---+      +---+---+---+      +---+---+---+
+
+            (4)                (5)                (6)
+       +---+---+---+      +---+---+---+      +---+---+---+
+       | 1 | 2 | 3 |      | 1 | 2 | 3 |      | 1 | 2 | 3 |
+       +---+---+---+  ->  +---+---+---+  ->  +---+---+---+
+       | 4 |   |   |      | 4 | 5 |   |      | 4 | 5 | 6 |
+       +---+---+---+      +---+---+---+      +---+---+---+
+
+Like `termfair`, default number of columns and rows are respectively taken from `nmaster`
+and `ncol` values in `awful.tag`, but you can set your own using the setting noted above for `termfair`.
+
 `termfair.center`
 ----------
 
-Similar to `termfair`, but with fixed number of vertical columns. Cols are centerded until there are `nmaster` columns, then windows are stacked as slaves, with possibly `ncol` clients per column at most.
+Similar to `termfair`, but with fixed number of vertical columns. Cols are centered until there are `nmaster` columns, then windows are stacked as slaves, with possibly `ncol` clients per column at most.
 
             (1)                (2)                (3)
        +---+---+---+      +-+---+---+-+      +---+---+---+
@@ -78,14 +100,7 @@ Similar to `termfair`, but with fixed number of vertical columns. Cols are cente
        +---+---+---+      +---+---+---+
 
 Like `termfair`, default number of columns and rows are respectively taken from `nmaster`
-and `ncol` values in `awful.tag`, but you can set your own.
-
-For example, this sets `termfair.center` to 3 columns and at least 1 row:
-
-```lua
-lain.layout.termfair.center.nmaster = 3
-lain.layout.termfair.center.ncol    = 1
-```
+and `ncol` values in `awful.tag`, but you can set your own using the setting noted above for `termfair`.
 
 `cascade`
 -------
@@ -222,12 +237,12 @@ Following are a couple of `uselesstile` variants that were not part of lain. The
 Xmonad-like
 -----------
 
-If you want to have `awful.layout.suit.tile` behave like xmonad, with internal gaps two times wider than external ones, download [this](https://gist.github.com/copycat-killer/9e56dcfbe66bfe14967c) as `lain/layout/uselesstile`.
+If you want to have `awful.layout.suit.tile` behave like xmonad, with internal gaps two times wider than external ones, download [this](https://gist.github.com/lcpz/9e56dcfbe66bfe14967c) as `lain/layout/uselesstile`.
 
 Inverted master
 ---------------
 
-Want to invert master window position? Use [this](https://gist.github.com/copycat-killer/c59dc59c9f99d98218eb) version. You can set `single_gap` with `width` and `height` in your `theme.lua`, in order to define the window geometry when there's only one client, otherwise it goes maximized. An example:
+Want to invert master window position? Use [this](https://gist.github.com/lcpz/c59dc59c9f99d98218eb) version. You can set `single_gap` with `width` and `height` in your `theme.lua`, in order to define the window geometry when there's only one client, otherwise it goes maximized. An example:
 
     theme.single_gap = { width = 600, height = 100 }
 
@@ -246,10 +261,10 @@ theme.layout_centerfair  = theme.lain_icons .. "centerfair.png"  -- termfair.cen
 theme.layout_cascade     = theme.lain_icons .. "cascade.png"
 theme.layout_cascadetile = theme.lain_icons .. "cascadetile.png" -- cascade.tile
 theme.layout_centerwork  = theme.lain_icons .. "centerwork.png"
-theme.layout_centerhwork = theme.lain_icons .. "centerworkh.png" -- centerwork.horizontal
+theme.layout_centerworkh = theme.lain_icons .. "centerworkh.png" -- centerwork.horizontal
 ```
 
-Credits go to [Nicolas Estibals](https://github.com/nestibal) for creating
+Credit goes to [Nicolas Estibals](https://github.com/nestibal) for creating
 layout icons for default theme.
 
 You can use them as a template for your custom versions.

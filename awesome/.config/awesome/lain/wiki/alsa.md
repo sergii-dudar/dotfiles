@@ -1,6 +1,6 @@
 ## Usage
 
-[Read here.](https://github.com/copycat-killer/lain/wiki/Widgets#usage)
+[Read here.](https://github.com/lcpz/lain/wiki/Widgets#usage)
 
 ### Description
 
@@ -14,11 +14,12 @@ local volume = lain.widget.alsa()
 
 Variable | Meaning | Type | Default
 --- | --- | --- | ---
-`timeout` | Refresh timeout seconds | number | 5
+`timeout` | Refresh timeout (in seconds) | integer | 5
 `cmd` | Alsa mixer command | string | "amixer"
 `channel` | Mixer channel | string | "Master"
 `togglechannel` | Toggle channel | string | `nil`
 `settings` | User settings | function | empty function
+`widget` | Widget to render | function | `wibox.widget.textbox`
 
 `cmd` is useful if you need to pass additional arguments to amixer. For instance, you may want to define `cmd = "amixer -c X"` in order to set amixer with card `X`.
 
@@ -26,7 +27,7 @@ Variable | Meaning | Type | Default
 
 Variable | Meaning | Type | Values
 --- | --- | --- | ---
-`volume_now.level` | Volume level | number | 0-100
+`volume_now.level` | Volume level | integer | 0-100
 `volume_now.status` | Device status | string | "on", "off"
 
 ## Output table
@@ -82,19 +83,19 @@ volume.widget:buttons(awful.util.table.join(
         awful.spawn(string.format("%s -e alsamixer", terminal))
     end),
     awful.button({}, 2, function() -- middle click
-        awful.spawn(string.format("%s set %s 100%%", volume.cmd, volume.channel))
+        os.execute(string.format("%s set %s 100%%", volume.cmd, volume.channel))
         volume.update()
     end),
     awful.button({}, 3, function() -- right click
-        awful.spawn(string.format("%s set %s toggle", volume.cmd, volume.togglechannel or volume.channel))
+        os.execute(string.format("%s set %s toggle", volume.cmd, volume.togglechannel or volume.channel))
         volume.update()
     end),
     awful.button({}, 4, function() -- scroll up
-        awful.spawn(string.format("%s set %s 1%%+", volume.cmd, volume.channel))
+        os.execute(string.format("%s set %s 1%%+", volume.cmd, volume.channel))
         volume.update()
     end),
     awful.button({}, 5, function() -- scroll down
-        awful.spawn(string.format("%s set %s 1%%-", volume.cmd, volume.channel))
+        os.execute(string.format("%s set %s 1%%-", volume.cmd, volume.channel))
         volume.update()
     end)
 ))
@@ -134,3 +135,15 @@ awful.key({ altkey, "Control" }, "0",
 ```
 
 where `altkey = "Mod1"`.
+
+### Muting with PulseAudio
+
+If you are using this widget in conjuction with PulseAudio, add the option `-D pulse` to the muting keybinding, like this:
+
+```lua
+awful.key({ altkey }, "m",
+	function ()
+		os.execute(string.format("amixer -D pulse set %s toggle", volume.togglechannel or volume.channel))
+		volume.update()
+	end),
+```

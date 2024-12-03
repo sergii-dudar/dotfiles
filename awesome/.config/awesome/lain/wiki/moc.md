@@ -1,6 +1,6 @@
 ## Usage
 
-[Read here.](https://github.com/copycat-killer/lain/wiki/Widgets#usage)
+[Read here.](https://github.com/lcpz/lain/wiki/Widgets#usage)
 
 ### Description
 
@@ -24,13 +24,14 @@ Now playing songs are notified like this:
 
 Variable | Meaning | Type | Default
 --- | --- | --- | ---
-`timeout` | Refresh timeout seconds | number | 1
+`timeout` | Refresh timeout (in seconds) | integer | 1
 `music_dir` | Music directory | string | "~/Music"
-`cover_size` | Album art notification size | number | 100
+`cover_size` | Album art notification size (both height and width) | integer | 100
 `cover_pattern` | Pattern for the album art file | string | `*\\.(jpg|jpeg|png|gif)`*
 `default_art` | Default art | string | ""
 `followtag` | Display the notification on currently focused screen | boolean | false
 `settings` | User settings | function | empty function
+`widget` | Widget to render | function | `wibox.widget.textbox`
 
 \* In Lua, "\\\\" means "\" escaped.
 
@@ -59,7 +60,7 @@ moc_notification_preset = {
 }
 ```
 
-In multiple screen setups, the default behaviour is to show a visual notification pop-up window on the first screen. By setting `followtag` to `true` it will be shown on the currently focused tag screen.
+With multiple screens, the default behaviour is to show a visual notification pop-up window on the first screen. By setting `followtag` to `true` it will be shown on the currently focused tag screen.
 
 ## Output table
 
@@ -81,22 +82,22 @@ You can control the widget with key bindings like these:
 -- MOC control
 awful.key({ altkey, "Control" }, "Up",
 	function ()
-		awful.spawn.with_shell("mocp -G")
+		os.execute("mocp -G") -- toggle
 		moc.update()
 	end),
 awful.key({ altkey, "Control" }, "Down",
 	function ()
-		awful.spawn.with_shell("mocp -s")
+		os.execute("mocp -s") -- stop
 		moc.update()
 	end),
 awful.key({ altkey, "Control" }, "Left",
 	function ()
-		awful.spawn.with_shell("mocp -r")
+		os.execute("mocp -r") -- previous
 		moc.update()
 	end),
 awful.key({ altkey, "Control" }, "Right",
 	function ()
-		awful.spawn.with_shell("mocp -f")
+		os.execute("mocp -f") -- next
 		moc.update()
 	end),
 ```

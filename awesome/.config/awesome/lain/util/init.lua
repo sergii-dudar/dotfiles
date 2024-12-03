@@ -6,7 +6,7 @@
      Utilities section
 
      Licensed under GNU General Public License v2
-      * (c) 2013,      Luke Bonham
+      * (c) 2013,      Luca CPZ
       * (c) 2010-2012, Peter Hofmann
 
 --]]
@@ -39,7 +39,7 @@ function util.menu_clients_current_tags(menu, args)
         local t   = cls_tags[i]
         local cls = t:clients()
 
-        for k, c in pairs(cls) do
+        for _, c in pairs(cls) do
             cls_t[#cls_t + 1] = { awful.util.escape(c.name) or "",
                                   function ()
                                       c.minimized = false
@@ -76,7 +76,7 @@ function util.magnify_client(c, width_f, height_f)
     end
 end
 
--- https://github.com/copycat-killer/lain/issues/195
+-- https://github.com/lcpz/lain/issues/195
 function util.mc(c, width_f, height_f)
     c = c or util.magnified_client
     if not c then return end
@@ -96,15 +96,37 @@ end
 
 -- Non-empty tag browsing
 -- direction in {-1, 1} <-> {previous, next} non-empty tag
-function util.tag_view_nonempty(direction, sc)
-   local s = sc or awful.screen.focused()
+function util.tag_view_nonempty(direction,sc)
+    direction  = direction or 1
+    local s    = sc or awful.screen.focused()
+    local tags = s.tags
+    local sel  = s.selected_tag
 
-   for i = 1, #s.tags do
-       awful.tag.viewidx(direction, s)
-       if #s.clients > 0 then
-           return
-       end
-   end
+    local i = sel.index
+    repeat
+        i = i + direction
+
+        -- Wrap around when we reach one of the bounds
+        if i > #tags then
+            i = i - #tags
+        end
+        if i < 1 then
+            i = i + #tags
+        end
+
+        local t = tags[i]
+
+        -- Stop when we get back to where we started
+        if t == sel then
+            break
+        end
+
+        -- If it's The One, view it.
+        if #t:clients() > 0 then
+            t:view_only()
+            return
+        end
+    until false
 end
 
 -- {{{ Dynamic tagging
@@ -158,9 +180,10 @@ end
 -- }}}
 
 -- On the fly useless gaps change
-function util.useless_gaps_resize(thatmuch)
-    local scr = awful.screen.focused()
-    scr.selected_tag.gap = scr.selected_tag.gap + tonumber(thatmuch)
+function util.useless_gaps_resize(thatmuch, s, t)
+    local scr = s or awful.screen.focused()
+    local tag = t or scr.selected_tag
+    tag.gap = tag.gap + tonumber(thatmuch)
     awful.layout.arrange(scr)
 end
 

@@ -1,21 +1,19 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2013, Luke Bonham
+      * (c) 2013, Luca CPZ
       * (c) 2013, Rman
 
 --]]
 
-local helpers        = require("lain.helpers")
-local awful          = require("awful")
-local naughty        = require("naughty")
-local wibox          = require("wibox")
-local math           = { modf   = math.modf }
-local string         = { format = string.format,
-                         match  = string.match,
-                         gmatch = string.gmatch,
-                         rep    = string.rep }
-local type, tonumber = type, tonumber
+local helpers  = require("lain.helpers")
+local awful    = require("awful")
+local naughty  = require("naughty")
+local wibox    = require("wibox")
+local math     = math
+local string   = string
+local type     = type
+local tonumber = tonumber
 
 -- PulseAudio volume bar
 -- lain.widget.pulsebar
@@ -23,9 +21,10 @@ local type, tonumber = type, tonumber
 local function factory(args)
     local pulsebar = {
         colors = {
-            background = "#000000",
-            mute       = "#EB8F8F",
-            unmute     = "#A4CE8A"
+            background      = "#000000",
+            mute_background = "#000000",
+            mute            = "#EB8F8F",
+            unmute          = "#A4CE8A"
         },
 
         _current_level = 0,
@@ -33,13 +32,20 @@ local function factory(args)
         device         = "N/A"
     }
 
-    local args       = args or {}
+    args             = args or {}
+
     local timeout    = args.timeout or 5
     local settings   = args.settings or function() end
     local width      = args.width or 63
-    local height     = args.heigth or 1
+    local height     = args.height or 1
+    local margins    = args.margins or 1
+    local paddings   = args.paddings or 1
     local ticks      = args.ticks or false
     local ticks_size = args.ticks_size or 7
+    local tick       = args.tick or "|"
+    local tick_pre   = args.tick_pre or "["
+    local tick_post  = args.tick_post or "]"
+    local tick_none  = args.tick_none or " "
 
     pulsebar.colors              = args.colors or pulsebar.colors
     pulsebar.followtag           = args.followtag or false
@@ -54,12 +60,12 @@ local function factory(args)
     end
 
     pulsebar.bar = wibox.widget {
-        forced_height    = height,
-        forced_width     = width,
         color            = pulsebar.colors.unmute,
         background_color = pulsebar.colors.background,
-        margins          = 1,
-        paddings         = 1,
+        forced_height    = height,
+        forced_width     = width,
+        margins          = margins,
+        paddings         = paddings,
         ticks            = ticks,
         ticks_size       = ticks_size,
         widget           = wibox.widget.progressbar,
@@ -100,10 +106,12 @@ local function factory(args)
                     pulsebar._mute = mute
                     pulsebar.tooltip:set_text ("[muted]")
                     pulsebar.bar.color = pulsebar.colors.mute
+                    pulsebar.bar.background_color = pulsebar.colors.mute_background
                 else
                     pulsebar._mute = "no"
                     pulsebar.tooltip:set_text(string.format("%s %s: %s", pulsebar.devicetype, pulsebar.device, volu))
                     pulsebar.bar.color = pulsebar.colors.unmute
+                    pulsebar.bar.background_color = pulsebar.colors.background
                 end
 
                 settings()
@@ -123,9 +131,28 @@ local function factory(args)
                 preset.title = preset.title .. " muted"
             end
 
-            int = math.modf((pulsebar._current_level / 100) * awful.screen.focused().mywibox.height)
-            preset.text = string.format("[%s%s]", string.rep("|", int),
-                          string.rep(" ", awful.screen.focused().mywibox.height - int))
+            -- tot is the maximum number of ticks to display in the notification
+            -- fallback: default horizontal wibox height
+            local wib, tot = awful.screen.focused().mywibox, 20
+
+            -- if we can grab mywibox, tot is defined as its height if
+            -- horizontal, or width otherwise
+            if wib then
+                if wib.position == "left" or wib.position == "right" then
+                    tot = wib.width
+                else
+                    tot = wib.height
+                end
+            end
+
+            local int = math.modf((pulsebar._current_level / 100) * tot)
+            preset.text = string.format(
+                "%s%s%s%s",
+                tick_pre,
+                string.rep(tick, int),
+                string.rep(tick_none, tot - int),
+                tick_post
+            )
 
             if pulsebar.followtag then preset.screen = awful.screen.focused() end
 
@@ -140,7 +167,7 @@ local function factory(args)
         end)
     end
 
-    helpers.newtimer(string.format("pulsebar-%s", pulsebar.sink), timeout, pulsebar.update)
+    helpers.newtimer(string.format("pulsebar-%s-%s", pulsebar.devicetype, pulsebar.device), timeout, pulsebar.update)
 
     return pulsebar
 end

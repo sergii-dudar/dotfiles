@@ -1,13 +1,13 @@
 ## Usage
 
-[Read here.](https://github.com/copycat-killer/lain/wiki/Widgets#usage)
+[Read here.](https://github.com/lcpz/lain/wiki/Widgets#usage)
 
 ### Description
 
-Shows the remaining time and percentage capacity of your laptop battery, as well as
-the current wattage. Multiple batteries are supported.
+Shows the remaining time and percentage capacity of your laptop battery, as well
+as the current wattage. Multiple batteries are supported.
 
-Displays a notification when battery is low or critical.
+Displays a notification when battery is fully charged, low, or critical.
 
 ```lua
 local mybattery = lain.widget.bat()
@@ -17,35 +17,58 @@ local mybattery = lain.widget.bat()
 
 Variable | Meaning | Type | Default
 --- | --- | --- | ---
-`timeout` | Refresh timeout seconds | number | 30
-`battery` | Single battery id | string | "BAT0"
-`batteries` | Multiple batteries id table | table of strings | `{"BAT0"}`
-`ac` | AC | string | "AC0"
+`timeout` | Refresh timeout (in seconds) | integer | 30
+`pspath` | Power supply directory path | string | "/sys/class/power_supply/"
+`battery` | Single battery id | string | autodetected
+`batteries` | Multiple batteries id table | table of strings | autodetected
+`ac` | AC | string | autodetected
 `notify` | Show notification popups | string | "on"
+`full_notify` | Show a notification popup when the battery's fully charged | string | inherited value from `notify`
 `n_perc` | Percentages assumed for critical and low battery levels | table of integers | `{5, 15}`
 `settings` | User settings | function | empty function
+`widget` | Widget to render | function | `wibox.widget.textbox`
 
-You only have to define one between `battery` and `batteries`.
+The widget will try to autodetect `battery`, `batteries` and `ac`. If something
+goes wrong, you will have to define them manually. In that case, you only have
+to define one between `battery` and `batteries`. If you have one battery, you
+can either use `args.battery = "BAT*"` or `args.batteries = {"BAT*"}`, where `BAT*`
+is the identifier of your battery in `pspath` (do not use it as a wildcard).
+Of course, if you have multiple batteries, you need to use the latter option.
 
-If you have one battery, you can either use `args.battery = "BAT*"` or `args.batteries = {"BAT*"}`. Of course, if you have multiple batteries, you need to use the latter option.
+To disable notifications, set `notify` to `"off"`.
 
-To disable warning notifications, set `notify` to `"off"`.
+If you define `pspath`, **be sure** to not forget the final slash (/).
 
 `settings` can use the `bat_now` table, which contains the following strings:
 
-- `status`, battery status ("N/A", "Discharging", "Charging", "Full");
+- `status`, general status ("N/A", "Discharging", "Charging", "Full");
 - `n_status[i]`, i-th battery status (like above);
 - `ac_status`, AC-plug flag (0 if cable is unplugged, 1 if plugged, "N/A" otherwise);
 - `perc`, total charge percentage (integer between 0 and 100 or "N/A");
-- `n_perc`, i-th battery charge percentage (like above);
-- `time`, time remaining until charge if charging, until discharge if discharging (HH:SS string or "N/A");
-- `watt`, battery watts (float with 2 decimals).
+- `n_perc[i]`, i-th battery charge percentage (like above);
+- `time`, time remaining until charge if charging, until discharge if discharging (HH:MM string or "N/A");
+- `watt`, battery watts (float with 2 decimals);
+- `capacity`, remaining battery capacity in percent;
+- `n_capacity[i]`, i-th battery remaining capacity (like above).
 
-and can modify the following two tables, which will be the preset for the naughty notifications:
-* `bat_notification_low_preset`(used if battery charge level <= 15)
+and can modify the following three tables, which will be the preset for the naughty notifications:
+* `bat_notification_charged_preset` (used if battery is fully charged and connected to AC)
+* `bat_notification_low_preset` (used if battery charge level <= 15)
 * `bat_notification_critical_preset` (used if battery charge level <= 5)
 
-Check [here](https://awesomewm.org/doc/api/libraries/naughty.html#notify) for the list of variables they can contain. Default definitions:
+Check [here](https://awesomewm.org/doc/api/libraries/naughty.html#notify) for
+the list of variables they can contain. Default definitions:
+
+```lua
+bat_notification_charged_preset = {
+        title   = "Battery full",
+        text    = "You can unplug the cable",
+        timeout = 15,
+        fg      = "#202020",
+        bg      = "#CDCDCD"
+    }
+
+```
 
 ```lua
 bat_notification_low_preset = {
@@ -75,15 +98,6 @@ Variable | Meaning | Type
 
 The `update` function can be used to refresh the widget before `timeout` expires.
 
-## Notes
-* Another common identifier for `ac` is `ACAD`.
-* If your widget is always on "N/A" with default settings, and you have a single battery, then `BAT0` is not your battery file. Locate the right one in  `/sys/class/power_supply/` and set `battery` properly. For instance, with `BAT1`:
+## Note
 
-    ```lua
-    batwidget = lain.widget.bat({
-        battery = "BAT1",
-    -- [...]
-    })
-
-    ```
-* Alternatively, you can try the `upower` widget [here](https://awesomewm.org/recipes/watch).
+Alternatively, you can try the [`upower` recipe](https://awesomewm.org/recipes/watch).

@@ -40,12 +40,12 @@ Variable | Meaning | Type | Default
 `name` | client name | string | "QuakeDD"
 `argname` | how to specify client name | string | "-name %s"
 `extra` | extra `app` arguments | string | empty string
-`border` | border width | number | 1
+`border` | border width | integer | 1
 `visible` | initially visible | boolean | false
 `followtag` | always spawn on currently focused screen | boolean | false
 `overlap` | Overlap the wibox or not | boolean | false
-`settings` | Additional settings to make on the client | function | nil
-`screen` | screen where to spawn the client | number | `awful.screen.focused()`
+`settings` | Additional settings to make on the client | function | `nil`
+`screen` | screen where to spawn the client | integer | `awful.screen.focused()`
 `height` | dropdown client height | float in [0,1] or exact pixels number | 0.25
 `width` | dropdown client width | float in [0,1] or exact pixels number | 1
 `vert` | vertical position | string, possible values: "top", "bottom", "center" | "top"
@@ -64,10 +64,11 @@ Read [here](https://awesomewm.org/doc/api/classes/client.html#Object_properties)
 
 **Notes**
 
-* [Does not work](https://github.com/copycat-killer/lain/issues/358) with `gnome-terminal`, `konsole`, or any other terminal which is strictly designed for a Desktop Environment. Just pick a better terminal, [there's plenty](https://wiki.archlinux.org/index.php/List_of_applications#Terminal_emulators).
-* Set `followtag = true` if [experiencing issues with multiscreen setups](https://github.com/copycat-killer/lain/issues/346).
+* [Does not work](https://github.com/lcpz/lain/issues/358) with `gnome-terminal`, `konsole`, or any other terminal which is strictly designed for a Desktop Environment. Just pick a better terminal, [there's plenty](https://wiki.archlinux.org/index.php/List_of_applications#Terminal_emulators).
+* Set `followtag = true` if [experiencing issues with multiple screens](https://github.com/lcpz/lain/issues/346).
 * If you have a `awful.client.setslave` rule for your application, ensure you use an exception for `QuakeDD` (or your defined `name`). Otherwise, you may run into problems with focus.
-* If you are using a VTE-based terminal like `termite`, be sure to set [`argname = "--name %s"`](https://github.com/copycat-killer/lain/issues/211).
+* If you are using a VTE-based terminal like `termite`, be sure to set [`argname = "--name %s"`](https://github.com/lcpz/lain/issues/211).
+* If you are using a terminal that does not always set its `class_id` to your specified `name`, such as Alacritty, then toggling will not work. You can solve this issue as explained [here](https://github.com/lcpz/lain/issues/536#issuecomment-1180155486).
 
 Separators
 ----------
@@ -94,10 +95,10 @@ List of functions:
      |`-- arrow_right()    Draw a right arrow.
       `-- arrow_left()     Draw a left arrow.
 
-markup
+Markup
 ------
 
-Mades markup easier.
+Easier markup.
 
 ```lua
 local markup = lain.util.markup
@@ -170,9 +171,17 @@ Useless gaps resize
 
 Changes `beautiful.useless_gaps` on the fly.
 
-The function takes an integer argument, being the amount of pixel to add/remove to gaps.
+```lua
+lain.util.useless_gap_resize(thatmuch, s, t)
+```
 
-You could use it with these keybindings:
+The argument `thatmuch` is the number of pixel to add to/substract from gaps (integer).
+
+The arguments `s` and `t` are the `awful.screen` and `awful.tag` in which you want to change the gap. They are optional.
+
+Following are example keybindings for changing client gaps on current screen and tag.
+
+Example 1:
 
 ```lua
 -- On the fly useless gaps change
@@ -180,7 +189,7 @@ awful.key({ altkey, "Control" }, "+", function () lain.util.useless_gaps_resize(
 awful.key({ altkey, "Control" }, "-", function () lain.util.useless_gaps_resize(-1) end),
 ```
 
-where `altkey = Mod1`, or you could use it like this:
+where `altkey = Mod1`. Example 2:
 
 ```lua
 mywidget:buttons(awful.util.table.join (
@@ -230,7 +239,7 @@ clientkeys = awful.util.table.join(
 
 If you want to "de-magnify" it, just retype the keybinding.
 
-If you want magnified client to respond to `incmwfact`, read [here](https://github.com/copycat-killer/lain/issues/195).
+If you want magnified client to respond to `incmwfact`, read [here](https://github.com/lcpz/lain/issues/195).
 
 menu\_clients\_current\_tags
 ----------------------------
@@ -242,4 +251,89 @@ of currently visible tags. Use it with a key binding like this:
 awful.key({ "Mod1" }, "Tab", function()
     lain.util.menu_clients_current_tags({ width = 350 }, { keygrabber = true })
 end),
+```
+
+menu\_iterator
+--------------
+
+A generic menu utility which enables iteration over lists of possible
+actions to execute. The perfect example is a menu for choosing what
+configuration to apply to X with `xrandr`, as suggested on the [Awesome wiki page](https://awesomewm.org/recipes/xrandr).
+
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/4147254/36317474-3027f8b6-130b-11e8-9b6b-9a2cf55ae841.gif"/>
+    <br>An example Synergy menu, courtesy of <a href="https://github.com/sim590/dotfiles/blob/master/awesome/rc/xrandr.lua">sim590</a>
+</p>
+
+You can either manually create a menu by defining a table in this format:
+
+```lua
+{ { "choice description 1", callbackFuction1 }, { "choice description 2", callbackFunction2 }, ... }
+```
+
+or use `lain.util.menu_iterator.menu`. Once you have your menu, use it with `lain.menu_iterator.iterate`.
+
+### Input tables
+
+**lain.menu_iterator.iterate**
+
+| Argument  | Description | Type
+|---|---| ---
+| `menu`    | the menu to iterate on                                                           | table
+| `timeout` | time (in seconds) to wait on a choice before the choice is accepted              | integer (default: 4)
+| `icon`    | path to the icon to display in `naughty.notify` window                           | string
+
+**lain.menu_iterator.menu**
+
+| Argument  | Description | Type
+|---|---| ---
+`choices` | list of choices (e.g., `{ "choice1", "choice2", ... }`) | array of strings
+`name` | name of the program related to this menu | string
+`selected_cb` | callback to execute for each selected choice, it takes one choice (string) as argument; can be `nil` (no action to execute) | function
+`rejected_cb` | callback to execute for all rejected choices (the remaining choices, once one is selected), it takes one choice (string) as argument; can be `nil` (no action to execute) | function
+`extra_choices` | more choices to be added to the menu; unlike `choices`, these ones won't trigger `rejected_cb` | array of `{ choice, callback }` pairs, where `choice` is a string and `callback` is a function
+`combination` | how choices have to be combined in the menu; possible values are: "single" (default), the set of possible choices will simply be the input set ; "powerset", the set of possible choices will be the [power set](https://en.wikipedia.org/wiki/Power_set) of the input set | string
+
+### Examples
+
+A simple example is:
+
+```lua
+local mymenu_iterable = lain.util.menu_iterator.menu {
+    choices     = {"My first choice", "My second choice"},
+    name        = "My awesome program",
+    selected_cb = function(choice)
+        -- do something with selected choice
+    end,
+    rejected_cb = function(choice)
+        -- do something with every rejected choice
+    end
+}
+```
+
+The variable `mymenu_iterable` is a menu compatible with the function `lain.util.menu_iterator.iterate`, which will iterate over it and displays notification with `naughty.notify` every time it is called. You can use it like this:
+
+```lua
+local confirm_timeout = 5 -- time to wait before confirming the menu selection
+local my_notify_icon = "/path/to/icon" -- the icon to display in the notification
+lain.util.menu_iterator.iterate(mymenu_iterable, confirm_timeout, my_notify_icon)
+```
+
+Once `confirm_timeout` has passed without anymore calls to `iterate`, the choice is made and the associated callbacks (both for selected and rejected choices) are spawned.
+
+A useful practice is to add a `Cancel` option as an extra choice for canceling a menu selection. Extending the above example:
+
+```lua
+local mymenu_iterable = lain.util.menu_iterator.menu {
+    choices     = {"My first choice", "My second choice"},
+    name        = "My awesome program",
+    selected_cb = function(choice)
+        -- do something with selected choice
+    end,
+    rejected_cb = function(choice)
+        -- do something with every rejected choice
+    end
+    -- nil means no action to do
+    extra_choices = { {"Cancel"}, nil }
+}
 ```
