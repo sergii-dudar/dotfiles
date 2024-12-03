@@ -11,6 +11,8 @@ if isMacOs; then
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 
+    alias setwalls="~/dotfiles/bin/macos/set_wallpapers.sh"
+
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
 
@@ -20,9 +22,6 @@ else
 
     alias out="sudo pkill -KILL -u serhii"
     alias window_type="xprop | grep -i wm_class"
-
-    # sudo pacman -S xorg-server-xephyr
-    alias awesome_debug="Xephyr :5 & sleep 1 ; DISPLAY=:5 awesome"
 
     # export PATH=$PATH:/home/serhii/homebrew/bin/
     #export PATH=$PATH:/snap/bin
@@ -40,6 +39,13 @@ else
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/yazi /usr/bin/yazi
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/fd /usr/bin/fd
     # sudo ln -s /home/linuxbrew/.linuxbrew/bin/zellij /usr/bin/zellij
+
+    # debug qtile wm
+    alias awesome_debug=""
+
+    # debug awesome wm
+    # sudo pacman -S xorg-server-xephyr
+    alias awesome_debug="Xephyr :5 & sleep 1 ; DISPLAY=:5 awesome"
 fi
 
 export VISUAL='nvim'
