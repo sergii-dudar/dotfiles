@@ -162,11 +162,21 @@ M.globalkeys = gears.table.join(
             exe_callback = awful.util.eval,
             history_path = awful.util.get_cache_dir() .. "/history_eval",
         })
-    end, { description = "lua execute prompt", group = "awesome" })
+    end, { description = "lua execute prompt", group = "awesome" }),
     -- Menubar
     -- awful.key({ modkey }, "p", function()
     --     menubar.show()
     -- end, { description = "show the menubar", group = "launcher" })
+
+    -- Show/Hide Wibox
+    awful.key({ vars.key.modkey }, "b", function()
+        for s in screen do
+            s.mywibox.visible = not s.mywibox.visible
+            if s.mybottomwibox then
+                s.mybottomwibox.visible = not s.mybottomwibox.visible
+            end
+        end
+    end, { description = "toggle wibox", group = "awesome" })
 )
 
 return M
