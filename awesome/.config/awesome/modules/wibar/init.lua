@@ -2,6 +2,7 @@
 local gears = require("gears")
 local awful = require("awful")
 local launcher = require("modules.awesome-launcher")
+local lain = require("lain")
 
 local M = {}
 
@@ -60,6 +61,24 @@ M.setup = function(opts)
         -- Create the wibox
         s.mywibox = awful.wibar({ position = "top", screen = s })
 
+        local theme = { font = "Terminus 10.5" }
+        local markup = lain.util.markup
+        local volume = lain.widget.alsa({
+            --togglechannel = "IEC958,3",
+            settings = function()
+                header = " Vol "
+                vlevel = volume_now.level
+
+                if volume_now.status == "off" then
+                    vlevel = vlevel .. "M "
+                else
+                    vlevel = vlevel .. " "
+                end
+
+                widget:set_markup(markup.font(theme.font, markup(gray, header) .. vlevel))
+            end,
+        })
+
         -- Add widgets to the wibox
         s.mywibox:setup({
             layout = wibox.layout.align.horizontal,
@@ -73,6 +92,12 @@ M.setup = function(opts)
             { -- Right widgets
                 layout = wibox.layout.fixed.horizontal,
                 mykeyboardlayout,
+                volume.widget,
+                -- lain.widget.cpu({
+                --     settings = function()
+                --         widget:set_markup("Cpu " .. cpu_now.usage)
+                --     end,
+                -- }).widget,
                 wibox.widget.systray(),
                 mytextclock,
                 s.mylayoutbox,

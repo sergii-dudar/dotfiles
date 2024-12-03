@@ -1,5 +1,6 @@
 pcall(require, "luarocks.loader")
 
+local awful = require("awful")
 require("awful.autofocus")
 -- Theme handling library
 local beautiful = require("beautiful")
@@ -20,6 +21,10 @@ require("modules.error-handling").setup()
 require("modules.winrules").setup(opts)
 require("modules.signals").setup()
 require("modules.wibar").setup(opts)
+
+-- awful.screen.connect_for_each_screen(function(s)
+--     beautiful.at_screen_connect(s)
+-- end)
 
 root.keys(keybind.globalkeys)
 
