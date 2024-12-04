@@ -37,3 +37,4 @@ local.gradle.properties
 application-dev.yml
 zsh/serhii.shell/work.sh
 **/karabiner/automatic_backups
+**/awesome/awesome-wm-widgets

@@ -1,28 +1,27 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2013, Luke Bonham
+      * (c) 2013, Luca CPZ
       * (c) 2010, Adrian C. <anrxc@sysphere.org>
 
 --]]
 
-local helpers      = require("lain.helpers")
-local shell        = require("awful.util").shell
-local escape_f     = require("awful.util").escape
-local focused      = require("awful.screen").focused
-local naughty      = require("naughty")
-local wibox        = require("wibox")
-local os           = { getenv = os.getenv }
-local string       = { format = string.format,
-                       gmatch = string.gmatch,
-                       match  = string.match }
+local helpers  = require("lain.helpers")
+local shell    = require("awful.util").shell
+local escape_f = require("awful.util").escape
+local focused  = require("awful.screen").focused
+local naughty  = require("naughty")
+local wibox    = require("wibox")
+local os       = os
+local string   = string
 
 -- MPD infos
 -- lain.widget.mpd
 
 local function factory(args)
-    local mpd           = { widget = wibox.widget.textbox() }
-    local args          = args or {}
+    args                = args or {}
+
+    local mpd           = { widget = args.widget or wibox.widget.textbox() }
     local timeout       = args.timeout or 2
     local password      = (args.password and #args.password > 0 and string.format("password %s\\n", args.password)) or ""
     local host          = args.host or os.getenv("MPD_HOST") or "127.0.0.1"
@@ -62,7 +61,8 @@ local function factory(args)
                 track        = "N/A",
                 date         = "N/A",
                 time         = "N/A",
-                elapsed      = "N/A"
+                elapsed      = "N/A",
+                volume       = "N/A"
             }
 
             for line in string.gmatch(f, "[^\n]+") do
@@ -84,6 +84,7 @@ local function factory(args)
                     elseif k == "single"         then mpd_now.single_mode  = v ~= "0"
                     elseif k == "random"         then mpd_now.random_mode  = v ~= "0"
                     elseif k == "consume"        then mpd_now.consume_mode = v ~= "0"
+                    elseif k == "volume"         then mpd_now.volume       = v
                     end
                 end
             end

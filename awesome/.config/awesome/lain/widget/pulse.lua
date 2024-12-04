@@ -1,24 +1,23 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2016, Luke Bonham
+      * (c) 2016, Luca CPZ
 
 --]]
 
 local helpers = require("lain.helpers")
 local shell   = require("awful.util").shell
 local wibox   = require("wibox")
-local string  = { gmatch = string.gmatch,
-                  match  = string.match,
-                  format = string.format }
-local type = type
+local string  = string
+local type    = type
 
 -- PulseAudio volume
 -- lain.widget.pulse
 
 local function factory(args)
-    local pulse    = { widget = wibox.widget.textbox(), device = "N/A" }
-    local args     = args or {}
+    args           = args or {}
+
+    local pulse    = { widget = args.widget or wibox.widget.textbox(), device = "N/A" }
     local timeout  = args.timeout or 5
     local settings = args.settings or function() end
 

@@ -1,16 +1,18 @@
 --[[
 
      Holo Awesome WM theme 3.0
-     github.com/copycat-killer
+     github.com/lcpz
 
 --]]
 
-local gears  = require("gears")
-local lain   = require("lain")
-local awful  = require("awful")
-local wibox  = require("wibox")
-local string = string
-local os     = { getenv = os.getenv }
+local gears = require("gears")
+local lain  = require("lain")
+local awful = require("awful")
+local wibox = require("wibox")
+local dpi   = require("beautiful.xresources").apply_dpi
+
+local string, os = string, os
+local my_table = awful.util.table or gears.table -- 4.{0,1} compatibility
 
 local theme                                     = {}
 theme.default_dir                               = require("awful.util").get_themes_dir() .. "default"
@@ -24,15 +26,15 @@ theme.bg_focus                                  = "#303030"
 theme.bg_normal                                 = "#242424"
 theme.fg_urgent                                 = "#CC9393"
 theme.bg_urgent                                 = "#006B8E"
-theme.border_width                              = 3
+theme.border_width                              = dpi(3)
 theme.border_normal                             = "#252525"
 theme.border_focus                              = "#0099CC"
 theme.taglist_fg_focus                          = "#FFFFFF"
 theme.tasklist_bg_normal                        = "#222222"
 theme.tasklist_fg_focus                         = "#4CB7DB"
-theme.menu_height                               = 20
-theme.menu_width                                = 160
-theme.menu_icon_size                            = 32
+theme.menu_height                               = dpi(20)
+theme.menu_width                                = dpi(160)
+theme.menu_icon_size                            = dpi(32)
 theme.awesome_icon                              = theme.icon_dir .. "/awesome_icon_white.png"
 theme.awesome_icon_launcher                     = theme.icon_dir .. "/awesome_icon.png"
 theme.taglist_squares_sel                       = theme.icon_dir .. "/square_sel.png"
@@ -70,7 +72,7 @@ theme.layout_magnifier                          = theme.icon_dir .. "/magnifier.
 theme.layout_floating                           = theme.icon_dir .. "/floating.png"
 theme.tasklist_plain_task_name                  = true
 theme.tasklist_disable_icon                     = true
-theme.useless_gap                               = 4
+theme.useless_gap                               = dpi(4)
 theme.titlebar_close_button_normal              = theme.default_dir.."/titlebar/close_normal.png"
 theme.titlebar_close_button_focus               = theme.default_dir.."/titlebar/close_focus.png"
 theme.titlebar_minimize_button_normal           = theme.default_dir.."/titlebar/minimize_normal.png"
@@ -103,14 +105,14 @@ local mytextclock = wibox.widget.textclock(markup("#FFFFFF", space3 .. "%H:%M   
 mytextclock.font = theme.font
 local clock_icon = wibox.widget.imagebox(theme.clock)
 local clockbg = wibox.container.background(mytextclock, theme.bg_focus, gears.shape.rectangle)
-local clockwidget = wibox.container.margin(clockbg, 0, 3, 5, 5)
+local clockwidget = wibox.container.margin(clockbg, dpi(0), dpi(3), dpi(5), dpi(5))
 
 -- Calendar
 local mytextcalendar = wibox.widget.textclock(markup.fontfg(theme.font, "#FFFFFF", space3 .. "%d %b " .. markup.font("Roboto 5", " ")))
 local calendar_icon = wibox.widget.imagebox(theme.calendar)
 local calbg = wibox.container.background(mytextcalendar, theme.bg_focus, gears.shape.rectangle)
-local calendarwidget = wibox.container.margin(calbg, 0, 0, 5, 5)
-lain.widget.calendar({
+local calendarwidget = wibox.container.margin(calbg, dpi(0), dpi(0), dpi(5), dpi(5))
+theme.cal = lain.widget.cal({
     attach_to = { mytextclock, mytextcalendar },
     notification_preset = {
         fg = "#FFFFFF",
@@ -120,9 +122,9 @@ lain.widget.calendar({
     }
 })
 
---[[ Mail IMAP check
--- commented because it needs to be set before use
-local mail = lain.widget.imap({
+-- Mail IMAP check
+--[[ to be set before use
+theme.mail = lain.widget.imap({
     timeout  = 180,
     server   = "server",
     mail     = "mail",
@@ -172,34 +174,33 @@ theme.mpd = lain.widget.mpd({
     end
 })
 local musicbg = wibox.container.background(theme.mpd.widget, theme.bg_focus, gears.shape.rectangle)
-local musicwidget = wibox.container.margin(musicbg, 0, 0, 5, 5)
+local musicwidget = wibox.container.margin(musicbg, dpi(0), dpi(0), dpi(5), dpi(5))
 
-musicwidget:buttons(awful.util.table.join(awful.button({ }, 1,
+musicwidget:buttons(my_table.join(awful.button({ }, 1,
 function () awful.spawn(theme.musicplr) end)))
-prev_icon:buttons(awful.util.table.join(awful.button({}, 1,
+prev_icon:buttons(my_table.join(awful.button({}, 1,
 function ()
-    awful.spawn.with_shell("mpc prev")
+    os.execute("mpc prev")
     theme.mpd.update()
 end)))
-next_icon:buttons(awful.util.table.join(awful.button({}, 1,
+next_icon:buttons(my_table.join(awful.button({}, 1,
 function ()
-    awful.spawn.with_shell("mpc next")
+    os.execute("mpc next")
     theme.mpd.update()
 end)))
-stop_icon:buttons(awful.util.table.join(awful.button({}, 1,
+stop_icon:buttons(my_table.join(awful.button({}, 1,
 function ()
     play_pause_icon:set_image(theme.play)
-    awful.spawn.with_shell("mpc stop")
+    os.execute("mpc stop")
     theme.mpd.update()
 end)))
-play_pause_icon:buttons(awful.util.table.join(awful.button({}, 1,
+play_pause_icon:buttons(my_table.join(awful.button({}, 1,
 function ()
-    awful.spawn.with_shell("mpc toggle")
+    os.execute("mpc toggle")
     theme.mpd.update()
 end)))
 
 -- Battery
---[[
 local bat = lain.widget.bat({
     settings = function()
         bat_header = " Bat "
@@ -210,29 +211,29 @@ local bat = lain.widget.bat({
         widget:set_markup(markup.font(theme.font, markup(blue, bat_header) .. bat_p))
     end
 })
---]]
---
---  fs
+
+-- / fs
+--[[ commented because it needs Gio/Glib >= 2.54
 theme.fs = lain.widget.fs({
-    options = "--exclude-type=tmpfs",
-    notification_preset = { bg = theme.bg_normal, font = "Monospace 9, " },
+    notification_preset = { bg = theme.bg_normal, font = "Monospace 9" },
 })
+--]]
 
 -- ALSA volume bar
 theme.volume = lain.widget.alsabar({
     notification_preset = { font = "Monospace 9"},
     --togglechannel = "IEC958,3",
-    width = 80, height = 10, border_width = 0,
+    width = dpi(80), height = dpi(10), border_width = dpi(0),
     colors = {
         background = "#383838",
         unmute     = "#80CCE6",
         mute       = "#FF9F9F"
     },
 })
-theme.volume.bar.paddings = 0
-theme.volume.bar.margins = 5
+theme.volume.bar.paddings = dpi(0)
+theme.volume.bar.margins = dpi(5)
 local volumewidget = wibox.container.background(theme.volume.bar, theme.bg_focus, gears.shape.rectangle)
-volumewidget = wibox.container.margin(volumewidget, 0, 0, 5, 5)
+volumewidget = wibox.container.margin(volumewidget, dpi(0), dpi(0), dpi(5), dpi(5))
 
 -- CPU
 local cpu_icon = wibox.widget.imagebox(theme.cpu)
@@ -243,7 +244,7 @@ local cpu = lain.widget.cpu({
     end
 })
 local cpubg = wibox.container.background(cpu.widget, theme.bg_focus, gears.shape.rectangle)
-local cpuwidget = wibox.container.margin(cpubg, 0, 0, 5, 5)
+local cpuwidget = wibox.container.margin(cpubg, dpi(0), dpi(0), dpi(5), dpi(5))
 
 -- Net
 local netdown_icon = wibox.widget.imagebox(theme.net_down)
@@ -255,13 +256,16 @@ local net = lain.widget.net({
     end
 })
 local netbg = wibox.container.background(net.widget, theme.bg_focus, gears.shape.rectangle)
-local networkwidget = wibox.container.margin(netbg, 0, 0, 5, 5)
+local networkwidget = wibox.container.margin(netbg, dpi(0), dpi(0), dpi(5), dpi(5))
 
 -- Weather
+--[[ to be set before use
 theme.weather = lain.widget.weather({
+    --APPID =
     city_id = 2643743, -- placeholder (London)
     notification_preset = { font = "Monospace 9", position = "bottom_right" },
 })
+--]]
 
 -- Launcher
 local mylauncher = awful.widget.button({ image = theme.awesome_icon_launcher })
@@ -279,8 +283,8 @@ local bottom_bar = wibox.widget.imagebox(theme.bottom_bar)
 
 local barcolor  = gears.color({
     type  = "linear",
-    from  = { 32, 0 },
-    to    = { 32, 32 },
+    from  = { dpi(32), 0 },
+    to    = { dpi(32), dpi(32) },
     stops = { {0, theme.bg_focus}, {0.25, "#505050"}, {1, theme.bg_focus} }
 })
 
@@ -296,29 +300,30 @@ function theme.at_screen_connect(s)
     gears.wallpaper.maximized(wallpaper, s, true)
 
     -- Tags
-    awful.tag(awful.util.tagnames, s, awful.layout.layouts)
+    awful.tag(awful.util.tagnames, s, awful.layout.layouts[1])
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
     -- Create an imagebox widget which will contains an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
     s.mylayoutbox = awful.widget.layoutbox(s)
-    s.mylayoutbox:buttons(awful.util.table.join(
-                           awful.button({ }, 1, function () awful.layout.inc( 1) end),
-                           awful.button({ }, 3, function () awful.layout.inc(-1) end),
-                           awful.button({ }, 4, function () awful.layout.inc( 1) end),
-                           awful.button({ }, 5, function () awful.layout.inc(-1) end)))
+    s.mylayoutbox:buttons(my_table.join(
+                           awful.button({}, 1, function () awful.layout.inc( 1) end),
+                           awful.button({}, 2, function () awful.layout.set( awful.layout.layouts[1] ) end),
+                           awful.button({}, 3, function () awful.layout.inc(-1) end),
+                           awful.button({}, 4, function () awful.layout.inc( 1) end),
+                           awful.button({}, 5, function () awful.layout.inc(-1) end)))
     -- Create a taglist widget
     s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, awful.util.taglist_buttons, { bg_focus = barcolor })
 
     mytaglistcont = wibox.container.background(s.mytaglist, theme.bg_focus, gears.shape.rectangle)
-    s.mytag = wibox.container.margin(mytaglistcont, 0, 0, 5, 5)
+    s.mytag = wibox.container.margin(mytaglistcont, dpi(0), dpi(0), dpi(5), dpi(5))
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, awful.util.tasklist_buttons, { bg_focus = theme.bg_focus, shape = gears.shape.rectangle, shape_border_width = 5, shape_border_color = theme.tasklist_bg_normal, align = "center" })
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s, height = 32 })
+    s.mywibox = awful.wibar({ position = "top", screen = s, height = dpi(32) })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
@@ -336,7 +341,7 @@ function theme.at_screen_connect(s)
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
             wibox.widget.systray(),
-            --mail.widget,
+            --theme.mail.widget,
             --bat.widget,
             spr_right,
             musicwidget,
@@ -355,8 +360,8 @@ function theme.at_screen_connect(s)
     }
 
     -- Create the bottom wibox
-    s.mybottomwibox = awful.wibar({ position = "bottom", screen = s, border_width = 0, height = 32 })
-    s.borderwibox = awful.wibar({ position = "bottom", screen = s, height = 1, bg = theme.fg_focus, x = 0, y = 33})
+    s.mybottomwibox = awful.wibar({ position = "bottom", screen = s, border_width = dpi(0), height = dpi(32) })
+    s.borderwibox = awful.wibar({ position = "bottom", screen = s, height = dpi(1), bg = theme.fg_focus, x = dpi(0), y = dpi(33)})
 
     -- Add widgets to the bottom wibox
     s.mybottomwibox:setup {

@@ -1,24 +1,23 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2013,      Luke Bonham
+      * (c) 2013,      Luca CPZ
       * (c) 2010-2012, Peter Hofmann
 
 --]]
 
 local helpers  = require("lain.helpers")
 local wibox    = require("wibox")
-local math     = { ceil   = math.ceil }
-local string   = { format = string.format,
-                   gmatch = string.gmatch }
-local tostring = tostring
+local math     = math
+local string   = string
 
 -- CPU usage
 -- lain.widget.cpu
 
 local function factory(args)
-    local cpu      = { core = {}, widget = wibox.widget.textbox() }
-    local args     = args or {}
+    args           = args or {}
+
+    local cpu      = { core = {}, widget = args.widget or wibox.widget.textbox() }
     local timeout  = args.timeout or 2
     local settings = args.settings or function() end
 
@@ -26,9 +25,7 @@ local function factory(args)
         -- Read the amount of time the CPUs have spent performing
         -- different kinds of work. Read the first line of /proc/stat
         -- which is the sum of all CPUs.
-        local times = helpers.lines_match("cpu","/proc/stat")
-
-        for index,time in pairs(times) do
+        for index,time in pairs(helpers.lines_match("cpu","/proc/stat")) do
             local coreid = index - 1
             local core   = cpu.core[coreid] or
                            { last_active = 0 , last_total = 0, usage = 0 }
@@ -52,7 +49,7 @@ local function factory(args)
                 -- Read current data and calculate relative values.
                 local dactive = active - core.last_active
                 local dtotal  = total - core.last_total
-                local usage   = math.ceil((dactive / dtotal) * 100)
+                local usage   = math.ceil(math.abs((dactive / dtotal) * 100))
 
                 core.last_active = active
                 core.last_total  = total

@@ -1,7 +1,7 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2013,      Luke Bonham
+      * (c) 2013,      Luca CPZ
       * (c) 2010-2012, Peter Hofmann
 
 --]]
@@ -14,8 +14,9 @@ local open, match = io.open, string.match
 -- lain.widget.sysload
 
 local function factory(args)
-    local sysload  = { widget = wibox.widget.textbox() }
-    local args     = args or {}
+    args           = args or {}
+
+    local sysload  = { widget = args.widget or wibox.widget.textbox() }
     local timeout  = args.timeout or 2
     local settings = args.settings or function() end
 

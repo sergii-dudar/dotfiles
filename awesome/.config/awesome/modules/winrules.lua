@@ -3,7 +3,34 @@ local beautiful = require("beautiful")
 
 local M = {}
 
-M.setup = function()
+---@param opts { keybind: {} }
+M.setup = function(opts)
+    -- Table of layouts to cover with awful.layout.inc, order matters.
+    --awful.layout.layouts = {
+    awful.layout.append_default_layouts({
+        awful.layout.suit.tile,
+        awful.layout.suit.max,
+
+        -- interesting
+        --awful.layout.suit.spiral,
+        --awful.layout.suit.spiral.dwindle,
+        --awful.layout.suit.magnifier,
+        --awful.layout.suit.corner.nw,
+
+        --awful.layout.suit.floating,
+        --awful.layout.suit.tile.left,
+        --awful.layout.suit.tile.bottom,
+        --awful.layout.suit.tile.top,
+        --awful.layout.suit.fair,
+        --awful.layout.suit.fair.horizontal,
+
+        -- awful.layout.suit.max.fullscreen,
+        -- awful.layout.suit.corner.ne,
+        -- awful.layout.suit.corner.sw,
+        -- awful.layout.suit.corner.se,
+    })
+    -- }}}
+
     -- {{{ Rules
 
     -- beautiful.gap_single_client = true
@@ -19,8 +46,8 @@ M.setup = function()
                 border_color = beautiful.border_normal,
                 focus = awful.client.focus.filter,
                 raise = true,
-                keys = clientkeys,
-                buttons = clientbuttons,
+                keys = opts.keybind.clientkeys,
+                buttons = opts.keybind.clientbuttons,
                 screen = awful.screen.preferred,
                 placement = awful.placement.no_overlap + awful.placement.no_offscreen,
             },

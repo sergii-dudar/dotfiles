@@ -1,20 +1,19 @@
 --[[
 
      Licensed under GNU General Public License v2
-      * (c) 2013, Luke Bonham
+      * (c) 2013, Luca CPZ
       * (c) 2013, Rman
 
 --]]
 
-local helpers        = require("lain.helpers")
-local awful          = require("awful")
-local naughty        = require("naughty")
-local wibox          = require("wibox")
-local math           = { modf   = math.modf }
-local string         = { format = string.format,
-                         match  = string.match,
-                         rep    = string.rep }
-local type, tonumber = type, tonumber
+local helpers  = require("lain.helpers")
+local awful    = require("awful")
+local naughty  = require("naughty")
+local wibox    = require("wibox")
+local math     = math
+local string   = string
+local type     = type
+local tonumber = tonumber
 
 -- ALSA volume bar
 -- lain.widget.alsabar
@@ -31,13 +30,19 @@ local function factory(args)
         _playback      = "off"
     }
 
-    local args       = args or {}
+    args             = args or {}
+
     local timeout    = args.timeout or 5
     local settings   = args.settings or function() end
     local width      = args.width or 63
     local height     = args.height or 1
+    local margins    = args.margins or 1
     local ticks      = args.ticks or false
     local ticks_size = args.ticks_size or 7
+    local tick       = args.tick or "|"
+    local tick_pre   = args.tick_pre or "["
+    local tick_post  = args.tick_post or "]"
+    local tick_none  = args.tick_none or " "
 
     alsabar.cmd                 = args.cmd or "amixer"
     alsabar.channel             = args.channel or "Master"
@@ -47,8 +52,7 @@ local function factory(args)
     alsabar.notification_preset = args.notification_preset
 
     if not alsabar.notification_preset then
-        alsabar.notification_preset      = {}
-        alsabar.notification_preset.font = "Monospace 10"
+        alsabar.notification_preset = { font = "Monospace 10" }
     end
 
     local format_cmd = string.format("%s get %s", alsabar.cmd, alsabar.channel)
@@ -59,12 +63,12 @@ local function factory(args)
     end
 
     alsabar.bar = wibox.widget {
-        forced_height    = height,
-        forced_width     = width,
         color            = alsabar.colors.unmute,
         background_color = alsabar.colors.background,
-        margins          = 1,
-        paddings         = 1,
+        forced_height    = height,
+        forced_width     = width,
+        margins          = margins,
+        paddings         = margins,
         ticks            = ticks,
         ticks_size       = ticks_size,
         widget           = wibox.widget.progressbar
@@ -113,9 +117,33 @@ local function factory(args)
                 preset.title = preset.title .. " Muted"
             end
 
-            int = math.modf((alsabar._current_level / 100) * awful.screen.focused().mywibox.height)
-            preset.text = string.format("[%s%s]", string.rep("|", int),
-                          string.rep(" ", awful.screen.focused().mywibox.height - int))
+            -- tot is the maximum number of ticks to display in the notification
+            local tot = alsabar.notification_preset.max_ticks
+
+            if not tot then
+                local wib = awful.screen.focused().mywibox
+                -- if we can grab mywibox, tot is defined as its height if
+                -- horizontal, or width otherwise
+                if wib then
+                    if wib.position == "left" or wib.position == "right" then
+                        tot = wib.width
+                    else
+                        tot = wib.height
+                    end
+                -- fallback: default horizontal wibox height
+                else
+                    tot = 20
+                end
+            end
+
+            local int = math.modf((alsabar._current_level / 100) * tot)
+            preset.text = string.format(
+                "%s%s%s%s",
+                tick_pre,
+                string.rep(tick, int),
+                string.rep(tick_none, tot - int),
+                tick_post
+            )
 
             if alsabar.followtag then preset.screen = awful.screen.focused() end
 
