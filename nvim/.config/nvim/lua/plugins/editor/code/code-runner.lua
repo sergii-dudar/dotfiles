@@ -2,6 +2,9 @@ local java_util = require("utils.java.java-util")
 
 return {
     "CRAG666/code_runner.nvim",
+    keys = {
+        { "<leader>r", desc = "Run ..." },
+    },
     config = function()
         require("code_runner").setup({
             -- choose default mode (valid term, tab, float, toggle, vimux)

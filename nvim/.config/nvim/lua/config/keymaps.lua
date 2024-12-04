@@ -74,10 +74,15 @@ map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 -- help to replace intellij - replace qualified name with import
 vim.api.nvim_set_keymap(
     "v",
-    "<leader>r",
+    "<leader>rr",
     '"hy:%s/<C-r>h//gc<Left><Left><Left>',
     { noremap = true, silent = false, desc = "Replace with prompt" }
 )
+
+-- run lua in runtime
+map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
+map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
+map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
 
 -- Example usage for jdtls
 vim.opt.path:append("**")
