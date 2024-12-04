@@ -10,6 +10,7 @@ dunst &
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 
 nm-applet &
+volumeicon &
 #glate &
 #kitty --hold zsh -c "yazi" &
 wezterm &

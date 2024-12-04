@@ -3,6 +3,7 @@ local gears = require("gears")
 local awful = require("awful")
 local launcher = require("modules.awesome-launcher")
 local lain = require("lain")
+local vars = require("modules.variables")
 
 local M = {}
 
@@ -79,6 +80,11 @@ M.setup = function(opts)
             end,
         })
 
+        local volume_widget = require("awesome-wm-widgets.volume-widget.volume")
+        --sudo pacman -S acpi
+        --local batteryarc_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
+        local battery_widget = require("awesome-wm-widgets.battery-widget.battery")
+
         -- Add widgets to the wibox
         s.mywibox:setup({
             layout = wibox.layout.align.horizontal,
@@ -98,6 +104,11 @@ M.setup = function(opts)
                 --         widget:set_markup("Cpu " .. cpu_now.usage)
                 --     end,
                 -- }).widget,
+                volume_widget({}),
+                battery_widget({
+                    path_to_icons = vars.path.home_dir .. "/.config/awesome/awesome-wm-widgets/battery-widget/icons/",
+                }),
+
                 wibox.widget.systray(),
                 mytextclock,
                 s.mylayoutbox,
