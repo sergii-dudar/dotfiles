@@ -5,8 +5,10 @@
 local theme_assets = require("beautiful.theme_assets")
 local xresources = require("beautiful.xresources")
 local rnotification = require("ruled.notification")
+local beautiful = require("beautiful")
 local dpi = xresources.apply_dpi
 
+beautiful.icon_theme = "Dracula"
 local gfs = require("gears.filesystem")
 local themes_path = gfs.get_themes_dir()
 
@@ -14,11 +16,13 @@ local theme = {}
 
 theme.font = "CaskaydiaCove Nerd Font Bold 10"
 
-theme.bg_normal = "#222222"
+theme.bg_normal = "#232634"
 theme.bg_focus = "#535d6c"
 theme.bg_urgent = "#ff0000"
 theme.bg_minimize = "#444444"
 theme.bg_systray = theme.bg_normal
+theme.systray_icon_spacing = dpi(5)
+--theme.icon_theme = "Dracula"
 
 theme.fg_normal = "#aaaaaa"
 theme.fg_focus = "#ffffff"
@@ -47,7 +51,7 @@ theme.border_color_marked = "#91231c"
 local taglist_square_size = dpi(4)
 theme.taglist_squares_sel = theme_assets.taglist_squares_sel(taglist_square_size, theme.fg_normal)
 theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_size, theme.fg_normal)
-
+--beautiful.taglist_font = "CaskaydiaCove Nerd Font Bold 18"
 -- Variables set for theming notifications:
 -- notification_font
 -- notification_[bg|fg]
