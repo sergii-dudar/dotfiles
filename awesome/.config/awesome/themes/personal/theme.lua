@@ -8,8 +8,10 @@ local rnotification = require("ruled.notification")
 local beautiful = require("beautiful")
 local vars = require("modules.variables")
 local dpi = xresources.apply_dpi
+local gears_shape = require("gears.shape")
+local gears = require("gears")
 
-beautiful.icon_theme = "Dracula"
+--beautiful.icon_theme = "Dracula"
 --local gfs = require("gears.filesystem")
 --local themes_path = gfs.get_themes_dir()
 local themes_path = vars.current_theme_dir
@@ -51,9 +53,23 @@ theme.border_color_marked = "#91231c"
 --theme.taglist_bg_focus = "#ff0000"
 
 -- Generate taglist squares:
-local taglist_square_size = dpi(4)
-theme.taglist_squares_sel = theme_assets.taglist_squares_sel(taglist_square_size, theme.fg_normal)
-theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_size, theme.fg_normal)
+-- local taglist_square_size = dpi(4)
+-- theme.taglist_squares_sel = theme_assets.taglist_squares_sel(taglist_square_size, theme.fg_normal)
+-- theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(taglist_square_size, theme.fg_normal)
+
+theme.taglist_fg_focus = "#a6d189"
+theme.taglist_bg_focus = "#44475a"
+theme.taglist_fg_empty = "#51576d"
+
+--theme.taglist_bg_occupied = "#44475a"
+theme.taglist_fg_occupied = "#8caaee"
+
+theme.taglist_squares_sel = nil
+theme.taglist_squares_unsel = nil
+
+--theme.taglist_shape_border_width = 3
+--theme.taglist_shape_border_color = "#f4b8e4"
+
 --beautiful.taglist_font = "CaskaydiaCove Nerd Font Bold 18"
 -- Variables set for theming notifications:
 -- notification_font

@@ -15,8 +15,8 @@ local funcs = require("modules.funcs")
 local keybind = require("modules.keybind")
 
 beautiful.init(vars.current_theme_path)
-beautiful.icon_theme = "Dracula"
-beautiful.icon_theme_path = { "/usr/share/icons/" }
+--beautiful.icon_theme = "Dracula"
+--beautiful.icon_theme_path = { "/usr/share/icons/" }
 
 local opts = { keybind = keybind }
 require("modules.error-handling").setup()

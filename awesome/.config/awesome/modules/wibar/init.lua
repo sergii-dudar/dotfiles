@@ -65,16 +65,24 @@ M.setup = function(opts)
 
     -- {{{ Wibar
     -- Create a textclock widget
-    local textclock = wibox.widget.textclock()
-    textclock.font = "CaskaydiaCove Nerd Font Bold 13"
-    textclock.format = "<span foreground='#6272a4'> %a %b %d</span><span foreground='#a6d189'> 󰔛 %I:%M %p</span>"
+    local text_time = wibox.widget.textclock()
+    text_time.font = "CaskaydiaCove Nerd Font Bold 13"
+    text_time.format = "<span foreground='#a6d189'>󰔛 %I:%M %p</span>"
+    local text_date = wibox.widget.textclock()
+    text_date.font = "CaskaydiaCove Nerd Font Bold 13"
+    text_date.format = "<span foreground='#6272a4'> %a %b %d</span>"
 
     awful.screen.connect_for_each_screen(function(s)
         -- Wallpaper
         --set_wallpaper(s)
 
         -- Each screen has its own tag table.
-        awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+        --awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+        awful.tag(
+            { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+            s,
+            awful.layout.layouts[1]
+        )
 
         -- Create a promptbox for each screen
         local promptbox = awful.widget.prompt()
@@ -83,13 +91,35 @@ M.setup = function(opts)
         local layoutbox = layoutbox_with_name(s)
 
         -- Create a taglist widget
+        local tag_shape = function(cr, w, h)
+            gears.shape.rounded_rect(cr, 30, h, 3)
+        end
         local taglist = awful.widget.taglist({
             screen = s,
             filter = awful.widget.taglist.filter.all,
             buttons = opts.keybind.taglist_buttons,
             style = {
                 font = "CaskaydiaCove Nerd Font Bold 13",
-                spacing = 7,
+                spacing = 1,
+            },
+
+            widget_template = {
+                {
+                    {
+                        id = "text_role",
+                        widget = wibox.widget.textbox, -- Display the tag name
+                        --align = "center", -- Center the tag name
+                        --valign = "center", -- Vertically center the tag name
+                        forced_width = 57,
+                        --justify = false,
+                        halign = "center",
+                    },
+                    margins = { top = 0, bottom = 0, left = 0, right = 4 },
+                    --margins = 5, -- Add 5px margin on all sides
+                    widget = wibox.container.margin, -- Wrap the widget in a margin container
+                },
+                id = "background_role",
+                widget = wibox.container.background, -- Background color changes for active/urgent tags
             },
         })
 
@@ -187,9 +217,11 @@ M.setup = function(opts)
                     widget = wibox.container.place,
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 15,
+                    text_date,
+                    separator,
                     taglist,
                     separator,
-                    textclock,
+                    text_time,
                 },
 
                 { -- Right widgets
