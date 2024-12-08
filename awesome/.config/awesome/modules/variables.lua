@@ -38,6 +38,7 @@ local all_themes = {
     "vertex", -- 11
 }
 local choosen_theme_name = all_themes[1]
-M.current_theme_path = string.format("%s/.config/awesome/themes/%s/theme.lua", M.path.home_dir, choosen_theme_name)
+M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, choosen_theme_name)
+M.current_theme_path = string.format("%s/theme.lua", M.current_theme_dir)
 
 return M

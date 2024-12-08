@@ -67,7 +67,7 @@ M.setup = function(opts)
     -- Create a textclock widget
     local textclock = wibox.widget.textclock()
     textclock.font = "CaskaydiaCove Nerd Font Bold 13"
-    textclock.format = "<span foreground='#6272a4'>%a %b %d</span><span foreground='#a6d189'> 󰔛 %I:%M %p</span>"
+    textclock.format = "<span foreground='#6272a4'> %a %b %d</span><span foreground='#a6d189'> 󰔛 %I:%M %p</span>"
 
     awful.screen.connect_for_each_screen(function(s)
         -- Wallpaper
@@ -106,6 +106,22 @@ M.setup = function(opts)
             align = "center",
             valign = "center",
         })
+        local separator_no_left = wibox.widget({
+            widget = wibox.widget.textbox,
+            markup = "<span foreground='#7f849c'>󱋱 </span>",
+            align = "center",
+            valign = "center",
+        })
+        local separator_no_right = wibox.widget({
+            widget = wibox.widget.textbox,
+            markup = "<span foreground='#7f849c'> 󱋱</span>",
+            align = "center",
+            valign = "center",
+        })
+        local space = wibox.widget({
+            widget = wibox.widget.textbox,
+            text = " ",
+        })
 
         local applications = wibox.widget({
             widget = wibox.widget.textbox,
@@ -114,9 +130,14 @@ M.setup = function(opts)
             valign = "center",
             font = "CaskaydiaCove Nerd Font Bold 13",
         })
-        applications:buttons(gears.table.join(awful.button({}, 1, function()
-            awful.spawn.with_shell(vars.path.mymenu)
-        end)))
+        applications:buttons(gears.table.join(
+            awful.button({}, 1, function()
+                awful.spawn.with_shell(vars.path.mymenu)
+            end),
+            awful.button({}, 3, function()
+                launcher.mymainmenu:toggle()
+            end)
+        ))
 
         local powermenu = wibox.widget({
             widget = wibox.widget.textbox,
@@ -128,24 +149,6 @@ M.setup = function(opts)
         powermenu:buttons(gears.table.join(awful.button({}, 1, function()
             awful.spawn.with_shell(vars.path.powermenu)
         end)))
-
-        local theme = { font = "Terminus 10.5" }
-        local markup = lain.util.markup
-        local volume = lain.widget.alsa({
-            --togglechannel = "IEC958,3",
-            settings = function()
-                header = " Vol "
-                vlevel = volume_now.level
-
-                if volume_now.status == "off" then
-                    vlevel = vlevel .. "M "
-                else
-                    vlevel = vlevel .. " "
-                end
-
-                widget:set_markup(markup.font(theme.font, markup(gray, header) .. vlevel))
-            end,
-        })
 
         local volume_widget = require("awesome-wm-widgets.volume-widget.volume")
         --sudo pacman -S acpi
@@ -170,9 +173,9 @@ M.setup = function(opts)
                         layout = wibox.layout.fixed.horizontal,
                         --spacing = 5,
                         applications,
-                        separator,
-                        wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
-                        separator,
+                        space,
+                        --wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
+                        --separator,
                         layoutbox,
                         separator,
                         promptbox,
