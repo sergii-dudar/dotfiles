@@ -40,6 +40,9 @@ theme.border_color_normal = "#535d6c"
 theme.border_color_active = "#80a0ff"
 theme.border_color_marked = "#91231c"
 
+theme.tasklist_fg_focus = "#c678dd"
+theme.tasklist_fg_normal = "#f4b8e4"
+
 -- There are other variable sets
 -- overriding the default one when
 -- defined, the sets are:

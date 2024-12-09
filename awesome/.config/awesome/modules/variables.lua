@@ -2,6 +2,7 @@ local M = {}
 M.path = {}
 M.app = {}
 M.key = {}
+M.font = {}
 
 M.path.home_dir = os.getenv("HOME")
 M.path.mymenu = M.path.home_dir .. "/.config/rofi/scripts/launcher_t1"
@@ -19,6 +20,8 @@ M.app.editor_cmd = M.app.terminal .. " -e " .. M.app.editor
 -- However, you can use another modifier like Mod1, but it may interact with others.
 M.key.modkey = "Mod4"
 M.key.altkey = "Mod1"
+
+M.font.widget = "CaskaydiaCove Nerd Font Bold 14"
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.

@@ -72,6 +72,21 @@ M.setup = function(opts)
                     "Wpa_gui",
                     "veromix",
                     "xtightvncviewer",
+
+                    "qBittorrent",
+                    "pavucontrol",
+                    "gnome-system-monitor",
+                    "Nm-connection-editor",
+                    "ViberPC",
+                    "vlc",
+                    "gnome-calculator",
+                    "snapshot",
+                    "Gcolor3",
+                    "org.gnome.Characters",
+                    "org.gnome.clocks",
+                    "gnome-calendar",
+                    "Gnome-disks",
+                    "Glate",
                 },
 
                 -- Note that the name property shown in xprop might be set slightly after creation of the client
