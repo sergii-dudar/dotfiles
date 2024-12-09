@@ -172,7 +172,7 @@ alt-shift-f = 'fullscreen'
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
 alt-shift-r = 'mode resize'
-alt-shift-p = 'mode scratchpad'
+#alt- = 'mode scratchpad'
 
 ################################################################
 # ------------------------- Scratchpads -----------------------#
@@ -183,10 +183,10 @@ alt-shift-p = 'mode scratchpad'
 #cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/scratchpad.sh org.gnu.Emacs Emacs'
 #cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
 
-#cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.finder Finder'
-# cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
-# cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
-# cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
+cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
+cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
+cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
 # need terminal that all the time planning to be used only in float\scratchpad mode,
 # unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
@@ -199,25 +199,24 @@ alt-shift-p = 'mode scratchpad'
 # TODO:
 # ctrl-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm", "Google Chat", "Sublime Text", "Music"'
 cmd-ctrl-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm" "Google Chat" "Sublime Text" "Music"'
-
-[mode.scratchpad.binding]
-t = [
-    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm',
-    #'mode main',
-]
-g = [
-    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"',
-    #'mode main',
-]
-s = [
-    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"',
-    #'mode main',
-]
-m = [
-    'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music',
-    #'mode main',
-]
-esc = 'mode main'
+# [mode.scratchpad.binding]
+# t = [
+#     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm',
+#     #'mode main',
+# ]
+# g = [
+#     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"',
+#     #'mode main',
+# ]
+# s = [
+#     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"',
+#     #'mode main',
+# ]
+# m = [
+#     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music',
+#     #'mode main',
+# ]
+# esc = 'mode main'
 
 [mode.resize.binding]
 h = 'resize width -50'
