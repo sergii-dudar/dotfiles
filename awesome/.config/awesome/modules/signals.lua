@@ -19,6 +19,22 @@ M.setup = function()
             -- Prevent clients from being unreachable after screen count changes.
             awful.placement.no_offscreen(c)
         end
+
+        -- open any floating app on exact screen center
+        if c.floating then
+            -- Get the screen geometry
+            local screen_geometry = c.screen.workarea
+
+            -- Calculate the position to center the window
+            local window_width = c.width
+            local window_height = c.height
+
+            local x = screen_geometry.x + (screen_geometry.width - window_width) / 2
+            local y = screen_geometry.y + (screen_geometry.height - window_height) / 2
+
+            -- Set the client's position
+            c:geometry({ x = x, y = y })
+        end
     end)
 
     -- Add a titlebar if titlebars_enabled is set to true in the rules.
