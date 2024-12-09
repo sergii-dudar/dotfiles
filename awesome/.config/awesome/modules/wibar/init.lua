@@ -84,6 +84,8 @@ M.setup = function(opts)
                             table.unpack(common_util.concat_match_tables({
                                 keyboard_layout_widget.setup(),
                                 simple_widget.separator,
+                                volume_widget.setup(opts),
+                                simple_widget.separator,
                             }, {
                                 is_match = function()
                                     return common_util.directory_exists("/sys/class/power_supply/BAT0")
@@ -94,8 +96,6 @@ M.setup = function(opts)
                                     simple_widget.separator,
                                 },
                             }, {
-                                volume_widget.volume,
-                                simple_widget.separator,
                                 system_widget.mem,
                                 simple_widget.separator,
                                 system_widget.cpu,
