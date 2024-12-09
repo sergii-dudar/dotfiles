@@ -35,6 +35,7 @@ M.mymainmenu = awful.menu({
 M.mylauncher = awful.widget.launcher({
     image = awesome_icon,
     menu = M.mymainmenu,
+    font = vars.font.widget,
 })
 
 -- Set the terminal for applications that require it
