@@ -11,6 +11,7 @@ local taglist_widget = require("modules.wibar.taglist-widget")
 local appmenu_widget = require("modules.wibar.appmenu-widget")
 local powermenu_widget = require("modules.wibar.powermenu-widget")
 local simple_widget = require("modules.wibar.simple-widget")
+local cpu_widget = require("modules.wibar.cpu-widget")
 local vars = require("modules.variables")
 
 local M = {}
@@ -82,6 +83,9 @@ M.setup = function(opts)
                             --spacing = 5,
 
                             simple_widget.keyboardlayout,
+                            simple_widget.separator,
+                            cpu_widget,
+
                             simple_widget.separator,
                             volume_widget({}),
                             simple_widget.separator,
