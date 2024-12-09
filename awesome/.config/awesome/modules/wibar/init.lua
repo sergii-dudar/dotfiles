@@ -82,39 +82,30 @@ M.setup = function(opts)
                             layout = wibox.layout.fixed.horizontal,
                             --spacing = 5,
                             table.unpack(common_util.concat_match_tables({
-                                is_match = function()
-                                    return true
-                                end,
-                                table = {
-                                    keyboard_layout_widget.setup(),
-                                    simple_widget.separator,
-                                },
+                                keyboard_layout_widget.setup(),
+                                simple_widget.separator,
                             }, {
                                 is_match = function()
                                     return common_util.directory_exists("/sys/class/power_supply/BAT0")
                                 end,
                                 table = {
+                                    -- add this widgets only if battery present
                                     battery_widget.battery,
                                     simple_widget.separator,
                                 },
                             }, {
-                                is_match = function()
-                                    return true
-                                end,
-                                table = {
-                                    volume_widget.volume,
-                                    simple_widget.separator,
-                                    system_widget.mem,
-                                    simple_widget.separator,
-                                    system_widget.cpu,
-                                    simple_widget.separator,
-                                    system_widget.fs,
-                                    simple_widget.separator,
+                                volume_widget.volume,
+                                simple_widget.separator,
+                                system_widget.mem,
+                                simple_widget.separator,
+                                system_widget.cpu,
+                                simple_widget.separator,
+                                system_widget.fs,
+                                simple_widget.separator,
 
-                                    --wibox.container.margin(my_widget, left, right, top, bottom)
-                                    wibox.container.margin(wibox.widget.systray(), 0, 0, 6, 6),
-                                    wibox.container.margin(powermenu_widget.powermenu, 10, 0, 0, 0),
-                                },
+                                --wibox.container.margin(my_widget, left, right, top, bottom)
+                                wibox.container.margin(wibox.widget.systray(), 0, 0, 6, 6),
+                                wibox.container.margin(powermenu_widget.powermenu, 10, 0, 0, 0),
                             })),
                         },
                     },

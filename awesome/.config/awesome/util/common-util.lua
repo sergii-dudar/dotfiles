@@ -19,13 +19,24 @@ end
 M.concat_match_tables = function(...)
     local result = {}
     for _, t in ipairs({ ... }) do
-        if t.is_match() then
+        if t.is_match and t.is_match() then
             for _, v in ipairs(t.table) do
+                table.insert(result, v)
+            end
+        else
+            for _, v in ipairs(t) do
                 table.insert(result, v)
             end
         end
     end
     return result
+end
+
+M.filter_if_not_match = function(input)
+    if input.is_match() then
+        return input.items
+    end
+    return {}
 end
 
 M.directory_exists = function(dir)
