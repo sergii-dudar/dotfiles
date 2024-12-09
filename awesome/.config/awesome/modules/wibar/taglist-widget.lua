@@ -5,11 +5,14 @@ local awful = require("awful")
 
 local M = {}
 
+M.tags = { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " }
+
 M.setup = function(s, opts)
     -- Each screen has its own tag table.
     --awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
     awful.tag(
-        { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+        --{ "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+        M.tags,
         s,
         awful.layout.layouts[1]
     )

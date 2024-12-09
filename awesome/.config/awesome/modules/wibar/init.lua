@@ -21,10 +21,10 @@ M.setup = function(opts)
     -- {{{ Wibar
 
     awful.screen.connect_for_each_screen(function(s)
-        local volume_widget = require("awesome-wm-widgets.volume-widget.volume")
+        --local volume_widget = require("awesome-wm-widgets.volume-widget.volume")
         --sudo pacman -S acpi
         --local batteryarc_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
-        local battery_widget = require("awesome-wm-widgets.battery-widget.battery")
+        --local battery_widget = require("awesome-wm-widgets.battery-widget.battery")
 
         -- Add widgets to the wibox
         awful
@@ -87,12 +87,12 @@ M.setup = function(opts)
                             cpu_widget,
 
                             simple_widget.separator,
-                            volume_widget({}),
+                            --volume_widget({}),
                             simple_widget.separator,
-                            battery_widget({
-                                path_to_icons = vars.path.home_dir
-                                    .. "/.config/awesome/awesome-wm-widgets/battery-widget/icons/",
-                            }),
+                            -- battery_widget({
+                            --     path_to_icons = vars.path.home_dir
+                            --         .. "/.config/awesome/awesome-wm-widgets/battery-widget/icons/",
+                            -- }),
                             simple_widget.separator,
 
                             --wibox.container.margin(my_widget, left, right, top, bottom)

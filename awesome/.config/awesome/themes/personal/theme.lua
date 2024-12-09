@@ -22,7 +22,8 @@ theme.font = "CaskaydiaCove Nerd Font Bold 10"
 
 theme.bg_normal = "#232634"
 theme.bg_focus = "#535d6c"
-theme.bg_urgent = "#ff0000"
+--theme.bg_urgent = "#ff0000"
+theme.bg_urgent = "#232634"
 theme.bg_minimize = "#444444"
 theme.bg_systray = theme.bg_normal
 theme.systray_icon_spacing = dpi(5)
@@ -30,7 +31,8 @@ theme.systray_icon_spacing = dpi(5)
 
 theme.fg_normal = "#aaaaaa"
 theme.fg_focus = "#ffffff"
-theme.fg_urgent = "#ffffff"
+--theme.fg_urgent = "#ffffff"
+theme.fg_urgent = "#8caaee"
 theme.fg_minimize = "#ffffff"
 
 theme.useless_gap = dpi(5)
@@ -144,7 +146,9 @@ theme.awesome_icon = theme_assets.awesome_icon(theme.menu_height, theme.bg_focus
 -- Define the icon theme for application icons. If not set then the icons
 -- from /usr/share/icons and /usr/share/icons/hicolor will be used.
 --theme.icon_theme = nil
-theme.icon_theme = "Dracula"
+--theme.icon_theme = "Dracula"
+theme.icon_theme = "/usr/share/icons/Dracula"
+--theme.icon_theme = "Adwaita"
 
 -- Set different colors for urgent notifications.
 rnotification.connect_signal("request::rules", function()
