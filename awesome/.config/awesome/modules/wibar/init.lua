@@ -95,6 +95,9 @@ M.setup = function(opts)
                 widget:set_markup(markup.font(vars.font.widget, markup(gray, icon .. volume_now.level .. "%")))
             end,
         })
+        awful.widget.watch("amixer get Master", 1, function(widget, stdout)
+            alsa.update()
+        end)
         alsa.widget:buttons(awful.util.table.join(
             awful.button({}, 1, function()
                 os.execute(string.format("%s set %s toggle", alsa.cmd, alsa.togglechannel or alsa.channel))

@@ -58,7 +58,7 @@ M.setup = function()
 
     -- Update the widget text whenever the layout changes
     awful.widget.keyboardlayout():connect_signal("widget::redraw_needed", function()
-        local current_layout = get_current_layout() -- Fetch current layout
+        local current_layout = get_current_layout() -- fetch current layout
         custom_keyboard_widget:set_text(current_layout)
     end)
 
