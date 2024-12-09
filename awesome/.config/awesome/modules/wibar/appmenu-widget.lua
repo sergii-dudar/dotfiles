@@ -8,10 +8,11 @@ local M = {}
 
 M.applications = wibox.widget({
     widget = wibox.widget.textbox,
-    markup = "<span foreground='#61afef'>  </span>",
+    markup = "<span foreground='#bd93f9'>  </span>",
+    --markup = "<span foreground='#61afef'>  </span>",
     align = "center",
     valign = "center",
-    font = vars.font.widget,
+    font = vars.font.to_size(17),
 })
 M.applications:buttons(gears.table.join(
     awful.button({}, 1, function()

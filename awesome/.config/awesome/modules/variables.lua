@@ -21,7 +21,10 @@ M.app.editor_cmd = M.app.terminal .. " -e " .. M.app.editor
 M.key.modkey = "Mod4"
 M.key.altkey = "Mod1"
 
-M.font.widget = "CaskaydiaCove Nerd Font Bold 14"
+M.font.to_size = function(zise)
+    return "CaskaydiaCove Nerd Font Bold " .. zise
+end
+M.font.widget = M.font.to_size(14)
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.

@@ -9,7 +9,7 @@ M.setup = function()
     -- Define the icon and styling
     local icon = "󰌌 " -- Nerd Font icon for keyboard (you can change this)
     local font = vars.font.widget -- Font for the widget
-    local color = "#ff9800" -- Text color for layouts
+    local color = "#cba6f7" -- Text color for layouts
 
     -- Create the keyboard layout widget
     local keyboardlayout = awful.widget.keyboardlayout()
@@ -18,18 +18,19 @@ M.setup = function()
     local layout_names = {
         -- us = "US",
         -- ua = "UA",
-        us = "US 🇺🇸",
-        ua = "UA 🇺🇦",
+        us = "🇺🇸 US",
+        ua = "🇺🇦 UA",
     }
 
     -- Create a custom widget to display layout
     local custom_keyboard_widget = wibox.widget({
         {
-            {
-                id = "icon",
-                markup = string.format("<span font='%s' foreground='%s'>%s</span>", font, color, icon),
-                widget = wibox.widget.textbox,
-            },
+            -- uncomment if want add additional icon
+            -- {
+            --     id = "icon",
+            --     markup = string.format("<span font='%s' foreground='%s'>%s</span>", font, color, icon),
+            --     widget = wibox.widget.textbox,
+            -- },
             {
                 id = "text",
                 markup = "",
@@ -44,9 +45,14 @@ M.setup = function()
                 string.format("<span font='%s' foreground='%s'>%s</span>", font, color, layout_display)
         end,
         layout = wibox.container.margin,
-        margins = 5,
+        margins = 0,
     })
 
+    custom_keyboard_widget.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
+        awful.spawn.with_shell(string.format("bash %s/dotfiles/bin/change_language.sh", vars.path.home_dir))
+        --os.execute(string.format("%s/dotfiles/bin/change_language.sh", vars.path.home_dir))
+        --custom_keyboard_widget.update()
+    end)))
     -- Function to fetch current layout
     local function get_current_layout()
         -- Use `xkb-switch` or `setxkbmap` to get the current layout
