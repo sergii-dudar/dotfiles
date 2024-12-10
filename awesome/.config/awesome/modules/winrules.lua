@@ -1,5 +1,7 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
+local tags = require("modules.wibar.taglist-widget").tags
+local lain = require("lain")
 
 local M = {}
 
@@ -142,7 +144,7 @@ M.setup = function(opts)
         -- },
         {
             rule = { class = "kitty" },
-            properties = { tag = "4" },
+            properties = { tag = tags[4] },
         },
 
         -- Add titlebars to normal clients and dialogs

@@ -90,7 +90,9 @@ keys = [
     #Key([mod], "Tab", lazy.screen.next_group(), desc="Move to next group."),
     #Key([mod, "shift"], "Tab", lazy.screen.prev_group(), desc="Move to previous group."),
 
-
+    Key([mod], "Left", lazy.spawn("amixer -D pulse sset Master 5%-"), desc="Decrease volume to -5."),
+    Key([mod], "Right", lazy.spawn("amixer -D pulse sset Master 5%+"), desc="Increase volume to +5."),
+    Key([mod], "Down", lazy.spawn("amixer -D pulse sset Master toggle"), desc="Toggle volume."),
 ]
 
 # Drag floating layouts.

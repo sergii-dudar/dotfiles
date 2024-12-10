@@ -42,6 +42,4 @@ M.tasklist = function(s, opts)
     })
 end
 
-M.keyboardlayout = awful.widget.keyboardlayout({})
-
 return M

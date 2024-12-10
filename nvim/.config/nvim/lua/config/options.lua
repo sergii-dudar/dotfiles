@@ -43,7 +43,7 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
---vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
+vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
 vim.opt.scrolloff = 0
 vim.opt.sidescrolloff = 0
 vim.opt.signcolumn = "yes"
