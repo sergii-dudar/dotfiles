@@ -6,38 +6,25 @@ https://github.com/dedukun/relative-motions.yazi/assets/25795432/04fb186a-5efe-4
 
 ## Requirements
 
-- [Yazi](https://github.com/sxyazi/yazi) v0.2.4+
+- [Yazi](https://github.com/sxyazi/yazi) v0.3.0+
 
 ## Installation
 
-<details>
-<summary>Yazi v0.2.5 and before (manual installation)</summary>
+If you use the latest Yazi from main branch
+
+```sh
+ya pack -a dedukun/relative-motions
+```
+
+If you are using <= v0.3.3
 
 ```sh
 # Linux/macOS
-git clone -b 0.2.5 https://github.com/dedukun/relative-motions.yazi.git ~/.config/yazi/plugins/relative-motions.yazi
+git clone --branch 0.3.3 https://github.com/dedukun/relative-motions.yazi.git ~/.config/yazi/plugins/relative-motions.yazi
 
 # Windows
-git clone -b 0.2.5 https://github.com/dedukun/relative-motions.yazi.git %AppData%\yazi\config\plugins\relative-motions.yazi
+git clone --branch 0.3.3 https://github.com/dedukun/relative-motions.yazi.git %AppData%\yazi\config\plugins\relative-motions.yazi
 ```
-
-</details>
-
-<details>
-<summary>Latest commit in Yazi (package manager)</summary>
-
-```sh
-# Add the plugin
-ya pack -a dedukun/relative-motions
-
-# Install plugin
-ya pack -i
-
-# Update plugin
-ya pack -u
-```
-
-</details>
 
 ## Configuration
 
@@ -122,8 +109,8 @@ require("relative-motions"):setup({ show_numbers="relative", show_motion = true 
 ```
 
 > [!NOTE]
-> The `show_numbers` and `show_motion` functionalities overwrite [`Current:render`](https://github.com/sxyazi/yazi/blob/ec33085f672e52adb934503d78703b8dd70621a8/yazi-plugin/preset/components/current.lua#L26)
-> and [`Status:children_render`](https://github.com/sxyazi/yazi/blob/ec33085f672e52adb934503d78703b8dd70621a8/yazi-plugin/preset/components/status.lua#L173) respectively.
+> The `show_numbers` and `show_motion` functionalities overwrite [`Current:redraw`](https://github.com/sxyazi/yazi/blob/e3c91115a2c096724303a0b364e7625691e4beba/yazi-plugin/preset/components/current.lua#L28)
+> and [`Status:children_redraw`](https://github.com/sxyazi/yazi/blob/e3c91115a2c096724303a0b364e7625691e4beba/yazi-plugin/preset/components/status.lua#L177) respectively.
 > If you have custom implementations for any of this functions
 > you can add the provided `Entity:number` and `Status:motion` to your implementations, just check [here](https://github.com/dedukun/relative-motions.yazi/blob/main/init.lua#L126) how we are doing things.
 
