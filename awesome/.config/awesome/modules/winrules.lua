@@ -1,6 +1,7 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
 local tags = require("modules.wibar.taglist-widget").tags
+local lain = require("lain")
 
 local M = {}
 
