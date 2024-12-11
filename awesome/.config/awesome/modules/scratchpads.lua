@@ -1,6 +1,6 @@
 -- https://github.com/hadiali6/scratchpad
 
-local scratchpad = require("libraries.scratchpad")
+local scratchpad = require("scratchpad")
 
 local awful = require("awful")
 -- Get the focused screen's geometry
