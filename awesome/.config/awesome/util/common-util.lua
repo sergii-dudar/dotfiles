@@ -51,6 +51,8 @@ M.directory_exists = function(dir)
     return false
 end
 
+---@param widget (table) - widget to decoration
+---@param bg_color (string) - decoration color
 M.decore_with_background = function(widget, bg_color)
     return wibox.widget({
         {
@@ -67,6 +69,9 @@ M.decore_with_background = function(widget, bg_color)
     })
 end
 
+---@param content (string) span content
+---@param foreground (string|nil) span content foreground color
+---@param font_size (integer|nil) span content font size
 M.to_span = function(content, foreground, font_size)
     content = content or ""
     foreground = foreground ~= nil and string.format("foreground='%s'", foreground) or ""

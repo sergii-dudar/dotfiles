@@ -1,7 +1,4 @@
-local wibox = require("wibox")
 local vars = require("modules.variables")
-local gears = require("gears")
-local awful = require("awful")
 local lain = require("lain")
 local util = require("util.common-util")
 
@@ -42,12 +39,7 @@ M.battery = lain.widget.bat({
             icon = " "
         end
 
-        widget:set_markup(
-            markup.font(
-                vars.font.widget,
-                markup(gray, string.format("<span foreground='%s'>%s </span>", icon_fg, icon)) .. perc .. "%"
-            )
-        )
+        widget:set_markup(markup.font(vars.font.widget, markup(gray, util.to_span(icon, icon_fg)) .. perc .. "%"))
     end,
 })
 

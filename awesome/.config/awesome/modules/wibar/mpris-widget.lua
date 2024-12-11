@@ -54,16 +54,13 @@ M.mpris = awful.widget.watch(
         --widget:set_text(mpris_now.artist .. " - " .. mpris_now.title)
 
         --local full_text = mpris_now.artist .. " - " .. mpris_now.title
-        local full_text = mpris_now.title
+        local full_text = tostring(mpris_now.title)
         if #full_text > 30 then
             full_text = string.sub(full_text, 1, 30) .. "…" -- Add ellipsis for trimmed text
         end
 
         -- Set font and color
-        local font = vars.font.widget
-        local color = "#ca9ee6"
-        local formatted_text = string.format(" <span font='%s' foreground='#8caaee'> </span>", font)
-            .. string.format("<span font='%s' foreground='%s'>%s</span>", font, color, full_text)
+        local formatted_text = util.to_span(" ", "#8caaee") .. util.to_span(full_text, "#ca9ee6")
 
         widget:set_markup(formatted_text)
     end

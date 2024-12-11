@@ -1,4 +1,3 @@
-local wibox = require("wibox")
 local vars = require("modules.variables")
 local gears = require("gears")
 local awful = require("awful")
@@ -14,13 +13,13 @@ local M = {}
 M.setup = function(opts)
     local volume = lain.widget.alsa({
         settings = function()
-            local icon = "<span foreground='#ca9ee6'>  </span>"
+            local icon = util.to_span("  ", "#ca9ee6")
             if volume_now.status == "off" then
-                icon = "<span foreground='#d35f5e'>  </span>"
+                icon = util.to_span("  ", "#d35f5e")
             elseif tonumber(volume_now.level) == 0 then
-                icon = "<span foreground='#ca9ee6'>  </span>"
+                icon = util.to_span("  ", "#ca9ee6")
             elseif tonumber(volume_now.level) <= 10 then
-                icon = "<span foreground='#ca9ee6'>  </span>"
+                icon = util.to_span("  ", "#ca9ee6")
             end
 
             --widget:set_markup(markup.font(theme.font, " " .. volume_now.level .. "% "))

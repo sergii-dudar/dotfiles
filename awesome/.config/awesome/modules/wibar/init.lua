@@ -1,4 +1,3 @@
-local gears = require("gears")
 local awful = require("awful")
 local wibox = require("wibox")
 
@@ -59,9 +58,11 @@ M.setup = function(opts)
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 15,
                     date_widgets.date,
-                    simple_widget.separator,
+                    simple_widget.space,
+                    simple_widget.space,
                     taglist_widget.setup(s, opts),
-                    simple_widget.separator,
+                    simple_widget.space,
+                    simple_widget.space,
                     date_widgets.time,
                 },
 

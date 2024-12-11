@@ -8,7 +8,7 @@ local M = {}
 
 M.powermenu = wibox.widget({
     widget = wibox.widget.textbox,
-    markup = "<span foreground='#d35f5e'> </span>",
+    markup = util.to_span(" ", "#d35f5e"),
     align = "center",
     valign = "center",
     font = vars.font.widget,

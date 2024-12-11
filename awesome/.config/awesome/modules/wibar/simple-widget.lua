@@ -1,8 +1,6 @@
 local wibox = require("wibox")
 local vars = require("modules.variables")
-local gears = require("gears")
 local awful = require("awful")
-local launcher = require("modules.awesome-launcher")
 local util = require("util.common-util")
 
 local M = {}
@@ -10,21 +8,21 @@ local M = {}
 M.separator = wibox.widget({
     widget = wibox.widget.textbox,
     font = vars.font.widget,
-    markup = "<span foreground='#7f849c'> 󱋱 </span>",
+    markup = util.to_span(" 󱋱 ", "#7f849c"),
     align = "center",
     valign = "center",
 })
 M.separator_no_left = wibox.widget({
     widget = wibox.widget.textbox,
     font = vars.font.widget,
-    markup = "<span foreground='#7f849c'>󱋱 </span>",
+    markup = util.to_span("󱋱 ", "#7f849c"),
     align = "center",
     valign = "center",
 })
 M.separator_no_right = wibox.widget({
     widget = wibox.widget.textbox,
     font = vars.font.widget,
-    markup = "<span foreground='#7f849c'> 󱋱</span>",
+    markup = util.to_span(" 󱋱", "#7f849c"),
     align = "center",
     valign = "center",
 })

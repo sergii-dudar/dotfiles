@@ -9,16 +9,10 @@ local M = {}
 M.setup = function()
     -- Define the icon and styling
     local icon = "󰌌 " -- Nerd Font icon for keyboard (you can change this)
-    local font = vars.font.widget -- Font for the widget
     local color = "#cba6f7" -- Text color for layouts
-
-    -- Create the keyboard layout widget
-    local keyboardlayout = awful.widget.keyboardlayout()
 
     -- Define a mapping for layouts to display names/icons
     local layout_names = {
-        -- us = "US",
-        -- ua = "UA",
         us = "🇺🇸 US",
         ua = "🇺🇦 UA",
     }
@@ -42,18 +36,17 @@ M.setup = function()
         },
         set_text = function(self, layout)
             local layout_display = layout_names[layout] or layout -- Default to raw layout if no mapping
-            self:get_children_by_id("text")[1].markup =
-                string.format("<span font='%s' foreground='%s'>%s</span>", font, color, layout_display)
+            self:get_children_by_id("text")[1].markup = util.to_span(layout_display, color)
         end,
         layout = wibox.container.margin,
         margins = 0,
     })
 
-    custom_keyboard_widget.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
-        awful.spawn.with_shell(string.format("bash %s/dotfiles/bin/change_language.sh", vars.path.home_dir))
-        --os.execute(string.format("%s/dotfiles/bin/change_language.sh", vars.path.home_dir))
-        --custom_keyboard_widget.update()
-    end)))
+    -- custom_keyboard_widget.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
+    --     awful.spawn.with_shell(string.format("bash %s/dotfiles/bin/change_language.sh", vars.path.home_dir))
+    --     custom_keyboard_widget.update()
+    -- end)))
+
     -- Function to fetch current layout
     local function get_current_layout()
         -- Use `xkb-switch` or `setxkbmap` to get the current layout
