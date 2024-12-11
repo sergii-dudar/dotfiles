@@ -176,7 +176,26 @@ M.globalkeys = gears.table.join(
                 s.mybottomwibox.visible = not s.mybottomwibox.visible
             end
         end
-    end, { description = "toggle wibox", group = "awesome" })
+    end, { description = "toggle wibox", group = "awesome" }),
+
+    awful.key({ vars.key.modkey, "Shift" }, "m", function()
+        local tag = awful.screen.focused().selected_tag
+        if not tag then
+            return
+        end
+
+        local all_minimized = true
+        for _, c in ipairs(tag:clients()) do
+            if not c.minimized then
+                all_minimized = false
+                break
+            end
+        end
+
+        for _, c in ipairs(tag:clients()) do
+            c.minimized = not all_minimized
+        end
+    end, { description = "toggle hide/show all windows", group = "awesome" })
 )
 
 return M
