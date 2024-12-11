@@ -84,6 +84,10 @@ map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
 map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
 map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
 
+-- mouse horisontal scrolling
+vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
+
 -- Example usage for jdtls
 vim.opt.path:append("**")
 

@@ -52,13 +52,17 @@ end
 
 M.decore_with_background = function(widget, bg_color)
     return wibox.widget({
-        --wibox.container.margin(my_widget, left, right, top, bottom)
-        wibox.container.margin(widget, 10, 10, 0, 2),
-        shape = function(cr, width, height)
-            gears.shape.rounded_rect(cr, width, height, 10)
-        end,
-        bg = bg_color,
-        widget = wibox.container.background,
+        {
+            --wibox.container.margin(my_widget, left, right, top, bottom)
+            wibox.container.margin(widget, 10, 10, 0, 2),
+            shape = function(cr, width, height)
+                gears.shape.rounded_rect(cr, width, height, 10)
+            end,
+            bg = bg_color,
+            widget = wibox.container.background,
+        },
+        margins = { top = 1, bottom = 1, left = 0, right = 0 },
+        widget = wibox.container.margin, -- Wrap the widget in a margin container
     })
 end
 
