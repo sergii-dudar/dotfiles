@@ -28,6 +28,65 @@ My current tool preferences:
 
 ---
 
+#### ARCH LINUX + AWESOME WM (The best WM ever created!)
+
+###### DESKTOP
+![desk.png](images/awesome/desk.png)
+
+###### NEOVIM
+![neovim-yazi.png](images/awesome/neovim-yazi.png)
+
+###### TMUX
+![nvim-tmux-pupup.png](images/awesome/nvim-tmux-pupup.png)
+
+###### SCRATCHPAD
+![scratchpad.png](images/awesome/scratchpad.png)
+
+###### Intellij
+![intellij.png](images/awesome/intellij.png)
+
+---
+
+---
+
+#### ARCH LINUX + QTILE (My second best WM!)
+
+###### DESKTOP
+![desktop.png](images/qtile/desktop.png)
+
+###### NEOVIM
+![nvim.png](images/qtile/nvim.png)
+
+###### SCRATCHPAD
+![scratchpad.png](images/qtile/scratchpad.png)
+
+###### Intellij
+![intellij.png](images/qtile/intellij.png)
+
+---
+
+---
+
+#### ARCH LINUX + I3WM + Polybar
+
+###### DESKTOP
+
+![desk.png](images/i3wm/desk.png)
+
+###### NEOVIM
+
+![nvim.png](images/i3wm/nvim.png)
+
+###### SCRATCHPAD
+
+![scratchpad.png](images/i3wm/scratchpad.png)
+
+###### Intellij
+
+![idea.png](images/i3wm/idea.png)
+
+---
+
 ---
 
 #### MACOS + AEROSPACE
@@ -57,57 +116,3 @@ My current tool preferences:
 ###### Intellij
 
 ![intellij.png](images/mac/intellij.png)
-
----
-
----
-
----
-
-#### ARCH LINUX + I3WM + Polybar
-
-###### DESKTOP
-
-![desk.png](images/i3wm/desk.png)
-
-###### NEOVIM
-
-![nvim.png](images/i3wm/nvim.png)
-
-###### SCRATCHPAD
-
-![scratchpad.png](images/i3wm/scratchpad.png)
-
-###### Intellij
-
-![idea.png](images/i3wm/idea.png)
-
----
-
----
-
----
-
-#### ARCH LINUX + QTILE
-
-###### DESKTOP
-![desktop.png](images/qtile/desktop.png)
-
-###### NEOVIM
-![nvim.png](images/qtile/nvim.png)
-
-###### SCRATCHPAD
-![scratchpad.png](images/qtile/scratchpad.png)
-
-###### Intellij
-![intellij.png](images/qtile/intellij.png)
-
----
-
----
-
----
-
-#### ARCH LINUX + AWESOME WM
-
-...
