@@ -45,6 +45,12 @@ My current tool preferences:
 ###### Intellij
 ![intellij.png](images/awesome/intellij.png)
 
+###### LAUNCHER
+![rofi-launcher.png](images/awesome/rofi-launcher.png)
+
+###### POWER MENU
+![power-menu.png](images/awesome/power-menu.png)
+
 ---
 
 ---
@@ -62,12 +68,6 @@ My current tool preferences:
 
 ###### Intellij
 ![intellij.png](images/qtile/intellij.png)
-
-###### LAUNCHER
-![rofi-launcher.png](images/awesome/rofi-launcher.png)
-
-###### POWER MENU
-![power-menu.png](images/awesome/power-menu.png)
 
 ---
 
