@@ -1,8 +1,6 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
 local tags = require("modules.wibar.taglist-widget").tags
-local lain = require("lain")
-
 local M = {}
 
 ---@param opts { keybind: {} }
@@ -128,20 +126,20 @@ M.setup = function(opts)
         -- Apps start on tag roles
         {
             rule = { class = "org.wezfurlong.wezterm" },
-            properties = { tag = "1" },
+            properties = { tag = tags[1] },
         },
         {
             rule = { class = "jetbrains-idea" },
-            properties = { tag = "2" },
+            properties = { tag = tags[2] },
         },
         {
             rule = { class = "Code" },
-            properties = { tag = "2" },
+            properties = { tag = tags["2"] },
         },
-        -- {
-        --     rule = { class = "Google-chrome", instance = "google-chrome" },
-        --     properties = { tag = "3" },
-        -- },
+        {
+            rule = { class = "Google-chrome", instance = "google-chrome" },
+            properties = { tag = tags["3"] },
+        },
         {
             rule = { class = "kitty" },
             properties = { tag = tags[4] },

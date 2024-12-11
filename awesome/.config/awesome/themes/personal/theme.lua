@@ -1,24 +1,13 @@
----------------------------
--- Default awesome theme --
----------------------------
-
 local theme_assets = require("beautiful.theme_assets")
 local xresources = require("beautiful.xresources")
 local rnotification = require("ruled.notification")
-local beautiful = require("beautiful")
 local vars = require("modules.variables")
 local dpi = xresources.apply_dpi
-local gears_shape = require("gears.shape")
-local gears = require("gears")
-
---local gfs = require("gears.filesystem")
---local themes_path = gfs.get_themes_dir()
 local themes_path = vars.current_theme_dir
---print(themes_path)
 
 local theme = {}
 
-theme.font = "CaskaydiaCove Nerd Font Bold 10"
+theme.font = vars.font.default
 
 theme.bg_normal = "#232634"
 theme.bg_focus = "#535d6c"

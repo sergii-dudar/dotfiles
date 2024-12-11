@@ -25,7 +25,8 @@ M.font.to_size = function(zise)
     return "CaskaydiaCove Nerd Font Bold " .. zise
 end
 M.font.default_size = 14
-M.font.widget = M.font.to_size(M.font.default_size)
+M.font.default = M.font.to_size(M.font.default_size)
+M.font.widget = M.font.default
 
 local theme_name = "personal"
 M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, theme_name)

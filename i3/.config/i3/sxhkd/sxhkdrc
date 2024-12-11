@@ -4,10 +4,10 @@ super + shift + Return
 # ---------- Rofi & dmenu ------------ #
 
 alt + space
-    rofi -show
+    bash $HOME/.config/rofi/scripts/launcher_t1
 
 super + q
-    bash $HOME/dotfiles/bin/powermenu
+    bash $HOME/.config/rofi/scripts/powermenu_t1
 
 ctrl + alt + q
     bash $HOME/dotfiles/bin/screen-lock
