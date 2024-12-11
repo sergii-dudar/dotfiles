@@ -2,6 +2,7 @@ local wibox = require("wibox")
 local vars = require("modules.variables")
 local gears = require("gears")
 local awful = require("awful")
+local util = require("util.common-util")
 
 local time = wibox.widget.textclock()
 time.font = vars.font.widget
@@ -21,7 +22,8 @@ end)))
 
 local M = {}
 
-M.time = time
-M.date = date
+local bg_color = "#2E3440" --"#2D2A2E" --"#2B3339"
+M.time = util.decore_with_background(time, bg_color)
+M.date = util.decore_with_background(date, bg_color)
 
 return M

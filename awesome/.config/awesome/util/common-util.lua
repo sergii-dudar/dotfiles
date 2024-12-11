@@ -1,4 +1,6 @@
 local awful = require("awful")
+local wibox = require("wibox")
+local gears = require("gears")
 
 M = {}
 
@@ -46,6 +48,18 @@ M.directory_exists = function(dir)
         return true
     end
     return false
+end
+
+M.decore_with_background = function(widget, bg_color)
+    return wibox.widget({
+        --wibox.container.margin(my_widget, left, right, top, bottom)
+        wibox.container.margin(widget, 10, 10, 0, 2),
+        shape = function(cr, width, height)
+            gears.shape.rounded_rect(cr, width, height, 10)
+        end,
+        bg = bg_color,
+        widget = wibox.container.background,
+    })
 end
 
 return M
