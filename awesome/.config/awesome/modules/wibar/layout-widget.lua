@@ -2,6 +2,7 @@ local wibox = require("wibox")
 local vars = require("modules.variables")
 local gears = require("gears")
 local awful = require("awful")
+local util = require("util.common-util")
 
 local M = {}
 
@@ -16,8 +17,7 @@ M.layoutbox_with_name = function(s)
     -- Update the layout name whenever the layout changes
     local function update_layout_name()
         local current_layout = awful.layout.getname(awful.layout.get(s))
-        -- layout_name.text
-        layout_name.markup = "[<span weight='bold' foreground='#d183e8'>" .. string.upper(current_layout) .. "</span>]"
+        layout_name.markup = util.to_span("[" .. string.upper(current_layout) .. "]", "#d183e8", 13)
     end
 
     -- Connect signals to update on layout change

@@ -3,6 +3,7 @@ local vars = require("modules.variables")
 local gears = require("gears")
 local awful = require("awful")
 local launcher = require("modules.awesome-launcher")
+local util = require("util.common-util")
 
 local M = {}
 

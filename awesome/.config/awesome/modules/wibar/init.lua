@@ -1,7 +1,5 @@
 local gears = require("gears")
 local awful = require("awful")
-local launcher = require("modules.awesome-launcher")
-local lain = require("lain")
 local wibox = require("wibox")
 
 local date_widgets = require("modules.wibar.clock-widget")
@@ -15,7 +13,6 @@ local system_widget = require("modules.wibar.system-widget")
 --local mpris_widget = require("modules.wibar.mpris-widget")
 local volume_widget = require("modules.wibar.volume-widget")
 local battery_widget = require("modules.wibar.battery-widget")
-local vars = require("modules.variables")
 local common_util = require("util.common-util")
 
 local M = {}

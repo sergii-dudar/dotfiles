@@ -2,6 +2,7 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 local awful = require("awful")
 local vars = require("modules.variables")
+local util = require("util.common-util")
 
 local M = {}
 

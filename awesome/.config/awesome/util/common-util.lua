@@ -1,6 +1,7 @@
 local awful = require("awful")
 local wibox = require("wibox")
 local gears = require("gears")
+local vars = require("modules.variables")
 
 M = {}
 
@@ -64,6 +65,15 @@ M.decore_with_background = function(widget, bg_color)
         margins = { top = 1, bottom = 1, left = 0, right = 0 },
         widget = wibox.container.margin, -- Wrap the widget in a margin container
     })
+end
+
+M.to_span = function(content, foreground, font_size)
+    content = content or ""
+    foreground = foreground ~= nil and string.format("foreground='%s'", foreground) or ""
+
+    font_size = font_size or vars.font.default_size
+    local font = string.format("font='%s'", vars.font.to_size(font_size))
+    return string.format("<span %s %s>%s</span>", foreground, font, content)
 end
 
 return M

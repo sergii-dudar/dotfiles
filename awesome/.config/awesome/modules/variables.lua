@@ -24,27 +24,12 @@ M.key.altkey = "Mod1"
 M.font.to_size = function(zise)
     return "CaskaydiaCove Nerd Font Bold " .. zise
 end
-M.font.widget = M.font.to_size(14)
+M.font.default_size = 14
+M.font.widget = M.font.to_size(M.font.default_size)
 
--- {{{ Variable definitions
--- Themes define colours, icons, font and wallpapers.
--- beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
---beautiful.init(variables.custom_theme)
-local all_themes = {
-    "personal", --1
-    "blackburn", -- 2
-    "copland", -- 3
-    "dremora", -- 4
-    "holo", -- 5
-    "multicolor", -- 6
-    "powerarrow", -- 7
-    "powerarrow-dark", -- 8
-    "rainbow", -- 9
-    "steamburn", -- 10
-    "vertex", -- 11
-}
-local choosen_theme_name = all_themes[1]
-M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, choosen_theme_name)
+local theme_name = "personal"
+M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, theme_name)
 M.current_theme_path = string.format("%s/theme.lua", M.current_theme_dir)
+M.current_colors_path = string.format("%s/colors.lua", M.current_theme_dir)
 
 return M

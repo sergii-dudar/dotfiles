@@ -4,7 +4,7 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 local vars = require("modules.variables")
 
 local M = {}
-local awesome_icon = "/home/serhii/dotfiles/awesome/.config/awesome/themes/blackburn/icons/awesome.png"
+local awesome_icon = vars.path.home_dir .. "/.config/awesome/icons/awesome.png"
 
 -- {{{ Menu
 -- Create a launcher widget and a main menu
