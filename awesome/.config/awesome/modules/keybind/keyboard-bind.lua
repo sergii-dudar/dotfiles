@@ -88,10 +88,19 @@ M.globalkeys = gears.table.join(
         { description = "jump to urgent client", group = "client" }
     ),
     awful.key({ vars.key.altkey }, "Tab", function()
-        awful.client.focus.history.previous()
-        if client.focus then
-            client.focus:raise()
+        -- awful.client.focus.history.previous()
+        -- if client.focus then
+        --     client.focus:raise()
+        -- end
+
+        -- go to prev app, event if on another tag
+        local c = awful.client.focus.history.list[2]
+        client.focus = c
+        local tag = client.focus and client.focus.first_tag or nil
+        if tag then
+            tag:view_only()
         end
+        c:raise()
     end, { description = "go back", group = "client" }),
 
     -- awful.key({ modkey }, "space", function()
