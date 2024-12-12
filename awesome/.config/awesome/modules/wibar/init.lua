@@ -23,6 +23,13 @@ M.setup = function(opts)
     awful.screen.connect_for_each_screen(function(s)
         -- screen edges padding
         s.padding = -6
+        -- or:
+        -- s.padding = {
+        --     left = -6,
+        --     right = 0,
+        --     top = 2,
+        --     bottom = 19,
+        -- }
 
         -- Add widgets to the wibox
         s.mywibox = awful.wibar({
