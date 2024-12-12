@@ -1,6 +1,8 @@
-## My dotfiles
+# My dotfiles
 
-All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/), where config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example `nvim/.config/nvim`, where `stow nvim` will create symlink under `~/.config/nvim` with link to `~/dotfiles/nvim/.config/nvim`. Tools that not managed by stow, located in [nonhome](nonhome)
+All dotfile catalogs structured to be used as symlinks by [gnu stow](https://www.gnu.org/software/stow/), where config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example `nvim/.config/nvim`,
+where `stow nvim` will create symlink under `~/.config/nvim` with link to
+`~/dotfiles/nvim/.config/nvim`. Tools that not managed by stow, located in [nonhome](nonhome)
 
 All scripts that using by dot configurations required to have `dotfiles` to be cloned directly in `$HOME` directory as `~/dotfiles`
 
@@ -30,25 +32,32 @@ My current tool preferences:
 
 #### ARCH LINUX + AWESOME WM (The best WM ever created!)
 
-###### DESKTOP
+##### DESKTOP
+
 ![desk.png](images/awesome/desk.png)
 
-###### NEOVIM
+##### NEOVIM
+
 ![neovim-yazi.png](images/awesome/neovim-yazi.png)
 
-###### TMUX
+##### TMUX
+
 ![nvim-tmux-pupup.png](images/awesome/nvim-tmux-pupup.png)
 
-###### SCRATCHPAD
+##### SCRATCHPAD
+
 ![scratchpad.png](images/awesome/scratchpad.png)
 
-###### Intellij
+##### Intellij
+
 ![intellij.png](images/awesome/intellij.png)
 
-###### LAUNCHER
+##### LAUNCHER
+
 ![rofi-launcher.png](images/awesome/rofi-launcher.png)
 
-###### POWER MENU
+##### POWER MENU
+
 ![power-menu.png](images/awesome/power-menu.png)
 
 ---
@@ -57,16 +66,20 @@ My current tool preferences:
 
 #### ARCH LINUX + QTILE (My second best WM!)
 
-###### DESKTOP
+##### DESKTOP
+
 ![desktop.png](images/qtile/desktop.png)
 
-###### NEOVIM
+##### NEOVIM
+
 ![nvim.png](images/qtile/nvim.png)
 
-###### SCRATCHPAD
+##### SCRATCHPAD
+
 ![scratchpad.png](images/qtile/scratchpad.png)
 
-###### Intellij
+##### Intellij
+
 ![intellij.png](images/qtile/intellij.png)
 
 ---
@@ -75,19 +88,19 @@ My current tool preferences:
 
 #### ARCH LINUX + I3WM + Polybar
 
-###### DESKTOP
+##### DESKTOP
 
 ![desk.png](images/i3wm/desk.png)
 
-###### NEOVIM
+##### NEOVIM
 
 ![nvim.png](images/i3wm/nvim.png)
 
-###### SCRATCHPAD
+##### SCRATCHPAD
 
 ![scratchpad.png](images/i3wm/scratchpad.png)
 
-###### Intellij
+##### Intellij
 
 ![idea.png](images/i3wm/idea.png)
 
@@ -97,28 +110,28 @@ My current tool preferences:
 
 #### MACOS + AEROSPACE
 
-###### NEOVIM
+##### NEOVIM
 
 ![img.png](images/mac/nvim.png)
 
-###### SCRATCHPAD
+##### SCRATCHPAD
 
 ![scratchpad.png](images/mac/scratchpad_iterm.png)
 
 ![scratchpad.png](images/mac/scratchpad_music.png)
 
-###### TMUX POPUP
+##### TMUX POPUP
 
 ![img.png](images/mac/tmux_popup.png)
 
-###### TMUX SESSION MANAGER
+##### TMUX SESSION MANAGER
 
 ![img.png](images/mac/tmux_session_manager.png)
 
-###### YAZI
+##### YAZI
 
 ![img.png](images/mac/yazi.png)
 
-###### Intellij
+##### Intellij
 
 ![intellij.png](images/mac/intellij.png)
