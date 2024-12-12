@@ -36,7 +36,8 @@ M.battery = lain.widget.bat({
 
         if bat_now.ac_status == 1 then
             icon_fg = "#a6d189"
-            icon = " "
+            --icon = " "
+            icon = " "
         end
 
         widget:set_markup(

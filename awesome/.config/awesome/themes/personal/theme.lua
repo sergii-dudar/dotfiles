@@ -4,6 +4,7 @@ local rnotification = require("ruled.notification")
 local vars = require("modules.variables")
 local dpi = xresources.apply_dpi
 local themes_path = vars.current_theme_dir
+local beautiful = require("beautiful")
 
 local theme = {}
 
@@ -24,8 +25,12 @@ theme.fg_focus = "#ffffff"
 theme.fg_urgent = "#8caaee"
 theme.fg_minimize = "#ffffff"
 
+-- window gaps anb border
 theme.useless_gap = dpi(5)
 theme.border_width = dpi(3)
+theme.gap_single_client = true
+-- theme.gap_single_client = false
+
 theme.border_color_normal = "#535d6c"
 theme.border_color_active = "#80a0ff"
 theme.border_color_marked = "#91231c"
@@ -74,8 +79,8 @@ theme.taglist_squares_unsel = nil
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
 theme.menu_submenu_icon = themes_path .. "/submenu.png"
-theme.menu_height = dpi(15)
-theme.menu_width = dpi(100)
+theme.menu_height = dpi(35)
+theme.menu_width = dpi(150)
 
 -- You can add as many variables as
 -- you wish and access them by using

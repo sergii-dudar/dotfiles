@@ -33,9 +33,6 @@ M.setup = function(opts)
 
     -- {{{ Rules
 
-    -- beautiful.gap_single_client = true
-    -- beautiful.useless_gap = 5
-
     -- Rules to apply to new clients (through the "manage" signal).
     awful.rules.rules = {
         -- All clients will match this rule.
