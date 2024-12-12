@@ -20,7 +20,7 @@ M.clientkeys = gears.table.join(
     -- ),
     awful.key({ vars.key.modkey, "Control" }, "Return", function(c)
         c:swap(awful.client.getmaster())
-    end, { description = "move to master", group = "client" }),
+    end, { description = "move to master", group = "client" })
     -- awful.key({ modkey }, "o", function(c)
     --     c:move_to_screen()
     -- end, { description = "move to screen", group = "client" }),
@@ -32,10 +32,13 @@ M.clientkeys = gears.table.join(
     --     -- minimized, since minimized clients can't have the focus.
     --     c.minimized = true
     -- end, { description = "minimize", group = "client" }),
-    awful.key({ vars.key.modkey, "Shift" }, "f", function(c)
-        c.maximized = not c.maximized
-        c:raise()
-    end, { description = "(un)maximize", group = "client" })
+
+    -- confusig with regular mod + f
+    -- awful.key({ vars.key.modkey, "Shift" }, "f", function(c)
+    --     c.maximized = not c.maximized
+    --     c:raise()
+    -- end, { description = "(un)maximize", group = "client" })
+
     -- awful.key({ modkey, "Control" }, "m", function(c)
     --     c.maximized_vertical = not c.maximized_vertical
     --     c:raise()
