@@ -5,27 +5,22 @@ local util = require("util.common-util")
 
 local M = {}
 
-M.separator = wibox.widget({
-    widget = wibox.widget.textbox,
-    font = vars.font.widget,
-    markup = util.to_span(" 󱋱 ", "#7f849c"),
-    align = "center",
-    valign = "center",
-})
-M.separator_no_left = wibox.widget({
-    widget = wibox.widget.textbox,
-    font = vars.font.widget,
-    markup = util.to_span("󱋱 ", "#7f849c"),
-    align = "center",
-    valign = "center",
-})
-M.separator_no_right = wibox.widget({
-    widget = wibox.widget.textbox,
-    font = vars.font.widget,
-    markup = util.to_span(" 󱋱", "#7f849c"),
-    align = "center",
-    valign = "center",
-})
+local gcolor = "#7f849c"
+local gseparator = "" --  󰇝  󰮾 󱋱
+
+local function build_separator(icon, color)
+    return wibox.widget({
+        widget = wibox.widget.textbox,
+        font = vars.font.widget,
+        markup = util.to_span(icon, color),
+        align = "center",
+        valign = "center",
+    })
+end
+
+M.separator = build_separator(" " .. gseparator .. " ", gcolor)
+M.separator_no_left = build_separator(gseparator .. " ", gcolor)
+M.separator_no_right = build_separator(" " .. gseparator, gcolor)
 M.space = wibox.widget({
     widget = wibox.widget.textbox,
     text = " ",

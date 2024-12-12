@@ -16,7 +16,7 @@ theme.bg_focus = "#535d6c"
 theme.bg_urgent = "#232634"
 theme.bg_minimize = "#444444"
 theme.bg_systray = theme.bg_normal
-theme.systray_icon_spacing = dpi(5)
+theme.systray_icon_spacing = dpi(7)
 --theme.icon_theme = "Dracula"
 
 theme.fg_normal = "#aaaaaa"
