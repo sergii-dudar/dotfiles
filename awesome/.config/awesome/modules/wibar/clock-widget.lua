@@ -4,35 +4,52 @@ local gears = require("gears")
 local awful = require("awful")
 local util = require("util.common-util")
 
+--#region time
 local time = wibox.widget.textclock()
 time.font = vars.font.widget
 
 local clock_icon = util.to_span("󰔛 ", "#bd93f9", 16)
-local formats = {
+local time_formats = {
     clock_icon .. util.to_span("%I:%M %p", "#a6d189"),
-    clock_icon .. util.to_span("%H:%M", "#a6d189"),
-    clock_icon .. util.to_span("%Y-%m-%d %H:%M", "#a6d189"),
+    clock_icon .. util.to_span("%H:%M", "#6272a4"),
 }
-local current_format_index = 1
+local current_time_format_index = 1
+time.format = time_formats[current_time_format_index]
 
-time.format = formats[current_format_index]
-
-local date = wibox.widget.textclock()
-date.font = vars.font.widget
-date.format = util.to_span(" ", "#7c8377", 16) .. util.to_span("%a %b %d", "#6272a4")
-
-date:buttons(gears.table.join(awful.button({}, 1, function()
-    awful.spawn.with_shell("gnome-calendar")
-end)))
 time:buttons(gears.table.join(
     awful.button({}, 1, function()
         awful.spawn.with_shell("gnome-clocks")
     end),
     awful.button({}, 3, function()
-        current_format_index = (current_format_index % #formats) + 1
-        time.format = formats[current_format_index]
+        current_time_format_index = (current_time_format_index % #time_formats) + 1
+        time.format = time_formats[current_time_format_index]
     end)
 ))
+--#endregion
+
+--#region date
+local date = wibox.widget.textclock()
+date.font = vars.font.widget
+
+local date_icon = util.to_span(" ", "#7c8377", 16)
+local date_formats = {
+    date_icon .. util.to_span("%A, %B %d", "#6272a4"),
+    date_icon .. util.to_span("%A, %d-%m-%Y", "#a6d189"),
+}
+local current_date_format_index = 1
+date.format = date_formats[current_date_format_index]
+
+date:buttons(gears.table.join(
+    awful.button({}, 1, function()
+        awful.spawn.with_shell("gnome-calendar")
+    end),
+    awful.button({}, 3, function()
+        current_date_format_index = (current_date_format_index % #date_formats) + 1
+        date.format = date_formats[current_date_format_index]
+    end)
+))
+
+--#endregion
 
 local M = {}
 
