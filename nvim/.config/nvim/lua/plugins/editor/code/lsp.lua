@@ -227,27 +227,27 @@ return {
             local buffer_util = require("utils.buffer-util")
             local custom_sources = {
                 {
-                    name = 'nvim_lsp_signature_help',
+                    name = "nvim_lsp_signature_help",
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = 'nvim_lsp',
+                    name = "nvim_lsp",
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = 'nvim_lua',
+                    name = "nvim_lua",
                     priority = 100,
                     --group_index = 1,
                 },
                 {
-                    name = 'path',
+                    name = "path",
                     priority = 90,
                     --group_index = 1,
                 },
                 {
-                    name = 'luasnip',
+                    name = "luasnip",
                     keyword_length = 3,
                     max_item_count = 3,
                     autocomplete = true,
@@ -255,7 +255,7 @@ return {
                     --group_index = 3,
                 },
                 {
-                    name = 'buffer',
+                    name = "buffer",
                     keyword_length = 3,
                     autocomplete = true,
                     max_item_count = 3,
@@ -266,7 +266,6 @@ return {
                     },
                 },
             }
-
 
             local list_util = require("utils.list-util")
 

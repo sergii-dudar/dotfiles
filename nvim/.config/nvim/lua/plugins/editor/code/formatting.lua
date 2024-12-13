@@ -2,7 +2,7 @@ return {
     {
         "stevearc/conform.nvim",
         opts = function(_, opts)
-            opts.formatters_by_ft.xml = { "xmlformatter" }
+            --opts.formatters_by_ft.xml = { "xmlformatter" }
             opts.formatters_by_ft.kotlin = { "ktfmt" }
             opts.formatters_by_ft.sh = { "beautysh" }
             -- for beautysh need:
