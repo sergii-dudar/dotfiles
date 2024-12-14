@@ -139,6 +139,10 @@ M.globalkeys = gears.table.join(
         util.notify("📂 Nautilus")
         scratchpads.nautilus:toggle()
     end),
+    awful.key({ vars.key.modkey }, "u", function()
+        util.notify("  Monkey Type")
+        scratchpads.monkey_type:toggle()
+    end),
 
     awful.key(
         { vars.key.modkey },

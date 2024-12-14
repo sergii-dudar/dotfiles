@@ -119,7 +119,11 @@ M.setup = function(opts)
             rule = { class = "Google-chrome", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
             properties = { opacity = 0.9 },
         },
-
+        {
+            -- monkeytype
+            rule = { class = "Google-chrome", instance = "crx_picebhhlijnlefeleilfbanaghjlkkna" },
+            properties = { opacity = 0.95 },
+        },
         -- Apps start on tag roles
         {
             rule = { class = "org.wezfurlong.wezterm" },

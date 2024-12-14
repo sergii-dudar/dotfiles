@@ -14,11 +14,14 @@ local pads = scratchpad.group:new({
     scratchpads = {},
 })
 
-local function new_scratchpad(id, cmd)
-    local default_width = screen_width * 0.65
-    local default_height = screen_height * 0.7
-    local default_x = screen_width / 2 - default_width / 2
-    local default_y = screen_height / 2 - default_height / 2
+local function new_scratchpad(id, cmd, factor_width, factor_height)
+    factor_width = factor_width or 0.65
+    factor_height = factor_height or 0.7
+
+    local window_width = screen_width * factor_width
+    local window_height = screen_height * factor_height
+    local window_x = screen_width / 2 - window_width / 2
+    local window_y = screen_height / 2 - window_height / 2
 
     return scratchpad:new({
         id = id,
@@ -31,10 +34,10 @@ local function new_scratchpad(id, cmd)
             skip_taskbar = false,
             sticky = false,
             geometry = {
-                width = default_width,
-                height = default_height,
-                x = default_x,
-                y = default_y,
+                width = window_width,
+                height = window_height,
+                x = window_x,
+                y = window_y,
             },
         },
         scratchpad_options = {
@@ -47,20 +50,26 @@ end
 M = {}
 M.yazi = new_scratchpad("yazi-scratchpad-id-1", "kitty --class=yazi -e yazi")
 M.telegram = new_scratchpad("telegram-scratchpad-id-2", "telegram-desktop")
+M.nautilus = new_scratchpad("nautilus-scratchpad-id-3", "nautilus")
 M.youtube_music = new_scratchpad(
-    "youtube_music-scratchpad-id-3",
+    "youtube_music-scratchpad-id-4",
     "google-chrome-stable --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
 )
 M.google_chat = new_scratchpad(
-    "google_chat_scratchpad-id-4",
+    "google_chat_scratchpad-id-5",
     "google-chrome-stable --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
 )
-M.nautilus = new_scratchpad("nautilus-scratchpad-id-5", "nautilus")
-
+M.monkey_type = new_scratchpad(
+    "google_chat_scratchpad-id-6",
+    "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna",
+    0.75,
+    0.8
+)
 pads:add_scratchpad(M.yazi)
 pads:add_scratchpad(M.telegram)
+pads:add_scratchpad(M.nautilus)
 pads:add_scratchpad(M.youtube_music)
 pads:add_scratchpad(M.google_chat)
-pads:add_scratchpad(M.nautilus)
+pads:add_scratchpad(M.monkey_type)
 
 return M
