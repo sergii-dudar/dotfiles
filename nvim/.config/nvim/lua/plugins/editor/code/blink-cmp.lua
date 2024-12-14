@@ -2,7 +2,7 @@ return {
     {
         "saghen/blink.cmp",
         dependencies = {
-            "hrsh7th/cmp-cmdline",
+            --"hrsh7th/cmp-cmdline",
         },
         opts = {
             keymap = {

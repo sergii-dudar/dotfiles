@@ -18,9 +18,14 @@ local function build_separator(icon, color)
     })
 end
 
-M.separator = build_separator(" " .. gseparator .. " ", gcolor)
-M.separator_no_left = build_separator(gseparator .. " ", gcolor)
-M.separator_no_right = build_separator(" " .. gseparator, gcolor)
+-- M.separator = build_separator(" " .. gseparator .. " ", gcolor)
+-- M.separator_no_left = build_separator(gseparator .. " ", gcolor)
+-- M.separator_no_right = build_separator(" " .. gseparator, gcolor)
+
+M.separator = util.widget_margin(build_separator(gseparator, gcolor), 10, 10, 0, 0)
+M.separator_no_left = util.widget_margin(build_separator(gseparator, gcolor), 0, 10, 0, 0)
+M.separator_no_right = util.widget_margin(build_separator(gseparator, gcolor), 10, 0, 0, 0)
+
 M.space = wibox.widget({
     widget = wibox.widget.textbox,
     text = " ",
