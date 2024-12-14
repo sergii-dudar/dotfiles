@@ -1,13 +1,26 @@
+local awful = require("awful")
+
 local M = {}
 M.path = {}
 M.app = {}
 M.key = {}
 M.font = {}
+M.run = {}
+M.settings = {}
 
 M.path.home_dir = os.getenv("HOME")
-M.path.mymenu = M.path.home_dir .. "/.config/rofi/scripts/launcher_t1"
-M.path.powermenu = M.path.home_dir .. "/.config/rofi/scripts/powermenu_t1"
 
+M.run.mymenu = M.path.home_dir .. "/.config/rofi/scripts/launcher_t1"
+M.run.powermenu = M.path.home_dir .. "/.config/rofi/scripts/powermenu_t1"
+M.run.change_language = "bash " .. M.path.home_dir .. "/dotfiles/bin/change_language.sh"
+M.run.monkey_type = "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+M.run.volume_control = "pavucontrol"
+M.run.gnome_system_monitor = "gnome-system-monitor"
+M.run.gnome_settings = "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
+M.run.gnome_clocks = "gnome-clocks"
+M.run.gnome_calendar = "gnome-calendar"
+M.run.htop = "kitty --name htop_info -e htop"
+M.run.disc_usage = 'kitty --name disc_usage_info --hold zsh -c "export MANUAL_RL=1; df; exec zsh"'
 -- This is used later as the default terminal and editor to run.
 M.app.terminal = "wezterm"
 M.app.editor = os.getenv("EDITOR") or "neovim"
@@ -27,6 +40,13 @@ end
 M.font.default_size = 14
 M.font.default = M.font.to_size(M.font.default_size)
 M.font.widget = M.font.default
+
+-- Get the focused screen's geometry
+local screen_geometry = awful.screen.focused().geometry
+M.settings.screen_width = screen_geometry.width
+M.settings.screen_height = screen_geometry.height
+M.settings.default_factor_width = 0.65
+M.settings.default_factor_height = 0.7
 
 local theme_name = "personal"
 M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, theme_name)

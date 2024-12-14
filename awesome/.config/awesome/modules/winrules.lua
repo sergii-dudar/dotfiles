@@ -1,6 +1,8 @@
 local awful = require("awful")
 local beautiful = require("beautiful")
 local tags = require("modules.wibar.taglist-widget").tags
+local util = require("util.common-util")
+
 local M = {}
 
 ---@param opts { keybind: {} }
@@ -57,6 +59,8 @@ M.setup = function(opts)
                     "DTA", -- Firefox addon DownThemAll.
                     "copyq", -- Includes session name in class.
                     "pinentry",
+                    "htop_info",
+                    --"disc_usabe_info",
                 },
                 class = {
                     "Arandr",
@@ -73,16 +77,17 @@ M.setup = function(opts)
                     "qBittorrent",
                     "pavucontrol",
                     "gnome-system-monitor",
-                    "Nm-connection-editor",
-                    "ViberPC",
-                    "vlc",
+                    "gnome-control-center",
                     "gnome-calculator",
-                    "snapshot",
-                    "Gcolor3",
                     "org.gnome.Characters",
                     "org.gnome.clocks",
                     "gnome-calendar",
                     "Gnome-disks",
+                    "Nm-connection-editor",
+                    "ViberPC",
+                    "vlc",
+                    "snapshot",
+                    "Gcolor3",
                     "Glate",
                 },
 
@@ -97,7 +102,21 @@ M.setup = function(opts)
                     "pop-up", -- e.g. Google Chrome's (detached) Developer Tools.
                 },
             },
-            properties = { floating = true },
+            properties = {
+                floating = true,
+                width = util.calculate_window_width(),
+                height = util.calculate_window_height(),
+                placement = awful.placement.centered,
+            },
+        },
+        {
+            rule = { instance = "disc_usage_info" },
+            properties = {
+                floating = true,
+                width = util.calculate_window_width(),
+                height = util.calculate_window_height(),
+                placement = awful.placement.centered,
+            },
         },
 
         -- Scratchpads
@@ -142,7 +161,8 @@ M.setup = function(opts)
             properties = { tag = tags["3"] },
         },
         {
-            rule = { class = "kitty" },
+            --rule = { class = "kitty" },
+            rule = { instance = "kitty" },
             properties = { tag = tags[4] },
         },
 

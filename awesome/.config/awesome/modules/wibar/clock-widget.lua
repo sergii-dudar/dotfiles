@@ -18,7 +18,7 @@ time.format = time_formats[current_time_format_index]
 
 time:buttons(gears.table.join(
     awful.button({}, 1, function()
-        awful.spawn.with_shell("gnome-clocks")
+        awful.spawn.with_shell(vars.run.gnome_clocks)
     end),
     awful.button({}, 3, function()
         current_time_format_index = (current_time_format_index % #time_formats) + 1
@@ -41,7 +41,7 @@ date.format = date_formats[current_date_format_index]
 
 date:buttons(gears.table.join(
     awful.button({}, 1, function()
-        awful.spawn.with_shell("gnome-calendar")
+        awful.spawn.with_shell(vars.run.gnome_calendar)
     end),
     awful.button({}, 3, function()
         current_date_format_index = (current_date_format_index % #date_formats) + 1

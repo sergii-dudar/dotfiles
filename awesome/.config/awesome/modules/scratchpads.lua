@@ -1,12 +1,8 @@
 -- https://github.com/hadiali6/scratchpad
 
 local scratchpad = require("scratchpad")
-
-local awful = require("awful")
--- Get the focused screen's geometry
-local screen_geometry = awful.screen.focused().geometry
-local screen_width = screen_geometry.width
-local screen_height = screen_geometry.height
+local vars = require("modules.variables")
+local util = require("util.common-util")
 
 -- Initialize a table which will contain all of your scratchpad objects.
 local pads = scratchpad.group:new({
@@ -15,13 +11,10 @@ local pads = scratchpad.group:new({
 })
 
 local function new_scratchpad(id, cmd, factor_width, factor_height)
-    factor_width = factor_width or 0.65
-    factor_height = factor_height or 0.7
-
-    local window_width = screen_width * factor_width
-    local window_height = screen_height * factor_height
-    local window_x = screen_width / 2 - window_width / 2
-    local window_y = screen_height / 2 - window_height / 2
+    local window_width = util.calculate_window_width(factor_width)
+    local window_height = util.calculate_window_height(factor_height)
+    local window_x = vars.settings.screen_width / 2 - window_width / 2
+    local window_y = vars.settings.screen_height / 2 - window_height / 2
 
     return scratchpad:new({
         id = id,
@@ -59,12 +52,8 @@ M.google_chat = new_scratchpad(
     "google_chat_scratchpad-id-5",
     "google-chrome-stable --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
 )
-M.monkey_type = new_scratchpad(
-    "google_chat_scratchpad-id-6",
-    "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna",
-    0.75,
-    0.8
-)
+M.monkey_type = new_scratchpad("google_chat_scratchpad-id-6", vars.run.monkey_type, 0.75, 0.8)
+
 pads:add_scratchpad(M.yazi)
 pads:add_scratchpad(M.telegram)
 pads:add_scratchpad(M.nautilus)

@@ -34,6 +34,9 @@ M.setup = function(opts)
             os.execute(string.format("%s set %s toggle", volume.cmd, volume.togglechannel or volume.channel))
             volume.update()
         end),
+        awful.button({}, 3, function()
+            awful.util.spawn(vars.run.volume_control)
+        end),
         awful.button({}, 4, function()
             awful.util.spawn("amixer set Master 1%+")
             volume.update()

@@ -16,7 +16,7 @@ M.applications = wibox.widget({
 })
 M.applications:buttons(gears.table.join(
     awful.button({}, 1, function()
-        awful.spawn.with_shell(vars.path.mymenu)
+        awful.spawn.with_shell(vars.run.mymenu)
     end),
     awful.button({}, 3, function()
         launcher.mymainmenu:toggle()

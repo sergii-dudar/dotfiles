@@ -3,6 +3,7 @@ local wibox = require("wibox")
 local awful = require("awful")
 local vars = require("modules.variables")
 local util = require("util.common-util")
+local gears = require("gears")
 
 local M = {}
 
@@ -41,6 +42,15 @@ M.setup = function()
         layout = wibox.container.margin,
         margins = 0,
     })
+
+    custom_keyboard_widget:buttons(gears.table.join(
+        awful.button({}, 1, function()
+            awful.spawn.with_shell(vars.run.change_language)
+        end),
+        awful.button({}, 3, function()
+            awful.spawn.with_shell(vars.run.monkey_type)
+        end)
+    ))
 
     -- custom_keyboard_widget.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
     --     awful.spawn.with_shell(string.format("bash %s/dotfiles/bin/change_language.sh", vars.path.home_dir))

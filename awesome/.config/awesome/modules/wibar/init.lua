@@ -6,6 +6,7 @@ local layout_widget = require("modules.wibar.layout-widget")
 local taglist_widget = require("modules.wibar.taglist-widget")
 local appmenu_widget = require("modules.wibar.appmenu-widget")
 local powermenu_widget = require("modules.wibar.powermenu-widget")
+local settings_widget = require("modules.wibar.settings-widget")
 local simple_widget = require("modules.wibar.simple-widget")
 local keyboard_layout_widget = require("modules.wibar.keyboard-layout-widget")
 local system_widget = require("modules.wibar.system-widget")
@@ -50,6 +51,8 @@ M.setup = function(opts)
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 5,
                     appmenu_widget.applications,
+                    simple_widget.space,
+                    settings_widget.settings,
                     simple_widget.separator,
                     --wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
                     --separator,

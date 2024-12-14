@@ -60,7 +60,7 @@ M.globalkeys = gears.table.join(
 
     -- App Runners
     awful.key({ vars.key.altkey }, "space", function()
-        awful.util.spawn(vars.path.mymenu)
+        awful.util.spawn(vars.run.mymenu)
     end, { description = "show my applications menu", group = "awesome" }),
     awful.key({ vars.key.modkey }, "Return", function()
         awful.spawn(vars.app.terminal)

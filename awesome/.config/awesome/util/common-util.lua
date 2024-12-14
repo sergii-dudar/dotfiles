@@ -81,4 +81,14 @@ M.to_span = function(content, foreground, font_size)
     return string.format("<span %s %s>%s</span>", foreground, font, content)
 end
 
+M.calculate_window_width = function(factor_width)
+    factor_width = factor_width or vars.settings.default_factor_width
+    return vars.settings.screen_width * factor_width
+end
+
+M.calculate_window_height = function(factor_height)
+    factor_height = factor_height or vars.settings.default_factor_height
+    return vars.settings.screen_height * factor_height
+end
+
 return M

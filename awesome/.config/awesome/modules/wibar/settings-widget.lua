@@ -6,15 +6,15 @@ local util = require("util.common-util")
 
 local M = {}
 
-M.powermenu = wibox.widget({
+M.settings = wibox.widget({
     widget = wibox.widget.textbox,
-    markup = util.to_span(" ", "#d35f5e"),
+    markup = util.to_span(" ", "#3071db", 19),
     align = "center",
     valign = "center",
-    font = vars.font.widget,
+    font = vars.font.to_size(17),
 })
-M.powermenu:buttons(gears.table.join(awful.button({}, 1, function()
-    awful.spawn.with_shell(vars.run.powermenu)
+M.settings:buttons(gears.table.join(awful.button({}, 1, function()
+    awful.spawn.with_shell(vars.run.gnome_settings)
 end)))
 
 return M
