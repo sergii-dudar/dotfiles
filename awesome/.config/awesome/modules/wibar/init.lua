@@ -13,7 +13,7 @@ local system_widget = require("modules.wibar.system-widget")
 --local mpris_widget = require("modules.wibar.mpris-widget")
 local volume_widget = require("modules.wibar.volume-widget")
 local battery_widget = require("modules.wibar.battery-widget")
-local common_util = require("util.common-util")
+local util = require("util.common-util")
 
 local M = {}
 
@@ -51,9 +51,8 @@ M.setup = function(opts)
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 5,
                     appmenu_widget.applications,
-                    simple_widget.space,
-                    settings_widget.settings,
-                    simple_widget.separator,
+                    util.widget_margin(settings_widget.settings, 6, 4, 0, 0),
+                    simple_widget.separator_no_left,
                     --wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
                     --separator,
                     layout_widget.layoutbox_with_name(s),
@@ -92,14 +91,14 @@ M.setup = function(opts)
                         widget = wibox.container.place,
                         layout = wibox.layout.fixed.horizontal,
                         --spacing = 5,
-                        table.unpack(common_util.concat_match_tables({
+                        table.unpack(util.concat_match_tables({
                             keyboard_layout_widget.setup(),
                             simple_widget.separator,
                             volume_widget.setup(opts),
                             simple_widget.separator,
                         }, {
                             is_match = function()
-                                return common_util.directory_exists("/sys/class/power_supply/BAT0")
+                                return util.directory_exists("/sys/class/power_supply/BAT0")
                             end,
                             table = {
                                 -- add this widgets only if battery present
@@ -114,9 +113,8 @@ M.setup = function(opts)
                             system_widget.fs,
                             simple_widget.separator,
 
-                            --wibox.container.margin(my_widget, left, right, top, bottom)
-                            wibox.container.margin(wibox.widget.systray(), 0, 0, 6, 6),
-                            wibox.container.margin(powermenu_widget.powermenu, 10, 0, 0, 0),
+                            util.widget_margin(wibox.widget.systray(), 0, 0, 6, 6),
+                            util.widget_margin(powermenu_widget.powermenu, 10, 0, 0, 0),
                         })),
                     },
                 },

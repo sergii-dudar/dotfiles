@@ -1,31 +1,75 @@
 return {
     {
         "saghen/blink.cmp",
+        dependencies = {
+            "hrsh7th/cmp-cmdline",
+        },
         opts = {
+            keymap = {
+                preset = "enter",
+                ["<Tab>"] = {
+                    LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
+                    "fallback",
+                },
+                ["<C-k>"] = { "select_prev", "fallback" },
+                ["<C-j>"] = { "select_next", "fallback" },
+            },
             completion = {
                 menu = {
-                    border = "single",
+                    scrollbar = false,
+                    border = {
+                        "╭", --{ "󱐋", "WarningMsg" },
+                        "─",
+                        "╮",
+                        "│",
+                        "╯",
+                        "─",
+                        "╰",
+                        "│",
+                    },
+                    draw = {
+                        columns = {
+                            { "kind_icon" },
+                            { "label", "label_description", gap = 1 },
+                            { "kind" },
+                            { "source_name" },
+                        },
+                    },
                 },
             },
             documentation = {
+                auto_show = true,
                 window = {
-                    order = "single",
+                    border = {
+                        "╭", --{ "", "DiagnosticHint" },
+                        "─",
+                        "╮",
+                        "│",
+                        "╯",
+                        "─",
+                        "╰",
+                        "│",
+                    },
                 },
             },
-            sources = {
-                -- adding any nvim-cmp sources here will enable them
-                -- with blink.compat
-                compat = {},
-                default = { "lsp", "path", "snippets", "buffer" },
-                cmdline = {},
-            },
-
-            -- keymap = {
-            --     preset = "enter",
-            --     ["<Tab>"] = {
-            --         LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
-            --         "fallback",
-            --     },
+            -- sources = {
+            --     -- adding any nvim-cmp sources here will enable them
+            --     -- with blink.compat
+            --     compat = {},
+            --     default = { "lsp", "path", "snippets", "buffer" },
+            --     --cmdline = { "cmdline" },
+            --     -- cmdline = function()
+            --     --     local type = vim.fn.getcmdtype()
+            --     --     -- Search forward and backward
+            --     --     if type == "/" or type == "?" then
+            --     --         return { "buffer" }
+            --     --     end
+            --     --     -- Commands
+            --     --     if type == ":" then
+            --     --         return { "cmdline" }
+            --     --     end
+            --     --     return {}
+            --     -- end,
             -- },
         },
 

@@ -91,4 +91,8 @@ M.calculate_window_height = function(factor_height)
     return vars.settings.screen_height * factor_height
 end
 
+M.widget_margin = function(widget, left, right, top, bottom)
+    return wibox.container.margin(widget, left, right, top, bottom)
+end
+
 return M
