@@ -34,7 +34,7 @@ local fs = lain.widget.fs({
         widget:set_markup(
             markup.font(
                 vars.font.widget,
-                markup(gray, util.to_span("  ", "#e5c890") .. perc .. "% " .. util.to_span("SSD", "#e5c890"))
+                markup(gray, util.to_span("  ", "#e5c890") .. perc .. "% " .. util.to_span("SSD", "#6272a4"))
             )
         )
     end,
