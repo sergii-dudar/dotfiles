@@ -3,13 +3,11 @@ local wibox = require("wibox")
 local gears = require("gears")
 local vars = require("modules.variables")
 
-M = {}
-
-M.notify = function(msg)
+local notify = function(msg)
     awful.util.spawn('notify-send "' .. msg .. '" -t 700')
 end
 
-M.concat_tables = function(...)
+local concat_tables = function(...)
     local result = {}
     for _, t in ipairs({ ... }) do
         for _, v in ipairs(t) do
@@ -19,7 +17,7 @@ M.concat_tables = function(...)
     return result
 end
 
-M.concat_match_tables = function(...)
+local concat_match_tables = function(...)
     local result = {}
     for _, t in ipairs({ ... }) do
         if t.is_match and t.is_match() then
@@ -35,14 +33,14 @@ M.concat_match_tables = function(...)
     return result
 end
 
-M.filter_if_not_match = function(input)
+local filter_if_not_match = function(input)
     if input.is_match() then
         return input.items
     end
     return {}
 end
 
-M.directory_exists = function(dir)
+local directory_exists = function(dir)
     local f = io.open(dir, "r")
     if f then
         f:close()
@@ -53,7 +51,7 @@ end
 
 ---@param widget (table) - widget to decoration
 ---@param bg_color (string) - decoration color
-M.decore_with_background = function(widget, bg_color)
+local decore_with_background = function(widget, bg_color)
     return wibox.widget({
         {
             --wibox.container.margin(my_widget, left, right, top, bottom)
@@ -72,27 +70,82 @@ end
 ---@param content (string) span content
 ---@param foreground (string|nil) span content foreground color
 ---@param font_size (integer|nil) span content font size
-M.to_span = function(content, foreground, font_size)
+local to_span = function(content, foreground, font_size)
     content = content or ""
     foreground = foreground ~= nil and string.format("foreground='%s'", foreground) or ""
-
     font_size = font_size or vars.font.default_size
     local font = string.format("font='%s'", vars.font.to_size(font_size))
     return string.format("<span %s %s>%s</span>", foreground, font, content)
 end
 
-M.calculate_window_width = function(factor_width)
+---@param content (string) span content
+---@param foreground (string|nil) span content foreground color
+---@param font_size (integer|nil) span content font size
+local text_widget = function(content, foreground, font_size)
+    font_size = font_size or vars.font.default_size
+    return wibox.widget({
+        widget = wibox.widget.textbox,
+        markup = to_span(content, foreground, font_size),
+        align = "center",
+        valign = "center",
+        font = vars.font.to_size(font_size),
+    })
+end
+
+local calculate_window_width = function(factor_width)
     factor_width = factor_width or vars.settings.default_factor_width
     return vars.settings.screen_width * factor_width
 end
 
-M.calculate_window_height = function(factor_height)
+local calculate_window_height = function(factor_height)
     factor_height = factor_height or vars.settings.default_factor_height
     return vars.settings.screen_height * factor_height
 end
 
-M.widget_margin = function(widget, left, right, top, bottom)
+local widget_margin = function(widget, left, right, top, bottom)
     return wibox.container.margin(widget, left, right, top, bottom)
 end
 
-return M
+---@class Options
+---@field target_widget (any) main widget to apply icon
+---@field icon_content (string) span content
+---@field right_icon_content (string|nil) span content to right from wideget if provided
+---@field icon_foreground (string|nil) span content foreground color
+---@field icon_font_size (integer|nil) span content font size
+---@field icon_right_margin (integer|nil) space margin between icon and target widget
+---@param opts Options of options
+local add_icon_to_widget = function(opts)
+    opts.icon_right_margin = opts.icon_right_margin or 3
+    local icon_widget = text_widget(opts.icon_content, opts.icon_foreground, opts.icon_font_size)
+
+    if opts.right_icon_content then
+        local right_icon_widget = text_widget(opts.right_icon_content, opts.icon_foreground, opts.icon_font_size)
+        return wibox.widget({
+            widget_margin(icon_widget, 0, opts.icon_right_margin),
+            opts.target_widget,
+            widget_margin(right_icon_widget, opts.icon_right_margin, 0),
+            layout = wibox.layout.fixed.horizontal,
+        })
+    end
+
+    return wibox.widget({
+        widget_margin(icon_widget, 0, opts.icon_right_margin),
+        opts.target_widget,
+        layout = wibox.layout.fixed.horizontal,
+    })
+end
+
+return {
+    notify = notify,
+    concat_tables = concat_tables,
+    concat_match_tables = concat_match_tables,
+    filter_if_not_match = filter_if_not_match,
+    directory_exists = directory_exists,
+    decore_with_background = decore_with_background,
+    to_span = to_span,
+    text_widget = text_widget,
+    calculate_window_width = calculate_window_width,
+    calculate_window_height = calculate_window_height,
+    widget_margin = widget_margin,
+    add_icon_to_widget = add_icon_to_widget,
+}
