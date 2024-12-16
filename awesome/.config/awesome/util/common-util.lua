@@ -135,6 +135,10 @@ local add_icon_to_widget = function(opts)
     })
 end
 
+local to_icon_widget_space = function(size)
+    return to_span(" ", "#8caaee", size)
+end
+
 return {
     notify = notify,
     concat_tables = concat_tables,
@@ -148,4 +152,8 @@ return {
     calculate_window_height = calculate_window_height,
     widget_margin = widget_margin,
     add_icon_to_widget = add_icon_to_widget,
+    to_icon_widget_space = to_icon_widget_space,
+    vars = {
+        icon_widget_space = to_icon_widget_space(5),
+    },
 }

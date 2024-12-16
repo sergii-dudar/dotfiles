@@ -14,8 +14,8 @@ M.setup = function()
 
     -- Define a mapping for layouts to display names/icons
     local layout_names = {
-        us = "🇺🇸 US",
-        ua = "🇺🇦 UA",
+        us = "🇺🇸" .. util.vars.icon_widget_space .. "US",
+        ua = "🇺🇦" .. util.vars.icon_widget_space .. "UA",
     }
 
     -- Create a custom widget to display layout

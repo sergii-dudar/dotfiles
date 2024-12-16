@@ -10,7 +10,7 @@ time.font = vars.font.widget
 
 local clock_icon = util.to_span("󰔛 ", "#bd93f9", 16)
 local time_formats = {
-    clock_icon .. util.to_span("%I:%M %p", "#a6d189"),
+    clock_icon .. util.to_span("%I:%M", "#a6d189") .. util.vars.icon_widget_space .. util.to_span("%p", "#8caaee"),
     clock_icon .. util.to_span("%H:%M", "#6272a4"),
 }
 local current_time_format_index = 1

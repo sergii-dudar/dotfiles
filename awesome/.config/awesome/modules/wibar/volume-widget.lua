@@ -13,17 +13,22 @@ local M = {}
 M.setup = function(opts)
     local volume = lain.widget.alsa({
         settings = function()
-            local icon = util.to_span("  ", "#ca9ee6")
+            local icon = util.to_span(" ", "#ca9ee6")
             if volume_now.status == "off" then
-                icon = util.to_span("  ", "#d35f5e")
+                icon = util.to_span(" ", "#d35f5e")
             elseif tonumber(volume_now.level) == 0 then
-                icon = util.to_span("  ", "#ca9ee6")
+                icon = util.to_span(" ", "#ca9ee6")
             elseif tonumber(volume_now.level) <= 10 then
-                icon = util.to_span("  ", "#ca9ee6")
+                icon = util.to_span(" ", "#ca9ee6")
             end
 
             --widget:set_markup(markup.font(theme.font, " " .. volume_now.level .. "% "))
-            widget:set_markup(markup.font(vars.font.widget, markup(gray, icon .. volume_now.level .. "%")))
+            widget:set_markup(
+                markup.font(
+                    vars.font.widget,
+                    markup(gray, icon .. util.vars.icon_widget_space .. volume_now.level .. "%")
+                )
+            )
         end,
     })
     -- awful.widget.watch("amixer get Master", 1, function(widget, stdout)
