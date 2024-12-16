@@ -68,7 +68,7 @@ M.setup = function(opts)
             volume.update()
         end)
     )
-    return util.decore_with_background(volume)
+    return volume
 end
 
 return M

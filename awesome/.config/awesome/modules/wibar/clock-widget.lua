@@ -53,7 +53,7 @@ date:buttons(gears.table.join(
 
 local M = {}
 
-M.time = util.decore_with_background(time)
-M.date = util.decore_with_background(date)
+M.time = time
+M.date = date
 
 return M

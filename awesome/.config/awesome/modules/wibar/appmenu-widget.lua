@@ -9,7 +9,7 @@ local M = {}
 
 M.applications = wibox.widget({
     widget = wibox.widget.textbox,
-    markup = util.to_span("  ", "#bd93f9", 17),
+    markup = util.to_span(" ", "#bd93f9", 17),
     align = "center",
     valign = "center",
     font = vars.font.to_size(17),

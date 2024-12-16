@@ -51,12 +51,17 @@ end
 
 ---@param widget (table) - widget to decoration
 ---@param bg_color (string|nil) - decoration color
-local decore_with_background = function(widget, bg_color)
+local decore_with_background = function(widget, bg_color, margin_left, margin_right, margin_top, margin_bottom)
     bg_color = bg_color or vars.widget.bg_color
+    margin_left = margin_left or 10
+    margin_right = margin_right or 10
+    margin_top = margin_top or 0
+    margin_bottom = margin_bottom or 0
     return wibox.widget({
         {
             --wibox.container.margin(my_widget, left, right, top, bottom)
-            wibox.container.margin(widget, 10, 10, 0, 2),
+            --wibox.container.margin(widget, 10, 10, 0, 2),
+            wibox.container.margin(widget, margin_left, margin_right, margin_top, margin_bottom),
             shape = function(cr, width, height)
                 --gears.shape.rounded_rect(cr, width, height, 10)
                 gears.shape.rectangle(cr, width, height)
@@ -68,6 +73,12 @@ local decore_with_background = function(widget, bg_color)
         widget = wibox.container.margin, -- Wrap the widget in a margin container
     })
 end
+
+local decore_with_background_center = function(widget, bg_color)
+    return decore_with_background(widget, bg_color, 10, 10, 0, 2)
+end
+local decore_with_background_left = decore_with_background
+local decore_with_background_right = decore_with_background
 
 ---@param content (string) span content
 ---@param foreground (string|nil) span content foreground color
@@ -141,13 +152,19 @@ local to_icon_widget_space = function(size)
     return to_span(" ", "#8caaee", size)
 end
 
+local group_widgets = function(...)
+    return wibox.widget({
+        layout = wibox.layout.fixed.horizontal,
+        table.unpack({ ... }),
+    })
+end
+
 return {
     notify = notify,
     concat_tables = concat_tables,
     concat_match_tables = concat_match_tables,
     filter_if_not_match = filter_if_not_match,
     directory_exists = directory_exists,
-    decore_with_background = decore_with_background,
     to_span = to_span,
     text_widget = text_widget,
     calculate_window_width = calculate_window_width,
@@ -155,6 +172,12 @@ return {
     widget_margin = widget_margin,
     add_icon_to_widget = add_icon_to_widget,
     to_icon_widget_space = to_icon_widget_space,
+    group_widgets = group_widgets,
+
+    --decore_with_background = decore_with_background,
+    decore_with_background_center = decore_with_background_center,
+    decore_with_background_right = decore_with_background_right,
+    decore_with_background_left = decore_with_background_left,
     vars = {
         icon_widget_space = to_icon_widget_space(vars.widget.icon_widget_space),
     },

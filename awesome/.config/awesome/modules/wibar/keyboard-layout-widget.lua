@@ -77,7 +77,7 @@ M.setup = function()
     custom_keyboard_widget:set_text(current_layout)
 
     -- Add the widget to your wibar
-    return util.decore_with_background(custom_keyboard_widget)
+    return custom_keyboard_widget
 end
 
 return M

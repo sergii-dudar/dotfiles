@@ -3,8 +3,6 @@ local vars = require("modules.variables")
 local awful = require("awful")
 local util = require("util.common-util")
 
-local M = {}
-
 local gcolor = "#7f849c"
 local gseparator = "" --  󰇝  󰮾 󱋱
 
@@ -18,20 +16,40 @@ local function build_separator(icon, color)
     })
 end
 
--- M.separator = build_separator(" " .. gseparator .. " ", gcolor)
--- M.separator_no_left = build_separator(gseparator .. " ", gcolor)
--- M.separator_no_right = build_separator(" " .. gseparator, gcolor)
+local function build_bg_separator(left, right)
+    return util.widget_margin(
+        wibox.widget({
+            widget = wibox.widget.textbox,
+            font = vars.font.widget,
+            text = "",
+            align = "center",
+            valign = "center",
+        }),
+        left,
+        right,
+        0,
+        0
+    )
+end
 
-M.separator = util.widget_margin(build_separator(gseparator, gcolor), 10, 10, 0, 0)
-M.separator_no_left = util.widget_margin(build_separator(gseparator, gcolor), 0, 10, 0, 0)
-M.separator_no_right = util.widget_margin(build_separator(gseparator, gcolor), 10, 0, 0, 0)
+-- local separator = build_separator(" " .. gseparator .. " ", gcolor)
+-- local separator_no_left = build_separator(gseparator .. " ", gcolor)
+-- local separator_no_right = build_separator(" " .. gseparator, gcolor)
 
-M.space = wibox.widget({
+-- local separator = util.widget_margin(build_separator(gseparator, gcolor), 10, 10, 0, 0)
+-- local separator_no_left = util.widget_margin(build_separator(gseparator, gcolor), 0, 10, 0, 0)
+-- local separator_no_right = util.widget_margin(build_separator(gseparator, gcolor), 10, 0, 0, 0)
+
+local bg_separator = build_bg_separator(3, 0)
+local bg_separator_no_left = build_bg_separator(3, 0)
+local bg_separator_no_right = build_bg_separator(3, 0)
+
+local space = wibox.widget({
     widget = wibox.widget.textbox,
     text = " ",
 })
 
-M.tasklist = function(s, opts)
+local tasklist = function(s, opts)
     -- Create a tasklist widget
     return awful.widget.tasklist({
         font = vars.font.widget,
@@ -41,4 +59,13 @@ M.tasklist = function(s, opts)
     })
 end
 
-return M
+return {
+    tasklist = tasklist,
+    space = space,
+    -- separator = separator,
+    -- separator_no_left = separator_no_left,
+    -- separator_no_right = separator_no_right,
+    separator = bg_separator,
+    separator_no_left = bg_separator_no_left,
+    separator_no_right = bg_separator_no_right,
+}

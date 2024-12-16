@@ -50,12 +50,19 @@ M.setup = function(opts)
                     widget = wibox.container.place,
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 5,
-                    appmenu_widget.applications,
-                    util.widget_margin(settings_widget.settings, 6, 4, 0, 0),
+                    util.decore_with_background_left(
+                        util.group_widgets(
+                            appmenu_widget.applications,
+                            util.widget_margin(settings_widget.settings, 8, 0, 0, 0)
+                        ),
+                        nil,
+                        12,
+                        2
+                    ),
                     simple_widget.separator_no_left,
                     --wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
                     --separator,
-                    layout_widget.layoutbox_with_name(s),
+                    util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
                     simple_widget.separator,
 
                     -- Create a promptbox for each screen
@@ -69,13 +76,11 @@ M.setup = function(opts)
                 widget = wibox.container.place,
                 layout = wibox.layout.fixed.horizontal,
                 --spacing = 15,
-                date_widgets.date,
-                simple_widget.space,
+                util.decore_with_background_center(date_widgets.date),
                 simple_widget.space,
                 taglist_widget.setup(s, opts),
                 simple_widget.space,
-                simple_widget.space,
-                date_widgets.time,
+                util.decore_with_background_center(date_widgets.time),
             },
 
             { -- Right widgets
@@ -84,7 +89,7 @@ M.setup = function(opts)
                 h_align = "right",
                 {
                     widget = wibox.container.margin,
-                    right = 5,
+                    --right = 5,
                     --bottom = 1,
                     --top = 1,
                     {
@@ -92,9 +97,9 @@ M.setup = function(opts)
                         layout = wibox.layout.fixed.horizontal,
                         --spacing = 5,
                         table.unpack(util.concat_match_tables({
-                            keyboard_layout_widget.setup(),
+                            util.decore_with_background_right(keyboard_layout_widget.setup()),
                             simple_widget.separator,
-                            volume_widget.setup(opts),
+                            util.decore_with_background_right(volume_widget.setup(opts)),
                             simple_widget.separator,
                         }, {
                             is_match = function()
@@ -102,19 +107,27 @@ M.setup = function(opts)
                             end,
                             table = {
                                 -- add this widgets only if battery present
-                                battery_widget.battery,
+                                util.decore_with_background_right(battery_widget.battery),
                                 simple_widget.separator,
                             },
                         }, {
-                            system_widget.mem,
+                            util.decore_with_background_right(system_widget.mem),
                             simple_widget.separator,
-                            system_widget.cpu,
+                            util.decore_with_background_right(system_widget.cpu),
                             simple_widget.separator,
-                            system_widget.fs,
+                            util.decore_with_background_right(system_widget.fs),
                             simple_widget.separator,
 
-                            util.widget_margin(wibox.widget.systray(), 0, 0, 6, 6),
-                            util.widget_margin(powermenu_widget.powermenu, 10, 0, 0, 0),
+                            --util.widget_margin(wibox.widget.systray(), 0, 0, 6, 6),
+                            util.decore_with_background_right(
+                                util.group_widgets(
+                                    util.widget_margin(wibox.widget.systray(), 0, 0, 4, 4),
+                                    util.widget_margin(powermenu_widget.powermenu, 10, 0, 0, 0)
+                                ),
+                                nil,
+                                nil,
+                                5
+                            ),
                         })),
                     },
                 },
