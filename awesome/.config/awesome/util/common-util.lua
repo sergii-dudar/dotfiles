@@ -58,7 +58,8 @@ local decore_with_background = function(widget, bg_color)
             --wibox.container.margin(my_widget, left, right, top, bottom)
             wibox.container.margin(widget, 10, 10, 0, 2),
             shape = function(cr, width, height)
-                gears.shape.rounded_rect(cr, width, height, 10)
+                --gears.shape.rounded_rect(cr, width, height, 10)
+                gears.shape.rectangle(cr, width, height)
             end,
             bg = bg_color,
             widget = wibox.container.background,
