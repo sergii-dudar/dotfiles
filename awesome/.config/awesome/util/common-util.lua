@@ -50,8 +50,9 @@ local directory_exists = function(dir)
 end
 
 ---@param widget (table) - widget to decoration
----@param bg_color (string) - decoration color
+---@param bg_color (string|nil) - decoration color
 local decore_with_background = function(widget, bg_color)
+    bg_color = bg_color or vars.widget.bg_color
     return wibox.widget({
         {
             --wibox.container.margin(my_widget, left, right, top, bottom)
@@ -154,6 +155,6 @@ return {
     add_icon_to_widget = add_icon_to_widget,
     to_icon_widget_space = to_icon_widget_space,
     vars = {
-        icon_widget_space = to_icon_widget_space(5),
+        icon_widget_space = to_icon_widget_space(vars.widget.icon_widget_space),
     },
 }

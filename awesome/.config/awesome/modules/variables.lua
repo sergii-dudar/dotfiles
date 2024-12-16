@@ -7,6 +7,7 @@ M.key = {}
 M.font = {}
 M.run = {}
 M.settings = {}
+M.widget = {}
 
 M.path.home_dir = os.getenv("HOME")
 
@@ -47,6 +48,10 @@ M.settings.screen_width = screen_geometry.width
 M.settings.screen_height = screen_geometry.height
 M.settings.default_factor_width = 0.65
 M.settings.default_factor_height = 0.7
+
+local bg_color = "#2E3440" --"#2D2A2E" --"#2B3339"
+M.widget.bg_color = bg_color
+M.widget.icon_widget_space = 5
 
 local theme_name = "personal"
 M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, theme_name)

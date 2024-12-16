@@ -53,8 +53,7 @@ date:buttons(gears.table.join(
 
 local M = {}
 
-local bg_color = "#2E3440" --"#2D2A2E" --"#2B3339"
-M.time = util.decore_with_background(time, bg_color)
-M.date = util.decore_with_background(date, bg_color)
+M.time = util.decore_with_background(time)
+M.date = util.decore_with_background(date)
 
 return M
