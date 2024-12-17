@@ -51,6 +51,7 @@ M.settings.default_factor_height = 0.7
 
 local bg_color = "#2E3440" --"#2D2A2E" --"#2B3339"
 M.widget.bg_color = bg_color
+M.widget.bg_color_hover = "#1e1e2e"
 M.widget.icon_widget_space = 5
 
 local theme_name = "personal"

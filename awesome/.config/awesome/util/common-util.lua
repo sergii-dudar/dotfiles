@@ -57,18 +57,30 @@ local decore_with_background = function(widget, bg_color, margin_left, margin_ri
     margin_right = margin_right or 10
     margin_top = margin_top or 0
     margin_bottom = margin_bottom or 0
+
+    local bg_widget = wibox.widget({
+        --wibox.container.margin(my_widget, left, right, top, bottom)
+        --wibox.container.margin(widget, 10, 10, 0, 2),
+        wibox.container.margin(widget, margin_left, margin_right, margin_top, margin_bottom),
+        shape = function(cr, width, height)
+            --gears.shape.rounded_rect(cr, width, height, 10)
+            gears.shape.rectangle(cr, width, height)
+        end,
+        bg = bg_color,
+        widget = wibox.container.background,
+    })
+
+    -- add bg mouse hover
+    bg_widget:connect_signal("mouse::enter", function()
+        bg_widget.bg = vars.widget.bg_color_hover
+    end)
+
+    bg_widget:connect_signal("mouse::leave", function()
+        bg_widget.bg = vars.widget.bg_color
+    end)
+
     return wibox.widget({
-        {
-            --wibox.container.margin(my_widget, left, right, top, bottom)
-            --wibox.container.margin(widget, 10, 10, 0, 2),
-            wibox.container.margin(widget, margin_left, margin_right, margin_top, margin_bottom),
-            shape = function(cr, width, height)
-                --gears.shape.rounded_rect(cr, width, height, 10)
-                gears.shape.rectangle(cr, width, height)
-            end,
-            bg = bg_color,
-            widget = wibox.container.background,
-        },
+        bg_widget,
         margins = { top = 1, bottom = 1, left = 0, right = 0 },
         widget = wibox.container.margin, -- Wrap the widget in a margin container
     })
