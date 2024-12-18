@@ -3,48 +3,39 @@ local gears = require("gears")
 local awful = require("awful")
 local lain = require("lain")
 local util = require("util.common-util")
+local helpers = require("lain.helpers")
 
 local gray = "#94928F"
 local markup = lain.util.markup
 
--- https://api.openweathermap.org/geo/1.0/zip?zip=21012,UA&appid=bd5e378503939ddaee76f12ad7a97608
--- https://api.openweathermap.org/data/2.5/weather?lat=49.2328&lon=28.481&appid=bd5e378503939ddaee76f12ad7a97608&lang=en
+-- https://api.openweathermap.org/geo/1.0/zip?zip=21012,UA&appid=[key]
+-- https://api.openweathermap.org/data/2.5/weather?lat=49.2328&lon=28.481&appid=[key]&lang=en
 
-local weather = lain.widget.weather({
-    APPID = "bd5e378503939ddaee76f12ad7a97608",
-    --notification_preset = { font = "Terminus 10", fg = theme.fg_normal },
-    --weather_na_markup = markup.fontfg(theme.font, "#eca4c4", "N/A "),
+local api_key = util.locad_env_key("OPEN_WEATHER_API_KEY")
+local vn_ua_geo = {
     lat = 49.2328,
     lon = 28.481,
+}
+print("api key " .. api_key)
+local weather = lain.widget.weather({
+    APPID = api_key,
+    notification_preset = { font = vars.font.default, fg = gray },
+    weather_na_markup = markup.fontfg(vars.font.default, gray, "N/A"),
+    --icons_path = helpers.icons_dir .. "openweather_api/",
+    lat = vn_ua_geo.lat,
+    lon = vn_ua_geo.lon,
     settings = function()
-        local name = weather_now["name"]
-        local descr = weather_now["weather"][1]["main"]:lower()
         local units = math.floor(weather_now["main"]["temp"])
-        widget:set_markup(markup.fontfg(vars.font.default, "#eca4c4", descr .. " @ " .. units .. "°C "))
+        widget:set_markup(markup.fontfg(vars.font.default, gray, units .. "°C"))
     end,
 })
 
---
--- local weather = lain.widget.alsa({
---     settings = function()
---         local icon = util.to_span(" ", "#ca9ee6")
---         if volume_now.status == "off" then
---             icon = util.to_span(" ", "#d35f5e")
---         elseif tonumber(volume_now.level) == 0 then
---             icon = util.to_span(" ", "#ca9ee6")
---         elseif tonumber(volume_now.level) <= 10 then
---             icon = util.to_span(" ", "#ca9ee6")
---         end
---
---         --widget:set_markup(markup.font(theme.font, " " .. volume_now.level .. "% "))
---         widget:set_markup(
---             markup.font(vars.font.widget, markup(gray, icon .. util.vars.icon_widget_space .. volume_now.level .. "%"))
---         )
---     end,
--- })
-
 return {
-    weather = weather,
+    weather = util.add_icon_widget_to_widget({
+        icon_widget = weather.icon,
+        target_widget = weather,
+        icon_right_margin = 5,
+    }),
 }
 
 --[[ 

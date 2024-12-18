@@ -61,8 +61,6 @@ M.setup = function(opts)
                         2
                     ),
                     simple_widget.separator_no_left,
-                    --wibox.container.margin(launcher.mylauncher, 5, 0, 0, 0),
-                    --separator,
                     util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
                     simple_widget.separator,
 
@@ -98,8 +96,7 @@ M.setup = function(opts)
                         layout = wibox.layout.fixed.horizontal,
                         --spacing = 5,
                         table.unpack(util.concat_match_tables({
-                            util.decore_with_background_right(weather_widget.weather),
-                            simple_widget.separator,
+
                             util.decore_with_background_right(keyboard_layout_widget.setup()),
                             simple_widget.separator,
                             util.decore_with_background_right(volume_widget.setup(opts)),
@@ -121,7 +118,9 @@ M.setup = function(opts)
                             util.decore_with_background_right(system_widget.fs),
                             simple_widget.separator,
 
-                            --util.widget_margin(wibox.widget.systray(), 0, 0, 6, 6),
+                            util.decore_with_background_right(weather_widget.weather),
+                            simple_widget.separator,
+
                             util.decore_with_background_right(
                                 util.group_widgets(
                                     util.widget_margin(wibox.widget.systray(), 0, 0, 4, 4),

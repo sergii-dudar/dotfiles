@@ -131,14 +131,14 @@ local widget_margin = function(widget, left, right, top, bottom)
     return wibox.container.margin(widget, left, right, top, bottom)
 end
 
----@class Options
+---@class IconOptions
 ---@field target_widget (any) main widget to apply icon
 ---@field icon_content (string) span content
 ---@field right_icon_content (string|nil) span content to right from wideget if provided
 ---@field icon_foreground (string|nil) span content foreground color
 ---@field icon_font_size (integer|nil) span content font size
 ---@field icon_right_margin (integer|nil) space margin between icon and target widget
----@param opts Options of options
+---@param opts IconOptions of options
 local add_icon_to_widget = function(opts)
     opts.icon_right_margin = opts.icon_right_margin or 3
     local icon_widget = text_widget(opts.icon_content, opts.icon_foreground, opts.icon_font_size)
@@ -160,6 +160,21 @@ local add_icon_to_widget = function(opts)
     })
 end
 
+---@class WidgetIconOptions
+---@field target_widget (any) main widget to apply icon
+---@field icon_widget (any) icon widget
+---@field icon_right_margin (integer|nil) space margin between icon and target widget
+---@param opts WidgetIconOptions of options
+local add_icon_widget_to_widget = function(opts)
+    opts.icon_right_margin = opts.icon_right_margin or 3
+
+    return wibox.widget({
+        widget_margin(opts.icon_widget, 0, opts.icon_right_margin),
+        opts.target_widget,
+        layout = wibox.layout.fixed.horizontal,
+    })
+end
+
 local to_icon_widget_space = function(size)
     return to_span(" ", "#8caaee", size)
 end
@@ -169,6 +184,45 @@ local group_widgets = function(...)
         layout = wibox.layout.fixed.horizontal,
         table.unpack({ ... }),
     })
+end
+
+-- Function to read and parse .env file
+local load_env_file = function(file_path)
+    local env_table = {} -- Table to store environment variables
+
+    local file = io.open(file_path, "r") -- Open the file for reading
+    if not file then
+        print("Error: Could not open .env file at " .. file_path)
+        return env_table
+    end
+
+    for line in file:lines() do
+        -- Ignore empty lines and comments
+        if line:match("^%s*#") or line:match("^%s*$") then
+            goto continue
+        end
+
+        -- Parse KEY=VALUE pairs
+        local key, value = line:match("^%s*([%w_]+)%s*=%s*(.+)%s*$")
+        if key and value then
+            -- Remove surrounding quotes, if any
+            value = value:gsub("^['\"](.-)['\"]$", "%1")
+            env_table[key] = value
+            --os.setenv(key, value)
+        end
+
+        ::continue::
+    end
+
+    file:close()
+    return env_table
+end
+
+--- function to load personal private values
+local load_private_var = function(private_key)
+    local env_file_path = vars.path.home_dir .. "/private.env"
+    local envs_table = load_env_file(env_file_path)
+    return envs_table[private_key]
 end
 
 return {
@@ -182,9 +236,14 @@ return {
     calculate_window_width = calculate_window_width,
     calculate_window_height = calculate_window_height,
     widget_margin = widget_margin,
+
     add_icon_to_widget = add_icon_to_widget,
+    add_icon_widget_to_widget = add_icon_widget_to_widget,
+
     to_icon_widget_space = to_icon_widget_space,
     group_widgets = group_widgets,
+
+    locad_env_key = load_private_var,
 
     --decore_with_background = decore_with_background,
     decore_with_background_center = decore_with_background_center,
