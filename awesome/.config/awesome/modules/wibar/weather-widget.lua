@@ -8,15 +8,17 @@ local helpers = require("lain.helpers")
 local gray = "#94928F"
 local markup = lain.util.markup
 
+-- API:
 -- https://api.openweathermap.org/geo/1.0/zip?zip=21012,UA&appid=[key]
 -- https://api.openweathermap.org/data/2.5/weather?lat=49.2328&lon=28.481&appid=[key]&lang=en
+
+-- widget description: https://github.com/lcpz/lain/wiki/weather
 
 local api_key = util.locad_env_key("OPEN_WEATHER_API_KEY")
 local vn_ua_geo = {
     lat = 49.2328,
     lon = 28.481,
 }
-print("api key " .. api_key)
 local weather = lain.widget.weather({
     APPID = api_key,
     notification_preset = { font = vars.font.default, fg = gray },
