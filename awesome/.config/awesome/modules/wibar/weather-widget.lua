@@ -26,7 +26,9 @@ local weather = lain.widget.weather({
     lon = vn_ua_geo.lon,
     settings = function()
         local units = math.floor(weather_now["main"]["temp"])
-        widget:set_markup(markup.fontfg(vars.font.default, gray, units .. "°C"))
+        widget:set_markup(
+            markup.fontfg(vars.font.default, gray, units) .. markup.fontfg(vars.font.default, "#6272a4", "°C")
+        )
     end,
 })
 
