@@ -21,9 +21,16 @@ local weather = lain.widget.weather({
     APPID = api_key,
     notification_preset = { font = vars.font.default, fg = gray },
     weather_na_markup = markup.fontfg(vars.font.default, gray, "N/A"),
+    notification_text_fun = function(wn)
+        local day = os.date("%a %d", wn["dt"])
+        local temp = math.floor(wn["main"]["temp"])
+        local desc = wn["weather"][1]["description"]
+        return string.format("<b>%s</b>: %s, %d°C", day, desc, temp)
+    end,
     --icons_path = helpers.icons_dir .. "openweather_api/",
     lat = vn_ua_geo.lat,
     lon = vn_ua_geo.lon,
+    lang = "ua",
     settings = function()
         local units = math.floor(weather_now["main"]["temp"])
         widget:set_markup(
