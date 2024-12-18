@@ -13,6 +13,7 @@ local system_widget = require("modules.wibar.system-widget")
 --local mpris_widget = require("modules.wibar.mpris-widget")
 local volume_widget = require("modules.wibar.volume-widget")
 local battery_widget = require("modules.wibar.battery-widget")
+local weather_widget = require("modules.wibar.weather-widget")
 local util = require("util.common-util")
 
 local M = {}
@@ -97,6 +98,8 @@ M.setup = function(opts)
                         layout = wibox.layout.fixed.horizontal,
                         --spacing = 5,
                         table.unpack(util.concat_match_tables({
+                            util.decore_with_background_right(weather_widget.weather),
+                            simple_widget.separator,
                             util.decore_with_background_right(keyboard_layout_widget.setup()),
                             simple_widget.separator,
                             util.decore_with_background_right(volume_widget.setup(opts)),
