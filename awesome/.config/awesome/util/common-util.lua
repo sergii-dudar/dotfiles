@@ -285,6 +285,93 @@ local to_imagebox_runner = function(image_path, shell_left_click, shell_right_cl
     return widget
 end
 
+---@class TextInfoPupupOptions
+---@field target_widget (any) widget on how which show pupup
+---@field info_text (string) info text of pupup
+---@field icon_path (any|nil) icon path to show if present
+---@field text_icon (string|nil)
+---@field text_icon_fg (string|nil)
+---@field text_icon_size (integer|nil)
+---@field position ("left"|"right"|nil) right by default
+---@param opts TextInfoPupupOptions of options
+local add_text_info_pupup = function(opts)
+    local image_widget
+    if opts.icon_path then
+        image_widget = {
+            id = "image_el",
+            widget = wibox.widget.imagebox,
+            image = opts.icon_path,
+            resize = true,
+            forced_width = 42,
+            forced_height = 42,
+        }
+    else
+        image_widget = {
+            id = "image_el",
+            widget = wibox.widget.textbox,
+            markup = to_span(opts.text_icon or "N/A", opts.text_icon_fg, opts.text_icon_size),
+        }
+    end
+
+    local popup = awful.popup({
+        widget = {
+            {
+                {
+                    {
+                        id = "text_el",
+                        widget = wibox.widget.textbox,
+                        text = opts.info_text,
+                    },
+                    image_widget,
+                    layout = wibox.layout.fixed.horizontal,
+                    spacing = 8,
+                },
+                margins = 10,
+                widget = wibox.container.margin,
+            },
+            widget = wibox.container.background,
+        },
+        ontop = true,
+        visible = false, -- Hidden by default
+        placement = awful.placement.top, -- Show above the widget
+        shape = function(cr, width, height)
+            gears.shape.rounded_rect(cr, width, height, 8)
+        end,
+        border_width = 2,
+        border_color = "#80a0ff",
+        bg = "#232634",
+        fg = "#c678dd",
+    })
+
+    -- timer to not show pupup imediatelly, but only if hover holds some interval
+    local popup_timer = gears.timer({
+        timeout = 1.5, -- Delay in seconds
+        autostart = false,
+        callback = function()
+            --popup.widget:get_children_by_id("text_role")[1].text = "Hovered over widget!" -- Dynamic text
+            local mouse_coords = mouse.coords()
+
+            if opts.position == "right" then
+                popup.x = mouse_coords.x - 195
+            else
+                popup.x = mouse_coords.x - 15
+            end
+            popup.y = mouse_coords.y + 15
+            popup.visible = true
+        end,
+    })
+
+    -- Add mouse enter/leave signals to show/hide the popup with delay
+    opts.target_widget:connect_signal("mouse::enter", function()
+        popup_timer:start()
+    end)
+
+    opts.target_widget:connect_signal("mouse::leave", function()
+        popup_timer:stop()
+        popup.visible = false
+    end)
+end
+
 return {
     notify = notify,
     concat_tables = concat_tables,
@@ -308,6 +395,8 @@ return {
     to_text_icon_runner = to_text_icon_runner,
     to_imagebox_runner = to_imagebox_runner,
     add_bg_hover_to_widget = add_bg_hover_to_widget,
+
+    add_text_info_pupup = add_text_info_pupup,
 
     --decore_with_background = decore_with_background,
     decore_with_background_center = decore_with_background_center,

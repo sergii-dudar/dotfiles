@@ -11,7 +11,7 @@ local system_widget = require("modules.wibar.system-widget")
 --local mpris_widget = require("modules.wibar.mpris-widget")
 local volume_widget = require("modules.wibar.volume-widget")
 local battery_widget = require("modules.wibar.battery-widget")
---local weather_widget = require("modules.wibar.weather-widget")
+local weather_widget = require("modules.wibar.weather-widget")
 local util = require("util.common-util")
 
 local M = {}
@@ -108,17 +108,17 @@ M.setup = function(opts)
                             util.decore_with_background_right(system_widget.fs),
                             simple_widget.separator,
 
-                            --util.decore_with_background_right(weather_widget.weather),
+                            util.decore_with_background_right(weather_widget.weather),
                             simple_widget.separator,
 
                             util.decore_with_background_right(
                                 util.group_widgets(
-                                    util.widget_margin(wibox.widget.systray(), 0, 0, 4, 4),
-                                    util.widget_margin(runner_widget.powermenu, 10, 0, 0, 0)
+                                    util.widget_margin(wibox.widget.systray(), 0, 6, 4, 4),
+                                    runner_widget.powermenu
                                 ),
                                 nil,
                                 nil,
-                                5
+                                3
                             ),
                         })),
                     },

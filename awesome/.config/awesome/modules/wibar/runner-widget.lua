@@ -5,8 +5,12 @@ local util = require("util.common-util")
 local gears = require("gears")
 local launcher = require("modules.awesome-launcher")
 
+local text_icon_color = "#3071db"
+local runner_bg_hover = "#8caaee"
+local red = "#d35f5e"
+
 local settings = util.to_text_icon_runner(" ", 19, "#3071db", vars.run.gnome_settings)
-local powermenu = util.to_text_icon_runner(" ", vars.font.default_size, "#d35f5e", vars.run.powermenu)
+local powermenu = util.to_text_icon_runner(" ", vars.font.default_size, red, vars.run.powermenu)
 
 local applications = util.to_text_icon_runner(" ", 17, "#bd93f9")
 applications:buttons(gears.table.join(
@@ -19,57 +23,67 @@ applications:buttons(gears.table.join(
 ))
 
 local icons_dir = vars.current_theme_dir .. "/icons/"
-local kitty_terminal = util.to_imagebox_runner(icons_dir .. "kitty.svg", "kitty")
-local wezterm_terminal = util.to_imagebox_runner(icons_dir .. "wezterm.png", "wezterm")
-local pipette = util.to_imagebox_runner(icons_dir .. "pipette2.png", "gpick")
-local chrome = util.to_imagebox_runner(icons_dir .. "google-chrome.svg", "google-chrome-stable")
-local intellij = util.to_imagebox_runner(icons_dir .. "intellij-idea.svg", "intellij-idea-ultimate")
+local kitty_icon = icons_dir .. "kitty.svg"
+local wezterm_icon = icons_dir .. "wezterm.png"
+local pipette_icon = icons_dir .. "pipette2.png"
+local chrome_icon = icons_dir .. "google-chrome.svg"
+local intellij_icon = icons_dir .. "intellij-idea.svg"
 
-local popup = awful.popup({
-    widget = {
-        {
-            {
-                id = "text_role",
-                widget = wibox.widget.textbox,
-                text = "Custom hover text!", -- Default text
-            },
-            {
-                widget = wibox.widget.imagebox,
-                image = icons_dir .. "kitty.svg", -- Use your icon here
-                resize = true,
-                forced_width = 16,
-                forced_height = 16,
-            },
-            layout = wibox.layout.fixed.horizontal,
-            spacing = 8,
-        },
-        margins = 10,
-        widget = wibox.container.margin,
-    },
-    ontop = true,
-    visible = false, -- Hidden by default
-    placement = awful.placement.top, -- Show above the widget
-    shape = function(cr, width, height)
-        gears.shape.rounded_rect(cr, width, height, 5)
-    end,
-    bg = "#222222",
-    fg = "#ffffff",
+local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
+local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
+local pipette = util.to_imagebox_runner(pipette_icon, "gpick")
+local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
+local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
+
+util.add_text_info_pupup({
+    target_widget = applications,
+    info_text = "Applications Menu",
+    text_icon = " ",
+    text_icon_fg = text_icon_color,
+    text_icon_size = 19,
+})
+util.add_text_info_pupup({
+    target_widget = settings,
+    info_text = "Gnome Settings",
+    text_icon = " ",
+    text_icon_fg = text_icon_color,
+    text_icon_size = 22,
+})
+util.add_text_info_pupup({
+    target_widget = powermenu,
+    info_text = "Power Menu",
+    text_icon = " ",
+    text_icon_fg = red,
+    text_icon_size = 22,
+    position = "right",
 })
 
--- Add mouse enter/leave signals to show/hide the popup
-settings:connect_signal("mouse::enter", function()
-    --popup.widget:get_children_by_id("text_role")[1].text = "Hovered over widget!" -- Dynamic text
-    local mouse_coords = mouse.coords()
-    popup.x = mouse_coords.x - 15
-    popup.y = mouse_coords.y + 15
-    popup.visible = true
-end)
+util.add_text_info_pupup({
+    target_widget = kitty_terminal,
+    info_text = "Kitty Terminal",
+    icon_path = kitty_icon,
+})
+util.add_text_info_pupup({
+    target_widget = wezterm_terminal,
+    info_text = "Wezterm Terminal",
+    icon_path = wezterm_icon,
+})
+util.add_text_info_pupup({
+    target_widget = pipette,
+    info_text = "GPick App",
+    icon_path = pipette_icon,
+})
+util.add_text_info_pupup({
+    target_widget = chrome,
+    info_text = "Google Chrome",
+    icon_path = chrome_icon,
+})
+util.add_text_info_pupup({
+    target_widget = intellij,
+    info_text = "Intellij Idea",
+    icon_path = intellij_icon,
+})
 
-settings:connect_signal("mouse::leave", function()
-    popup.visible = false
-end)
-
-local runner_bg_hover = "#8caaee"
 return {
     left_all = util.decore_with_background_left(
         util.group_widgets(
@@ -85,6 +99,5 @@ return {
         8,
         2
     ),
-    powermenu = powermenu,
+    powermenu = util.widget_margin(powermenu, 5, 5, 0, 0),
 }
-
