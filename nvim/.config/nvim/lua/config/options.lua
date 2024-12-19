@@ -73,6 +73,9 @@ local myCustomGroup = augroup("myCustomStartupGroup", {})
 -- gf, gF, gx
 vim.opt.path:append("**")
 
+-- disable snack annimations
+vim.g.snacks_animate = false
+
 -- by some reasons not firing from `autocmds`
 vim.api.nvim_create_autocmd("UiEnter", {
     desc = "Open Neotree automatically",
