@@ -1,6 +1,4 @@
 local vars = require("modules.variables")
-local gears = require("gears")
-local awful = require("awful")
 local lain = require("lain")
 local util = require("util.common-util")
 local helpers = require("lain.helpers")
@@ -14,7 +12,7 @@ local markup = lain.util.markup
 
 -- widget description: https://github.com/lcpz/lain/wiki/weather
 
-local api_key = util.locad_env_key("OPEN_WEATHER_API_KEY")
+local api_key = util.local_env_key("OPEN_WEATHER_API_KEY")
 local vn_ua_geo = {
     lat = 49.2328,
     lon = 28.481,
@@ -33,6 +31,7 @@ local weather = lain.widget.weather({
     lat = vn_ua_geo.lat,
     lon = vn_ua_geo.lon,
     lang = "ua",
+    showpopup = "off", -- off on text, bellow on on result widget by attach
     settings = function()
         local units = math.floor(weather_now["main"]["temp"])
         widget:set_markup(
@@ -41,12 +40,17 @@ local weather = lain.widget.weather({
     end,
 })
 
+local weather_with_icon = util.add_icon_widget_to_widget({
+    icon_widget = weather.icon,
+    target_widget = weather,
+    icon_right_margin = 5,
+})
+
+-- add weather hover notification to whole with icon result widget
+weather.attach(weather_with_icon)
+
 return {
-    weather = util.add_icon_widget_to_widget({
-        icon_widget = weather.icon,
-        target_widget = weather,
-        icon_right_margin = 5,
-    }),
+    weather = weather_with_icon,
 }
 
 --[[ 

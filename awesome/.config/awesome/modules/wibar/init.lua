@@ -4,16 +4,14 @@ local wibox = require("wibox")
 local date_widgets = require("modules.wibar.clock-widget")
 local layout_widget = require("modules.wibar.layout-widget")
 local taglist_widget = require("modules.wibar.taglist-widget")
-local appmenu_widget = require("modules.wibar.appmenu-widget")
-local powermenu_widget = require("modules.wibar.powermenu-widget")
-local settings_widget = require("modules.wibar.settings-widget")
+local runner_widget = require("modules.wibar.runner-widget")
 local simple_widget = require("modules.wibar.simple-widget")
 local keyboard_layout_widget = require("modules.wibar.keyboard-layout-widget")
 local system_widget = require("modules.wibar.system-widget")
 --local mpris_widget = require("modules.wibar.mpris-widget")
 local volume_widget = require("modules.wibar.volume-widget")
 local battery_widget = require("modules.wibar.battery-widget")
-local weather_widget = require("modules.wibar.weather-widget")
+--local weather_widget = require("modules.wibar.weather-widget")
 local util = require("util.common-util")
 
 local M = {}
@@ -51,15 +49,7 @@ M.setup = function(opts)
                     widget = wibox.container.place,
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 5,
-                    util.decore_with_background_left(
-                        util.group_widgets(
-                            appmenu_widget.applications,
-                            util.widget_margin(settings_widget.settings, 8, 0, 0, 0)
-                        ),
-                        nil,
-                        12,
-                        2
-                    ),
+                    runner_widget.left_all,
                     simple_widget.separator_no_left,
                     util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
                     simple_widget.separator,
@@ -118,13 +108,13 @@ M.setup = function(opts)
                             util.decore_with_background_right(system_widget.fs),
                             simple_widget.separator,
 
-                            util.decore_with_background_right(weather_widget.weather),
+                            --util.decore_with_background_right(weather_widget.weather),
                             simple_widget.separator,
 
                             util.decore_with_background_right(
                                 util.group_widgets(
                                     util.widget_margin(wibox.widget.systray(), 0, 0, 4, 4),
-                                    util.widget_margin(powermenu_widget.powermenu, 10, 0, 0, 0)
+                                    util.widget_margin(runner_widget.powermenu, 10, 0, 0, 0)
                                 ),
                                 nil,
                                 nil,

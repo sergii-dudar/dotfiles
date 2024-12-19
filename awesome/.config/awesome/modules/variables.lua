@@ -57,6 +57,5 @@ M.widget.icon_widget_space = 5
 local theme_name = "personal"
 M.current_theme_dir = string.format("%s/.config/awesome/themes/%s", M.path.home_dir, theme_name)
 M.current_theme_path = string.format("%s/theme.lua", M.current_theme_dir)
-M.current_colors_path = string.format("%s/colors.lua", M.current_theme_dir)
 
 return M

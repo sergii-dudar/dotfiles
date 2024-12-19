@@ -49,6 +49,29 @@ local directory_exists = function(dir)
     return false
 end
 
+local add_bg_hover_to_widget = function(widget, bg_color)
+    if not widget.bg then
+        widget = wibox.widget({
+            widget,
+            shape = function(cr, width, height)
+                gears.shape.rectangle(cr, width, height)
+            end,
+            bg = vars.widget.bg_color,
+            widget = wibox.container.background,
+        })
+    end
+
+    widget:connect_signal("mouse::enter", function()
+        widget.bg = bg_color
+    end)
+
+    widget:connect_signal("mouse::leave", function()
+        widget.bg = vars.widget.bg_color
+    end)
+
+    return widget
+end
+
 ---@param widget (table) - widget to decoration
 ---@param bg_color (string|nil) - decoration color
 local decore_with_background = function(widget, bg_color, margin_left, margin_right, margin_top, margin_bottom)
@@ -70,14 +93,7 @@ local decore_with_background = function(widget, bg_color, margin_left, margin_ri
         widget = wibox.container.background,
     })
 
-    -- add bg mouse hover
-    bg_widget:connect_signal("mouse::enter", function()
-        bg_widget.bg = vars.widget.bg_color_hover
-    end)
-
-    bg_widget:connect_signal("mouse::leave", function()
-        bg_widget.bg = vars.widget.bg_color
-    end)
+    bg_widget = add_bg_hover_to_widget(bg_widget, vars.widget.bg_color_hover)
 
     return wibox.widget({
         bg_widget,
@@ -219,10 +235,54 @@ local load_env_file = function(file_path)
 end
 
 --- function to load personal private values
-local load_private_var = function(private_key)
+local loal_private_var = function(private_key)
     local env_file_path = vars.path.home_dir .. "/private.env"
     local envs_table = load_env_file(env_file_path)
     return envs_table[private_key]
+end
+
+local to_text_icon_runner = function(content, font_zise, fg_color, shell_left_click, shell_right_click)
+    local widget = wibox.widget({
+        widget = wibox.widget.textbox,
+        markup = to_span(content, fg_color, font_zise),
+        align = "center",
+        valign = "center",
+        font = vars.font.to_size(font_zise),
+    })
+    if shell_left_click then
+        widget:buttons(gears.table.join(awful.button({}, 1, function()
+            awful.spawn.with_shell(shell_left_click)
+        end)))
+    end
+
+    if shell_right_click then
+        widget:buttons(gears.table.join(awful.button({}, 3, function()
+            awful.spawn.with_shell(shell_right_click)
+        end)))
+    end
+
+    return widget
+end
+
+local to_imagebox_runner = function(image_path, shell_left_click, shell_right_click)
+    local widget = wibox.widget({
+        widget = wibox.widget.imagebox,
+        image = image_path,
+        resize = true,
+    })
+    if shell_left_click then
+        widget:buttons(gears.table.join(awful.button({}, 1, function()
+            awful.spawn.with_shell(shell_left_click)
+        end)))
+    end
+
+    if shell_right_click then
+        widget:buttons(gears.table.join(awful.button({}, 3, function()
+            awful.spawn.with_shell(shell_right_click)
+        end)))
+    end
+
+    return widget
 end
 
 return {
@@ -243,7 +303,11 @@ return {
     to_icon_widget_space = to_icon_widget_space,
     group_widgets = group_widgets,
 
-    locad_env_key = load_private_var,
+    local_env_key = loal_private_var,
+
+    to_text_icon_runner = to_text_icon_runner,
+    to_imagebox_runner = to_imagebox_runner,
+    add_bg_hover_to_widget = add_bg_hover_to_widget,
 
     --decore_with_background = decore_with_background,
     decore_with_background_center = decore_with_background_center,
