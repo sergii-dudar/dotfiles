@@ -6,6 +6,9 @@ ssh-add &
 dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
+# Automatically lock the screen after 10 minutes of inactivity
+xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
+
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 

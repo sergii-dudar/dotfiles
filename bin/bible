@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 response_html=$(curl -s "https://allbible.info/ajax/randomverse/")
 
@@ -12,5 +12,4 @@ cleaned_reference=$(echo "$verse_reference" | perl -pe 's/.*href="\/\/allbible.i
 
 result=$(echo "$cleaned_text ($cleaned_reference)" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -d '\n')
 notify-send "$result" -t 12000
-
 

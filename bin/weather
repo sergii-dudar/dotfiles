@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 city="Vinnytsia"
 url="wttr.in/$city?format=3"
