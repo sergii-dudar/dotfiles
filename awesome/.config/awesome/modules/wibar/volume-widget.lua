@@ -9,17 +9,32 @@ local markup = lain.util.markup
 
 local M = {}
 
+local current_status = "on"
+local prev_status = "on"
+
 ---@param opts { keybind: {} }
 M.setup = function(opts)
     local volume = lain.widget.alsa({
         settings = function()
             local icon = util.to_span(" ", "#ca9ee6")
+
+            prev_status = current_status
+            current_status = "on"
             if volume_now.status == "off" then
                 icon = util.to_span(" ", "#d35f5e")
+                current_status = "off"
             elseif tonumber(volume_now.level) == 0 then
                 icon = util.to_span(" ", "#ca9ee6")
             elseif tonumber(volume_now.level) <= 10 then
                 icon = util.to_span(" ", "#ca9ee6")
+            end
+
+            if prev_status ~= current_status then
+                if current_status == "on" then
+                    util.notify("Volume Enabled 🔊")
+                else
+                    util.notify("Volume Muted 🔇")
+                end
             end
 
             --widget:set_markup(markup.font(theme.font, " " .. volume_now.level .. "% "))
