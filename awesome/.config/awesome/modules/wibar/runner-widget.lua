@@ -25,6 +25,50 @@ local pipette = util.to_imagebox_runner(icons_dir .. "pipette2.png", "gpick")
 local chrome = util.to_imagebox_runner(icons_dir .. "google-chrome.svg", "google-chrome-stable")
 local intellij = util.to_imagebox_runner(icons_dir .. "intellij-idea.svg", "intellij-idea-ultimate")
 
+local popup = awful.popup({
+    widget = {
+        {
+            {
+                id = "text_role",
+                widget = wibox.widget.textbox,
+                text = "Custom hover text!", -- Default text
+            },
+            {
+                widget = wibox.widget.imagebox,
+                image = icons_dir .. "kitty.svg", -- Use your icon here
+                resize = true,
+                forced_width = 16,
+                forced_height = 16,
+            },
+            layout = wibox.layout.fixed.horizontal,
+            spacing = 8,
+        },
+        margins = 10,
+        widget = wibox.container.margin,
+    },
+    ontop = true,
+    visible = false, -- Hidden by default
+    placement = awful.placement.top, -- Show above the widget
+    shape = function(cr, width, height)
+        gears.shape.rounded_rect(cr, width, height, 5)
+    end,
+    bg = "#222222",
+    fg = "#ffffff",
+})
+
+-- Add mouse enter/leave signals to show/hide the popup
+settings:connect_signal("mouse::enter", function()
+    --popup.widget:get_children_by_id("text_role")[1].text = "Hovered over widget!" -- Dynamic text
+    local mouse_coords = mouse.coords()
+    popup.x = mouse_coords.x - 15
+    popup.y = mouse_coords.y + 15
+    popup.visible = true
+end)
+
+settings:connect_signal("mouse::leave", function()
+    popup.visible = false
+end)
+
 local runner_bg_hover = "#8caaee"
 return {
     left_all = util.decore_with_background_left(
