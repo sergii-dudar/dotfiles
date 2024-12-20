@@ -12,13 +12,14 @@ from libqtile.config import (
     Screen,
 )
 from libqtile.lazy import lazy
-from modules import funcs, variables
+from modules import funcs
+from util import vars
 
-mod = variables.mod
-alt = variables.alt
+mod = vars.mod
+alt = vars.alt
 
 keys = [
-    Key([mod], "Return", lazy.spawn(variables.terminal), desc="Launch terminal"),
+    Key([mod], "Return", lazy.spawn(vars.terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
@@ -42,12 +43,12 @@ keys = [
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
     #Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([alt], "space", lazy.spawn(variables.mymenu)),
+    Key([alt], "space", lazy.spawn(vars.mymenu)),
     #Key([mod], "w", lazy.spawn(browser)),
-    Key([mod, "shift"], "Return", lazy.spawn(variables.files)),
+    Key([mod, "shift"], "Return", lazy.spawn(vars.files)),
     # Key([mod, alt], "s", lazy.spawn(screenie)),
-    Key([alt], "s", lazy.spawn(variables.todoist)),
-    Key([alt], "n", lazy.spawn(variables.discord)),
+    Key([alt], "s", lazy.spawn(vars.todoist)),
+    Key([alt], "n", lazy.spawn(vars.discord)),
 
     # Movement Keys
     Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),

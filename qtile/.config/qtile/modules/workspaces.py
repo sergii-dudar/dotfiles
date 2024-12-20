@@ -8,7 +8,7 @@ from modules import (
     colors,
     colors_dt,
 )
-from modules.variables import alt, mod
+from util.vars import alt, mod
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 colors_dt = colors_dt.DoomOne

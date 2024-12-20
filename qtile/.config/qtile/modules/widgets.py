@@ -9,13 +9,14 @@ from libqtile import qtile
 from libqtile.lazy import lazy
 from modules import (
     colors,
-    variables,
-    widgets_custom,
 )
-from modules.variables import (
+from util import vars
+from util.util import to_span
+from util.vars import (
     default_font_widget,
     default_font_widget_size,
 )
+from widgets import clock_widgets
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.catppuccin()
 color_overlay1 = ["#7f849c", "#7f849c"]
@@ -63,10 +64,16 @@ decorations_round_right=dict(
         )
 ])
 
+# sep = widget.TextBox(
+#     text="󱋱",
+#     foreground=color_overlay1,
+#     **text_widget_defaults
+# )
 sep = widget.TextBox(
-    text="󱋱",
+    text=" ",
     foreground=color_overlay1,
-    **text_widget_defaults
+    fontsize = 0,
+    **icon_widget_defaults,
 )
 space = widget.TextBox(
     text=" ",
@@ -90,13 +97,13 @@ spacer = widget.Spacer(
 )
 applications_launcher=dict(
     mouse_callbacks = dict(
-        Button1=lambda: qtile.spawn(variables.mymenu),
+        Button1=lambda: qtile.spawn(vars.mymenu),
     ),
 )
 applications = widget.TextBox(
     #text="   <span color='" + colors[9][1] + "'></span>      <span color='" + colors[10][1] + "'> </span> ",
     text="  ",
-    fontsize=18,
+    fontsize=21,
     foreground="#61afef",
     **applications_launcher,
     **icon_widget_defaults,
@@ -137,7 +144,7 @@ volume_dynamic_icon = widget.Volume(
     fmt=" {} ",
     unmute_format='{volume}%',
     emoji=True,
-    emoji_list=['', '', '', ''],
+    emoji_list=['', '', ' ', ' '],
     mute_foreground="#d35f5e",
     foreground=colors[9],
     **text_widget_defaults,
@@ -148,13 +155,13 @@ volume_percentage_level = widget.Volume(
     fmt="{} ",
     mute_format=" Mut",
     mute_foreground="#d35f5e",
-    unmute_format=' {volume:2.0f}%',
+    unmute_format='{volume:02.0f}%',
     foreground=colors[2],
     **text_widget_defaults,
     **decorations_round_right
 )
 cpuicon = widget.TextBox(
-    text="  ",
+    text=" ",
     fontsize=20,
     foreground=colors[3],
     **icon_widget_defaults,
@@ -162,7 +169,7 @@ cpuicon = widget.TextBox(
 )
 cpu = widget.CPU(
     update_interval=1.0,
-    format="{load_percent:2.0f}% ",
+    format="{load_percent:02.0f}% ",
     foreground=colors[2],
     **text_widget_defaults,
     **decorations_round_right
@@ -176,7 +183,7 @@ memicon = widget.TextBox(
 )
 mem = widget.Memory(
     #format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm} ",
-    format="{MemPercent:2.0f}% ",
+    format="{MemPercent:02.0f}% ",
     #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
     foreground=foregroundColor,
@@ -184,20 +191,27 @@ mem = widget.Memory(
     **decorations_round_right
 )
 
-clockicon_ext = widget.TextBox(
-    text="  ",
-    fontsize=22,
-    foreground=colors[5],
-    **decorations_round_left,
-    **icon_widget_defaults
-)
-
-clock_ext = widgets_custom.MouseClickClock(
-    format="%I:%M %p",
+clock = widget.Clock(
+    format=to_span(" ", "#a6d189", 17) +
+            to_span(" ", "#a6d189", 5) +
+            to_span("%I:%M", "#f2d5cf") +
+            to_span(" ", "#a6d189", 5) +
+            to_span("%p", "#8caaee"),
     fontsize=22,
     foreground=colors[2],
     padding=15,
-    **decorations_round_right,
+    **decorations_round,
+    **icon_widget_defaults,
+)
+
+
+date = widget.Clock(
+    format=to_span(" ", "#7c8377", 17) +
+    to_span("%A, %B %d", "#6272a4"),
+    fontsize=22,
+    foreground=colors[2],
+    padding=15,
+    **decorations_round,
     **icon_widget_defaults,
 )
 
@@ -226,7 +240,7 @@ powermenu = widget.TextBox(
     fontsize=20,
     foreground="#d35f5e",
     mouse_callbacks = dict(
-        Button1=lambda: qtile.spawn(variables.powermenu)
+        Button1=lambda: qtile.spawn(vars.powermenu)
     ),
     **icon_widget_defaults,
     **decorations_no_round
@@ -259,10 +273,9 @@ disc_usage=widget.DF(
 )
 disc_ssd_text = widget.TextBox(
     text="SSD ",
-    fontsize=20,
     foreground=colors[11],
     **decorations_round_right,
-    **icon_widget_defaults
+    **text_widget_defaults
 )
 
 keyboard_icon = widget.TextBox(
@@ -380,14 +393,18 @@ bar_widgers = [
     spacer,
 
     # center
+    date,
+    sep,
+    sep,
     groupbox,
-    widget.TextBox(
-        text=" 󱋱  ",
-        foreground=color_overlay1,
-        **text_widget_defaults
-    ),
-    clockicon_ext,
-    clock_ext,
+    sep,
+    sep,
+    # widget.TextBox(
+    #     text=" 󱋱  ",
+    #     foreground=color_overlay1,
+    #     **text_widget_defaults
+    # ),
+    clock,
     spacer,
 
     # right

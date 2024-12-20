@@ -49,9 +49,9 @@ M.setup = function(opts)
                     widget = wibox.container.place,
                     layout = wibox.layout.fixed.horizontal,
                     --spacing = 5,
-                    runner_widget.left_all,
-                    simple_widget.separator_no_left,
                     util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
+                    simple_widget.separator,
+                    runner_widget.left_all,
                     simple_widget.separator,
 
                     -- Create a promptbox for each screen

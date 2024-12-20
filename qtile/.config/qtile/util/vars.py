@@ -14,7 +14,7 @@ discord = "webcord"
 todoist = "flatpak run com.todoist.Todoist"
 screenie = "flameshot gui"
 
-default_font = "CaskaydiaCove Nerd Font"
-default_font_size = 16
+default_font = "CaskaydiaCove Nerd Font Bold"
+default_font_size = 17.5
 default_font_widget = "CaskaydiaCove Nerd Font Bold"
-default_font_widget_size = 18
+default_font_widget_size = 23

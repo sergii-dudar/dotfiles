@@ -51,12 +51,20 @@ local space = wibox.widget({
 
 local tasklist = function(s, opts)
     -- Create a tasklist widget
-    return awful.widget.tasklist({
-        font = vars.font.widget,
-        screen = s,
-        filter = awful.widget.tasklist.filter.currenttags,
-        buttons = opts.keybind.tasklist_buttons,
-    })
+    return util.group_widgets(
+        wibox.widget({
+            widget = wibox.widget.textbox,
+            markup = util.to_span("󰑮: ", "#d183e8", 20),
+            align = "center",
+            valign = "center",
+        }),
+        awful.widget.tasklist({
+            font = vars.font.widget,
+            screen = s,
+            filter = awful.widget.tasklist.filter.currenttags,
+            buttons = opts.keybind.tasklist_buttons,
+        })
+    )
 end
 
 return {

@@ -2,7 +2,7 @@ from libqtile.config import DropDown, Key, KeyChord, Match, ScratchPad
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from libqtile.utils import send_notification
-from modules.variables import mod
+from util.vars import mod
 
 
 def to_center_x(width: float) -> float:
