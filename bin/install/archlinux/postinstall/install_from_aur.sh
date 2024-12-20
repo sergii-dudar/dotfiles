@@ -20,7 +20,8 @@ yay -S ueberzugpp && \
     yay -S i3lock-color
 yay -S networkmanager-dmenu-git
 yay -S i3-back
-
+# yay -S hollywood
+yay -S insomnia
 # -------------------------------------------------------------------
 # GTK drakula theme to gtk4 (pacman `gtk-section` must be installed!)
 # -------------------------------------------------------------------

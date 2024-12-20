@@ -1,4 +1,3 @@
-local wibox = require("wibox")
 local vars = require("modules.variables")
 local awful = require("awful")
 local util = require("util.common-util")
@@ -28,12 +27,14 @@ local wezterm_icon = icons_dir .. "wezterm.png"
 local pipette_icon = icons_dir .. "pipette2.png"
 local chrome_icon = icons_dir .. "google-chrome.svg"
 local intellij_icon = icons_dir .. "intellij-idea.svg"
+local insomnia_icon = icons_dir .. "insomnia.png"
 
 local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
 local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
 local pipette = util.to_imagebox_runner(pipette_icon, "gpick")
 local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
 local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
+local insomnia = util.to_imagebox_runner(insomnia_icon, "/opt/insomnia/insomnia %U")
 
 util.add_text_info_pupup({
     target_widget = applications,
@@ -83,6 +84,11 @@ util.add_text_info_pupup({
     info_text = "Intellij Idea",
     icon_path = intellij_icon,
 })
+util.add_text_info_pupup({
+    target_widget = insomnia,
+    info_text = "Insomnia",
+    icon_path = insomnia_icon,
+})
 
 return {
     left_all = util.decore_with_background_left(
@@ -93,6 +99,7 @@ return {
             util.add_bg_hover_to_widget(util.widget_margin(wezterm_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(chrome, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(intellij, 5, 5, 0, 0), runner_bg_hover),
+            util.add_bg_hover_to_widget(util.widget_margin(insomnia, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(pipette, 4, 4, 0, 0), runner_bg_hover)
         ),
         nil,
