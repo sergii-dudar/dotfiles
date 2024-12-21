@@ -4,14 +4,10 @@ import subprocess
 from libqtile import bar, group, hook, layout, qtile, widget
 from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
-from modules import (
-    colors,
-    colors_dt,
-)
+from util import colors
 from util.vars import alt, mod
 
-colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
-colors_dt = colors_dt.DoomOne
+colors = colors.current()
 
 # Create labels for groups and assign them a default layout.
 groups = []
@@ -56,8 +52,8 @@ layout_theme = {
     "border_width": 3,
     # "border_focus": colors[5],
     # "border_normal": colors[0],
-    "border_focus": colors_dt[8],
-    "border_normal": colors_dt[0],
+    "border_focus": colors.border_focus,
+    "border_normal": colors.border_normal,
     "border_on_single": True
 }
 

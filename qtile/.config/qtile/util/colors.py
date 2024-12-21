@@ -1,3 +1,88 @@
+import re
+
+
+class RangeColors:
+    def __init__(self,
+                 color1: str,
+                 color2: str,
+                 color3: str,
+                 color4: str,
+                 color5: str,
+                 color6: str,
+                 color7: str,
+                 color8: str,
+                 color9: str,
+                 color10: str,
+                 color11: str,
+                 color12: str,
+                 ):
+        self.color1 = [color1, color1]
+        self.color2 = [color2, color2]
+        self.color3 = [color3, color3]
+        self.color4 = [color4, color4]
+        self.color5 = [color5, color5]
+        self.color6 = [color6, color6]
+        self.color7 = [color7, color7]
+        self.color8 = [color8, color8]
+        self.color9 = [color9, color9]
+        self.color10 = [color10, color10]
+        self.color11 = [color11, color11]
+        self.color12 = [color12, color12]
+
+class ThemeColors:
+    def __init__(self,
+                 colors: RangeColors,
+                 overlay: str,
+                 background_color: str,
+                 foreground_color: str,
+                 workspace_color: str,
+                 foreground_color_two: str,
+                 border_focus: str,
+                 border_normal: str,
+                 float_border_focus: str
+                 ):
+        self.colors = colors
+        self.overlay = overlay
+
+        self.border_focus = border_focus
+        self.border_normal = border_normal
+        self.float_border_focus = float_border_focus
+
+        self.background_color = background_color
+        self.foreground_color = foreground_color
+        self.workspace_color = workspace_color
+        self.foreground_color_two = foreground_color_two
+
+#catppucin
+def catppuccin() -> ThemeColors:
+    colors = RangeColors(
+             "#232634", #background (dark grey) [1]
+		     "#51576d",  #light grey [2]
+		     "#f2d5cf",  #foreground (white) [3]
+		     "#8caaee",  #blue) [4]
+		     "#b5bfe2",  #light blue [5]
+		     "#a6d189",  #green [6]
+		     "#ef9f76",  #orange [7]
+		     "#d35f5e",  #red [8]
+		     "#f4b8e4",  #pink [9]
+		     "#ca9ee6",  #purple [10]
+		     "#e78284",  #light red [11]
+		     "#e5c890"  #yellow [12]
+
+    )
+    return ThemeColors(colors=colors,
+                       overlay="#7f849c",
+                       border_normal="#282c34",
+                       border_focus="#51afef",
+                       float_border_focus="#46d9ff",
+                       background_color="#232634",
+                       foreground_color="#c6d0f5",
+                       workspace_color="#e5c890",
+                       foreground_color_two="#babbf1")
+
+def current() -> ThemeColors:
+    return catppuccin()
+
 #Dracula
 def dracula():
 	colors = [["#282a36", "#282a36"],  #background (dark grey) [0]
@@ -19,26 +104,6 @@ def dracula():
 	foregroundColorTwo = "#44475a"
 	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
-#catppucin
-def catppuccin():
-	colors = [["#232634", "#232634"],  #background (dark grey) [0]
-			   ["#51576d", "#51576d"],  #light grey [1]
-			   ["#f2d5cf", "#f2d5cf"],  #foreground (white) [2]
-			   ["#8caaee", "#8caaee"],  #blue) [3]
-			   ["#b5bfe2", "#b5bfe2"],  #light blue [4]
-			   ["#a6d189", "#a6d189"],  #green [5]
-			   ["#ef9f76", "#ef9f76"],  #orange [6]
-			   ["#ef9f76", "#ef9f76"],  #orange [7]
-			   ["#f4b8e4", "#f4b8e4"],  #pink [8]
-			   ["#ca9ee6", "#ca9ee6"],  #purple [9]
-			   ['#e78284', '#e78284'],  #red [10]
-			   ["#e5c890", "#e5c890"]]  #yellow [11]
-
-	backgroundColor = "#232634"
-	foregroundColor = "#c6d0f5"
-	workspaceColor = "#e5c890"
-	foregroundColorTwo = "#babbf1"
-	return colors, backgroundColor, foregroundColor, workspaceColor, foregroundColorTwo
 
 #Everforest
 def everforest():

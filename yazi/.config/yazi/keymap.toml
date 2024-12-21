@@ -18,22 +18,22 @@ prepend_keymap = [
     { on = "9", run = "plugin relative-motions --args=9", desc = "Move in relative steps" },
 
     # max preview
-    { on = "i", run  = "plugin --sync max-preview", desc = "Maximize or restore preview" },
+    { on = "i", run  = "plugin max-preview", desc = "Maximize or restore preview" },
 
-    # development --confirm, --interactive
-    #{ on = [ "t", "t" ], run = 'shell "alacritty" --orphan --confirm',        desc = "open terminal" },
-    #{ on = [ "v", "i" ], run = 'shell "alacritty -e nvim \"$@\"" --orphan --confirm',        desc = "open in neovim" },
-    #{ on = [ "v", "v" ], run = 'shell "cd "$1" && nvim" --block --confirm', desc = "NeoVim . [PWD]" },
-    #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block --confirm', desc = "NeoVim [selected file]" },
-    #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan --confirm', desc = "open terminal" },
-    #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan --confirm', desc = "open terminal" },
-    { on = [ "t", "t" ], run = 'shell "kitty" --orphan --confirm', desc = "open terminal" },
-    #{ on = [ "t", "t" ], run = 'shell "kitty" --orphan --confirm', desc = "open terminal" },
-    #{ on = [ "n", "v" ], run = 'shell "kitty --hold zsh -c \"nvim \"$@\"\"" --orphan --confirm',        desc = "open in neovim" },
-    { on = [ "e", "u" ], run = 'shell "subl \"$@\"" --orphan --confirm',        desc = "open in sublime" },
-    { on = [ "e", "i" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && idea $1 || intellij-idea-ultimate $1" --orphan --confirm',      desc = "open in intellij" },
-    { on = [ "e", "c" ], run = 'shell "code $1" --orphan --confirm',         desc = "open in vscode" },
-    { on = [ "e", "e" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open . || nautilus ." --orphan --confirm', desc = "open in explorer" },
+    # development, --interactive
+    #{ on = [ "t", "t" ], run = 'shell "alacritty" --orphan',        desc = "open terminal" },
+    #{ on = [ "v", "i" ], run = 'shell "alacritty -e nvim \"$@\"" --orphan',        desc = "open in neovim" },
+    #{ on = [ "v", "v" ], run = 'shell "cd "$1" && nvim" --block', desc = "NeoVim . [PWD]" },
+    #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
+    #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan', desc = "open terminal" },
+    #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan', desc = "open terminal" },
+    { on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
+    #{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
+    #{ on = [ "n", "v" ], run = 'shell "kitty --hold zsh -c \"nvim \"$@\"\"" --orphan',        desc = "open in neovim" },
+    { on = [ "e", "u" ], run = 'shell "subl \"$@\"" --orphan',        desc = "open in sublime" },
+    { on = [ "e", "i" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && idea $1 || intellij-idea-ultimate $1" --orphan',      desc = "open in intellij" },
+    { on = [ "e", "c" ], run = 'shell "code $1" --orphan',         desc = "open in vscode" },
+    { on = [ "e", "e" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open . || nautilus ." --orphan', desc = "open in explorer" },
 ]
 
 keymap = [
@@ -84,11 +84,11 @@ keymap = [
     { on = [ "J" ], run = "arrow 6",  desc = "Move cursor down 5 lines" },
 
     # Selection
-    { on = "<Space>", run = [ "select --state=none", "arrow 1" ], desc = "Toggle the current selection state" },
+    { on = "<Space>", run = [ "toggle", "arrow 1" ], desc = "Toggle the current selection state" },
     { on = "v",       run = "visual_mode",                        desc = "Enter visual mode (selection mode)" },
     { on = "V",       run = "visual_mode --unset",                desc = "Enter visual mode (unset mode)" },
-    { on = "<C-a>",   run = "select_all --state=true",            desc = "Select all files" },
-    { on = "<C-r>",   run = "select_all --state=none",            desc = "Inverse selection of all files" },
+    { on = "<C-a>",   run = "toggle_all --state=on",            desc = "Select all files" },
+    { on = "<C-r>",   run = "toggle_all",            desc = "Inverse selection of all files" },
 
     # Operation
     { on = "o",         run = "open",                        desc = "Open selected files" },
@@ -119,7 +119,7 @@ keymap = [
     # Linemode
     { on = [ "m", "s" ], run = "linemode size",        desc = "Set linemode to size" },
     { on = [ "m", "p" ], run = "linemode permissions", desc = "Set linemode to permissions" },
-    { on = [ "m", "c" ], run = "linemode ctime",       desc = "Set linemode to ctime" },
+    { on = [ "m", "b" ], run = "linemode btime",       desc = "Set linemode to ctime" },
     { on = [ "m", "m" ], run = "linemode mtime",       desc = "Set linemode to mtime" },
     { on = [ "m", "o" ], run = "linemode owner",       desc = "Set linemode to owner" },
     { on = [ "m", "n" ], run = "linemode none",        desc = "Set linemode to none" },
@@ -209,7 +209,7 @@ keymap = [
     { on = "<F1>", run = "help", desc = "Open help" },
 ]
 
-[select]
+[pick]
 
 keymap = [
     { on = "<Esc>",   run = "close",          desc = "Cancel selection" },

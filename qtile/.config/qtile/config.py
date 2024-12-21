@@ -15,12 +15,12 @@ from modules import (
     funcs,
     keybind,
     scratchpad,
-    variables,
     widgets,
     winrules,
     workspaces,
 )
-from modules.variables import alt, mod
+from util import vars
+from util.vars import alt, mod
 
 colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
 colors_dt = colors_dt.DoomOne

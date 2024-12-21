@@ -3,19 +3,16 @@ from libqtile.config import (
     Match,
     Rule,
 )
-from modules import (
-    colors,
-    colors_dt,
-)
+from util import colors
 
-colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dracula()
+colors = colors.current()
 
 ############################################################
 ####### Open specific applications in floating mode ########
 ############################################################
 floating_layout_theme = {
     "border_width": 3,
-    "border_focus": colors[8],
+    "border_focus": colors.float_border_focus,
 }
 floating_layout = layout.Floating(
     float_rules=[

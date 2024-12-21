@@ -124,7 +124,7 @@ rules = [
         "extract",
         "reveal",
     ] },
-    { mime = "application/x-{tar,bzip*,7z-compressed,xz,rar}", use = [
+    { mime = "application/{tar,bzip*,7z-compressed,xz,rar}", use = [
         "extract",
         "reveal",
     ] },
@@ -208,8 +208,8 @@ cd_origin = "top-center"
 cd_offset = [0, 2, 50, 3]
 
 # create
-# create_title = ["Create:", "Create (dir):"]
-create_title = "Create:"
+create_title = ["Create:", "Create (dir):"]
+# create_title = "Create:"
 create_origin = "top-center"
 create_offset = [0, 2, 50, 3]
 
@@ -258,7 +258,7 @@ quit_title = "{n} task{s} running, sure to quit? (y/N)"
 quit_origin = "top-center"
 quit_offset = [0, 2, 50, 3]
 
-[select]
+[pick]
 open_title = "Open with:"
 open_origin = "hovered"
 open_offset = [0, 1, 50, 7]

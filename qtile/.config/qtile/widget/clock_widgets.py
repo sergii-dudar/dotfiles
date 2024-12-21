@@ -1,8 +1,10 @@
 from qtile_extras import widget
 
 from libqtile import qtile
+from util import colors
 from util.util import to_span
 
+colors = colors.current()
 
 class MouseClickClock(widget.Clock):
     # defaults = [
@@ -34,12 +36,13 @@ class MouseClickClock(widget.Clock):
     def __init__(self, **config):
         widget.Clock.__init__(self, **config)
         self.formats = [
-            to_span("  ", "#a6d189", 17) +
-            to_span(" ", "#a6d189", 5) +
-            to_span("%I:%M", "#f2d5cf") +
-            to_span(" ", "#a6d189", 5) +
-            to_span("%p", "#8caaee")
-                        , "%A, %B %d"]
+            # to_span("  ", colors.colors.color6[0], 17) +
+            # to_span(" ", colors.colors.color6[0], 5) +
+            # to_span("%I:%M", colors.colors.color6[0]) +
+            # to_span(" ", colors.colors.color6[0], 5) +
+            # to_span("%p", colors.colors.color6[0])
+            #             , "%A, %B %d"
+        ]
         self.current_format_index = 0
         self.format = self.formats[self.current_format_index]
         self.add_callbacks(dict(
