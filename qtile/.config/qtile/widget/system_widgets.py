@@ -25,7 +25,7 @@ cpu = widget.CPU(
     update_interval=1.0,
     padding=0,
     format="{load_percent:02.0f}% ",
-    foreground=colors.colors.color3,
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round_right
 )
@@ -42,7 +42,7 @@ mem = widget.Memory(
     format="{MemPercent:02.0f}% ",
     #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
-    foreground=colors.foreground_color,
+    foreground=colors.widget_foreground_color[0],
     padding=0,
     **text_widget_defaults,
     **decorations_round_right
@@ -59,13 +59,13 @@ disc_usage=widget.DF(
     padding=2,
     format = "{r:.0f}%",
     visible_on_warn=False,
-    foreground=colors.foreground_color,
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_no_round,
 )
 disc_ssd_text = widget.TextBox(
     text="SSD ",
-    foreground=colors.colors.color12,
+    foreground=colors.colors.color4,
     **decorations_round_right,
     **text_widget_defaults
 )
@@ -85,6 +85,7 @@ battery = widget.Battery(format="{percent:2.0%} ",
     update_interval=120,
     show_short_text=True,
     default_text="",
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round_right
 )

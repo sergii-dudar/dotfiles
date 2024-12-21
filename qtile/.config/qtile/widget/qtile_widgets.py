@@ -19,8 +19,14 @@ curlayout = widget.CurrentLayoutIcon(
     **icon_widget_defaults,
     **decorations_no_round
 )
-curlayoutText = widget.CurrentLayout(
-    foreground=colors.foreground_color,
+class UppercaseCurrentLayout(widget.CurrentLayout):
+    def hook_response(self, layout, group):
+        if group.screen is not None and group.screen == self.bar.screen:
+            self.text = layout.name.upper()
+            self.bar.draw()
+
+curlayoutText = UppercaseCurrentLayout(
+    foreground=colors.widget_foreground_color,
     fmt="[<i>{}</i>] ",
     format_func=lambda text: text.upper(),
     **text_widget_defaults,

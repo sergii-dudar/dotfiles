@@ -12,11 +12,11 @@ colors = colors.current()
 clock = widget.Clock(
     format=to_span(" ", colors.colors.color6[0], 17) +
             to_span(" ", colors.colors.color6[0], 5) +
-            to_span("%I:%M", colors.colors.color12[0]) +
+            to_span("%I:%M", colors.widget_foreground_color[0]) +
             to_span(" ", colors.colors.color6[0], 5) +
             to_span("%p","#6272a4"),
     fontsize=22,
-    foreground=colors.colors.color3,
+    foreground=colors.widget_foreground_color,
     padding=15,
     **decorations_round,
     **icon_widget_defaults,

@@ -32,6 +32,7 @@ class ThemeColors:
                  overlay: str,
                  background_color: str,
                  foreground_color: str,
+                 widget_foreground_color: list[str],
                  workspace_color: str,
                  foreground_color_two: str,
                  border_focus: str,
@@ -47,6 +48,7 @@ class ThemeColors:
 
         self.background_color = background_color
         self.foreground_color = foreground_color
+        self.widget_foreground_color = widget_foreground_color
         self.workspace_color = workspace_color
         self.foreground_color_two = foreground_color_two
 
@@ -74,6 +76,7 @@ def catppuccin() -> ThemeColors:
                        float_border_focus="#46d9ff",
                        background_color="#232634",
                        foreground_color="#c6d0f5",
+                       widget_foreground_color=["#94928F", "#94928F"],
                        workspace_color="#e5c890",
                        foreground_color_two="#babbf1")
 

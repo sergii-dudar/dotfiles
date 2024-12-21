@@ -21,7 +21,7 @@ weather = widget.OpenWeather(
         + to_span("C", colors.colors.color4[0])
         + to_span(" ", colors.colors.color4[0], 9)
         + "{icon} ",
-    foreground=colors.colors.color3,
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round
 )

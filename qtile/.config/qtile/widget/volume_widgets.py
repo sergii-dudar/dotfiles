@@ -25,7 +25,7 @@ volume_percentage_level = widget.Volume(
     mute_format=" Mut",
     mute_foreground=colors.colors.color8,
     unmute_format='{volume:02.0f}%',
-    foreground=colors.colors.color3,
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round_right
 )

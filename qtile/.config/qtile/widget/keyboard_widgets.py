@@ -33,7 +33,7 @@ keyboard = widget.KeyboardLayout(
         "ua": " 🇺🇦" + to_span(" ", None, 6) + "UA"
     },
     fmt = "{} ",
-    foreground=colors.foreground_color,
+    foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round
 )
