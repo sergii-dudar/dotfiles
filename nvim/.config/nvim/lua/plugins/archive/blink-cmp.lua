@@ -1,6 +1,8 @@
 return {
     {
         "saghen/blink.cmp",
+        -- Disabled for now and for now not very stable, switched back to nvim-cmp for now
+        enabled = false,
         dependencies = {
             --"hrsh7th/cmp-cmdline",
         },

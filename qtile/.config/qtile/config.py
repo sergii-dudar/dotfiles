@@ -10,8 +10,6 @@ from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, Scra
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from modules import (
-    colors,
-    colors_dt,
     funcs,
     keybind,
     scratchpad,
@@ -21,9 +19,6 @@ from modules import (
 )
 from util import vars
 from util.vars import alt, mod
-
-colors, backgroundColor, foregroundColor, workspaceColor, chordColor = colors.dwm()
-colors_dt = colors_dt.DoomOne
 
 keys = keybind.keys
 mouse = keybind.mouse

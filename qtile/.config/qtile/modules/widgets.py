@@ -29,6 +29,7 @@ from widget.system_widgets import (
     tray,
 )
 from widget.volume_widgets import volume_dynamic_icon, volume_percentage_level
+from widget.weather_widgets import weather
 
 bar_widgers = [
     # left
@@ -89,6 +90,8 @@ bar_widgers = [
     # sep,
     # arch_icon,
     # arch_version,
+    sep,
+    weather,
     sep,
     to_space_rec_left(12),
     tray,

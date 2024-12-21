@@ -1,6 +1,7 @@
 return {
     {
         "hrsh7th/nvim-cmp",
+        enabled = true,
         event = "VeryLazy",
         dependencies = {
             -- Autocompletion
