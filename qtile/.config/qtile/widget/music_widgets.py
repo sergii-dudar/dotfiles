@@ -7,12 +7,8 @@ from qtile_extras.widget.decorations import BorderDecoration, RectDecoration  # 
 
 from libqtile import qtile
 from libqtile.lazy import lazy
-from util import colors, vars
+from util import colors
 from util.util import to_span
-from util.vars import (
-    default_font_widget,
-    default_font_widget_size,
-)
 from widget.wcommon import (
     applications_launcher,
     decorations_no_round,

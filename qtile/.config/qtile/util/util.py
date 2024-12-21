@@ -1,17 +1,12 @@
 import os
 
 from libqtile.log_utils import logger
-from util import colors, vars
-from util.vars import (
-    default_font,
-    default_font_size,
-    default_font_widget,
-    default_font_widget_size,
-)
+from util import colors
+from util.vars import var
 
 
 def to_font(size: float) -> str:
-    return default_font + " " + str(size)
+    return var.font.default_font + " " + str(size)
 
 def to_span(content: str, foreground: str | None = None, font_size: float | None = None) -> str:
     """
@@ -28,7 +23,7 @@ def to_span(content: str, foreground: str | None = None, font_size: float | None
     # Set default values
     content = content or ""
     foreground = f"foreground='{foreground}'" if foreground is not None else ""
-    font_size = font_size or default_font_size
+    font_size = font_size or var.font.default_font_size
     font = f"font='{to_font(font_size)}'"
 
     # Return the formatted span
@@ -52,5 +47,5 @@ def load_env(path):
     return env_dict
 
 def get_privat_env_var(key: str) -> str:
-    env_dict = load_env(vars.home_dir + "/private.env")
+    env_dict = load_env(var.path.home_dir + "/private.env")
     return env_dict[key]

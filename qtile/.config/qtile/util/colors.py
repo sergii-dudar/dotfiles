@@ -1,6 +1,3 @@
-import re
-
-
 class RangeColors:
     def __init__(self,
                  color1: str,

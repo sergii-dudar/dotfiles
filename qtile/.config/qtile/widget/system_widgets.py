@@ -4,6 +4,7 @@ from libqtile import qtile
 from libqtile.lazy import lazy
 from util import colors, vars
 from util.util import to_span
+from util.vars import var
 from widget.wcommon import (
     decorations_no_round,
     decorations_round_left,

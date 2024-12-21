@@ -1,7 +1,8 @@
 from qtile_extras import widget
 
-from util import colors, vars
+from util import colors
 from util.util import to_span
+from util.vars import var
 from widget.wcommon import (
     decorations_no_round,
     decorations_round,

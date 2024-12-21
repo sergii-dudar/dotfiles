@@ -5,7 +5,9 @@ from libqtile import bar, group, hook, layout, qtile, widget
 from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
 from util import colors
-from util.vars import alt, mod
+from util.vars import key
+
+alt, mod = key.alt, key.mod
 
 colors = colors.current()
 

@@ -7,6 +7,7 @@ from libqtile import qtile
 from libqtile.lazy import lazy
 from util import colors, vars
 from util.util import to_span
+from util.vars import var
 from widget.wcommon import (
     applications_launcher,
     decorations_no_round,
@@ -87,4 +88,3 @@ def to_space_rec_left(size: float):
         **icon_widget_defaults,
         **decorations_round_left
     )
-

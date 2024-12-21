@@ -17,8 +17,6 @@ from modules import (
     winrules,
     workspaces,
 )
-from util import vars
-from util.vars import alt, mod
 
 keys = keybind.keys
 mouse = keybind.mouse

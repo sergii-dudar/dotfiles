@@ -1,12 +1,9 @@
 from qtile_extras import widget
 
 from libqtile import qtile
-from util import colors, vars
+from util import colors
 from util.util import to_span
-from util.vars import (
-    default_font_widget,
-    default_font_widget_size,
-)
+from util.vars import var
 from widget.wcommon import (
     applications_launcher,
     decorations_no_round,
@@ -33,7 +30,7 @@ powermenu = widget.TextBox(
     fontsize=22,
     foreground=colors.colors.color8,
     mouse_callbacks = dict(
-        Button1=lambda: qtile.spawn(vars.powermenu)
+        Button1=lambda: qtile.spawn(var.run.powermenu)
     ),
     **icon_widget_defaults,
     **decorations_no_round

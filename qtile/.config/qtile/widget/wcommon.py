@@ -2,16 +2,16 @@ from qtile_extras.widget.decorations import BorderDecoration, RectDecoration  # 
 
 from libqtile import qtile
 from util import colors
-from util.vars import default_font_widget, default_font_widget_size, mymenu
+from util.vars import var
 
 colors = colors.current()
 text_widget_defaults = dict(
-    font=default_font_widget,
-    fontsize = default_font_widget_size,
+    font=var.font.default_font_widget,
+    fontsize = var.font.default_font_widget_size,
     background=colors.background_color
 )
 icon_widget_defaults = dict(
-    font=default_font_widget,
+    font=var.font.default_font_widget,
     background=colors.background_color
 )
 rect_decoraiton_defaults=dict(
@@ -49,6 +49,6 @@ decorations_round_right=dict(
 ])
 applications_launcher=dict(
     mouse_callbacks = dict(
-        Button1=lambda: qtile.spawn(mymenu),
+        Button1=lambda: qtile.spawn(var.run.mymenu),
     ),
 )
