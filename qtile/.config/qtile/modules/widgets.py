@@ -1,7 +1,7 @@
 import os
 
 from widget.datetime_widgets import clock, date
-from widget.keyboard_widgets import keyboard, keyboard_icon
+from widget.keyboard_widgets import keyboard
 from widget.music_widgets import music_control
 from widget.qtile_widgets import chord, curlayout, curlayoutText, groupbox, task_list, windowname
 from widget.runner_widgets import applications, powermenu
@@ -63,7 +63,7 @@ bar_widgers = [
 
     # right
     chord,
-    keyboard_icon,
+    # keyboard_icon,
     keyboard,
     sep,
     volume_dynamic_icon,

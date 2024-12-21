@@ -15,7 +15,7 @@ from util.vars import (
 )
 from widget.wcommon import (
     applications_launcher,
-    decorations_no_round,
+    decorations_round,
     decorations_round_left,
     decorations_round_right,
     icon_widget_defaults,
@@ -23,17 +23,21 @@ from widget.wcommon import (
 )
 
 colors = colors.current()
-keyboard_icon = widget.TextBox(
-    text="  ",
-    fontsize=20,
-    foreground=colors.colors.color4,
-    **icon_widget_defaults,
-    **decorations_round_left
-)
+# keyboard_icon = widget.TextBox(
+#     text="  ",
+#     fontsize=20,
+#     foreground=colors.colors.color4,
+#     **icon_widget_defaults,
+#     **decorations_round_left
+# )
 keyboard = widget.KeyboardLayout(
     configured_keyboards=['us','ua'],
+    display_map ={
+        "us": " 🇺🇸" + to_span(" ", None, 6) + "US",
+        "ua": " 🇺🇦" + to_span(" ", None, 6) + "UA"
+    },
     fmt = "{} ",
     foreground=colors.foreground_color,
     **text_widget_defaults,
-    **decorations_round_right
+    **decorations_round
 )

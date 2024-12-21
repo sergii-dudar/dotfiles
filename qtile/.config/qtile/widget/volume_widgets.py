@@ -9,7 +9,7 @@ from widget.wcommon import decorations_round_left, decorations_round_right, text
 colors = colors.current()
 volume_dynamic_icon = widget.Volume(
     padding=0,
-    fmt=" {} ",
+    fmt=" {}" + to_span(" ", None, 10),
     unmute_format='{volume}%',
     emoji=True,
     emoji_list=['', '', ' ', ' '],

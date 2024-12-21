@@ -22,6 +22,7 @@ cpuicon = widget.TextBox(
 )
 cpu = widget.CPU(
     update_interval=1.0,
+    padding=0,
     format="{load_percent:02.0f}% ",
     foreground=colors.colors.color3,
     **text_widget_defaults,
@@ -35,11 +36,13 @@ memicon = widget.TextBox(
     **decorations_round_left
 )
 mem = widget.Memory(
+    #fmt = '{}',
     #format="{MemUsed: .0f}{mm} /{MemTotal: .0f}{mm} ",
     format="{MemPercent:02.0f}% ",
     #mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(myTerm + ' -e htop')},
     measure_mem="G",
     foreground=colors.foreground_color,
+    padding=0,
     **text_widget_defaults,
     **decorations_round_right
 )
@@ -52,6 +55,7 @@ disc_icon = widget.TextBox(
 )
 disc_usage=widget.DF(
     # String format (p: partition, s: size, f: free space, uf: user free space, m: measure, r: ratio (uf/s))
+    padding=2,
     format = "{r:.0f}%",
     visible_on_warn=False,
     foreground=colors.foreground_color,

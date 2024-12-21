@@ -1,5 +1,7 @@
 import os
 
+from libqtile.log_utils import logger
+from util import colors, vars
 from util.vars import (
     default_font,
     default_font_size,
@@ -31,3 +33,24 @@ def to_span(content: str, foreground: str | None = None, font_size: float | None
 
     # Return the formatted span
     return f"<span {foreground} {font}>{content}</span>"
+
+def load_env(path):
+    # logger.error("---->>>> " + path)
+
+    env_dict = {}
+
+    # Open the .env file
+    with open(path) as f:
+        for line in f:
+            # Remove any leading/trailing whitespace and skip comments
+            line = line.strip()
+            if line and not line.startswith('#'):
+                # Split the line into key and value
+                key, value = line.split('=', 1)
+                env_dict[key.strip()] = value.strip()
+
+    return env_dict
+
+def get_privat_env_var(key: str) -> str:
+    env_dict = load_env(vars.home_dir + "/private.env")
+    return env_dict[key]
