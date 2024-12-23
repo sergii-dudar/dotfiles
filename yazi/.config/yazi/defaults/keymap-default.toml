@@ -4,38 +4,6 @@
 
 [manager]
 
-prepend_keymap = [
-
-    # relative motions
-    { on = "1", run = "plugin relative-motions --args=1", desc = "Move in relative steps" },
-    { on = "2", run = "plugin relative-motions --args=2", desc = "Move in relative steps" },
-    { on = "3", run = "plugin relative-motions --args=3", desc = "Move in relative steps" },
-    { on = "4", run = "plugin relative-motions --args=4", desc = "Move in relative steps" },
-    { on = "5", run = "plugin relative-motions --args=5", desc = "Move in relative steps" },
-    { on = "6", run = "plugin relative-motions --args=6", desc = "Move in relative steps" },
-    { on = "7", run = "plugin relative-motions --args=7", desc = "Move in relative steps" },
-    { on = "8", run = "plugin relative-motions --args=8", desc = "Move in relative steps" },
-    { on = "9", run = "plugin relative-motions --args=9", desc = "Move in relative steps" },
-
-    # max preview
-    { on = "i", run  = "plugin max-preview", desc = "Maximize or restore preview" },
-
-    # development, --interactive
-    #{ on = [ "t", "t" ], run = 'shell "alacritty" --orphan',        desc = "open terminal" },
-    #{ on = [ "v", "i" ], run = 'shell "alacritty -e nvim \"$@\"" --orphan',        desc = "open in neovim" },
-    #{ on = [ "v", "v" ], run = 'shell "cd "$1" && nvim" --block', desc = "NeoVim . [PWD]" },
-    #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
-    #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan', desc = "open terminal" },
-    { on = [ "e", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan', desc = "open terminal" },
-    ###{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
-    #{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
-    #{ on = [ "n", "v" ], run = 'shell "kitty --hold zsh -c \"nvim \"$@\"\"" --orphan',        desc = "open in neovim" },
-    { on = [ "e", "u" ], run = 'shell "subl \"$@\"" --orphan',        desc = "open in sublime" },
-    { on = [ "e", "i" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && idea $1 || intellij-idea-ultimate $1" --orphan',      desc = "open in intellij" },
-    { on = [ "e", "c" ], run = 'shell "code $1" --orphan',         desc = "open in vscode" },
-    { on = [ "e", "e" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open . || nautilus ." --orphan', desc = "open in explorer" },
-]
-
 keymap = [
 	{ on = "<Esc>", run = "escape",             desc = "Exit visual mode, clear selected, or cancel search" },
 	{ on = "<C-[>", run = "escape",             desc = "Exit visual mode, clear selected, or cancel search" },
@@ -84,22 +52,11 @@ keymap = [
 	{ on = "V", run = "visual_mode --unset", desc = "Enter visual mode (unset mode)" },
 
 	# Seeking
-	# { on = "K", run = "seek -5", desc = "Seek up 5 units in the preview" },
-	# { on = "J", run = "seek 5",  desc = "Seek down 5 units in the preview" },
+	{ on = "K", run = "seek -5", desc = "Seek up 5 units in the preview" },
+	{ on = "J", run = "seek 5",  desc = "Seek down 5 units in the preview" },
 
 	# Spotting
 	{ on = "<Tab>", run = "spot", desc = "Spot hovered file" },
-
-    # Seeking Linux:
-    { on = "<C-k>", run = "seek -5", desc = "Seek up 5 units in the preview" },
-    { on = "<C-j>", run = "seek 5",  desc = "Seek down 5 units in the preview" },
-
-    # Seeking Mac: <alt-k><alt-j>
-    { on = "˚", run = "seek -5", desc = "Seek up 5 units in the preview" },
-    { on = "∆", run = "seek 5",  desc = "Seek down 5 units in the preview" },
-
-    { on = [ "K" ], run = "arrow -6", desc = "Move cursor up 5 lines" },
-    { on = [ "J" ], run = "arrow 6",  desc = "Move cursor down 5 lines" },
 
 	# Operation
 	{ on = "o",         run = "open",                        desc = "Open selected files" },
@@ -156,8 +113,8 @@ keymap = [
 	{ on = [ ",", "M" ], run = [ "sort mtime --reverse", "linemode mtime" ],    desc = "Sort by modified time (reverse)" },
 	{ on = [ ",", "b" ], run = [ "sort btime --reverse=no", "linemode btime" ], desc = "Sort by birth time" },
 	{ on = [ ",", "B" ], run = [ "sort btime --reverse", "linemode btime" ],    desc = "Sort by birth time (reverse)" },
-	#{ on = [ ",", "e" ], run = "sort extension --reverse=no",                   desc = "Sort by extension" },
-	#{ on = [ ",", "E" ], run = "sort extension --reverse",                      desc = "Sort by extension (reverse)" },
+	{ on = [ ",", "e" ], run = "sort extension --reverse=no",                   desc = "Sort by extension" },
+	{ on = [ ",", "E" ], run = "sort extension --reverse",                      desc = "Sort by extension (reverse)" },
 	{ on = [ ",", "a" ], run = "sort alphabetical --reverse=no",                desc = "Sort alphabetically" },
 	{ on = [ ",", "A" ], run = "sort alphabetical --reverse",                   desc = "Sort alphabetically (reverse)" },
 	{ on = [ ",", "n" ], run = "sort natural --reverse=no",                     desc = "Sort naturally" },
@@ -293,7 +250,7 @@ keymap = [
 	# Word-wise movement
 	{ on = "b",     run = "backward",              desc = "Move back to the start of the current or previous word" },
 	{ on = "w",     run = "forward",               desc = "Move forward to the start of the next word" },
-	#{ on = "e",     run = "forward --end-of-word", desc = "Move forward to the end of the current or next word" },
+	{ on = "e",     run = "forward --end-of-word", desc = "Move forward to the end of the current or next word" },
 	{ on = "<A-b>", run = "backward",              desc = "Move back to the start of the current or previous word" },
 	{ on = "<A-f>", run = "forward --end-of-word", desc = "Move forward to the end of the current or next word" },
 
@@ -385,7 +342,6 @@ keymap = [
 	{ on = "<Esc>", run = "escape", desc = "Clear the filter, or hide the help" },
 	{ on = "<C-[>", run = "escape", desc = "Clear the filter, or hide the help" },
 	{ on = "<C-c>", run = "close",  desc = "Hide the help" },
-    { on = "q",     run = "close",  desc = "Exit the process" },
 
 	# Navigation
 	{ on = "k", run = "arrow -1", desc = "Move cursor up" },

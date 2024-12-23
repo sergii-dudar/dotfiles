@@ -3,14 +3,14 @@
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 [manager]
-ratio          = [ 1, 3, 4 ]
+ratio          = [ 1, 4, 3 ]
 sort_by        = "alphabetical"
 sort_sensitive = false
 sort_reverse 	 = false
 sort_dir_first = true
 sort_translit  = false
-linemode       = "size"
-show_hidden    = true
+linemode       = "none"
+show_hidden    = false
 show_symlink   = true
 scrolloff      = 5
 mouse_events   = [ "click", "scroll" ]
@@ -19,8 +19,8 @@ title_format   = "Yazi: {cwd}"
 [preview]
 wrap            = "no"
 tab_size        = 2
-max_width       = 1600
-max_height      = 1800
+max_width       = 600
+max_height      = 900
 cache_dir       = ""
 image_delay     = 30
 image_filter    = "triangle"
@@ -31,33 +31,14 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 
 [opener]
 edit = [
-    { run = '${EDITOR:=vi} "$@"', desc = "NeoVim [selected file]", block = true, for = "unix" },
-    { run = '${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
-    { run = 'subl "$@"', desc = "Sublime", for = "unix" },
-    { run = 'code %*', orphan = true, desc = "code", for = "windows" },
-    { run = 'code -w %*', block = true, desc = "code (block)", for = "windows" },
-]
-folder = [
-    #{ run = '${EDITOR:=vi} "$@"', desc = "NeoVim", block = true, for = "unix" },
-    { run = 'cd "$1" && ${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
-    { run = 'nautilus "$1"', desc = "Nautilus", for = "linux" },
-    { run = 'open .', desc = "Finder", for = "macos" },
-    #{ run = 'alacritty', orphan = true,  desc = "Alacritty", for = "linux" },
-    { run = 'kitty', orphan = true, desc = "Terminal", for = "linux" },
-    #{ run = 'open -a iTerm .', orphan = true,  desc = "Terminal", for = "macos" },
-    #{ run = 'iterm', orphan = true,  desc = "Terminal", for = "macos" },
-    { run = 'kitty', orphan = true, desc = "Terminal", for = "macos" },
-]
-develop = [
-    { run = 'intellij-idea-ultimate "$1"', orphan = true, desc = "intellij", for = "linux" },
-    { run = 'idea "$1"', orphan = true, desc = "intellij", for = "mac" },
-    { run = 'code "$1"', orphan = true, desc = "vscode" },
+    { run = '${EDITOR:-vi} "$@"', desc = "$EDITOR", block = true, for = "unix" },
+    { run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
+    { run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
 open = [
-    #{ run = 'xdg-open "$1"',               desc = "Open",              for = "linux" },
-    { run = 'nautilus . "$1"',              desc = "Open in Nautilus",  for = "linux" },
-    { run = 'open "$@"',                    desc = "Open",              for = "macos" },
-    { run = 'start "" "%1"', orphan = true, desc = "Open",              for = "windows" },
+    { run = 'xdg-open "$1"',                desc = "Open", for = "linux" },
+    { run = 'open "$@"',                    desc = "Open", for = "macos" },
+    { run = 'start "" "%1"', orphan = true, desc = "Open", for = "windows" },
 ]
 reveal = [
     { run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
@@ -70,29 +51,15 @@ extract = [
     { run = 'ya pub extract --list %*',   desc = "Extract here", for = "windows" },
 ]
 play = [
-    { run = 'vlc "$@"', orphan = true, desc = "vlc", for = "unix" },
-    # { run = 'mpv --force-window "$@"', orphan = true, for = "unix" },
+    { run = 'mpv --force-window "$@"', orphan = true, for = "unix" },
     { run = 'mpv --force-window %*', orphan = true, for = "windows" },
     { run = '''mediainfo "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
-]
-image = [
-    { run = 'eog "$1"', orphan = true, desc = "eog viewer", for = "linux" },
-    # gsettings get org.gnome.desktop.interface color-scheme -> prefer-dark -> picture-uri-dark
-    { run = 'gsettings set org.gnome.desktop.background picture-uri-dark "file://$1"', orphan = true, desc = "Set as backgroupd", for = "linux" },
-    { run = 'nautilus . "$1"', orphan = true, desc = "Open in Nautilus", for = "linux" },
-]
-run_sh = [
-    #{ run = '"$1"', desc = "run shell", for = "linux" },
-    { run = 'kitty --hold zsh -c "$1"', desc = "run shell", for = "linux" },
 ]
 
 [open]
 rules = [
     # Folder
     { name = "*/", use = [ "edit", "open", "reveal" ] },
-    # Custom
-    { name = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
-    { name = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
     # Text
     { mime = "text/*", use = [ "edit", "reveal" ] },
     # Image

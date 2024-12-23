@@ -1,0 +1,4 @@
+	# Fallback
+	{ if = "dir", text = "", fg_dark = "yellow" },
+	{ if = "exec", text = "" },
+	{ if = "!dir", text = "󰈔", fg_dark = "#e3c58e" },
