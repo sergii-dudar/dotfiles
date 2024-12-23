@@ -49,6 +49,12 @@ def add_scratchpad(groups, keys):
                          x=yazi_x,
                          y=yazi_y,
                          opacity=0.9),
+                DropDown("nautilus",
+                         "nautilus",
+                         width=yazi_width,
+                         height=yazi_height,
+                         x=telegram_x,
+                         y=telegram_y),
 
                 # install from chrome, and check ~/.local/share/applications/*.desktop right launch command
                 DropDown("youtube_music",
@@ -67,6 +73,14 @@ def add_scratchpad(groups, keys):
                          y=yazi_y,
                          opacity=0.9,
                          match=Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")),
+                DropDown("monkeytype",
+                         "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna",
+                         width=yazi_width,
+                         height=yazi_height,
+                         x=yazi_x,
+                         y=yazi_y,
+                         opacity=0.95,
+                         match=Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")),
             ],
         )
     )
@@ -85,12 +99,16 @@ def add_scratchpad(groups, keys):
             Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
             Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("youtube_music")),
             Key([mod], "g", lazy.group["scratchpad"].dropdown_toggle("google_chat")),
+            Key([mod], "u", lazy.group["scratchpad"].dropdown_toggle("monkeytype")),
+            Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("nautilus")),
 
             KeyChord([mod], "p", [
                 Key([], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
                 Key([], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
                 Key([], "m", lazy.group["scratchpad"].dropdown_toggle("youtube_music")),
                 Key([], "g", lazy.group["scratchpad"].dropdown_toggle("google_chat")),
+                Key([], "u", lazy.group["scratchpad"].dropdown_toggle("monkeytype")),
+                Key([], "n", lazy.group["scratchpad"].dropdown_toggle("nautilus")),
             ], name="Scratchpad")
         ]
     )

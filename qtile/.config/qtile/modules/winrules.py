@@ -3,7 +3,8 @@ from libqtile.config import (
     Match,
     Rule,
 )
-from util import colors
+from libqtile.log_utils import logger
+from util import colors, util
 
 colors = colors.current()
 
@@ -38,17 +39,27 @@ floating_layout = layout.Floating(
         Match(wm_class="org.gnome.Characters"),
         Match(wm_class="org.gnome.clocks"),
         Match(wm_class="gnome-calendar"),
+        Match(wm_class="gnome-control-center"),
         Match(wm_class="Gnome-disks"),
         Match(wm_class="Glate"),
 
+        Match(wm_instance_class="htop_info"),
+        Match(wm_instance_class="disc_usage_info"),
+        Match(wm_instance_class="disc_ugd"),
         #Match(title="Telegram"),
 
         # Monkeytype
-        Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna"),
+        # Match(wm_class="Google-chrome", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna"),
         # Google Chat
         #Match(wm_class="Google-chrome", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"),
         # Youtube music
         #Match(wm_class="Google-chrome", wm_instance_class="crx_cinhimbnkkaeohfgghhklpknlkffjgod")
+
+        # dict(
+        #     wm_instance_class="htop_info",
+        #     width=800,
+        #     height=600
+        # )
     ],
     **floating_layout_theme
     #border_focus=3
@@ -65,7 +76,7 @@ rules_list = [
         { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
         { "rule": Rule(Match(wm_class="Code")), "group": "2" },
         { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
-        { "rule": Rule(Match(wm_class="kitty")), "group": "4" },
+        { "rule": Rule(Match(wm_class="kitty", wm_instance_class="kitty")), "group": "4" },
 ]
 
 @hook.subscribe.client_new
@@ -74,3 +85,19 @@ def assign_app_group(client):
         if item["rule"].matches(client):
             client.togroup(item["group"])
             break
+
+    #if (client.window.get_wm_class() in ["htop_info"]):
+    #if (client.window.get_wm_instance_class() in ["htop_info"]):
+    #if Match(wm_instance_class="htop_info").compare(client):
+    wm_instance_classes = ["htop_info", "disc_usage_info", "disc_ugd"]
+    if any(Match(wm_class=wm_instance_class).compare(client) for wm_instance_class in wm_instance_classes):
+        client.width = util.calculate_window_width()
+        client.height = util.calculate_window_height()
+        #client.x = 50  # Set desired x position
+        #client.y = 50  # Set desired y position
+
+    # wm_classes = ["gnome-system-monitor", "org.gnome.Nautilus"]
+    # if any(Match(wm_class=wm_class).compare(client) for wm_class in wm_classes):
+    #     logger.error("gnome matches")
+    #     client.width = util.calculate_window_width()
+    #     client.height = util.calculate_window_height()

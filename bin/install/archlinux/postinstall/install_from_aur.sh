@@ -18,6 +18,7 @@ yay -S appimagelauncher && \
 yay -S ueberzugpp && \
     yay -S sesh-bin && \
     yay -S i3lock-color
+yay -S qtile-extras
 yay -S networkmanager-dmenu-git
 yay -S i3-back
 # yay -S hollywood

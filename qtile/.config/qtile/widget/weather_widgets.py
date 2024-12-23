@@ -11,7 +11,7 @@ app_key = get_privat_env_var("OPEN_WEATHER_API_KEY")
 # logger.error("app_key " + app_key)
 
 weather = widget.OpenWeather(
-    #app_key="bd5e378503939ddaee76f12ad7a97608",
+    app_key="bd5e378503939ddaee76f12ad7a97608",
     coordinates={"longitude": "28.481", "latitude": "49.2328"},
     units="metric",        # Use "imperial" for Fahrenheit
     update_interval=900,   # Update every 15 minutes

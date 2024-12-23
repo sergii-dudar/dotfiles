@@ -1,5 +1,6 @@
 import os
 
+from libqtile import qtile
 from libqtile.log_utils import logger
 from util import colors
 from util.vars import var
@@ -49,3 +50,28 @@ def load_env(path):
 def get_privat_env_var(key: str) -> str:
     env_dict = load_env(var.path.home_dir + "/private.env")
     return env_dict[key]
+
+def to_mouse_callbacks(left_click_cmd: str | None = None, right_click_cmd: str | None = None) -> dict:
+
+    left_callback = dict({})
+    if left_click_cmd is not None:
+        left_callback = dict(Button1=lambda: qtile.spawn(left_click_cmd))
+
+    right_callback = dict({})
+    if right_click_cmd is not None:
+        right_callback = dict(Button3=lambda: qtile.spawn(right_click_cmd))
+
+    return dict(
+        mouse_callbacks = dict(
+            **left_callback,
+            **right_callback
+        ),
+    )
+
+def calculate_window_width(factor_width: float | None = None):
+    factor_width = factor_width if factor_width is not None else var.settings.default_factor_width
+    return int(var.settings.screen_width * factor_width)
+
+def calculate_window_height(factor_height: float | None = None):
+    factor_height = factor_height if factor_height is not None else var.settings.default_factor_height
+    return int(var.settings.screen_height * factor_height)
