@@ -37,3 +37,6 @@ yay -S ghcup-hs-bin # brew install ghcup
 # ghcup set ghc 9.4.8
 # ghcup install stack 3.1.1
 # ghcup set stack 3.1.1
+
+
+yay -S clipboard # brew install clipboard
