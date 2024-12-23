@@ -59,7 +59,7 @@ local fs = lain.widget.fs({
     end,
 })
 fs.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
-    awful.util.spawn(vars.run.disc_usage)
+    awful.util.spawn(vars.run.disc_gdu)
 end)))
 
 M.cpu = cpu

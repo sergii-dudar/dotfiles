@@ -110,7 +110,8 @@ M.setup = function(opts)
             },
         },
         {
-            rule = { instance = "disc_usage_info" },
+            --rule = { instance = "disc_usage_info" },
+            rule = { instance = "disc_ugd" },
             properties = {
                 floating = true,
                 width = util.calculate_window_width(),

@@ -22,6 +22,7 @@ M.run.gnome_clocks = "gnome-clocks"
 M.run.gnome_calendar = "gnome-calendar"
 M.run.htop = "kitty --name htop_info -e htop"
 M.run.disc_usage = 'kitty --name disc_usage_info --hold zsh -c "export MANUAL_RL=1; df; exec zsh"'
+M.run.disc_gdu = "kitty --name disc_ugd -e gdu"
 -- This is used later as the default terminal and editor to run.
 M.app.terminal = "wezterm"
 M.app.editor = os.getenv("EDITOR") or "neovim"
