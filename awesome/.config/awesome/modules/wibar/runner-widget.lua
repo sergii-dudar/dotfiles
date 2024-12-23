@@ -26,7 +26,7 @@ local kitty_icon = icons_dir .. "kitty.svg"
 local wezterm_icon = icons_dir .. "wezterm.png"
 local pipette_icon = icons_dir .. "pipette2.png"
 local chrome_icon = icons_dir .. "google-chrome.svg"
-local intellij_icon = icons_dir .. "intellij-idea.svg"
+local intellij_icon = icons_dir .. "intellij-idea2.svg"
 local insomnia_icon = icons_dir .. "insomnia.png"
 local torrent_icon = icons_dir .. "qbittorrent.svg"
 
