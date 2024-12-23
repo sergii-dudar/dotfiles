@@ -34,6 +34,15 @@ prepend_keymap = [
     { on = [ "e", "i" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && idea $1 || intellij-idea-ultimate $1" --orphan',      desc = "open in intellij" },
     { on = [ "e", "c" ], run = 'shell "code $1" --orphan',         desc = "open in vscode" },
     { on = [ "e", "e" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open . || nautilus ." --orphan', desc = "open in explorer" },
+
+    # lazy git
+    { on = [ "g", "i" ], run = "plugin lazygit", desc = "run lazygit" },
+
+    # plugins-yazi:copy-file-contents
+    { on = [ "y", "c" ], run = "plugin copy-file-contents", desc = "yank file content" },
+
+    # system-clipboard.yazi file
+    { on = [ "y", "f" ], run = "plugin system-clipboard", desc = "yank file to clipboard" },
 ]
 
 keymap = [
@@ -174,6 +183,7 @@ keymap = [
 
 	# Tabs
 	{ on = "t", run = "tab_create --current", desc = "Create a new tab with CWD" },
+    { on = "<C-t>", run = "tab_close", desc = "Close current tab" },
 
 	{ on = "1", run = "tab_switch 0", desc = "Switch to the first tab" },
 	{ on = "2", run = "tab_switch 1", desc = "Switch to the second tab" },
