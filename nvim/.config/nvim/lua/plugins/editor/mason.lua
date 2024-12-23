@@ -12,9 +12,11 @@ return {
             "jdtls",
             --"lombok-nightly",
             --"spring-boot-tools", -- nvim-java/mason-registry
+            "haskell-language-server",
 
             -- DAP
             "bash-debug-adapter",
+            "haskell-debug-adapter",
 
             -- Linter
             "checkstyle",

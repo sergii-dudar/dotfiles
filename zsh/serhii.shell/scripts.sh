@@ -39,8 +39,8 @@ EOF
 
     ports=(${(@s:,:)1})
     for port in "${ports[@]}"; do
-            curl --silent --request GET \
-                 --url "http://localhost:$port/actuator/loggers/$2"
+        curl --silent --request GET \
+            --url "http://localhost:$port/actuator/loggers/$2"
     done
 }
 
@@ -55,14 +55,14 @@ EOF
     ports=(${(@s:,:)1})
     for port in "${ports[@]}"; do
 
-            curl --request POST \
-                --url "http://localhost:$port/actuator/loggers/$2" \
-                --header 'Content-Type: application/json' \
-                --data "{
+        curl --request POST \
+            --url "http://localhost:$port/actuator/loggers/$2" \
+            --header 'Content-Type: application/json' \
+            --data "{
                 \"configuredLevel\": \"$3\"
-                }"
-            echo -e ">>>> $port: Level to package: ${BOLD_BLUE}\"$2\"${RESET} successfully change to ${BOLD_YELLOW}\"$3\"${RESET}"
-            echo -e ">>>> $port: Actual level of package: ${BOLD_BLUE}\"$2\"${RESET} is: ${BOLD_YELLOW}$(getLogLevel $port "$2")${RESET}"
+        }"
+        echo -e ">>>> $port: Level to package: ${BOLD_BLUE}\"$2\"${RESET} successfully change to ${BOLD_YELLOW}\"$3\"${RESET}"
+        echo -e ">>>> $port: Actual level of package: ${BOLD_BLUE}\"$2\"${RESET} is: ${BOLD_YELLOW}$(getLogLevel $port "$2")${RESET}"
     done
 }
 
@@ -89,7 +89,7 @@ EOF
 }
 
 function chrome() {
-	google-chrome > /dev/null 2>&1 &
+    google-chrome > /dev/null 2>&1 &
 }
 
 #function iterm() {
@@ -198,11 +198,11 @@ ranger() {
     fi
 }
 
-function yy() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		builtin cd -- "$cwd" || return
-	fi
-	rm -f -- "$tmp"
+function y() {
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        builtin cd -- "$cwd" || return
+    fi
+    rm -f -- "$tmp"
 }

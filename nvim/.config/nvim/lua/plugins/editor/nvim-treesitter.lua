@@ -22,6 +22,7 @@ return {
             "strace",
             "groovy",
             "terraform",
+            "haskell",
         },
         indent = { enable = true, disable = { "java" } },
     },
