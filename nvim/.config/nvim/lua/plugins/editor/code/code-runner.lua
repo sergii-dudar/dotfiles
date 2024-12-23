@@ -36,6 +36,7 @@ return {
                 typescript = "deno run",
                 lua = "lua $dir/$fileName",
                 sh = "bash $dir/$fileName",
+                haskell = "runhaskell $dir/$fileName",
                 rust = {
                     "cd $dir &&",
                     "rustc $fileName &&",
