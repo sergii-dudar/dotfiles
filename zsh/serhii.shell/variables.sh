@@ -18,6 +18,7 @@ if isMacOs; then
 
     # tell specific tools where need seek config (lazygit, aerospace etc)
     export XDG_CONFIG_HOME="$HOME/.config"
+    export PATH=$PATH:$HOME/.ghcup/bin
 else
 
     alias out="sudo pkill -KILL -u serhii"

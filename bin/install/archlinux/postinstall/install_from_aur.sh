@@ -32,6 +32,8 @@ yay -S dracula-gtk-theme dracula-icons-theme && \
 # after install, in `GTK Settings` apply dracula `theme` and `icons`
 
 # haskell
-yay -S ghcup-hs-bin
+yay -S ghcup-hs-bin # brew install ghcup
 # ghcup install ghc 9.4.8
 # ghcup set ghc 9.4.8
+# ghcup install stack 3.1.1
+# ghcup set stack 3.1.1
