@@ -30,3 +30,8 @@ yay -S dracula-gtk-theme dracula-icons-theme && \
     mv ~/.config/gtk-4.0 ~/.config/gtk-4.0.bak && \
     cp -r /usr/share/themes/Dracula/gtk-4.0 ~/.config/gtk-4.0
 # after install, in `GTK Settings` apply dracula `theme` and `icons`
+
+# haskell
+yay -S ghcup-hs-bin
+# ghcup install ghc 9.4.8
+# ghcup set ghc 9.4.8

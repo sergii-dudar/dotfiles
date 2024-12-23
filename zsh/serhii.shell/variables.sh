@@ -30,6 +30,7 @@ else
 
     # in case commented nvm (as slow)
     export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
+    export PATH=$PATH:$HOME/.ghcup/bin
 
     export QT_SCALE_FACTOR=1.75
     export LC_CTYPE=en_US.UTF-8
