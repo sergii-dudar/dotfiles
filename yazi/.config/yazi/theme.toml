@@ -46,7 +46,7 @@ count_selected = { fg = "white", bg = "yellow" }
 
 # Border
 border_symbol = "│"
-border_style  = { fg = "gray" }
+border_style  = { fg = "#a074c4", bold = true }
 
 # Highlighting
 syntect_theme = ""
@@ -75,8 +75,11 @@ unset_alt  = { fg = "red", bg = "gray" }
 # : Status bar {{{
 
 [status]
-separator_open  = ""
-separator_close = ""
+# separator_open  = ""
+# separator_close = ""
+separator_open  = ""
+separator_close = ""
+separator_style = { fg = "reset", bg = "#363646" }
 
 # Progress
 progress_label  = { bold = true }
@@ -867,9 +870,9 @@ conds = [
 	{ if = "dummy", text = "" },
 
 	# Fallback
-	{ if = "dir", text = "󰉋" },
-	{ if = "exec", text = "" },
-	{ if = "!dir", text = "󰈔" },
+	{ if = "dir", text = "", fg = "#f1e05a" },
+	{ if = "exec", text = "", fg = "#599eff" },
+	{ if = "!dir", text = "󰈔", fg = "#519aba" },
 ]
 
 # : }}}
