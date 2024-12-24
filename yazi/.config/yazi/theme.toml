@@ -10,8 +10,8 @@
 # : Flavor {{{
 
 [flavor]
-dark  = "custom"
-light = "custom"
+dark  = ""
+light = ""
 
 # : }}}
 

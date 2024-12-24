@@ -1,14 +1,15 @@
 [plugin]
 deps = [
-    { use = "yazi-rs/plugins:full-border" , rev = "c7feb90" },
-    { use = "yazi-rs/plugins:max-preview" , rev = "c7feb90" },
-    { use = "yazi-rs/plugins:git" , rev = "c7feb90" },
+    { use = "yazi-rs/plugins:full-border" , rev = "71c4fc2" },
+    { use = "yazi-rs/plugins:max-preview" , rev = "71c4fc2" },
+    { use = "yazi-rs/plugins:git" , rev = "71c4fc2" },
     { use = "dedukun/relative-motions" , rev = "df97039" },
     { use = "Rolv-Apneseth/starship" , rev = "9c37d37" },
     { use = "Lil-Dank/lazygit" , rev = "c82794f" },
     { use = "AnirudhG07/plugins-yazi:copy-file-contents", rev = "11167e1" },
-    { use = "orhnk/system-clipboard", rev = "7775a80" }
-, { use = "yazi-rs/plugins:smart-filter", rev = "71c4fc2" }]
+    { use = "orhnk/system-clipboard", rev = "7775a80" },
+    { use = "yazi-rs/plugins:smart-filter", rev = "71c4fc2" },
+]
 
-[flavor]
-deps = []
+#[flavor]
+#deps = [{ use = "yazi-rs/flavors:catppuccin-mocha", rev = "8458d25" }]
