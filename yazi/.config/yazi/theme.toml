@@ -58,12 +58,12 @@ syntect_theme = ""
 
 [mode]
 
-normal_main = { bg = "blue", bold = true }
-normal_alt  = { fg = "blue", bg = "gray" }
+normal_main = { bg = "#818596", fg = "#17171B", bold = true }
+normal_alt  = { bg = "#2E313F", fg = "#C6C8D0", bold = true }
 
 # Select mode
-select_main = { bg = "red", bold = true }
-select_alt  = { fg = "red", bg = "gray" }
+select_main = { bg = "#B4BE82", fg = "#17171B", bold = true }
+select_alt  = { bg = "#2E313F", fg = "#C6C8D0", bold = true }
 
 # Unset mode
 unset_main = { bg = "red", bold = true }
@@ -77,8 +77,8 @@ unset_alt  = { fg = "red", bg = "gray" }
 [status]
 # separator_open  = ""
 # separator_close = ""
-separator_open  = ""
-separator_close = ""
+separator_open  = " "
+separator_close = " "
 separator_style = { fg = "reset", bg = "#363646" }
 
 # Progress
