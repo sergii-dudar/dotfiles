@@ -1,0 +1,36 @@
+Config { font = "JetBrainsMono Nerd Font Bold 12"
+        , borderColor = "#1F1F28"
+        , border = TopB
+        , bgColor = "#1F1F28"
+        , fgColor = "#DCD7BA"
+        , position = TopHM 33 0 0 0 0
+        , commands = [ Run Cpu ["-t","<total>%"] 10
+                     , Run Memory ["-t","<usedratio>%"] 10
+                     , Run WeatherX "KY70"
+                        [ ("clear", "󰼷")
+                        , ("sunny", "󰼷")
+                        , ("mostly clear", "󰖕")
+                        , ("mostly sunny", "󰖕")
+                        , ("partly sunny", "⛅")
+                        , ("fair", "🌑")
+                        , ("cloudy","󰖐")
+                        , ("overcast","☁")
+                        , ("partly cloudy", "⛅")
+                        , ("mostly cloudy", "󰖕")
+                        , ("considerable cloudiness", "󰖐")]
+                        ["-t", "<fn=2><skyConditionS></fn> <tempF>°"
+                        , "-L","10", "-H", "25", "--normal", "black"
+                        , "--high", "lightgoldenrod4", "--low", "darkseagreen4"]
+                         18000
+                     , Run DiskU [("/","<used>/<size>")] [] 10
+                     , Run Com "uname" ["-r"] "" 36000
+                     , Run CommandReader "/usr/local/bin/subs.sh" "subs"
+                     , Run CommandReader "rofi -show drun" "menu"
+                     , Run Date "%b %_d - %I:%M" "date" 10
+                     , Run UnsafeStdinReader
+                     ]
+        , sepChar = "%"
+        , alignSep = "}{"
+        , template = " <action=`rofi -show drun` button=1> <fc=#16161D,#76946A>    </fc></action> | %UnsafeStdinReader%  }{ %KY70%   <fc=#16161D,#FF9E3B>  </fc><fc=#16161D,#DCA561> %disku% </fc> <fc=#DCD7BA,#E82424> 󰗃 </fc><fc=#DCD7BA,#C34043> %subs% </fc> <fc=#16161D,#658594>   </fc><fc=#16161D,#7E9CD8> %cpu% </fc> <fc=#16161D,#957FB8> 󰒋 </fc><fc=#16161D,#938AA9> %memory% </fc> <fc=#16161D,#E46876> 󰥔 </fc><fc=#16161D,#D27E88> %date% </fc>  "
+        }
+

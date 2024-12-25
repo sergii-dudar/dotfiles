@@ -1,0 +1,87 @@
+super + shift + Escape
+    pkill -USR1 -x sxhkd
+
+super + shift + Return
+    krusader
+
+#Rofi & dmenu
+
+super + p
+    rofi -show power-menu -modi power-menu:rofi-power-menu
+
+alt + z; {a,s}
+   {viddesc, poddesc}
+
+super + g; {a,g,k,o} 
+  {audacity,gimp,kdenlive,flatpak run com.obsproject.Studio}
+
+alt + r
+    xtheme.sh
+
+super + shift + b
+    rmovie.sh
+
+super + x
+    clipmenu
+
+alt + g
+    rofi-beats
+
+alt + p
+ rofi -show
+
+# Application Keybindings
+
+alt + w
+    vivaldi-stable
+
+super + e
+    emacs
+
+alt + s
+    todoist
+
+alt + n 
+    discord
+
+ctrl + alt + s
+    flameshot gui
+
+#Audio Keybindings
+
+alt + d
+    pactl set-sink-volume @DEFAULT_SINK@ +5%
+
+alt + a
+    pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+XF86AudioRaiseVolume
+        amixer -c 1 -- sset Master 2db+
+
+XF86AudioLowerVolume
+        amixer -c 1 -- sset Master 2db-
+
+XF86AudioPlay
+    playerctl play-pause
+
+ctrl + alt + p
+    playerctl play-pause
+
+XF86AudioNext
+    playerctl next
+
+XF86AudioPrev
+    playerctl previous
+
+ctrl + shift + period
+    playerctl next
+
+ctrl + shift + comma
+    playerctl previous
+
+XF86AudioStop
+    playerctl stop
+
+alt + {h,j,k,l}
+    playerctl {previous,next, play, pause}
+

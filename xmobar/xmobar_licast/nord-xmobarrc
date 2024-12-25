@@ -1,0 +1,36 @@
+Config { font = "JetBrainsMono Nerd Font Bold 12"
+        , borderColor = "#2e3440"
+        , border = TopB
+        , bgColor = "#2e3440"
+        , fgColor = "#d8dee9"
+        , position = TopHM 33 4 6 6 0
+        , commands = [ Run Cpu ["-t","<total>%"] 10
+                     , Run Memory ["-t","<usedratio>%"] 10
+                     , Run WeatherX "KY70"
+                        [ ("clear", "󰼷")
+                        , ("sunny", "󰼷")
+                        , ("mostly clear", "󰖕")
+                        , ("mostly sunny", "󰖕")
+                        , ("partly sunny", "⛅")
+                        , ("fair", "🌑")
+                        , ("cloudy","󰖐")
+                        , ("overcast","☁")
+                        , ("partly cloudy", "⛅")
+                        , ("mostly cloudy", "󰖕")
+                        , ("considerable cloudiness", "󰖐")]
+                        ["-t", "<fn=2><skyConditionS></fn> <tempF>°"
+                        , "-L","10", "-H", "25", "--normal", "black"
+                        , "--high", "lightgoldenrod4", "--low", "darkseagreen4"]
+                         18000
+                     , Run DiskU [("/","<used>/<size>")] [] 10
+                     , Run Com "uname" ["-r"] "" 36000
+                     , Run CommandReader "/usr/local/bin/subs.sh" "subs"
+                     , Run CommandReader "rofi -show drun" "menu"
+                     , Run Date "%b %_d - %I:%M" "date" 10
+                     , Run UnsafeStdinReader
+                     ]
+        , sepChar = "%"
+        , alignSep = "}{"
+        , template = " <action=`rofi -show drun` button=1> <fc=#bf616a,#2e3440>  </fc></action>  |  %UnsafeStdinReader%  }{ %KY70%   <fc=#b48ead></fc>  %disku%   <fc=#ebcb8b>󰗃</fc>  %subs%   <fc=#88c0d0></fc>   %cpu%   <fc=#a3be8c>󰒋</fc>  %memory%   <fc=#81a1c1>󰥔 </fc> %date%  "
+        }
+

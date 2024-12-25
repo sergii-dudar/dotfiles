@@ -14,4 +14,7 @@ sudo rm /usr/share/xsessions/i3.desktop && \
 sudo rm /usr/share/xsessions/awesome.desktop && \
     sudo cp ~/dotfiles/bin/desc/awesome.desktop /usr/share/xsessions/awesome.desktop
 
+sudo rm /usr/share/xsessions/xmonad.desktop && \
+    sudo cp ~/dotfiles/bin/desc/xmonad.desktop /usr/share/xsessions/xmonad.desktop
+
 `

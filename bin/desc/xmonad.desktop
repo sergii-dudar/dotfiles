@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Xmonad
+Comment=Lightweight X11 tiled window manager written in Haskell
+Exec=$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh
+Icon=xmonad
+Terminal=false
+StartupNotify=false
+Categories=Application;
