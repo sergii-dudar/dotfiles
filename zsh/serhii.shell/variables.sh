@@ -19,6 +19,7 @@ if isMacOs; then
     # tell specific tools where need seek config (lazygit, aerospace etc)
     export XDG_CONFIG_HOME="$HOME/.config"
     export PATH=$PATH:$HOME/.ghcup/bin
+    #export PATH=$HOME/.ghcup/bin:$PATH
 else
 
     alias out="sudo pkill -KILL -u serhii"
@@ -31,7 +32,9 @@ else
 
     # in case commented nvm (as slow)
     export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
+    #export PATH=$HOME/.ghcup/bin:$PATH
     export PATH=$PATH:$HOME/.ghcup/bin
+    export PATH="$HOME/.local/bin:$PATH"
 
     export QT_SCALE_FACTOR=1.75
     export LC_CTYPE=en_US.UTF-8
