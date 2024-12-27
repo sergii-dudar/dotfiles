@@ -34,7 +34,7 @@ else
     export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
     export PATH=$PATH:$HOME/.ghcup/bin
-    export PATH="$HOME/.local/bin:$PATH"
+    export PATH=$PATH:$HOME/.local/bin
 
     export QT_SCALE_FACTOR=1.75
     export LC_CTYPE=en_US.UTF-8
@@ -61,4 +61,3 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 
 # enable Go modules to install the packages
-export GO111MODULE=on
