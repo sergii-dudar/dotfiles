@@ -38,3 +38,8 @@ application-dev.yml
 zsh/serhii.shell/work.sh
 **/karabiner/automatic_backups
 **/awesome/awesome-wm-widgets
+
+**/.config/xmonad/stack.yaml.lock
+**/.config/xmonad/.stack-work/
+**/.config/xmonad/xmonad/
+**/.config/xmonad/xmonad-contrib/
