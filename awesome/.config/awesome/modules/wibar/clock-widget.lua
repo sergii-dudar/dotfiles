@@ -3,6 +3,8 @@ local vars = require("modules.variables")
 local gears = require("gears")
 local awful = require("awful")
 local util = require("util.common-util")
+--local lain = require("lain")
+local calendar_widget = require("modules.wibar.ext.calendar")
 
 --#region time
 local time = wibox.widget.textclock()
@@ -49,6 +51,33 @@ date:buttons(gears.table.join(
     end)
 ))
 
+local calendar = calendar_widget({
+    theme = "catppuccin",
+    placement = "top",
+    start_sunday = false,
+    radius = 12,
+    auto_hide = true,
+    timeout = 1.5,
+    -- with customized next/previous (see table above)
+    previous_month_button = 1,
+    next_month_button = 3,
+})
+local calendar_hower_timer = util.run_timer_callback(1, calendar.toggle)
+date:connect_signal("mouse::enter", function()
+    if not calendar.visible then
+        calendar_hower_timer:start()
+    end
+end)
+date:connect_signal("mouse::leave", function()
+    calendar_hower_timer:stop()
+    if calendar.visible then
+        calendar.toggle()
+    end
+end)
+-- date:connect_signal("mouse::enter", function() end)
+-- date:connect_signal("mouse::leave", function() end)
+
+--date:disconnect_signal("mouse::enter", mycal.hover_on)
 --#endregion
 
 local M = {}

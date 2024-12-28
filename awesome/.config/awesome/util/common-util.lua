@@ -285,6 +285,14 @@ local to_imagebox_runner = function(image_path, shell_left_click, shell_right_cl
     return widget
 end
 
+local run_timer_callback = function(timeout_sec, callback)
+    return gears.timer({
+        timeout = timeout_sec, -- Delay in seconds
+        autostart = false,
+        callback = callback,
+    })
+end
+
 ---@class TextInfoPupupOptions
 ---@field target_widget (any) widget on how which show pupup
 ---@field info_text (string) info text of pupup
@@ -344,22 +352,18 @@ local add_text_info_pupup = function(opts)
     })
 
     -- timer to not show pupup imediatelly, but only if hover holds some interval
-    local popup_timer = gears.timer({
-        timeout = 1.5, -- Delay in seconds
-        autostart = false,
-        callback = function()
-            --popup.widget:get_children_by_id("text_role")[1].text = "Hovered over widget!" -- Dynamic text
-            local mouse_coords = mouse.coords()
+    local popup_timer = run_timer_callback(1.5, function()
+        --popup.widget:get_children_by_id("text_role")[1].text = "Hovered over widget!" -- Dynamic text
+        local mouse_coords = mouse.coords()
 
-            if opts.position == "right" then
-                popup.x = mouse_coords.x - 195
-            else
-                popup.x = mouse_coords.x - 15
-            end
-            popup.y = mouse_coords.y + 15
-            popup.visible = true
-        end,
-    })
+        if opts.position == "right" then
+            popup.x = mouse_coords.x - 195
+        else
+            popup.x = mouse_coords.x - 15
+        end
+        popup.y = mouse_coords.y + 15
+        popup.visible = true
+    end)
 
     -- Add mouse enter/leave signals to show/hide the popup with delay
     opts.target_widget:connect_signal("mouse::enter", function()
@@ -397,6 +401,8 @@ return {
     add_bg_hover_to_widget = add_bg_hover_to_widget,
 
     add_text_info_pupup = add_text_info_pupup,
+
+    run_timer_callback = run_timer_callback,
 
     --decore_with_background = decore_with_background,
     decore_with_background_center = decore_with_background_center,
