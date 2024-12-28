@@ -186,7 +186,11 @@ local function worker(user_args)
                     halign = "center",
                     widget = wibox.container.place,
                 },
-                margins = (props.padding or 2) + (props.border_width or 0),
+                -- margins = (props.padding or 2) + (props.border_width or 0),
+                top = 0,
+                bottom = 0,
+                left = 8,
+                right = 8,
                 widget = wibox.container.margin,
             },
             shape = props.shape,
@@ -207,6 +211,7 @@ local function worker(user_args)
         long_weekdays = true,
         start_sunday = start_sunday,
         week_numbers = week_numbers,
+        spacing = 8,
         widget = wibox.widget.calendar.month,
     })
 

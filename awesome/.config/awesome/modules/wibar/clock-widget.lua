@@ -5,6 +5,7 @@ local awful = require("awful")
 local util = require("util.common-util")
 --local lain = require("lain")
 local calendar_widget = require("modules.wibar.ext.calendar")
+local word_clock_widget = require("modules.wibar.ext.word-clock")
 
 --#region time
 local time = wibox.widget.textclock()
@@ -27,6 +28,20 @@ time:buttons(gears.table.join(
         time.format = time_formats[current_time_format_index]
     end)
 ))
+
+util.show_hower_timer_popup({
+    widget_content = word_clock_widget({
+        font = vars.font.to_size(25),
+        accent_color = "#ff79c6",
+        main_color = "#8be9fd",
+        is_human_readable = true,
+        with_spaces = false,
+        --military_time = true,
+    }),
+    target_widget = time,
+    position = "right",
+    margins = 20,
+})
 --#endregion
 
 --#region date
@@ -74,11 +89,6 @@ date:connect_signal("mouse::leave", function()
         calendar.toggle()
     end
 end)
--- date:connect_signal("mouse::enter", function() end)
--- date:connect_signal("mouse::leave", function() end)
-
---date:disconnect_signal("mouse::enter", mycal.hover_on)
---#endregion
 
 local M = {}
 

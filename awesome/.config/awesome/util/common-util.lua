@@ -293,48 +293,18 @@ local run_timer_callback = function(timeout_sec, callback)
     })
 end
 
----@class TextInfoPupupOptions
----@field target_widget (any) widget on how which show pupup
----@field info_text (string) info text of pupup
----@field icon_path (any|nil) icon path to show if present
----@field text_icon (string|nil)
----@field text_icon_fg (string|nil)
----@field text_icon_size (integer|nil)
----@field position ("left"|"right"|nil) right by default
----@param opts TextInfoPupupOptions of options
-local add_text_info_pupup = function(opts)
-    local image_widget
-    if opts.icon_path then
-        image_widget = {
-            id = "image_el",
-            widget = wibox.widget.imagebox,
-            image = opts.icon_path,
-            resize = true,
-            forced_width = 42,
-            forced_height = 42,
-        }
-    else
-        image_widget = {
-            id = "image_el",
-            widget = wibox.widget.textbox,
-            markup = to_span(opts.text_icon or "N/A", opts.text_icon_fg, opts.text_icon_size),
-        }
-    end
-
+---@class ShowTimerOptions
+---@field widget_content (any) popup content
+---@field target_widget (any) widget on hower of wthich show popup
+---@field position ("left"|"right") right by default
+---@field margins (integer|nil)
+---@param opts ShowTimerOptions of options
+local show_hower_timer_popup = function(opts)
     local popup = awful.popup({
         widget = {
             {
-                {
-                    {
-                        id = "text_el",
-                        widget = wibox.widget.textbox,
-                        text = opts.info_text,
-                    },
-                    image_widget,
-                    layout = wibox.layout.fixed.horizontal,
-                    spacing = 8,
-                },
-                margins = 10,
+                opts.widget_content,
+                margins = opts.margins or 10,
                 widget = wibox.container.margin,
             },
             widget = wibox.container.background,
@@ -376,6 +346,50 @@ local add_text_info_pupup = function(opts)
     end)
 end
 
+---@class TextInfoPupupOptions
+---@field target_widget (any) widget on how which show pupup
+---@field info_text (string) info text of pupup
+---@field icon_path (any|nil) icon path to show if present
+---@field text_icon (string|nil)
+---@field text_icon_fg (string|nil)
+---@field text_icon_size (integer|nil)
+---@field position ("left"|"right"|nil) right by default
+---@param opts TextInfoPupupOptions of options
+local add_text_info_pupup = function(opts)
+    local image_widget
+    if opts.icon_path then
+        image_widget = {
+            id = "image_el",
+            widget = wibox.widget.imagebox,
+            image = opts.icon_path,
+            resize = true,
+            forced_width = 42,
+            forced_height = 42,
+        }
+    else
+        image_widget = {
+            id = "image_el",
+            widget = wibox.widget.textbox,
+            markup = to_span(opts.text_icon or "N/A", opts.text_icon_fg, opts.text_icon_size),
+        }
+    end
+
+    show_hower_timer_popup({
+        widget_content = {
+            {
+                id = "text_el",
+                widget = wibox.widget.textbox,
+                text = opts.info_text,
+            },
+            image_widget,
+            layout = wibox.layout.fixed.horizontal,
+            spacing = 8,
+        },
+        target_widget = opts.target_widget,
+        position = opts.position,
+    })
+end
+
 return {
     notify = notify,
     concat_tables = concat_tables,
@@ -403,6 +417,7 @@ return {
     add_text_info_pupup = add_text_info_pupup,
 
     run_timer_callback = run_timer_callback,
+    show_hower_timer_popup = show_hower_timer_popup,
 
     --decore_with_background = decore_with_background,
     decore_with_background_center = decore_with_background_center,
