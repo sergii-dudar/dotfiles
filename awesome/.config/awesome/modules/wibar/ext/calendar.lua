@@ -1,18 +1,9 @@
--------------------------------------------------
--- Calendar Widget for Awesome Window Manager
--- Shows the current month and supports scroll up/down to switch month
--- More details could be found here:
--- https://github.com/streetturtle/awesome-wm-widgets/tree/master/calendar-widget
-
--- @author Pavel Makhov
--- @copyright 2019 Pavel Makhov
--------------------------------------------------
-
 local awful = require("awful")
 local beautiful = require("beautiful")
 local wibox = require("wibox")
 local gears = require("gears")
 local naughty = require("naughty")
+local util = require("util.common-util")
 
 local calendar_widget = {}
 
@@ -215,6 +206,11 @@ local function worker(user_args)
         widget = wibox.widget.calendar.month,
     })
 
+    local add_margin = function(widget)
+        local cal_margin = 10
+        return wibox.container.margin(widget, cal_margin, cal_margin, cal_margin, cal_margin)
+    end
+
     local popup = awful.popup({
         ontop = true,
         visible = false,
@@ -222,7 +218,7 @@ local function worker(user_args)
         offset = { y = 5 },
         border_width = 3,
         border_color = calendar_themes[theme].border,
-        widget = cal,
+        widget = add_margin(cal),
     })
 
     local auto_hide_timer = gears.timer({
@@ -248,14 +244,14 @@ local function worker(user_args)
             a.month = a.month + 1
             cal:set_date(nil)
             cal:set_date(a)
-            popup:set_widget(cal)
+            popup:set_widget(add_margin(cal))
         end),
         awful.button({}, previous_month_button, function()
             local a = cal:get_date()
             a.month = a.month - 1
             cal:set_date(nil)
             cal:set_date(a)
-            popup:set_widget(cal)
+            popup:set_widget(add_margin(cal))
         end)
     ))
 
@@ -266,7 +262,7 @@ local function worker(user_args)
             cal:set_date(nil) -- the new date is not set without removing the old one
             cal:set_date(os.date("*t"))
             popup:set_widget(nil) -- just in case
-            popup:set_widget(cal)
+            popup:set_widget(add_margin(cal))
             popup.visible = not popup.visible
         else
             if placement == "top" then
@@ -299,7 +295,6 @@ local function worker(user_args)
         end
     end
 
-    calendar_widget.popup = popup
     return calendar_widget
 end
 

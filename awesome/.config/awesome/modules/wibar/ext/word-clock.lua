@@ -1,13 +1,3 @@
--------------------------------------------------
--- Text Clock Widget for Awesome Window Manager
--- Shows current time in words, e.g. 11.54 -> eleven fifty four
--- More details could be found here:
--- https://github.com/streetturtle/awesome-wm-widgets/tree/master/text-clock-widget
-
--- @author Pavel Makhov
--- @copyright 2020 Pavel Makhov
--------------------------------------------------
-
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local gears = require("gears")
