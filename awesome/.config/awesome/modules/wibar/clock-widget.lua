@@ -29,19 +29,24 @@ time:buttons(gears.table.join(
     end)
 ))
 
+--[[ local time_popup = wibox.widget.textclock()
+time_popup.format = util.to_span("󰔛 ", "#bd93f9", 26) .. util.to_span("%H:%M:%S", "#6272a4", 24)
+time_popup.refresh = 1
+
 util.show_hower_timer_popup({
-    widget_content = word_clock_widget({
-        font = vars.font.to_size(25),
-        accent_color = "#ff79c6",
-        main_color = "#8be9fd",
-        is_human_readable = true,
-        with_spaces = false,
-        --military_time = true,
-    }),
+    -- widget_content = word_clock_widget({
+    --     font = vars.font.to_size(25),
+    --     accent_color = "#ff79c6",
+    --     main_color = "#8be9fd",
+    --     is_human_readable = true,
+    --     with_spaces = false,
+    --     military_time = true,
+    -- }),
+    widget_content = time_popup,
     target_widget = time,
     position = "right",
     margins = 20,
-})
+}) ]]
 --#endregion
 
 --#region date
