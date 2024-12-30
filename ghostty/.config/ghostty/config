@@ -1,0 +1,19 @@
+# deep, catppuccin-mocha, Abernathy, Argonaut, Brogrammer
+# duckbones, Firefly Traditional
+theme = Abernathy
+# font-family = CaskaydiaMono Nerd Font
+font-family = CaskaydiaCove Nerd Font
+font-size = 21
+#background-opacity = 0.95
+gtk-titlebar = false
+# custom-shader = /home/chris/bloom.glsl
+#custom-shader = /home/chris/crt.glsl
+mouse-hide-while-typing = true
+# window-decoration = false
+macos-titlebar-style = hidden
+# keybind = global:cmd+/=toggle_quick_terminal
+macos-option-as-alt = true
+# background-opacity = 0.7
+
+
+copy-on-select = clipboard

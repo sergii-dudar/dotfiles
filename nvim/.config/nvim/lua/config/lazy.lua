@@ -64,7 +64,8 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.lang.go" },
         { import = "lazyvim.plugins.extras.lang.haskell" },
         --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
-        --{ import = "lazyvim.plugins.extras.lang.clangd" },
+        { import = "lazyvim.plugins.extras.lang.clangd" },
+        { import = "lazyvim.plugins.extras.lang.cmake" },
 
         -- util
         --{ import = "lazyvim.plugins.extras.util.rest" },
