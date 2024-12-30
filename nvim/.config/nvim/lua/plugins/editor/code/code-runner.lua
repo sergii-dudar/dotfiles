@@ -43,28 +43,34 @@ return {
                     "$dir/$fileNameWithoutExt",
                 },
                 go = { "go run $dir/$fileName" },
-                cpp = {
-                    "cd $dir &&",
-                    "g++ $fileName",
-                    "-o $fileNameWithoutExt &&",
-                    "$dir/$fileNameWithoutExt",
+                c = {
+                    "cd $dir",
+                    "&& gcc $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& /tmp/$fileNameWithoutExt",
+                    "&& rm /tmp/$fileNameWithoutExt",
                 },
-                c = function(...)
-                    c_base = {
-                        "cd $dir &&",
-                        "gcc $fileName -o",
-                        "/tmp/$fileNameWithoutExt",
-                    }
-                    local c_exec = {
-                        "&& /tmp/$fileNameWithoutExt &&",
-                        "rm /tmp/$fileNameWithoutExt",
-                    }
-                    vim.ui.input({ prompt = "Add more args:" }, function(input)
-                        c_base[4] = input
-                        vim.print(vim.tbl_extend("force", c_base, c_exec))
-                        require("code_runner.commands").run_from_fn(vim.list_extend(c_base, c_exec))
-                    end)
-                end,
+                cpp = {
+                    "cd $dir",
+                    "&& g++ $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& /tmp/$fileNameWithoutExt",
+                    "&& rm /tmp/$fileNameWithoutExt",
+                },
+                -- c = function(...)
+                --     c_base = {
+                --         "cd $dir &&",
+                --         "gcc $fileName -o",
+                --         "/tmp/$fileNameWithoutExt",
+                --     }
+                --     local c_exec = {
+                --         "&& /tmp/$fileNameWithoutExt &&",
+                --         "rm /tmp/$fileNameWithoutExt",
+                --     }
+                --     vim.ui.input({ prompt = "Add more args:" }, function(input)
+                --         c_base[4] = input
+                --         vim.print(vim.tbl_extend("force", c_base, c_exec))
+                --         require("code_runner.commands").run_from_fn(vim.list_extend(c_base, c_exec))
+                --     end)
+                -- end,
             },
             --project = {
             --    ["~/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {

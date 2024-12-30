@@ -19,7 +19,7 @@ return {
             -- "consumer_group" -g *.hcl externals/users/
         },
         keys = {
-            { "<leader>fl", "<cmd>Telescope notify<cr>", desc = "Find Logs" },
+            --{ "<leader>fl", "<cmd>Telescope notify<cr>", desc = "Find Logs" }, -> <leader>n by snack.nvim
             {
                 "<leader>sii",
                 function()
