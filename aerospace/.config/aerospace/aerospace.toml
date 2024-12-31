@@ -15,7 +15,7 @@ after-login-command = []
 
 # https://github.com/FelixKratz/JankyBorders
 after-startup-command = [
-    'exec-and-forget borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0',
+    #'exec-and-forget borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0',
 ]
 
 # Start AeroSpace at login
@@ -252,9 +252,14 @@ alt-shift-l = ['join-with right', 'mode main']
 # ------------------------- Roles -----------------------------#
 ################################################################
 # command to get application id: osascript -e 'id of app "Google Chat"'
+# aerospace list-apps
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
+run = "move-node-to-workspace 4"
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
 run = "move-node-to-workspace 4"
 
 [[on-window-detected]]
