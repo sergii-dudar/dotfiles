@@ -17,6 +17,10 @@ alias l...='eza -al --icons --color=always --group-directories-first ../../../' 
 if isMacOs; then
     # https://github.com/FelixKratz/JankyBorders
     alias run_borders="borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0 &"
+else
+    alias amenu="~/.config/rofi/scripts/launcher_t1"
+    alias pmenu="~/.config/rofi/scripts/powermenu_t1"
+
 fi
 
 # Changing "ps" to "procs"
