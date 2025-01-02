@@ -24,6 +24,7 @@ applications:buttons(gears.table.join(
 local icons_dir = vars.current_theme_dir .. "/icons/"
 local kitty_icon = icons_dir .. "kitty.svg"
 local wezterm_icon = icons_dir .. "wezterm.png"
+local ghostty_icon = icons_dir .. "ghostty.png"
 local pipette_icon = icons_dir .. "pipette2.png"
 local chrome_icon = icons_dir .. "google-chrome.svg"
 local intellij_icon = icons_dir .. "intellij-idea2.svg"
@@ -32,6 +33,7 @@ local torrent_icon = icons_dir .. "qbittorrent.svg"
 
 local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
 local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
+local ghostty_terminal = util.to_imagebox_runner(ghostty_icon, "ghostty")
 local pipette = util.to_imagebox_runner(pipette_icon, "gpick")
 local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
 local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
@@ -72,6 +74,11 @@ util.add_text_info_pupup({
     icon_path = wezterm_icon,
 })
 util.add_text_info_pupup({
+    target_widget = ghostty_terminal,
+    info_text = "Ghostty Terminal",
+    icon_path = ghostty_icon,
+})
+util.add_text_info_pupup({
     target_widget = pipette,
     info_text = "GPick App",
     icon_path = pipette_icon,
@@ -102,6 +109,7 @@ return {
         util.group_widgets(
             util.add_bg_hover_to_widget(util.widget_margin(applications, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(settings, 4, -3, 0, 0), runner_bg_hover),
+            util.add_bg_hover_to_widget(util.widget_margin(ghostty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(kitty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(wezterm_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(chrome, 5, 5, 0, 0), runner_bg_hover),
