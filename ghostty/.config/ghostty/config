@@ -4,6 +4,12 @@ theme = Abernathy
 # font-family = CaskaydiaMono Nerd Font
 font-family = CaskaydiaCove Nerd Font
 font-size = 21
+
+# disable ligatures
+font-feature = -calt
+font-feature = -dlig
+font-feature = -liga
+
 #background-opacity = 0.95
 gtk-titlebar = false
 # custom-shader = /home/chris/bloom.glsl
@@ -13,7 +19,9 @@ mouse-hide-while-typing = true
 macos-titlebar-style = hidden
 # keybind = global:cmd+/=toggle_quick_terminal
 macos-option-as-alt = true
-# background-opacity = 0.7
+
+background-opacity = 0.95
+#background = #232634
 
 
 copy-on-select = clipboard
