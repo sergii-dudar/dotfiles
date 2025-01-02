@@ -21,7 +21,8 @@ sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol vo
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools python-dbus-next # need for nvim Conform plugin
 sudo pacman -S gpick xautolock
-sudo pacman -S cmatrix ncdu gdu
+sudo pacman -S cmatrix ncdu gdu ghostty
+
 # lxappearance (nwg-look for x11, but nwg-look works on x11 well also)
 # gtk-section
 sudo pacman -S nwg-look xdg-desktop-portal \
