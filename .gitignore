@@ -39,6 +39,8 @@ zsh/serhii.shell/work.sh
 **/karabiner/automatic_backups
 **/awesome/awesome-wm-widgets
 
+**/nvim/lazy-lock.json
+
 **/.config/xmonad/stack.yaml.lock
 **/.config/xmonad/.stack-work/
 **/.config/xmonad/xmonad/
