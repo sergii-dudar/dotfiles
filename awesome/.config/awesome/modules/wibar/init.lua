@@ -22,7 +22,8 @@ M.setup = function(opts)
 
     awful.screen.connect_for_each_screen(function(s)
         -- screen edges padding
-        s.padding = -6
+        --s.padding = -6
+
         -- or:
         -- s.padding = {
         --     left = -6,
@@ -43,14 +44,15 @@ M.setup = function(opts)
             expand = "none",
             {
                 widget = wibox.container.margin,
-                bottom = 2,
-                top = 2,
+                -- bottom = 2,
+                -- top = 2,
                 {
                     widget = wibox.container.place,
                     layout = wibox.layout.fixed.horizontal,
-                    --spacing = 5,
+                    -- spacing = 0,
                     util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
-                    simple_widget.separator,
+                    --simple_widget.separator,
+                    simple_widget.build_bg_separator(2, 0),
                     runner_widget.left_all,
                     simple_widget.separator,
 

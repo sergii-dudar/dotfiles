@@ -76,4 +76,5 @@ return {
     separator = bg_separator,
     separator_no_left = bg_separator_no_left,
     separator_no_right = bg_separator_no_right,
+    build_bg_separator = build_bg_separator,
 }
