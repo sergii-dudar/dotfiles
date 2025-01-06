@@ -7,11 +7,12 @@ that will be working easily for both platforms.
 In most cases, I'm trying to avoid as much as possible platform specific things.
 
 ### Installing dotfiles by `GNU stow`
+
 Stow is very simple but powerful toos to manage dotfiles.
-https://www.gnu.org/software/stow/
+<https://www.gnu.org/software/stow/>
 
 Good manuals can be found in YouTuber `typecraft`
-https://medium.com/quick-programming/managing-dotfiles-with-gnu-stow-9b04c155ebad
+<https://medium.com/quick-programming/managing-dotfiles-with-gnu-stow-9b04c155ebad>
 
 ```
 brew install stow
@@ -34,13 +35,15 @@ stow --adopt allacritty
 ```
 
 ### Fonts
-source: https://github.com/ryanoasis/nerd-fonts/releases
+
+source: <https://github.com/ryanoasis/nerd-fonts/releases>
 
 My favorite fonts: Hack Nerd Font: Regular|Bold
 
 On mac can be installed by brew, or manually downloaded and imported by standard `Font Book` application
 
 On linux the easiest way is
+
 ```
 https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip
 https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Hack.zip
@@ -58,58 +61,72 @@ wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/do
 && fc-cache -fv
 ```
 
-### Dotfiles external extensions.
+### Dotfiles external extensions
+
 To easily install dotfile tools extensions as third party themes, extension etc
 from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 ### Dependencies
+
 #### Ranger
- - https://github.com/maximtrp/ranger-archives
- - https://github.com/alexanderjeurissen/ranger_devicons
- - https://github.com/jchook/ranger-zoxide
+
+- <https://github.com/maximtrp/ranger-archives>
+- <https://github.com/alexanderjeurissen/ranger_devicons>
+- <https://github.com/jchook/ranger-zoxide>
 
 #### Alacritty
-- https://github.com/alacritty/alacritty-theme
+
+- <https://github.com/alacritty/alacritty-theme>
 
 #### ZSH
+
 - sudo pacman -S zsh
-- https://ohmyz.sh/#install
-- https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md
+- <https://ohmyz.sh/#install>
+- <https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md>
 
 #### tmux
-- https://github.com/tmux-plugins/tpm
+
+- <https://github.com/tmux-plugins/tpm>
 
 #### keyd
-- https://github.com/rvaiya/keyd
+
+- <https://github.com/rvaiya/keyd>
 
 #### neovim
-- https://github.com/junegunn/vim-plug
 
-#### https://flameshot.org/
-#### https://github.com/keshavbhatt/glate
-#### https://wiki.gnome.org/Apps/Rhythmbox
+- <https://github.com/junegunn/vim-plug>
+
+#### <https://flameshot.org/>
+
+#### <https://github.com/keshavbhatt/glate>
+
+#### <https://wiki.gnome.org/Apps/Rhythmbox>
 
 #### Key binds (GNOME)
+
 ##### System
- - Show the overview - disabled
+
+- Show the overview - disabled
 
 ##### Window
- - Activate the window menu - disabled
- - Close window - Shift+Super+C
- - Resize Window - Super+W
- - Toggle Fullscreen mode - Super+F11
+
+- Activate the window menu - disabled
+- Close window - Shift+Super+C
+- Resize Window - Super+W
+- Toggle Fullscreen mode - Super+F11
 
 ##### Custom Shortcuts
- - Flameshot:           [ flameshot gui ]  key:Print
- - chrome:              [ google-chrome ]  key:Super+B (google-chrome-stable)
- - file manager:        [ nautilus ]  key:Super+F
- - intellij:            [ intellij-idea-ultimate ]  key:Super+I
- - rofi run:            [ rofi -show open ]  key:Super+S
- - zellij:              [ kitty --hold zsh -c "zellij" ]  key:Super+R
- - terminal kitty:      [ kitty ]  key:Super+Enter
 
- - terminal alacritty:  [ alacritty ]  key:Super+Enter
- - ranger:              [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
+- Flameshot:           [ flameshot gui ]  key:Print
+- chrome:              [ google-chrome ]  key:Super+B (google-chrome-stable)
+- file manager:        [ nautilus ]  key:Super+F
+- intellij:            [ intellij-idea-ultimate ]  key:Super+I
+- rofi run:            [ rofi -show open ]  key:Super+S
+- zellij:              [ kitty --hold zsh -c "zellij" ]  key:Super+R
+- terminal kitty:      [ kitty ]  key:Super+Enter
+
+- terminal alacritty:  [ alacritty ]  key:Super+Enter
+- ranger:              [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
 
 ````
 /usr/share/X11/xkb/rules/evdev.xml
@@ -135,36 +152,45 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 ````
 
 ##### /etc/pacman.conf
+
 - Color
 - ILoveCandy
+- uncomment ParallelDownloads
 
 #### /etc/default/grub
+
 - GRUB_TIMEOUT_STYLE=hidden
 - sudo update-grub
 
 #### systray
-- https://linuxiac.com/how-to-enable-system-tray-icons-in-gnome/
+
+- <https://linuxiac.com/how-to-enable-system-tray-icons-in-gnome/>
 
 #### remove windows title bar
-- https://stackoverflow.com/questions/71204126/how-to-remove-the-title-bar-of-gnome-applications
-- https://www.baeldung.com/linux/gnome-remove-title-bar
+
+- <https://stackoverflow.com/questions/71204126/how-to-remove-the-title-bar-of-gnome-applications>
+- <https://www.baeldung.com/linux/gnome-remove-title-bar>
 
 #### disable Wayland and use Xorg
+
 ````
 /etc/gdm/custom.conf file and uncomment the following line:
 #WaylandEnable=false
 ````
 
 #### disable logout on close laptop (Lid Switch)
+
 ````
 sudo nvim /etc/systemd/logind.conf
 HandleLidSwitch=ignore
 ````
 
 #### translate apps
-- https://github.com/keshavbhatt/glate
+
+- <https://github.com/keshavbhatt/glate>
 
 #### Burn iso from linux
+
 ````
 - connect USB
 - sudo fdisk -l | grep "Disk /dev/s"
@@ -174,10 +200,13 @@ HandleLidSwitch=ignore
 ````
 
 #### Install Arch as by - `archinstall` script pre-actions
-# https://phoenixnap.com/kb/linux-format-disk
+
+# <https://phoenixnap.com/kb/linux-format-disk>
+
 - format system disc fully
 - lsblk (find sys disc name, fot example it's sda)
 - sudo mkfs -t ext4 /dev/sda (fully, with sub partitions)
 
 # connect to internet by wify from tty
-# https://wiki.archlinux.org/title/Iwd#iwctl
+
+# <https://wiki.archlinux.org/title/Iwd#iwctl>
