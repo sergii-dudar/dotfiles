@@ -45,7 +45,7 @@ return {
                 go = { "go run $dir/$fileName" },
                 c = {
                     "cd $dir",
-                    "&& gcc $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& gcc -Wno-format $fileName -o /tmp/$fileNameWithoutExt",
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
                 },

@@ -61,3 +61,4 @@ export MANPAGER='nvim +Man!'
 export MANWIDTH=999
 
 # enable Go modules to install the packages
+export GO111MODULE=on

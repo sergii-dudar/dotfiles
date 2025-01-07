@@ -60,7 +60,7 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.lang.kotlin" },
         --{ import = "lazyvim.plugins.extras.lang.scala" },
         --{ import = "lazyvim.plugins.extras.lang.toml" },
-        --{ import = "lazyvim.plugins.extras.lang.rust" },
+        { import = "lazyvim.plugins.extras.lang.rust" },
         { import = "lazyvim.plugins.extras.lang.go" },
         { import = "lazyvim.plugins.extras.lang.haskell" },
         --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
