@@ -12,6 +12,10 @@ local clean_javadoc = function(javadoc)
     return javadoc
 end
 
+--Rust
+-- vim.g.lazyvim_rust_diagnostics = "rust-analyzer"
+--vim.g.lazyvim_rust_diagnostics = "bacon-ls"
+
 vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     config = config
         or {

@@ -38,9 +38,10 @@ return {
                 sh = "bash $dir/$fileName",
                 haskell = "runhaskell $dir/$fileName",
                 rust = {
-                    "cd $dir &&",
-                    "rustc $fileName &&",
-                    "$dir/$fileNameWithoutExt",
+                    "cd $dir",
+                    "&& rustc $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& /tmp/$fileNameWithoutExt",
+                    "&& rm /tmp/$fileNameWithoutExt",
                 },
                 go = { "go run $dir/$fileName" },
                 c = {
