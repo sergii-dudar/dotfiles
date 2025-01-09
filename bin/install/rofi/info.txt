@@ -1,0 +1,3 @@
+Install fonts with required icons to rofi:
+
+cd ~/dotfiles/bin/install/rofi/ && ./setup_fonts.sh
