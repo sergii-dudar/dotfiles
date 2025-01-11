@@ -10,12 +10,31 @@ M.tags = { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 �
 M.setup = function(s, opts)
     -- Each screen has its own tag table.
     --awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
-    awful.tag(
-        --{ "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
-        M.tags,
-        s,
-        awful.layout.layouts[1]
-    )
+    -- awful.tag(
+    --     --{ "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+    --     M.tags,
+    --     s,
+    --     awful.layout.layouts[1]
+    -- )
+
+    if screen.count() > 1 then
+        if s.index == 1 then
+            awful.tag(
+                { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+                s,
+                awful.layout.layouts[1]
+            )
+        else
+            awful.tag({ "1 " }, s, awful.layout.layouts[1])
+        end
+    else
+        awful.tag(
+            --{ "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
+            M.tags,
+            s,
+            awful.layout.layouts[1]
+        )
+    end
 
     -- Create a taglist widget
     local change_border_bottom_callback = function(self, tag, index, objects)

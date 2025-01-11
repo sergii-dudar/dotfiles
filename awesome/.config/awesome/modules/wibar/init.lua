@@ -32,6 +32,11 @@ M.setup = function(opts)
         --     bottom = 19,
         -- }
 
+        -- render bar only for main screen
+        -- if s.index ~= 1 then
+        --     return
+        -- end
+
         -- Add widgets to the wibox
         s.mywibox = awful.wibar({
             position = "top",
