@@ -390,6 +390,29 @@ local add_text_info_pupup = function(opts)
     })
 end
 
+local table_to_string = function(tbl, indent)
+    indent = indent or 0
+    local to_log = string.rep(" ", indent) .. "{\n"
+
+    for k, v in pairs(tbl) do
+        local key = tostring(k)
+        if type(v) == "table" then
+            to_log = to_log .. string.rep(" ", indent + 2) .. key .. " = " .. M.table_to_string(v, indent + 2) .. ",\n"
+        else
+            local value = tostring(v)
+            to_log = to_log .. string.rep(" ", indent + 2) .. key .. " = " .. value .. ",\n"
+        end
+    end
+
+    to_log = to_log .. string.rep(" ", indent) .. "}"
+    return to_log
+end
+
+local log_table = function(table)
+    local str_table = M.table_to_string(table)
+    print("lua talbe: " .. str_table)
+end
+
 return {
     notify = notify,
     concat_tables = concat_tables,
@@ -425,5 +448,9 @@ return {
     decore_with_background_left = decore_with_background_left,
     vars = {
         icon_widget_space = to_icon_widget_space(vars.widget.icon_widget_space),
+    },
+    system = {
+        log_table = log_table,
+        table_to_string = table_to_string,
     },
 }

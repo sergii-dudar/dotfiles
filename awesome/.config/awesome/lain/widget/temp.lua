@@ -24,7 +24,7 @@ local function factory(args)
 
     function temp.update()
         -- helpers.async({ "/usr/bin/find", "/sys/devices", "-type", "f", "-name", "*temp*" }, function(f)
-        helpers.async({ "/usr/bin/find", "/sys/devices", "-type", "f", "-path", "*thermal_zone*/temp*" }, function(f)
+        helpers.async({ "/usr/bin/find", "/sys/devices", "-type", "f", "-path", "*thermal_zone*/temp" }, function(f)
             temp_now = {}
             local temp_fl, temp_value
             for t in f:gmatch("[^\n]+") do

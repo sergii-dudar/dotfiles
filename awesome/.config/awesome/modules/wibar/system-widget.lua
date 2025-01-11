@@ -64,7 +64,9 @@ end)))
 
 local cpu_temp = lain.widget.temp({
     settings = function()
-        local value = string.format("%02d", coretemp_now)
+        --local value = string.format("%02d", coretemp_now)
+        print("coretemp_now widget: " .. coretemp_now)
+        print("temp_now widget: " .. util.system.table_to_string(temp_now))
 
         local perc = tonumber(coretemp_now) or 0
         local icon_fg = "#8caaee"
@@ -90,8 +92,8 @@ local cpu_temp = lain.widget.temp({
                 markup(
                     gray,
                     util.to_span(icon, icon_fg)
-                        .. util.vars.icon_widget_space
-                        .. value
+                        .. util.vars.icon_widget_space --.. value
+                        .. coretemp_now
                         .. markup.fontfg(vars.font.default, "#6272a4", "°C")
                 )
             )
