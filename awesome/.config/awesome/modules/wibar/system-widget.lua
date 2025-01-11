@@ -62,11 +62,33 @@ fs.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
     awful.util.spawn(vars.run.disc_gdu)
 end)))
 
+local function calculate_average(tbl)
+    local sum = 0
+    local count = 0
+
+    for key, value in pairs(tbl) do
+        -- Convert the value to a number if it's a numeric string
+        local num = type(value) == "number" and value or tonumber(value)
+
+        -- If it's a valid number, include it in the sum and count
+        if num then
+            sum = sum + num
+            count = count + 1
+        end
+    end
+
+    local average = count > 0 and (sum / count) or 0
+    -- return sum, count, average
+    return average
+end
+
 local cpu_temp = lain.widget.temp({
     settings = function()
         --local value = string.format("%02d", coretemp_now)
-        print("coretemp_now widget: " .. coretemp_now)
-        print("temp_now widget: " .. util.system.table_to_string(temp_now))
+        --print("coretemp_now widget: " .. coretemp_now)
+        --print("temp_now widget: " .. util.system.table_to_string(temp_now))
+        local average_ft = string.format("%02d", calculate_average(temp_now))
+        --print("average temp_now widget: " .. averate_ft)
 
         local perc = tonumber(coretemp_now) or 0
         local icon_fg = "#8caaee"
@@ -78,7 +100,10 @@ local cpu_temp = lain.widget.temp({
         elseif perc <= 50 then
             icon_fg = "#8caaee"
             icon = ""
-        elseif perc <= 75 then
+        elseif perc <= 65 then
+            icon_fg = "#e5c890"
+            icon = ""
+        elseif perc <= 80 then
             icon_fg = "#e78284"
             icon = ""
         elseif perc <= 100 then
@@ -92,8 +117,8 @@ local cpu_temp = lain.widget.temp({
                 markup(
                     gray,
                     util.to_span(icon, icon_fg)
-                        .. util.vars.icon_widget_space --.. value
-                        .. coretemp_now
+                        .. util.vars.icon_widget_space
+                        .. average_ft
                         .. markup.fontfg(vars.font.default, "#6272a4", "°C")
                 )
             )
