@@ -4,6 +4,7 @@ local util = require("util.common-util")
 local gears = require("gears")
 local launcher = require("modules.awesome-launcher")
 
+local icons_dir = vars.current_theme_dir .. "/icons/"
 local text_icon_color = "#3071db"
 local runner_bg_hover = "#8caaee"
 local red = "#d35f5e"
@@ -11,7 +12,9 @@ local red = "#d35f5e"
 local settings = util.to_text_icon_runner(" ", 19, "#3071db", vars.run.gnome_settings)
 local powermenu = util.to_text_icon_runner(" ", vars.font.default_size, red, vars.run.powermenu)
 
+--local awesome_icon = icons_dir .. "awesome_grey.png"
 local applications = util.to_text_icon_runner(" ", 17, "#bd93f9")
+--local applications = util.to_imagebox_runner(awesome_icon, "awesome")
 applications:buttons(gears.table.join(
     awful.button({}, 1, function()
         awful.spawn.with_shell(vars.run.mymenu)
@@ -21,7 +24,6 @@ applications:buttons(gears.table.join(
     end)
 ))
 
-local icons_dir = vars.current_theme_dir .. "/icons/"
 local kitty_icon = icons_dir .. "kitty.svg"
 local wezterm_icon = icons_dir .. "wezterm.png"
 local ghostty_icon = icons_dir .. "ghostty.png"

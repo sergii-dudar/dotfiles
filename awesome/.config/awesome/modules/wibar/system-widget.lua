@@ -85,10 +85,13 @@ end
 local cpu_temp = lain.widget.temp({
     settings = function()
         --local value = string.format("%02d", coretemp_now)
+
         --print("coretemp_now widget: " .. coretemp_now)
         --print("temp_now widget: " .. util.system.table_to_string(temp_now))
-        local average_ft = string.format("%02d", calculate_average(temp_now))
-        --print("average temp_now widget: " .. averate_ft)
+        local average_tmp = calculate_average(temp_now)
+        --print("average temp_now widget: " .. average_tmp)
+        local average_tmp_ft = string.format("%02d", math.floor(average_tmp))
+        --print("average formatted temp_now widget: " .. average_ft)
 
         local perc = tonumber(coretemp_now) or 0
         local icon_fg = "#8caaee"
@@ -118,7 +121,7 @@ local cpu_temp = lain.widget.temp({
                     gray,
                     util.to_span(icon, icon_fg)
                         .. util.vars.icon_widget_space
-                        .. average_ft
+                        .. average_tmp_ft
                         .. markup.fontfg(vars.font.default, "#6272a4", "°C")
                 )
             )
