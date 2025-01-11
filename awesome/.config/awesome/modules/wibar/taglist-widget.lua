@@ -19,21 +19,13 @@ M.setup = function(s, opts)
 
     if screen.count() > 1 then
         if s.index == 1 then
-            awful.tag(
-                { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
-                s,
-                awful.layout.layouts[1]
-            )
+            awful.tag(M.tags, s, awful.layout.layouts[1])
         else
-            awful.tag({ "1 " }, s, awful.layout.layouts[1])
+            -- all not main monitors
+            awful.tag({ "1 ", "2 ", "3 ", "4 " }, s, awful.layout.suit.tile.bottom)
         end
     else
-        awful.tag(
-            --{ "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " },
-            M.tags,
-            s,
-            awful.layout.layouts[1]
-        )
+        awful.tag(M.tags, s, awful.layout.layouts[1])
     end
 
     -- Create a taglist widget

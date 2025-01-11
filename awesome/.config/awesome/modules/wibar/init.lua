@@ -32,11 +32,6 @@ M.setup = function(opts)
         --     bottom = 19,
         -- }
 
-        -- render bar only for main screen
-        -- if s.index ~= 1 then
-        --     return
-        -- end
-
         -- Add widgets to the wibox
         s.mywibox = awful.wibar({
             position = "top",
@@ -44,96 +39,142 @@ M.setup = function(opts)
             height = 35,
         })
 
-        s.mywibox:setup({
-            layout = wibox.layout.align.horizontal,
-            expand = "none",
-            {
-                widget = wibox.container.margin,
-                -- bottom = 2,
-                -- top = 2,
-                {
-                    widget = wibox.container.place,
-                    layout = wibox.layout.fixed.horizontal,
-                    -- spacing = 0,
-                    util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
-                    --simple_widget.separator,
-                    simple_widget.build_bg_separator(2, 0),
-                    runner_widget.left_all,
-                    simple_widget.separator,
+        if s.index == 1 then
+            -- render for main screen
 
-                    -- Create a promptbox for each screen
-                    awful.widget.prompt(),
-                    simple_widget.tasklist(s, opts),
-                    --simple_widget.separator,
-                },
-            },
-
-            {
-                widget = wibox.container.place,
-                layout = wibox.layout.fixed.horizontal,
-                --spacing = 15,
-                util.decore_with_background_center(date_widgets.date),
-                simple_widget.space,
-                taglist_widget.setup(s, opts),
-                simple_widget.space,
-                util.decore_with_background_center(date_widgets.time),
-            },
-
-            { -- Right widgets
-
-                widget = wibox.container.place,
-                h_align = "right",
+            s.mywibox:setup({
+                layout = wibox.layout.align.horizontal,
+                expand = "none",
                 {
                     widget = wibox.container.margin,
-                    --right = 5,
-                    --bottom = 1,
-                    --top = 1,
+                    -- bottom = 2,
+                    -- top = 2,
                     {
                         widget = wibox.container.place,
                         layout = wibox.layout.fixed.horizontal,
-                        --spacing = 5,
-                        table.unpack(util.concat_match_tables({
+                        -- spacing = 0,
+                        util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
+                        --simple_widget.separator,
+                        simple_widget.build_bg_separator(2, 0),
+                        runner_widget.left_all,
+                        simple_widget.separator,
 
-                            util.decore_with_background_right(keyboard_layout_widget.setup()),
-                            simple_widget.separator,
-                            util.decore_with_background_right(volume_widget.setup(opts)),
-                            simple_widget.separator,
-                        }, {
-                            is_match = function()
-                                return util.directory_exists("/sys/class/power_supply/BAT0")
-                            end,
-                            table = {
-                                -- add this widgets only if battery present
-                                util.decore_with_background_right(battery_widget.battery),
-                                simple_widget.separator,
-                            },
-                        }, {
-                            util.decore_with_background_right(system_widget.mem),
-                            simple_widget.separator,
-                            util.decore_with_background_right(system_widget.cpu),
-                            simple_widget.separator,
-                            util.decore_with_background_right(system_widget.cpu_temp),
-                            simple_widget.separator,
-                            util.decore_with_background_right(system_widget.fs),
-                            simple_widget.separator,
-
-                            util.decore_with_background_right(weather_widget.weather),
-                            simple_widget.separator,
-
-                            util.decore_with_background_right(
-                                util.group_widgets(
-                                    util.widget_margin(wibox.widget.systray(), 0, 6, 4, 4),
-                                    runner_widget.powermenu
-                                ),
-                                nil,
-                                nil,
-                                3
-                            ),
-                        })),
+                        -- Create a promptbox for each screen
+                        awful.widget.prompt(),
+                        simple_widget.tasklist(s, opts),
+                        --simple_widget.separator,
                     },
                 },
-            },
-        })
+
+                {
+                    widget = wibox.container.place,
+                    layout = wibox.layout.fixed.horizontal,
+                    --spacing = 15,
+                    util.decore_with_background_center(date_widgets.date),
+                    simple_widget.space,
+                    taglist_widget.setup(s, opts),
+                    simple_widget.space,
+                    util.decore_with_background_center(date_widgets.time),
+                },
+
+                { -- Right widgets
+
+                    widget = wibox.container.place,
+                    h_align = "right",
+                    {
+                        widget = wibox.container.margin,
+                        --right = 5,
+                        --bottom = 1,
+                        --top = 1,
+                        {
+                            widget = wibox.container.place,
+                            layout = wibox.layout.fixed.horizontal,
+                            --spacing = 5,
+                            table.unpack(util.concat_match_tables({
+
+                                util.decore_with_background_right(keyboard_layout_widget.setup()),
+                                simple_widget.separator,
+                                util.decore_with_background_right(volume_widget.setup(opts)),
+                                simple_widget.separator,
+                            }, {
+                                is_match = function()
+                                    return util.directory_exists("/sys/class/power_supply/BAT0")
+                                end,
+                                table = {
+                                    -- add this widgets only if battery present
+                                    util.decore_with_background_right(battery_widget.battery),
+                                    simple_widget.separator,
+                                },
+                            }, {
+                                util.decore_with_background_right(system_widget.mem),
+                                simple_widget.separator,
+                                util.decore_with_background_right(system_widget.cpu),
+                                simple_widget.separator,
+                                util.decore_with_background_right(system_widget.cpu_temp),
+                                simple_widget.separator,
+                                util.decore_with_background_right(system_widget.fs),
+                                simple_widget.separator,
+
+                                util.decore_with_background_right(weather_widget.weather),
+                                simple_widget.separator,
+
+                                util.decore_with_background_right(
+                                    util.group_widgets(
+                                        util.widget_margin(wibox.widget.systray(), 0, 6, 4, 4),
+                                        runner_widget.powermenu
+                                    ),
+                                    nil,
+                                    nil,
+                                    3
+                                ),
+                            })),
+                        },
+                    },
+                },
+            })
+        else
+            -- bar for all second monitors
+            s.mywibox:setup({
+                layout = wibox.layout.align.horizontal,
+                expand = "none",
+                {
+                    widget = wibox.container.margin,
+                    -- bottom = 2,
+                    -- top = 2,
+                    {
+                        widget = wibox.container.place,
+                        layout = wibox.layout.fixed.horizontal,
+                        -- spacing = 0,
+                        util.decore_with_background_left(layout_widget.layoutbox_with_name(s)),
+                        simple_widget.separator,
+                        --simple_widget.build_bg_separator(2, 0),
+                        simple_widget.tasklist(s, opts),
+                    },
+                },
+
+                {
+                    widget = wibox.container.place,
+                    layout = wibox.layout.fixed.horizontal,
+                    taglist_widget.setup(s, opts),
+                },
+
+                { -- Right widgets
+
+                    widget = wibox.container.place,
+                    h_align = "right",
+                    {
+                        widget = wibox.container.margin,
+                        {
+                            widget = wibox.container.place,
+                            layout = wibox.layout.fixed.horizontal,
+                            simple_widget.build_bg_separator(2, 0),
+                            runner_widget.left_all,
+                            simple_widget.separator,
+                        },
+                    },
+                },
+            })
+        end
     end)
 end
 
