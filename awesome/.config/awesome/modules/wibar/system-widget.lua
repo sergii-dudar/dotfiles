@@ -62,7 +62,51 @@ fs.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
     awful.util.spawn(vars.run.disc_gdu)
 end)))
 
+local cpu_temp = lain.widget.temp({
+    settings = function()
+        local value = string.format("%02d", coretemp_now)
+
+        local perc = tonumber(coretemp_now) or 0
+        local icon_fg = "#8caaee"
+        local icon = ""
+
+        if perc <= 25 then
+            icon_fg = "#8caaee"
+            icon = ""
+        elseif perc <= 50 then
+            icon_fg = "#8caaee"
+            icon = ""
+        elseif perc <= 75 then
+            icon_fg = "#e78284"
+            icon = ""
+        elseif perc <= 100 then
+            icon_fg = "#ff5555"
+            icon = ""
+        end
+
+        widget:set_markup(
+            markup.font(
+                vars.font.widget,
+                markup(
+                    gray,
+                    util.to_span(icon, icon_fg)
+                        .. util.vars.icon_widget_space
+                        .. value
+                        .. markup.fontfg(vars.font.default, "#6272a4", "°C")
+                )
+            )
+        )
+    end,
+})
+
+-- local sysload = lain.widget.sysload({
+--     settings = function()
+--         widget:set_markup(markup.font(theme.font, markup(gray, " Cpu ") .. load_1 .. " "))
+--     end
+-- })
+
 M.cpu = cpu
 M.mem = mem
 M.fs = fs
+M.cpu_temp = cpu_temp
 return M

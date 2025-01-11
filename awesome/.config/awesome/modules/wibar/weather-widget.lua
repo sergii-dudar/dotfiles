@@ -18,7 +18,7 @@ local vn_ua_geo = {
     lon = 28.481,
 }
 local weather = lain.widget.weather({
-    APPID = api_key,
+    --APPID = api_key,
     notification_preset = { font = vars.font.default, fg = gray },
     weather_na_markup = markup.fontfg(vars.font.default, gray, "N/A"),
     notification_text_fun = function(wn)

@@ -107,6 +107,8 @@ M.setup = function(opts)
                             simple_widget.separator,
                             util.decore_with_background_right(system_widget.cpu),
                             simple_widget.separator,
+                            util.decore_with_background_right(system_widget.cpu_temp),
+                            simple_widget.separator,
                             util.decore_with_background_right(system_widget.fs),
                             simple_widget.separator,
 
