@@ -17,7 +17,8 @@ return {
                 --  Position to open the terminal, this option is ignored if mode ~= term
                 position = "bot",
                 -- window size, this option is ignored if mode == tab
-                size = 12,
+                --size = 12,
+                size = 25,
             },
             filetype = {
                 java = {
@@ -36,7 +37,11 @@ return {
                 typescript = "deno run",
                 lua = "lua $dir/$fileName",
                 sh = "bash $dir/$fileName",
-                haskell = "runhaskell $dir/$fileName",
+                --haskell = "echo $dir/$fileName",
+                haskell = {
+                    "cd $dir",
+                    "&& runhaskell $fileName",
+                },
                 rust = {
                     "cd $dir",
                     "&& rustc $fileName -o /tmp/$fileNameWithoutExt",

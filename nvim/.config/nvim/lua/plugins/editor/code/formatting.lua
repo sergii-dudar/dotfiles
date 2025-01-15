@@ -14,6 +14,9 @@ return {
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }
 
+            -- haskell
+            opts.formatters_by_ft.haskell = { "fourmolu" }
+
             -- opts.formatters = {
             --     black = {
             --         prepend_args = { "--line-length", "1000" },

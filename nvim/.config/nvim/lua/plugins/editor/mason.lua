@@ -34,6 +34,8 @@ return {
             "ruff",
             "stylua",
             "shellharden",
+            -- haskell
+            "fourmolu",
         },
     },
 }
