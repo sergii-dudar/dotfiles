@@ -72,6 +72,7 @@ return {
             local keys = require("lazyvim.plugins.lsp.keymaps").get()
             keys[#keys + 1] = { "K", false }
             keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
+            keys[#keys + 1] = { "<F1>", vim.lsp.buf.hover, desc = "Hover" }
         end,
     },
     -- LSP diagnostics in virtual text at the top right of your screen

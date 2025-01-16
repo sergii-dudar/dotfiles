@@ -48,6 +48,11 @@ return {
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
                 },
+                -- rust = {
+                --     "cd $dir",
+                --     "&& cargo build",
+                --     "&& cargo run",
+                -- },
                 go = { "go run $dir/$fileName" },
                 c = {
                     "cd $dir",

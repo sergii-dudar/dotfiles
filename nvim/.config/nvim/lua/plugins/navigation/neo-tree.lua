@@ -11,7 +11,11 @@ return {
                 ["/"] = "noop",
                 ["<esc>"] = "noop",
             },
-            --position = 'float',
+            --position = "float",
+            popup = { -- settings that apply to float position only
+                size = { height = "90%", width = "70%" },
+                position = "50%", -- 50% means center it
+            },
         },
         popup_border_style = "rounded", --'solid',
         filesystem = {
@@ -49,8 +53,13 @@ return {
             -- }
         },
         default_component_configs = {
+            type = {
+                enabled = false,
+                width = 10, -- width of the column
+                required_width = 75, -- min width of window required to show this column
+            },
             last_modified = {
-                enabled = true,
+                enabled = false,
                 required_width = 75,
             },
             file_size = {

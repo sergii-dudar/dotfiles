@@ -15,14 +15,14 @@ return {
         "mfussenegger/nvim-dap",
         keys = {
             {
-                "<F1>",
+                "<F5>",
                 function()
                     require("dap").toggle_breakpoint()
                 end,
                 desc = "Toggle Breakpoint",
             },
             {
-                "<F2>",
+                "<F11>",
                 function()
                     require("dap.ui.widgets").hover()
                 end,
