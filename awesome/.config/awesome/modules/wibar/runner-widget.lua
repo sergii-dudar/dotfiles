@@ -29,6 +29,7 @@ local wezterm_icon = icons_dir .. "wezterm.png"
 local ghostty_icon = icons_dir .. "ghostty.png"
 local pipette_icon = icons_dir .. "pipette2.png"
 local chrome_icon = icons_dir .. "google-chrome.svg"
+local brave_icon = icons_dir .. "brave.png"
 local intellij_icon = icons_dir .. "intellij-idea2.svg"
 local insomnia_icon = icons_dir .. "insomnia.png"
 local torrent_icon = icons_dir .. "qbittorrent.svg"
@@ -38,6 +39,7 @@ local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
 local ghostty_terminal = util.to_imagebox_runner(ghostty_icon, "ghostty")
 local pipette = util.to_imagebox_runner(pipette_icon, "gpick")
 local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
+local brave = util.to_imagebox_runner(brave_icon, "brave")
 local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
 local insomnia = util.to_imagebox_runner(insomnia_icon, "/opt/insomnia/insomnia %U")
 local torrent = util.to_imagebox_runner(torrent_icon, "env QT_SCALE_FACTOR=1.4 qbittorrent")
@@ -91,6 +93,11 @@ util.add_text_info_pupup({
     icon_path = chrome_icon,
 })
 util.add_text_info_pupup({
+    target_widget = brave,
+    info_text = "Brave Browser",
+    icon_path = brave_icon,
+})
+util.add_text_info_pupup({
     target_widget = intellij,
     info_text = "Intellij Idea",
     icon_path = intellij_icon,
@@ -114,7 +121,8 @@ return {
             util.add_bg_hover_to_widget(util.widget_margin(ghostty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(kitty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(wezterm_terminal, 4, 4, 0, 0), runner_bg_hover),
-            util.add_bg_hover_to_widget(util.widget_margin(chrome, 5, 5, 0, 0), runner_bg_hover),
+            --util.add_bg_hover_to_widget(util.widget_margin(chrome, 5, 5, 0, 0), runner_bg_hover),
+            util.add_bg_hover_to_widget(util.widget_margin(brave, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(intellij, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(insomnia, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(pipette, 4, 4, 0, 0), runner_bg_hover),

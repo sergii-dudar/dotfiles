@@ -5,7 +5,6 @@ from widget.datetime_widgets import clock, date
 from widget.keyboard_widgets import keyboard
 from widget.music_widgets import music_control
 from widget.qtile_widgets import chord, curlayout, curlayoutText, groupbox, task_list, windowname
-from widget.runner_widgets import applications, kitty_runner, powermenu
 from widget.simple_widgets import (
     arch_icon,
     arch_version,
@@ -38,10 +37,12 @@ bar_widgers = [
 
     runner_widgets.applications,
     runner_widgets.settings,
+    runner_widgets.ghostty_terminal,
     runner_widgets.kitty_runner,
     runner_widgets.wezterm_terminal,
     runner_widgets.pipette,
     runner_widgets.chrome,
+    runner_widgets.brave,
     runner_widgets.intellij,
     runner_widgets.insomnia,
     runner_widgets.torrent,
@@ -106,6 +107,6 @@ bar_widgers = [
     sep,
     to_space_rec_left(0),
     tray,
-    powermenu,
+    runner_widgets.powermenu,
     to_space_rec_right(3)
 ]
