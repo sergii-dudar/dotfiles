@@ -42,17 +42,17 @@ return {
                     "cd $dir",
                     "&& runhaskell $fileName",
                 },
-                rust = {
-                    "cd $dir",
-                    "&& rustc $fileName -o /tmp/$fileNameWithoutExt",
-                    "&& /tmp/$fileNameWithoutExt",
-                    "&& rm /tmp/$fileNameWithoutExt",
-                },
                 -- rust = {
                 --     "cd $dir",
-                --     "&& cargo build",
-                --     "&& cargo run",
+                --     "&& rustc $fileName -o /tmp/$fileNameWithoutExt",
+                --     "&& /tmp/$fileNameWithoutExt",
+                --     "&& rm /tmp/$fileNameWithoutExt",
                 -- },
+                rust = {
+                    "cd $dir",
+                    -- "&& cargo -q build",
+                    "&& cargo -q run", --build & run
+                },
                 go = { "go run $dir/$fileName" },
                 c = {
                     "cd $dir",

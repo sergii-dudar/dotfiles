@@ -122,3 +122,6 @@ fi
 
 # tmux
 alias tmuxkill='tmux kill-server'
+
+# rust
+alias rustdoc='rustup doc'
