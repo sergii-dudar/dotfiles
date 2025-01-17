@@ -37,6 +37,16 @@ screens = [
             margin=[ 0, 0, 7, 0 ],
         ),
     ),
+    # Screen(
+    #     right=bar.Gap(7),
+    #     left=bar.Gap(7),
+    #     bottom=bar.Gap(7),
+    #     top=bar.Bar(
+    #         widgets.bar_widgers,
+    #         size=35,
+    #         margin=[ 0, 0, 7, 0 ],
+    #     ),
+    # ),
 ]
 
 dgroups_key_binder = None
