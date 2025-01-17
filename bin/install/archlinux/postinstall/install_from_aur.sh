@@ -10,7 +10,8 @@ cd ~/ && \
     # install packages from aut repository
 yay -S sublime-text && \
     yay -S google-chrome && \
-    #yay -S telegram-desktop# from pacman
+    yay -S brave-bin
+#yay -S telegram-desktop# from pacman
 #yay -S viber# appimage from off site
 yay -S appimagelauncher && \
 
