@@ -30,9 +30,9 @@ local ghostty_icon = icons_dir .. "ghostty.png"
 local pipette_icon = icons_dir .. "pipette.png"
 -- local chrome_icon = icons_dir .. "google-chrome.svg"
 local brave_icon = icons_dir .. "brave.png"
-local intellij_icon = icons_dir .. "intellij.png"
+local intellij_icon = icons_dir .. "intellij.svg"
 local insomnia_icon = icons_dir .. "insomnia.png"
-local torrent_icon = icons_dir .. "qbittorrent.png"
+local torrent_icon = icons_dir .. "qbittorrent.svg"
 
 local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
 local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")

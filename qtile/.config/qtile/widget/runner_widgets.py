@@ -20,10 +20,10 @@ icons_dir = var.path.home_dir + "/dotfiles/awesome/.config/awesome/themes/person
 kitty_icon = icons_dir + "kitty.svg"
 wezterm_icon = icons_dir + "wezterm.png"
 ghostty_icon = icons_dir + "ghostty.png"
-pipette_icon = icons_dir + "pipette2.png"
+pipette_icon = icons_dir + "pipette.png"
 # chrome_icon = icons_dir + "google-chrome.svg"
 brave_icon = icons_dir + "brave.png"
-intellij_icon = icons_dir + "intellij-idea2.svg"
+intellij_icon = icons_dir + "intellij.svg"
 insomnia_icon = icons_dir + "insomnia.png"
 torrent_icon = icons_dir + "qbittorrent.svg"
 
