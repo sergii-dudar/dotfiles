@@ -14,7 +14,7 @@ M.path.home_dir = os.getenv("HOME")
 M.run.mymenu = M.path.home_dir .. "/.config/rofi/scripts/launcher_t1"
 M.run.powermenu = M.path.home_dir .. "/.config/rofi/scripts/powermenu_t1"
 M.run.change_language = "bash " .. M.path.home_dir .. "/dotfiles/bin/change_language.sh"
-M.run.monkey_type = "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+M.run.monkey_type = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
 M.run.volume_control = "pavucontrol"
 M.run.gnome_system_monitor = "gnome-system-monitor"
 M.run.gnome_settings = "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
@@ -24,7 +24,8 @@ M.run.htop = "kitty --name htop_info -e htop"
 M.run.disc_usage = 'kitty --name disc_usage_info --hold zsh -c "export MANUAL_RL=1; df; exec zsh"'
 M.run.disc_gdu = "kitty --name disc_ugd -e gdu"
 -- This is used later as the default terminal and editor to run.
-M.app.terminal = "wezterm"
+-- M.app.terminal = "wezterm"
+M.app.terminal = "ghostty"
 M.app.editor = os.getenv("EDITOR") or "neovim"
 M.app.editor_cmd = M.app.terminal .. " -e " .. M.app.editor
 

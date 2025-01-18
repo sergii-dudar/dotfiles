@@ -32,7 +32,7 @@ screens = [
         left=bar.Gap(7),
         bottom=bar.Gap(7),
         top=bar.Bar(
-            widgets.bar_widgers,
+            widgets.build_main_bar_widgets(),
             size=35,
             margin=[ 0, 0, 7, 0 ],
         ),
@@ -42,10 +42,11 @@ screens = [
     #     left=bar.Gap(7),
     #     bottom=bar.Gap(7),
     #     top=bar.Bar(
-    #         widgets.bar_widgers,
+    #         widgets.build_second_bar_widgets(),
     #         size=35,
     #         margin=[ 0, 0, 7, 0 ],
     #     ),
+    #     # layout = layout.VerticalTile()
     # ),
 ]
 

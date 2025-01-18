@@ -41,16 +41,17 @@ local function new_scratchpad(id, cmd, factor_width, factor_height)
 end
 
 M = {}
-M.yazi = new_scratchpad("yazi-scratchpad-id-1", "kitty --class=yazi -e yazi")
+-- M.yazi = new_scratchpad("yazi-scratchpad-id-1", "kitty --class=yazi -e yazi")
+M.yazi = new_scratchpad("yazi-scratchpad-id-1", "ghostty --class=com.scratchpad.yazi -e yazi")
 M.telegram = new_scratchpad("telegram-scratchpad-id-2", "telegram-desktop")
 M.nautilus = new_scratchpad("nautilus-scratchpad-id-3", "nautilus")
 M.youtube_music = new_scratchpad(
     "youtube_music-scratchpad-id-4",
-    "google-chrome-stable --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
+    "brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
 )
 M.google_chat = new_scratchpad(
     "google_chat_scratchpad-id-5",
-    "google-chrome-stable --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
+    "brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
 )
 M.monkey_type = new_scratchpad("google_chat_scratchpad-id-6", vars.run.monkey_type, 0.75, 0.8)
 

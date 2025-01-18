@@ -73,9 +73,12 @@ floating_layout = layout.Floating(
 # Define rules to assign specific applications to groups
 rules_list = [
         { "rule": Rule(Match(wm_class="org.wezfurlong.wezterm")), "group": "1" },
+        # { "rule": Rule(Match(wm_class="com.mitchellh.ghostty", wm_instance_class="ghostty")), "group": "1" },
+        { "rule": Rule(Match(wm_class="com.ghostty.group01", wm_instance_class="ghostty")), "group": "1" },
         { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
         { "rule": Rule(Match(wm_class="Code")), "group": "2" },
-        { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
+        # { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
+        # { "rule": Rule(Match(wm_class="Brave-browser", wm_instance_class="brave-browser")), "group": "3" },
         { "rule": Rule(Match(wm_class="kitty", wm_instance_class="kitty")), "group": "4" },
 ]
 

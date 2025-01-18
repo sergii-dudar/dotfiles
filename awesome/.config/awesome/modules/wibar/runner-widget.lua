@@ -27,18 +27,18 @@ applications:buttons(gears.table.join(
 local kitty_icon = icons_dir .. "kitty.svg"
 local wezterm_icon = icons_dir .. "wezterm.png"
 local ghostty_icon = icons_dir .. "ghostty.png"
-local pipette_icon = icons_dir .. "pipette2.png"
-local chrome_icon = icons_dir .. "google-chrome.svg"
+local pipette_icon = icons_dir .. "pipette.png"
+-- local chrome_icon = icons_dir .. "google-chrome.svg"
 local brave_icon = icons_dir .. "brave.png"
-local intellij_icon = icons_dir .. "intellij-idea2.svg"
+local intellij_icon = icons_dir .. "intellij.png"
 local insomnia_icon = icons_dir .. "insomnia.png"
-local torrent_icon = icons_dir .. "qbittorrent.svg"
+local torrent_icon = icons_dir .. "qbittorrent.png"
 
 local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
 local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
 local ghostty_terminal = util.to_imagebox_runner(ghostty_icon, "ghostty")
 local pipette = util.to_imagebox_runner(pipette_icon, "gpick")
-local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
+-- local chrome = util.to_imagebox_runner(chrome_icon, "google-chrome-stable")
 local brave = util.to_imagebox_runner(brave_icon, "brave")
 local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
 local insomnia = util.to_imagebox_runner(insomnia_icon, "/opt/insomnia/insomnia %U")
@@ -87,11 +87,11 @@ util.add_text_info_pupup({
     info_text = "GPick App",
     icon_path = pipette_icon,
 })
-util.add_text_info_pupup({
-    target_widget = chrome,
-    info_text = "Google Chrome",
-    icon_path = chrome_icon,
-})
+-- util.add_text_info_pupup({
+--     target_widget = chrome,
+--     info_text = "Google Chrome",
+--     icon_path = chrome_icon,
+-- })
 util.add_text_info_pupup({
     target_widget = brave,
     info_text = "Brave Browser",

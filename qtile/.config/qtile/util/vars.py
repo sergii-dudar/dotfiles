@@ -23,18 +23,19 @@ font = FontClass()
 class RunClass:
     def __init__(self):
         self.terminal_kitty = "kitty"
-        self.terminal = "wezterm"
+        self.terminal_wezterm = "wezterm"
+        self.terminal = "ghostty"
         #mymenu = "rofi -show drun"
         self.mymenu = path.home_dir + "/.config/rofi/scripts/launcher_t1"
         self.powermenu = path.home_dir + "/.config/rofi/scripts/powermenu_t1"
-        self.browser = "google-chrome-stable"
+        self.browser = "brave"
         self.files = "nautilus"
         self.discord = "webcord"
         self.todoist = "flatpak run com.todoist.Todoist"
         self.screenie = "flameshot gui"
 
         self.change_language = "bash " + path.home_dir + "/dotfiles/bin/change_language.sh"
-        self.monkey_type = "google-chrome-stable --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        self.monkey_type = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         self.volume_control = "pavucontrol"
         self.gnome_system_monitor = "gnome-system-monitor"
         self.gnome_settings = "env XDG_CURRENT_DESKTOP=GNOME gnome-control-center"

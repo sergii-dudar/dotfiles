@@ -16,11 +16,13 @@ nm-applet &
 #volumeicon &
 #glate &
 #kitty --hold zsh -c "yazi" &
-wezterm &
+#wezterm &
 kitty &
+ghostty --class=com.ghostty.group01 &
 
 #killall volumeicon; volumeicon &
-google-chrome-stable &
+#google-chrome-stable &
+brave &
 
 # google chat
 # google-chrome-stable --app-id=crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi &

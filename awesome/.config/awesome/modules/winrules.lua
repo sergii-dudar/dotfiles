@@ -4,7 +4,6 @@ local tags = require("modules.wibar.taglist-widget").tags
 local util = require("util.common-util")
 
 local M = {}
-
 ---@param opts { keybind: {} }
 M.setup = function(opts)
     -- Table of layouts to cover with awful.layout.inc, order matters.
@@ -122,26 +121,26 @@ M.setup = function(opts)
 
         -- Scratchpads
         {
-            rule = { class = "yazi" },
+            rule = { class = "com.scratchpad.yazi" },
             properties = { opacity = 0.85 },
         },
         {
-            rule = { class = "telegram-desktop" },
+            rule = { class = "TelegramDesktop", instance = "telegram-desktop" },
             properties = { opacity = 0.9 },
         },
         {
             -- music
-            rule = { class = "Google-chrome", instance = "crx_cinhimbnkkaeohfgghhklpknlkffjgod" },
+            rule = { class = "Brave-browser", instance = "crx_cinhimbnkkaeohfgghhklpknlkffjgod" },
             properties = { opacity = 0.9 },
         },
         {
             -- chat
-            rule = { class = "Google-chrome", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
+            rule = { class = "Brave-browser", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
             properties = { opacity = 0.9 },
         },
         {
             -- monkeytype
-            rule = { class = "Google-chrome", instance = "crx_picebhhlijnlefeleilfbanaghjlkkna" },
+            rule = { class = "Brave-browser", instance = "crx_picebhhlijnlefeleilfbanaghjlkkna" },
             properties = { opacity = 0.95 },
         },
         -- Apps start on tag roles
@@ -150,19 +149,26 @@ M.setup = function(opts)
             properties = { tag = tags[1] },
         },
         {
+            rule = { class = "com.ghostty.group01", instance = "ghostty" },
+            properties = { tag = tags[1] },
+        },
+        {
             rule = { class = "jetbrains-idea" },
             properties = { tag = tags[2] },
         },
         {
             rule = { class = "Code" },
-            properties = { tag = tags["2"] },
+            properties = { tag = tags[2] },
         },
+        -- {
+        --     rule = { class = "Google-chrome", instance = "google-chrome" },
+        --     properties = { tag = tags[3] },
+        -- },
+        -- {
+        --     rule = { class = "Brave-browser", instance = "brave-browser" },
+        --     properties = { tag = tags[1] },
+        -- },
         {
-            rule = { class = "Google-chrome", instance = "google-chrome" },
-            properties = { tag = tags["3"] },
-        },
-        {
-            --rule = { class = "kitty" },
             rule = { instance = "kitty" },
             properties = { tag = tags[4] },
         },
