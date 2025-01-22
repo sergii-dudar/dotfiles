@@ -302,7 +302,8 @@ if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytyp
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
+# if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
+if.app-id = 'com.brave.Browser.app.hklfmmehghkmgpoombkhphgoebceokhg'
 run = 'layout floating'
 
 [[on-window-detected]]
