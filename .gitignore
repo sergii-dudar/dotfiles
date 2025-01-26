@@ -44,6 +44,7 @@ zsh/serhii.shell/work.sh
 # dwm
 suckless/**/*.o
 suckless/dwm/dwm
+suckless/dwm-flexipatch/dwm
 
 **/.config/xmonad/stack.yaml.lock
 **/.config/xmonad/.stack-work/
