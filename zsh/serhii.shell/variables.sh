@@ -1,3 +1,6 @@
+# tell specific tools where need seek config (lazygit, aerospace etc)
+export XDG_CONFIG_HOME="$HOME/.config"
+
 if isMacOs; then
     export PATH="/usr/local/opt/python@3.9/libexec/bin:$PATH"
     export PATH="/usr/local/opt/python/libexec/bin:$PATH"
@@ -16,8 +19,6 @@ if isMacOs; then
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
 
-    # tell specific tools where need seek config (lazygit, aerospace etc)
-    export XDG_CONFIG_HOME="$HOME/.config"
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
 else

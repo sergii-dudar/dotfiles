@@ -17,4 +17,7 @@ sudo rm /usr/share/xsessions/awesome.desktop && \
 sudo rm /usr/share/xsessions/xmonad.desktop && \
     sudo cp ~/dotfiles/bin/desc/xmonad.desktop /usr/share/xsessions/xmonad.desktop
 
+sudo rm /usr/share/xsessions/dwm.desktop && \
+    sudo cp ~/dotfiles/bin/desc/dwm.desktop /usr/share/xsessions/dwm.desktop
+
 `

@@ -42,9 +42,8 @@ zsh/serhii.shell/work.sh
 **/nvim/lazy-lock.json
 
 # dwm
-suckless/**/*.o
-suckless/dwm/dwm
-suckless/dwm-flexipatch/dwm
+dwm/.config/dwm/*.o
+dwm/.config/dwm/dwm
 
 **/.config/xmonad/stack.yaml.lock
 **/.config/xmonad/.stack-work/
