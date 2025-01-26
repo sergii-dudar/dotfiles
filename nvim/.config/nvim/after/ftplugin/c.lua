@@ -8,6 +8,7 @@ vim.opt.breakindent = true
 
 -- disabled autoformat to work with dwm
 vim.b.autoformat = false
+vim.diagnostic.enable(false)
 
 -- vim.api.nvim_create_autocmd({ "FileType" }, {
 --   pattern = { "c" },
