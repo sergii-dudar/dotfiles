@@ -56,13 +56,13 @@ return {
                 go = { "go run $dir/$fileName" },
                 c = {
                     "cd $dir",
-                    "&& gcc -Wno-format $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& gcc -std=c17 -Wno-format $fileName -o /tmp/$fileNameWithoutExt", -- -std=c11, -std=c17, -std=c23(c2x)
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
                 },
                 cpp = {
                     "cd $dir",
-                    "&& g++ $fileName -o /tmp/$fileNameWithoutExt",
+                    "&& g++ -std=c++23 $fileName -o /tmp/$fileNameWithoutExt", -- -std=c++11, -std=c++14, -std=c++17 (DEFAULT), -std=c++20, -std=c++23, -std=c++26(c++2c)
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
                 },
