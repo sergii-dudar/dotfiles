@@ -165,11 +165,10 @@ static void (*bartabmonfns[])(Monitor *) = { NULL /* , customlayoutfn */ };
 #endif // BAR_TABGROUPS_PATCH
 #if BAR_PANGO_PATCH
 static const char font[]                 = "monospace 10";
+// static const char font[]               = "CaskaydiaCove Nerd Font:bold:size=12";
 #else
 static const char *fonts[]               = { "CaskaydiaCove Nerd Font:bold:size=12" };
-//static const char *fonts[]               = { "CaskaydiaCove Nerd Font Bold 14" };
 #endif // BAR_PANGO_PATCH
-//static const char dmenufont[]            = "monospace:size=10";
 static const char dmenufont[]            = "CaskaydiaCove Nerd Font:bold:size=12";
 
 static char c000000[]                    = "#000000"; // placeholder value
@@ -411,7 +410,7 @@ static const Launcher launchers[] = {
 	{ "surf",               CMD("surf") },
 	{ "brave",              CMD("brave") },
 	{ "  ",                CMD("/home/serhii/.config/rofi/scripts/launcher_t1") },
-	//{ "<span foreground='#8caaee' font='CaskaydiaCove Nerd Font Bold 12'> </span>", CMD("/home/serhii/.config/rofi/scripts/launcher_t1") },
+	//{ "<span foreground='#8caaee' font='CaskaydiaCove Nerd Font Bold 15'> </span>", CMD("/home/serhii/.config/rofi/scripts/launcher_t1") },
 };
 #endif // BAR_LAUNCHER_PATCH
 
