@@ -59,9 +59,9 @@ M.globalkeys = gears.table.join(
     -- end, { description = "decrease the number of columns", group = "layout" }),
 
     -- App Runners
-    awful.key({ vars.key.altkey }, "space", function()
-        awful.util.spawn(vars.run.mymenu)
-    end, { description = "show my applications menu", group = "awesome" }),
+    -- awful.key({ vars.key.altkey }, "space", function()
+    --     awful.util.spawn(vars.run.mymenu)
+    -- end, { description = "show my applications menu", group = "awesome" }), -- handled by sxhkd
     awful.key({ vars.key.modkey }, "Return", function()
         awful.spawn(vars.app.terminal)
     end, { description = "open a terminal", group = "launcher" }),

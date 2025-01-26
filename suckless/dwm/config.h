@@ -9,7 +9,7 @@
 static const unsigned int borderpx       = 0;   /* border pixel of windows */
 static const int corner_radius           = 10;
 #else
-static const unsigned int borderpx       = 1;   /* border pixel of windows */
+static const unsigned int borderpx       = 3;   /* border pixel of windows */
 #endif // ROUNDED_CORNERS_PATCH
 #if BAR_BORDER_PATCH
 /* This allows the bar border size to be explicitly set separately from borderpx.
@@ -31,7 +31,7 @@ static int nomodbuttons                  = 1;   /* allow client mouse button bin
 static const unsigned int gappih         = 20;  /* horiz inner gap between windows */
 static const unsigned int gappiv         = 10;  /* vert inner gap between windows */
 static const unsigned int gappoh         = 10;  /* horiz outer gap between windows and screen edge */
-static const unsigned int gappov         = 30;  /* vert outer gap between windows and screen edge */
+static const unsigned int gappov         = 10;  /* vert outer gap between windows and screen edge */
 static const int smartgaps_fact          = 1;   /* gap factor when there is only one client; 0 = no gaps, 3 = 3x outer gaps */
 #endif // VANITYGAPS_PATCH
 #if AUTOSTART_PATCH
@@ -94,8 +94,8 @@ static const int statusmon               = 0;
 static const int statusmon               = 'A';
 #endif // BAR_STATUSALLMONS_PATCH | BAR_STATICSTATUS_PATCH
 #if BAR_STATUSPADDING_PATCH
-static const int horizpadbar             = 2;   /* horizontal padding for statusbar */
-static const int vertpadbar              = 0;   /* vertical padding for statusbar */
+static const int horizpadbar             = 6;   /* horizontal padding for statusbar */
+static const int vertpadbar              = 8;   /* vertical padding for statusbar */
 #endif // BAR_STATUSPADDING_PATCH
 #if BAR_STATUSBUTTON_PATCH
 static const char buttonbar[]            = "<O>";
@@ -166,9 +166,11 @@ static void (*bartabmonfns[])(Monitor *) = { NULL /* , customlayoutfn */ };
 #if BAR_PANGO_PATCH
 static const char font[]                 = "monospace 10";
 #else
-static const char *fonts[]               = { "monospace:size=10" };
+static const char *fonts[]               = { "CaskaydiaCove Nerd Font:bold:size=12" };
+//static const char *fonts[]               = { "CaskaydiaCove Nerd Font Bold 14" };
 #endif // BAR_PANGO_PATCH
-static const char dmenufont[]            = "monospace:size=10";
+//static const char dmenufont[]            = "monospace:size=10";
+static const char dmenufont[]            = "CaskaydiaCove Nerd Font:bold:size=12";
 
 static char c000000[]                    = "#000000"; // placeholder value
 
@@ -406,7 +408,10 @@ static const char *layoutmenu_cmd = "layoutmenu.sh";
 #if BAR_LAUNCHER_PATCH
 static const Launcher launchers[] = {
 	/* icon to display      command        */
-	{ "surf",               CMD("surf", "duckduckgo.com") },
+	{ "surf",               CMD("surf") },
+	{ "brave",              CMD("brave") },
+	{ "  ",                CMD("/home/serhii/.config/rofi/scripts/launcher_t1") },
+	//{ "<span foreground='#8caaee' font='CaskaydiaCove Nerd Font Bold 12'> </span>", CMD("/home/serhii/.config/rofi/scripts/launcher_t1") },
 };
 #endif // BAR_LAUNCHER_PATCH
 
@@ -882,8 +887,6 @@ static const char *dmenucmd[] = {
 	NULL
 };
 static const char *termcmd[]  = { "ghostty", NULL };
-static const char *appscmd[] = { "~/.config/rofi/scripts/launcher_t1",  NULL };
-static const char *powercmd[] = { "~/.config/rofi/scripts/powermenu_t1",  NULL };
 
 #if BAR_STATUSCMD_PATCH
 #if BAR_DWMBLOCKS_PATCH
@@ -913,8 +916,6 @@ static const Key keys[] = {
 	/* modifier                     key            function                argument */
 
     // Personal
-	{ MODKEY,                       XK_q,          spawn,                  {.v = powercmd } },
-	{ ALTKEY,                       XK_space,      spawn,                  {.v = appscmd } },
 	{ MODKEY,                       XK_Return,     spawn,                  {.v = termcmd } },
 
 	#if KEYMODES_PATCH
@@ -962,8 +963,8 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_v,          switchcol,              {0} },
 	#endif // SWITCHCOL_PATCH
 	#if ROTATESTACK_PATCH
-	{ MODKEY|Mod4Mask,              XK_j,          rotatestack,            {.i = +1 } },
-	{ MODKEY|Mod4Mask,              XK_k,          rotatestack,            {.i = -1 } },
+	{ MODKEY|Mod1Mask,              XK_j,          rotatestack,            {.i = +1 } },
+	{ MODKEY|Mod1Mask,              XK_k,          rotatestack,            {.i = -1 } },
 	#endif // ROTATESTACK_PATCH
 	#if INPLACEROTATE_PATCH
 	{ MODKEY|Mod4Mask,              XK_j,          inplacerotate,          {.i = +2 } }, // same as rotatestack

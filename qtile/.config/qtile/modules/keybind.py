@@ -43,7 +43,7 @@ keys = [
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
     #Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([alt], "space", lazy.spawn(vars.run.mymenu)),
+    #Key([alt], "space", lazy.spawn(vars.run.mymenu)), # -- handled by sxhkd
     #Key([mod], "w", lazy.spawn(browser)),
     Key([mod, "shift"], "Return", lazy.spawn(vars.run.files)),
     # Key([mod, alt], "s", lazy.spawn(screenie)),
