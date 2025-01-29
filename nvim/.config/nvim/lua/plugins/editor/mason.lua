@@ -8,7 +8,7 @@ return {
         ensure_installed = {
             -- LSP
             "bash-language-server",
-            --"lemminx",
+            "lemminx",
             "jdtls",
             --"lombok-nightly",
             --"spring-boot-tools", -- nvim-java/mason-registry
