@@ -11,6 +11,7 @@ vim.opt.breakindent = true
 local current_file = vim.fn.expand("%:p")
 local list_util = require("utils.list-util")
 local ignore_dirs = {
+    "myforks/my%-dwm",
     "dotfiles/suckless",
     -- Add more directories as needed
 }
