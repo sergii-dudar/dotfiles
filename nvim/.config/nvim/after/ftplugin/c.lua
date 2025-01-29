@@ -1,3 +1,5 @@
+-- this config as for c, h, c++ etc
+
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
@@ -6,9 +8,17 @@ vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
 
--- disabled autoformat to work with dwm
-vim.b.autoformat = false
-vim.diagnostic.enable(false)
+local current_file = vim.fn.expand("%:p")
+local list_util = require("utils.list-util")
+local ignore_dirs = {
+    "dotfiles/suckless",
+    -- Add more directories as needed
+}
+if list_util.any_match(current_file, ignore_dirs) then
+    -- disabled autoformat to work with dwm
+    vim.b.autoformat = false
+    vim.diagnostic.enable(false)
+end
 
 -- vim.api.nvim_create_autocmd({ "FileType" }, {
 --   pattern = { "c" },

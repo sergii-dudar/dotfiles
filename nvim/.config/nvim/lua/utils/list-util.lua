@@ -10,6 +10,15 @@ M.find = function(tbl, finder)
     return nil
 end
 
+M.any_match = function(target_string, match_table)
+    for _, current_match in ipairs(match_table) do
+        if string.match(target_string, current_match) then
+            return true
+        end
+    end
+    return false
+end
+
 M.find_by = function(tbl, key, value)
     for _, subtable in ipairs(tbl) do
         if subtable[key] == value then
