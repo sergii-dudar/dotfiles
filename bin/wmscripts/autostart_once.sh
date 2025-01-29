@@ -18,7 +18,7 @@ nm-applet &
 #glate &
 #kitty --hold zsh -c "yazi" &
 #wezterm &
-kitty &
+#kitty &
 ghostty --class=com.ghostty.group01 &
 
 #killall volumeicon; volumeicon &
