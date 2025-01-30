@@ -41,7 +41,8 @@ def add_scratchpad(groups, keys):
                          height=telegram_height,
                          x=telegram_x,
                          y=telegram_y,
-                         opacity=0.98),
+                         # opacity=0.98 -- moved to picom
+                         ),
                 DropDown("yazi",
                          # "kitty --class=yazi -e yazi",
                          "ghostty --class=com.scratchpad.yazi -e yazi",
@@ -49,14 +50,15 @@ def add_scratchpad(groups, keys):
                          height=yazi_height,
                          x=yazi_x,
                          y=yazi_y,
-                         opacity=0.9),
+                         # opacity=0.9 -- moved to picom
+                         ),
                 DropDown("nautilus",
                          "nautilus",
                          width=yazi_width,
                          height=yazi_height,
                          x=telegram_x,
-                         y=telegram_y),
-
+                         y=telegram_y
+                         ),
                 # install from chrome, and check ~/.local/share/applications/*.desktop right launch command
                 DropDown("youtube_music",
                          "brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod",
@@ -64,7 +66,7 @@ def add_scratchpad(groups, keys):
                          height=yazi_height,
                          x=yazi_x,
                          y=yazi_y,
-                         opacity=0.9,
+                         # opacity=0.9, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_cinhimbnkkaeohfgghhklpknlkffjgod")),
                 DropDown("google_chat",
                          "brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi",
@@ -72,7 +74,7 @@ def add_scratchpad(groups, keys):
                          height=yazi_height,
                          x=yazi_x,
                          y=yazi_y,
-                         opacity=0.9,
+                         # opacity=0.9, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")),
                 DropDown("monkeytype",
                          "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna",
@@ -80,7 +82,7 @@ def add_scratchpad(groups, keys):
                          height=yazi_height,
                          x=yazi_x,
                          y=yazi_y,
-                         opacity=0.95,
+                         # opacity=0.95, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")),
             ],
         )

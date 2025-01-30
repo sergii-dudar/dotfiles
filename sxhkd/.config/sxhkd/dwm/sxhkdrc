@@ -1,0 +1,52 @@
+# ---------- Rofi & dmenu ------------ #
+
+alt + space
+    bash "$HOME"/.config/rofi/scripts/launcher_t1
+
+super + q
+    bash "$HOME"/.config/rofi/scripts/powermenu_t1
+
+ctrl + alt + q
+    bash "$HOME"/dotfiles/bin/screen-lock
+
+super + space
+    bash "$HOME"/dotfiles/bin/change_language.sh
+
+# ---------- Application Keybindings ----------- #
+
+#ctrl + alt + s
+Print
+    flameshot gui
+
+# ---------- Audio Keybindings ------------- #
+
+super + Left
+    amixer -D pulse sset Master 5%-
+
+super + Right
+    amixer -D pulse sset Master 5%+
+
+#{ Left, Down, Up, Right }
+super + Down
+    amixer -D pulse sset Master toggle
+
+# Media
+#super + F9
+
+super + shift + Down
+    playerctl play-pause
+
+super + shift + Right
+    playerctl next
+
+super + shift + Left
+    playerctl previous
+
+XF86AudioPlay
+    playerctl play-pause
+
+XF86AudioNext
+    playerctl next
+
+XF86AudioPrev
+    playerctl previous

@@ -120,29 +120,29 @@ M.setup = function(opts)
         },
 
         -- Scratchpads
-        {
-            rule = { class = "com.scratchpad.yazi" },
-            properties = { opacity = 0.85 },
-        },
-        {
-            rule = { class = "TelegramDesktop", instance = "telegram-desktop" },
-            properties = { opacity = 0.9 },
-        },
-        {
-            -- music
-            rule = { class = "Brave-browser", instance = "crx_cinhimbnkkaeohfgghhklpknlkffjgod" },
-            properties = { opacity = 0.9 },
-        },
-        {
-            -- chat
-            rule = { class = "Brave-browser", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
-            properties = { opacity = 0.9 },
-        },
-        {
-            -- monkeytype
-            rule = { class = "Brave-browser", instance = "crx_picebhhlijnlefeleilfbanaghjlkkna" },
-            properties = { opacity = 0.95 },
-        },
+        -- {
+        --     rule = { class = "com.scratchpad.yazi" },
+        --     -- properties = { opacity = 0.85 }, -- moved to picom
+        -- },
+        -- {
+        --     rule = { class = "TelegramDesktop", instance = "telegram-desktop" },
+        --     -- properties = { opacity = 0.9 }, -- moved to picom
+        -- },
+        -- {
+        --     -- music
+        --     rule = { class = "Brave-browser", instance = "crx_cinhimbnkkaeohfgghhklpknlkffjgod" },
+        --     -- properties = { opacity = 0.9 }, -- moved to picom
+        -- },
+        -- {
+        --     -- chat
+        --     rule = { class = "Brave-browser", instance = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi" },
+        --     -- properties = { opacity = 0.9 }, -- moved to picom
+        -- },
+        -- {
+        --     -- monkeytype
+        --     rule = { class = "Brave-browser", instance = "crx_picebhhlijnlefeleilfbanaghjlkkna" },
+        --     -- properties = { opacity = 0.95 }, -- moved to picom
+        -- },
         -- Apps start on tag roles
         {
             rule = { class = "org.wezfurlong.wezterm" },
