@@ -14,8 +14,6 @@ case "$BLOCK_BUTTON" in
     6) terminal -e "$EDITOR" "$0" ;;
 esac
 
-. sb-theme
-
 # Loop through all attached batteries.
 for battery in /sys/class/power_supply/BAT?*; do
     # If non-first battery, print a space separator.
@@ -48,5 +46,5 @@ for battery in /sys/class/power_supply/BAT?*; do
         *) exit 1 ;;
     esac
 
-    display "$status$capacity%" "$color"
+    echo "$status$capacity%" "$color"
 done

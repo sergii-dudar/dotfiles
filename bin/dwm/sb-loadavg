@@ -12,5 +12,4 @@ load=$(cut -d' ' -f1 /proc/loadavg)
 is_threshold_exceeded="$(echo "$load > $THRESHOLD" | bc)"
 [ "$is_threshold_exceeded" -eq 1 ] && color=9
 
-. sb-theme
-display " $load" "$color"
+echo " $load" "$color"

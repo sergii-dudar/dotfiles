@@ -13,7 +13,7 @@ local list_util = require("utils.list-util")
 local ignore_dirs = {
     "dwm",
     --"myforks/my%-dwm",
-    "dotfiles/suckless",
+    "suckless",
     -- Add more directories as needed
 }
 if list_util.any_match(current_file, ignore_dirs) then

@@ -16,8 +16,11 @@ case $BLOCK_BUTTON in
         [ -n "$appointments" ] && notify "Appointments" "$appointments"
         ;;
     2) setsid --fork terminal -e calcurse ;;
-    6) terminal -e "$EDITOR" "$0" ;;
+    6) ghostty -e yazi ;;
 esac
 
-. sb-theme
-display "󰥔 $(date '+%H:%M:%S')"
+time=$(date '+%H:%M')
+echo "^c#FF0000^ red^c#bd93f9^ text with ^c#55cdfc^blue"
+#echo "^b#232634^ ^c#bd93f9^^b#2E3440^ 󰥔  ^C#55cdfc^ $final "
+#echo "^b#232634^ ^b#2E3440^^c#bd93f9^ 󰥔 ^c#a6d189^$time "
+# echo "  󰥔   ^c#55cdfc^ text1 text2  ^F1^ 󰥔 ^F0^󰥔 " ^C16^

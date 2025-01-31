@@ -25,5 +25,4 @@ fi
 
 [ -z "$song" ] && exit
 
-. sb-theme
-display "$icon $song"
+echo "$icon $song"

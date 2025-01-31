@@ -5,5 +5,4 @@ if pactl get-source-mute @DEFAULT_SOURCE@ | grep -q "^Mute: no"; then
     exit
 fi
 
-. sb-theme
-display ""
+echo ""

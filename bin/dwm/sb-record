@@ -7,5 +7,4 @@ if [ ! -f "$PID_FILE" ]; then
     exit
 fi
 
-. sb-theme
-display ""
+echo ""

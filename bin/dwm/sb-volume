@@ -22,9 +22,8 @@ case "$BLOCK_BUTTON" in
     6) terminal -e "$EDITOR" "$0" ;;
 esac
 
-. sb-theme
 if wpctl get-volume | grep -q "[MUTED]"; then
-    display " " 9
+    echo " " 9
     exit
 fi
 
@@ -43,4 +42,4 @@ else
     icon=" "
 fi
 
-display "$icon$volume%"
+echo "$icon$volume%"

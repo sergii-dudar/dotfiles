@@ -73,5 +73,4 @@ done
 
 [ -z "$counts" ] && exit
 
-. sb-theme
-display "$counts"
+echo "$counts"
