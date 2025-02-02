@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Display disk usage for both `/` and `/home`.
+
+case $BLOCK_BUTTON in
+    6) terminal -e "$EDITOR" "$0" ;;
+esac
+
+. "$HOME"/dotfiles/bin/dwm/colorscheme
+
+
+echo "Weather..."

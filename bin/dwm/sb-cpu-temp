@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Display disk usage for both `/` and `/home`.
+
+. "$HOME"/dotfiles/bin/dwm/colorscheme
+
+case $BLOCK_BUTTON in
+    1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)" ;;
+    2) setsid -f "$TERMINAL" -e htop ;;
+    3) notify-send "🖥 CPU module " "\- Shows CPU temperature.
+- Click to show intensive processes.
+        - Middle click to open htop." ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+temp=$(sensors | awk '/Core 0/ {print $3}' | sed 's/[^0-9]*\([0-9]*\)\..*/\1/')
+echo "$temp%"
+
+# local cpu_temp = lain.widget.temp({
+#     settings = function()
+#         --local value = string.format("%02d", coretemp_now)
+#
+#         --print("coretemp_now widget: " .. coretemp_now)
+#         --print("temp_now widget: " .. util.system.table_to_string(temp_now))
+#         local average_tmp = calculate_average(temp_now)
+#         --print("average temp_now widget: " .. average_tmp)
+#         local average_tmp_ft = string.format("%02d", math.floor(average_tmp))
+#         --print("average formatted temp_now widget: " .. average_ft)
+#
+#         local perc = tonumber(coretemp_now) or 0
+#         local icon_fg = "#8caaee"
+#         local icon = ""
+#
+#         if perc <= 25 then
+#             icon_fg = "#8caaee"
+#             icon = ""
+#         elseif perc <= 50 then
+#             icon_fg = "#8caaee"
+#             icon = ""
+#         elseif perc <= 65 then
+#             icon_fg = "#e5c890"
+#             icon = ""
+#         elseif perc <= 80 then
+#             icon_fg = "#e78284"
+#             icon = ""
+#         elseif perc <= 100 then
+#             icon_fg = "#ff5555"
+#             icon = ""
+#         end
+#
+#         widget:set_markup(
+#             markup.font(
+#                 vars.font.widget,
+#                 markup(
+#                     gray,
+#                     util.to_span(icon, icon_fg)
+#                         .. util.vars.icon_widget_space
+#                         .. average_tmp_ft
+#                         .. markup.fontfg(vars.font.default, "#6272a4", "°C")
+#                 )
+#             )
+#         )
+#     end,
+# })

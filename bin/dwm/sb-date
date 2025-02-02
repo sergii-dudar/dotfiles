@@ -3,24 +3,30 @@
 
 notify() {
     notify-send --icon=office-calendar-symbolic \
+        --expire-time=2000 \
         --hint=string:x-canonical-private-synchronous:"$1" "$@"
 }
 
 case $BLOCK_BUTTON in
-    1)
-        notify "This Month" "$(cal --color=always |
-        sed "s|..7m|<span color='$(xrdb -get color1)'>|;s|..0m|</span>|")"
-        appointments="$(calcurse -d1 \
-            --format-apt "• <i>%S - %E</i>\n  <span foreground='$(xrdb -get color6)'>%m</span>\n" \
-            --format-event "• <span foreground='$(xrdb -get color6)'>%m</span>\n")"
-        [ -n "$appointments" ] && notify "Appointments" "$appointments"
-        ;;
-    2) setsid --fork terminal -e calcurse ;;
-    6) ghostty -e yazi ;;
+    1) notify " Date: " "$(date '+%A, %b %d')" ;;
+    3) ghostty -e "$EDITOR" "$0" ;;
 esac
 
+. "$HOME"/dotfiles/bin/dwm/colorscheme
+time_icon_color="#bd93f9"
+date_icon_color="#7c8377"
+
+time_color="#a6d189"
+timep_color="#8caaee"
+date_color="#6272a4"
+
+# time=$(date '+%H:%M')
 time=$(date '+%H:%M')
-echo "^c#FF0000^ red^c#bd93f9^ text with ^c#55cdfc^blue"
-#echo "^b#232634^ ^c#bd93f9^^b#2E3440^ 󰥔  ^C#55cdfc^ $final "
-#echo "^b#232634^ ^b#2E3440^^c#bd93f9^ 󰥔 ^c#a6d189^$time "
-# echo "  󰥔   ^c#55cdfc^ text1 text2  ^F1^ 󰥔 ^F0^󰥔 " ^C16^
+timep=$(date '+%p')
+# datenow=$(date '+%a, %b %d')
+
+time_part="^c$time_icon_color^󰥔 ^c$time_color^$time ^c$timep_color^$timep"
+# date_part="^c$date_icon_color^ ^c$date_color^$datenow"
+
+# echo "$time_part $SPLIT $date_part^d^ $SPLIT"
+echo "$time_part$SPLIT_LEFT"

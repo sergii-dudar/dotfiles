@@ -5,14 +5,17 @@ case $BLOCK_BUTTON in
     6) terminal -e "$EDITOR" "$0" ;;
 esac
 
-disk_usage() {
-    used_bytes="$(df --output=avail "$1" | tail -n 1)"
-    used_gibs="$(echo "scale=1; $used_bytes / 1024 / 1024" | bc)"
+# disk_usage() {
+#     used_bytes="$(df --output=avail "$1" | tail -n 1)"
+#     used_gibs="$(echo "scale=1; $used_bytes / 1024 / 1024" | bc)"
+#
+#     percent_used="$(df --output=pcent "$1" | tail -n 1 | grep -o '[[:digit:]]\+')"
+#     [ "$percent_used" -le 10 ] && color=10
+#
+#     echo "${used_gibs}G" "$color"
+# }
 
-    percent_used="$(df --output=pcent "$1" | tail -n 1 | grep -o '[[:digit:]]\+')"
-    [ "$percent_used" -le 10 ] && color=10
+. "$HOME"/dotfiles/bin/dwm/colorscheme
+disk_usage=$(df -B 1K | grep '/home' | tr -s ' ' | cut -d' ' -f5 | tr -d '%')
 
-    echo "${used_gibs}G" "$color"
-}
-
-echo "󰋊"$(disk_usage "/")"|"$(disk_usage "/home")
+echo "^c#e5c890^ ^c$FG_COLOR^ $disk_usage% ^c#6272a4^SSD$SPLIT"

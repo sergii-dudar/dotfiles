@@ -1,45 +1,42 @@
 #!/usr/bin/env bash
 # Display volume levels.
 
-wpctl() {
-    arg="$2"
-
-    set -- "$1"
-    if [ "$1" = set-volume ]; then
-        set -- "$@" --limit=1.0
-    fi
-
-    set -- "$@" @DEFAULT_AUDIO_SINK@ "$arg"
-
-    command wpctl "$@"
-}
-
 case "$BLOCK_BUTTON" in
-    1) setsid --fork terminal -e pulsemixer ;;
-    2) wpctl set-mute toggle ;;
-    4) wpctl set-volume 3%+ ;;
-    5) wpctl set-volume 3%- ;;
-    6) terminal -e "$EDITOR" "$0" ;;
+    1) pactl set-sink-mute @DEFAULT_SINK@ toggle ;;
+    2) ghostty -e "$EDITOR" "$0" ;;
+    3) setsid --fork pavucontrol ;;
+    4) pactl set-sink-volume @DEFAULT_SINK@ +5% ;;
+    5) pactl set-sink-volume @DEFAULT_SINK@ -5% ;;
 esac
 
-if wpctl get-volume | grep -q "[MUTED]"; then
-    echo " " 9
-    exit
+. "$HOME"/dotfiles/bin/dwm/colorscheme
+
+if [ "$(pamixer --get-mute)" == "true" ]; then
+    notify-send --expire-time=1000 "Volume Muted 🔇"
+    echo "^c#d35f5e^  MUTE$SPLIT"
+    exit 0
 fi
 
-volume_frac="$(wpctl get-volume | cut -d' ' -f2)"
-volume="$(echo "$volume_frac * 100 / 1" | bc)"
+volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%')"
 
 if [ -z "$volume" ]; then
     exit 1
 fi
 
-if [ "$volume" -gt 40 ]; then
+if [ "$volume" -eq 125 ]; then
+    icon=" "
+    notify-send -u critical "Volume 125%" "You are going to damage your ears!"
+elif [ "$volume" -gt 99 ]; then
+    icon=" "
+elif [ "$volume" -gt 40 ]; then
     icon=" "
 elif [ "$volume" -gt 15 ]; then
     icon=" "
+elif [ "$volume" -lt 10 ]; then
+    echo "[^c#ca9ee6^ ^c$FG_COLOR^0$volume%]$SPLIT"
+    exit 0
 else
     icon=" "
 fi
 
-echo "$icon$volume%"
+echo "^c#ca9ee6^$icon^c$FG_COLOR^$volume%$SPLIT"

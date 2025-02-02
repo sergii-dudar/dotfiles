@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Display RAM usage.
+# Display RAM usage in %.
 
 case "$BLOCK_BUTTON" in
     6) terminal -e "$EDITOR" "$0" ;;
 esac
 
-free_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f3)"
-free_gib="$(echo "scale=2; $free_mib / 1024" | bc)"
+. "$HOME"/dotfiles/bin/dwm/colorscheme
 
-echo " $(printf "%.2f" "$free_gib")G"
+used_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f3)"
+total_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f2)"
+
+# used_percentage="$(echo "scale=2; $used_mib / $total_mib * 100" | bc)"
+used_percentage="$((used_mib * 100 / total_mib))"
+echo "^c#a6e3a1^  ^c$FG_COLOR^$used_percentage%$SPLIT"
