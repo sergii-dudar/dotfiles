@@ -19,11 +19,12 @@ LANG="en"
 response=$(curl -s "http://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${OPEN_WEATHER_API_KEY}&units=${UNITS}&lang=${LANG}")
 
 # echo "apikey: $OPEN_WEATHER_API_KEY"
-# echo $response
+# echo "$response"
 
 # Extract temperature and weather condition code
 temperature=$(echo "$response" | jq '.main.temp' | xargs printf "%.0f")
 weather_code=$(echo "$response" | jq '.weather[0].id')
+weather_title=$(echo "$response" | jq -r '.weather[0].main')
 
 case $weather_code in
     200|201|202|210|211|212|221|230|231|232)
@@ -93,4 +94,5 @@ case $weather_code in
         ;;
 esac
 
+# echo "^c#6272a4^$weather_title ^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
 echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
