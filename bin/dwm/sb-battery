@@ -16,6 +16,12 @@ esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme
 
+if [ ! -d "/sys/class/power_supply/BAT0" ]; then
+    # Battery directory exists.
+    echo ""
+    exit 0
+fi
+
 # Loop through all attached batteries.
 for battery in /sys/class/power_supply/BAT?*; do
     # If non-first battery, print a space separator.

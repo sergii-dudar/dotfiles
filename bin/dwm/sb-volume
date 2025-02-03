@@ -17,19 +17,20 @@ if [ "$(pamixer --get-mute)" == "true" ]; then
     exit 0
 fi
 
-volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%')"
+# volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%')" # can return from any channels: 80 55 75
+volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%' | head -n1)"
 
 if [ -z "$volume" ]; then
     exit 1
 fi
 
 if [ "$volume" -eq 125 ]; then
-    icon=" "
+    icon="  "
     notify-send -u critical "Volume 125%" "You are going to damage your ears!"
 elif [ "$volume" -gt 99 ]; then
-    icon=" "
+    icon="  "
 elif [ "$volume" -gt 40 ]; then
-    icon=" "
+    icon="  "
 elif [ "$volume" -gt 15 ]; then
     icon=" "
 elif [ "$volume" -lt 10 ]; then

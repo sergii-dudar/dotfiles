@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # "$HOME"/dotfiles/bin/apply-display-settings.sh &
-~/dotfiles/bin/apply-display-settings.sh &
+~/dotfiles/bin/apply-display-settings.sh
 #xsettingsd &
 ssh-add &
 dunst &
