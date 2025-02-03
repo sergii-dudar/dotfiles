@@ -9,7 +9,9 @@ notify() {
 
 case $BLOCK_BUTTON in
     1) notify " Date: " "$(date '+%A, %b %d')" ;;
-    3) ghostty -e "$EDITOR" "$0" ;;
+        # 3) setsid --fork kitty -e nvim "$0" ;;
+    2) setsid --fork gnome-clocks ;;
+    3) setsid --fork gnome-calendar ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme

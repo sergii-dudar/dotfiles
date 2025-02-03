@@ -2,7 +2,8 @@
 # Display disk usage for both `/` and `/home`.
 
 case $BLOCK_BUTTON in
-    6) terminal -e "$EDITOR" "$0" ;;
+    1) setsid --fork kitty --name disc_ugd -e gdu ;;
+    6) setsid --fork kitty -e nvim "$0" ;;
 esac
 
 # disk_usage() {

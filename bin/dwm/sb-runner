@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+case $BLOCK_BUTTON in
+    1) setsid --fork $1 ;;
+esac
+
+# . "$HOME"/dotfiles/bin/dwm/colorscheme
+
+echo " ^c$3^$2"

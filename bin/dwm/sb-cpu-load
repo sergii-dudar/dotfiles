@@ -2,9 +2,7 @@
 # Display volume levels.
 
 case "$BLOCK_BUTTON" in
-    1) pactl set-sink-mute @DEFAULT_SINK@ toggle ;;
-    2) ghostty -e "$EDITOR" "$0" ;;
-    3) setsid --fork pavucontrol ;;
+    1) setsid --fork gnome-system-monitor ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme

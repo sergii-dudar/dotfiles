@@ -2,7 +2,8 @@
 # Display RAM usage in %.
 
 case "$BLOCK_BUTTON" in
-    6) terminal -e "$EDITOR" "$0" ;;
+    1) setsid --fork kitty --name htop_info -e htop ;;
+    6) setsid --fork kitty -e nvim "$0" ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme

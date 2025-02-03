@@ -4,9 +4,10 @@
 
 case "$BLOCK_BUTTON" in
     1 | 3) "$HOME"/dotfiles/bin/change_language.sh ;;
+    2) setsid --fork kitty -e nvim "$0" ;;
 esac
 
-notify-send "button -- $BLOCK_BUTTON"
+# notify-send "button -- $BLOCK_BUTTON"
 # case "$BLOCK_BUTTON" in
 #     1) notify-send "button 1" ;;
 #     2) notify-send "button 2" ;;
@@ -24,4 +25,4 @@ lmap["us"]="US"
 k_layout_icon=" "
 k_layout=$(setxkbmap -query | grep layout | awk '{print $NF}')
 
-printf "^c#8caaee^ $k_layout_icon ^c#cba6f7^${lmap[$k_layout]}^d^$SPLIT"
+echo "^c#8caaee^ $k_layout_icon ^c#cba6f7^${lmap[$k_layout]}^d^$SPLIT"

@@ -38,4 +38,6 @@ brave &
 
 # move it move autostart always, in case want to add change and apply on rm restart
 killall picom; picom --backend glx -b --config ~/.config/picom/picom.conf --vsync &
-killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
+
+sxhkd_subdir="${1:-}"
+killall sxhkd; sxhkd -c ~/.config/sxhkd/${sxhkd_subdir}sxhkdrc &

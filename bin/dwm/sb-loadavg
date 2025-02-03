@@ -2,7 +2,7 @@
 # Display the average CPU load.
 
 case "$BLOCK_BUTTON" in
-    6) terminal -e "$EDITOR" "$0" ;;
+    6) setsid --fork kitty -e nvim "$0" ;;
 esac
 
 THRESHOLD=5

@@ -6,12 +6,12 @@ notify() {
         --icon=battery-good-symbolic \
         --expire-time=4000 \
         --hint=string:x-canonical-private-synchronous:battery \
-        "Battery" "$1"
+        "🔋 Battery" "$1"
 }
 
 case "$BLOCK_BUTTON" in
     1) notify "$(acpi -b | awk -F ': |, ' '{printf "%s\n%s\n", $2, $4}')" ;;
-    3) ghostty -e "$EDITOR" "$0" ;;
+    3) setsid --fork kitty -e nvim "$0" ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme
