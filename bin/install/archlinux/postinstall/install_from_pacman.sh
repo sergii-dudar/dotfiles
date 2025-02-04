@@ -22,6 +22,7 @@ sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools python-dbus-next # need for nvim Conform plugin
 sudo pacman -S gpick xautolock
 sudo pacman -S cmatrix ncdu gdu ghostty
+sudo pacman -S mpv
 
 # lxappearance (nwg-look for x11, but nwg-look works on x11 well also)
 # gtk-section
