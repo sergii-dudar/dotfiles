@@ -9,7 +9,8 @@ case $BLOCK_BUTTON in
     3) notify-send "🖥 CPU module " "\- Shows CPU temperature.
 - Click to show intensive processes.
         - Middle click to open htop." ;;
-    6) setsid --fork kitty -e nvim "$0" ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
 esac
 
 temp=$(sensors | awk '/Core 0/ {print $3}' | sed 's/[^0-9]*\([0-9]*\)\..*/\1/')

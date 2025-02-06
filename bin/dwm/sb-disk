@@ -3,7 +3,8 @@
 
 case $BLOCK_BUTTON in
     1) setsid --fork kitty --name disc_ugd -e gdu ;;
-    6) setsid --fork kitty -e nvim "$0" ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
 esac
 
 # disk_usage() {

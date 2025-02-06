@@ -12,6 +12,8 @@ case $BLOCK_BUTTON in
         # 3) setsid --fork kitty -e nvim "$0" ;;
     2) setsid --fork gnome-clocks ;;
     3) setsid --fork gnome-calendar ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme

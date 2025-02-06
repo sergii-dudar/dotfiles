@@ -3,7 +3,8 @@
 
 case "$BLOCK_BUTTON" in
     1) setsid --fork kitty --name htop_info -e htop ;;
-    6) setsid --fork kitty -e nvim "$0" ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
 esac
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme

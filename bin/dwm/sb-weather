@@ -21,6 +21,11 @@ response=$(curl -s "http://api.openweathermap.org/data/2.5/weather?q=${CITY}&app
 # echo "apikey: $OPEN_WEATHER_API_KEY"
 # echo "$response"
 
+case "$BLOCK_BUTTON" in
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
 # Extract temperature and weather condition code
 temperature=$(echo "$response" | jq '.main.temp' | xargs printf "%.0f")
 weather_code=$(echo "$response" | jq '.weather[0].id')
