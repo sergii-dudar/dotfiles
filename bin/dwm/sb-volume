@@ -20,10 +20,13 @@ if [ "$(pamixer --get-mute)" == "true" ]; then
 fi
 
 # volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%')" # can return from any channels: 80 55 75
-volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%' | head -n1)"
+# volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%' | head -n1)"
+volume="$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | tr -d '%')"
 
 if [ -z "$volume" ]; then
-    exit 1
+    icon="  "
+    volume=" "
+    return 0
 fi
 
 if [ "$volume" -eq 125 ]; then
