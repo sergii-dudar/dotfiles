@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-~/dotfiles/bin/apply-display-settings.sh &
+~/dotfiles/bin/apply-display-settings.sh
 
 #glate &
 kitty --hold zsh -c "yazi" &
