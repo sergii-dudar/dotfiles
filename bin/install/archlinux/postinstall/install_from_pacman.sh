@@ -24,7 +24,7 @@ sudo pacman -S gpick xautolock
 sudo pacman -S cmatrix ncdu gdu ghostty
 sudo pacman -S mpv
 sudo pacman -S sxiv
-
+sudo pacman -S bspwm
 # lxappearance (nwg-look for x11, but nwg-look works on x11 well also)
 # gtk-section
 sudo pacman -S nwg-look xdg-desktop-portal \
