@@ -11,7 +11,7 @@ killall picom; picom -b --corner-radius 0 --config ~/.config/picom/picom.conf --
 # but it's ok it you will switch parent window to needed layout, and then all fine with `autotiling`.
 # autotiling &
 
-~/.config/polybar/launch.sh &
+~/.config/polybar/i3/launch.sh &
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 nm-applet &
@@ -23,4 +23,4 @@ feh --bg-fill ~/wallpapers/jpg/backiee-279798-landscape.jpg &
 # screen before suspend.
 #xss-lock --transfer-sleep-lock -- i3lock --nofork
 
-killall sxhkd; sxhkd -c ~/.config/i3/sxhkd/sxhkdrc &
+killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &

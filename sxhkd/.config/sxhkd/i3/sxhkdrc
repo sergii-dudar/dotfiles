@@ -106,7 +106,7 @@ super + shift + c
 #super + F10
 #    i3-msg reload
 
-super + F9
+super + shift + r
     i3-msg restart
 
 #super + F11
