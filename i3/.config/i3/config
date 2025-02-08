@@ -5,8 +5,8 @@ include ~/.config/i3/themes/nord.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-exec --no-startup-id ~/.config/i3/autostart_once.sh
-exec_always --no-startup-id ~/.config/i3/autostart_always.sh
+exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh i3
+exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh i3
 
 exec --no-startup-id i3-msg 'workspace 1'
 

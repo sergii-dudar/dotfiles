@@ -1,4 +1,4 @@
-"$HOME"/dotfiles/bin/wmscripts/autostart_once.sh
-"$HOME"/dotfiles/bin/wmscripts/autostart_always.sh
+"$HOME"/dotfiles/bin/wmscripts/autostart_once.sh bspwm
+"$HOME"/dotfiles/bin/wmscripts/autostart_always.sh bspwm
 
 exec bspwm

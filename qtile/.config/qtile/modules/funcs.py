@@ -56,12 +56,12 @@ def screen_change():
 @hook.subscribe.startup_once
 def autostart_once():
     home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_once.sh")
-    subprocess.Popen([home])
+    subprocess.Popen([home, "qtile"])
 
 @hook.subscribe.startup
 def autostart_always():
     home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_always.sh")
-    subprocess.Popen([home])
+    subprocess.Popen([home, "qtile"])
 
 @hook.subscribe.client_new
 def _swallow(window):

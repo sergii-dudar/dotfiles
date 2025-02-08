@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=bspwm
+Name=Bspwm
 Comment=Binary space partitioning window manager
 Exec=$HOME/dotfiles/bin/desc/bspwm.desktop.runner.sh
 Type=Application

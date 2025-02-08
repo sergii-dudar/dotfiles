@@ -21,12 +21,12 @@ M.run_shell_autostarts = function()
     -- Autostart applications
     awful.spawn.with_shell([[
         if [ ! -f /tmp/awesome_startup_done ]; then
-            ~/dotfiles/bin/wmscripts/autostart_once.sh
+            ~/dotfiles/bin/wmscripts/autostart_once.sh awesome
             touch /tmp/awesome_startup_done
         fi
     ]])
 
-    awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_always.sh")
+    awful.spawn.with_shell("~/dotfiles/bin/wmscripts/autostart_always.sh awesome")
 end
 
 return M
