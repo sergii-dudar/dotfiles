@@ -5,17 +5,3 @@
 #feh --bg-fill ~/wallpapers/png/different/nord_scenary.png &
 
 feh --bg-fill ~/wallpapers/jpg/Wall147.jpg --bg-fill /home/serhii/wallpapers/portrait/AzZxWk0.png &
-# feh --bg-fill ~/wallpapers/jpg/Wall147.jpg --bg-fill ~/wallpapers/jpg/Wall147.jpg
-#feh --fullscreen --xinerama-index 1 ~/wallpapers/png/different/nord_scenary.png
-
-# auto lock screen
-# xss-lock grabs a logind suspend inhibit lock and will use i3lock-color to lock the
-# screen before suspend.
-#xss-lock --transfer-sleep-lock -- i3lock --nofork
-
-
-# compositor
-##killall picom; picom --backend glx -b --config ~/.config/picom/picom.conf --vsync &
-#killall picom; picom -b --config ~/.config/i3/picom_configurations/1.conf &
-
-#killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &

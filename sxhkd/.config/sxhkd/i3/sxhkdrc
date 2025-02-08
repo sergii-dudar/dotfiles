@@ -1,6 +1,3 @@
-super + shift + Return
-    krusader
-
 # ---------- Rofi & dmenu ------------ #
 
 alt + space
@@ -62,7 +59,7 @@ super + w
     wezterm
 
 super + Return
-    kitty
+    ghostty
 # --------- movement ---------- #
 
 super+{h,j,k,l}
