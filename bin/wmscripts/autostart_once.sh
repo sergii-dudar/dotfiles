@@ -4,7 +4,6 @@
 ssh-add &
 dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
-# telegram-desktop &
 
 # Automatically lock the screen after 10 minutes of inactivity
 xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
@@ -26,11 +25,20 @@ case "$wm_name" in
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
 
-        # i3wm specific:
-        # scratchpad terminal windows
+        # run scractchpad apps
+        telegram-desktop &
+        nautilus &
+        ghostty --class=com.scratchpad.yazi -e yazi &
+
+        # youtube_music
+        brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod &
+        # google_chat
+        brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi &
+        # monkey_type
+        brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna &
+
         # kitty --name file_namager -e yazi
         # kitty --hold --name file_namager -e yazi &
-
         ;;
     "dwm")
         dwmblocks &

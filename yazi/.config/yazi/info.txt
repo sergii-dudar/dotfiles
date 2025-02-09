@@ -1,3 +1,3 @@
 update plugins:
-    - rm plugins
+    - ya pack --migrate
     - ya pack --upgrade

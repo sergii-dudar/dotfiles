@@ -1,15 +1,47 @@
-[plugin]
-deps = [
-    { use = "yazi-rs/plugins:full-border" , rev = "71c4fc2" },
-    { use = "yazi-rs/plugins:max-preview" , rev = "71c4fc2" },
-    { use = "yazi-rs/plugins:git" , rev = "71c4fc2" },
-    { use = "dedukun/relative-motions" , rev = "df97039" },
-    { use = "Rolv-Apneseth/starship" , rev = "9c37d37" },
-    { use = "Lil-Dank/lazygit" , rev = "c82794f" },
-    { use = "AnirudhG07/plugins-yazi:copy-file-contents", rev = "11167e1" },
-    { use = "orhnk/system-clipboard", rev = "7775a80" },
-    { use = "yazi-rs/plugins:smart-filter", rev = "71c4fc2" },
-]
+[[plugin.deps]]
+use = "yazi-rs/plugins:full-border"
+rev = "0725851"
+hash = "ae9e1d0c6bfd68cdebc98cc684c22b45"
 
-#[flavor]
-#deps = [{ use = "yazi-rs/flavors:catppuccin-mocha", rev = "8458d25" }]
+[[plugin.deps]]
+use = "yazi-rs/plugins:max-preview"
+rev = "0725851"
+hash = "15b2ff7f6563c14d5b2e93b3e9da35de"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:git"
+rev = "0725851"
+hash = "771f18427fb75fb19990ce602bb322f4"
+
+[[plugin.deps]]
+use = "dedukun/relative-motions"
+rev = "0d9c8cf"
+hash = "561ad872c77b95360c2657c5e8d395ed"
+
+[[plugin.deps]]
+use = "Rolv-Apneseth/starship"
+rev = "d1cd0a3"
+hash = "d1fee6d0f74cb52d4e031dc6b9207f31"
+
+[[plugin.deps]]
+use = "Lil-Dank/lazygit"
+rev = "c82794f"
+hash = "2b0c33928986f126d5c5a4cac31a6b46"
+
+[[plugin.deps]]
+use = "AnirudhG07/plugins-yazi:copy-file-contents"
+rev = "9c309b5"
+hash = "27c50e6bc15c09096505b805b238ade0"
+
+[[plugin.deps]]
+use = "orhnk/system-clipboard"
+rev = "7775a80"
+hash = "9b8f2573da54334b04747e51556040cc"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:smart-filter"
+rev = "0725851"
+hash = "b482f4f2d3c4e0aa3f8db89a95699439"
+
+[flavor]
+deps = []

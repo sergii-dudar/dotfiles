@@ -1,3 +1,5 @@
+--- @since 25.2.7
+
 local save = ya.sync(function(st, cwd, output)
     if cx.active.current.cwd == Url(cwd) then
         st.output = output
@@ -49,10 +51,20 @@ return {
             local cwd = cx.active.current.cwd
             if st.cwd ~= cwd then
                 st.cwd = cwd
-                ya.manager_emit("plugin", {
-                    st._id,
-                    args = ya.quote(tostring(cwd), true),
-                })
+
+                if ya.confirm then
+                    -- >= yazi 25.2.7
+                    ya.manager_emit("plugin", {
+                        st._id,
+                        ya.quote(tostring(cwd), true),
+                    })
+                else
+                    -- < yazi 25.2.7
+                    ya.manager_emit("plugin", {
+                        st._id,
+                        args = ya.quote(tostring(cwd), true),
+                    })
+                end
             end
         end
 
@@ -67,7 +79,11 @@ return {
         -- a version before this change, they can use the old implementation.
         -- https://github.com/sxyazi/yazi/pull/1966
         local args = job_or_args.args or job_or_args
-        local command = Command("starship"):arg("prompt"):cwd(args[1]):env("STARSHIP_SHELL", "")
+        local command = Command("starship")
+            :arg("prompt")
+            :stdin(Command.INHERIT)
+            :cwd(args[1])
+            :env("STARSHIP_SHELL", "")
 
         -- Point to custom starship config
         local config_file = get_config_file()
