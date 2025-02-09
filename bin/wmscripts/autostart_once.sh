@@ -25,7 +25,7 @@ case "$wm_name" in
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
 
-        # run scractchpad apps
+        # run scractchpad apps (i3 can't open them automatically)
         telegram-desktop &
         nautilus &
         ghostty --class=com.scratchpad.yazi -e yazi &
