@@ -13,7 +13,7 @@ fi
 
 # must be the same as in .Xresources
 
-xrdb -merge ~/.Xresources &
+xrdb -merge ~/.Xresources
 xrandr --dpi 112
 
 # if working machine:
