@@ -19,6 +19,13 @@ if isMacOs; then
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
 
+    # Rust Cargo (Pre):
+    # In general to use latest app versions (like yazi), as brew getting latest with big delay, while arch already have it.
+    # to use from brew, just comment it.
+    # cargo install --locked yazi-fm yazi-cli
+    export PATH=$HOME/.cargo/bin:$PATH
+
+    # Haskell
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
 else
