@@ -131,7 +131,7 @@ def build_second_bar_widgets():
         runner_widgets.kitty_runner,
         runner_widgets.wezterm_terminal,
         runner_widgets.pipette,
-        runner_widgets.chrome,
+        # runner_widgets.chrome,
         runner_widgets.brave,
         runner_widgets.intellij,
         runner_widgets.insomnia,

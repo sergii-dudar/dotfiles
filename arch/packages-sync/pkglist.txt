@@ -138,6 +138,7 @@ polybar
 postgresql
 procs
 pulseaudio-alsa
+python-dbus
 python-dbus-next
 python-pip
 python-setuptools

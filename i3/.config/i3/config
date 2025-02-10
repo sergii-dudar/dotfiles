@@ -77,7 +77,7 @@ mode "resize" {
 # bindsym $mod+p scratchpad show; resize set 65ppt 70ppt; move position center
 # bindsym $mod+p move scratchpad; resize set 65ppt 70ppt; move position center
 
-bindsym $mod+l mode "layout"
+bindsym $mod+i mode "layout"
 
 mode "layout" {
 
