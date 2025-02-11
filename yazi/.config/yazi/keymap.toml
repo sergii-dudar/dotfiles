@@ -45,7 +45,10 @@ prepend_keymap = [
     { on = [ "e", "f" ], run = "plugin system-clipboard", desc = "yank file to clipboard" },
 
     # smart filter
-    { on = "F", run = "plugin smart-filter", desc = "Smart filter" }
+    { on = "F", run = "plugin smart-filter", desc = "Smart filter" },
+
+    # mount
+    { on = "M", run = "plugin mount", desc = "Mount discs" }
 ]
 
 keymap = [
