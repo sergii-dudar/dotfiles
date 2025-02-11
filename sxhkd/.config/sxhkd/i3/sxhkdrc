@@ -66,8 +66,8 @@ super+{h,j,k,l}
     i3-msg focus {left,down,up,right}
 
 # left,right arrow to got to workspace (almost not using it, but some time when mess it hels)
-super + shift + {Left,Right}
-    i3-msg workspace {prev,next}
+# super + shift + {Left,Right}
+#     i3-msg workspace {prev,next}
 
 super+shift+{h,j,k,l}
     i3-msg move {left,down,up,right}
@@ -104,7 +104,9 @@ super + shift + c
 #    i3-msg reload
 
 super + shift + r
-    i3-msg restart
+    i3-msg restart; \ 
+    "$HOME"/.config/polybar/i3/launch.sh; \ 
+    killall sxhkd; sxhkd -c "$HOME"/.config/sxhkd/i3/sxhkdrc &
 
 #super + F11
 #    i3-msg killall picom && picom -b --config ~/.config/picom/picom.conf --vsync

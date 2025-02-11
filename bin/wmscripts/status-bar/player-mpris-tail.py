@@ -504,9 +504,9 @@ parser.add_argument('-w', '--whitelist', help="permit a player by it's bus name 
                     default=[])
 parser.add_argument('-f', '--format', default='{icon} {:artist:{artist} - :}{:title:{title}:}{:-title:{filename}:}')
 parser.add_argument('--truncate-text', default='…')
-parser.add_argument('--icon-playing', default='⏵')
-parser.add_argument('--icon-paused', default='⏸')
-parser.add_argument('--icon-stopped', default='⏹')
+parser.add_argument('--icon-playing', default='%{F#a6e3a1} %{F-}')
+parser.add_argument('--icon-paused', default='%{F#a6e3a1} %{F-}')
+parser.add_argument('--icon-stopped', default='%{F#a6e3a1} %{F-}')
 parser.add_argument('--icon-none', default='')
 args = parser.parse_args()
 

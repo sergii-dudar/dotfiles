@@ -29,6 +29,7 @@ esac
 # Extract temperature and weather condition code
 temperature=$(echo "$response" | jq '.main.temp' | xargs printf "%.0f")
 weather_code=$(echo "$response" | jq '.weather[0].id')
+weather_icon=$(echo "$response" | jq -r ".weather[0].icon")
 weather_title=$(echo "$response" | jq -r '.weather[0].main')
 
 case $weather_code in
@@ -99,5 +100,30 @@ case $weather_code in
         ;;
 esac
 
+get_icon() {
+    case $1 in
+        01d) icon="" ;; # Clear sky (Day) ☀
+        01n) icon="" ;; # Clear sky (Night) 🌙
+        02d) icon="" ;; # Few clouds (Day) 🌤
+        02n) icon="" ;; # Few clouds (Night) ☁🌙
+        03*) icon="" ;; # Scattered clouds 🌥
+        04*) icon="" ;; # Broken clouds ☁☁
+        09d) icon="" ;; # Shower rain 🌧
+        09n) icon="" ;; # Shower rain 🌧 (same as day)
+        10d) icon="" ;; # Rain (Day) 🌦
+        10n) icon="" ;; # Rain (Night) 🌧🌙
+        11d) icon="" ;; # Thunderstorm ⚡
+        11n) icon="" ;; # Thunderstorm (Night) ⚡🌙
+        13d) icon="" ;; # Snow ❄
+        13n) icon="" ;; # Snow ❄ (same as day)
+        50d) icon="" ;; # Mist 🌫
+        50n) icon="" ;; # Mist (Night) 🌫🌙
+        *) icon="" ;; # Default (Unknown Weather) ☁
+    esac
+    echo $icon
+}
+
 # echo "^c#6272a4^$weather_title ^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
-echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
+#echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
+icon2=$(get_icon "$weather_icon")
+echo "^c$icon_color^$icon2 ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
