@@ -43,5 +43,10 @@ use = "yazi-rs/plugins:smart-filter"
 rev = "0725851"
 hash = "b482f4f2d3c4e0aa3f8db89a95699439"
 
+[[plugin.deps]]
+use = "yazi-rs/plugins:mount"
+rev = "8945e54"
+hash = "f3ade4dba8fb56b85e8363b66f677f9"
+
 [flavor]
 deps = []

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function of_color() {
+    echo %\{F"$2"\}"$1"%\{F-\}
+}
+
+export BG_COLOR="#242933" #"#2E3440"
+export FG_COLOR="#94928F"
+# "" --  󰇝  󰮾 󱋱
+export SPLIT=$(of_color " 󱋱 " "#7f849c")
+export SPLIT_LEFT=$(of_color " 󱋱" "#7f849c")
+# export SPLIT="^b#c965bf^ ^d^"
+# export SPLIT="^b#1c1e29^ ^d^"
+# export SPLIT="^b#232634^ ^d^"
