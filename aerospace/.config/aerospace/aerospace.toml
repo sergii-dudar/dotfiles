@@ -88,7 +88,7 @@ outer.top = 2
 # You can uncomment this line to open up terminal with alt + enter shortcut
 # See: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
 # alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
-# alt-enter = 'exec-and-forget open -n "/Volumes/Macintosh HD/Applications/kitty.app"'
+# alt-enter = 'exec-and-forget open -n "/Volumes/Macintosh HD/Applications/kitty11.app"'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-slash = 'layout tiles horizontal vertical'
@@ -260,7 +260,7 @@ run = "move-node-to-workspace 4"
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
-run = "move-node-to-workspace 4"
+run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
@@ -276,6 +276,10 @@ run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
+run = "move-node-to-workspace 3"
+
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser'
 run = "move-node-to-workspace 3"
 
 # second monitor configuration
