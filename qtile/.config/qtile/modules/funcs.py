@@ -48,15 +48,18 @@ def layout_change(layout, group):
 	for window in group.windows:
 		window.floating = False
 
-@hook.subscribe.screen_change
-def screen_change():
-    lazy.reload_config()
-    send_notification("qtile", "screen_change")
+# @hook.subscribe.screen_change
+# def screen_change():
+#     lazy.reload_config()
+#     send_notification("qtile", "screen_change")
 
 @hook.subscribe.startup_once
 def autostart_once():
     home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_once.sh")
     subprocess.Popen([home, "qtile"])
+    # lazy.to_screen(1)  # Focus second monitor
+    # lazy.group["9"].toscreen()  # Move workspace 9 to second monitor
+    # lazy.to_screen(0)  # Return focus to the first monitor
 
 @hook.subscribe.startup
 def autostart_always():

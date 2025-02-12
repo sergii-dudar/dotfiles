@@ -37,17 +37,18 @@ screens = [
             margin=[ 0, 0, 7, 0 ],
         ),
     ),
-    # Screen(
-    #     right=bar.Gap(7),
-    #     left=bar.Gap(7),
-    #     bottom=bar.Gap(7),
-    #     top=bar.Bar(
-    #         widgets.build_second_bar_widgets(),
-    #         size=35,
-    #         margin=[ 0, 0, 7, 0 ],
-    #     ),
-    #     # layout = layout.VerticalTile()
-    # ),
+    Screen(
+        right=bar.Gap(7),
+        left=bar.Gap(7),
+        bottom=bar.Gap(7),
+        top=bar.Bar(
+            widgets.build_second_bar_widgets(),
+            size=35,
+            margin=[ 0, 0, 7, 0 ],
+        ),
+        # layouts = [layout.verticaltile()]
+        # layout = layout.verticaltile()
+    ),
 ]
 
 dgroups_key_binder = None

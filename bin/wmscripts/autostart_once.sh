@@ -20,7 +20,7 @@ wm_name="${1:-}"
 case "$wm_name" in
     "i3")
         killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
-        ~/.config/polybar/i3/launch.sh &
+        ~/.config/polybar/launch-i3.sh &
 
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
@@ -46,7 +46,7 @@ case "$wm_name" in
         ;;
     "bspwm")
         killall sxhkd; sxhkd -c ~/.config/sxhkd/bspwm/sxhkdrc &
-        ~/.config/polybar/bspwm/launch.sh &
+        ~/.config/polybar/launch-bspwm.sh &
         ;;
     *)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
