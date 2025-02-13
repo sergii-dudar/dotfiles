@@ -105,7 +105,7 @@ super + shift + c
 
 super + shift + r
     i3-msg restart; \ 
-    "$HOME"/.config/polybar/i3/launch.sh; \ 
+    "$HOME"/.config/polybar/launch-i3.sh; \ 
     killall sxhkd; sxhkd -c "$HOME"/.config/sxhkd/i3/sxhkdrc &
 
 #super + F11
