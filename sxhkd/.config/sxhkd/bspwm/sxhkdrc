@@ -70,13 +70,15 @@ super + Return
 # quit/restart bspwm
 # super + alt + {q,r}
 super + shift + r
-	bspc {quit,wm -r}; \
-    "$HOME"/.config/polybar/bspwm/launch.sh; \ 
-    killall sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
+    bspc wm -r; \
+    killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
+	# bspc wm -r \
+ #    "$HOME"/.config/polybar/bspwm/launch.sh; \ 
+ #    killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
 
 # close and kill
-super + {_,shift + }w
-	bspc node -{c,k}
+super + shift + c
+	bspc node -c
 
 # alternate between the tiled and monocle layout
 super + m

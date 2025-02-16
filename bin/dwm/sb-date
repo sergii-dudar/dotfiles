@@ -33,19 +33,19 @@ get_hour_icon() {
     hour=$(date +%I)  # Get 12-hour format with leading zero
 
     case $hour in
-        "01") icon="󱐿" ;;  # 1 o’clock
-        "02") icon="󱑀" ;;  # 2 o’clock
-        "03") icon="󱑁" ;;  # 3 o’clock
-        "04") icon="󱑂" ;;  # 4 o’clock
-        "05") icon="󱑃" ;;  # 5 o’clock
-        "06") icon="󱑄" ;;  # 6 o’clock
-        "07") icon="󱑅" ;;  # 7 o’clock
-        "08") icon="󱑆" ;;  # 8 o’clock
-        "09") icon="󱑇" ;;  # 9 o’clock
-        "10") icon="󱑈" ;;  # 10 o’clock
-        "11") icon="󱑉" ;;  # 11 o’clock
-        "12") icon="󱑊" ;;  # 12 o’clock
-        *) icon="󱐿" ;;  # Fallback to 1 o’clock
+        "01") icon="󱐿 " ;;  # 1 o’clock
+        "02") icon="󱑀 " ;;  # 2 o’clock
+        "03") icon="󱑁 " ;;  # 3 o’clock
+        "04") icon="󱑂 " ;;  # 4 o’clock
+        "05") icon="󱑃 " ;;  # 5 o’clock
+        "06") icon="󱑄 " ;;  # 6 o’clock
+        "07") icon="󱑅 " ;;  # 7 o’clock
+        "08") icon="󱑆 " ;;  # 8 o’clock
+        "09") icon="󱑇 " ;;  # 9 o’clock
+        "10") icon="󱑈 " ;;  # 10 o’clock
+        "11") icon="󱑉 " ;;  # 11 o’clock
+        "12") icon="󱑊 " ;;  # 12 o’clock
+        *) icon="󱐿 " ;;  # Fallback to 1 o’clock
     esac
 
     echo "$icon"
