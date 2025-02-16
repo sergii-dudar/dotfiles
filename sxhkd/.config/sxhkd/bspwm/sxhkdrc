@@ -173,3 +173,230 @@ super + alt + shift + {h,j,k,l}
 # move a floating window
 super + {Left,Down,Up,Right}
 	bspc node -v {-20 0,0 20,0 -20,20 0}
+
+
+# # -------------- Progress
+# # # alternate between the tiled and monocle layout
+# super + space
+# 	bspc desktop -l next
+# 
+# # send the newest marked node to the newest preselected node
+# super + y
+# 	bspc node newest.marked.local -n newest.!automatic.local
+# 
+# # swap the current node and the biggest node
+# super + m
+# 	bspc node -s biggest
+# 
+# # STATE/FLAGS
+# 
+# # set the window state
+# super + {t,shift + t,s,f}
+# 	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
+# 
+# # set the node flags
+# super + ctrl + {m,x,y,z}
+# 	bspc node -g {marked,locked,sticky,private}
+# 
+# # FOCUS/SWAP
+# 
+# # focus the node in the given direction
+# super + {_,shift + }{h,j,k,l}
+# 	bspc node -{f,s} {west,south,north,east}
+# 
+# # focus the node for the given path jump
+# super + {shift + p, shift + b, ctrl + f, ctrl + s}
+# 	bspc node -f @{parent,brother,first,second}
+# 
+# # focus the next/previous node in the current desktop
+# super + {_,shift + }n
+# 	bspc node -f {next,prev}.local
+# 
+# # focus the next/previous desktop in the current monitor
+# super + {Left, Right}
+#  	bspc desktop -f {prev,next}.local
+# 
+# # focus the next/previous monitor
+# super + {comma, period}
+#     bspc monitor -f {prev,next}
+# 
+# super + {shift + comma, shift + period}
+#     bspc node -s {prev,next}
+# 
+# # focus the last node/desktop
+# super + {shift + Tab,Tab}
+# 	bspc {node,desktop} -f last
+# 
+# # focus the older or newer node in the focus history
+# super + {o,i}
+# 	bspc wm -h off; \
+# 	bspc node {older,newer} -f; \
+# 	bspc wm -h on
+# 
+# # focus or send to the given desktop
+# super + {_,shift + }{1-9,0}
+# 	bspc {desktop -f,node -d} focused:'^{1-9,10}'
+# 
+# # PRESELECT
+# 
+# # preselect the direction
+# super + ctrl + {h,j,k,l}
+# 	bspc node -p {west,south,north,east}
+# 
+# # preselect the ratio
+# super + ctrl + {1-9}
+# 	bspc node -o 0.{1-9}
+# 
+# # cancel the preselection for the focused node
+# super + ctrl + space
+# 	bspc node -p cancel
+# 
+# # cancel the preselection for the focused desktop
+# super + ctrl + shift + space
+# 	bspc query -N -d | xargs -I id -n 1 bspc node id -p cancel
+# 
+# # MOVE/RESIVE
+# # shrink/expand
+# ctrl + alt + h
+# 	bspc node -z {left -20 0} || bspc node -z {right -20 0}
+# ctrl + alt + j
+# 	bspc node -z {bottom 0 20} || bspc node -z {top 0 20}
+# ctrl + alt + k
+# 	bspc node -z {bottom 0 -20} || bspc node -z {top 0 -20}
+# ctrl + alt + l
+# 	bspc node -z {left 20 0} || bspc node -z {right 20 0}
+# 
+# # ----------------------------------------------------
+# # #ПОМЕНЯТЬ СТАТУС ОКНА НА /ТАЙЛОВОЕ/ПСЕВДО ТАЙЛОВОЕ/ПЛАВАЮЩЕЕ/ПОЛНОЭКРАННОЕ
+# super + {t,shift + t,s,f}
+# 	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
+# 	bspc node -g {marked,locked,sticky,private}
+# 
+# #ВЫБРАТЬ НАПРАВЛЕНИЕ В КОТОРОМ ОТКРОЕТСЯ НОВОЕ ОКНО
+# super + alt + {Left,Down,Up,Right}
+# 	bspc node -p {west,south,north,east}
+# 
+# #ОТМЕНИТЬ НАПРАВЛЕНИЕ В КОТОРОМ ОТКРОЕТСЯ НОВОЕ ОКНО
+# super + alt + space
+# 	bspc node -p cancel
+# 
+# #ПЕРЕКЛЮЧИТСЯ НА ВОРКСПЕЙС ИЛИ ПЕРЕТАЩИТЬ НА НЕГО АКТИВНОЕ ОКНО
+# super + {_,shift + }{1-9,0}
+# 	bspc {desktop -f,node -d} '^{1-9,10}'
+# 
+# #ЗАКРЫТЬ ОКНО ИЛИ УБИТЬ ЕГО
+# super + {_, shift + }c
+# 	bspc node -{c}
+# 
+# #ПЕРЕМЕЩЕНИЕ ТАЙЛИНГОВЫХ ОКОН
+# super + {_,shift + }{Left,Down,Up,Right}
+# 	bspc node -{f,s} {west,south,north,east}
+# 
+# #РЕСАЙЗ ТАЙЛИНГОВЫХ ОКОН
+# super + ctrl + {Left,Down,Up,Right}
+# 	{bspc node -z left -20 0; bspc node -z right -20 0, \
+# 	bspc node -z bottom 0 20; bspc node -z top 0 20, \
+# 	bspc node -z bottom 0 -20; bspc node -z top 0 -20, \ 
+# 	bspc node -z left 20 0; bspc node -z right 20 0}
+# 
+# #РЕСАЙЗА ПЛАВАЮЩИХ ОКОН
+# alt + ctrl + {Left,Down,Up,Right}
+# 	{bspc node -z right -20 20, \
+# 	bspc node -z bottom 20 20, \
+# 	bspc node -z bottom 20 -20, \
+# 	bspc node -z right 20 20}
+# 
+# #ПЕРЕМЕЩЕНИЕ ПЛАВАЮЩИХ ОКОН 
+# ctrl + shift + {Left,Down,Up,Right}
+# 	bspc node -v {-20 0,0 20,0 -20,20 0}
+# 
+# # -----------------------------------------------
+# 
+# super + m
+#     scratchpad Music
+# 
+# super + c
+#     scratchpad ranger
+# 
+# super + v
+#     scratchpad pulse
+# 
+# super + shift + n
+#     scratchpad scp2
+# 
+# super + b
+#     scratchpad news
+# 
+# # Close/kill focus app
+# super + {q, shift + q}
+# 	bspc node -{c,k}
+# 
+# # Reload sxhkd config
+# super + Escape
+# 	pkill -USR1 -x sxhkd
+# 
+# # Reload bspwm config
+# super + shift + r
+# 	bspc wm -r
+# 
+# #Logout
+# super + shift + x
+# 	bspc quit
+# 
+# # Set the window state
+# super + {t,shift + t,s,f}
+# 	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
+# 
+# # Focus/swap windows by direction
+# super + {_,shift + }{h,j,k,l}
+# 	bspc node --{focus,swap} {west,south,north,east}
+# 
+# # Focus the node in the given direction
+# super + {_,shift + }{Left,Down,Up,Right}
+# 	bspc node -{f,s} {west,south,north,east}
+# 
+# # Focus/send to the given desktop
+# super + {_,shift + }{1-9,0}
+# 	bspc {desktop -f,node -d} '^{1-9,10}'
+# 
+# # Preselect the direction
+# super + alt + {Left,Down,Up,Right}
+# 	bspc node -p {west,south,north,east}
+# 
+# # Cancel the preselection for the focused node
+# super + alt + space
+# 	bspc node -p cancel 
+# 
+# # Move current window to a pre-selected space
+# super + alt + m
+# 	bspc node -n last.!automatic
+# 
+# # Show help
+# super + shift + s
+# 	sxhkd_help
+# 
+# # Resize tiling windows
+# super + ctrl + {Left,Down,Up,Right}
+# 	{bspc node -z left -20 0; bspc node -z right -20 0, \
+# 	bspc node -z bottom 0 20; bspc node -z top 0 20, \
+# 	bspc node -z bottom 0 -20; bspc node -z top 0 -20, \ 
+# 	bspc node -z left 20 0; bspc node -z right 20 0}
+# 
+# # books
+# super + shift + p
+# 	$HOME/.config/bspwm/rofi/scripts/books
+# 
+# # Resize floating windows
+# alt + ctrl + {Left,Down,Up,Right}
+# 	bspc node -z {right -20 20, bottom 20 20, bottom 20 -20, right 20 20}
+# 
+# # move floating windows 
+# alt + shift + {Left,Down,Up,Right}
+# 	bspc node -v {-20 0,0 20,0 -20,20 0}
+# 
+# super + {equal, minus, 0}
+# 	gaps {+, -, =}
+# 
+# super + ctrl + {equal, minus, 0}
+# 	borders {+, -, =}
+# 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 . "$HOME"/dotfiles/bin/polybar/colorscheme
-#. "$HOME"/dotfiles/bin/wmscripts/status-bar/sb-weather
-weather_icon=02d
-temperature=-2
-units_color="#6272a4"
+. "$HOME"/dotfiles/bin/wmscripts/status-bar/sb-weather
+# weather_icon=02d
+# temperature=-2
+# units_color="#6272a4"
 
 # just template in case need change polybar config a lot and to not push weather api a lot
 # echo "%{F#50fa7b} %{F-}%{F#94928F}-1%{F-}%{F#6272a4}°C%{F-}"
