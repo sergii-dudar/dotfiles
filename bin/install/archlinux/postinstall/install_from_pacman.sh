@@ -20,7 +20,7 @@ sudo pacman -S feh autotiling sxhkd polybar picom i3 polkit-gnome pavucontrol vo
 # sudo pacman -S yazi ffmpegthumbnailer unarchiver jq poppler fd ripgrep fzf zoxide
 sudo pacman -S yazi unarchiver jq poppler zoxide bc
 sudo pacman -S python-setuptools python-dbus-next # need for nvim Conform plugin
-sudo pacman -S gpick xautolock
+sudo pacman -S gpick xautolock noto-fonts-emoji
 sudo pacman -S cmatrix ncdu gdu ghostty
 sudo pacman -S mpv
 sudo pacman -S sxiv
