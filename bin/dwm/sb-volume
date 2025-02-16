@@ -15,7 +15,7 @@ esac
 
 if [ "$(pamixer --get-mute)" == "true" ]; then
     notify-send --expire-time=1000 "Volume Muted 🔇"
-    echo "^c#d35f5e^  MUTE$SPLIT"
+    echo "^c#d35f5e^ MUT$SPLIT"
     exit 0
 fi
 
