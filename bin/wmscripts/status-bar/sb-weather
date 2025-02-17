@@ -31,7 +31,7 @@ case $weather_icon in
         icon_color="#f1fa8c"
         ;; # Clear sky (Day) ☀
     01n)
-        icon=""
+        icon="󰖔"
         icon_color="#f1fa8c"
         ;; # Clear sky (Night) 🌙
     02d)
@@ -63,23 +63,23 @@ case $weather_icon in
         icon_color="#0189cc"
         ;; # Rain (Day) 🌦
     10n)
-        icon=""
+        icon="" #""
         icon_color="#0189cc"
         ;; # Rain (Night) 🌧🌙
     11d)
-        icon=""
+        icon="" #""
         icon_color="#0189cc"
         ;; # Thunderstorm ⚡
     11n)
-        icon=""
+        icon="" #""
         icon_color="#f1fa8c"
         ;; # Thunderstorm (Night) ⚡🌙
     13d)
-        icon=""
+        icon="󰼶" #""
         icon_color="#ffffff"
         ;; # Snow ❄
     13n)
-        icon=""
+        icon="󰼶" #""
         icon_color="#ffffff"
         ;; # Snow ❄ (same as day)
     50d)
