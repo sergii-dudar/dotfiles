@@ -46,6 +46,31 @@ bspc rule -a mplayer2 state=floating
 bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
 
+#bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on
+# bspc rule -a com.scratchpad.yazi state=floating rectangle=1280x800+380+170
+# bspc rule -a telegram-desktop state=floating rectangle=1280x800+380+170
+# bspc rule -a org.gnome.Nautilus state=floating rectangle=1280x800+380+170
+#
+# # music
+# bspc rule -a crx_cinhimbnkkaeohfgghhklpknlkffjgod state=floating rectangle=1280x800+380+170
+# # chat
+# bspc rule -a crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi state=floating rectangle=1280x800+380+170
+# # monkeytype
+# bspc rule -a crx_picebhhlijnlefeleilfbanaghjlkkna state=floating rectangle=1280x800+380+170
+
+
+# bspc rule -a com.ghostty.group01:ghostty state=floating rectangle=1280x800+380+170
+
+# WM_CLASS(STRING) = "ghostty", "com.ghostty.group01"
+# by instant
+# bspc rule -a ghostty state=floating
+#
+# by class
+# bspc rule -a com.ghostty.group01 state=floating
+#
+# by both
+# bspc rule -a com.ghostty.group01:ghostty state=floating
+
 # Rules examples:
 # #bspc rule -a TelegramDesktop state=floating follow=off rectangle=420x900+750+90
 # bspc rule -a TelegramDesktop state=floating follow=off

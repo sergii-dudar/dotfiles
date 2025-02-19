@@ -1,24 +1,25 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 name="$1"
 filename=/tmp/"$1"
 
 bspc_write_nodeid() {
-    while true; do
+    while true
+    do
         flag=false
-        for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden'); do
-            bspc query --node $id -T | command grep -q $name && { echo $id > $filename; flag=true; break; }
+        for id in $(bspc query -d focused -N -n .floating.sticky.hidden)
+        do
+            bspc query --node $id -T | grep -q $name && { echo $id > $filename; flag=true; break; }
         done
-
         [[ "$flag" == "true" ]] && break
         sleep 0.1s
     done
 }
 
-hide_all_except_current() {
-    for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden')
+hide_all_except_current(){
+    for id in $(bspc query -d focused -N -n .floating.sticky.!hidden)
     do
-        bspc query --node $id -T | command grep -qv $name && bspc node $id --flag hidden=on
+        bspc query --node $id -T | grep -qv $name && bspc node $id --flag hidden=on
     done
 }
 
@@ -30,16 +31,13 @@ toggle_hidden() {
 }
 
 create_terminal(){
-    #alacritty --class="$name","$name" -e $1 &
-    ghostty --class=com.scratchpad.yazi -e yazi &
+    alacritty --class="$name","$name" -e $1 &
 }
 
-if ! command ps -ef | command grep -q "[c]lass=$name"; then
+if ! ps -ef | grep -q "[c]lass=$name"
+then
     bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on
     case "$name" in
-        "com.scratchpad.yazi")
-            ghostty --class=com.scratchpad.yazi -e yazi > /dev/null 2>&1 &
-            ;;
         "htop")
             create_terminal htop
             ;;
