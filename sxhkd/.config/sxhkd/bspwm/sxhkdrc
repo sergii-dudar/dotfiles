@@ -189,15 +189,15 @@ super + p; n
 
 # youtube_music
 super + p; m
-    ~/dotfiles/bspwm/.config/bspwm/scratch crx_cinhimbnkkaeohfgghhklpknlkffjgod
+    ~/dotfiles/bspwm/.config/bspwm/scratch youtube_music
 
 # google_chat
 super + p; g
-    ~/dotfiles/bspwm/.config/bspwm/scratch crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi
+    ~/dotfiles/bspwm/.config/bspwm/scratch google_chat
 
 # monkey_type
 super + p; u
-    ~/dotfiles/bspwm/.config/bspwm/scratch crx_picebhhlijnlefeleilfbanaghjlkkna
+    ~/dotfiles/bspwm/.config/bspwm/scratch monkey_type
 
 # super + m
 #     scratchpad Music

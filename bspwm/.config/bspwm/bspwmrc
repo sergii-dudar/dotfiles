@@ -46,6 +46,7 @@ bspc rule -a Chromium desktop='^2'
 bspc rule -a mplayer2 state=floating
 bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
+#bspc rule -a com.scratchpad.yazi --one-shot state=floating sticky=on hidden=on rectangle="2880x1728+480+216"
 
 #bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on
 # bspc rule -a com.scratchpad.yazi state=floating rectangle=1280x800+380+170

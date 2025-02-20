@@ -2,29 +2,33 @@
 
 case "$1" in
     "yazi")
+        instance_name="ghostty"
         class_name="com.scratchpad.yazi"
         run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
         ;;
     "nautilus")
+        instance_name="org.gnome.Nautilus"
         class_name="org.gnome.Nautilus"
         run_cmd="nautilus"
         ;;
     "telegram")
-        # WM_CLASS(STRING) = "telegram-desktop", "TelegramDesktop"
+        instance_name="telegram-desktop"
         class_name="TelegramDesktop"
         run_cmd="telegram-desktop"
         ;;
-    "crx_cinhimbnkkaeohfgghhklpknlkffjgod")
-        # youtube_music
+    "youtube_music")
+        instance_name="crx_cinhimbnkkaeohfgghhklpknlkffjgod"
+        class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
         ;;
-    "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")
-        # WM_CLASS(STRING) = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi", "Brave-browser"
-        # google_chat
+    "google_chat")
+        instance_name="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"
+        class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
         ;;
-    "crx_picebhhlijnlefeleilfbanaghjlkkna")
-        # monkey_type
+    "monkey_type")
+        instance_name="crx_picebhhlijnlefeleilfbanaghjlkkna"
+        class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         ;;
     *)
@@ -33,31 +37,43 @@ case "$1" in
         ;;
 esac
 
-filename=/tmp/"$class_name"
+filename=/tmp/"$class_name"_"$instance_name"
 
 bspc_write_nodeid() {
-    sleep 0.3s
-    for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
-        bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
+
+    retries=0
+    max_retries=50 # 50 * 0.1s = 5 sec max to up any application
+
+    while true; do
+        flag=false
+
+        for id in $(bspc query -d focused -N -n '.floating.sticky'); do
+            echo "found..."
+            #bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
+            bspc query --node $id -T | command grep -q "$class_name.*$instance_name" && { echo $id > $filename; flag=true; break; }
+        done
+
+        [[ "$flag" == "true" ]] && break
+
+        # Increment retry counter and check if we've reached the limit
+        retries=$((retries + 1))
+        if [ "$retries" -ge "$max_retries" ]; then
+            echo "Max retries reached. Exiting."
+            exit 1
+        fi
+
+        sleep 0.1s
     done
 
-    sleep 0.1s
-    # while true; do
-    #     flag=false
-    #     for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
-    #         bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
-    #     done
-    #
-    #     [[ "$flag" == "true" ]] && break
-    #     sleep 0.1s
-    # done
-    # echo 1
+    echo "done:"
+
 }
 
 hide_all_except_current() {
     for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden')
     do
-        bspc query --node $id -T | command grep -qv $class_name && bspc node $id --flag hidden=on
+        # bspc query --node $id -T | command grep -qv $class_name && bspc node $id --flag hidden=on
+        bspc query --node $id -T | command grep -qv "$class_name.*$instance_name" && bspc node $id --flag hidden=on
     done
 }
 
@@ -65,7 +81,15 @@ toggle_hidden() {
     [ -e "$filename" ] || exit 1
     hide_all_except_current
     id=$(<"$filename")
-    bspc node "$id" --flag hidden -f
+
+    case "$1" in
+        "show")
+            bspc node "$id" --flag hidden=off
+            ;;
+        *)
+            bspc node "$id" --flag hidden -f
+            ;;
+    esac
 }
 
 calc_bc() {
@@ -73,7 +97,8 @@ calc_bc() {
 }
 
 # Try to locate a window with the given class.
-WIN_ID=$(xdotool search --class "$class_name" 2>/dev/null | head -n 1)
+# WIN_ID=$(xdotool search --class "$class_name" 2>/dev/null | head -n 1)
+WIN_ID=$(comm -12 <(xdotool search --class "$class_name" | sort) <(xdotool search --classname "$instance_name" | sort))
 
 # if ! command ps -ef | command grep -q "[c]lass=$class_name"; then
 if [ -z "$WIN_ID" ]; then
@@ -90,15 +115,18 @@ if [ -z "$WIN_ID" ]; then
     window_x=$(calc_bc "$screen_width / 2 - $window_width / 2")
     window_y=$(calc_bc "$screen_height / 2 - $window_height / 2")
     rectangle_val="$window_width"x"$window_height"+"$window_x"+"$window_y"
-    # echo rectangle_val=$rectangle_val
+    #echo rectangle_val=$rectangle_val
 
-    bspc rule -a "$class_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
+    #bspc rule -a "$class_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
+    bspc rule -a "$class_name":"$instance_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
 
     bash -c "$run_cmd" > /dev/null 2>&1 &
 
-    dunstify "Scratch: starting $class_name"
+    dunstify "Scratch: starting $1"
     bspc_write_nodeid
-    toggle_hidden
+    toggle_hidden show
+    exit 0
 else
-    toggle_hidden
+    toggle_hidden toggle
+    exit 0
 fi
