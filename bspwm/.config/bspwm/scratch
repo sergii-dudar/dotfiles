@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+#name="$1"
+name="$1"
+filename=/tmp/"$1"
+
+bspc_write_nodeid() {
+    while true; do
+        flag=false
+        for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
+            bspc query --node $id -T | command grep -q $name && { echo $id > $filename; flag=true; break; }
+        done
+
+        [[ "$flag" == "true" ]] && break
+        sleep 0.1s
+    done
+}
+
+hide_all_except_current() {
+    for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden')
+    do
+        bspc query --node $id -T | command grep -qv $name && bspc node $id --flag hidden=on
+    done
+}
+
+toggle_hidden() {
+    [ -e "$filename" ] || exit 1
+    hide_all_except_current
+    id=$(<"$filename")
+    bspc node "$id" --flag hidden -f
+}
+
+create_terminal(){
+    #alacritty --class="$name","$name" -e $1 &
+    ghostty --class=com.scratchpad.yazi -e yazi &
+}
+
+calc_bc() {
+    echo "scale=0; ($1)/1" | bc -l
+}
+
+if ! command ps -ef | command grep -q "[c]lass=$name"; then
+
+    screen_width=3840
+    screen_height=2160
+
+    factor_width=0.75
+    factor_height=0.8
+
+    window_width=$(calc_bc "$screen_width * $factor_width")
+    window_height=$(calc_bc "$screen_height * $factor_height")
+
+    window_x=$(calc_bc "$screen_width / 2 - $window_width / 2")
+    window_y=$(calc_bc "$screen_height / 2 - $window_height / 2")
+    rectangle_val="$window_width"x"$window_height"+"$window_x"+"$window_y"
+    # echo rectangle_val=$rectangle_val
+
+    bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
+
+    case "$name" in
+        "com.scratchpad.yazi")
+            ghostty --class=com.scratchpad.yazi -e yazi > /dev/null 2>&1 &
+            ;;
+        "nautilus")
+            nautilus > /dev/null 2>&1 &
+            ;;
+        "TelegramDesktop")
+            # WM_CLASS(STRING) = "telegram-desktop", "TelegramDesktop"
+            telegram-desktop > /dev/null 2>&1 &
+            ;;
+        "crx_cinhimbnkkaeohfgghhklpknlkffjgod")
+            # youtube_music
+            brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod > /dev/null 2>&1 &
+            ;;
+        "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")
+            # google_chat
+            brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi > /dev/null 2>&1 &
+            ;;
+        "crx_picebhhlijnlefeleilfbanaghjlkkna")
+            # monkey_type
+            brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna > /dev/null 2>&1 &
+            ;;
+        "htop")
+            create_terminal htop
+            ;;
+        "neomutt")
+            create_terminal neomutt
+            ;;
+        "newsboat")
+            create_terminal newsboat
+            ;;
+        "ranger")
+            create_terminal ranger
+            ;;
+        "terminal")
+            create_terminal $SHELL
+            ;;
+        *)
+            exit 1
+    esac
+    dunstify "Scratch: starting $name"
+    bspc_write_nodeid
+    toggle_hidden
+else
+    toggle_hidden
+fi

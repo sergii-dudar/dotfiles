@@ -113,8 +113,10 @@ super + {_,shift + }{h,j,k,l}
 	bspc node -{f,s} {west,south,north,east}
 
 # focus the node for the given path jump
-super + {p,b,comma,period}
-	bspc node -f @{parent,brother,first,second}
+# super + {p,b,comma,period}
+# 	bspc node -f @{parent,brother,first,second}
+super + {b,comma,period}
+	bspc node -f @{brother,first,second}
 
 # focus the next/previous window in the current desktop
 super + {_,shift + }c
@@ -176,9 +178,26 @@ super + {Left,Down,Up,Right}
 
 # ############### Scratchpads #################
 
-super + m
-    ~/dotfiles/bin/bspwm/scratch com.scratchpad.yazi
+super + p; y
+    ~/dotfiles/bspwm/.config/bspwm/scratch com.scratchpad.yazi
 
+super + p; t
+    ~/dotfiles/bspwm/.config/bspwm/scratch TelegramDesktop
+
+super + p; n
+    ~/dotfiles/bspwm/.config/bspwm/scratch nautilus
+
+# youtube_music
+super + p; m
+    ~/dotfiles/bspwm/.config/bspwm/scratch crx_cinhimbnkkaeohfgghhklpknlkffjgod
+
+# google_chat
+super + p; g
+    ~/dotfiles/bspwm/.config/bspwm/scratch crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi
+
+# monkey_type
+super + p; u
+    ~/dotfiles/bspwm/.config/bspwm/scratch crx_picebhhlijnlefeleilfbanaghjlkkna
 
 # super + m
 #     scratchpad Music
