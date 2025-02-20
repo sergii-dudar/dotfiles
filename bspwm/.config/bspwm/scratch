@@ -1,25 +1,63 @@
 #!/usr/bin/env bash
 
-#name="$1"
-name="$1"
-filename=/tmp/"$1"
+case "$1" in
+    "yazi")
+        class_name="com.scratchpad.yazi"
+        run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        ;;
+    "nautilus")
+        class_name="org.gnome.Nautilus"
+        run_cmd="nautilus"
+        ;;
+    "telegram")
+        # WM_CLASS(STRING) = "telegram-desktop", "TelegramDesktop"
+        class_name="TelegramDesktop"
+        run_cmd="telegram-desktop"
+        ;;
+    "crx_cinhimbnkkaeohfgghhklpknlkffjgod")
+        # youtube_music
+        run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
+        ;;
+    "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")
+        # WM_CLASS(STRING) = "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi", "Brave-browser"
+        # google_chat
+        run_cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
+        ;;
+    "crx_picebhhlijnlefeleilfbanaghjlkkna")
+        # monkey_type
+        run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        ;;
+    *)
+        echo "$1 - is not supported"
+        exit 1
+        ;;
+esac
+
+filename=/tmp/"$class_name"
 
 bspc_write_nodeid() {
-    while true; do
-        flag=false
-        for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
-            bspc query --node $id -T | command grep -q $name && { echo $id > $filename; flag=true; break; }
-        done
-
-        [[ "$flag" == "true" ]] && break
-        sleep 0.1s
+    sleep 0.3s
+    for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
+        bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
     done
+
+    sleep 0.1s
+    # while true; do
+    #     flag=false
+    #     for id in $(bspc query -d focused -N -n '.floating.sticky.hidden'); do
+    #         bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
+    #     done
+    #
+    #     [[ "$flag" == "true" ]] && break
+    #     sleep 0.1s
+    # done
+    # echo 1
 }
 
 hide_all_except_current() {
     for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden')
     do
-        bspc query --node $id -T | command grep -qv $name && bspc node $id --flag hidden=on
+        bspc query --node $id -T | command grep -qv $class_name && bspc node $id --flag hidden=on
     done
 }
 
@@ -30,16 +68,15 @@ toggle_hidden() {
     bspc node "$id" --flag hidden -f
 }
 
-create_terminal(){
-    #alacritty --class="$name","$name" -e $1 &
-    ghostty --class=com.scratchpad.yazi -e yazi &
-}
-
 calc_bc() {
     echo "scale=0; ($1)/1" | bc -l
 }
 
-if ! command ps -ef | command grep -q "[c]lass=$name"; then
+# Try to locate a window with the given class.
+WIN_ID=$(xdotool search --class "$class_name" 2>/dev/null | head -n 1)
+
+# if ! command ps -ef | command grep -q "[c]lass=$class_name"; then
+if [ -z "$WIN_ID" ]; then
 
     screen_width=3840
     screen_height=2160
@@ -55,50 +92,11 @@ if ! command ps -ef | command grep -q "[c]lass=$name"; then
     rectangle_val="$window_width"x"$window_height"+"$window_x"+"$window_y"
     # echo rectangle_val=$rectangle_val
 
-    bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
+    bspc rule -a "$class_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
 
-    case "$name" in
-        "com.scratchpad.yazi")
-            ghostty --class=com.scratchpad.yazi -e yazi > /dev/null 2>&1 &
-            ;;
-        "nautilus")
-            nautilus > /dev/null 2>&1 &
-            ;;
-        "TelegramDesktop")
-            # WM_CLASS(STRING) = "telegram-desktop", "TelegramDesktop"
-            telegram-desktop > /dev/null 2>&1 &
-            ;;
-        "crx_cinhimbnkkaeohfgghhklpknlkffjgod")
-            # youtube_music
-            brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod > /dev/null 2>&1 &
-            ;;
-        "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")
-            # google_chat
-            brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi > /dev/null 2>&1 &
-            ;;
-        "crx_picebhhlijnlefeleilfbanaghjlkkna")
-            # monkey_type
-            brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna > /dev/null 2>&1 &
-            ;;
-        "htop")
-            create_terminal htop
-            ;;
-        "neomutt")
-            create_terminal neomutt
-            ;;
-        "newsboat")
-            create_terminal newsboat
-            ;;
-        "ranger")
-            create_terminal ranger
-            ;;
-        "terminal")
-            create_terminal $SHELL
-            ;;
-        *)
-            exit 1
-    esac
-    dunstify "Scratch: starting $name"
+    bash -c "$run_cmd" > /dev/null 2>&1 &
+
+    dunstify "Scratch: starting $class_name"
     bspc_write_nodeid
     toggle_hidden
 else

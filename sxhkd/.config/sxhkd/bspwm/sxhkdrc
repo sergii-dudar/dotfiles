@@ -179,10 +179,10 @@ super + {Left,Down,Up,Right}
 # ############### Scratchpads #################
 
 super + p; y
-    ~/dotfiles/bspwm/.config/bspwm/scratch com.scratchpad.yazi
+    ~/dotfiles/bspwm/.config/bspwm/scratch yazi
 
 super + p; t
-    ~/dotfiles/bspwm/.config/bspwm/scratch TelegramDesktop
+    ~/dotfiles/bspwm/.config/bspwm/scratch telegram
 
 super + p; n
     ~/dotfiles/bspwm/.config/bspwm/scratch nautilus
