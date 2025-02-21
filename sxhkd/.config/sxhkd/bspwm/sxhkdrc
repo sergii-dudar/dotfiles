@@ -1,8 +1,7 @@
-# ----------------------------------------
-# ----------- Custom ---------------------
-# ----------------------------------------
+# ----------------------------------------------------
+# ------------- ROFI & DMENU & APPS ------------------
+# ----------------------------------------------------
 
-# Rofi & dmenu -----------
 alt + space
     bash "$HOME"/.config/rofi/scripts/launcher_t1
 
@@ -15,7 +14,15 @@ ctrl + alt + q
 super + space
     bash "$HOME"/dotfiles/bin/change_language.sh && kill -35 $(pidof dwmblocks)
 
-# Audio Keybindings -------------
+# ---------- Application Keybindings -----------------
+
+Print
+    flameshot gui
+
+super + Return
+	ghostty
+
+# --------------- Audio Keybindings -----------------
 super + Left
     amixer -D pulse sset Master 5%-
 
@@ -26,7 +33,8 @@ super + Right
 super + Down
     amixer -D pulse sset Master toggle
 
-# Media -------------
+# --------------------- Media -----------------------
+
 #super + F9
 super + shift + Down
     playerctl play-pause
@@ -46,24 +54,12 @@ XF86AudioNext
 XF86AudioPrev
     playerctl previous
 
-# Application Keybindings ---------
-Print
-    flameshot gui
+# ####################################################
+# ################# BSPWM SPECIFIC ###################
+# ####################################################
 
-super + Return
-	ghostty
-
-# ----------------------------------------
-# ----------- Bspwm ---------------------
-# ----------------------------------------
-
-
-# focus the last node/desktop
-# alt + Tab
-#     bspc node last -f
-
-# quit/restart bspwm
 # "$HOME"/.config/polybar/bspwm/launch.sh; \ 
+# quit/restart bspwm
 super + shift + r
     bspc wm -r; \
     killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
@@ -79,17 +75,17 @@ super + m
 super + Tab
     bspc desktop -l next
 
-#
-# state/flags
-#
+# ----------------------------------------------------
+# ------------------ STATE/FLAGS ---------------------
+# ----------------------------------------------------
 
 # set the window state
 super + {t,shift + t,s,f}
 	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
 
-#
-# focus/swap
-#
+# ----------------------------------------------------
+# ------------------ FOCUS/SWAP ----------------------
+# ----------------------------------------------------
 
 # focus the node in the given direction
 super + {_,shift + }{h,j,k,l}
@@ -125,9 +121,9 @@ super + {comma, period}
 super + {shift + comma, shift + period}
     bspc node -s {prev,next}
 
-#
-# PRESELECT
-#
+# ----------------------------------------------------
+# ------------------ PRESELECT -----------------------
+# ----------------------------------------------------
 
 # preselect the direction
 super + ctrl + {h,j,k,l}
@@ -137,46 +133,31 @@ super + ctrl + {h,j,k,l}
 super + ctrl + space
 	bspc node -p cancel
 
-#
-# move/resize
-#
+# ----------------------------------------------------
+# ------------------ MOVE/RESIZE ---------------------
+# ----------------------------------------------------
 
 # expand a window by moving one of its side outward
-super + alt + {h,j,k,l}
-	bspc node -z {left -60 0,bottom 0 60,top 0 -60,right 60 0}
+# super + alt + {h,j,k,l}
+# 	bspc node -z {left -60 0,bottom 0 60,top 0 -60,right 60 0}
 
 # contract a window by moving one of its side inward
-super + alt + shift + {h,j,k,l}
-	bspc node -z {right -60 0,top 0 60,bottom 0 -60,left 60 0}
+# super + alt + shift + {h,j,k,l}
+# 	bspc node -z {right -60 0,top 0 60,bottom 0 -60,left 60 0}
 
-
-
-
-# # -------------- Progress
-# 
-# # MOVE/RESIVE
 # # shrink/expand
-# ctrl + alt + h
-# 	bspc node -z {left -20 0} || bspc node -z {right -20 0}
-# ctrl + alt + j
-# 	bspc node -z {bottom 0 20} || bspc node -z {top 0 20}
-# ctrl + alt + k
-# 	bspc node -z {bottom 0 -20} || bspc node -z {top 0 -20}
-# ctrl + alt + l
-# 	bspc node -z {left 20 0} || bspc node -z {right 20 0}
-# 
-# # ----------------------------------------------------
-# 
-# #РЕСАЙЗ ТАЙЛИНГОВЫХ ОКОН
-# super + ctrl + {Left,Down,Up,Right}
-# 	{bspc node -z left -20 0; bspc node -z right -20 0, \
-# 	bspc node -z bottom 0 20; bspc node -z top 0 20, \
-# 	bspc node -z bottom 0 -20; bspc node -z top 0 -20, \ 
-# 	bspc node -z left 20 0; bspc node -z right 20 0}
-# 
-# # -----------------------------------------------
+super + alt + h
+	bspc node -z {left -100 0} || bspc node -z {right -100 0}
+super + alt + j
+	bspc node -z {bottom 0 100} || bspc node -z {top 0 100}
+super + alt + k
+	bspc node -z {bottom 0 -100} || bspc node -z {top 0 -100}
+super + alt + l
+	bspc node -z {left 100 0} || bspc node -z {right 100 0}
 
-# ############### Scratchpads #################
+# ----------------------------------------------------
+# ------------------ SCRATCHPADS ---------------------
+# ----------------------------------------------------
 
 super + p; y
     ~/dotfiles/bspwm/.config/bspwm/scratchpad yazi
@@ -196,11 +177,9 @@ super + p; g
 super + p; u
     ~/dotfiles/bspwm/.config/bspwm/scratchpad monkey_type
 
-
-# ----------------------------------------
-# ----------- Archived -------------------
-# ----------------------------------------
-
+# --------------------------------------------------
+# ------------------- ARCHIVED ---------------------
+# --------------------------------------------------
 
 # send the newest marked node to the newest preselected node
 # super + y
@@ -237,5 +216,3 @@ super + p; u
 # move a floating window
 # super + {Left,Down,Up,Right}
 # 	bspc node -v {-20 0,0 20,0 -20,20 0}
-
-
