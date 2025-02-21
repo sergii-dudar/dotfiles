@@ -4,7 +4,7 @@
 #  that I used to in another window managers I'm using (awesome wm, dwm, xmonad, qtile, i3)
 #
 # dependencies: bspc, rg, xdotool, xrandr, dunst
-# example of using: ./scratch yazi
+# example of using: ./scratchpad yazi
 
 # default proportions of scratch window related from current screen with. override to particual app, if need different proportions
 scratchpad_factor_width=0.75

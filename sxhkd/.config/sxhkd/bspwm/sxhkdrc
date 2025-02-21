@@ -179,40 +179,22 @@ super + {Left,Down,Up,Right}
 # ############### Scratchpads #################
 
 super + p; y
-    ~/dotfiles/bspwm/.config/bspwm/scratch yazi
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad yazi
 
 super + p; t
-    ~/dotfiles/bspwm/.config/bspwm/scratch telegram
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad telegram
 
 super + p; n
-    ~/dotfiles/bspwm/.config/bspwm/scratch nautilus
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad nautilus
 
-# youtube_music
 super + p; m
-    ~/dotfiles/bspwm/.config/bspwm/scratch youtube_music
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad youtube_music
 
-# google_chat
 super + p; g
-    ~/dotfiles/bspwm/.config/bspwm/scratch google_chat
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad google_chat
 
-# monkey_type
 super + p; u
-    ~/dotfiles/bspwm/.config/bspwm/scratch monkey_type
-
-# super + m
-#     scratchpad Music
-# 
-# super + c
-#     scratchpad ranger
-# 
-# super + v
-#     scratchpad pulse
-# 
-# super + shift + n
-#     scratchpad scp2
-# 
-# super + b
-#     scratchpad news
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad monkey_type
 
 # # -------------- Progress
 # # # alternate between the tiled and monocle layout
