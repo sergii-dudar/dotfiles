@@ -46,22 +46,6 @@ bspc rule -a Chromium desktop='^2'
 bspc rule -a mplayer2 state=floating
 bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
-#bspc rule -a com.scratchpad.yazi --one-shot state=floating sticky=on hidden=on rectangle="2880x1728+480+216"
-
-#bspc rule -a "$name" --one-shot state=floating sticky=on hidden=on
-# bspc rule -a com.scratchpad.yazi state=floating rectangle=1280x800+380+170
-# bspc rule -a telegram-desktop state=floating rectangle=1280x800+380+170
-# bspc rule -a org.gnome.Nautilus state=floating rectangle=1280x800+380+170
-#
-# # music
-# bspc rule -a crx_cinhimbnkkaeohfgghhklpknlkffjgod state=floating rectangle=1280x800+380+170
-# # chat
-# bspc rule -a crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi state=floating rectangle=1280x800+380+170
-# # monkeytype
-# bspc rule -a crx_picebhhlijnlefeleilfbanaghjlkkna state=floating rectangle=1280x800+380+170
-
-
-# bspc rule -a com.ghostty.group01:ghostty state=floating rectangle=1280x800+380+170
 
 # WM_CLASS(STRING) = "ghostty", "com.ghostty.group01"
 # by instant
@@ -73,21 +57,4 @@ bspc rule -a Screenkey manage=off
 # by both
 # bspc rule -a com.ghostty.group01:ghostty state=floating
 
-# Rules examples:
-# #bspc rule -a TelegramDesktop state=floating follow=off rectangle=420x900+750+90
-# bspc rule -a TelegramDesktop state=floating follow=off
-# bspc rule -a firefox state=floating rectangle=1600x900+160+90 desktop='^1'
-# bspc rule -a Lutris state=floating follow=off rectangle=1200x700+360+190 desktop='^6'
-# bspc rule -a mpv state=floating rectangle=800x450+560+315 follow=off
-# bspc rule -a dmenu rectangle=900x22+610+90
-# bspc rule -a Viewnior rectangle=1350x900+285+90 state=floating
-# bspc rule -a Inkscape desktop='^3'
-# bspc rule -a Blender desktop='^2'
-#
-# For scratchpads:
-# bspc rule -a mysp state=floating rectangle=1280x800+380+170
-# bspc rule -a scp2 state=floating rectangle=1280x800+380+170
-# bspc rule -a pulse state=floating rectangle=1280x800+380+170
-# bspc rule -a music state=floating rectangle=1280x800+380+170
-# bspc rule -a news state=floating rectangle=1280x800+380+170
-# bspc rule -a ranger state=floating rectangle=1280x800+380+170
+#bspc rule -a com.scratchpad.yazi --one-shot state=floating sticky=on hidden=on rectangle="2880x1728+480+216"

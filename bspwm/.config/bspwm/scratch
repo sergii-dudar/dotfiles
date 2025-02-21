@@ -1,35 +1,54 @@
 #!/usr/bin/env bash
 
+# My personal implementation of BSPWM scratchpad functionality, where I have tried to replicate the same functionality
+#  that I used to in another window managers I'm using (awesome wm, dwm, xmonad, qtile, i3)
+#
+# dependencies: bspc, rg, xdotool, xrandr, dunst
+# example of using: ./scratch yazi
+
+# default proportions of scratch window related from current screen with. override to particual app, if need different proportions
+scratchpad_factor_width=0.75
+scratchpad_factor_height=0.8
+
+# use `xprop WM_CLASS` to get window class and instant values:
+
 case "$1" in
     "yazi")
+        # xprop WM_CLASS: WM_CLASS(STRING) = "ghostty", "com.ghostty.group01"
         instance_name="ghostty"
         class_name="com.scratchpad.yazi"
         run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        notify_msg="📂 Yazi File Manager"
         ;;
     "nautilus")
         instance_name="org.gnome.Nautilus"
         class_name="org.gnome.Nautilus"
         run_cmd="nautilus"
+        notify_msg="📂 Nautilus"
         ;;
     "telegram")
         instance_name="telegram-desktop"
         class_name="TelegramDesktop"
         run_cmd="telegram-desktop"
+        notify_msg="💬 Telegram"
         ;;
     "youtube_music")
         instance_name="crx_cinhimbnkkaeohfgghhklpknlkffjgod"
         class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
+        notify_msg="💽 Music"
         ;;
     "google_chat")
         instance_name="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"
         class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
+        notify_msg="✉️  Google Chat"
         ;;
     "monkey_type")
         instance_name="crx_picebhhlijnlefeleilfbanaghjlkkna"
         class_name="Brave-browser"
         run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        notify_msg="  Monkey Type"
         ;;
     *)
         echo "$1 - is not supported"
@@ -39,47 +58,39 @@ esac
 
 filename=/tmp/"$class_name"_"$instance_name"
 
-bspc_write_nodeid() {
-
+function bspc_write_nodeid() {
     retries=0
     max_retries=50 # 50 * 0.1s = 5 sec max to up any application
 
     while true; do
-        flag=false
+        node_found=false
 
         for id in $(bspc query -d focused -N -n '.floating.sticky'); do
-            echo "found..."
-            #bspc query --node $id -T | command grep -q $class_name && { echo $id > $filename; flag=true; break; }
-            bspc query --node $id -T | command grep -q "$class_name.*$instance_name" && { echo $id > $filename; flag=true; break; }
+            bspc query --node "$id" -T |  rg -q "$class_name.*$instance_name" && { echo "$id" > $filename; node_found=true; break; }
         done
 
-        [[ "$flag" == "true" ]] && break
+        [[ "$node_found" == "true" ]] && break
 
         # Increment retry counter and check if we've reached the limit
         retries=$((retries + 1))
         if [ "$retries" -ge "$max_retries" ]; then
-            echo "Max retries reached. Exiting."
+            echo "Max retries reached. Not fount any node by [ class=$class_name, instant=$instance_name ] Exiting."
             exit 1
         fi
 
         sleep 0.1s
     done
-
-    echo "done:"
-
 }
 
-hide_all_except_current() {
-    for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden')
-    do
-        # bspc query --node $id -T | command grep -qv $class_name && bspc node $id --flag hidden=on
-        bspc query --node $id -T | command grep -qv "$class_name.*$instance_name" && bspc node $id --flag hidden=on
+function hide_all_except_current() {
+    for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden'); do
+        bspc query --node "$id" -T | rg -q -v "$class_name.*$instance_name" && bspc node "$id" --flag hidden=on
     done
 }
 
-toggle_hidden() {
+function toggle_hidden() {
     [ -e "$filename" ] || exit 1
-    hide_all_except_current
+    hide_all_except_current # comment it if your want keep prev opened scratchpads visible
     id=$(<"$filename")
 
     case "$1" in
@@ -92,28 +103,23 @@ toggle_hidden() {
     esac
 }
 
-calc_bc() {
+function calc_bc() {
     echo "scale=0; ($1)/1" | bc -l
 }
 
-# Try to locate a window with the given class.
-# WIN_ID=$(xdotool search --class "$class_name" 2>/dev/null | head -n 1)
-WIN_ID=$(comm -12 <(xdotool search --class "$class_name" | sort) <(xdotool search --classname "$instance_name" | sort))
-
-# if ! command ps -ef | command grep -q "[c]lass=$class_name"; then
-if [ -z "$WIN_ID" ]; then
-
+function calculate_scratch_resolution() {
     # screen_width=3840
     # screen_height=2160
 
     # get current resolution
-    resolution=$(xrandr | command grep '*' | awk '{print $1}')
+    resolution=$(xrandr | rg -F '*' | awk '{print $1}' | head -n 1)
     screen_width=$(echo "$resolution" | cut -d 'x' -f 1)
     screen_height=$(echo "$resolution" | cut -d 'x' -f 2)
+    # echo screen_width="$screen_width", screen_height="$screen_height"
 
     # scratchpad size factor to current screen resolution
-    factor_width=0.75
-    factor_height=0.8
+    factor_width="${1:-0.75}"
+    factor_height="${2:-0.8}"
 
     window_width=$(calc_bc "$screen_width * $factor_width")
     window_height=$(calc_bc "$screen_height * $factor_height")
@@ -122,14 +128,18 @@ if [ -z "$WIN_ID" ]; then
     window_x=$(calc_bc "$screen_width / 2 - $window_width / 2")
     window_y=$(calc_bc "$screen_height / 2 - $window_height / 2")
     rectangle_val="$window_width"x"$window_height"+"$window_x"+"$window_y"
+    echo "$rectangle_val"
+}
+
+# search by [class_name] AND [instance_name]
+WIN_ID=$(comm -12 <(xdotool search --class "$class_name" | sort) <(xdotool search --classname "$instance_name" | sort))
+
+if [ -z "$WIN_ID" ]; then
+    rectangle_val=$(calculate_scratch_resolution $scratchpad_factor_width $scratchpad_factor_height)
     #echo rectangle_val=$rectangle_val
-
-    #bspc rule -a "$class_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
     bspc rule -a "$class_name":"$instance_name" --one-shot state=floating sticky=on hidden=on rectangle="$rectangle_val"
-
     bash -c "$run_cmd" > /dev/null 2>&1 &
-
-    dunstify "Scratch: starting $1"
+    dunstify "$notify_msg" -t 700
     bspc_write_nodeid
     toggle_hidden show
     exit 0
