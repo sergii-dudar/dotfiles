@@ -57,44 +57,27 @@ super + Return
 # ----------- Bspwm ---------------------
 # ----------------------------------------
 
+
 # focus the last node/desktop
-alt + Tab
-    bspc node last -f
-
-# make sxhkd reload its configuration files:
-# super + Escape
-# 	pkill -USR1 -x sxhkd
-
-# killall sxhkd; sxhkd -c ~/.config/sxhkd/"${sxhkd_subdir}"sxhkdrc &
-
-#
-# bspwm hotkeys
-#
+# alt + Tab
+#     bspc node last -f
 
 # quit/restart bspwm
-# super + alt + {q,r}
+# "$HOME"/.config/polybar/bspwm/launch.sh; \ 
 super + shift + r
     bspc wm -r; \
     killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
-	# bspc wm -r \
- #    "$HOME"/.config/polybar/bspwm/launch.sh; \ 
- #    killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
 
 # close and kill
 super + shift + c
 	bspc node -c
 
 # alternate between the tiled and monocle layout
-# super + m
-# 	bspc desktop -l next
+super + m
+	bspc desktop -l next
 
-# send the newest marked node to the newest preselected node
-super + y
-	bspc node newest.marked.local -n newest.!automatic.local
-
-# swap the current node and the biggest window
-super + g
-	bspc node -s biggest.window
+super + Tab
+    bspc desktop -l next
 
 #
 # state/flags
@@ -103,6 +86,25 @@ super + g
 # set the window state
 super + {t,shift + t,s,f}
 	bspc node -t {tiled,pseudo_tiled,floating,fullscreen}
+
+
+# ----------------------------------------
+# ----------- Archived -------------------
+# ----------------------------------------
+
+
+# send the newest marked node to the newest preselected node
+# super + y
+# 	bspc node newest.marked.local -n newest.!automatic.local
+
+# swap the current node and the biggest window
+# super + g
+# 	bspc node -s biggest.window
+
+#
+# state/flags
+#
+
 
 # set the node flags
 super + ctrl + {m,x,y,z}
@@ -123,8 +125,8 @@ super + {b,comma,period}
 	bspc node -f @{brother,first,second}
 
 # focus the next/previous window in the current desktop
-super + {_,shift + }c
-	bspc node -f {next,prev}.local.!hidden.window
+# super + {_,shift + }c
+# 	bspc node -f {next,prev}.local.!hidden.window
 
 # focus the next/previous desktop in the current monitor
 super + bracket{left,right}
@@ -180,25 +182,6 @@ super + alt + shift + {h,j,k,l}
 super + {Left,Down,Up,Right}
 	bspc node -v {-20 0,0 20,0 -20,20 0}
 
-# ############### Scratchpads #################
-
-super + p; y
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad yazi
-
-super + p; t
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad telegram
-
-super + p; n
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad nautilus
-
-super + p; m
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad youtube_music
-
-super + p; g
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad google_chat
-
-super + p; u
-    ~/dotfiles/bspwm/.config/bspwm/scratchpad monkey_type
 
 # # -------------- Progress
 # # # alternate between the tiled and monocle layout
@@ -394,4 +377,26 @@ super + p; u
 # 
 # super + ctrl + {equal, minus, 0}
 # 	borders {+, -, =}
-# 
+
+# ############### Scratchpads #################
+
+super + p; y
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad yazi
+
+super + p; t
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad telegram
+
+super + p; n
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad nautilus
+
+super + p; m
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad youtube_music
+
+super + p; g
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad google_chat
+
+super + p; u
+    ~/dotfiles/bspwm/.config/bspwm/scratchpad monkey_type
+
+
+

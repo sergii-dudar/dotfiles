@@ -71,6 +71,8 @@ bspc rule -a "Gnome-disks" state=floating
 bspc rule -a "Glate" state=floating
 # bspc rule -a "Gpick" state=floating
 
+bspc rule -a "Brave-browser" desktop='^2' follow=on focus=on
+
 bspc rule -a "kitty:disc_ugd" state=floating rectangle="$rectangle_val"
 bspc rule -a "kitty:htop_info" state=floating rectangle="$rectangle_val"
 

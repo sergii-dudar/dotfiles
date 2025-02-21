@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden'); do
+    bspc node "$id" --flag hidden=on
+done
