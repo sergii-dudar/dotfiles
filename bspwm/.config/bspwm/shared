@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function calc_bc() {
+    echo "scale=0; ($1)/1" | bc -l
+}
+
+function calculate_scratch_resolution() {
+    # screen_width=3840
+    # screen_height=2160
+
+    # get current resolution
+    resolution=$(xrandr | rg -F '*' | awk '{print $1}' | head -n 1)
+    screen_width=$(echo "$resolution" | cut -d 'x' -f 1)
+    screen_height=$(echo "$resolution" | cut -d 'x' -f 2)
+    # echo screen_width="$screen_width", screen_height="$screen_height"
+
+    # scratchpad size factor to current screen resolution
+    factor_width="${1:-0.75}"
+    factor_height="${2:-0.8}"
+
+    window_width=$(calc_bc "$screen_width * $factor_width")
+    window_height=$(calc_bc "$screen_height * $factor_height")
+
+    # find exact center to place by screen and scratchpad proportions
+    window_x=$(calc_bc "$screen_width / 2 - $window_width / 2")
+    window_y=$(calc_bc "$screen_height / 2 - $window_height / 2")
+    rectangle_val="$window_width"x"$window_height"+"$window_x"+"$window_y"
+    echo "$rectangle_val"
+}

@@ -15,7 +15,7 @@ bspc config window_gap          12
 
 bspc config single_monocle        false
 bspc config focus_follows_pointer true # Focus the window under the pointer.
-bspc config click_to_focus        false
+bspc config click_to_focus        none
 #bspc config pointer_follows_focus    true
 #bspc config pointer_follows_monitor  true
 bspc config remove_disabled_monitors  false
@@ -37,7 +37,6 @@ bspc config normal_border_color     "#2E3134"
 
 #Window rules
 bspc rule -a "SimpleScreenRecorder" state=floating
-bspc rule -a "Pavucontrol" state=floating
 bspc rule -a "Firefox" desktop=^2
 bspc rule -a "Thunar" desktop=^3
 bspc rule -a "kdenlive" desktop=^5
@@ -46,6 +45,36 @@ bspc rule -a Chromium desktop='^2'
 bspc rule -a mplayer2 state=floating
 bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
+
+. "$HOME/dotfiles/bspwm/.config/bspwm/shared"
+
+floating_factor_width=0.75
+floating_factor_height=0.8
+rectangle_val=$(calculate_scratch_resolution $floating_factor_width $floating_factor_height)
+
+bspc rule -a "pavucontrol" state=floating rectangle="$rectangle_val"
+bspc rule -a "gnome-control-center" state=floating rectangle="$rectangle_val"
+bspc rule -a "gnome-system-monitor" state=floating rectangle="$rectangle_val"
+
+bspc rule -a "qBittorrent" state=floating state=floating rectangle="$rectangle_val"
+bspc rule -a "Nm-connection-editor" state=floating state=floating rectangle="$rectangle_val"
+bspc rule -a "ViberPC" state=floating state=floating rectangle="$rectangle_val"
+bspc rule -a "vlc" state=floating state=floating rectangle="$rectangle_val"
+bspc rule -a "Gcolor3" state=floating state=floating rectangle="$rectangle_val"
+bspc rule -a "snapshot" state=floating state=floating rectangle="$rectangle_val"
+
+bspc rule -a "gnome-calculator" state=floating
+bspc rule -a "org.gnome.Characters" state=floating
+bspc rule -a "org.gnome.clocks" state=floating
+bspc rule -a "gnome-calendar" state=floating
+bspc rule -a "Gnome-disks" state=floating
+bspc rule -a "Glate" state=floating
+# bspc rule -a "Gpick" state=floating
+
+bspc rule -a "kitty:disc_ugd" state=floating rectangle="$rectangle_val"
+bspc rule -a "kitty:htop_info" state=floating rectangle="$rectangle_val"
+
+bspc rule -a "org.gnome.Nautilus" state=floating rectangle="$rectangle_val"
 
 # WM_CLASS(STRING) = "ghostty", "com.ghostty.group01"
 # by instant

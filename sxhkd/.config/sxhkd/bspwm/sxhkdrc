@@ -57,6 +57,10 @@ super + Return
 # ----------- Bspwm ---------------------
 # ----------------------------------------
 
+# focus the last node/desktop
+alt + Tab
+    bspc node last -f
+
 # make sxhkd reload its configuration files:
 # super + Escape
 # 	pkill -USR1 -x sxhkd
