@@ -3,18 +3,18 @@
 # ----------------------------------------------------
 
 alt + space
-    bash "$HOME"/.config/rofi/scripts/launcher_t1
+    ~/.config/rofi/scripts/launcher_t1
 
 super + q
-    bash "$HOME"/.config/rofi/scripts/powermenu_t1
+    ~/.config/rofi/scripts/powermenu_t1
 
 ctrl + alt + q
-    bash "$HOME"/dotfiles/bin/screen-lock
+    ~/dotfiles/bin/screen-lock
 
 super + space
-    bash "$HOME"/dotfiles/bin/change_language.sh && kill -35 $(pidof dwmblocks)
+    ~/dotfiles/bin/change_language.sh
 
-# ---------- Application Keybindings -----------------
+# ---------- APPLICATION KEYBINDINGS -----------------
 
 Print
     flameshot gui
@@ -22,7 +22,8 @@ Print
 super + Return
 	ghostty
 
-# --------------- Audio Keybindings -----------------
+# --------------- AUDIO KEYBINDINGS -----------------
+
 super + Left
     amixer -D pulse sset Master 5%-
 
@@ -33,7 +34,7 @@ super + Right
 super + Down
     amixer -D pulse sset Master toggle
 
-# --------------------- Media -----------------------
+# --------------------- MEDIA -----------------------
 
 #super + F9
 super + shift + Down
@@ -62,7 +63,7 @@ XF86AudioPrev
 # quit/restart bspwm
 super + shift + r
     bspc wm -r; \
-    killall -q sxhkd; sxhkd -c "$HOME"/.config/sxhkd/bspwm/sxhkdrc &
+    killall -q sxhkd; sxhkd -c ~/.config/sxhkd/bspwm/sxhkdrc &
 
 # close and kill
 super + shift + c
@@ -95,7 +96,7 @@ super + {_,shift + }{h,j,k,l}
 super + bracket{left,right}
 	bspc desktop -f {prev,next}.local
 
-# focus the last node/desktop
+# focus the last node/desktop (and hide scratchpad if any active)
 alt + {Tab,grave}
 	bspc {node,desktop} -f last; ~/dotfiles/bspwm/.config/bspwm/scratchpad-hideall
 

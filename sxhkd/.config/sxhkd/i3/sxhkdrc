@@ -104,9 +104,9 @@ super + shift + c
 #    i3-msg reload
 
 super + shift + r
-    i3-msg restart; \ 
-    "$HOME"/.config/polybar/launch-i3.sh; \ 
-    killall sxhkd; sxhkd -c "$HOME"/.config/sxhkd/i3/sxhkdrc &
+    i3-msg restart; \
+    ~/.config/polybar/launch-i3.sh; \
+    killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
 
 #super + F11
 #    i3-msg killall picom && picom -b --config ~/.config/picom/picom.conf --vsync
