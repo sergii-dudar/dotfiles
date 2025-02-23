@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden'); do
+#     bspc node "$id" --flag hidden=on
+# done
+
+# close all floating not scratchpads (better in case tray apps, as it actually hide it by X, not kill)
+bspc query -N -d focused -n '.floating.!sticky.!hidden' | xargs -I {} bspc node {} -c
+
+# hide all scratchpads (not close)
 for id in $(bspc query -d focused -N -n '.floating.sticky.!hidden'); do
     bspc node "$id" --flag hidden=on
 done

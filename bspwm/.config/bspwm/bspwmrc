@@ -15,9 +15,9 @@ bspc config window_gap          12
 
 bspc config single_monocle        false
 bspc config focus_follows_pointer true # Focus the window under the pointer.
-bspc config click_to_focus        none
-#bspc config pointer_follows_focus    true
-#bspc config pointer_follows_monitor  true
+bspc config click_to_focus        none # none
+bspc config pointer_follows_focus    false
+bspc config pointer_follows_monitor  false
 bspc config remove_disabled_monitors  false
 bspc config remove_unplugged_monitors false
 
@@ -71,8 +71,8 @@ bspc rule -a "Gnome-disks" state=floating
 bspc rule -a "Glate" state=floating
 # bspc rule -a "Gpick" state=floating
 
-bspc rule -a "ghostty:com.ghostty.group01" desktop='^1' follow=on focus=on
-bspc rule -a "Brave-browser" desktop='^2' follow=on focus=on
+bspc rule -a "com.ghostty.group01:ghostty" desktop='^1'
+bspc rule -a "Brave-browser" desktop='^2'
 
 bspc rule -a "kitty:disc_ugd" state=floating rectangle="$rectangle_val"
 bspc rule -a "kitty:htop_info" state=floating rectangle="$rectangle_val"
@@ -92,4 +92,4 @@ bspc rule -a "org.gnome.Nautilus" state=floating rectangle="$rectangle_val"
 #bspc rule -a com.scratchpad.yazi --one-shot state=floating sticky=on hidden=on rectangle="2880x1728+480+216"
 
 # after start
-(sleep 0.5 && bspc desktop -f '^1') &
+(sleep 0.7 && bspc desktop -f '^1') &

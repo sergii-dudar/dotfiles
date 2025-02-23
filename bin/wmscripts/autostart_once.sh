@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+wm_name="${1:-}"
+
 ~/dotfiles/bin/apply-display-settings.sh
 ssh-add &
 dunst &
@@ -13,9 +15,10 @@ ghostty --class=com.ghostty.group01 &
 nm-applet &
 
 #google-chrome-stable &
-brave &
+(sleep 0.5 && brave) &
 
-wm_name="${1:-}"
+# if [[ "$wm_name" != "bspwm" ]]; then
+# fi
 
 case "$wm_name" in
     "i3")

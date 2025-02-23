@@ -164,10 +164,10 @@ M.setup = function(opts)
         --     rule = { class = "Google-chrome", instance = "google-chrome" },
         --     properties = { tag = tags[3] },
         -- },
-        -- {
-        --     rule = { class = "Brave-browser", instance = "brave-browser" },
-        --     properties = { tag = tags[1] },
-        -- },
+        {
+            rule = { class = "Brave-browser", instance = "brave-browser" },
+            properties = { tag = tags[2] },
+        },
         {
             rule = { instance = "kitty" },
             properties = { tag = tags[4] },

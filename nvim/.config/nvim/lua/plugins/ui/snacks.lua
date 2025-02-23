@@ -12,5 +12,25 @@ return {
         -- quickfile = { enabled = true },
         statuscolumn = { enabled = true },
         -- words = { enabled = true },
+
+        -- explorer = {
+        --     -- your explorer configuration comes here
+        --     -- or leave it empty to use the default settings
+        --     -- refer to the configuration section below
+        -- },
+        -- picker = {
+        --     sources = {
+        --         explorer = {
+        --             -- your explorer picker configuration comes here
+        --             -- or leave it empty to use the default settings
+        --         },
+        --     },
+        -- },
+        --
+        -- image = {
+        --     -- your image configuration comes here
+        --     -- or leave it empty to use the default settings
+        --     -- refer to the configuration section below
+        -- },
     },
 }

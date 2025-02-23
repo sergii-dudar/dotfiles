@@ -78,7 +78,7 @@ rules_list = [
         { "rule": Rule(Match(wm_class="jetbrains-idea")), "group": "2" },
         { "rule": Rule(Match(wm_class="Code")), "group": "2" },
         # { "rule": Rule(Match(wm_class="Google-chrome", wm_instance_class="google-chrome")), "group": "3" },
-        # { "rule": Rule(Match(wm_class="Brave-browser", wm_instance_class="brave-browser")), "group": "3" },
+        { "rule": Rule(Match(wm_class="Brave-browser", wm_instance_class="brave-browser")), "group": "2" },
         { "rule": Rule(Match(wm_class="kitty", wm_instance_class="kitty")), "group": "4" },
 ]
 

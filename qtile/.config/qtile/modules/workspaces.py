@@ -51,7 +51,7 @@ def extend_keys_with_groups(keys):
 # Define layouts and layout themes
 layout_theme = {
     "margin": 4,
-    "border_width": 3,
+    "border_width": 4,
     # "border_focus": colors[5],
     # "border_normal": colors[0],
     "border_focus": colors.border_focus,
