@@ -1,36 +1,31 @@
 picker_type="${1:-}"
 
 function pick_by_month_number() {
-    # case "$1" in
-    #     01|07)
-    #         "$HOME"/dotfiles/bin/desc/i3.desktop.runner.sh
-    #         ;;
-    #     02|08)
-    #         "$HOME"/dotfiles/bin/desc/qtile.desktop.runner.sh
-    #         ;;
-    #     03|09)
-    #         "$HOME"/dotfiles/bin/desc/awesome.desktop.runner.sh
-    #         ;;
-    #     04|10)
-    #         "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
-    #         ;;
-    #     05|11)
-    #         "$HOME"/dotfiles/bin/desc/bspwm.desktop.runner.sh
-    #         ;;
-    #         # 06|12) TODO: xmonad config not finished yet
-    #         #     /dotfiles/bin/desc/xmonad.desktop.runner.sh
-    #         #     echo "06|12: $1"
-    #         #     ;;
-    #     *)
-    #         # in any unknown situation, use dwm ;)
-    #         "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
-    #         ;;
-    # esac
-
-    # "$HOME"/dotfiles/bin/desc/qtile.desktop.runner.sh
-
-    "$HOME/dotfiles/bin/apply-display-settings.sh"
-    exec qtile start
+    case "$1" in
+        01|07)
+            "$HOME"/dotfiles/bin/desc/i3.desktop.runner.sh
+            ;;
+        02|08)
+            "$HOME"/dotfiles/bin/desc/qtile.desktop.runner.sh
+            ;;
+        03|09)
+            "$HOME"/dotfiles/bin/desc/awesome.desktop.runner.sh
+            ;;
+        04|10)
+            "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
+            ;;
+        05|11)
+            "$HOME"/dotfiles/bin/desc/bspwm.desktop.runner.sh
+            ;;
+            # 06|12) TODO: xmonad config not finished yet
+            #     /dotfiles/bin/desc/xmonad.desktop.runner.sh
+            #     echo "06|12: $1"
+            #     ;;
+        *)
+            # in any unknown situation, use dwm ;)
+            "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
+            ;;
+    esac
 }
 
 function pick_by_month() {
