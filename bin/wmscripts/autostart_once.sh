@@ -10,15 +10,27 @@ dunst &
 # Automatically lock the screen after 10 minutes of inactivity
 xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
 
-ghostty --class=com.ghostty.group01 &
 #glate &
 nm-applet &
-
 #google-chrome-stable &
-(sleep 0.5 && brave) &
 
-# if [[ "$wm_name" != "bspwm" ]]; then
-# fi
+case "$wm_name" in
+    "i3")
+        #ghostty --class=com.ghostty.group01 &
+        brave &
+        # i3-msg 'workspace 1' ; ghostty --class=com.ghostty.group01 &
+        # sleep 0.5 && i3-msg 'workspace 2' ; brave &
+        # sleep 0.5 && i3-msg 'workspace 1'
+        ;;
+    "bspwm")
+        ghostty --class=com.ghostty.group01 &
+        (sleep 0.5 && brave) &
+        ;;
+    *)
+        ghostty --class=com.ghostty.group01 &
+        brave &
+        ;;
+esac
 
 case "$wm_name" in
     "i3")

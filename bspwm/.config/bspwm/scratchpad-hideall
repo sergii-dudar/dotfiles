@@ -4,7 +4,7 @@
 #     bspc node "$id" --flag hidden=on
 # done
 
-# close all floating not scratchpads (better in case tray apps, as it actually hide it by X, not kill)
+# close all floating not scratchpads (better in case tray apps & and simple floatings, as it actually hide it by X, not kill)
 bspc query -N -d focused -n '.floating.!sticky.!hidden' | xargs -I {} bspc node {} -c
 
 # hide all scratchpads (not close)

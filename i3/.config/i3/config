@@ -1,18 +1,15 @@
-#include ~/.config/i3/theme.conf
-#include ~/.config/i3/themes/map.conf
-include ~/.config/i3/themes/nord.conf
-#include ~/.config/i3/themes/nxc.conf
+include ~/.config/i3/theme.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-# exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh i3
-# exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh i3
+exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh i3
+exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh i3
 
 #i3-msg "workspace 2; move workspace to output HDMI-1"
-workspace 9 output HDMI-2
-workspace 2 output HDMI-1
+# workspace 9 output HDMI-2
+# workspace 2 output HDMI-1
+
 # exec --no-startup-id (sleep 0.7 && i3-msg 'workspace 1') &
-exec --no-startup-id (sleep 0.7 && i3-msg '[workspace="1"] focus') &
 
 workspace_auto_back_and_forth yes
 focus_on_window_activation focus
