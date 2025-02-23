@@ -15,4 +15,4 @@ lmap["us"]="US"
 k_layout_icon=" "
 k_layout=$(setxkbmap -query | grep layout | awk '{print $NF}')
 
-echo "^c#8caaee^ $k_layout_icon ^c#cba6f7^${lmap[$k_layout]}^d^$SPLIT"
+echo "^c#8caaee^$k_layout_icon ^c#cba6f7^${lmap[$k_layout]}^d^$SPLIT"

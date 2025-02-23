@@ -6,8 +6,8 @@ exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh i3
 exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh i3
 
 #i3-msg "workspace 2; move workspace to output HDMI-1"
-# workspace 9 output HDMI-2
-# workspace 2 output HDMI-1
+workspace 9 output HDMI-2
+workspace 2 output HDMI-1
 
 # exec --no-startup-id (sleep 0.7 && i3-msg 'workspace 1') &
 

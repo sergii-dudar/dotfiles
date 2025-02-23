@@ -10,4 +10,4 @@ esac
 
 # echo "^c#6272a4^$weather_title ^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
 #echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
-echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT"
+echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT_LEFT"
