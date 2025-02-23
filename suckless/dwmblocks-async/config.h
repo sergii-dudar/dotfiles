@@ -18,7 +18,7 @@
 
 // Define blocks for the status feed as X(icon, cmd, interval, signal).
 #define BLOCKS(X) \
-    X("", "/home/serhii/dotfiles/bin/dwm/sb-date",          0,     1) \
+    X("", "/home/serhii/dotfiles/bin/dwm/sb-date",          10,     1) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-key-layout",    0,      2) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-volume",        0,      3) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-battery",       300,    4) \

@@ -56,24 +56,3 @@ date_part="^c$date_icon_color^ ^c$date_color^$datenow"
 
 echo " $time_part $date_part^d^$SPLIT"
 # echo " $time_part$SPLIT"
-
-
-# format-background = #2b2f37
-# # date = " %{F#888e96}  %H:%M %p%{F-} "
-# ; date = " %{F#bd93f9}  %{F#a6d189}%H:%M %{F#8caaee}%p%{F-} "
-# ; time-alt = " %{F#7c8377}  %{F#61afef}%a, %d %b %Y%{F-} "
-# date =      " %{F#bd93f9} %{T13} %{T-}%{F#a6d189}%I:%M%{T13} %{T-}%{F#8caaee}%p%{F-} "
-# time-alt =  " %{F#bd93f9} %{T13} %{T-}%{F#6272a4}%H:%M %{F-} "
-# label = %date%%time%
-#
-# [module/date]
-# type = internal/date
-# interval = 60
-# format = <label>
-# format-padding = 0
-# format-background = #2b2f37
-# ; date = " %{F#61afef}  %a, %d %b %Y%{F-} "
-# ; time-alt = " %{F#888e96}  %H:%M %p%{F-} "
-# date =      " %{F#7c8377} %{T13} %{T-}%{F#6272a4}%a,%{T13} %{T-}%b%{T13} %{T-}%d%{F-} "
-# time-alt =  " %{F#7c8377} %{T13} %{T-}%{F#a6d189}%A,%{T13} %{T-}%d-%m-%Y%{F-} "
-# label = %date%%time%

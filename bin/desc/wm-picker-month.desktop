@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Pick WM by Month
+Comment=Pick Window Manager of current month
+Exec=$HOME/dotfiles/bin/desc/wmpicker.desktop.runner.sh month
+Type=Application
