@@ -15,7 +15,13 @@ local cpu = lain.widget.cpu({
         widget:set_markup(
             markup.font(
                 vars.font.widget,
-                markup(gray, util.to_span(" ", "#8caaee") .. util.to_icon_widget_space(2) .. perc .. "%")
+                markup(
+                    gray,
+                    util.to_span(" ", "#8caaee")
+                        .. util.to_icon_widget_space(2)
+                        .. perc
+                        .. util.to_span("%", "#6272a4")
+                )
             )
         )
     end,
@@ -30,7 +36,13 @@ local mem = lain.widget.mem({
         widget:set_markup(
             markup.font(
                 vars.font.widget,
-                markup(gray, util.to_span(" ", "#a6e3a1") .. util.vars.icon_widget_space .. perc .. "%")
+                markup(
+                    gray,
+                    util.to_span(" ", "#a6e3a1")
+                        .. util.vars.icon_widget_space
+                        .. perc
+                        .. util.to_span("%", "#6272a4")
+                )
             )
         )
     end,
@@ -50,7 +62,7 @@ local fs = lain.widget.fs({
                     util.to_span(" ", "#e5c890")
                         .. util.vars.icon_widget_space
                         .. perc
-                        .. "%"
+                        .. util.to_span("%", "#6272a4")
                         .. util.vars.icon_widget_space
                         .. util.to_span("SSD", "#6272a4")
                 )

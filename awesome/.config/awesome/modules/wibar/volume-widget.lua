@@ -41,7 +41,10 @@ M.setup = function(opts)
             widget:set_markup(
                 markup.font(
                     vars.font.widget,
-                    markup(gray, icon .. util.vars.icon_widget_space .. volume_now.level .. "%")
+                    markup(
+                        gray,
+                        icon .. util.vars.icon_widget_space .. volume_now.level .. util.to_span("%", "#6272a4")
+                    )
                 )
             )
         end,

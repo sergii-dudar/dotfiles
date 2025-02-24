@@ -44,7 +44,19 @@ M.extend_globalkeys = function(globalkeys)
                         client.focus:toggle_tag(tag)
                     end
                 end
-            end, { description = "toggle focused client on tag #" .. i, group = "tag" })
+            end, { description = "toggle focused client on tag #" .. i, group = "tag" }),
+            awful.key({ vars.key.modkey, "Shift" }, ",", function()
+                local c = client.focus
+                if c then
+                    c:move_to_screen()
+                end
+            end, { description = "move window to next screen", group = "client" }),
+            awful.key({ vars.key.modkey, "Shift" }, ".", function()
+                local c = client.focus
+                if c then
+                    c:move_to_screen()
+                end
+            end, { description = "move window to next screen", group = "client" })
         )
     end
 

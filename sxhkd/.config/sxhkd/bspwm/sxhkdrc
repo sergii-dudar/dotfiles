@@ -122,9 +122,10 @@ super + {_,shift + }n
 super + {comma, period}
     bspc monitor -f {prev,next}
 
+# bspc node -s {prev,next}
 # Swap with next or prev node (even on another monitor)
 super + {shift + comma, shift + period}
-    bspc node -s {prev,next}
+    bspc node -m {prev,next} && bspc monitor -f {prev,next}
 
 # ----------------------------------------------------
 # ------------------ PRESELECT -----------------------

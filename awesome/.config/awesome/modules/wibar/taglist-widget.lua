@@ -5,7 +5,7 @@ local awful = require("awful")
 
 local M = {}
 
-M.tags = { "1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", "8 ", "9 " }
+M.tags = { " 1  ", " 2  ", " 3  ", " 4  ", " 5  ", " 6 󰣇 ", " 7  ", " 8  ", " 9  " }
 
 M.setup = function(s, opts)
     -- Each screen has its own tag table.
@@ -22,7 +22,7 @@ M.setup = function(s, opts)
             awful.tag(M.tags, s, awful.layout.layouts[1])
         else
             -- all not main monitors
-            awful.tag({ "1 ", "2 ", "3 ", "4 " }, s, awful.layout.suit.tile.bottom)
+            awful.tag({ " 1  ", " 2  ", " 3  ", " 4  " }, s, awful.layout.suit.tile.bottom)
         end
     else
         awful.tag(M.tags, s, awful.layout.layouts[1])
@@ -57,7 +57,7 @@ M.setup = function(s, opts)
                     {
                         id = "text_role",
                         widget = wibox.widget.textbox, -- Display the tag name
-                        forced_width = 57,
+                        forced_width = 77,
                         forced_height = 30,
                         align = "center",
                         halign = "center",

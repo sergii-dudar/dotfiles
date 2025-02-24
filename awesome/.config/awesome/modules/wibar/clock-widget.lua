@@ -11,7 +11,7 @@ local word_clock_widget = require("modules.wibar.ext.word-clock")
 local time = wibox.widget.textclock()
 time.font = vars.font.widget
 
-local clock_icon = util.to_span("󰔛 ", "#bd93f9", 16)
+local clock_icon = util.to_span("󰔛 ", "#bd93f9", 17)
 local time_formats = {
     clock_icon .. util.to_span("%I:%M", "#a6d189") .. util.vars.icon_widget_space .. util.to_span("%p", "#8caaee"),
     clock_icon .. util.to_span("%H:%M", "#6272a4"),
@@ -53,9 +53,17 @@ util.show_hower_timer_popup({
 local date = wibox.widget.textclock()
 date.font = vars.font.widget
 
-local date_icon = util.to_span(" ", "#7c8377", 16)
+local date_icon = util.to_span(" ", "#7c8377", 17)
 local date_formats = {
-    date_icon .. util.to_span("%A, %B %d", "#6272a4"),
+    -- date_icon .. util.to_span("%A, %B %d", "#6272a4"),
+    date_icon
+        .. util.vars.icon_widget_space
+        .. util.to_span("%a,", "#6272a4")
+        .. util.vars.icon_widget_space
+        .. util.to_span("%b", "#6272a4")
+        .. util.vars.icon_widget_space
+        .. util.to_span("%d", "#6272a4"),
+
     date_icon .. util.to_span("%A, %d-%m-%Y", "#a6d189"),
 }
 local current_date_format_index = 1
