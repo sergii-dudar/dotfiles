@@ -26,6 +26,8 @@ from widget.system_widgets import (
     disc_usage,
     mem,
     memicon,
+    temperature,
+    temperature_icon,
     tray,
 )
 from widget.volume_widgets import volume_dynamic_icon, volume_percentage_level
@@ -97,6 +99,9 @@ def build_main_bar_widgets():
         sep,
         cpuicon,
         cpu,
+        sep,
+        temperature_icon,
+        temperature,
         sep,
         disc_icon,
         disc_usage,

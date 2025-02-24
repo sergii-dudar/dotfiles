@@ -26,8 +26,16 @@ clock = widget.Clock(
 date_mouse_callbacks = to_mouse_callbacks(left_click_cmd=vars.run.gnome_calendar)
 date = widget.Clock(
     format=
-    to_span(" ", "#7c8377", 17) +
-    to_span("%A, %B %d", "#6272a4"),
+    to_span(" ", "#7c8377", 17) +
+    to_span(" ", colors.colors.color6[0], 5) +
+    to_span("%a,", "#6272a4") +
+    to_span(" ", colors.colors.color6[0], 5) +
+    to_span("%b", "#6272a4") +
+    to_span(" ", colors.colors.color6[0], 5) +
+    to_span("%d", "#6272a4"),
+
+    # to_span("%a, %b %d", "#6272a4"),
+    # to_span("%A, %B %d", "#6272a4"),
     fontsize=22,
     foreground=colors.colors.color3,
     padding=15,

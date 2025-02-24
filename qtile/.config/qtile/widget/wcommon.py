@@ -15,7 +15,7 @@ icon_widget_defaults = dict(
     background=colors.background_color
 )
 rect_decoraiton_defaults=dict(
-    colour="#2b2f37",
+    colour="#2E3440", # "#2b2f37"
     filled=True,
     padding_y=0,
 )

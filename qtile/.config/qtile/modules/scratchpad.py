@@ -12,76 +12,68 @@ def to_center_x(width: float) -> float:
 def to_center_y(height: float) -> float:
     return (1 - height) / 2
 
-telegram_width=0.55
-telegram_height=0.6
-telegram_x=to_center_x(width=telegram_width)
-telegram_y=to_center_y(height=telegram_height)
+# telegram_width=0.55
+# telegram_height=0.6
+# telegram_x=to_center_x(width=telegram_width)
+# telegram_y=to_center_y(height=telegram_height)
 
-yazi_width=0.8
-yazi_height=yazi_width
-yazi_x=to_center_x(width=yazi_width)
-yazi_y=to_center_y(height=yazi_height)
+default_rate_width=0.75
+default_rate_height=0.8
+default_x=to_center_x(width=default_rate_width)
+default_y=to_center_y(height=default_rate_height)
 
 def add_scratchpad(groups, keys):
     # Define scratchpads
     groups.append(
         ScratchPad(
-            "scratchpad",
-            [
-                # DropDown("term", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-                # DropDown("term2", "kitty --class=scratch", width=0.8, height=0.8, x=0.1, y=0.1, opacity=1),
-                # DropDown("ranger", "kitty --class=ranger -e ranger", width=0.8 h,eight=0.8, x=0.1, y=0.1, opacity=0.9),
-                # DropDown("volume", "kitty --class=volume -e pulsemixer", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-                # DropDown("mus", "kitty --class=mus -e flatpak run io.github.hrkfdn.ncspot", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-                # DropDown("news", "kitty --class=news -e newsboat", width=0.8, height=0.8, x=0.1, y=0.1, opacity=0.9),
-
+            "scratchpad", [
                 DropDown("telegram",
                          "telegram-desktop",
-                         width=telegram_width,
-                         height=telegram_height,
-                         x=telegram_x,
-                         y=telegram_y,
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y,
                          # opacity=0.98 -- moved to picom
                          ),
                 DropDown("yazi",
                          # "kitty --class=yazi -e yazi",
                          "ghostty --class=com.scratchpad.yazi -e yazi",
-                         width=yazi_width,
-                         height=yazi_height,
-                         x=yazi_x,
-                         y=yazi_y,
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y,
                          # opacity=0.9 -- moved to picom
                          ),
                 DropDown("nautilus",
                          "nautilus",
-                         width=yazi_width,
-                         height=yazi_height,
-                         x=telegram_x,
-                         y=telegram_y
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y
                          ),
                 # install from chrome, and check ~/.local/share/applications/*.desktop right launch command
                 DropDown("youtube_music",
                          "brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod",
-                         width=yazi_width,
-                         height=yazi_height,
-                         x=yazi_x,
-                         y=yazi_y,
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y,
                          # opacity=0.9, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_cinhimbnkkaeohfgghhklpknlkffjgod")),
                 DropDown("google_chat",
                          "brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi",
-                         width=yazi_width,
-                         height=yazi_height,
-                         x=yazi_x,
-                         y=yazi_y,
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y,
                          # opacity=0.9, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi")),
                 DropDown("monkeytype",
                          "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna",
-                         width=yazi_width,
-                         height=yazi_height,
-                         x=yazi_x,
-                         y=yazi_y,
+                         width=default_rate_width,
+                         height=default_rate_height,
+                         x=default_x,
+                         y=default_y,
                          # opacity=0.95, -- moved to picom
                          match=Match(wm_class="Brave-browser", wm_instance_class="crx_picebhhlijnlefeleilfbanaghjlkkna")),
             ],

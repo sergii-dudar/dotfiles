@@ -14,10 +14,10 @@ mouse_callbacks = to_mouse_callbacks(
 )
 volume_dynamic_icon = widget.Volume(
     padding=0,
-    fmt=" {}" + to_span(" ", None, 19),
-    unmute_format='{volume}%',
+    fmt=" {}" + to_span(" ", None, 8),
+    unmute_format='{volume}' + to_span("%", "#6272a4"),
     emoji=True,
-    emoji_list=['', '', ' ', ' '],
+    emoji_list=[' ', ' ', ' ', ' '],
     mute_foreground=colors.colors.color8,
     foreground=colors.colors.color10,
     **text_widget_defaults,
@@ -27,9 +27,9 @@ volume_dynamic_icon = widget.Volume(
 volume_percentage_level = widget.Volume(
     padding=0,
     fmt="{} ",
-    mute_format=to_span(" ", None, 5) + "Mut",
+    mute_format=to_span(" ", None, 4) + "Mut",
     mute_foreground=colors.colors.color8,
-    unmute_format='{volume:02.0f}%',
+    unmute_format='{volume:02.0f}' + to_span("%", "#6272a4"),
     foreground=colors.widget_foreground_color[0],
     **text_widget_defaults,
     **decorations_round_right,

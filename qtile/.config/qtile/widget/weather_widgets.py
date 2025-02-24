@@ -16,9 +16,7 @@ weather = widget.OpenWeather(
     units="metric",        # Use "imperial" for Fahrenheit
     update_interval=900,   # Update every 15 minutes
         format = " {main_temp:.0f}"
-        + to_span(" ", colors.colors.color4[0], 5)
-        + to_span("°", colors.colors.color11[0])
-        + to_span("C", colors.colors.color4[0])
+        + to_span("°C", "#6272a4")
         + to_span(" ", colors.colors.color4[0], 9)
         + "{icon} ",
     foreground=colors.widget_foreground_color[0],
