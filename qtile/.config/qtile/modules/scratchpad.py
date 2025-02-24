@@ -90,12 +90,12 @@ def add_scratchpad(groups, keys):
             # Key([mod], "b", lazy.group["scratchpad"].dropdown_toggle("news")),
             # Key([mod, "shift"], "n", lazy.group["scratchpad"].dropdown_toggle("term2")),
 
-            Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
-            Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
-            Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("youtube_music")),
-            Key([mod], "g", lazy.group["scratchpad"].dropdown_toggle("google_chat")),
-            Key([mod], "u", lazy.group["scratchpad"].dropdown_toggle("monkeytype")),
-            Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("nautilus")),
+            # Key([mod], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),
+            # Key([mod], "t", lazy.group["scratchpad"].dropdown_toggle("telegram")),
+            # Key([mod], "m", lazy.group["scratchpad"].dropdown_toggle("youtube_music")),
+            # Key([mod], "g", lazy.group["scratchpad"].dropdown_toggle("google_chat")),
+            # Key([mod], "u", lazy.group["scratchpad"].dropdown_toggle("monkeytype")),
+            # Key([mod], "n", lazy.group["scratchpad"].dropdown_toggle("nautilus")),
 
             KeyChord([mod], "p", [
                 Key([], "y", lazy.group["scratchpad"].dropdown_toggle("yazi")),

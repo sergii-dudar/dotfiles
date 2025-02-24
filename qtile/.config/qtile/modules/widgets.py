@@ -4,7 +4,14 @@ from widget import runner_widgets
 from widget.datetime_widgets import clock, date
 from widget.keyboard_widgets import keyboard
 from widget.music_widgets import music_control
-from widget.qtile_widgets import chord, curlayout, curlayoutText, groupbox, task_list, windowname
+from widget.qtile_widgets import (
+    build_groupbox,
+    chord,
+    curlayout,
+    curlayoutText,
+    task_list,
+    windowname,
+)
 from widget.simple_widgets import (
     arch_icon,
     arch_version,
@@ -66,7 +73,7 @@ def build_main_bar_widgets():
         date,
         sep,
         sep,
-        groupbox,
+        build_groupbox(0),
         sep,
         sep,
         # widget.TextBox(
@@ -120,18 +127,12 @@ def build_main_bar_widgets():
 
 def build_second_bar_widgets():
     return [
-        to_space_rec_right(3),
-        sep,
-        space_rec_left,
-        curlayout,
-        curlayoutText,
-        sep,
-        task_list,
 
         spacer,
-        groupbox,
+        build_groupbox(1),
         spacer,
 
+        to_space_rec_left(3),
         runner_widgets.ghostty_terminal,
         runner_widgets.kitty_runner,
         runner_widgets.wezterm_terminal,

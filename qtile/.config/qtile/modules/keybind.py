@@ -12,43 +12,48 @@ from libqtile.config import (
     Screen,
 )
 from libqtile.lazy import lazy
+from libqtile.log_utils import logger
 from modules import funcs
 from util import vars
 
 mod = vars.key.mod
 alt = vars.key.alt
 
+layout_cycle = ["columns", "max"]
+def cycle_layouts(qtile):
+    """Switch to the next layout in the custom cycle list."""
+    group = qtile.current_group
+    current_layout = group.layout.name
+
+    # Find the next layout in the cycle
+    next_index = (layout_cycle.index(current_layout) + 1) % len(layout_cycle)
+    next_layout = layout_cycle[next_index]
+
+    group.setlayout(next_layout)
+
 keys = [
     Key([mod], "Return", lazy.spawn(vars.run.terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    # Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "Tab", lazy.function(cycle_layouts), desc="Rotate between declared cycle layouts"),
     Key([mod, "shift"], "c", lazy.window.kill(), desc="Kill focused window"),
 
-    # Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
-    Key([mod], "f", funcs.maximize_by_switching_layout(), lazy.window.toggle_fullscreen(), desc='toggle fullscreen'),
+    Key([mod], "f", lazy.window.toggle_fullscreen(), desc='toggle fullscreen'),
     Key([mod, "shift"], "m", funcs.minimize_all(), desc="Toggle hide/show all windows on current group"),
-    Key([mod], "m", lazy.layout.maximize(), desc='Toggle between min and max sizes'),
+    #Key([mod], "m", lazy.layout.maximize(), desc='Toggle between min and max sizes'),
+    Key([mod], "m", lazy.function(cycle_layouts), desc='Toggle between min and max sizes'),
 
     Key([mod], "b", lazy.hide_show_bar(position='all'), desc="Toggles the bar to show/hide"),
 
     #Key([mod], "w", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
-    #Key([mod], "w", telegram(),desc="Toggle floating on the focused window"),
 
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
     # multiple stack panes
 
-
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "x", lazy.shutdown(), desc="Shutdown Qtile"),
-    #Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    #Key([alt], "space", lazy.spawn(vars.run.mymenu)), # -- handled by sxhkd
-    #Key([mod], "w", lazy.spawn(browser)),
-    Key([mod, "shift"], "Return", lazy.spawn(vars.run.files)),
-    # Key([mod, alt], "s", lazy.spawn(screenie)),
-    Key([alt], "s", lazy.spawn(vars.run.todoist)),
-    Key([alt], "n", lazy.spawn(vars.run.discord)),
 
     # Movement Keys
     Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
