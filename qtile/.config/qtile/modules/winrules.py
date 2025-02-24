@@ -12,7 +12,7 @@ colors = colors.current()
 ####### Open specific applications in floating mode ########
 ############################################################
 floating_layout_theme = {
-    "border_width": 3,
+    "border_width": 4,
     "border_focus": colors.float_border_focus,
 }
 floating_layout = layout.Floating(

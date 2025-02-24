@@ -146,7 +146,7 @@ battery = widget.Battery(format="{percent:2.0%}" + to_span("% ", "#6272a4"),
 )
 tray = widget.Systray(
     foreground=colors.foreground_color,
-    icon_size=22,
+    icon_size=27,
     padding=10,
     **text_widget_defaults,
     **decorations_no_round
