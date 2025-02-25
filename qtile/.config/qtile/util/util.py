@@ -82,3 +82,21 @@ def get_monitor_count():
     first_line = output.stdout.split("\n")[0]  # Get the first line: "Monitors: 2"
     return int(first_line.split()[1])  # Extract the number "2"
 
+layout_main_screen_cycle = ["monadtall", "max"]
+layout_second_screen_cycle = ["verticaltile", "max"]
+def cycle_layouts(qtile):
+    """Switch to the next layout in the custom cycle list."""
+    group = qtile.current_group
+    current_layout = group.layout.name
+    current_screen = qtile.current_screen.index  # Get the index of the focused screen
+    # logger.error("screen index: " + str(current_screen))
+
+    # Select the appropriate layout cycle
+    layout_cycle = layout_main_screen_cycle if current_screen == 0 else layout_second_screen_cycle
+
+    # Find the next layout in the cycle
+    next_index = (layout_cycle.index(current_layout) + 1) % len(layout_cycle)
+    next_layout = layout_cycle[next_index]
+
+    # Set the new layout
+    group.setlayout(next_layout)

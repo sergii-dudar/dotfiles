@@ -5,12 +5,12 @@ from widget.datetime_widgets import clock, date
 from widget.keyboard_widgets import keyboard
 from widget.music_widgets import music_control
 from widget.qtile_widgets import (
+    build_current_layout,
+    build_current_layout_icon,
     build_groupbox,
+    build_task_list,
+    build_window_name,
     chord,
-    curlayout,
-    curlayoutText,
-    task_list,
-    windowname,
 )
 from widget.simple_widgets import (
     arch_icon,
@@ -61,11 +61,12 @@ def build_main_bar_widgets():
         to_space_rec_right(3),
         sep,
         space_rec_left,
-        curlayout,
-        curlayoutText,
+        build_current_layout_icon(),
+        build_current_layout(),
+        space_rec_right,
         sep,
         music_control,
-        task_list,
+        build_task_list(),
         #windowname,
         spacer,
 
@@ -127,6 +128,13 @@ def build_main_bar_widgets():
 
 def build_second_bar_widgets():
     return [
+        space_rec_left,
+        build_current_layout_icon(),
+        build_current_layout(),
+        space_rec_right,
+        sep,
+        build_task_list(),
+
 
         spacer,
         build_groupbox(1),

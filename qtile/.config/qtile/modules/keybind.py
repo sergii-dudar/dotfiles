@@ -15,21 +15,10 @@ from libqtile.lazy import lazy
 from libqtile.log_utils import logger
 from modules import funcs
 from util import vars
+from util.util import cycle_layouts
 
 mod = vars.key.mod
 alt = vars.key.alt
-
-layout_cycle = ["monadtall", "max"]
-def cycle_layouts(qtile):
-    """Switch to the next layout in the custom cycle list."""
-    group = qtile.current_group
-    current_layout = group.layout.name
-
-    # Find the next layout in the cycle
-    next_index = (layout_cycle.index(current_layout) + 1) % len(layout_cycle)
-    next_layout = layout_cycle[next_index]
-
-    group.setlayout(next_layout)
 
 keys = [
     Key([mod], "Return", lazy.spawn(vars.run.terminal), desc="Launch terminal"),

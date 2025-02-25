@@ -1,6 +1,7 @@
 from qtile_extras import widget
 
-from libqtile import bar, group, hook, layout, qtile, widget
+from libqtile import bar, group, hook, layout, qtile
+from libqtile.log_utils import logger
 from util import colors, util
 from util.util import to_span
 from util.vars import var
@@ -13,36 +14,41 @@ from widget.wcommon import (
 )
 
 ccolors = colors.current()
-curlayout = widget.CurrentLayoutIcon(
-    scale=0.7,
-    use_mask=True,
-    foreground=ccolors.colors.color4,
-    **icon_widget_defaults,
-    **decorations_no_round
-)
-class UppercaseCurrentLayout(widget.CurrentLayout):
-    def hook_response(self, layout, group):
-        if group.screen is not None and group.screen == self.bar.screen:
-            self.text = layout.name.upper()
-            self.bar.draw()
 
-curlayoutText = UppercaseCurrentLayout(
-    foreground=ccolors.widget_foreground_color,
-    fmt="[<i>{}</i>] ",
-    format_func=lambda text: text.upper(),
-    **text_widget_defaults,
-    **decorations_round_right
-)
-windowname = widget.WindowName(
-    foreground=ccolors.colors.color9,
-    **text_widget_defaults,
-    # decorations=[
-    #     BorderDecoration(
-    #         colour = colors[5],
-    #         border_width = [0, 0, 2, 0],
-    #     )
-    # ],
-)
+def build_current_layout_icon():
+    return widget.CurrentLayoutIcon(
+        scale=0.7,
+        use_mask=True,
+        foreground=ccolors.colors.color4,
+        **icon_widget_defaults,
+        **decorations_no_round
+    )
+
+def build_current_layout():
+    class UppercaseCurrentLayout(widget.CurrentLayout):
+        def hook_response(self, layout, group):
+            if group.screen is not None and group.screen == self.bar.screen:
+                self.text = layout.name.upper()
+                self.bar.draw()
+
+    return UppercaseCurrentLayout(
+        foreground=ccolors.widget_foreground_color,
+        fmt="[<i>{}</i>]",
+        format_func=lambda text: text.upper(),
+        **text_widget_defaults,
+        **decorations_no_round
+    )
+def build_window_name():
+    return widget.WindowName(
+        foreground=ccolors.colors.color9,
+        **text_widget_defaults,
+        # decorations=[
+        #     BorderDecoration(
+        #         colour = colors[5],
+        #         border_width = [0, 0, 2, 0],
+        #     )
+        # ],
+    )
 def build_groupbox(monitor_index: int):
     monitors_count = util.get_monitor_count()
     visible_groups_dict = dict()
@@ -85,23 +91,23 @@ def build_groupbox(monitor_index: int):
         **visible_groups_dict,
         **icon_widget_defaults
     )
-
-task_list = widget.TaskList(
-    theme_path = "/usr/share/icons/Dracula",
-    highlight_method='block',
-    borderwidth=0,
-    max_title_width=100,
-    **icon_widget_defaults,
-    icon_size=24,
-    #theme_mode='fallback',
-    stretch=False,
-    padding=5,
-    theme_mode = "preferred",
-    fontsize=18,
-    foreground=ccolors.colors.color4[1],
-    #border=colors[1][1],
-    border="#44475a"
-)
+def build_task_list():
+    return widget.TaskList(
+        theme_path = "/usr/share/icons/Dracula",
+        highlight_method='block',
+        borderwidth=0,
+        max_title_width=100,
+        **icon_widget_defaults,
+        icon_size=24,
+        #theme_mode='fallback',
+        stretch=False,
+        padding=5,
+        theme_mode = "preferred",
+        fontsize=18,
+        foreground=ccolors.colors.color4[1],
+        #border=colors[1][1],
+        border="#44475a"
+    )
 chord=widget.Chord(
     **text_widget_defaults,
     **decorations_round,
