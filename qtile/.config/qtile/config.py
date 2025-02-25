@@ -26,25 +26,29 @@ workspaces.extend_keys_with_groups(keys)
 layouts = workspaces.layouts
 scratchpad.add_scratchpad(groups, keys)
 
+# outside gaps: screen[right, left, bottom]
+# inside gaps: layout.margin
 screens = [
     Screen(
-        right=bar.Gap(7),
-        left=bar.Gap(7),
-        bottom=bar.Gap(7),
+        right=bar.Gap(3),
+        left=bar.Gap(3),
+        bottom=bar.Gap(3),
         top=bar.Bar(
             widgets.build_main_bar_widgets(),
             size=35,
-            margin=[ 0, 0, 7, 0 ],
+            # margin=[ 0, 0, 7, 0 ],
+            margin=[ 0, 0, 0, 0 ],
         ),
     ),
     Screen(
-        right=bar.Gap(7),
-        left=bar.Gap(7),
-        bottom=bar.Gap(7),
+        right=bar.Gap(3),
+        left=bar.Gap(3),
+        bottom=bar.Gap(3),
         top=bar.Bar(
             widgets.build_second_bar_widgets(),
             size=35,
-            margin=[ 0, 0, 7, 0 ],
+            # margin=[ 0, 0, 7, 0 ],
+            margin=[ 0, 0, 0, 0 ],
         ),
         # layouts = [layout.verticaltile()]
         # layout = layout.verticaltile()
