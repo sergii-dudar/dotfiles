@@ -26,7 +26,7 @@ floating_layout = layout.Floating(
         Match(title="branchdialog"),  # gitk
         Match(title="pinentry"),  # GPG key password entry
 
-        Match(wm_class="qBittorrent"),
+        Match(wm_class="qbittorrent"), # WM_CLASS(STRING) = "qbittorrent", "qBittorrent"
         Match(wm_class="pavucontrol"),
         # Match(wm_class="org.gnome.Nautilus"),
         Match(wm_class="gnome-system-monitor"),
