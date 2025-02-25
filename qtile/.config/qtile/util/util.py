@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from libqtile import qtile
 from libqtile.log_utils import logger
@@ -75,3 +76,9 @@ def calculate_window_width(factor_width: float | None = None):
 def calculate_window_height(factor_height: float | None = None):
     factor_height = factor_height if factor_height is not None else var.settings.default_factor_height
     return int(var.settings.screen_height * factor_height)
+
+def get_monitor_count():
+    output = subprocess.run(["xrandr", "--listmonitors"], capture_output=True, text=True)
+    first_line = output.stdout.split("\n")[0]  # Get the first line: "Monitors: 2"
+    return int(first_line.split()[1])  # Extract the number "2"
+

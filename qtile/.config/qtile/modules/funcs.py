@@ -36,11 +36,13 @@ def minimize_all(qtile):
 
 @lazy.function
 def maximize_by_switching_layout(qtile):
+    main_layout="monadtall" # "columns"
+    max_layout="max"
     current_layout_name = qtile.current_group.layout.name
-    if current_layout_name == 'columns':
-        qtile.current_group.layout = 'max'
-    elif current_layout_name == 'max':
-        qtile.current_group.layout = 'columns'
+    if current_layout_name == main_layout:
+        qtile.current_group.layout = max_layout
+    elif current_layout_name == max_layout:
+        qtile.current_group.layout = main_layout
 
 @hook.subscribe.layout_change
 def layout_change(layout, group):

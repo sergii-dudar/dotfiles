@@ -19,7 +19,7 @@ from util import vars
 mod = vars.key.mod
 alt = vars.key.alt
 
-layout_cycle = ["columns", "max"]
+layout_cycle = ["monadtall", "max"]
 def cycle_layouts(qtile):
     """Switch to the next layout in the custom cycle list."""
     group = qtile.current_group

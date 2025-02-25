@@ -1,7 +1,7 @@
 from qtile_extras import widget
 
 from libqtile import bar, group, hook, layout, qtile, widget
-from util import colors
+from util import colors, util
 from util.util import to_span
 from util.vars import var
 from widget.wcommon import (
@@ -43,10 +43,10 @@ windowname = widget.WindowName(
     #     )
     # ],
 )
-
 def build_groupbox(monitor_index: int):
+    monitors_count = util.get_monitor_count()
     visible_groups_dict = dict()
-    if len(qtile.screens) != 1:
+    if monitors_count > 1:
         if monitor_index == 0:
             visible_groups_dict = dict(
                 visible_groups=[ '1', '2', '3', '4', '5', '6', '7', '8' ]

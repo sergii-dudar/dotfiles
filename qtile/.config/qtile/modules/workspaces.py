@@ -5,13 +5,12 @@ from libqtile import bar, group, hook, layout, qtile, widget
 from libqtile.config import Click, Drag, DropDown, Group, Key, Match, Rule, ScratchPad, Screen
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger
-from util import colors
+from util import colors, util
 from util.vars import key
 
 alt, mod = key.alt, key.mod
 
 colors = colors.current()
-multimonitors = len(qtile.screens) > 1
 
 # Create labels for groups and assign them a default layout.
 groups = []
@@ -24,7 +23,7 @@ group_labels = ["1 ", "2 ", "3 ", "4 ", "5 ", "6 󰣇", "7 ", 
 #group_labels = ["", "", "", "", "", "", "", "", "",]
 #group_labels = group_names
 
-group_layout = "columns"
+group_layout = "monadtall" #"columns"
 # Add group names, labels, and default layouts to the groups object.
 # for i in range(len(group_names)):
 #     groups.append(
@@ -50,8 +49,12 @@ group_layout = "columns"
 #         )
 
 # https://docs.qtile.org/en/stable/manual/faq.html#how-can-i-get-my-groups-to-stick-to-screens
+
+#logger.error(f"Connected monitors: {util.get_monitor_count()}")
+monitors_count = util.get_monitor_count()
+
 for i in range(len(group_names)):
-    if len(qtile.screens) == 1:
+    if monitors_count <= 1:
         groups.append(
             Group(
                 name=group_names[i],
@@ -81,7 +84,7 @@ for i in range(len(group_names)):
 
 def go_to_group(name: str):
     def _inner(qtile):
-        if len(qtile.screens) == 1:
+        if monitors_count <= 1:
             qtile.groups_map[name].toscreen()
             return
 
@@ -96,7 +99,7 @@ def go_to_group(name: str):
 
 def go_to_group_and_move_window(name: str):
     def _inner(qtile):
-        if len(qtile.screens) == 1:
+        if monitors_count <= 1:
             qtile.current_window.togroup(name, switch_group=True)
             return
 
@@ -126,7 +129,10 @@ layout_theme = {
 }
 
 layouts = [
-    layout.Columns(**layout_theme),
+    # layout.Columns(**layout_theme),
+    layout.MonadTall(
+        ratio=0.55,
+        **layout_theme),
     layout.Max(**layout_theme),
     layout.VerticalTile(**layout_theme),
 
