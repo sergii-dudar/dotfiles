@@ -21,14 +21,15 @@ require("copy-file-contents"):setup({
 require("system-clipboard")
 
 -- https://github.com/sxyazi/yazi/blob/shipped/yazi-plugin/preset/components/status.lua
+
 function Status:mode()
     local mode = tostring(self._tab.mode):upper()
 
     local style = self:style()
     return ui.Line({
-        ui.Span(THEME.status.separator_open):fg(style.main.bg),
+        ui.Span(th.status.sep_left.open):fg(style.main.bg):bg("reset"),
         ui.Span(" " .. mode .. " "):style(style.main),
-        ui.Span(THEME.status.separator_close):fg(style.main.bg):bg(style.alt.bg),
+        ui.Span(th.status.sep_left.close):fg(style.main.bg):bg(style.alt.bg),
     })
 end
 

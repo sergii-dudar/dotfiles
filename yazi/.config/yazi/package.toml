@@ -1,36 +1,36 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
-rev = "0725851"
+rev = "5186af7"
 hash = "ae9e1d0c6bfd68cdebc98cc684c22b45"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:max-preview"
-rev = "0725851"
-hash = "15b2ff7f6563c14d5b2e93b3e9da35de"
+rev = "5186af7"
+hash = "a8025f2bb311e869069364fba01abffc"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "0725851"
+rev = "5186af7"
 hash = "771f18427fb75fb19990ce602bb322f4"
 
 [[plugin.deps]]
 use = "dedukun/relative-motions"
-rev = "0d9c8cf"
-hash = "561ad872c77b95360c2657c5e8d395ed"
+rev = "8103065"
+hash = "9f13f0740fa3a0c18e47ec6fb62ddfaa"
 
 [[plugin.deps]]
 use = "Rolv-Apneseth/starship"
-rev = "d1cd0a3"
-hash = "d1fee6d0f74cb52d4e031dc6b9207f31"
+rev = "6c639b4"
+hash = "5614c46d5de76623c283d415bfac8025"
 
 [[plugin.deps]]
 use = "Lil-Dank/lazygit"
-rev = "c82794f"
+rev = "9f924e3"
 hash = "2b0c33928986f126d5c5a4cac31a6b46"
 
 [[plugin.deps]]
 use = "AnirudhG07/plugins-yazi:copy-file-contents"
-rev = "9c309b5"
+rev = "524c52c"
 hash = "27c50e6bc15c09096505b805b238ade0"
 
 [[plugin.deps]]
@@ -40,13 +40,13 @@ hash = "9b8f2573da54334b04747e51556040cc"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
-rev = "0725851"
+rev = "5186af7"
 hash = "b482f4f2d3c4e0aa3f8db89a95699439"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
-rev = "8945e54"
-hash = "f3ade4dba8fb56b85e8363b66f677f9"
+rev = "5186af7"
+hash = "5c4d8080367dd2561a18c1cf5a1dd295"
 
 [flavor]
 deps = []

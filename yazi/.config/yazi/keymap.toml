@@ -374,7 +374,8 @@ keymap = [
 	{ on = "<F1>", run = "help", desc = "Open help" },
 ]
 
-[completion]
+#[completion]
+[cmp]
 
 keymap = [
 	{ on = "<C-c>",   run = "close",                                      desc = "Cancel completion" },
