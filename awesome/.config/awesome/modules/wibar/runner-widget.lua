@@ -5,15 +5,16 @@ local gears = require("gears")
 local launcher = require("modules.awesome-launcher")
 
 local icons_dir = vars.current_theme_dir .. "/icons/"
+local iconst_dir = icons_dir .. "test/"
 local text_icon_color = "#3071db"
 local runner_bg_hover = "#8caaee"
 local red = "#d35f5e"
 
-local settings = util.to_text_icon_runner(" ", 19, "#3071db", vars.run.gnome_settings)
+--local settings = util.to_text_icon_runner(" ", 19, "#3071db", vars.run.gnome_settings)
 local powermenu = util.to_text_icon_runner(" ", vars.font.default_size, red, vars.run.powermenu)
 
 --local awesome_icon = icons_dir .. "awesome_grey.png"
-local applications = util.to_text_icon_runner(" ", 17, "#bd93f9")
+local applications = util.to_text_icon_runner(" ", 19, "#535D6C") -- "#bd93f9"
 --local applications = util.to_imagebox_runner(awesome_icon, "awesome")
 applications:buttons(gears.table.join(
     awful.button({}, 1, function()
@@ -33,7 +34,9 @@ local brave_icon = icons_dir .. "brave.png"
 local intellij_icon = icons_dir .. "intellij.svg"
 local insomnia_icon = icons_dir .. "insomnia.png"
 local torrent_icon = icons_dir .. "qbittorrent.svg"
+local settings_icon = iconst_dir .. "settings4.png"
 
+-- magick kitty.svg -resize 320x320 kitty_320.svg
 local kitty_terminal = util.to_imagebox_runner(kitty_icon, "kitty")
 local wezterm_terminal = util.to_imagebox_runner(wezterm_icon, "wezterm")
 local ghostty_terminal = util.to_imagebox_runner(ghostty_icon, "ghostty")
@@ -43,6 +46,7 @@ local brave = util.to_imagebox_runner(brave_icon, "brave")
 local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate")
 local insomnia = util.to_imagebox_runner(insomnia_icon, "/opt/insomnia/insomnia %U")
 local torrent = util.to_imagebox_runner(torrent_icon, "env QT_SCALE_FACTOR=1.4 qbittorrent")
+local settings = util.to_imagebox_runner(settings_icon, vars.run.gnome_settings)
 
 util.add_text_info_pupup({
     target_widget = applications,
@@ -117,7 +121,7 @@ return {
     left_all = util.decore_with_background_left(
         util.group_widgets(
             util.add_bg_hover_to_widget(util.widget_margin(applications, 4, 4, 0, 0), runner_bg_hover),
-            util.add_bg_hover_to_widget(util.widget_margin(settings, 4, -3, 0, 0), runner_bg_hover),
+            util.add_bg_hover_to_widget(util.widget_margin(settings, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(ghostty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(kitty_terminal, 4, 4, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(wezterm_terminal, 4, 4, 0, 0), runner_bg_hover),

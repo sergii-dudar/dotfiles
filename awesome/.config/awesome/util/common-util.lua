@@ -79,7 +79,7 @@ local decore_with_background = function(widget, bg_color, margin_left, margin_ri
     margin_left = margin_left or 10
     margin_right = margin_right or 10
     margin_top = margin_top or 0
-    margin_bottom = margin_bottom or 0
+    margin_bottom = margin_bottom or 1
 
     local bg_widget = wibox.widget({
         --wibox.container.margin(my_widget, left, right, top, bottom)
