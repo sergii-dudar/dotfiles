@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+wm_name=$(wmctrl -m | awk '/Name:/ {print $2}')
+
+case "$wm_name" in
+    "i3")
+        text_icon=" "
+        display_text="%{T2}%{F#b5bd68}$text_icon%{F-}%{T-}%{T13} %{T-}"
+        ;;
+    "bspwm")
+        text_icon=" "
+        display_text="%{T2}%{F#81A1C1}$text_icon%{F-}%{T-}%{T13} %{T-}"
+        ;;
+    *)
+        text_icon=$wm_name
+        display_text="%{T2}%{F#b5bd68}$text_icon%{F-}%{T-}%{T13} %{T-}"
+        ;;
+esac
+
+# echo "%{T12} %{T-}%{F#94928F}$text_icon%{F-}"
+echo "$display_text"

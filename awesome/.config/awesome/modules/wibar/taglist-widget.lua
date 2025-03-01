@@ -5,7 +5,7 @@ local awful = require("awful")
 
 local M = {}
 
-M.tags = { " 1  ", " 2  ", " 3  ", " 4  ", " 5  ", " 6 󰣇 ", " 7  ", " 8  ", " 9  " }
+M.tags = { " 1  ", " 2  ", " 3  ", " 4 󰆍 ", " 5  ", " 6 󰣇 ", " 7  ", " 8  ", " 9  " }
 
 M.setup = function(s, opts)
     -- Each screen has its own tag table.

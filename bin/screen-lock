@@ -44,16 +44,32 @@ i3lock \
     --noinput="No Input" \
     --lock-text="Locking..." \
     --lockfailed="Lock Failed" \
-    --radius=120 \
-    --ring-width=10 \
     --pass-media-keys \
     --pass-screen-keys \
     --pass-volume-keys \
-    --time-font="CaskaydiaCove Nerd Font Bold" \
-    --date-font="CaskaydiaCove Nerd Font Bold" \
-    --layout-font="CaskaydiaCove Nerd Font Bold" \
-    --verif-font="CaskaydiaCove Nerd Font Bold" \
-    --wrong-font="CaskaydiaCove Nerd Font Bold"
+    --radius=180 \
+    --ring-width=15 \
+    --time-font="CaskaydiaCove Nerd Font:style=Bold" \
+    --time-size=44 \
+    --date-font="CaskaydiaCove Nerd Font:style=Bold" \
+    --date-size=22 \
+    --layout-font="CaskaydiaCove Nerd Font:style=Bold" \
+    --layout-size=44 \
+    --verif-font="CaskaydiaCove Nerd Font:style=Bold" \
+    --verif-size=44 \
+    --wrong-font="CaskaydiaCove Nerd Font:style=Bold" \
+    --wrong-size=44
+
+
+# --radius=120 \
+    # --ring-width=10 \
+    # --time-font="CaskaydiaCove Nerd Font Bold" \
+    # --date-font="CaskaydiaCove Nerd Font Bold" \
+    # --layout-font="CaskaydiaCove Nerd Font Bold" \
+    # --verif-font="CaskaydiaCove Nerd Font Bold" \
+    # --wrong-font="CaskaydiaCove Nerd Font Bold"
+
+
 
 # These last five lines are commented because they concern the font you want to use.
 # JetBrainsMono Nerd Font is the font that was used in the screenshot.

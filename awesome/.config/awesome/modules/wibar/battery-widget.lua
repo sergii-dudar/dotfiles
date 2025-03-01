@@ -43,7 +43,7 @@ M.battery = lain.widget.bat({
         widget:set_markup(
             markup.font(
                 vars.font.widget,
-                markup(gray, util.to_span(icon, icon_fg))
+                markup(gray, util.to_span(icon, icon_fg, 17))
                     .. util.vars.icon_widget_space
                     .. perc
                     .. util.to_span("%", "#6272a4")
