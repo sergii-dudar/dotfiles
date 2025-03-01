@@ -1,7 +1,10 @@
+import logging
+
 from qtile_extras import widget
 
 from libqtile import qtile
 from libqtile.lazy import lazy
+from libqtile.log_utils import logger
 from util import colors, vars
 from util.util import to_mouse_callbacks, to_span
 from util.vars import var
@@ -131,7 +134,15 @@ battery_icon = widget.TextBox(
     **icon_widget_defaults,
     **decorations_round_left
 )
-battery = widget.Battery(format="{percent:2.0%}" + to_span("% ", "#6272a4"),
+
+class BatteryCustom(widget.Battery):
+    def __init__(self, **config):
+        super().__init__(**config)
+    def poll(self):
+        # widget.Battery adding percent symbol that in result cant be customised, remove it, to be able to place customised
+        return super().poll().replace("%<span", "<span")
+
+battery = BatteryCustom(format="{percent:2.0%}" + to_span("% ", "#6272a4"),
     charge_char="⚡",
     discharge_char="🔋",
     full_char="⚡",
@@ -144,6 +155,7 @@ battery = widget.Battery(format="{percent:2.0%}" + to_span("% ", "#6272a4"),
     **text_widget_defaults,
     **decorations_round_right
 )
+
 tray = widget.Systray(
     foreground=colors.foreground_color,
     icon_size=27,
