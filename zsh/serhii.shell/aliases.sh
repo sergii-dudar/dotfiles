@@ -14,15 +14,26 @@ alias l.='eza -al --icons --color=always --group-directories-first ../'         
 alias l..='eza -al --icons --color=always --group-directories-first ../../'     # ls on directory 2 levels up
 alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
 
+alias yaziu="cargo install --locked yazi-fm yazi-cli"
 if isMacOs; then
     # https://github.com/FelixKratz/JankyBorders
     alias run_borders="borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0 &"
+    alias brewu="brew update && brew upgrade"
+    alias brewua="brew update && brew upgrade && yaziu"
 else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
 
     alias collect_packages="~/dotfiles/arch/packages-sync/collect-packages.sh"
     alias sync_packages="~/dotfiles/arch/packages-sync/sync-packages.sh"
+
+    alias portsStatus='for device in /sys/bus/usb/devices/*/power/wakeup; do cat "$device"; done'
+
+    alias ubuntuu="sudo apt update && sudo apt upgrade"
+    alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
+    alias ubuntuar="sudo apt autoremove"
+    alias archu="sudo pacman -Syu && yay -Syu"
+    alias archua="archu && yaziu"
 fi
 
 # Changing "ps" to "procs"
@@ -44,13 +55,6 @@ alias yyc='yazi --clear-cache && yy'
 # java
 alias mvn_sources="mvn dependency:sources && mvn dependency:resolve -Dclassifier=javadoc"
 
-# linux
-alias ubuntuu="sudo apt update && sudo apt upgrade"
-alias ubuntuuf="sudo apt update && sudo apt full-upgrade"
-alias ubuntuar="sudo apt autoremove"
-alias archu="sudo pacman -Syu && yay -Syu"
-alias brewu="brew update && brew upgrade"
-
 # navigation
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -58,23 +62,14 @@ alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
-alias portsStatus='for device in /sys/bus/usb/devices/*/power/wakeup; do cat "$device"; done'
-
 # changing cd to zoxide
 alias cd='z'
 alias cdi='zi'
 
-alias work="cd ~/serhii.home/work/"
-alias video="cd ~/serhii.home/videos/"
-#bindkey -s "^w" "work\n"
-
-# ranger with cd to current dir on quit
-#alias ranger='ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; /usr/bin/zoxide "$LASTDIR"'
-
-alias tmuxan='tmux attach || tmux new' # connect to exists session or create new one
+# alias tmuxan='tmux attach || tmux new' # connect to exists session or create new one
 # alias tmuxan='tmux attach || tmux new -s ''default'' -n ''ranger.h'' ''ranger .'''
 
-alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window name: " "rename-window ''%%''"'
+# alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window name: " "rename-window ''%%''"'
 #alias tmuxan='tmux new-session -A -s default'
 
 #alias idea='intellij-idea-ultimate'
@@ -87,26 +82,26 @@ alias vi="nvim"
 alias vit="nvim -p"
 alias lg="lazygit"
 
-alias fz="fzf --preview='bat {}'"
+# alias fz="fzf --preview='bat {}'"
 
-alias psqlu="sudo -u postgres psql"
-alias postgres_start="systemctl start postgresql"
-alias postgres_start="systemctl stop postgresql"
+# alias psqlu="sudo -u postgres psql"
+# alias postgres_start="systemctl start postgresql"
+# alias postgres_start="systemctl stop postgresql"
 
-alias zj="zellij"
-alias q="exit"
+# alias zj="zellij"
+# alias q="exit"
 
 #alias python="/usr/bin/python3.12"
 #alias py="/usr/bin/python3.12"
 
 # copy input to buffer depends on OS
-if isMacOs; then
-    alias buff="pbcopy"
-    alias b="buff"
-else
-    alias buff="xclip clipboard"
-    alias b="buff"
-fi
+# if isMacOs; then
+#     alias buff="pbcopy"
+#     alias b="buff"
+# else
+#     alias buff="xclip clipboard"
+#     alias b="buff"
+# fi
 
 # git
 # alias addup='git add -u'
@@ -126,4 +121,4 @@ fi
 alias tmuxkill='tmux kill-server'
 
 # rust
-alias rustdoc='rustup doc'
+# alias rustdoc='rustup doc'
