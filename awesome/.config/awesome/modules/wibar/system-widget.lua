@@ -39,7 +39,8 @@ local mem = lain.widget.mem({
                 markup(
                     gray,
                     util.to_span(" ", "#a6e3a1")
-                        .. util.vars.icon_widget_space
+                        .. util.vars.to_icon_widget_space(2)
+                        --.. util.vars.icon_widget_space
                         .. perc
                         .. util.to_span("%", "#6272a4")
                 )
@@ -51,6 +52,7 @@ mem.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
     awful.util.spawn(vars.run.htop)
 end)))
 
+--.. util.vars.icon_widget_space
 local fs = lain.widget.fs({
     settings = function()
         local perc = string.format("%02d", fs_now["/home"].percentage)
@@ -60,10 +62,10 @@ local fs = lain.widget.fs({
                 markup(
                     gray,
                     util.to_span(" ", "#e5c890")
-                        .. util.vars.icon_widget_space
+                        .. util.vars.to_icon_widget_space(2)
                         .. perc
                         .. util.to_span("%", "#6272a4")
-                        .. util.vars.icon_widget_space
+                        .. util.vars.to_icon_widget_space(3)
                         .. util.to_span("SSD", "#6272a4")
                 )
             )
@@ -99,7 +101,7 @@ local cpu_temp = lain.widget.temp({
         --local value = string.format("%02d", coretemp_now)
 
         --print("coretemp_now widget: " .. coretemp_now)
-        --print("temp_now widget: " .. util.system.table_to_string(temp_now))
+        --print("temp_now widget: " .. util.about-haskellsystem.table_to_string(temp_now))
         local average_tmp = calculate_average(temp_now)
         --print("average temp_now widget: " .. average_tmp)
         local average_tmp_ft = string.format("%02d", math.floor(average_tmp))

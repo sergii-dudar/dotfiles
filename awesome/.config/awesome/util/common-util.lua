@@ -448,6 +448,7 @@ return {
     decore_with_background_left = decore_with_background_left,
     vars = {
         icon_widget_space = to_icon_widget_space(vars.widget.icon_widget_space),
+        to_icon_widget_space = to_icon_widget_space,
     },
     system = {
         log_table = log_table,
