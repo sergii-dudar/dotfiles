@@ -62,7 +62,8 @@ return {
                 },
                 cpp = {
                     "cd $dir",
-                    "&& g++ -std=c++23 $fileName -o /tmp/$fileNameWithoutExt", -- -std=c++11, -std=c++14, -std=c++17 (DEFAULT), -std=c++20, -std=c++23, -std=c++26(c++2c)
+                    -- "&& g++ -std=c++23 $fileName -o /tmp/$fileNameWithoutExt", -- -std=c++11, -std=c++14, -std=c++17 (DEFAULT), -std=c++20, -std=c++23, -std=c++26(c++2c)
+                    "&& g++ -std=c++23 $fileNameWithoutExt*.cpp -o /tmp/$fileNameWithoutExt", -- -std=c++11, -std=c++14, -std=c++17 (DEFAULT), -std=c++20, -std=c++23, -std=c++26(c++2c)
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
                 },

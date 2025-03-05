@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyautogui = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"
+
+# ----- pipenv
+# brew install pipenv
+# pipenv install pyautogui
+# python3 -m certifi
+# export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
+# pipenv run python mouse_cursor.py
+#
+# 

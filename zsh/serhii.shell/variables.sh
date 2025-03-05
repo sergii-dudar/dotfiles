@@ -28,6 +28,8 @@ if isMacOs; then
     # Haskell
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
+
+    export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
 else
 
     alias out="sudo pkill -KILL -u serhii"
