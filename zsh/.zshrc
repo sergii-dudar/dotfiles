@@ -83,7 +83,7 @@ plugins=(
     #dotenv
     #zsh-autosuggestions
     zsh-syntax-highlighting
-    )
+)
 
 # vi-mode
 # https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/vi-mode/README.md
@@ -147,7 +147,6 @@ fi
 source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
 source "$HOME/serhii.shell/aliases.sh"
-source "$HOME/serhii.shell/kafka.scripts.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 source "$HOME/serhii.shell/tmux.scripts.sh"
 [ -s "$HOME/serhii.shell/work.sh" ] && source "$HOME/serhii.shell/work.sh"
