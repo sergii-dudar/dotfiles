@@ -17,8 +17,8 @@ return {
                 --  Position to open the terminal, this option is ignored if mode ~= term
                 position = "bot",
                 -- window size, this option is ignored if mode == tab
-                --size = 12,
-                size = 25,
+                size = 12,
+                --size = 25,
             },
             filetype = {
                 java = {
@@ -40,8 +40,27 @@ return {
                 --haskell = "echo $dir/$fileName",
                 haskell = {
                     "cd $dir",
-                    "&& runhaskell $fileName",
+                    --'echo "$dir , $fileNameWithoutExt"',
+
+                    -- '&& stack build --color "always" --verbosity "warn"',
+                    -- '&& current_dir=$(pwd); depth=0; while [ "$current_dir" != "/" ] && [ $depth -lt 5 ]; do find "$current_dir" -maxdepth 1 -type f -name "*.cabal" -exec basename {} .cabal \\;; current_dir=$(dirname "$current_dir"); depth=$((depth + 1)); done | sort | uniq',
+                    -- "| xargs -I {} stack exec {}-exe",
+
+                    --"&& runhaskell $fileName",
+
+                    -- combined runner:
+                    -- 1. trying to find {app-name}.cabal file in current and up to 5 up directories
+                    -- 2. in case presents `cabal` file, get app name and run by `stack build && stack exec {app-name}-exe` command as `stack` project
+                    -- 3. in case it's not `stack` project, run as single haskell file by `runhaskell $fileName`
+                    '&& result=$(current_dir=$(pwd); depth=0; while [ "$current_dir" != "/" ] && [ $depth -lt 3 ]; do command find "$current_dir" -maxdepth 1 -type f -name "*.cabal" -exec basename {} .cabal \\;; current_dir=$(dirname "$current_dir"); depth=$((depth + 1)); done | sort | uniq)',
+                    '; [ -n "$result" ] && ( stack build --color "always" --verbosity "warn" && stack exec "$result"-exe) || runhaskell $fileName',
                 },
+                cabal = { -- to be able to run from cabal file
+                    "cd $dir",
+                    '&& stack build --color "always" --verbosity "warn"',
+                    "&& stack exec $fileNameWithoutExt-exe",
+                },
+
                 -- rust = {
                 --     "cd $dir",
                 --     "&& rustc $fileName -o /tmp/$fileNameWithoutExt",
