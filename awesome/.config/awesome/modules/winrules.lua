@@ -168,10 +168,10 @@ M.setup = function(opts)
             rule = { class = "Brave-browser", instance = "brave-browser" },
             properties = { tag = tags[2] },
         },
-        {
-            rule = { instance = "kitty" },
-            properties = { tag = tags[4] },
-        },
+        -- {
+        --     rule = { instance = "kitty" },
+        --     properties = { tag = tags[4] },
+        -- },
 
         -- Add titlebars to normal clients and dialogs
         { rule_any = { type = { "normal", "dialog" } }, properties = { titlebars_enabled = false } },

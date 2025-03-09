@@ -159,7 +159,6 @@ smartmontools
 snapd
 snapshot
 sof-firmware
-stack
 stow
 sublime-text-4
 sushi
@@ -174,7 +173,6 @@ totem
 tree
 ttf-joypixels
 ttf-liberation
-ueberzugpp
 unarchiver
 usbutils
 vim
@@ -184,6 +182,7 @@ wezterm
 wget
 wireless_tools
 wireplumber
+wmctrl
 wqy-zenhei
 xautolock
 xclip

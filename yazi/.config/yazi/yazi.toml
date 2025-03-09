@@ -50,12 +50,12 @@ folder = [
 ]
 develop = [
     { run = 'intellij-idea-ultimate "$1"', orphan = true, desc = "intellij", for = "linux" },
-    { run = 'idea "$1"', orphan = true, desc = "intellij", for = "mac" },
+    { run = 'idea "$1"', orphan = true, desc = "intellij", for = "macos" },
     { run = 'code "$1"', orphan = true, desc = "vscode" },
 ]
 open = [
-    #{ run = 'xdg-open "$1"',               desc = "Open",              for = "linux" },
-    { run = 'nautilus . "$1"',              desc = "Open in Nautilus",  for = "linux" },
+    { run = 'xdg-open "$1"',               desc = "Open",              for = "linux" },
+    #{ run = 'nautilus . "$1"',              desc = "Open in Nautilus",  for = "linux" },
     { run = 'open "$@"',                    desc = "Open",              for = "macos" },
     { run = 'start "" "%1"', orphan = true, desc = "Open",              for = "windows" },
 ]
