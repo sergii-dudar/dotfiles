@@ -104,6 +104,10 @@ M.globalkeys = gears.table.join(
 
         -- go to prev app, event if on another tag
         local c = awful.client.focus.history.list[2]
+        if not c then
+            return
+        end
+
         client.focus = c
         local tag = client.focus and client.focus.first_tag or nil
         if tag then
