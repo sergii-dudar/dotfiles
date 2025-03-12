@@ -28,8 +28,6 @@ noremap <Down> <Nop>
 noremap <Left> <Nop>
 noremap <Right> <Nop>
 noremap <Right> <Nop>
-
-
 " use jj to move to normal mode
 "inoremap jj <esc>
 
@@ -41,7 +39,6 @@ noremap <Right> <Nop>
 " all key mapping have unique mapping, if there some mapping when I need wait `timeoutlen` to exec, then
 " this mapping should be changed
 set timeoutlen=2000
-"set notimeout
 
 " repeat comand for visually selected block"
 vnoremap . :norm! .<CR>
@@ -59,23 +56,10 @@ set hlsearch
 set ignorecase
 set smartcase
 set ideaput
-set which-key
-
-let g:WhichKey_ShowVimActions = "false"
-
-" ================================== hlsearch ===================================="
-noremap <Esc> :nohlsearch<cr>
 
 " ================================== space as leader ===================================="
 nnoremap <SPACE> <Nop>
 let mapleader = " "
-
-"================================ (Move to window using the <ctrl> hjkl keys)==============================="
-
-map <C-h> <C-w>h
-map <C-j> <C-w>j
-map <C-k> <C-w>k
-map <C-l> <C-w>l
 
 "========================================== macro ======================================="
 nnoremap R @q " R to execute q macro
@@ -135,10 +119,10 @@ set clipboard+=unnamedplus
 "============================██║   ██║██║██╔████╔██║====================================="
 "============================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
 "============================ ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
-"============================  ╚═══╝  ╚═╝
-"==========================VIM PLUGINS Ma
-"========================================
-"========================================
+"============================  ╚═══╝  ╚═╝╚═╝     ╚═╝====================================="
+"==========================VIM PLUGINS Mapping & Config=================================="
+"========================================================================================"
+"========================================================================================"
 "========================================================================================"
 "........................................................................................"
 "========================================================================================"
@@ -224,21 +208,11 @@ xmap <leader>n <Plug>NextWholeOccurrence
 " |  For instance: `ciw`.                                                                                  |
 " ----------------------------------------------------------------------------------------------------------
 
-"================================ (Flash)==============================="
-" https://github.com/yelog/vim-flash
-map s <Action>(flash.search)
-
 "========================================================================================"
 "===================================== easymotion ======================================="
 
-"map <leader><leader>s <Plug>(easymotion-s)
-"map <leader><leader>f <Plug>(easymotion-f)
-map <leader>s <Plug>(easymotion-s)
-map <leader>f <Plug>(easymotion-f)
-map <leader>F <Plug>(easymotion-F)
-map <leader>t <Plug>(easymotion-t)
-map <leader>T <Plug>(easymotion-T)
-
+map <leader><leader>s <Plug>(easymotion-s)
+map <leader><leader>f <Plug>(easymotion-f)
 
 " https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
 " https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
@@ -273,9 +247,6 @@ map <leader>T <Plug>(easymotion-T)
 " https://github.com/tpope/vim-commentary"
 " https://github.com/tpope/vim-commentary/blob/master/doc/commentary.txt
 
-map gb <Action>(CommentByBlockComment)
-" let g:WhichKeyDesc_comment_block = "gb Comment block of code"
-
 " ---------------------------------------------------------------------------------
 " |Default Mapping |  Description                                                 |
 " |-------------------------------------------------------------------------------|
@@ -298,11 +269,9 @@ let g:highlightedyank_highlight_duration = "300"
 "========================================================================================"
 "================================== NERDTree config ====================================="
 
-""map <C-p> :NERDTree<CR>
+map <C-p> :NERDTree<CR>
 let g:NERDTreeMapActivateNode='l'
 let g:NERDTreeMapJumpParent='h'
-
-nmap <leader>e :NERDTreeToggle<cr>
 
 nmap <leader>pw <Action>(ActivateProjectToolWindow)
 nmap <leader>pv <Action>(SelectInProjectView)
@@ -453,25 +422,26 @@ nmap <leader>pv <Action>(SelectInProjectView)
 " :actionlist
 "====================================== (e) Run \ Debug \ Extract ==============================================="
 
-""nmap <leader>ee <Action>(Run)
-""nmap <leader>ed <Action>(Debug)
-""nmap <leader>es <Action>(Stop)
-""nmap <leader>er <Action>(Rerun)
+nmap <leader>ee <Action>(Run)
+nmap <leader>ed <Action>(Debug)
+nmap <leader>es <Action>(Stop)
+nmap <leader>er <Action>(Rerun)
 
-""nmap <leader>ec <Action>(RunClass)
+nmap <leader>ec <Action>(RunClass)
 "nmap <leader>ecd <Action>(DebugClass)
 
 "nmap <leader>et <Action>(RunTests)
 "nmap <leader>et <Action>(RerunTests)
-""nmap <leader>ef <Action>(RerunFailedTests)
+nmap <leader>ef <Action>(RerunFailedTests)
 
 "nmap <leader>ea <Action>(RunAnything)
 "nmap <leader>ec <Action>(ContextRun)
 "nmap <leader>ecc <Action>(ChooseRunConfiguration)
 
 "====== extract
-""nmap <leader>em <Action>(ExtractMethod)
+nmap <leader>em <Action>(ExtractMethod)
 
+map s <Action>(flash.search)
 "======================================= (i) Introduce ================================================="
 
 map <leader>ic <Action>(IntroduceConstant)
@@ -540,21 +510,21 @@ nmap <leader>nc <Action>(NewClass)
 
 "======================================= (s) Show \ History ================================================="
 
-""nmap <leader>so <Action>(SelectAllOccurrences)
+nmap <leader>so <Action>(SelectAllOccurrences)
 
-""map <leader>sf <Action>(FindUsages)
-""map <leader>ss <Action>(ShowUsages)
+map <leader>sf <Action>(FindUsages)
+map <leader>ss <Action>(ShowUsages)
 
-""nmap <leader>se <Action>(ShowErrorDescription)
+nmap <leader>se <Action>(ShowErrorDescription)
 
-""map <leader>su <Action>(HighlightUsagesInFile)
+map <leader>su <Action>(HighlightUsagesInFile)
 
 "=== git blame
-""nmap <leader>sa <Action>(Annotate)
+nmap <leader>sa <Action>(Annotate)
 
 "=== History
-""nmap <leader>sgh <Action>(LocalHistory.ShowHistory)
-""nmap <leader>sgs <Action>(LocalHistory.ShowSelectionHistory)
+nmap <leader>sgh <Action>(LocalHistory.ShowHistory)
+nmap <leader>sgs <Action>(LocalHistory.ShowSelectionHistory)
 
 "nmap <leader>sf <Action>(ShowFilePath)
 "map <leader>ssi <Action>(SelectIn)
@@ -591,14 +561,14 @@ nmap <leader>vp <Action>(TogglePresentationMode)
 "======================================= (f)(g) Navigation ================================================="
 
 "=== (f)
-""nmap <leader>fe <Action>(SearchEverywhere)
-""nmap <leader>fp <Action>(FindInPath)
-""nmap <leader>ff <Action>(Find)
-""nmap <leader>ft <Action>(TextSearchAction)
+nmap <leader>fe <Action>(SearchEverywhere)
+nmap <leader>fp <Action>(FindInPath)
+nmap <leader>ff <Action>(Find)
+nmap <leader>ft <Action>(TextSearchAction)
 
 "=== Replace
-""nmap <leader>fr <Action>(Replace)
-""nmap <leader>fgr <Action>(ReplaceInPath)
+nmap <leader>fr <Action>(Replace)
+nmap <leader>fgr <Action>(ReplaceInPath)
 
 
 nmap <leader>gf <Action>(GotoFile)
@@ -669,10 +639,10 @@ nmap <leader>8 <Action>(GoToTab8)
 nmap <leader>9 <Action>(GoToTab9)
 nmap <leader>0 <Action>(GoToLastTab)
 
-"map <leader>th <Action>(MoveTabLeft)
-"map <leader>tj <Action>(MoveTabDown)
-"map <leader>tk <Action>(MoveTabUp)
-"map <leader>tl <Action>(MoveTabRight)
+map <leader>th <Action>(MoveTabLeft)
+map <leader>tj <Action>(MoveTabDown)
+map <leader>tk <Action>(MoveTabUp)
+map <leader>tl <Action>(MoveTabRight)
 
 " (Move between panes top/bottom/left/right)"
 "noremap <C-k> <C-w>k
