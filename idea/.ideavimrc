@@ -23,12 +23,14 @@
 
 "=============
 
-noremap <Up> <Nop>
-noremap <Down> <Nop>
-noremap <Left> <Nop>
-noremap <Right> <Nop>
-noremap <Right> <Nop>
+"noremap <Up> <Nop>
+"noremap <Down> <Nop>
+"noremap <Left> <Nop>
+"noremap <Right> <Nop>
 
+" support ctrl c\v
+map <C-c> "+y
+map <C-v> "+p
 
 " use jj to move to normal mode
 "inoremap jj <esc>
@@ -40,8 +42,8 @@ noremap <Right> <Nop>
 
 " all key mapping have unique mapping, if there some mapping when I need wait `timeoutlen` to exec, then
 " this mapping should be changed
-set timeoutlen=2000
-"set notimeout
+"set timeoutlen=2000
+set notimeout
 
 " repeat comand for visually selected block"
 vnoremap . :norm! .<CR>
@@ -49,7 +51,7 @@ vnoremap . :norm! .<CR>
 " ================================ basic settings ================================="
 " https://github.com/JetBrains/ideavim/blob/master/doc/set-commands.md
 
-set number relativenumber
+"set number relativenumber
 set idearefactormode=keep
 
 set ideajoin
@@ -230,15 +232,27 @@ map s <Action>(flash.search)
 
 "========================================================================================"
 "===================================== easymotion ======================================="
+"iunmap s
+iunmap f
+iunmap F
+iunmap t
+iunmap T
+iunmap <leader><leader>s
+iunmap <leader><leader>f
+iunmap <leader><leader>F
+iunmap <leader><leader>t
+iunmap <leader><leader>T
 
 "map <leader><leader>s <Plug>(easymotion-s)
 "map <leader><leader>f <Plug>(easymotion-f)
+"map s <Plug>(easymotion-s)
 map <leader>s <Plug>(easymotion-s)
-map <leader>f <Plug>(easymotion-f)
-map <leader>F <Plug>(easymotion-F)
-map <leader>t <Plug>(easymotion-t)
-map <leader>T <Plug>(easymotion-T)
 
+map f <Plug>(easymotion-f)
+map F <Plug>(easymotion-F)
+
+map t <Plug>(easymotion-t)
+map T <Plug>(easymotion-T)
 
 " https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
 " https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
@@ -419,7 +433,8 @@ nmap <leader>pv <Action>(SelectInProjectView)
 "===== All mapping based on leader (space) key
 "===== All Intellij actions grouped in logical groups with unique group key with leader key
 "==== There present next groups:
-"==== key: (e) - Run \ Debug \ Extract (execute)
+"==== key: (<leader>r) - Run Code
+"==== key: (<leader>t) - Run Tests
 
 "==== key: (i) - Introduce
 "==== key: (r) - Refactoring \ Rename \ Recent \ Replace
@@ -451,19 +466,25 @@ nmap <leader>pv <Action>(SelectInProjectView)
 "==== for more info see separate mapping GROUP.
 
 " :actionlist
-"====================================== (e) Run \ Debug \ Extract ==============================================="
+"====================================== (r) Run Code ==============================================="
 
-""nmap <leader>ee <Action>(Run)
+nmap <leader>rr <Action>(Run)
+" run file
+nmap <leader>rf <Action>(RunClass)
 ""nmap <leader>ed <Action>(Debug)
 ""nmap <leader>es <Action>(Stop)
 ""nmap <leader>er <Action>(Rerun)
 
-""nmap <leader>ec <Action>(RunClass)
 "nmap <leader>ecd <Action>(DebugClass)
 
-"nmap <leader>et <Action>(RunTests)
-"nmap <leader>et <Action>(RerunTests)
-""nmap <leader>ef <Action>(RerunFailedTests)
+"====================================== (t) Run Tests ==============================================="
+
+" run nearest
+nmap <leader>tr <Action>(RunTests)
+" run last
+nmap <leader>tl <Action>(RerunTests)
+" run failed
+nmap <leader>tf <Action>(RerunFailedTests)
 
 "nmap <leader>ea <Action>(RunAnything)
 "nmap <leader>ec <Action>(ContextRun)
@@ -489,19 +510,26 @@ map <leader>iop <Action>(IntroduceParameterObject)
 
 map <leader>im <Action>(IntroduceActionsGroup)
 
+"======================================= (c) Code ================================================="
+
+" generate javadoc
+nmap <leader>cn <Action>(FixDocComment)
+
+nmap <leader>cr <Action>(RenameElement)
+nmap <leader>cR <Action>(RenameFile)
+nmap <leader>ca <Action>(Refactorings.QuickListPopupAction)
+nmap <leader>ci <Action>(ShowIntentionActions)
+
+nmap <leader>cg       <Action>(Generate)
+
 "======================================= (r) Refactoring \ Rename \ Recent \ Replace ================================================="
 
-nmap <leader>ra <Action>(Refactorings.QuickListPopupAction)
 nmap <leader>ru <Action>(Unwrap)
 "map <leader>rsd <Action>(SafeDelete)
 
-"=== Rename
-nmap <leader>re <Action>(RenameElement)
-"nmap <leader>rrf <Action>(RenameFile)
-
 "=== Recent
 nmap <leader>rf <Action>(RecentFiles)
-nmap <leader>rff <Action>(RecentChangedFiles)
+nmap <leader>rc <Action>(RecentChangedFiles)
 nmap <leader>rl <Action>(RecentLocations)
 
 
@@ -517,15 +545,8 @@ nmap <leader>lt <Action>(EditorSortLines)
 
 "======================================= (c) Comment \ Copy \ Code ================================================="
 
-nmap <leader>cf <Action>(FixDocComment)
 
-map <leader>cl <Action>(CommentByLineComment)
-map <leader>cb <Action>(CommentByBlockComment)
-
-"=== Code
-nmap <leader>cg       <Action>(Generate)
-
-nmap <leader>ci <Action>(ImplementMethods)
+""nmap <leader>ci <Action>(ImplementMethods)
 nmap <leader>co <Action>(OverrideMethods)
 nmap <leader>cs <Action>(SurroundWith)
 "nmap <leader>gic <Action>(InspectCode)
