@@ -472,6 +472,10 @@ nmap <leader>pv <Action>(SelectInProjectView)
 "====== extract
 ""nmap <leader>em <Action>(ExtractMethod)
 
+"======================================= (<leader>g) Git ================================================="
+map <leader>gg <Action>(CheckinProject)
+map <leader>ghr <Action>(Vcs.RollbackChangedLines)
+
 "======================================= (i) Introduce ================================================="
 
 map <leader>ic <Action>(IntroduceConstant)
@@ -587,6 +591,9 @@ nmap <leader>vf <Action>(ToggleFullScreen)
 nmap <leader>vv <Action>(ToggleDistractionFreeMode)
 nmap <leader>vp <Action>(TogglePresentationMode)
 
+"======================================= (z) Zen ================================================="
+
+map <leader>z <Action>(ToggleZenMode)
 
 "======================================= (f)(g) Navigation ================================================="
 
@@ -601,41 +608,41 @@ nmap <leader>vp <Action>(TogglePresentationMode)
 ""nmap <leader>fgr <Action>(ReplaceInPath)
 
 
-nmap <leader>gf <Action>(GotoFile)
-nmap <leader>gc <Action>(GotoClass)
-nmap <leader>gs <Action>(GotoSymbol)
-nmap <leader>ga <Action>(GotoAction)
-nmap <leader>gd <Action>(GotoDeclaration)
-nmap <leader>ggt <Action>(GotoTypeDeclaration)
-nmap <leader>gi <Action>(GotoImplementation)
-nmap <leader>gt <Action>(GotoTest)
+""nmap <leader>gf <Action>(GotoFile)
+""nmap <leader>gc <Action>(GotoClass)
+""nmap <leader>gs <Action>(GotoSymbol)
+""nmap <leader>ga <Action>(GotoAction)
+""nmap <leader>gd <Action>(GotoDeclaration)
+""nmap <leader>ggt <Action>(GotoTypeDeclaration)
+""nmap <leader>gi <Action>(GotoImplementation)
+""nmap <leader>gt <Action>(GotoTest)
 
-nmap <leader>gm <Action>(GoToSuperMethod)
+""nmap <leader>gm <Action>(GoToSuperMethod)
 "=== Modifiers
 "nmap <C-u> <Action>(GotoNextElementUnderCaretUsage)
-nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
+""nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
 
 "nmap <C-e> <Action>(GotoNextError)
 "nmap <A-e> <Action>(GotoPreviousError)
 
-nmap <C-m> <Action>(MethodDown)
-nmap <A-m> <Action>(MethodUp)
+""nmap <C-m> <Action>(MethodDown)
+""nmap <A-m> <Action>(MethodUp)
 
-nmap <C-o> <Action>(NextOccurence)
-nmap <A-o> <Action>(PreviousOccurence)
+""nmap <C-o> <Action>(NextOccurence)
+""nmap <A-o> <Action>(PreviousOccurence)
 
-nmap <C-n> <Action>(Forward)
-nmap <A-n> <Action>(Back)
+""nmap <C-n> <Action>(Forward)
+""nmap <A-n> <Action>(Back)
 
 " move between active split window tabs
-nmap <C-t> <Action>(NextSplitter)
-nmap <A-t> <Action>(PrevSplitter)
+""nmap <C-t> <Action>(NextSplitter)
+""nmap <A-t> <Action>(PrevSplitter)
 
 "=== Scroll
-nmap <A-h> <Action>(EditorScrollLeft)
-nmap <A-j> <Action>(EditorScrollDown)
-nmap <A-k> <Action>(EditorScrollUp)
-nmap <A-l> <Action>(EditorScrollRight)
+"nmap <A-h> <Action>(EditorScrollLeft)
+""nmap <A-j> <Action>(EditorScrollDown)
+""nmap <A-k> <Action>(EditorScrollUp)
+""nmap <A-l> <Action>(EditorScrollRight)
 
 " move between active split window tabs
 "map <C-n> <Action>(MoveStatementUp)
@@ -674,16 +681,6 @@ nmap <leader>0 <Action>(GoToLastTab)
 "map <leader>tk <Action>(MoveTabUp)
 "map <leader>tl <Action>(MoveTabRight)
 
-" (Move between panes top/bottom/left/right)"
-"noremap <C-k> <C-w>k
-"noremap <C-j> <C-w>j
-"noremap <C-h> <C-w>h
-"noremap <C-l> <C-w>l
-noremap <Tab>k <C-w>k
-noremap <Tab>j <C-w>j
-noremap <Tab>h <C-w>h
-noremap <Tab>l <C-w>l
-
 " (change size of active panes top/bottom/left/right)"
 "map <A-h> <Action>(StretchSplitToLeft)
 "map <A-l> <Action>(StretchSplitToRight)
@@ -719,10 +716,10 @@ nmap <Action>tl <Action>(JumpToLastWindow)
 
 "======================================= (w) Windows ================================================="
 
-nmap <leader>wc <Action>(ActivateCommitToolWindow)
-nmap <leader>wd <Action>(ActivateDebugToolWindow)
-nmap <leader>wr <Action>(ActivateRunToolWindow)
-nmap <leader>wg <Action>(ActivateVersionControlToolWindow)
+""nmap <leader>wc <Action>(ActivateCommitToolWindow)
+""nmap <leader>wd <Action>(ActivateDebugToolWindow)
+""nmap <leader>wr <Action>(ActivateRunToolWindow)
+"'nmap <leader>wg <Action>(ActivateVersionControlToolWindow)
 "nmap <leader>tm <Action>(ActivateMavenToolWindow)
 
 "======================================= (m) Menu ================================================="
@@ -767,13 +764,10 @@ map <leader>oi <Action>(OptimizeImports)
 map <leader>or <Action>(ReformatCode)
 
 
-"======================================= (z) Zen ================================================="
-
-map <leader>z <Action>(ToggleZenMode)
 
 "======================================= (p) Project management ================================================="
 
-map <leader>pr <Action>(ManageRecentProjects)
+map <leader>pp <Action>(ManageRecentProjects)
 map <leader>pl <Action>(RecentProjectListGroup)
 map <leader>px <Action>(CloseProject)
 
