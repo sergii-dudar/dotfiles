@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 EXEC_DIR="$1"
 CACHE_FILE_NAME=".classpath.cache"

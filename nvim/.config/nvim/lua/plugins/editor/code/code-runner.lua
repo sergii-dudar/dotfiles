@@ -28,7 +28,7 @@ return {
                     -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):payment-prevalidation/target/classes:payment-prevalidation-api/target/classes",
 
                     java_util.java21_bin,
-                    "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):target/classes", -- single module mvn project run, for multi, use project section
+                    "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)", -- single module mvn project run, for multi, use project section
                     "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
 
                     --#### DEBUG final command
@@ -117,9 +117,7 @@ return {
                     command = java_util.java21_bin
                         .. " -classpath "
                         .. "$(cd payment-prevalidation && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"
-                        .. ":$PWD/payment-prevalidation/target/classes"
                         .. ":$(cd payment-prevalidation-api && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"
-                        .. ":$PWD/payment-prevalidation-api/target/classes"
                         .. " ua.raiffeisen.payments.paymentprevalidation.Application",
                 },
             },
