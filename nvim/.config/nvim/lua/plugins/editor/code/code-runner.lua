@@ -28,7 +28,7 @@ return {
                     -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):payment-prevalidation/target/classes:payment-prevalidation-api/target/classes",
 
                     java_util.java21_bin,
-                    "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):target/classes", -- single module mvn project run
+                    "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):target/classes", -- single module mvn project run, for multi, use project section
                     "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
 
                     --#### DEBUG final command
@@ -109,22 +109,20 @@ return {
                 --     end)
                 -- end,
             },
-            --project = {
-            --    ["~/serhii.home/prev_work/GL_WORK/git.work/ticket%-service"] = {
-            --        name = "Run Profile1",
-            --        description = "Run Profile1",
-            --        --file_name = "POO/main.py"
-            --        command = "java -classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes "
-            --            .."$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
-            --    },
-            --    --["~/serhii.home/prev_work/GL_WORK/git.work/ticket-service"] = {
-            --    --    name = "Run Profile2",
-            --    --    description = "Run Profile2",
-            --    --    --file_name = "POO/main.py"
-            --    --    command = "java -classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh):target/classes "
-            --    --        .."$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
-            --    --},
-            --}
+            project = {
+                -- mvn multi module project, run service module (with depencency to another module[s])
+                ["~/serhii.home/work/git.work/ua-payments-payment-prevalidation"] = {
+                    name = "Run Profile1",
+                    description = "Run Profile1",
+                    command = java_util.java21_bin
+                        .. " -classpath "
+                        .. "$(cd payment-prevalidation && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"
+                        .. ":$PWD/payment-prevalidation/target/classes"
+                        .. ":$(cd payment-prevalidation-api && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"
+                        .. ":$PWD/payment-prevalidation-api/target/classes"
+                        .. " ua.raiffeisen.payments.paymentprevalidation.Application",
+                },
+            },
         })
 
         vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "Run Code" })
