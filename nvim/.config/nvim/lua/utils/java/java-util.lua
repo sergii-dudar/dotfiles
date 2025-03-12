@@ -14,7 +14,7 @@ local system = "linux"
 --print("config.cmd" .. vim.inspect(config.cmd))
 
 -- sdk install java 21.0.4-oracle
-local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-oracle")
+local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.*-amzn")
 local java21_bin = java21_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"

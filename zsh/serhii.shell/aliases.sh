@@ -41,7 +41,8 @@ alias ps="procs"
 
 # alias grep='grep --color=auto'
 # Changing "grep" to "repgrep"
-alias grep="rg --color=always"
+# alias grep="rg --color=always"
+alias rg="rg --color=always"
 
 # Changing "find" to "fd"
 # defined after sdkman definition

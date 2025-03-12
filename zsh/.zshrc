@@ -1,3 +1,8 @@
+# to get rid some issues with intellij during loading environment on start main ide instant
+if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
+    return
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -99,7 +104,7 @@ VI_MODE_DISABLE_CLIPBOARD=false
 # zsh-syntax-highlighting
 # git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
-source $ZSH/oh-my-zsh.sh
+source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -169,8 +174,8 @@ eval "$(zoxide init zsh)"
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
-# Changing "find" to "fd"
-alias find="fd --color=always"
+# Changing "find" to "fd" - commend when installing sdkman, or install from bash
+#alias find="fd --color=always"
 
 # slow, don't enable it, if you not need nvm, just install and export path
 # export NVM_DIR="$HOME/.nvm"
