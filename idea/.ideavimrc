@@ -554,9 +554,16 @@ map <leader>qe <Action>(QuickEvaluateExpression)
 
 "======================================= Modifiers ================================================="
 
-"=== TODO:::
-"map <M-k> <Action>(MoveLineUp)
-"map <M-j> <Action>(MoveLineDown)
+" simple move lines
+map <S-A-k> <Action>(MoveLineUp)
+map <S-A-j> <Action>(MoveLineDown)
+
+" move lines with structure safe
+map <A-k> <Action>(MoveStatementUp)
+map <A-j> <Action>(MoveStatementDown)
+
+nmap <C-i> <Action>(Forward)
+nmap <C-o> <Action>(Back)
 
 "nmap <C-u> <Action>(GotoNextElementUnderCaretUsage)
 ""nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
@@ -564,18 +571,11 @@ map <leader>qe <Action>(QuickEvaluateExpression)
 "nmap <C-e> <Action>(GotoNextError)
 "nmap <A-e> <Action>(GotoPreviousError)
 
-""nmap <C-m> <Action>(MethodDown)
-""nmap <A-m> <Action>(MethodUp)
+"nmap <C-m> <Action>(MethodDown)
+"nmap <A-m> <Action>(MethodUp)
 
-""nmap <C-o> <Action>(NextOccurence)
-""nmap <A-o> <Action>(PreviousOccurence)
-
-""nmap <C-n> <Action>(Forward)
-""nmap <A-n> <Action>(Back)
-
-" move between active split window tabs
-map <D-n> <Action>(MoveStatementDown)
-map <C-n> <Action>(MoveStatementUp)
+"nmap <C-o> <Action>(NextOccurence)
+"nmap <A-o> <Action>(PreviousOccurence)
 
 " move between active split window tabs
 ""nmap <C-t> <Action>(NextSplitter)
