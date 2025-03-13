@@ -138,9 +138,8 @@ set clipboard+=unnamedplus
 "============================╚██╗ ██╔╝██║██║╚██╔╝██║====================================="
 "============================ ╚████╔╝ ██║██║ ╚═╝ ██║====================================="
 "============================  ╚═══╝  ╚═╝
-"==========================VIM PLUGINS Ma
-"========================================
-"========================================
+"==========================VIM PLUGINS Mapping & Config=================================="
+"========================================================================================"
 "========================================================================================"
 "........................................................................................"
 "========================================================================================"
@@ -430,43 +429,9 @@ nmap <leader>pv <Action>(SelectInProjectView)
 "==:nmap - create mappings that are only active in Normal mode.
 "== https://vimdoc.sourceforge.net/htmldoc/intro.html#key-notation
 "========================================================================================"
-"===== All mapping based on leader (space) key
-"===== All Intellij actions grouped in logical groups with unique group key with leader key
-"==== There present next groups:
-"==== key: (<leader>r) - Run Code
-"==== key: (<leader>t) - Run Tests
-
-"==== key: (i) - Introduce
-"==== key: (r) - Refactoring \ Rename \ Recent \ Replace
-"==== key: (l) - Line
-"==== key: (c) - Comment \ Copy \ Code
-"==== key: (l) - Line
-
-"==== key: (n) - New
-"==== key: (f)(g) - Navigation (find, goto)
-"==== key: (h) - Hierarchy \ History
-"==== key: (q) - Quick
-"==== key: (s) - Show \ History
-"==== key: (v) - View mode
-"==== key: (w) - Windows
-"==== key: (t) - Tabs
-"==== key: (m) - Menu
-"==== key: (b) - Block (Code fold/expand)
-"==== key: (o) - Terminal (open in)
-"==== key: (z) - Zen
-"==== key: (p) - Project management
-
-" not used yet:
-"==== key: (?) - Bookmarks and buffer
-"==== key: (?) - Scroll
-"==== key: (?) - Debugger
-
-"==== Also there present many mapping based on modifier keys
-"==== (especially when need repeat action and not call same all combination again and again that is quite annoying some time)
-"==== for more info see separate mapping GROUP.
 
 " :actionlist
-"====================================== (r) Run Code ==============================================="
+"====================================== <leader>r Run Code ==============================================="
 
 nmap <leader>rr <Action>(Run)
 " run file
@@ -477,7 +442,7 @@ nmap <leader>rf <Action>(RunClass)
 
 "nmap <leader>ecd <Action>(DebugClass)
 
-"====================================== (t) Run Tests ==============================================="
+"====================================== <leader>t Run Tests ==============================================="
 
 " run nearest
 nmap <leader>tr <Action>(RunTests)
@@ -490,71 +455,88 @@ nmap <leader>tf <Action>(RerunFailedTests)
 "nmap <leader>ec <Action>(ContextRun)
 "nmap <leader>ecc <Action>(ChooseRunConfiguration)
 
-"====== extract
-""nmap <leader>em <Action>(ExtractMethod)
 
 "======================================= (<leader>g) Git ================================================="
+
 map <leader>gg <Action>(CheckinProject)
 map <leader>ghr <Action>(Vcs.RollbackChangedLines)
+"=== git hunk blame
+nmap <leader>ghb <Action>(Annotate)
+nmap <leader>ghB <Action>(Annotate)
 
-"======================================= (i) Introduce ================================================="
+""nmap <leader>so <Action>(SelectAllOccurrences)
+""map <leader>sf <Action>(FindUsages)
+""map <leader>ss <Action>(ShowUsages)
 
-map <leader>ic <Action>(IntroduceConstant)
-map <leader>if <Action>(IntroduceField)
-map <leader>ip <Action>(IntroduceParameter)
-map <leader>iv <Action>(IntroduceVariable)
+""nmap <leader>se <Action>(ShowErrorDescription)
+""map <leader>su <Action>(HighlightUsagesInFile)
 
-map <leader>iif <Action>(IntroduceFunctionalParameter)
-map <leader>iiv <Action>(IntroduceFunctionalVariable)
-map <leader>iop <Action>(IntroduceParameterObject)
 
-map <leader>im <Action>(IntroduceActionsGroup)
+"=== History
+""nmap <leader>sgh <Action>(LocalHistory.ShowHistory)
+""nmap <leader>sgs <Action>(LocalHistory.ShowSelectionHistory)
 
-"======================================= (c) Code ================================================="
+""nmap <leader>sf <Action>(ShowFilePath)
+
+
+"======================================= <leader>c\C Code ================================================="
 
 " generate javadoc
 nmap <leader>cn <Action>(FixDocComment)
 
 nmap <leader>cr <Action>(RenameElement)
 nmap <leader>cR <Action>(RenameFile)
+
+" integration menus
 nmap <leader>ca <Action>(Refactorings.QuickListPopupAction)
 nmap <leader>ci <Action>(ShowIntentionActions)
+nmap <leader>cg <Action>(Generate)
+nmap <leader>cm <Action>(CodeMenu)
+nmap <leader>cR <Action>(RefactoringMenu)
 
-nmap <leader>cg       <Action>(Generate)
+""nmap <leader>cs <Action>(SurroundWith)
+"nmap <leader>gic <Action>(InspectCode)
 
-"======================================= (r) Refactoring \ Rename \ Recent \ Replace ================================================="
+"=== Copy
+"nmap <leader>cr <Action>(CopyReference)
 
-nmap <leader>ru <Action>(Unwrap)
-"map <leader>rsd <Action>(SafeDelete)
-
-"=== Recent
-nmap <leader>rf <Action>(RecentFiles)
-nmap <leader>rc <Action>(RecentChangedFiles)
-nmap <leader>rl <Action>(RecentLocations)
+"======== Optimize
+map <leader>cO :action ReformatCode \| action OptimizeImports<CR>
+map <leader>co <Action>(OptimizeImports)
+map <leader>cf <Action>(ReformatCode)
 
 
-"======================================= (l) Line ================================================="
+nmap <leader>Ci <Action>(ImplementMethods)
+nmap <leader>Co <Action>(OverrideMethods)
+
+""nmap <leader>ru <Action>(Unwrap)
+""map <leader>rsd <Action>(SafeDelete)
+
+" ============== code extract
+map <leader>cxx <Action>(IntroduceActionsGroup)
+
+xmap <leader>cxm <Action>(ExtractMethod)
+
+map <leader>cxc <Action>(IntroduceConstant)
+map <leader>cxf <Action>(IntroduceField)
+map <leader>cxp <Action>(IntroduceParameter)
+map <leader>cxv <Action>(IntroduceVariable)
+
+""map <leader>iif <Action>(IntroduceFunctionalParameter)
+""map <leader>iiv <Action>(IntroduceFunctionalVariable)
+""map <leader>iop <Action>(IntroduceParameterObject)
+
+"======================================= <leader>l Line ================================================="
 
 " Join Lines, exactly the same as `ideajoin` default `J` (shift+j) "
 nmap <leader>lj <Action>(EditorJoinLines)
 nmap <leader>ls <Action>(EditorSplitLine)
 nmap <leader>lt <Action>(EditorSortLines)
 
-"map <M-k> <Action>(MoveLineUp)
-"map <M-j> <Action>(MoveLineDown)
+map <M-k> <Action>(MoveLineUp)
+map <M-j> <Action>(MoveLineDown)
 
-"======================================= (c) Comment \ Copy \ Code ================================================="
-
-
-""nmap <leader>ci <Action>(ImplementMethods)
-nmap <leader>co <Action>(OverrideMethods)
-nmap <leader>cs <Action>(SurroundWith)
-"nmap <leader>gic <Action>(InspectCode)
-
-"=== Copy
-nmap <leader>cr <Action>(CopyReference)
-
-"======================================= (n) New ... ================================================="
+"======================================= <leader>n New ... ================================================="
 
 nmap <leader>nn <Action>(NewElement)
 nmap <leader>nd <Action>(NewDir)
@@ -563,40 +545,17 @@ nmap <leader>np <Action>(NewProject)
 nmap <leader>nm <Action>(NewModule)
 nmap <leader>nc <Action>(NewClass)
 
-"======================================= (s) Show \ History ================================================="
+"======================================= <leader>q Quick ================================================="
 
-""nmap <leader>so <Action>(SelectAllOccurrences)
-
-""map <leader>sf <Action>(FindUsages)
-""map <leader>ss <Action>(ShowUsages)
-
-""nmap <leader>se <Action>(ShowErrorDescription)
-
-""map <leader>su <Action>(HighlightUsagesInFile)
-
-"=== git blame
-""nmap <leader>sa <Action>(Annotate)
-
-"=== History
-""nmap <leader>sgh <Action>(LocalHistory.ShowHistory)
-""nmap <leader>sgs <Action>(LocalHistory.ShowSelectionHistory)
-
-"nmap <leader>sf <Action>(ShowFilePath)
-"map <leader>ssi <Action>(SelectIn)
-"nmap <leader>sw <Action>($SearchWeb)
-"======================================= (q) Quick ================================================="
-
-map <leader>qq <Action>(QuickJavaDoc)
+map <leader>k <Action>(QuickJavaDoc)
 map <leader>qi <Action>(QuickImplementations)
-
 map <leader>qs <Action>(QuickChangeScheme)
-
 map <leader>qe <Action>(QuickEvaluateExpression)
 
 "map <leader>qa <Action>(QuickActions)
 "map <leader>qt <Action>(QuickTypeDefinition)
 
-"======================================= (h) Hierarchy \ Hide ================================================="
+"======================================= <leader>h Hierarchy \ Hide ================================================="
 
 nmap <leader>hc <Action>(CallHierarchy)
 nmap <leader>hm <Action>(MethodHierarchy)
@@ -606,17 +565,22 @@ nmap <leader>ht <Action>(TypeHierarchy)
 nmap <leader>ha <Action>(HideAllWindows)
 nmap <leader>hh <Action>(HideActiveWindow)
 
-"======================================= (v) View mode ================================================="
+"======================================= <leader>v View mode ================================================="
 
 nmap <leader>vf <Action>(ToggleFullScreen)
 nmap <leader>vv <Action>(ToggleDistractionFreeMode)
 nmap <leader>vp <Action>(TogglePresentationMode)
 
-"======================================= (z) Zen ================================================="
+"======================================= <leader>z Zen ================================================="
 
 map <leader>z <Action>(ToggleZenMode)
 
 "======================================= (f)(g) Navigation ================================================="
+
+"=== Recent
+nmap <leader>rf <Action>(RecentFiles)
+nmap <leader>rc <Action>(RecentChangedFiles)
+nmap <leader>rl <Action>(RecentLocations)
 
 "=== (f)
 ""nmap <leader>fe <Action>(SearchEverywhere)
@@ -654,6 +618,9 @@ map <leader>z <Action>(ToggleZenMode)
 
 ""nmap <C-n> <Action>(Forward)
 ""nmap <A-n> <Action>(Back)
+" move between active split window tabs
+map <D-n> <Action>(MoveStatementDown)
+map <C-n> <Action>(MoveStatementUp)
 
 " move between active split window tabs
 ""nmap <C-t> <Action>(NextSplitter)
@@ -665,9 +632,6 @@ map <leader>z <Action>(ToggleZenMode)
 ""nmap <A-k> <Action>(EditorScrollUp)
 ""nmap <A-l> <Action>(EditorScrollRight)
 
-" move between active split window tabs
-"map <C-n> <Action>(MoveStatementUp)
-"map <D-n> <Action>(MoveStatementDown)
 
 "nmap <leader>gc <Action>(VcsShowPrevChangeMarker)
 "nmap <leader>ge <Action>(JumpToLastChange)
@@ -681,26 +645,21 @@ map <leader>z <Action>(ToggleZenMode)
 
 "nmap ]c <Action>(JumpToNextChange)
 "nmap ]c <Action>(JumpToLastChange)
-"======================================= (t) Tabs ================================================="
+"======================================= <Tab> Tabs ================================================="
 
 
-"nmap <Tab>     <Action>(NextTab)
+nmap <Tab>     <Action>(NextTab)
 nmap <S-Tab>   <Action>(PreviousTab)
-nmap <leader>1 <Action>(GoToTab1)
-nmap <leader>2 <Action>(GoToTab2)
-nmap <leader>3 <Action>(GoToTab3)
-nmap <leader>4 <Action>(GoToTab4)
-nmap <leader>5 <Action>(GoToTab5)
-nmap <leader>6 <Action>(GoToTab6)
-nmap <leader>7 <Action>(GoToTab7)
-nmap <leader>8 <Action>(GoToTab8)
-nmap <leader>9 <Action>(GoToTab9)
-nmap <leader>0 <Action>(GoToLastTab)
-
-"map <leader>th <Action>(MoveTabLeft)
-"map <leader>tj <Action>(MoveTabDown)
-"map <leader>tk <Action>(MoveTabUp)
-"map <leader>tl <Action>(MoveTabRight)
+""nmap <leader>1 <Action>(GoToTab1)
+""nmap <leader>2 <Action>(GoToTab2)
+""nmap <leader>3 <Action>(GoToTab3)
+""nmap <leader>4 <Action>(GoToTab4)
+""nmap <leader>5 <Action>(GoToTab5)
+""nmap <leader>6 <Action>(GoToTab6)
+""nmap <leader>7 <Action>(GoToTab7)
+""nmap <leader>8 <Action>(GoToTab8)
+""nmap <leader>9 <Action>(GoToTab9)
+""nmap <leader>0 <Action>(GoToLastTab)
 
 " (change size of active panes top/bottom/left/right)"
 "map <A-h> <Action>(StretchSplitToLeft)
@@ -708,32 +667,33 @@ nmap <leader>0 <Action>(GoToLastTab)
 "map <A-k> <Action>(StretchSplitToTop)
 "map <A-j> <Action>(StretchSplitToBottom)
 
-nmap <Tab>ma <Action>(MaximizeEditorInSplit)
+"======================================= <leader>b Buffer ================================================="
 
+nmap <leader>bm <Action>(MaximizeEditorInSplit)
+nmap <leader>br <Action>(ReopenClosedTab)
+nmap <leader>bp <Action>(PinActiveEditorTab)
+nmap <leader>bd <Action>(CloseContent)
 
-nmap <Tab>mm <Action>(MoveEditorToOppositeTabGroup)
-nmap <Tab>oo <Action>(OpenEditorInOppositeTabGroup)
+"======================================= <leader>\,| splits ================================================="
+nmap <leader>\\ <Action>(SplitVertically)
+nmap <leader>\| <Action>(SplitHorizontally)
 
-nmap <Tab>ch <Action>(CloseAllToTheLeft)
-nmap <Tab>cl <Action>(CloseAllToTheRight)
-nmap <Tab>r <Action>(ReopenClosedTab)
+""nmap <Tab>uu <Action>(Unsplit)
+""nmap <Tab>ua <Action>(UnsplitAll)
 
-nmap <Tab>p <Action>(PinActiveEditorTab)
+""nmap <Tab>mm <Action>(MoveEditorToOppositeTabGroup)
+""nmap <Tab>oo <Action>(OpenEditorInOppositeTabGroup)
 
-nmap <Tab>cc <Action>(CloseEditor)
-"nmap <Tab>xx <Action>(CloseContent)
-nmap <Tab>ca <Action>(CloseAllEditors)
-nmap <Tab>ci <Action>(CloseAllEditorsButActive)
-nmap <Tab>cp <Action>(CloseAllUnpinnedEditors)
+""nmap <Tab>ch <Action>(CloseAllToTheLeft)
+""nmap <Tab>cl <Action>(CloseAllToTheRight)
 
-" (Pane vertically split/horizontally split/close)"
-nmap <Tab>sh <Action>(SplitHorizontally)
-nmap <Tab>sj <Action>(SplitVertically)
+""nmap <Tab>cc <Action>(CloseEditor)
+""nmap <Tab>xx <Action>(CloseContent)
+""nmap <Tab>ca <Action>(CloseAllEditors)
+""nmap <Tab>ci <Action>(CloseAllEditorsButActive)
+""nmap <Tab>cp <Action>(CloseAllUnpinnedEditors)
 
-nmap <Tab>uu <Action>(Unsplit)
-nmap <Tab>ua <Action>(UnsplitAll)
-
-nmap <Action>tl <Action>(JumpToLastWindow)
+""nmap <Action>tl <Action>(JumpToLastWindow)
 
 "======================================= (w) Windows ================================================="
 
@@ -743,57 +703,40 @@ nmap <Action>tl <Action>(JumpToLastWindow)
 "'nmap <leader>wg <Action>(ActivateVersionControlToolWindow)
 "nmap <leader>tm <Action>(ActivateMavenToolWindow)
 
-"======================================= (m) Menu ================================================="
+"======================================= <leader>m Menu ================================================="
 
 nmap <leader>mm <Action>(MainMenu)
 nmap <leader>ma <Action>(AnalyzeMenu)
 nmap <leader>mb <Action>(BuildMenu)
-nmap <leader>mc <Action>(CodeMenu)
 nmap <leader>mf <Action>(FindMenuGroup)
-nmap <leader>mgm <Action>(GoToMenu)
+nmap <leader>mG <Action>(GoToMenu)
 nmap <leader>ms <Action>(ScopeViewPopupMenu)
 nmap <leader>mt <Action>(EditorTabPopupMenu)
 nmap <leader>mw <Action>(ToolWindowsGroup)
-nmap <leader>mgg <Action>(Git.Menu)
+"nmap <leader>mgg <Action>(Git.Menu)
 
-nmap <leader>mr <Action>(RefactoringMenu)
+"======================================= <z> Fold (Code fold/expand) ================================================="
 
-" create method by call etc
-nmap <leader>mi <Action>(ShowIntentionActions)
+map za <Action>(ExpandCollapseToggleAction)
+""map za <Action>(CollapseRegion)
+""map zA <Action>(ExpandRegion)
 
-"======================================= (b) Block (Code fold/expand) ================================================="
+map zM <Action>(CollapseAllRegions)
+map zR <Action>(ExpandAllRegions)
 
-map <leader>bc <Action>(CollapseRegion)
-map <leader>be <Action>(ExpandRegion)
+""map <leader>cc <Action>(CollapseDocComments)
+""map <leader>ce <Action>(ExpandDocComments)
 
-map <leader>bbc <Action>(CollapseAllRegions)
-map <leader>bbe <Action>(ExpandAllRegions)
-
-map <leader>ba <Action>(ExpandCollapseToggleAction)
-
-map <leader>cc <Action>(CollapseDocComments)
-map <leader>ce <Action>(ExpandDocComments)
-
-"======================================= (o) Terminal ================================================="
+"======================================= <leader>o Terminal ================================================="
 
 map <leader>ot <Action>(ActivateTerminalToolWindow)
 map <leader>oc <Action>(Terminal.OpenInTerminal)
 
-"======== Optimize
-map <leader>oo :action ReformatCode \| action OptimizeImports<CR>
-map <leader>oi <Action>(OptimizeImports)
-map <leader>or <Action>(ReformatCode)
-
-
-
-"======================================= (p) Project management ================================================="
+"======================================= <leader>p Project management ================================================="
 
 map <leader>pp <Action>(ManageRecentProjects)
 map <leader>pl <Action>(RecentProjectListGroup)
 map <leader>px <Action>(CloseProject)
-
-
-
 
 "======================================= (?) Bookmarks and buffer ================================================="
 "nmap <leader>bb <Action>(Bookmarks)
