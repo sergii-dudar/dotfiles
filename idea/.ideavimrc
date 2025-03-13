@@ -533,9 +533,6 @@ nmap <leader>lj <Action>(EditorJoinLines)
 nmap <leader>ls <Action>(EditorSplitLine)
 nmap <leader>lt <Action>(EditorSortLines)
 
-map <M-k> <Action>(MoveLineUp)
-map <M-j> <Action>(MoveLineDown)
-
 "======================================= <leader>n New ... ================================================="
 
 nmap <leader>nn <Action>(NewElement)
@@ -554,6 +551,44 @@ map <leader>qe <Action>(QuickEvaluateExpression)
 
 "map <leader>qa <Action>(QuickActions)
 "map <leader>qt <Action>(QuickTypeDefinition)
+
+"======================================= Modifiers ================================================="
+
+"=== TODO:::
+"map <M-k> <Action>(MoveLineUp)
+"map <M-j> <Action>(MoveLineDown)
+
+"nmap <C-u> <Action>(GotoNextElementUnderCaretUsage)
+""nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
+
+"nmap <C-e> <Action>(GotoNextError)
+"nmap <A-e> <Action>(GotoPreviousError)
+
+""nmap <C-m> <Action>(MethodDown)
+""nmap <A-m> <Action>(MethodUp)
+
+""nmap <C-o> <Action>(NextOccurence)
+""nmap <A-o> <Action>(PreviousOccurence)
+
+""nmap <C-n> <Action>(Forward)
+""nmap <A-n> <Action>(Back)
+
+" move between active split window tabs
+map <D-n> <Action>(MoveStatementDown)
+map <C-n> <Action>(MoveStatementUp)
+
+" move between active split window tabs
+""nmap <C-t> <Action>(NextSplitter)
+""nmap <A-t> <Action>(PrevSplitter)
+
+"=== Scroll
+"nmap <A-h> <Action>(EditorScrollLeft)
+""nmap <A-j> <Action>(EditorScrollDown)
+""nmap <A-k> <Action>(EditorScrollUp)
+""nmap <A-l> <Action>(EditorScrollRight)
+
+"nmap ]c <Action>(JumpToNextChange)
+"nmap ]c <Action>(JumpToLastChange)
 
 "======================================= <leader>h Hierarchy \ Hide ================================================="
 
@@ -575,76 +610,59 @@ nmap <leader>vp <Action>(TogglePresentationMode)
 
 map <leader>z <Action>(ToggleZenMode)
 
-"======================================= (f)(g) Navigation ================================================="
+"======================================= <leader>s Search / Replace ================================================="
 
-"=== Recent
-nmap <leader>rf <Action>(RecentFiles)
-nmap <leader>rc <Action>(RecentChangedFiles)
-nmap <leader>rl <Action>(RecentLocations)
+nmap <leader>sg <Action>(Find)
+nmap <leader>sG <Action>(FindInPath)
 
-"=== (f)
-""nmap <leader>fe <Action>(SearchEverywhere)
-""nmap <leader>fp <Action>(FindInPath)
-""nmap <leader>ff <Action>(Find)
-""nmap <leader>ft <Action>(TextSearchAction)
+"=== search and replace
+nmap <leader>sr <Action>(Replace)
+nmap <leader>sR <Action>(ReplaceInPath)
 
-"=== Replace
-""nmap <leader>fr <Action>(Replace)
-""nmap <leader>fgr <Action>(ReplaceInPath)
+"======================================= <leader>f Find File ================================================="
 
+"=== (Find)
+nmap <leader>ff <Action>(GotoFile)
 
-""nmap <leader>gf <Action>(GotoFile)
-""nmap <leader>gc <Action>(GotoClass)
-""nmap <leader>gs <Action>(GotoSymbol)
-""nmap <leader>ga <Action>(GotoAction)
-""nmap <leader>gd <Action>(GotoDeclaration)
-""nmap <leader>ggt <Action>(GotoTypeDeclaration)
-""nmap <leader>gi <Action>(GotoImplementation)
-""nmap <leader>gt <Action>(GotoTest)
+"nmap <leader>fe <Action>(SearchEverywhere)
+"nmap <leader>fa <Action>(TextSearchAction)
 
-""nmap <leader>gm <Action>(GoToSuperMethod)
-"=== Modifiers
-"nmap <C-u> <Action>(GotoNextElementUnderCaretUsage)
-""nmap <A-u> <Action>(GotoPrevElementUnderCaretUsage)
+"=== Find Recent
+nmap <leader>fr <Action>(RecentFiles)
+nmap <leader>fR <Action>(RecentChangedFiles)
+nmap <leader>fL <Action>(RecentLocations)
 
-"nmap <C-e> <Action>(GotoNextError)
-"nmap <A-e> <Action>(GotoPreviousError)
+"======================================= (g) GoTo ================================================="
 
-""nmap <C-m> <Action>(MethodDown)
-""nmap <A-m> <Action>(MethodUp)
+" lazyvim
+nmap gd <Action>(GotoDeclaration)
+nmap gI <Action>(GotoImplementation)
+nmap gy <Action>(GotoTypeDeclaration)
+nmap gr <Action>(ShowUsages)
+nmap gR <Action>(FindUsages)
+"nmap gR <Action>(FindUsagesMenuGroup)
 
-""nmap <C-o> <Action>(NextOccurence)
-""nmap <A-o> <Action>(PreviousOccurence)
+" idea specific
+nmap gg <Action>(SearchEverywhere)
+nmap ga <Action>(GotoAction)
+nmap gl <Action>(GotoLine)
+nmap gf <Action>(GotoFile)
+nmap gc <Action>(GotoClass)
 
-""nmap <C-n> <Action>(Forward)
-""nmap <A-n> <Action>(Back)
-" move between active split window tabs
-map <D-n> <Action>(MoveStatementDown)
-map <C-n> <Action>(MoveStatementUp)
+nmap gT <Action>(GotoTest)
+nmap gS <Action>(GotoSuperMethod)
 
-" move between active split window tabs
-""nmap <C-t> <Action>(NextSplitter)
-""nmap <A-t> <Action>(PrevSplitter)
+""nmap <leader>so <Action>(SelectAllOccurrences)
+""map <leader>sf <Action>(FindUsages)
+""map <leader>ss <Action>(ShowUsages)
 
-"=== Scroll
-"nmap <A-h> <Action>(EditorScrollLeft)
-""nmap <A-j> <Action>(EditorScrollDown)
-""nmap <A-k> <Action>(EditorScrollUp)
-""nmap <A-l> <Action>(EditorScrollRight)
-
-
+"nmap <leader>gs <Action>(GotoSymbol)
 "nmap <leader>gc <Action>(VcsShowPrevChangeMarker)
 "nmap <leader>ge <Action>(JumpToLastChange)
 "nmap <leader>fn <Action>(VcsShowNextChangeMarker)
-
 "nmap <leader>fb <Action>(Switcher)
-
 "nmap <leader>fdo <Action>(GotoDatabaseObject)
-
 "nmap <leader>j <Action>(ShowNavBar)
-
-"nmap ]c <Action>(JumpToNextChange)
-"nmap ]c <Action>(JumpToLastChange)
 "======================================= <Tab> Tabs ================================================="
 
 
