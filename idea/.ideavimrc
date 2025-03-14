@@ -232,10 +232,10 @@ map s <Action>(flash.search)
 "======================================================================================================================"
 "=============================================== 🄴🄰🅂🅈🄼🄾🅃🄸🄾🄽 🄿🄻🅄🄶🄸🄽 ========================================="
 "iunmap s
-iunmap f
-iunmap F
-iunmap t
-iunmap T
+"iunmap f
+"iunmap F
+"iunmap t
+"iunmap T
 iunmap <leader><leader>s
 iunmap <leader><leader>f
 iunmap <leader><leader>F
@@ -247,11 +247,11 @@ iunmap <leader><leader>T
 "map s <Plug>(easymotion-s)
 map <leader>s <Plug>(easymotion-s)
 
-map f <Plug>(easymotion-f)
-map F <Plug>(easymotion-F)
+map <leader>f <Plug>(easymotion-f)
+map <leader>F <Plug>(easymotion-F)
 
-map t <Plug>(easymotion-t)
-map T <Plug>(easymotion-T)
+map <leader>t <Plug>(easymotion-t)
+map <leader>T <Plug>(easymotion-T)
 
 " https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
 " https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
@@ -559,12 +559,12 @@ map <leader>qe <Action>(QuickEvaluateExpression)
 "==================================================== 🄼🄾🄳🄸🄵🄸🄴🅁🅂 ================================================="
 
 " simple move lines
-map <S-A-k> <Action>(MoveLineUp)
-map <S-A-j> <Action>(MoveLineDown)
+map <A-k> <Action>(MoveLineUp)
+map <A-j> <Action>(MoveLineDown)
 
 " move lines with structure safe
-map <A-k> <Action>(MoveStatementUp)
-map <A-j> <Action>(MoveStatementDown)
+map <S-A-k> <Action>(MoveStatementUp)
+map <S-A-j> <Action>(MoveStatementDown)
 
 " original vim back/forward binding
 nmap <C-i> <Action>(Forward)
