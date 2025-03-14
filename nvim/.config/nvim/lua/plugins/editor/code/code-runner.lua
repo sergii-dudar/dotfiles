@@ -10,7 +10,7 @@ return {
             -- choose default mode (valid term, tab, float, toggle, vimux)
             mode = "term",
             -- add hot reload
-            hot_reload = true,
+            hot_reload = false,
             -- Focus on runner window(only works on toggle, term and tab mode)
             focus = false,
             term = {
@@ -27,9 +27,14 @@ return {
                     --"~/.sdkman/candidates/java/21.*-amzn/bin/java",
                     -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):payment-prevalidation/target/classes:payment-prevalidation-api/target/classes",
 
-                    java_util.java21_bin,
-                    "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)", -- single module mvn project run, for multi, use project section
-                    "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
+                    -- java_util.java21_bin,
+                    -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)", -- single module mvn project run, for multi, use project section
+                    -- "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
+
+                    "cd $dir &&",
+                    './"$fileNameWithoutExt"Runner $fileNameWithoutExt || ( ',
+                    java_util.java21_bin .. "c $fileName &&",
+                    java_util.java21_bin .. " $fileNameWithoutExt )",
 
                     --#### DEBUG final command
                     -- "echo ",
@@ -127,6 +132,7 @@ return {
         vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "Run File" })
         vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "Run Project" })
         vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "Run Close" })
+        --vim.keymap.set("n", "<leader>rd", ":CrStopHr<CR>", { noremap = true, silent = false, desc = "Stop Hot Reload" })
 
         --vim.keymap.set('n', '<leader>rft', ':RunFile tab<CR>', { noremap = true, silent = false, desc = "Run File tab" })
         --vim.keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false, desc = "CRF iletype" })

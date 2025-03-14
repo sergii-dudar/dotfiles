@@ -29,6 +29,20 @@ function isMacOs() {
     fi
 }
 
+# case "$XDG_SESSION_TYPE" in
+#     wayland)
+#         # echo "Running on Wayland"
+#         ;;
+#     x11)
+#         # 200 → Delay before key repeat starts (in milliseconds).
+#         # 50 → Repeat rate (keys per second).
+#         xset r rate 200 30
+#         ;;
+#     *)
+#         # echo "Unknown session type"
+#         ;;
+# esac
+
 # function getLogLevel() {
 #     if [[ "$1" == "--help" || "$1" == "-h" ]]; then
 #         cat << EOF

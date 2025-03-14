@@ -149,7 +149,7 @@ qtile
 qtile-extras
 ranger
 ripgrep
-rofi
+rofi-wayland
 rust
 rust-analyzer
 rygel

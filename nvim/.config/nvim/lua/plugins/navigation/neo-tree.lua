@@ -8,7 +8,7 @@ return {
         window = {
             mappings = {
                 --    e = 'none'
-                --["/"] = "noop",
+                ["/"] = "noop",
                 ["<esc>"] = "noop",
             },
             --position = "float",
