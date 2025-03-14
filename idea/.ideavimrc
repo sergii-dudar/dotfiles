@@ -91,11 +91,6 @@ map <C-j> <C-w>j
 map <C-k> <C-w>k
 map <C-l> <C-w>l
 
-map <C-h> <C-w>h
-map <C-j> <C-w>j
-map <C-k> <C-w>k
-map <C-l> <C-w>l
-
 nnoremap R @q " R to execute q macro
 
 noremap J 6jzz
@@ -571,8 +566,14 @@ map <S-A-j> <Action>(MoveLineDown)
 map <A-k> <Action>(MoveStatementUp)
 map <A-j> <Action>(MoveStatementDown)
 
+" original vim back/forward binding
 nmap <C-i> <Action>(Forward)
 nmap <C-o> <Action>(Back)
+
+nmap <C-Left> <Action>(ResizeToolWindowLeft)
+nmap <C-Down> <Action>(ResizeToolWindowDown)
+nmap <C-Up> <Action>(ResizeToolWindowUp)
+nmap <C-Right> <Action>(ResizeToolWindowRight)
 
 " (change size of active tool window top/bottom/left/right) - intellij keymapping"
 "ResizeToolWindowLeft         <A-h>
