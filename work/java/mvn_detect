@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Find the nearest pom.xml in parent directories
+dir=$(pwd)
+while [ "$dir" != "$HOME" ]; do
+    if [ -f "$dir/pom.xml" ]; then
+        #echo "Maven project detected in: $dir"
+        #mvn -f "$dir/pom.xml" validate > /dev/null 2>&1
+        exit 0
+    fi
+    dir=$(dirname "$dir")  # Move up one directory
+done
+
+#echo "Not a Maven project"
+exit 1

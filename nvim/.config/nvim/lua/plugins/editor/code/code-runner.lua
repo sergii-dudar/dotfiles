@@ -22,27 +22,10 @@ return {
             },
             filetype = {
                 java = {
-                    --"java -classpath $(mvn -o -q dependency:build-classpath -Dmdep.outputFile=/dev/stdout -DincludeScope=runtime):target/classes",
-                    --"$(grep '^package' $dir/$fileName | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt"
-                    --"~/.sdkman/candidates/java/21.*-amzn/bin/java",
-                    -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):payment-prevalidation/target/classes:payment-prevalidation-api/target/classes",
-
-                    -- java_util.java21_bin,
-                    -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)", -- single module mvn project run, for multi, use project section
-                    -- "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
-
-                    "cd $dir &&",
-                    './"$fileNameWithoutExt"Runner $fileNameWithoutExt || ( ',
-                    java_util.java21_bin .. "c $fileName &&",
-                    java_util.java21_bin .. " $fileNameWithoutExt )",
-
-                    --#### DEBUG final command
-                    -- "echo ",
-                    -- java_util.java21_bin,
-                    -- "-classpath $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir):target/classes",
-                    -- "$(grep '^package' $file | awk '{print $2}' | sed 's/;//').$fileNameWithoutExt",
-
-                    --"echo $($HOME/dotfiles/work/java/mvn_cp_cash.sh $dir)",
+                    --'echo "$dir , $fileNameWithoutExt"',
+                    "$HOME/dotfiles/work/java/runner "
+                        .. java_util.java21_bin
+                        .. " $dir $fileNameWithoutExt",
                 },
                 python = "python3.12 -u",
                 typescript = "deno run",

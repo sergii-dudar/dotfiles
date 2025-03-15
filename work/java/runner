@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+java_bin_path=$1
+pdir=$2
+pfile=$3
+pfile_ext=$3".java"
+
+# get full java class to run `Application.java` with package `com.example` -> com.example.Application
+class_main="$(grep '^package' "$pdir"/"$pfile_ext" | awk '{print $2}' | sed 's/;//').$pfile"
+# remove start dot (int case packages is absent, as to simple java app) Application.java -> Application
+class_main=${class_main#.}
+
+# echo "pjava; $pjava"
+# echo "pdir; $pdir"
+# echo "pfile; $pfile"
+# echo "pfile_ext; $pfile_ext"
+# echo "pfile_run; $pfile_run"
+
+
+if "$HOME/dotfiles/work/java/mvn_detect" > /dev/null 2>&1; then
+    app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cash.sh "$pdir")
+else
+    # work as plain simple java file
+    compile_cmd="$java_bin_path""c $pfile_ext"
+    bash -c "$compile_cmd"
+    app_classpath="."
+fi
+# todo: gradle
+
+run_cmd="$java_bin_path -classpath $app_classpath $class_main"
+
+#echo "$run_cmd"
+bash -c "$run_cmd"
