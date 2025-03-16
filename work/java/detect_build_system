@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Find the nearest pom.xml/build.gradle in parent directories
+dir=$(pwd)
+while [ "$dir" != "$HOME" ]; do
+    if [ -f "$dir/pom.xml" ]; then
+        echo "maven"
+        exit 0
+    fi
+
+    if [ -f "$dir/build.gradle" ]; then
+        echo "gradle"
+        exit 0
+    fi
+
+    # echo "curr: $dir"
+    dir=$(dirname "$dir")  # Move up one directory
+done
+
+echo "N\A"
+exit 1

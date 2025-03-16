@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
+# ./gradlew -q classes && java -cp "$(./gradlew -q printClasspath)" ua.serhii.application.Main
 EXEC_DIR="$1"
 CACHE_FILE_NAME=".classpath.cache"
-POM_FILE="pom.xml"
+POM_FILE="build.gradle"
 
 if [ ! -f "$CACHE_FILE_NAME" ] || [ "$POM_FILE" -nt "$CACHE_FILE_NAME" ]; then
     if [ -f $CACHE_FILE_NAME ]; then
         rm $CACHE_FILE_NAME
     fi
-    # cache file to app root (where pom.xml file), mvn work from any child sub dir of project
-    mvn -q dependency:build-classpath -Dmdep.outputFile="$CACHE_FILE_NAME" -DincludeScope=runtime
+    ./gradlew -q printClasspath > $CACHE_FILE_NAME
 fi
 
 cache_file_dir="$EXEC_DIR"
@@ -21,6 +21,9 @@ while [ "$cache_file_dir" != "$HOME" ]; do
     cache_file_dir=$(dirname "$cache_file_dir")
 done
 
+# build sources
+bash -c "./gradlew -q classes"
+
 # classpath=$(cat "$cache_file_dir"/$CACHE_FILE_NAME)
 classpath=$(bat -pp "$cache_file_dir"/$CACHE_FILE_NAME)
-echo "$classpath:$cache_file_dir/target/classes"
+echo "$classpath"

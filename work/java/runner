@@ -6,7 +6,8 @@ pfile=$3
 pfile_ext=$3".java"
 
 # get full java class to run `Application.java` with package `com.example` -> com.example.Application
-class_main="$(grep '^package' "$pdir"/"$pfile_ext" | awk '{print $2}' | sed 's/;//').$pfile"
+class_main="$(rg '^package' "$pdir"/"$pfile_ext" | awk '{print $2}' | sed 's/;//').$pfile"
+
 # remove start dot (int case packages is absent, as to simple java app) Application.java -> Application
 class_main=${class_main#.}
 
@@ -16,16 +17,29 @@ class_main=${class_main#.}
 # echo "pfile_ext; $pfile_ext"
 # echo "pfile_run; $pfile_run"
 
+case "$pfile" in
+    *Run*|*Simple*)
+        build_system="N\A"
+        ;;
+    *)
+        build_system=$("$HOME/dotfiles/work/java/detect_build_system")
+        # echo "build_system: $build_system"
+        ;;
+esac
 
-if "$HOME/dotfiles/work/java/mvn_detect" > /dev/null 2>&1; then
-    app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cash.sh "$pdir")
-else
-    # work as plain simple java file
-    compile_cmd="$java_bin_path""c $pfile_ext"
-    bash -c "$compile_cmd"
-    app_classpath="."
-fi
-# todo: gradle
+case "$build_system" in
+    maven)
+        app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$pdir")
+        ;;
+    gradle)
+        app_classpath=$("$HOME"/dotfiles/work/java/gradle_cp_cache.sh "$pdir")
+        ;;
+    *)
+        compile_cmd="$java_bin_path""c $pfile_ext"
+        bash -c "$compile_cmd"
+        app_classpath="."
+        ;;
+esac
 
 run_cmd="$java_bin_path -classpath $app_classpath $class_main"
 
