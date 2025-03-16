@@ -11,6 +11,10 @@ return {
 
             opts.formatters_by_ft.python = { "ruff" } --{ "black" }
             opts.formatters_by_ft.lua = { "stylua" }
+
+            opts.formatters_by_ft.cs = {} -- disable default `csharpier` formatter, to use lsp omnisharp formatter
+            -- opts.formatters_by_ft.cs = { "csharpier" }
+
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }
 

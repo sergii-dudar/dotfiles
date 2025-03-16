@@ -63,6 +63,9 @@ else
     # debug awesome wm
     # sudo pacman -S xorg-server-xephyr
     alias awesome_debug="Xephyr :5 -screen 1920x1080 & sleep 1 ; DISPLAY=:5 awesome"
+
+    # dotnet
+    export DOTNET_ROOT=$HOME/.dotnet
 fi
 
 export VISUAL='nvim'

@@ -54,7 +54,6 @@ return {
                     '&& stack build --color "always" --verbosity "warn"',
                     "&& stack exec $fileNameWithoutExt-exe",
                 },
-
                 -- rust = {
                 --     "cd $dir",
                 --     "&& rustc $fileName -o /tmp/$fileNameWithoutExt",
@@ -79,6 +78,11 @@ return {
                     "&& g++ -std=c++23 $fileNameWithoutExt*.cpp -o /tmp/$fileNameWithoutExt", -- -std=c++11, -std=c++14, -std=c++17 (DEFAULT), -std=c++20, -std=c++23, -std=c++26(c++2c)
                     "&& /tmp/$fileNameWithoutExt",
                     "&& rm /tmp/$fileNameWithoutExt",
+                },
+                cs = {
+                    "cd $dir",
+                    -- "dotnet build && dotnet run"
+                    "&& dotnet run",
                 },
                 -- c = function(...)
                 --     c_base = {
