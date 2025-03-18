@@ -4,6 +4,8 @@ EXEC_DIR="$1"
 CACHE_FILE_NAME=".classpath.cache"
 POM_FILE="pom.xml"
 
+cd "$EXEC_DIR" || exit
+
 if [ ! -f "$CACHE_FILE_NAME" ] || [ "$POM_FILE" -nt "$CACHE_FILE_NAME" ]; then
     if [ -f $CACHE_FILE_NAME ]; then
         rm $CACHE_FILE_NAME

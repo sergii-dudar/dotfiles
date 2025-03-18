@@ -11,37 +11,59 @@ class_main="$(rg '^package' "$pdir"/"$pfile_ext" | awk '{print $2}' | sed 's/;//
 # remove start dot (int case packages is absent, as to simple java app) Application.java -> Application
 class_main=${class_main#.}
 
-# echo "pjava; $pjava"
+# echo "java_bin_path; $java_bin_path"
 # echo "pdir; $pdir"
 # echo "pfile; $pfile"
 # echo "pfile_ext; $pfile_ext"
-# echo "pfile_run; $pfile_run"
+# echo "class_main; $class_main"
+
+cd "$pdir" || exit 1
 
 case "$pfile" in
-    *Run*|*Simple*)
-        build_system="N\A"
+    *Run*|*Simple*|*Test*)
+        build_system_path="N\A"
         ;;
     *)
-        build_system=$("$HOME/dotfiles/work/java/detect_build_system")
-        # echo "build_system: $build_system"
+        build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
         ;;
 esac
 
-case "$build_system" in
-    maven)
-        app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$pdir")
+# echo "build_system: $build_system_path"
+case "$build_system_path" in
+    *pom.xml*)
+        build_system_dir="${build_system_path%/*}"
+        # echo "build_system: maven"
+        # echo "build_system_dir: $build_system_dir"
+        app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$build_system_dir")
         ;;
-    gradle)
-        app_classpath=$("$HOME"/dotfiles/work/java/gradle_cp_cache.sh "$pdir")
+    *build.gradle*)
+        build_system_dir="${build_system_path%/*}"
+        # echo "build_system: gradle"
+        # echo "build_system_dir: $build_system_dir"
+        app_classpath=$("$HOME"/dotfiles/work/java/gradle_cp_cache.sh "$build_system_dir")
         ;;
     *)
         compile_cmd="$java_bin_path""c $pfile_ext"
         bash -c "$compile_cmd"
         app_classpath="."
+
+        if [[ "$class_main" == *.* ]]; then
+            # if simple class have package path, we need run it from whole package root
+
+            # Step 1: Convert to package path (remove class name)
+            package_name="$(dirname "${class_main//./\/}")"
+
+            # Step 2: Count depth and generate "../.." dynamically
+            package_depth=$(tr -cd '/' <<< "$package_name" | wc -c)  # Count slashes
+            package_parent_path=$(printf "../%.0s" $(seq 1 $((package_depth+1))))  # Generate `..` for each level
+            cd "$package_parent_path" || exit 1
+            # echo "parent path: $PWD"
+        fi
+
         ;;
 esac
 
 run_cmd="$java_bin_path -classpath $app_classpath $class_main"
+# echo "$run_cmd"
 
-#echo "$run_cmd"
 bash -c "$run_cmd"

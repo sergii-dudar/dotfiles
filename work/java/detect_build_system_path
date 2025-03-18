@@ -4,12 +4,14 @@
 dir=$(pwd)
 while [ "$dir" != "$HOME" ]; do
     if [ -f "$dir/pom.xml" ]; then
-        echo "maven"
+        # echo "maven"
+        echo "$dir/pom.xml"
         exit 0
     fi
 
     if [ -f "$dir/build.gradle" ]; then
-        echo "gradle"
+        # echo "gradle"
+        echo "$dir/build.gradle"
         exit 0
     fi
 
