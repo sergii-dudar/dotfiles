@@ -45,7 +45,10 @@ map <C-c> "+y
 map <C-v> "+p
 
 "iunmap <C-s>
-map <C-s> <Action>(SaveAll)
+map <C-s> :action SaveAll \| action ReformatCode<CR>
+
+"iunmap <D-s>
+"map <D-s> :action SaveAll \| action ReformatCode<CR>
 
 " use jj to move to normal mode
 "inoremap jj <esc>
@@ -81,7 +84,10 @@ set which-key
 let g:WhichKey_ShowVimActions = "false"
 
 " ============================================= 🄱🄰🅂🄴 🅅🄸🄼 🄼🄰🄿🄿🄸🄽🄶 ============================================="
-noremap <Esc> :nohlsearch<cr>
+noremap <Esc> :nohlsearch \| action EditorEscape<CR>
+" CloseDiffEditor
+" CloseGotItTooltip
+" EditorEscape
 
 nnoremap <SPACE> <Nop>
 let mapleader = " "
@@ -660,7 +666,7 @@ nmap gR <Action>(FindUsages)
 "nmap gR <Action>(FindUsagesMenuGroup)
 
 " idea specific
-nmap gg <Action>(SearchEverywhere)
+nmap ge <Action>(SearchEverywhere)
 nmap ga <Action>(GotoAction)
 nmap gl <Action>(GotoLine)
 nmap gf <Action>(GotoFile)

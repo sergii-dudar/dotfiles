@@ -30,6 +30,9 @@ if isMacOs; then
     #export PATH=$HOME/.ghcup/bin:$PATH
 
     export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
+
+    # dotnet
+    # export DOTNET_ROOT="$(dirname $(which dotnet))"
 else
 
     alias out="sudo pkill -KILL -u serhii"
