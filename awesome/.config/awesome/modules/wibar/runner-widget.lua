@@ -29,6 +29,7 @@ local kitty_icon = icons_dir .. "kitty.svg"
 local wezterm_icon = icons_dir .. "wezterm.png"
 local ghostty_icon = icons_dir .. "ghostty.png"
 local pipette_icon = icons_dir .. "pipette.png"
+local evince_icon = icons_dir .. "evince.png"
 -- local chrome_icon = icons_dir .. "google-chrome.svg"
 local brave_icon = icons_dir .. "brave.png"
 local intellij_icon = icons_dir .. "intellij.svg"
@@ -47,6 +48,7 @@ local intellij = util.to_imagebox_runner(intellij_icon, "intellij-idea-ultimate"
 local insomnia = util.to_imagebox_runner(insomnia_icon, "/opt/insomnia/insomnia %U")
 local torrent = util.to_imagebox_runner(torrent_icon, "env QT_SCALE_FACTOR=1.4 qbittorrent")
 local settings = util.to_imagebox_runner(settings_icon, vars.run.gnome_settings)
+local evince = util.to_imagebox_runner(evince_icon, "evince")
 
 util.add_text_info_pupup({
     target_widget = applications,
@@ -116,6 +118,11 @@ util.add_text_info_pupup({
     info_text = "qbittorrent",
     icon_path = torrent_icon,
 })
+util.add_text_info_pupup({
+    target_widget = evince,
+    info_text = "evince previwer",
+    icon_path = evince_icon,
+})
 
 return {
     left_all = util.decore_with_background_left(
@@ -130,7 +137,8 @@ return {
             util.add_bg_hover_to_widget(util.widget_margin(intellij, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(insomnia, 5, 5, 0, 0), runner_bg_hover),
             util.add_bg_hover_to_widget(util.widget_margin(pipette, 4, 4, 0, 0), runner_bg_hover),
-            util.add_bg_hover_to_widget(util.widget_margin(torrent, 4, 4, 0, 0), runner_bg_hover)
+            util.add_bg_hover_to_widget(util.widget_margin(torrent, 4, 4, 0, 0), runner_bg_hover),
+            util.add_bg_hover_to_widget(util.widget_margin(evince, 4, 4, 0, 0), runner_bg_hover)
         ),
         nil,
         8,
