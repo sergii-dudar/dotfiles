@@ -21,6 +21,10 @@ return {
                 --size = 25,
             },
             filetype = {
+                html = {
+                    'brave "$dir/$fileName" > /dev/null 2>&1',
+                    '|| "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" "$dir/$fileName" > /dev/null 2>&1',
+                },
                 java = {
                     --'echo "$dir , $fileNameWithoutExt"',
                     "$HOME/dotfiles/work/java/runner "

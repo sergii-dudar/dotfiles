@@ -20,6 +20,7 @@ if isMacOs; then
     alias run_borders="borders active_color=0xffa3be8c inactive_color=0xff494d64 width=5.0 &"
     alias brewu="brew update && brew upgrade"
     alias brewua="brew update && brew upgrade && yaziu"
+    alias brave="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
 else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
