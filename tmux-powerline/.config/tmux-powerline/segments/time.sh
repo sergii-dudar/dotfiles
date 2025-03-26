@@ -17,9 +17,9 @@ EORC
 run_segment() {
 	if [ -n "$TMUX_POWERLINE_SEG_TIME_TZ" ]; then
 		TZ="$TMUX_POWERLINE_SEG_TIME_TZ"
-		echo " "$(date +"$TMUX_POWERLINE_SEG_TIME_FORMAT")
+		echo " $(date +"$TMUX_POWERLINE_SEG_TIME_FORMAT")"
 	else
-		echo " "$(date +"$TMUX_POWERLINE_SEG_TIME_FORMAT")
+		echo " $(date +"$TMUX_POWERLINE_SEG_TIME_FORMAT")"
 	fi
 	return 0
 }
