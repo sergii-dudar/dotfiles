@@ -15,6 +15,6 @@ EORC
 }
 
 run_segment() {
-	echo "${TMUX_POWERLINE_SEG_TMUX_SESSION_INFO_FORMAT}"
+	echo " ${TMUX_POWERLINE_SEG_TMUX_SESSION_INFO_FORMAT}"
 	return 0
 }

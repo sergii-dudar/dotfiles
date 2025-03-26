@@ -33,4 +33,3 @@ Config { font = "JetBrainsMono Nerd Font Bold 12"
         , alignSep = "}{"
         , template = " <action=`rofi -show drun` button=1> <fc=#ed8274,#212733>  </fc></action>  |  %UnsafeStdinReader%  }{ %KY70%   <fc=#cfbafa></fc>  %disku%   <fc=#fad07b>󰗃</fc>  %subs%   <fc=#a6cc70></fc>   %cpu%   <fc=#6dcbfa>󰒋</fc>  %memory%   <fc=#a6cc70>󰥔 </fc> %date%  "
         }
-
