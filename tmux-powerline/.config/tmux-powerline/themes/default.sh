@@ -166,7 +166,7 @@ if [ -z "$TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS" ]; then
 		#"air 237 0"
 		#"weather 237 0"
 		#"rainbarf 0 ${TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR}"
-		"open_weather 237 0"
+		# "open_weather 237 0" # TODO: need to add update interval as in air module
 		"xkb_layout 236 0"
 		##"date_day 235 136"
 		"date 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
