@@ -133,6 +133,7 @@ fi
 # shellcheck disable=SC1143,SC2128
 if [ -z "$TMUX_POWERLINE_LEFT_STATUS_SEGMENTS" ]; then
 	TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
+		"tmux_title 236 0"
 		"tmux_session_info 237 0"
 		#"hostname 33 0"
 		##"kubernetes_context 102 234"
@@ -165,6 +166,7 @@ if [ -z "$TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS" ]; then
 		#"air 237 0"
 		#"weather 237 0"
 		#"rainbarf 0 ${TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR}"
+		"open_weather 237 0"
 		"xkb_layout 236 0"
 		##"date_day 235 136"
 		"date 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
