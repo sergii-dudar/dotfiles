@@ -32,7 +32,7 @@ vim.opt.incsearch = true
 vim.opt.swapfile = false
 vim.opt.number = true
 vim.wo.number = true
-vim.opt.relativenumber = false
+vim.opt.relativenumber = true
 vim.opt.numberwidth = 2 -- set width of line number column
 vim.opt.backup = false
 

@@ -69,7 +69,7 @@ vnoremap . :norm! .<CR>
 " ============================================= 🄱🄰🅂🄸🄲 🅅🄸🄼 🅂🄴🅃🅃🄸🄽🄶🅂🅂 ========================================"
 " https://github.com/JetBrains/ideavim/blob/master/doc/set-commands.md
 
-"set number relativenumber
+set number relativenumber
 set idearefactormode=keep
 
 set ideajoin
