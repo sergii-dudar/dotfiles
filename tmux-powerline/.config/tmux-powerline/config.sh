@@ -43,15 +43,6 @@
 # }
 
 # air.sh {
-
-    # Load environment variables from private.env
-    if [ -f "$HOME"/private.env ]; then
-        source "$HOME"/private.env
-    else
-        echo "Error: ~/private.env file not found!"
-        exit 1
-    fi
-
 	# The data provider to use. Currently only "openweather" is supported.
 	export TMUX_POWERLINE_SEG_AIR_DATA_PROVIDER="openweather"
 	# How often to update the weather in seconds.
@@ -62,8 +53,15 @@
 	# Latitude and Longitude:
 	TMUX_POWERLINE_SEG_AIR_LAT="49.2328"
 	TMUX_POWERLINE_SEG_AIR_LON="28.481"
-	# Your Open Weather API Key:
-	TMUX_POWERLINE_SEG_AIR_OPEN_WEATHER_API_KEY="$OPEN_WEATHER_API_KEY"
+
+    # Your Open Weather API Key:
+    # Load environment variables from private.env
+    if [ -f "$HOME"/private.env ]; then
+        source "$HOME"/private.env
+        TMUX_POWERLINE_SEG_AIR_OPEN_WEATHER_API_KEY="$OPEN_WEATHER_API_KEY"
+    else
+        TMUX_POWERLINE_SEG_AIR_OPEN_WEATHER_API_KEY=""
+    fi
 # }
 
 # battery.sh {
