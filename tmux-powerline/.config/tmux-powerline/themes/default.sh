@@ -15,15 +15,15 @@
 #fi
 
 if patched_font_in_use; then
-	TMUX_POWERLINE_SEPARATOR_LEFT_BOLD=""
-	TMUX_POWERLINE_SEPARATOR_LEFT_THIN=""
-	TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD=""
-	TMUX_POWERLINE_SEPARATOR_RIGHT_THIN=""
+    TMUX_POWERLINE_SEPARATOR_LEFT_BOLD=""
+    TMUX_POWERLINE_SEPARATOR_LEFT_THIN=""
+    TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD=""
+    TMUX_POWERLINE_SEPARATOR_RIGHT_THIN=""
 else
-	TMUX_POWERLINE_SEPARATOR_LEFT_BOLD=""
-	TMUX_POWERLINE_SEPARATOR_LEFT_THIN=""
-	TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD=""
-	TMUX_POWERLINE_SEPARATOR_RIGHT_THIN=""
+    TMUX_POWERLINE_SEPARATOR_LEFT_BOLD=""
+    TMUX_POWERLINE_SEPARATOR_LEFT_THIN=""
+    TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD=""
+    TMUX_POWERLINE_SEPARATOR_RIGHT_THIN=""
 fi
 
 TMUX_POWERLINE_SEG_DATE_FORMAT="%d-%m-%Y %a"
@@ -42,39 +42,39 @@ TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SEPARATOR=${TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SE
 
 # shellcheck disable=SC2128
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_CURRENT" ]; then
-	TMUX_POWERLINE_WINDOW_STATUS_CURRENT=(
-		#"#[$(format inverse) bg=yellow]"
-		"#[$(format inverse)]"
-		"$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-		" #I#F "
-		"$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
-		" #W "
-		#"#[$(format regular) fg=yellow]"
-		"#[$(format regular)]"
-		"$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-	)
+    TMUX_POWERLINE_WINDOW_STATUS_CURRENT=(
+        #"#[$(format inverse) bg=yellow]"
+        "#[$(format inverse)]"
+        "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
+        " #I#F "
+        "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
+        " #W "
+        #"#[$(format regular) fg=yellow]"
+        "#[$(format regular)]"
+        "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
+    )
 fi
 
 # shellcheck disable=SC2128
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_STYLE" ]; then
-	TMUX_POWERLINE_WINDOW_STATUS_STYLE=(
-		"$(format regular)"
-	)
+    TMUX_POWERLINE_WINDOW_STATUS_STYLE=(
+        "$(format regular)"
+    )
 fi
 
 # shellcheck disable=SC2128
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_FORMAT" ]; then
-	TMUX_POWERLINE_WINDOW_STATUS_FORMAT=(
-		"#[$(format inverse) bg=#6B6B6B]"
-    "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-    " #I#F "
-    #"#[$(format regular)]"
-    "#[$(format regular) fg=#6B6B6B]"
-    "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-    " #W "
-    "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
-    #"$TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD"
-	)
+    TMUX_POWERLINE_WINDOW_STATUS_FORMAT=(
+        "#[$(format inverse) bg=#6B6B6B]"
+        "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
+        " #I#F "
+        #"#[$(format regular)]"
+        "#[$(format regular) fg=#6B6B6B]"
+        "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
+        " #W "
+        "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
+        #"$TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD"
+    )
 fi
 
 
@@ -132,45 +132,45 @@ fi
 
 # shellcheck disable=SC1143,SC2128
 if [ -z "$TMUX_POWERLINE_LEFT_STATUS_SEGMENTS" ]; then
-	TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
-		"tmux_title 236 0"
-		"tmux_session_info 237 0"
-		#"hostname 33 0"
-		##"kubernetes_context 102 234"
-		"mode_indicator 236 0"
-		#"ifstat 30 255"
-		#"ifstat_sys 30 255"
-		#"lan_ip 24 255 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}"
-		#"vpn 24 255 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}"
-		#"wan_ip 24 255"
-		##"vcs_branch 29 88"
-		#"vcs_compare 60 255"
-		#"vcs_staged 64 255"
-		##"vcs_modified 66 88"
-		#"vcs_others 245 0"
-	)
+    TMUX_POWERLINE_LEFT_STATUS_SEGMENTS=(
+        "custom_tmux_title 236 0"
+        "tmux_session_info 237 0"
+        #"hostname 33 0"
+        ##"kubernetes_context 102 234"
+        "mode_indicator 236 0"
+        #"ifstat 30 255"
+        #"ifstat_sys 30 255"
+        #"lan_ip 24 255 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}"
+        #"vpn 24 255 ${TMUX_POWERLINE_SEPARATOR_RIGHT_THIN}"
+        #"wan_ip 24 255"
+        ##"vcs_branch 29 88"
+        #"vcs_compare 60 255"
+        #"vcs_staged 64 255"
+        ##"vcs_modified 66 88"
+        #"vcs_others 245 0"
+    )
 fi
 
 # shellcheck disable=SC1143,SC2128
 if [ -z "$TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS" ]; then
-	TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS=(
-		#"earthquake 3 0"
-		#"pwd 89 211"
-		#"macos_notification_count 29 255"
-		#"mailcount 9 255"
-		# "now_playing 234 37"
-		#"cpu 240 136"
-		#"load 237 167"
-		#"tmux_mem_cpu_load 234 136"
-		#"battery 137 127"
-		#"air 237 0"
-		#"weather 237 0"
-		#"rainbarf 0 ${TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR}"
-		# "open_weather 237 0" # TODO: need to add update interval as in air module
-		"xkb_layout 236 0"
-		##"date_day 235 136"
-		"date 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
-		"time 236 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
-		"utc_time 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
-	)
+    TMUX_POWERLINE_RIGHT_STATUS_SEGMENTS=(
+        #"earthquake 3 0"
+        #"pwd 89 211"
+        #"macos_notification_count 29 255"
+        #"mailcount 9 255"
+        # "now_playing 234 37"
+        #"cpu 240 136"
+        #"load 237 167"
+        #"tmux_mem_cpu_load 234 136"
+        #"air 237 0"
+        #"weather 237 0"
+        #"rainbarf 0 ${TMUX_POWERLINE_DEFAULT_FOREGROUND_COLOR}"
+        "xkb_layout 236 0"
+        "time 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
+        ##"date_day 235 136"
+        "date 236 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
+        "utc_time 237 0 ${TMUX_POWERLINE_SEPARATOR_LEFT_THIN}"
+        "battery 236 0"
+        "custom_open_weather 237 0"
+    )
 fi
