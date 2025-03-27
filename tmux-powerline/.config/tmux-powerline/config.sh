@@ -73,7 +73,11 @@ export TMUX_POWERLINE_SEG_BATTERY_NUM_HEARTS="5"
 
 # date.sh {
 # date(1) format for the date. If you don't, for some reason, like ISO 8601 format you might want to have "%D" or "%m/%d/%Y".
-export TMUX_POWERLINE_SEG_DATE_FORMAT="%F"
+
+export TMUX_POWERLINE_SEG_DATE_FORMAT="%a %b %d"
+# export TMUX_POWERLINE_SEG_DATE_FORMAT="%F"
+# export TMUX_POWERLINE_SEG_DATE_FORMAT="%d-%m-%Y %a"
+
 # }
 
 # date_week.sh {
@@ -312,7 +316,10 @@ export TMUX_POWERLINE_SEG_PWD_MAX_LEN="40"
 
 # time.sh {
 # date(1) format for the time. Americans might want to have "%I:%M %p".
+# export TMUX_POWERLINE_SEG_TIME_FORMAT="%I:%M %p"
+
 export TMUX_POWERLINE_SEG_TIME_FORMAT="%H:%M"
+
 # Change this to display a different timezone than the system default.
 # Use TZ Identifier like "America/Los_Angeles"
 # export TMUX_POWERLINE_SEG_TIME_TZ=""
