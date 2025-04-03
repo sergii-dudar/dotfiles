@@ -81,7 +81,9 @@ set smartcase
 set ideaput
 set which-key
 
-let g:WhichKey_ShowVimActions = "false"
+"let g:WhichKey_ShowVimActions = "false"
+let g:WhichKey_ShowVimActions = "true"
+let g:WhichKey_ProcessUnknownMappings = "false"
 
 " ============================================= 🄱🄰🅂🄴 🅅🄸🄼 🄼🄰🄿🄿🄸🄽🄶 ============================================="
 noremap <Esc> :nohlsearch \| action EditorEscape<CR>
@@ -635,6 +637,7 @@ map <leader>z <Action>(ToggleZenMode)
 "=========================================== 🅂🄴🄰🅁🄲🄷 / 🅁🄴🄿🄻🄰🄲🄴: <leader>s ====================================="
 
 nmap <leader>sg <Action>(FindInPath)
+nmap <leader>/ <Action>(FindInPath)
 nmap <leader>ss <Action>(Find)
 
 "=== search and replace
@@ -645,12 +648,15 @@ nmap <leader>sR <Action>(ReplaceInPath)
 
 "=== (Find)
 nmap <leader>ff <Action>(GotoFile)
+"nmap <leader><space> <Action>(GotoFile)
+nmap <leader>. <Action>(GotoFile)
 
 "nmap <leader>fe <Action>(SearchEverywhere)
 "nmap <leader>fa <Action>(TextSearchAction)
 
 "=== Find Recent
 nmap <leader>fr <Action>(RecentFiles)
+nmap <leader>, <Action>(RecentFiles)
 nmap <leader>fR <Action>(RecentChangedFiles)
 nmap <leader>fL <Action>(RecentLocations)
 
