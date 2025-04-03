@@ -22,7 +22,6 @@ snapshot:
 
 # version to match haskell-language-server-9.6.6 by nvim
 compiler: ghc-9.6.6
-
 # User packages to be built.
 # Various formats can be used as shown in the example below.
 #
@@ -32,10 +31,6 @@ compiler: ghc-9.6.6
 #   subdirs:
 #   - auto-update
 #   - wai
-packages:
-    - xmonad
-    - xmonad-contrib
-    - .
 # Dependency packages to be pulled from upstream that are not in the snapshot.
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
