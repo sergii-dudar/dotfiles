@@ -7,6 +7,7 @@ appimagelauncher
 autotiling
 baobab
 base
+thunar
 base-devel
 bashdb
 bashtop

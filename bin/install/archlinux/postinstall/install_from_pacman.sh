@@ -10,7 +10,7 @@ sudo pacman -S nvim ranger rofi starship
 sudo pacman -S tmux zellij flameshot
 sudo pacman -S man-db ueberzugpp
 sudo pacman -S wget k9s vlc qbittorrent
-sudo pacman -S kolourpaint pinta evince
+sudo pacman -S kolourpaint pinta evince thunar
 sudo pacman -S fuse # to run app images
 sudo pacman -S ffmpegthumbnailer ffmpeg
 sudo pacman -S usbutils eog p7zip zip, gum # 7-zip
