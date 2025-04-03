@@ -7,7 +7,6 @@ appimagelauncher
 autotiling
 baobab
 base
-thunar
 base-devel
 bashdb
 bashtop
@@ -21,6 +20,7 @@ conky
 delve
 dkms
 dmenu
+dotnet-sdk
 dracula-gtk-theme
 dracula-icons-theme
 dunst
@@ -168,6 +168,7 @@ tecla
 telegram-desktop
 terminus-font
 texlive-binextra
+thunar
 tldr
 tmux
 totem

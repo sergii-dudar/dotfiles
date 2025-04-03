@@ -10,9 +10,12 @@ i3-back-bin
 i3lock-color
 insomnia
 networkmanager-dmenu-git
+pinta
 qtile-extras
 sesh-bin
 snapd
 sublime-text-4
+ttf-joypixels
 turbo-base64
+xautolock
 yay
