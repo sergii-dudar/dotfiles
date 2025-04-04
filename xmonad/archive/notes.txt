@@ -1,0 +1,19 @@
+stack install xmonad
+
+# xmonad custom build:
+
+----------------------------------
+ghcup list:
+- hls 2.9.0.1
+- stack 3.1.1
+- hls 2.9.0.1
+- ghcup install ghc 9.6.6 --set
+- stack setup 9.6.6
+- cd ~/.config/xmonad/ && stack init && stack clean && stack build
+
+# ghc 9.6.6 to match haskell-language-server-9.6.6 by nvim h tools, as it should match to lsp work properly
+
+----------------------------------
+# git submodules
+git submodule add <repository-url> <folder-path>
+git submodule update --init --recursive

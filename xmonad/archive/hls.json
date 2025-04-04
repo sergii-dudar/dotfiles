@@ -1,0 +1,10 @@
+{
+    "direct-component": {
+        ".": {
+            "default-extensions": [],
+            "source-directories": [
+                "lib"
+            ]
+        }
+    }
+}
