@@ -18,3 +18,4 @@ executable xmonad-config
                      , Util.Env.Environment
                      , Color.DoomOne
                      , Module.ModuleTest
+                     , Module.Variable

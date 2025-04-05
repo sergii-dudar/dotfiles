@@ -5,7 +5,7 @@ column-limit: 120
 function-arrows: leading #trailing
 comma-style: leading
 import-export-style: leading
-import-grouping: legacy
+import-grouping: by-qualified
 indent-wheres: true
 record-brace-space: true
 newlines-between-decls: 1
