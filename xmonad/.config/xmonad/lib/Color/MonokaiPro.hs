@@ -1,4 +1,4 @@
-module Colors.MonokaiPro where
+module Color.MonokaiPro where
 
 import XMonad
 

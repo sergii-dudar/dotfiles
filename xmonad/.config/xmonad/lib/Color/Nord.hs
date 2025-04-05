@@ -1,4 +1,4 @@
-module Colors.Nord where
+module Color.Nord where
 
 import XMonad
 

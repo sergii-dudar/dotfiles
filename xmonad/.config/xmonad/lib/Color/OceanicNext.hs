@@ -1,4 +1,4 @@
-module Colors.OceanicNext where
+module Color.OceanicNext where
 
 import XMonad
 

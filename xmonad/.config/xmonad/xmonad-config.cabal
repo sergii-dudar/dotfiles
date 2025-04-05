@@ -11,3 +11,10 @@ executable xmonad-config
                      , xmonad
                      , xmonad-contrib
   default-language:    Haskell2010
+
+-- List of all custom libraries that need to be loaded on start by hls
+ other-modules:        Util.Common
+                     , Util.CommonTwo
+                     , Util.Env.Environment
+                     , Color.DoomOne
+                     , Module.ModuleTest

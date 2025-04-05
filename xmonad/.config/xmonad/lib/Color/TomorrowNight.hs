@@ -1,4 +1,4 @@
-module Colors.TomorrowNight where
+module Color.TomorrowNight where
 
 import XMonad
 

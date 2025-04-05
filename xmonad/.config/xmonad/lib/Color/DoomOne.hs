@@ -1,4 +1,4 @@
-module Colors.DoomOne where
+module Color.DoomOne where
 
 import XMonad
 

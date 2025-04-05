@@ -19,7 +19,7 @@ return {
             --opts.formatters_by_ft.java = { "spotless_custom" }
 
             -- haskell
-            opts.formatters_by_ft.haskell = { "fourmolu" }
+            -- opts.formatters_by_ft.haskell = { "fourmolu" }
 
             -- opts.formatters = {
             --     black = {

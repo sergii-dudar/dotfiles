@@ -1,4 +1,4 @@
-module Colors.SolarizedDark where
+module Color.SolarizedDark where
 
 import XMonad
 

@@ -1,8 +1,9 @@
 import XMonad
 
-import Colors.DoomOne
-import Utils.Common
-import Utils.CommonTwo
+import Color.DoomOne
+import Util.Common
+import Util.CommonTwo
+import Util.Env.Environment
 
 main :: IO ()
 main = do

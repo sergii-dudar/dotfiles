@@ -1,4 +1,4 @@
-module Colors.Palenight where
+module Color.Palenight where
 
 import XMonad
 

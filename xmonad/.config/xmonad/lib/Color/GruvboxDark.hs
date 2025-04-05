@@ -1,4 +1,4 @@
-module Colors.GruvboxDark where
+module Color.GruvboxDark where
 
 import XMonad
 

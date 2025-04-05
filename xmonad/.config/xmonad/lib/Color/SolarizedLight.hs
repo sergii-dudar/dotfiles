@@ -1,4 +1,4 @@
-module Colors.SolarizedLight where
+module Color.SolarizedLight where
 
 import XMonad
 
@@ -20,9 +20,9 @@ color10 = "#cb4b16"
 color11 = "#586e75"
 color12 = "#657b83"
 color13 = "#839496"
-color14 = "#fdf6e3"  -- Was color16 but too light for use in panel.
+color14 = "#fdf6e3" -- Was color16 but too light for use in panel.
 color15 = "#93a1a1"
-color16 = "#6c71c4"  -- Was color14 but needed a dark color in this spot.
+color16 = "#6c71c4" -- Was color14 but needed a dark color in this spot.
 
 colorTrayer :: String
 colorTrayer = "--tint 0xfdf6e3"
