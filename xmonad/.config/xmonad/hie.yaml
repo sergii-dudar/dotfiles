@@ -1,4 +1,7 @@
 cradle:
     stack:
-#        - path: "."
-#          component: "xmonad-config"
+        - path: "./xmonad.hs"
+          component: "xmonad-config:exe:xmonad-config"
+
+        - path: "./lib"
+          component: "xmonad-config:exe:xmonad-config"
