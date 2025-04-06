@@ -4,25 +4,106 @@ import Util.Common
 import Util.CommonTwo
 import Util.Env.Environment
 
-import XMonad
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Layout.ThreeColumns
-import XMonad.Util.EZConfig
+-- Base
 
-import XMonad.Layout.Gaps
+import System.Directory
+import System.Exit (exitSuccess)
+import System.IO (hClose, hPutStr, hPutStrLn)
+import XMonad
+import qualified XMonad.StackSet as W
+
+-- Actions
+import XMonad.Actions.CopyWindow (kill1)
+import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
+import XMonad.Actions.GridSelect
+import XMonad.Actions.MouseResize
+import XMonad.Actions.Promote
+import XMonad.Actions.RotSlaves (rotAllDown, rotSlavesDown)
+import qualified XMonad.Actions.Search as S
+import XMonad.Actions.WindowGo (runOrRaise)
+import XMonad.Actions.WithAll (killAll, sinkAll)
+
+-- Data
+import Data.Char (isSpace, toUpper)
+import qualified Data.Map as M
+import Data.Maybe (fromJust, isJust)
+import Data.Monoid
+import Data.Tree
+
+-- Hooks
+import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobarColor, xmobarPP)
+import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
+import XMonad.Hooks.InsertPosition
+import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
+import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, isFullscreen)
+import XMonad.Hooks.ServerMode
+import XMonad.Hooks.SetWMName
+import XMonad.Hooks.StatusBar
+import XMonad.Hooks.StatusBar.PP
+import XMonad.Hooks.WindowSwallowing
+import XMonad.Hooks.WorkspaceHistory
+
+-- Layouts
+import XMonad.Layout.Accordion
+import XMonad.Layout.GridVariants (Grid (Grid))
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.SimplestFloat
+import XMonad.Layout.Spiral
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ThreeColumns
+
+-- Layouts modifiers
+import XMonad.Layout.LayoutModifier
+import XMonad.Layout.LimitWindows (decreaseLimit, increaseLimit, limitWindows)
+import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??))
+import qualified XMonad.Layout.MultiToggle as MT (Toggle (..))
+import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR, NBFULL, NOBORDERS))
+import XMonad.Layout.NoBorders (smartBorders)
+import XMonad.Layout.Renamed
+import XMonad.Layout.ShowWName
+import XMonad.Layout.Simplest
 import XMonad.Layout.Spacing
+import XMonad.Layout.SubLayouts
+import qualified XMonad.Layout.ToggleLayouts as T (ToggleLayout (Toggle), toggleLayouts)
+import XMonad.Layout.WindowArranger (WindowArrangerMsg (..), windowArrange)
+import XMonad.Layout.WindowNavigation
+
+-- Utilities
+
+import XMonad (XConfig (manageHook))
+import XMonad.Layout.ResizableTile (ResizableTall (ResizableTall))
+import XMonad.Util.Dmenu
+import XMonad.Util.EZConfig (additionalKeysP, mkNamedKeymap, removeKeysP)
+import XMonad.Util.Hacks
+    ( javaHack
+    , trayAbovePanelEventHook
+    , trayPaddingEventHook
+    , trayPaddingXmobarEventHook
+    , trayerAboveXmobarEventHook
+    , trayerPaddingXmobarEventHook
+    , windowedFullscreenFixEventHook
+    )
+import XMonad.Util.NamedActions
+import XMonad.Util.NamedScratchpad
+import XMonad.Util.Run (runProcessWithInput, safeSpawn, spawnPipe)
+import XMonad.Util.SpawnOnce
 
 unbindKeys :: [String]
 unbindKeys =
     [ "M-S-<Return>"
+    , "M-S-q"
+    , "M-q"
     , "M-p"
     , "M-S-p"
+    , "M-<Space>"
+    -- , "M-S-<Space>"
     ]
 
 bindKeys :: [(String, X ())]
 bindKeys =
     [ ("M-S-r", spawn "xmonad --recompile &&  xmonad --restart")
     , ("M-<Return>", spawn $ V.terminal V.run)
+    , ("M-<Tab>", sendMessage NextLayout)
     {- , ("M-<Escape>", io exitSuccess)
         , ("M-<Return>", spawn myTerminal)
         , ("M-d", spawn "rofi -show drun")
@@ -65,6 +146,7 @@ myConfiguration =
         { modMask = V.modKey V.keys
         , terminal = V.terminal V.run
         , borderWidth = 4
+        , manageHook = insertPosition End Newer <+> manageHook def
         , -- , layoutHook = spacingWithEdge 10 myLayout
           --          layoutHook = myLayout
           layoutHook =
