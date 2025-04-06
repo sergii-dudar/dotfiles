@@ -8,7 +8,7 @@ import-export-style: leading
 import-grouping: by-qualified
 indent-wheres: true
 record-brace-space: true
-newlines-between-decls: 1
+# newlines-between-decls: 1
 haddock-style: single-line
 haddock-style-module: null
 let-style: inline
