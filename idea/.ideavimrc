@@ -112,6 +112,17 @@ noremap <C-d> <C-d>zz
 noremap n nzz
 noremap N Nzz
 
+" Function to create a visual mode substitution with prompt on every replace
+" help to replace intellij - replace qualified name with import
+xmap <leader>rr "hy:%s/<C-r>h//gc<Left><Left><Left>
+"vim.api.nvim_set_keymap(
+"    "v",
+"    "<leader>rr",
+"    '"hy:%s/<C-r>h//gc<Left><Left><Left>',
+"    { noremap = true, silent = false, desc = "Replace with prompt" }
+")
+
+
 "================================================== 🅃🄴🅂🅃🄸🄽🄶 🅂🄿🄰🄲🄴 ============================================="
 
 "(Copy to system clipboard)"
@@ -502,7 +513,8 @@ nmap <leader>cg <Action>(Generate)
 nmap <leader>cm <Action>(CodeMenu)
 nmap <leader>cR <Action>(RefactoringMenu)
 
-""nmap <leader>cs <Action>(SurroundWith)
+nmap <leader>css <Action>(SurroundWith)
+nmap <leader>csu <Action>(Unwrap)
 "nmap <leader>gic <Action>(InspectCode)
 
 "=== Copy
