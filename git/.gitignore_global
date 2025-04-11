@@ -2,7 +2,6 @@ logback.xml
 DevAppRunner.java
 TestDevAppRunner.java
 dev.application.properties.evn
-application.yaml
 application-work.yaml
 **/local/dev/**
 .gitignore

@@ -14,4 +14,25 @@ return {
             require("toggleterm").setup()
         end,
     },
+    {
+        "folke/flash.nvim",
+        event = "VeryLazy",
+        opts = {
+            modes = {
+                char = {
+                    jump_labels = true,
+                    -- jump = {
+                    --     autojump = true,
+                    -- },
+                },
+            },
+            search = {
+                enabled = true,
+            },
+            -- jump = {
+            --     -- automatically jump when there is only one match
+            --     autojump = true,
+            -- },
+        },
+    },
 }

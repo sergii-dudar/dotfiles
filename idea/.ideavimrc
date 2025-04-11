@@ -246,31 +246,30 @@ xmap <leader>n <Plug>NextWholeOccurrence
 
 "=================================================== 🄵🄻🄰🅂🄷 🄿🄻🅄🄶🄸🄽 =============================================="
 " https://github.com/yelog/vim-flash
-map s <Action>(flash.search)
+"map s <Action>(flash.search)
 
 "======================================================================================================================"
 "=============================================== 🄴🄰🅂🅈🄼🄾🅃🄸🄾🄽 🄿🄻🅄🄶🄸🄽 ========================================="
-"iunmap s
-"iunmap f
-"iunmap F
-"iunmap t
-"iunmap T
-iunmap <leader><leader>s
-iunmap <leader><leader>f
-iunmap <leader><leader>F
-iunmap <leader><leader>t
-iunmap <leader><leader>T
+iunmap s
+iunmap f
+iunmap F
+iunmap t
+iunmap T
+"iunmap <leader><leader>s
+"iunmap <leader><leader>f
+"iunmap <leader><leader>F
+"iunmap <leader><leader>t
+"iunmap <leader><leader>T
 
 "map <leader><leader>s <Plug>(easymotion-s)
 "map <leader><leader>f <Plug>(easymotion-f)
 "map s <Plug>(easymotion-s)
-map <leader>s <Plug>(easymotion-s)
 
-map <leader>f <Plug>(easymotion-f)
-map <leader>F <Plug>(easymotion-F)
-
-map <leader>t <Plug>(easymotion-t)
-map <leader>T <Plug>(easymotion-T)
+nmap s <Plug>(easymotion-s)
+nmap f <Plug>(easymotion-f)
+nmap F <Plug>(easymotion-F)
+nmap t <Plug>(easymotion-t)
+nmap T <Plug>(easymotion-T)
 
 " https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
 " https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
