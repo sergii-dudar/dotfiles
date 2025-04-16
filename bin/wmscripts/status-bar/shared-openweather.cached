@@ -29,7 +29,7 @@ function load_openweather_env() {
     . "$HOME"/dotfiles/bin/wmscripts/status-bar/shared-openweather
 
     mkdir -p "$CACHE_DIR"
-    weather_file_envs_content="WEATHER_ICON=$weather_icon\nTEMPERATURE=$temperature\nDEFAULT_ICON=$(__get_emoji $weather_icon)"
+    weather_file_envs_content="WEATHER_ICON=$weather_icon\nTEMPERATURE=$temperature\nDEFAULT_ICON=$(get_emoji $weather_icon)"
     echo -e "$weather_file_envs_content" > "${CACHE_FILE}"
     __read_tmp_file
 
