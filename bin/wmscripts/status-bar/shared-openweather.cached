@@ -2,51 +2,61 @@
 
 # How often to update the weather in seconds.
 OPEN_WEATHER_UPDATE_PERIOD="1800" # once 30 min
-CACHE_FILE="$HOME/dotfiles/temp/cache.openweather.txt"
+CACHE_DIR="$HOME/dotfiles/temp"
+CACHE_FILE="$CACHE_DIR/cache.openweather.envs"
+OS_TYPE=$(uname)
 
 function get_weather() {
-    tmp_file="$HOME/dotfiles/temp/cache.openweather.txt"
-    local weather_text
-    weather_text=$(__openweather)
-
-    if [ -n "$weather_text" ]; then
-        echo "$weather_text"
-    fi
+    __load_openweather_env
+    echo "$(__get_emoji $WEATHER_ICON)$TEMPERATURE"°C
 }
 
-function __openweather() {
-    if [ -f "$tmp_file" ]; then
-        if shell_is_osx || shell_is_bsd; then
-            last_update=$(stat -f "%m" "${tmp_file}")
-        elif shell_is_linux; then
-            last_update=$(stat -c "%Y" "${tmp_file}")
+function __load_openweather_env() {
+    if [ -f "$CACHE_FILE" ]; then
+        if __is_mac_os; then
+            last_update=$(stat -f "%m" "${CACHE_FILE}")
+        else
+            last_update=$(stat -c "%Y" "${CACHE_FILE}")
         fi
         time_now=$(date +%s)
-
-        up_to_date=$(echo "(${time_now}-${last_update}) < ${TMUX_POWERLINE_SEG_OPEN_WEATHER_UPDATE_PERIOD}" | bc)
+        up_to_date=$(echo "(${time_now}-${last_update}) < ${OPEN_WEATHER_UPDATE_PERIOD}" | bc)
         if [ "$up_to_date" -eq 1 ]; then
             __read_tmp_file
+            return
         fi
     fi
 
     . "$HOME"/dotfiles/bin/wmscripts/status-bar/sb-weather
     # weather_icon=02d
     # temperature=-2
+    
+    mkdir -p "$CACHE_DIR"
+    weather_file_envs_content="WEATHER_ICON=$weather_icon\nTEMPERATURE=$temperature\nDEFAULT_ICON=$(__get_emoji $weather_icon)"
+    echo -e "$weather_file_envs_content" > "${CACHE_FILE}"
+    __read_tmp_file
 
-    weather_test_result="$(__get_emoji $weather_icon)$temperature"°C
-    # echo "write info to temp file"
-    echo "$weather_test_result" | tee "${tmp_file}"
+    # weather_test_result="$(__get_emoji $weather_icon)$temperature"°C
+    # echo "$weather_test_result" | tee "${CACHE_FILE}"
 }
 
-__read_tmp_file() {
-    if [ ! -f "$tmp_file" ]; then
+function __read_tmp_file() {
+    if [ ! -f "$CACHE_FILE" ]; then
         return
     fi
-    cat "${tmp_file}"
-    exit
+    . "$CACHE_FILE"
 }
 
-__get_emoji() {
+function __is_mac_os() {
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+        # echo "current is MacOs..."
+        return 0  # true
+    else
+        # echo "current is Linux..."
+        return 1  # false
+    fi
+}
+
+function __get_emoji() {
     case $1 in
         01d) icon=" " ;; # Clear sky (day)
         01n) icon="󰖔 " ;; # Clear sky (night)
@@ -72,4 +82,4 @@ __get_emoji() {
     echo "$icon"
 }
 
-# run_segment
+# get_weather

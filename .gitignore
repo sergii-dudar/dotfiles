@@ -23,6 +23,7 @@ ranger/.config/ranger/plugins
 ranger/.config/ranger/colorschemes
 alacritty/.config/alacritty/themes
 nvim/.config/nvim.bak/plugin
+temp
 
 # Generated classes
 **/main/generated/
