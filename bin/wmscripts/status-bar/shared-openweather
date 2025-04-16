@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Load environment variables from private.env
+if [ -f "$HOME"/private.env ]; then
+    source "$HOME"/private.env
+else
+    echo "Error: ~/private.env file not found!"
+    exit 1
+fi
+
+# CITY="Kyiv"
+CITY="Vinnytsia"
+UNITS="metric" # Use "imperial" for Fahrenheit
+LANG="en"
+
+# Fetch weather data
+response=$(curl -s "http://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${OPEN_WEATHER_API_KEY}&units=${UNITS}&lang=${LANG}")
+
+# echo "apikey: $OPEN_WEATHER_API_KEY"
+# echo "$response"
+
+# Extract temperature and weather condition code
+temperature=$(echo "$response" | jq '.main.temp' | xargs printf "%.0f")
+weather_code=$(echo "$response" | jq '.weather[0].id')
+weather_icon=$(echo "$response" | jq -r ".weather[0].icon")
+weather_title=$(echo "$response" | jq -r '.weather[0].main')
+
+units_color="#6272a4"

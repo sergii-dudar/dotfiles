@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 . "$HOME"/dotfiles/bin/dwm/colorscheme
-. "$HOME"/dotfiles/bin/wmscripts/status-bar/sb-weather
+. "$HOME"/dotfiles/bin/wmscripts/status-bar/shared-openweather.cached
 
 case "$BLOCK_BUTTON" in
     6) setsid --fork ghostty -e nvim "$0" ;;
@@ -10,4 +10,9 @@ esac
 
 # echo "^c#6272a4^$weather_title ^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
 #echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c#6272a4^°C$SPLIT"
-echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT_LEFT"
+# echo "^c$icon_color^$icon ^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT_LEFT"
+
+icon=$(get_emoji "$WEATHER_ICON")
+icon_color=$(get_emoji_color "$WEATHER_ICON")
+temperature=$TEMPERATURE
+echo "^c$icon_color^$icon^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT_LEFT"
