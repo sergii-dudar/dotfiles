@@ -56,11 +56,11 @@ return {
             type = {
                 enabled = false,
                 width = 10, -- width of the column
-                required_width = 75, -- min width of window required to show this column
+                required_width = 100, -- min width of window required to show this column
             },
             last_modified = {
-                enabled = false,
-                required_width = 75,
+                enabled = true,
+                required_width = 100,
             },
             file_size = {
                 enabled = false,

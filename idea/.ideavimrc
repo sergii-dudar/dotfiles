@@ -101,8 +101,8 @@ map <C-l> <C-w>l
 
 nnoremap R @q " R to execute q macro
 
-noremap J 6jzz
-noremap K 6kzz
+noremap J 8jzz
+noremap K 8kzz
 
 "vertically navigation
 noremap <C-u> <C-u>zz

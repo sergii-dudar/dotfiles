@@ -36,8 +36,14 @@ vim.keymap.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>wa<cr><esc>", { desc = "Sa
 -- Exit Vim's terminal mode
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
-vim.keymap.set({ "n", "x" }, "K", "6kzz", { noremap = true, silent = true }) -- Mapping K to 6kzz
-vim.keymap.set({ "n", "x" }, "J", "6jzz", { noremap = true, silent = true }) -- Mapping J to 6jzz
+vim.keymap.set({ "n", "x" }, "K", "8kzz", { noremap = true, silent = true }) -- Mapping K to 6kzz
+vim.keymap.set({ "n", "x" }, "J", "8jzz", { noremap = true, silent = true }) -- Mapping J to 6jzz
+-- vim.keymap.set({ "n", "x" }, "H", "12h", { noremap = true, silent = true })
+-- vim.keymap.set({ "n", "x" }, "L", "12l", { noremap = true, silent = true })
+
+-- map("n", "<M-S-h>", "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
+-- map("n", "<M-S-l>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
+
 vim.api.nvim_set_keymap("n", "<leader>J", ":join<CR>", { noremap = true, silent = true, desc = "Join with next line" })
 --vim.api.nvim_set_keymap('n', '<leader>J', ':<C-u>join!<CR>', { noremap = true, silent = true })
 --vim.api.nvim_set_keymap('n', '<Leader>J', 'J:s/\\s\\+//<CR>', { noremap = true, silent = true })
