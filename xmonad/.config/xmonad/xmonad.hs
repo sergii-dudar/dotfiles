@@ -148,16 +148,35 @@ gapsConf s w = spacingRaw False (Border s s s s) True (Border w w w w) True
 gapsDef :: l a -> ModifiedLayout Spacing l a
 gapsDef = gapsConf 4 6
 
+layoutConfig =
+    def
+        { -- fontName = V.font V.fontConf
+          -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
+          Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
+        , -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
+          Tabbed.activeColor = color15
+        , Tabbed.inactiveColor = color08
+        , Tabbed.activeBorderColor = color15
+        , Tabbed.inactiveBorderColor = colorBack
+        , Tabbed.activeTextColor = colorBack
+        , Tabbed.inactiveTextColor = color08
+        }
+
 -- myLayout :: Choose Tall (Choose (Mirror Tall) Full) a
 -- myLayout = tiled ||| Full
 myLayout =
     -- gapsDef tiled
     -- \||| gapsDef emptyBSP
-    -- \||| gapsDef Full
+    -- gapsDef Full
     -- \||| noBorders (tabbed shrinkText def)
     -- noBorders (tabbed shrinkText def)
-    (tabbed shrinkText layoutConfig)
+    -- Full
+    noBorders (tabbed shrinkText layoutConfig)
     where
+        -- \||| noBorders (tabbed shrinkText def)
+        -- noBorders (tabbed shrinkText def)
+        -- tabbed shrinkText layoutConfig
+
         -- myLayout = sceenGaps 10 $ Full
         -- myLayout = windowGaps 4 6 $ Full
 
@@ -183,20 +202,6 @@ myLayout =
 -- tabs = tabbed shrinkText def
 
 -- tabs = simpleTabbed
-
-layoutConfig =
-    def
-        { -- fontName = V.font V.fontConf
-          -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
-          Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
-        , -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
-          Tabbed.activeColor = color15
-        , Tabbed.inactiveColor = color08
-        , Tabbed.activeBorderColor = color15
-        , Tabbed.inactiveBorderColor = colorBack
-        , Tabbed.activeTextColor = colorBack
-        , Tabbed.inactiveTextColor = color08
-        }
 
 -- I cannot add spacing to this layout because it will
 -- add spacing between window and tabs which looks bad.
