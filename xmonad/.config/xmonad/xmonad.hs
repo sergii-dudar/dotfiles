@@ -45,7 +45,9 @@ import XMonad.Hooks.WorkspaceHistory
 
 -- Layouts
 import XMonad.Layout.Accordion
+import XMonad.Layout.Gaps
 import XMonad.Layout.GridVariants (Grid (Grid))
+import XMonad.Layout.NoBorders (noBorders)
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.SimplestFloat
 import XMonad.Layout.Spiral
@@ -71,7 +73,9 @@ import XMonad.Layout.WindowNavigation
 -- Utilities
 
 import XMonad (XConfig (manageHook))
+import XMonad.Layout.BinarySpacePartition (emptyBSP)
 import XMonad.Layout.ResizableTile (ResizableTall (ResizableTall))
+import qualified XMonad.Layout.Tabbed as Tabbed
 import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
@@ -132,13 +136,70 @@ bindKeys =
     -- Apps
     ]
 
-myLayout :: Choose Tall (Choose (Mirror Tall) Full) a
-myLayout = tiled ||| Mirror tiled ||| Full
+-- Makes setting the spacingRaw simpler to write. The spacingRaw module adds a configurable amount of space around windows.
+-- mySpacing :: Integer -> Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
+-- mySpacing i j = spacingRaw False (Border i i i i) True (Border j j j j) True
+
+-- Below is a variation of the above except no borders are applied
+-- if fewer than two windows. So a single window has no gaps.
+gapsConf :: Integer -> Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
+gapsConf s w = spacingRaw False (Border s s s s) True (Border w w w w) True
+
+gapsDef :: l a -> ModifiedLayout Spacing l a
+gapsDef = gapsConf 4 6
+
+-- myLayout :: Choose Tall (Choose (Mirror Tall) Full) a
+-- myLayout = tiled ||| Full
+myLayout =
+    -- gapsDef tiled
+    -- \||| gapsDef emptyBSP
+    -- \||| gapsDef Full
+    -- \||| noBorders (tabbed shrinkText def)
+    -- noBorders (tabbed shrinkText def)
+    (tabbed shrinkText layoutConfig)
     where
+        -- myLayout = sceenGaps 10 $ Full
+        -- myLayout = windowGaps 4 6 $ Full
+
+        -- myLayout = tall ||| Full
+
+        -- \||| Full
+
         tiled = Tall nmaster delta ratio
         nmaster = 1 -- Default number of windows in the master pane
         ratio = 1 / 2 -- Default proportion of screen occupied by master pane
         delta = 3 / 100 -- Percent of screen to increment by when resizing panes
+
+-- tall =
+--     renamed [Replace "tall"] $
+--         limitWindows 5 $
+--             smartBorders $
+--                 windowNavigation $
+--                     addTabs shrinkText layoutConfig $
+--                         subLayout [] (smartBorders Simplest) $
+--                             mySpacing 8 8 $
+--                                 ResizableTall 1 (3 / 100) (1 / 2) []
+
+-- tabs = tabbed shrinkText def
+
+-- tabs = simpleTabbed
+
+layoutConfig =
+    def
+        { -- fontName = V.font V.fontConf
+          -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
+          Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
+        , -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
+          Tabbed.activeColor = color15
+        , Tabbed.inactiveColor = color08
+        , Tabbed.activeBorderColor = color15
+        , Tabbed.inactiveBorderColor = colorBack
+        , Tabbed.activeTextColor = colorBack
+        , Tabbed.inactiveTextColor = color08
+        }
+
+-- I cannot add spacing to this layout because it will
+-- add spacing between window and tabs which looks bad.
 
 -- myConfiguration :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
 myConfiguration =
@@ -150,8 +211,8 @@ myConfiguration =
         , -- , layoutHook = spacingWithEdge 10 myLayout
           --          layoutHook = myLayout
           layoutHook =
-            spacingRaw True (Border 4 4 4 4) True (Border 6 6 6 6) True $
-                myLayout
+            -- spacingRaw True (Border 4 4 4 4) True (Border 6 6 6 6) True $
+            myLayout
         }
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys

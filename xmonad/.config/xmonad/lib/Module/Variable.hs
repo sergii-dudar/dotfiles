@@ -1,6 +1,7 @@
 module Module.Variable where
 
-import XMonad hiding (terminal)
+import XMonad hiding (font, terminal)
+import XMonad.Layout.StackTile (StackTile)
 
 data Keys = Keys
     { modKey :: KeyMask
@@ -9,6 +10,11 @@ data Keys = Keys
 
 newtype Run = Run
     { terminal :: String
+    }
+
+data FontConf = FontConf
+    { font :: String
+    , fontsize :: Integer
     }
 
 keys :: Keys
@@ -22,4 +28,11 @@ run :: Run
 run =
     Run
         { terminal = "ghostty"
+        }
+
+fontConf :: FontConf
+fontConf =
+    FontConf
+        { font = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold"
+        , fontsize = 16
         }
