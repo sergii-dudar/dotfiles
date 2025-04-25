@@ -60,12 +60,26 @@ layoutsDeltaVar = 3 / 100 -- Percent of screen to increment by when resizing pan
 -- ############# Main Layout ############
 
 layoutsTall =
-    gapsDef $
-        Tall 1 layoutsDeltaVar layoutsRatioVar
-layoutsFull = gapsDef Full
-layoutsTab = noBorders (tabbed shrinkText layoutsTabConfig)
+    renamed [Replace "tall"] $
+        gapsDef $
+            Tall 1 layoutsDeltaVar layoutsRatioVar
+
+layoutsFull =
+    renamed [Replace "monocle"] $
+        gapsDef Full
+
+layoutsTab =
+    renamed [Replace "tabs"] $
+        noBorders (tabbed shrinkText layoutsTabConfig)
 
 -- ############# Stack Layouts (second vertical screen) ############
 
-layoutsStack = gapsDef $ ResizableTall 0 layoutsDeltaVar layoutsRatioVar []
-layoutsStackMaster = gapsDef $ StackTile 1 layoutsDeltaVar layoutsRatioVar
+layoutsStack =
+    renamed [Replace "stack"] $
+        gapsDef $
+            ResizableTall 0 layoutsDeltaVar layoutsRatioVar []
+
+layoutsStackMaster =
+    renamed [Replace "stack"] $
+        gapsDef $
+            StackTile 1 layoutsDeltaVar layoutsRatioVar

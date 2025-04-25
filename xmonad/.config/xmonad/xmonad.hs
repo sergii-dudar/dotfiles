@@ -33,7 +33,7 @@ import Data.Monoid
 import Data.Tree
 
 -- Hooks
-import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobarColor, xmobarPP)
+import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobar, xmobarColor, xmobarPP)
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
@@ -47,8 +47,9 @@ import XMonad.Hooks.WorkspaceHistory
 
 -- Utilities
 import XMonad (XConfig (manageHook))
+import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Util.Dmenu
-import XMonad.Util.EZConfig (additionalKeysP, mkNamedKeymap, removeKeysP)
+import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
     ( javaHack
     , trayAbovePanelEventHook
@@ -65,37 +66,60 @@ import XMonad.Util.SpawnOnce
 
 unbindKeys :: [String]
 unbindKeys =
-    [ "M-S-<Return>"
-    , "M-S-q"
-    , "M-q"
-    , "M-p"
-    , "M-S-p"
-    , "M-<Space>"
-    -- , "M-S-<Space>"
+    -- disable default bindings
+    [ "M-S-<Return>" -- def: lautch terminal
+    , "M-S-q" -- def: quit xmonad
+    , "M-q" -- recompile and restart xmonad
+    -- , "M-S-p" -- launch gmrun
+    , "M-<Space>" -- next layout
+    , "M-S-<Tab>" -- prev window
+    , "M-S-/" -- Show this help message with the default keybindings",
+    -- , "M-."
+    -- , "M-,"
+    , "M-m" -- focus master
+    , "M-n" -- Resize viewed windows to the correct size
+    -- , "M-S-<Space>" -- reset layouts on current screen
     ]
 
 bindKeys :: [(String, X ())]
 bindKeys =
-    [ ("M-S-r", spawn "xmonad --recompile &&  xmonad --restart")
-    , ("M-<Return>", spawn V.appsTerminal)
-    , ("M-<Tab>", sendMessage NextLayout)
-    {- , ("M-<Escape>", io exitSuccess)
-        , ("M-<Return>", spawn myTerminal)
-        , ("M-d", spawn "rofi -show drun")
-        , ("M-q", kill)
-        , ("M-S-q", killAll)
-        , ("M-<Tab>", sequence_ [nextScreen, warpToWindow (1%2) (1%2)])
-        , ("M-S-<Tab>", sequence_ [prevScreen, warpToWindow (1%2) (1%2)])
-        , ("M-h", sendMessage Shrink)
-        , ("M-l", sendMessage Expand)
-        , ("M-S-.", sendMessage (IncMasterN (-1)))
-        , ("M-S-,", sendMessage (IncMasterN 1))
-        , ("M-p", windows W.focusMaster)
-        , ("M-j", windows W.focusDown)
-        , ("M-k", windows W.focusUp)
-        , ("M-<Space>", sendMessage NextLayout)
-        , ("M-t", withFocused $ windows . W.sink)
-        , ("M-S-t", sinkAll)
+    [ -- ##############################################################
+      -- ######################## GENERAL #############################
+      ("M-S-r", spawn "xmonad --recompile &&  xmonad --restart") -- recompile and restart xmonad
+    , ("M-<Return>", spawn V.appsTerminal) -- launch a terminal
+    , ("M-<Tab>", sendMessage NextLayout) -- next layout
+    , ("M-S-c", kill) -- Close/kill the focused window
+    -- , ("M-S-Space", setLayout $ XMonad.layoutHook myConfiguration) -- Reset the layouts on the current workSpace to default"
+    -- ##############################################################
+    -- ############### WINDOW SIZE, MASTER NUMBER ###################
+    , ("M-h", sendMessage Shrink) -- Shrink the master area
+    , ("M-l", sendMessage Expand) -- Expand the master area
+    , ("M-S-.", sendMessage (IncMasterN 1)) -- Increment the number of windows in the master area
+    , ("M-S-,", sendMessage (IncMasterN (-1))) -- Deincrement the number of windows in the master area
+    -- ##############################################################
+    -- ##################### MULTI MONITORS #########################
+    , ("M-.", nextScreen)
+    , ("M-,", prevScreen)
+    , -- ##############################################################
+      -- ########################## FOCUS #############################
+      ("M-p", windows W.focusMaster) -- Move focus to the master window
+    , ("M-j", windows W.focusDown) -- Move focus to the next window
+    , ("M-k", windows W.focusUp) -- Move focus to the previous window
+    -- key chorts
+    -- , ("M-i j", windows W.focusDown) -- Move focus to the next window
+    -- , ("M-i k", windows W.focusUp) -- Move focus to the previous window
+    -- ##############################################################
+    -- ######################### SWAP ###############################
+    , ("M-S-p", windows W.swapMaster) -- Swap the focused window and the master window
+    , ("M-S-j", windows W.swapDown) -- Swap the focused window with the next window
+    , ("M-S-k", windows W.swapUp) -- Swap the focused window with the previous window
+    , -- ##############################################################
+      -- ######################### OTHER ##############################
+      ("M-b", sendMessage ToggleStruts) -- Toggle the status bar gap (hide xmobar)
+    , ("M-t", withFocused $ windows . W.sink) -- Push window back into tiling
+    , ("M-S-t", sinkAll) -- Push all window back into tiling
+    {-
+
     -- Scratchpads
         , ("M-n", namedScratchpadAction scratchpads "term1")
         , ("M-S-n", namedScratchpadAction scratchpads "term2")
@@ -104,10 +128,12 @@ bindKeys =
         , ("M-S-m", namedScratchpadAction scratchpads "music")
         , ("M-m", namedScratchpadAction scratchpads "mail")
         , ("M-b", namedScratchpadAction scratchpads "news")                      -}
-    -- Apps
     ]
 
 layoutsConfig = L.layoutsTall ||| L.layoutsFull
+
+-- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
+myWorkspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 myConfiguration =
     def
@@ -118,6 +144,8 @@ myConfiguration =
         , terminal = V.appsTerminal
         , manageHook = insertPosition End Newer <+> manageHook def
         , layoutHook = layoutsConfig
+        , startupHook = do
+            return () >> checkKeymap myConfiguration bindKeys
         }
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys
