@@ -1,38 +1,20 @@
 module Module.Variable where
 
 import XMonad hiding (font, terminal)
-import XMonad.Layout.StackTile (StackTile)
 
-data Keys = Keys
-    { modKey :: KeyMask
-    , altKey :: KeyMask
-    }
+-- ################## KEYS #############################
 
-newtype Run = Run
-    { terminal :: String
-    }
+keysMod = mod4Mask
+keysAlt = mod1Mask
 
-data FontConf = FontConf
-    { font :: String
-    , fontsize :: Integer
-    }
+-- ################## APPS #############################
 
-keys :: Keys
-keys =
-    Keys
-        { modKey = mod4Mask
-        , altKey = mod1Mask
-        }
+appsTerminal = "ghostty"
 
-run :: Run
-run =
-    Run
-        { terminal = "ghostty"
-        }
+-- ################## FONTS #############################
 
-fontConf :: FontConf
-fontConf =
-    FontConf
-        { font = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold"
-        , fontsize = 16
-        }
+toFont :: Int -> String
+toFont size = "xft:CaskaydiaCove Nerd Font:style=Bold:size=" ++ show size
+
+fontsDefault :: String
+fontsDefault = toFont 16

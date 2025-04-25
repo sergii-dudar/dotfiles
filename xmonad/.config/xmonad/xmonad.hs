@@ -1,11 +1,13 @@
-import Color.DoomOne
-import qualified Module.Variable as V
+-- Config Functionality Modules
 import Util.Common
 import Util.CommonTwo
 import Util.Env.Environment
 
--- Base
+-- Config Modules
+import qualified Module.Layout as L
+import qualified Module.Variable as V
 
+-- Base
 import System.Directory
 import System.Exit (exitSuccess)
 import System.IO (hClose, hPutStr, hPutStrLn)
@@ -43,39 +45,8 @@ import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.WindowSwallowing
 import XMonad.Hooks.WorkspaceHistory
 
--- Layouts
-import XMonad.Layout.Accordion
-import XMonad.Layout.Gaps
-import XMonad.Layout.GridVariants (Grid (Grid))
-import XMonad.Layout.NoBorders (noBorders)
-import XMonad.Layout.ResizableTile
-import XMonad.Layout.SimplestFloat
-import XMonad.Layout.Spiral
-import XMonad.Layout.Tabbed
-import XMonad.Layout.ThreeColumns
-
--- Layouts modifiers
-import XMonad.Layout.LayoutModifier
-import XMonad.Layout.LimitWindows (decreaseLimit, increaseLimit, limitWindows)
-import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??))
-import qualified XMonad.Layout.MultiToggle as MT (Toggle (..))
-import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR, NBFULL, NOBORDERS))
-import XMonad.Layout.NoBorders (smartBorders)
-import XMonad.Layout.Renamed
-import XMonad.Layout.ShowWName
-import XMonad.Layout.Simplest
-import XMonad.Layout.Spacing
-import XMonad.Layout.SubLayouts
-import qualified XMonad.Layout.ToggleLayouts as T (ToggleLayout (Toggle), toggleLayouts)
-import XMonad.Layout.WindowArranger (WindowArrangerMsg (..), windowArrange)
-import XMonad.Layout.WindowNavigation
-
 -- Utilities
-
 import XMonad (XConfig (manageHook))
-import XMonad.Layout.BinarySpacePartition (emptyBSP)
-import XMonad.Layout.ResizableTile (ResizableTall (ResizableTall))
-import qualified XMonad.Layout.Tabbed as Tabbed
 import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
@@ -106,7 +77,7 @@ unbindKeys =
 bindKeys :: [(String, X ())]
 bindKeys =
     [ ("M-S-r", spawn "xmonad --recompile &&  xmonad --restart")
-    , ("M-<Return>", spawn $ V.terminal V.run)
+    , ("M-<Return>", spawn V.appsTerminal)
     , ("M-<Tab>", sendMessage NextLayout)
     {- , ("M-<Escape>", io exitSuccess)
         , ("M-<Return>", spawn myTerminal)
@@ -136,88 +107,17 @@ bindKeys =
     -- Apps
     ]
 
--- Makes setting the spacingRaw simpler to write. The spacingRaw module adds a configurable amount of space around windows.
--- mySpacing :: Integer -> Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
--- mySpacing i j = spacingRaw False (Border i i i i) True (Border j j j j) True
+layoutsConfig = L.layoutsTall ||| L.layoutsFull
 
--- Below is a variation of the above except no borders are applied
--- if fewer than two windows. So a single window has no gaps.
-gapsConf :: Integer -> Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
-gapsConf s w = spacingRaw False (Border s s s s) True (Border w w w w) True
-
-gapsDef :: l a -> ModifiedLayout Spacing l a
-gapsDef = gapsConf 4 6
-
-layoutConfig =
-    def
-        { -- fontName = V.font V.fontConf
-          -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
-          Tabbed.fontName = "xft:CaskaydiaCove Nerd Font:size=16:style=Bold" -- V.font V.fontConf -- "FontAwesome-9"
-        , -- Tabbed.fontName = "xft:CaskaydiaCove Nerd Font Mono:regular:size=9:antialias=true:hinting=true"
-          Tabbed.activeColor = color15
-        , Tabbed.inactiveColor = color08
-        , Tabbed.activeBorderColor = color15
-        , Tabbed.inactiveBorderColor = colorBack
-        , Tabbed.activeTextColor = colorBack
-        , Tabbed.inactiveTextColor = color08
-        }
-
--- myLayout :: Choose Tall (Choose (Mirror Tall) Full) a
--- myLayout = tiled ||| Full
-myLayout =
-    -- gapsDef tiled
-    -- \||| gapsDef emptyBSP
-    -- gapsDef Full
-    -- \||| noBorders (tabbed shrinkText def)
-    -- noBorders (tabbed shrinkText def)
-    -- Full
-    noBorders (tabbed shrinkText layoutConfig)
-    where
-        -- \||| noBorders (tabbed shrinkText def)
-        -- noBorders (tabbed shrinkText def)
-        -- tabbed shrinkText layoutConfig
-
-        -- myLayout = sceenGaps 10 $ Full
-        -- myLayout = windowGaps 4 6 $ Full
-
-        -- myLayout = tall ||| Full
-
-        -- \||| Full
-
-        tiled = Tall nmaster delta ratio
-        nmaster = 1 -- Default number of windows in the master pane
-        ratio = 1 / 2 -- Default proportion of screen occupied by master pane
-        delta = 3 / 100 -- Percent of screen to increment by when resizing panes
-
--- tall =
---     renamed [Replace "tall"] $
---         limitWindows 5 $
---             smartBorders $
---                 windowNavigation $
---                     addTabs shrinkText layoutConfig $
---                         subLayout [] (smartBorders Simplest) $
---                             mySpacing 8 8 $
---                                 ResizableTall 1 (3 / 100) (1 / 2) []
-
--- tabs = tabbed shrinkText def
-
--- tabs = simpleTabbed
-
--- I cannot add spacing to this layout because it will
--- add spacing between window and tabs which looks bad.
-
--- myConfiguration :: XConfig (Choose Tall (Choose (Mirror Tall) Full))
 myConfiguration =
     def
-        { modMask = V.modKey V.keys
-        , terminal = V.terminal V.run
+        { normalBorderColor = "#535d6c"
+        , focusedBorderColor = "#80a0ff"
         , borderWidth = 4
+        , modMask = V.keysMod
+        , terminal = V.appsTerminal
         , manageHook = insertPosition End Newer <+> manageHook def
-        , -- , layoutHook = spacingWithEdge 10 myLayout
-          --          layoutHook = myLayout
-          layoutHook =
-            -- spacingRaw True (Border 4 4 4 4) True (Border 6 6 6 6) True $
-            myLayout
+        , layoutHook = layoutsConfig
         }
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys
