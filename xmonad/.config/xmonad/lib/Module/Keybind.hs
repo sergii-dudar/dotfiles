@@ -1,12 +1,14 @@
 module Module.Keybind
     ( applyKeybinds
     , bindKeys
+    , bindMouseKeys
     ) where
+
+import qualified Data.Map as M
 
 import XMonad
 
 -- Actions
-
 import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
 import XMonad.Actions.MostRecentlyUsed (mostRecentlyUsed)
 import XMonad.Actions.WithAll (killAll, sinkAll)
@@ -29,12 +31,19 @@ applyKeybinds defConfig =
     defConfig
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys
-        `additionalMouseBindings` mouseKeys
+        `additionalMouseBindings` additionalMouseKeys
+
+bindMouseKeys (XConfig {XMonad.modMask = modm}) =
+    M.fromList
+        [ ((modm, button1), \w -> focus w >> windows W.shiftMaster)
+        , ((modm, button2), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
+        , ((modm, button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
+        ]
 
 -- ######################## PRIVATE ##########################
 
-mouseKeys :: [((ButtonMask, Button), Window -> X ())]
-mouseKeys =
+additionalMouseKeys :: [((ButtonMask, Button), Window -> X ())]
+additionalMouseKeys =
     [ ((mod4Mask, button4), \w -> windows W.focusUp)
     , ((mod4Mask, button5), \w -> windows W.focusDown)
     ]

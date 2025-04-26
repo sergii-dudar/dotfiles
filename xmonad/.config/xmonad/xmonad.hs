@@ -80,6 +80,7 @@ mainConfiguration =
             , borderWidth = 4
             , modMask = V.keysMod
             , terminal = V.appsTerminal
+            , mouseBindings = K.bindMouseKeys
             , manageHook =
                 insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
             , layoutHook = L.layoutsConfig
