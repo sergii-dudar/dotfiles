@@ -1,4 +1,6 @@
 -- Config Functionality Modules
+
+import Control.Monad (when)
 import Util.Common
 import Util.CommonTwo
 import Util.Env.Environment
@@ -37,7 +39,7 @@ import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobar
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
-import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, isFullscreen)
+import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isFullscreen)
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.StatusBar
@@ -46,7 +48,8 @@ import XMonad.Hooks.WindowSwallowing
 import XMonad.Hooks.WorkspaceHistory
 
 -- Utilities
-import XMonad (XConfig (manageHook))
+import XMonad (XConfig (manageHook), title)
+import XMonad.Actions.MostRecentlyUsed (Location (workspace))
 import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeysP)
@@ -61,6 +64,7 @@ import XMonad.Util.Hacks
     )
 import XMonad.Util.NamedActions
 import XMonad.Util.NamedScratchpad
+import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Run (runProcessWithInput, safeSpawn, spawnPipe)
 import XMonad.Util.SpawnOnce
 
@@ -132,20 +136,94 @@ bindKeys =
 
 layoutsConfig = L.layoutsTall ||| L.layoutsFull
 
--- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
-myWorkspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+-- myManageHook =
+--     composeAll
+--         , title =? "Mozilla Firefox" --> doShift (myWorkspaces !! 1)
+--         ]
+--         <+> namedScratchpadManageHook myScratchPads
 
-myConfiguration =
+--         -- 'doFloat' forces a window to float.  Useful for dialog boxes and such.
+--         -- using 'doShift ( myWorkspaces !! 7)' sends program to workspace 8!
+manageHookConfig =
+    composeAll
+        [ resource =? "desktop_window" --> doIgnore
+        , resource =? "kdesktop" --> doIgnore
+        , applyFloatToClass "MPlayer"
+        , applyFloatToClass "Gimp"
+        , applyFloatToClass "qBittorrent"
+        , applyFloatToClass "Arandr"
+        , applyFloatToClass "Blueman-manager"
+        , applyFloatToClass "Gpick"
+        , applyFloatToClass "Kruler"
+        , applyFloatToClass "MessageWin" -- kalarm.
+        , applyFloatToClass "Sxiv"
+        , applyFloatToClass "Tor Browser" -- Needs a fixed window size to avoid fingerprinting by screen size.
+        , applyFloatToClass "Wpa_gui"
+        , applyFloatToClass "veromix"
+        , applyFloatToClass "xtightvncviewer"
+        , applyFloatToClass "pavucontrol"
+        , applyFloatToClass "gnome-system-monitor"
+        , applyFloatToClass "gnome-control-center"
+        , applyFloatToClass "gnome-calculator"
+        , applyFloatToClass "org.gnome.Characters"
+        , applyFloatToClass "org.gnome.clocks"
+        , applyFloatToClass "gnome-calendar"
+        , applyFloatToClass "Gnome-disks"
+        , applyFloatToClass "Nm-connection-editor"
+        , applyFloatToClass "ViberPC"
+        , applyFloatToClass "vlc"
+        , applyFloatToClass "snapshot"
+        , applyFloatToClass "Gcolor3"
+        , applyFloatToClass "Glate"
+        , applyFloatToInstance "disc_ugd"
+        , applyFloatToInstance "htop_info"
+        , applyFloatToInstance "disc_usabe_info"
+        , workspaceToClass 1 "org.wezfurlong.wezterm"
+        , workspaceTo 1 "com.ghostty.group01" "ghostty"
+        , workspaceToClass 2 "jetbrains-idea"
+        , workspaceToClass 2 "Code"
+        , workspaceTo 2 "Brave-browser" "brave-browser"
+        ]
+    where
+        widthFactor = 0.65
+        heightFactor = 0.7
+        x = (1 - widthFactor) / 2
+        y = (1 - heightFactor) / 2
+        floatWinConf = W.RationalRect x y widthFactor heightFactor
+        applyFloatToClass cname = className =? cname --> doRectFloat floatWinConf
+        applyFloatToInstance iname = resource =? iname --> doRectFloat floatWinConf
+        applyFloatTo cname iname = className =? cname <&&> resource =? iname --> doRectFloat floatWinConf
+        workspaceToClass wnum cname = className =? cname --> doShift (workspacesList !! (wnum - 1))
+        workspaceToInstance wnum iname = resource =? iname --> doShift (workspacesList !! (wnum - 1))
+        workspaceTo wnum cname iname = className =? cname <&&> resource =? iname --> doShift (workspacesList !! (wnum - 1))
+
+-- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
+workspacesList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+-- myEventHook :: Event -> X ()
+-- myEventHook MapNotifyEvent {ev_window = w} = withWindowSet $ \ws -> do
+--     whenJust (W.findTag w ws) $ \_ -> do
+--         floats <- gets (W.floating . windowset)
+--         when (w `M.member` floats) $
+--             windows (W.shiftMaster . W.focusWindow w)
+-- myEventHook _ = return ()
+
+mainConfiguration =
     def
         { normalBorderColor = "#535d6c"
         , focusedBorderColor = "#80a0ff"
         , borderWidth = 4
         , modMask = V.keysMod
         , terminal = V.appsTerminal
-        , manageHook = insertPosition End Newer <+> manageHook def
+        , manageHook = insertPosition End Newer <+> manageHookConfig <+> manageHook def
         , layoutHook = layoutsConfig
-        , startupHook = do
-            return () >> checkKeymap myConfiguration bindKeys
+        , workspaces = workspacesList
+        , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
+          handleEventHook =
+            swallowEventHook
+                (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
+                (return True)
+        , startupHook = return () >> checkKeymap mainConfiguration bindKeys
         }
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys
@@ -154,7 +232,7 @@ main :: IO ()
 main = do
     xmonad $
         ewmhFullscreen $
-            ewmh myConfiguration
+            ewmh mainConfiguration
 
 {-
 
