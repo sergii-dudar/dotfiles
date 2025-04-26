@@ -1,13 +1,14 @@
 -- Config Functionality Modules
 
 import Control.Monad (when)
-import Util.Common
 import Util.CommonTwo
 import Util.Env.Environment
 
 -- Config Modules
 import qualified Module.Layout as L
+import qualified Module.Scratchpad as S
 import qualified Module.Variable as V
+import qualified Util.Common as U
 
 -- Base
 import System.Directory
@@ -51,6 +52,7 @@ import XMonad.Hooks.WorkspaceHistory
 import XMonad (XConfig (manageHook), title)
 import XMonad.Actions.MostRecentlyUsed (Location (workspace))
 import XMonad.Actions.Warp (warpToWindow)
+import XMonad.Hooks.RefocusLast (refocusLastLogHook)
 import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
@@ -80,8 +82,8 @@ unbindKeys =
     , "M-S-/" -- Show this help message with the default keybindings",
     -- , "M-."
     -- , "M-,"
-    , "M-m" -- focus master
-    , "M-n" -- Resize viewed windows to the correct size
+    -- , "M-m" -- focus master
+    -- , "M-n" -- Resize viewed windows to the correct size
     -- , "M-S-<Space>" -- reset layouts on current screen
     ]
 
@@ -117,33 +119,29 @@ bindKeys =
     , ("M-S-p", windows W.swapMaster) -- Swap the focused window and the master window
     , ("M-S-j", windows W.swapDown) -- Swap the focused window with the next window
     , ("M-S-k", windows W.swapUp) -- Swap the focused window with the previous window
-    , -- ##############################################################
-      -- ######################### OTHER ##############################
-      ("M-b", sendMessage ToggleStruts) -- Toggle the status bar gap (hide xmobar)
-    , ("M-t", withFocused $ windows . W.sink) -- Push window back into tiling
+    -- ##############################################################
+    -- ######################### OTHER ##############################
+    , ("M-b", sendMessage ToggleStruts) -- Toggle the status bar gap (hide xmobar)
+    -- , ("M-t", withFocused $ windows . W.sink) -- Push window back into tiling
     , ("M-S-t", sinkAll) -- Push all window back into tiling
-    {-
-
-    -- Scratchpads
-        , ("M-n", namedScratchpadAction scratchpads "term1")
-        , ("M-S-n", namedScratchpadAction scratchpads "term2")
-        , ("M-v", namedScratchpadAction scratchpads "pulse")
-        , ("M-c", namedScratchpadAction scratchpads "yazi")
-        , ("M-S-m", namedScratchpadAction scratchpads "music")
-        , ("M-m", namedScratchpadAction scratchpads "mail")
-        , ("M-b", namedScratchpadAction scratchpads "news")                      -}
+    -- ##############################################################
+    -- ##################### SCRATCHPADS ############################
+    , ("M-y", S.scratchpadsYaziKeyAction)
+    , ("M-t", S.scratchpadsTelegramKeyAction)
+    , ("M-m", S.scratchpadsYoutubeMusicKeyAction)
+    , ("M-g", S.scratchpadsGoogleChatKeyAction)
+    , ("M-n", S.scratchpadsNautilusKeyAction)
+    , ("M-u", S.scratchpadsMonkeyTypeKeyAction)
+    , ("M1-p y", S.scratchpadsYaziKeyAction)
+    , ("M1-p t", S.scratchpadsTelegramKeyAction)
+    , ("M1-p m", S.scratchpadsYoutubeMusicKeyAction)
+    , ("M1-p g", S.scratchpadsGoogleChatKeyAction)
+    , ("M1-p n", S.scratchpadsNautilusKeyAction)
+    , ("M1-p u", S.scratchpadsMonkeyTypeKeyAction)
     ]
 
 layoutsConfig = L.layoutsTall ||| L.layoutsFull
 
--- myManageHook =
---     composeAll
---         , title =? "Mozilla Firefox" --> doShift (myWorkspaces !! 1)
---         ]
---         <+> namedScratchpadManageHook myScratchPads
-
---         -- 'doFloat' forces a window to float.  Useful for dialog boxes and such.
---         -- using 'doShift ( myWorkspaces !! 7)' sends program to workspace 8!
 manageHookConfig =
     composeAll
         [ resource =? "desktop_window" --> doIgnore
@@ -185,14 +183,9 @@ manageHookConfig =
         , workspaceTo 2 "Brave-browser" "brave-browser"
         ]
     where
-        widthFactor = 0.65
-        heightFactor = 0.7
-        x = (1 - widthFactor) / 2
-        y = (1 - heightFactor) / 2
-        floatWinConf = W.RationalRect x y widthFactor heightFactor
-        applyFloatToClass cname = className =? cname --> doRectFloat floatWinConf
-        applyFloatToInstance iname = resource =? iname --> doRectFloat floatWinConf
-        applyFloatTo cname iname = className =? cname <&&> resource =? iname --> doRectFloat floatWinConf
+        applyFloatToClass cname = className =? cname --> doRectFloat U.toRationalRect
+        applyFloatToInstance iname = resource =? iname --> doRectFloat U.toRationalRect
+        applyFloatTo cname iname = className =? cname <&&> resource =? iname --> doRectFloat U.toRationalRect
         workspaceToClass wnum cname = className =? cname --> doShift (workspacesList !! (wnum - 1))
         workspaceToInstance wnum iname = resource =? iname --> doShift (workspacesList !! (wnum - 1))
         workspaceTo wnum cname iname = className =? cname <&&> resource =? iname --> doShift (workspacesList !! (wnum - 1))
@@ -215,7 +208,8 @@ mainConfiguration =
         , borderWidth = 4
         , modMask = V.keysMod
         , terminal = V.appsTerminal
-        , manageHook = insertPosition End Newer <+> manageHookConfig <+> manageHook def
+        , manageHook =
+            insertPosition End Newer <+> manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
         , layoutHook = layoutsConfig
         , workspaces = workspacesList
         , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
@@ -224,6 +218,7 @@ mainConfiguration =
                 (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
                 (return True)
         , startupHook = return () >> checkKeymap mainConfiguration bindKeys
+        , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
         }
         `additionalKeysP` bindKeys
         `removeKeysP` unbindKeys

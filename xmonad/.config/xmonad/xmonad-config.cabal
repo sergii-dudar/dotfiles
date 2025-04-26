@@ -21,3 +21,5 @@ executable xmonad-config
                      , Color.DoomOne
                      , Module.ModuleTest
                      , Module.Variable
+                     , Module.Layout
+                     , Module.Scratchpad
