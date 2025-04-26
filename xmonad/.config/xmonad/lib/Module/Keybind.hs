@@ -1,11 +1,16 @@
-module Module.Keybind where
+module Module.Keybind
+    ( applyKeybinds
+    , bindKeys
+    ) where
 
 import XMonad
 
 -- Actions
-import qualified XMonad.StackSet as W
+
 import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
+import XMonad.Actions.MostRecentlyUsed (mostRecentlyUsed)
 import XMonad.Actions.WithAll (killAll, sinkAll)
+import qualified XMonad.StackSet as W
 
 -- Hooks
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
@@ -13,6 +18,26 @@ import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDo
 -- Config Modules
 import qualified Module.Scratchpad as S
 import qualified Module.Variable as V
+
+-- Utils
+import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
+
+-- ######################## PUBLIC ##########################
+
+applyKeybinds :: XConfig l -> XConfig l
+applyKeybinds defConfig =
+    defConfig
+        `additionalKeysP` bindKeys
+        `removeKeysP` unbindKeys
+        `additionalMouseBindings` mouseKeys
+
+-- ######################## PRIVATE ##########################
+
+mouseKeys :: [((ButtonMask, Button), Window -> X ())]
+mouseKeys =
+    [ ((mod4Mask, button4), \w -> windows W.focusUp)
+    , ((mod4Mask, button5), \w -> windows W.focusDown)
+    ]
 
 unbindKeys :: [String]
 unbindKeys =
@@ -68,9 +93,10 @@ bindKeys =
     , ("M-b", sendMessage ToggleStruts) -- Toggle the status bar gap (hide xmobar)
     -- , ("M-t", withFocused $ windows . W.sink) -- Push window back into tiling
     , ("M-S-t", sinkAll) -- Push all window back into tiling
-    -- ##############################################################
-    -- ##################### SCRATCHPADS ############################
-    , ("M-y", S.scratchpadsYaziKeyAction)
+    , ("M1-<Tab>", mostRecentlyUsed [xK_Alt_L, xK_Alt_R] xK_Tab)
+    , -- ##############################################################
+      -- ##################### SCRATCHPADS ############################
+      ("M-y", S.scratchpadsYaziKeyAction)
     , ("M-t", S.scratchpadsTelegramKeyAction)
     , ("M-m", S.scratchpadsYoutubeMusicKeyAction)
     , ("M-g", S.scratchpadsGoogleChatKeyAction)

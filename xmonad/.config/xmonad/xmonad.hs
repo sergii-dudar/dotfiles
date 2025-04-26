@@ -4,11 +4,10 @@ import Util.CommonTwo
 import Util.Env.Environment
 
 -- Config Modules
-
-import qualified Module.Keybind as K
 import qualified Module.Keybind as K
 import qualified Module.Layout as L
 import qualified Module.Scratchpad as S
+import qualified Module.Variable as V
 import qualified Module.WinRule as R
 import qualified Util.Common as U
 
@@ -22,6 +21,7 @@ import qualified XMonad.StackSet as W
 -- Actions
 import XMonad.Actions.CopyWindow (kill1)
 import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
+import qualified XMonad.Actions.FlexibleResize as Flex
 import XMonad.Actions.GridSelect
 import XMonad.Actions.MouseResize
 import XMonad.Actions.Promote
@@ -52,11 +52,11 @@ import XMonad.Hooks.WorkspaceHistory
 
 -- Utilities
 import XMonad (XConfig (manageHook), title)
-import XMonad.Actions.MostRecentlyUsed (Location (workspace))
+import XMonad.Actions.MostRecentlyUsed (Location (workspace), configureMRU)
 import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Hooks.RefocusLast (refocusLastLogHook)
 import XMonad.Util.Dmenu
-import XMonad.Util.EZConfig (additionalKeysP, checkKeymap, mkNamedKeymap, removeKeysP)
+import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
     ( javaHack
     , trayAbovePanelEventHook
@@ -72,30 +72,30 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Run (runProcessWithInput, safeSpawn, spawnPipe)
 import XMonad.Util.SpawnOnce
 
-    def
-        { normalBorderColor = "#535d6c"
-        , focusedBorderColor = "#80a0ff"
-        , borderWidth = 4
-        , modMask = V.keysMod
-        , terminal = V.appsTerminal
-        , manageHook =
-            insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
-        , layoutHook = L.layoutsConfig
-        , workspaces = V.workspacesList
-        , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
-          handleEventHook =
-            swallowEventHook
-                (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
-                (return True)
-        , startupHook = return () >> checkKeymap mainConfiguration K.bindKeys
-        , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
-        }
-        `additionalKeysP` K.bindKeys
-        `removeKeysP` K.unbindKeys
+mainConfiguration =
+    K.applyKeybinds $
+        def
+            { normalBorderColor = "#535d6c"
+            , focusedBorderColor = "#80a0ff"
+            , borderWidth = 4
+            , modMask = V.keysMod
+            , terminal = V.appsTerminal
+            , manageHook =
+                insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
+            , layoutHook = L.layoutsConfig
+            , workspaces = V.workspacesList
+            , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
+              handleEventHook =
+                swallowEventHook
+                    (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
+                    (return True)
+            , startupHook = return () >> checkKeymap mainConfiguration K.bindKeys
+            , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
+            }
 
 main :: IO ()
 main = do
-    xmonad $
+    xmonad . configureMRU $
         ewmhFullscreen $
             ewmh mainConfiguration
 

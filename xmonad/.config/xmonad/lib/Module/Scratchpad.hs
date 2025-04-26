@@ -21,9 +21,9 @@ scratchpadsLogHooks = nsSingleScratchpadPerWorkspace scratchpads >> nsHideOnFocu
 
 scratchpadsYaziKeyAction = namedScratchpadToggle scratchpadsYaziId "📂 Yazi File Manager"
 scratchpadsTelegramKeyAction = namedScratchpadToggle scratchpadsTelegramId "💬 Telegram"
-scratchpadsNautilusKeyAction = namedScratchpadToggle scratchpadsNautilusId "💽 Music"
-scratchpadsYoutubeMusicKeyAction = namedScratchpadToggle scratchpadsYoutubeMusicId "✉️ Chat"
-scratchpadsGoogleChatKeyAction = namedScratchpadToggle scratchpadsGoogleChatId "📂 Nautilus"
+scratchpadsNautilusKeyAction = namedScratchpadToggle scratchpadsNautilusId "📂 Nautilus"
+scratchpadsYoutubeMusicKeyAction = namedScratchpadToggle scratchpadsYoutubeMusicId "💽 Music"
+scratchpadsGoogleChatKeyAction = namedScratchpadToggle scratchpadsGoogleChatId "✉️ Chat"
 scratchpadsMonkeyTypeKeyAction = namedScratchpadToggle scratchpadsMonkeyTypeId "⌨️ Monkey Type"
 
 -- ######################## PRIVATE ##########################

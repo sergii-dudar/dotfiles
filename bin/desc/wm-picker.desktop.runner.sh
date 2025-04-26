@@ -17,10 +17,9 @@ function pick_by_month_number() {
         05|11)
             "$HOME"/dotfiles/bin/desc/bspwm.desktop.runner.sh
             ;;
-            # 06|12) TODO: xmonad config not finished yet
-            #     /dotfiles/bin/desc/xmonad.desktop.runner.sh
-            #     echo "06|12: $1"
-            #     ;;
+        06|12)
+            "$HOME"/dotfiles/bin/desc/xmonad.desktop.runner.sh
+            ;;
         *)
             # in any unknown situation, use dwm ;)
             "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh

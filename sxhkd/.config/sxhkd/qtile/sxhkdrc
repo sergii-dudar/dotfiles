@@ -35,15 +35,15 @@ alt + shift + b
     brave
 # ---------- Audio Keybindings ------------- #
 
-super + Left
-   amixer -D pulse sset Master 5%-
+#super + Left
+#    amixer -D pulse sset Master 5%-
 
-super + Right
-   amixer -D pulse sset Master 5%+
+#super + Right
+#    amixer -D pulse sset Master 5%+
 
-# { Left, Down, Up, Right }
-super + Down
-   amixer -D pulse sset Master toggle
+#{ Left, Down, Up, Right }
+#super + Down
+#    amixer -D pulse sset Master toggle
 
 # Media
 #super + F9
