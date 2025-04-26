@@ -19,7 +19,8 @@ executable xmonad-config
                      , Util.CommonTwo
                      , Util.Env.Environment
                      , Color.DoomOne
-                     , Module.ModuleTest
                      , Module.Variable
                      , Module.Layout
                      , Module.Scratchpad
+                     , Module.Keybind
+                     , Module.WinRule

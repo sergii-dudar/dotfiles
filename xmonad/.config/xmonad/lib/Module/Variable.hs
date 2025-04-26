@@ -36,3 +36,6 @@ settingsFloatFactorWidth :: Rational
 settingsFloatFactorWidth = 0.75
 settingsFloatFactorHeight :: Rational
 settingsFloatFactorHeight = 0.8
+
+-- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
+workspacesList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]

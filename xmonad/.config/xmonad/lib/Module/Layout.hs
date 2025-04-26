@@ -1,4 +1,4 @@
-module Module.Layout where
+module Module.Layout (layoutsConfig) where
 
 import qualified Module.Variable as V
 import XMonad
@@ -33,6 +33,12 @@ import XMonad.Layout.WindowNavigation
 import XMonad.Layout.BinarySpacePartition (emptyBSP)
 import XMonad.Layout.ResizableTile (ResizableTall (ResizableTall))
 import qualified XMonad.Layout.Tabbed as Tabbed
+
+-- ######################## PUBLIC ##########################
+
+layoutsConfig = layoutsTall ||| layoutsFull
+
+-- ######################## PRIVATE ##########################
 
 gapsConf :: Integer -> Integer -> l a -> XMonad.Layout.LayoutModifier.ModifiedLayout Spacing l a
 gapsConf s w = spacingRaw False (Border s s s s) True (Border w w w w) True
