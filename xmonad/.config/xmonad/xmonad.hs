@@ -38,7 +38,7 @@ import Data.Monoid
 import Data.Tree
 
 -- Hooks
-import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobar, xmobarColor, xmobarPP)
+import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobar, xmobarColor, xmobarPP, xmobarProp)
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
@@ -83,22 +83,26 @@ mainConfiguration =
             , mouseBindings = K.bindMouseKeys
             , manageHook =
                 insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
-            , layoutHook = L.layoutsConfig
+            , layoutHook = avoidStruts $ L.layoutsConfig
             , workspaces = V.workspacesList
             , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
-              handleEventHook =
-                swallowEventHook
-                    (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
-                    (return True)
-            , startupHook = return () >> checkKeymap mainConfiguration K.bindKeys
+              -- handleEventHook =
+              --   swallowEventHook
+              --       (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
+              --       (return True)
+              startupHook = return () >> checkKeymap mainConfiguration K.bindKeys
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
 main :: IO ()
 main = do
-    xmonad . configureMRU $
-        ewmhFullscreen $
-            ewmh mainConfiguration
+    xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
+    xmonad
+        . configureMRU
+        . ewmhFullscreen
+        . ewmh
+        . xmobarProp
+        $ mainConfiguration
 
 {-
 
