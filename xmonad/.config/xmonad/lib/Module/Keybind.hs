@@ -2,6 +2,7 @@ module Module.Keybind
     ( applyKeybinds
     , bindKeys
     , bindMouseKeys
+    , toggleStrutsKey
     ) where
 
 import qualified Data.Map as M
@@ -42,6 +43,9 @@ bindMouseKeys (XConfig {XMonad.modMask = modm}) =
         , ((modm, button2), \w -> focus w >> mouseMoveWindow w >> windows W.shiftMaster)
         , ((modm, button3), \w -> focus w >> mouseResizeWindow w >> windows W.shiftMaster)
         ]
+
+toggleStrutsKey :: XConfig Layout -> (KeyMask, KeySym)
+toggleStrutsKey XConfig {modMask = m} = (m .|. shiftMask, xK_b)
 
 -- ######################## PRIVATE ##########################
 
@@ -103,7 +107,7 @@ bindKeys =
     , ("M-S-k", windows W.swapUp) -- Swap the focused window with the previous window
     -- ##############################################################
     -- ######################### OTHER ##############################
-    , ("M-b", sendMessage ToggleStruts) -- Toggle the status bar gap (hide xmobar)
+    , ("M-b", toggleXmobarAndStruts) -- Toggle the status bar gap (hide xmobar)
     -- , ("M-t", withFocused $ windows . W.sink) -- Push window back into tiling
     , ("M-S-t", sinkAll) -- Push all window back into tiling
     , ("M1-<Tab>", mostRecentlyUsed [xK_Alt_L, xK_Alt_R] xK_Tab)
@@ -122,3 +126,11 @@ bindKeys =
     , ("M1-p n", S.scratchpadsNautilusKeyAction)
     , ("M1-p u", S.scratchpadsMonkeyTypeKeyAction)
     ]
+
+toggleXmobarAndStruts :: X ()
+toggleXmobarAndStruts = do
+    spawn
+        "dbus-send --session --dest=org.Xmobar.Control --type=method_call '/org/Xmobar/Control' org.Xmobar.Control.SendSignal string:'Toggle 0'"
+    -- spawn "xdo id -n xmobar | xargs -I {} xdo hide {} || xdo id -n xmobar | xargs -I {} xdo show {}"
+    spawn "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle"
+    sendMessage ToggleStruts

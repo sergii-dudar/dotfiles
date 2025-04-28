@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+killall trayer ; ~/dotfiles/xmobar/.config/xmobar/trayer/trayerrc

@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-killall trayer ; trayer -l \
+trayer -l \
     --edge top \
     --align right \
     --margin 5 \

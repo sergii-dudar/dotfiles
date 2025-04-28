@@ -83,21 +83,22 @@ mainConfiguration =
             , terminal = V.appsTerminal
             , mouseBindings = K.bindMouseKeys
             , manageHook =
-                insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
+                insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks <+> manageDocks
             , layoutHook = avoidStruts $ L.layoutsConfig
             , workspaces = V.workspacesList
-            , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
-              handleEventHook =
-                handleEventHook def <> windowedFullscreenFixEventHook <> trayerPaddingXmobarEventHook <> trayerAboveXmobarEventHook
-            , -- handleEventHook =
-              --   swallowEventHook
-              --       (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
-              --       (return True)
-              startupHook = return () >> checkKeymap mainConfiguration K.bindKeys >> SR.runStartup
+            , handleEventHook =
+                handleEventHook def
+                    <> windowedFullscreenFixEventHook
+                    <> trayerPaddingXmobarEventHook
+                    <> trayerAboveXmobarEventHook
+                    <> swallowEventHook
+                        (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
+                        (return True)
+            , startupHook = return () >> checkKeymap mainConfiguration K.bindKeys >> SR.runStartup
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
-xmobarSB = withEasySB (statusBarProp "xmobar" (pure BAR.xmobarPPConfig)) defToggleStrutsKey
+xmobarSB = withEasySB (statusBarProp "xmobar" (pure BAR.xmobarPPConfig)) K.toggleStrutsKey
 
 main :: IO ()
 main = do
@@ -107,6 +108,7 @@ main = do
         . ewmhFullscreen
         . ewmh
         . xmobarSB
+        -- . docks
         $ mainConfiguration
 
 {-

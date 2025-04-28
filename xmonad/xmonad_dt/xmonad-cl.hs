@@ -70,67 +70,6 @@ import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run (runProcessWithInput, safeSpawn, spawnPipe)
 import XMonad.Util.SpawnOnce
 
-myScratchPads :: [NamedScratchpad]
-myScratchPads =
-    [ NS "terminal" spawnTerm findTerm manageTerm
-    , NS "mocp" spawnMocp findMocp manageMocp
-    , NS "calculator" spawnCalc findCalc manageCalc
-    ]
-  where
-    spawnTerm = myTerminal ++ " -t scratchpad"
-    findTerm = title =? "scratchpad"
-    manageTerm = customFloating $ W.RationalRect l t w h
-      where
-        h = 0.9
-        w = 0.9
-        t = 0.95 - h
-        l = 0.95 - w
-    spawnMocp = myTerminal ++ " -t mocp -e mocp"
-    findMocp = title =? "mocp"
-    manageMocp = customFloating $ W.RationalRect l t w h
-      where
-        h = 0.9
-        w = 0.9
-        t = 0.95 - h
-        l = 0.95 - w
-    spawnCalc = "qalculate-gtk"
-    findCalc = className =? "Qalculate-gtk"
-    manageCalc = customFloating $ W.RationalRect l t w h
-      where
-        h = 0.5
-        w = 0.4
-        t = 0.75 - h
-        l = 0.70 - w
-
--- Theme for showWName which prints current workspace when you change workspaces.
-myShowWNameTheme :: SWNConfig
-myShowWNameTheme =
-    def
-        { swn_font = "xft:Ubuntu:bold:size=60"
-        , swn_fade = 1.0
-        , swn_bgcolor = "#1c1f24"
-        , swn_color = "#ffffff"
-        }
-
--- The layout hook
-myLayoutHook =
-    avoidStruts $
-        mouseResize $
-            windowArrange $
-                T.toggleLayouts floats $
-                    mkToggle (NBFULL ?? NOBORDERS ?? EOT) myDefaultLayout
-  where
-    myDefaultLayout =
-        withBorder myBorderWidth tall
-            ||| noBorders monocle
-            ||| floats
-            ||| noBorders tabs
-            ||| grid
-            ||| spirals
-            ||| threeCol
-            ||| threeRow
-            ||| tallAccordion
-            ||| wideAccordion
 
 -- myWorkspaces = [" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 ", " 9 "]
 myWorkspaces = [" dev ", " www ", " sys ", " doc ", " vbox ", " chat ", " mus ", " vid ", " gfx "]
@@ -140,59 +79,6 @@ myWorkspaceIndices = M.fromList $ zipWith (,) myWorkspaces [1 ..] -- (,) == \x y
 clickable ws = "<action=xdotool key super+" ++ show i ++ ">" ++ ws ++ "</action>"
   where
     i = fromJust $ M.lookup ws myWorkspaceIndices
-
-myManageHook :: XMonad.Query (Data.Monoid.Endo WindowSet)
-myManageHook =
-    composeAll
-        -- 'doFloat' forces a window to float.  Useful for dialog boxes and such.
-        -- using 'doShift ( myWorkspaces !! 7)' sends program to workspace 8!
-        -- I'm doing it this way because otherwise I would have to write out the full
-        -- name of my workspaces and the names would be very long if using clickable workspaces.
-        [ className =? "confirm" --> doFloat
-        , className =? "file_progress" --> doFloat
-        , className =? "dialog" --> doFloat
-        , className =? "download" --> doFloat
-        , className =? "error" --> doFloat
-        , className =? "Gimp" --> doFloat
-        , className =? "notification" --> doFloat
-        , className =? "pinentry-gtk-2" --> doFloat
-        , className =? "splash" --> doFloat
-        , className =? "toolbar" --> doFloat
-        , className =? "Yad" --> doCenterFloat
-        , title =? "Oracle VM VirtualBox Manager" --> doFloat
-        , title =? "Order Chain - Market Snapshots" --> doFloat
-        , title =? "emacs-run-launcher" --> doFloat
-        , title =? "Mozilla Firefox" --> doShift (myWorkspaces !! 1)
-        , className =? "Brave-browser" --> doShift (myWorkspaces !! 1)
-        , className =? "mpv" --> doShift (myWorkspaces !! 7)
-        , className =? "Gimp" --> doShift (myWorkspaces !! 8)
-        , className =? "VirtualBox Manager" --> doShift (myWorkspaces !! 4)
-        , (className =? "firefox" <&&> resource =? "Dialog") --> doFloat -- Float Firefox Dialog
-        , isFullscreen --> doFullFloat
-        ]
-        <+> namedScratchpadManageHook myScratchPads
-
-myKeys :: XConfig l0 -> [((KeyMask, KeySym), NamedAction)]
-myKeys c =
-    -- (subtitle "Custom Keys":) $ mkNamedKeymap c $
-    let subKeys str ks = subtitle' str : mkNamedKeymap c ks
-     in subKeys
-            ^++^ subKeys
-                "Window navigation"
-                , ("M-S-,", addName "Rotate all windows except master" $ rotSlavesDown)
-                , ("M-S-.", addName "Rotate all windows current stack" $ rotAllDown)
-                ]
-            -- Scratchpads
-            -- Toggle show/hide these programs. They run on a hidden workspace.
-            -- When you toggle them to show, it brings them to current workspace.
-            -- Toggle them to hide and it sends them back to hidden workspace (NSP).
-            ^++^ subKeys
-                "Scratchpads"
-                [ ("M-s t", addName "Toggle scratchpad terminal" $ namedScratchpadAction myScratchPads "terminal")
-                , ("M-s m", addName "Toggle scratchpad mocp" $ namedScratchpadAction myScratchPads "mocp")
-                , ("M-<Escape>", addName "Toggle scratchpad calculator" $ namedScratchpadAction myScratchPads "calculator")
-                ]
-            -- Controls for mocp music player (SUPER-u followed by a key)
 
 main :: IO ()
 main = do
@@ -206,16 +92,7 @@ main = do
             ewmh $
                 docks $
                     def
-                        { manageHook = myManageHook <+> manageDocks
-                        , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
-                        , modMask = myModMask
-                        , terminal = myTerminal
-                        , startupHook = myStartupHook
-                        , layoutHook = showWName' myShowWNameTheme $ myLayoutHook
-                        , workspaces = myWorkspaces
-                        , borderWidth = myBorderWidth
-                        , normalBorderColor = myNormColor
-                        , focusedBorderColor = myFocusColor
+                        { 
                         , logHook =
                             dynamicLogWithPP $
                                 filterOutWsPP [scratchpadWorkspaceTag] $
