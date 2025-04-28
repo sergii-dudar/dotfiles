@@ -2,7 +2,7 @@ Config { overrideRedirect = False
        , font     = "CaskaydiaCove Nerd Font Bold 18"
        , bgColor  = "#5f5f5f"
        , fgColor  = "#f8f8f2"
-       -- , position = TopW L 99
+       --, lowerOnStart = True 
        , position       = TopSize L 100 30 
        , commands = [ 
                         Run XPropertyLog "_XMONAD_TRAYPAD"

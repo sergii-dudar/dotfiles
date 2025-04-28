@@ -72,9 +72,8 @@ bindKeys :: [(String, X ())]
 bindKeys =
     [ -- ##############################################################
       -- ######################## GENERAL #############################
-      --  && " ++ U.buildNotifyMsg "XMONAD RESTARTED ⭐"
       --  xmonad --recompile &>> ~/tempDump.txt
-      ("M-S-r", spawn "xmonad --recompile && xmonad --restart") -- recompile and restart xmonad
+      ("M-S-r", spawn ("xmonad --recompile ; xmonad --restart && " ++ U.buildNotifyMsg "XMONAD RESTARTED ⭐")) -- recompile and restart xmonad
     , ("M-<Return>", spawn V.appsTerminal) -- launch a terminal
     , ("M-<Tab>", sendMessage NextLayout) -- next layout
     , ("M-S-c", kill) -- Close/kill the focused window

@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 
-# killall trayer
-# killall xmobar
-
-# xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs
-
-trayer \
+killall trayer ; trayer -l \
     --edge top \
     --align right \
     --margin 5 \

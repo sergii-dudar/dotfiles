@@ -3,7 +3,7 @@ module Module.WinRule (manageHookConfig) where
 import XMonad
 
 -- Hooks
-import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isFullscreen)
+import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isDialog, isFullscreen)
 
 -- Config Modules
 
@@ -14,6 +14,7 @@ manageHookConfig =
     composeAll
         [ resource =? "desktop_window" --> doIgnore
         , resource =? "kdesktop" --> doIgnore
+        , isDialog --> doFloat
         , applyFloatToClass "MPlayer"
         , applyFloatToClass "Gimp"
         , applyFloatToClass "qBittorrent"

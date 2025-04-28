@@ -14,6 +14,7 @@ xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
 nm-applet &
 #google-chrome-stable &
 
+# Fix issues with running apps for some wm (small sleep, or order sensitive apps that have impact to particular wm)
 case "$wm_name" in
     "i3")
         #ghostty --class=com.ghostty.group01 &
@@ -32,6 +33,7 @@ case "$wm_name" in
         ;;
 esac
 
+# Global config of wm
 case "$wm_name" in
     "i3")
         killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
@@ -66,11 +68,15 @@ case "$wm_name" in
     "qtile")
         killall sxhkd; sxhkd -c ~/.config/sxhkd/qtile/sxhkdrc &
         ;;
+    "xmonad")
+        xsetroot -cursor_name left_ptr
+        ;;
     *)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
         ;;
 esac
 
+# picom configs for particular wm
 if [[ "$wm_name" == "i3" ]]; then
     # i3 working not well with rounded gaps, disable it
     killall picom; picom --backend glx -b --corner-radius 0 --config ~/.config/picom/picom.conf --vsync &

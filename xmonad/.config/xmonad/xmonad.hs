@@ -7,8 +7,10 @@ import Util.Env.Environment
 import qualified Module.Keybind as K
 import qualified Module.Layout as L
 import qualified Module.Scratchpad as S
+import qualified Module.Startup as SR
 import qualified Module.Variable as V
 import qualified Module.WinRule as R
+import qualified Module.Xmobar as BAR
 import qualified Util.Common as U
 
 -- Base
@@ -38,7 +40,6 @@ import Data.Monoid
 import Data.Tree
 
 -- Hooks
-import XMonad.Hooks.DynamicLog (PP (..), dynamicLogWithPP, shorten, wrap, xmobar, xmobarColor, xmobarPP, xmobarProp)
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
@@ -84,8 +85,7 @@ mainConfiguration =
             , manageHook =
                 insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
             , layoutHook = avoidStruts $ L.layoutsConfig
-            , -- , startupHook = myStartupHook
-              workspaces = V.workspacesList
+            , workspaces = V.workspacesList
             , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
               handleEventHook =
                 handleEventHook def <> windowedFullscreenFixEventHook <> trayerPaddingXmobarEventHook <> trayerAboveXmobarEventHook
@@ -93,19 +93,20 @@ mainConfiguration =
               --   swallowEventHook
               --       (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
               --       (return True)
-              startupHook = return () >> checkKeymap mainConfiguration K.bindKeys
+              startupHook = return () >> checkKeymap mainConfiguration K.bindKeys >> SR.runStartup
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
+xmobarSB = withEasySB (statusBarProp "xmobar" (pure BAR.xmobarPPConfig)) defToggleStrutsKey
+
 main :: IO ()
 main = do
-    -- xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
-    -- xmproc <- spawnPipe "killall xmobar ; ~/dotfiles/xmobar/.config/xmobar/xmobar-runner"
+    xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
     xmonad
         . configureMRU
         . ewmhFullscreen
         . ewmh
-        . xmobarProp
+        . xmobarSB
         $ mainConfiguration
 
 {-

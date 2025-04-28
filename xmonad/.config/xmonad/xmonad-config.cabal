@@ -24,3 +24,5 @@ executable xmonad-config
                      , Module.Scratchpad
                      , Module.Keybind
                      , Module.WinRule
+                     , Module.Startup
+                     , Module.Xmobar
