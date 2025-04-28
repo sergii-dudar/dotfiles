@@ -4,7 +4,9 @@ Config { overrideRedirect = False
        , fgColor  = "#f8f8f2"
        -- , position = TopW L 99
        , position       = TopSize L 100 30 
-       , commands = [ Run Weather "EGPF"
+       , commands = [ 
+                        Run XPropertyLog "_XMONAD_TRAYPAD"
+                    ,   Run Weather "EGPF"
                         [ "--template", "<weather> <tempC>°C"
                         , "-L", "0"
                         , "-H", "25"
@@ -31,5 +33,5 @@ Config { overrideRedirect = False
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%XMonadLog% }{ %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %date% "
+       , template = "%XMonadLog% }{ %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %date% | %_XMONAD_TRAYPAD%"
        }

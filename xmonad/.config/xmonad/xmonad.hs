@@ -84,9 +84,12 @@ mainConfiguration =
             , manageHook =
                 insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks
             , layoutHook = avoidStruts $ L.layoutsConfig
-            , workspaces = V.workspacesList
+            , -- , startupHook = myStartupHook
+              workspaces = V.workspacesList
             , -- , handleEventHook = windowedFullscreenFixEventHook <> swallowEventHook (className =? "Alacritty" <||> className =? "st-256color" <||> className =? "XTerm") (return True) <> trayerPaddingXmobarEventHook
-              -- handleEventHook =
+              handleEventHook =
+                handleEventHook def <> windowedFullscreenFixEventHook <> trayerPaddingXmobarEventHook <> trayerAboveXmobarEventHook
+            , -- handleEventHook =
               --   swallowEventHook
               --       (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
               --       (return True)
@@ -96,6 +99,7 @@ mainConfiguration =
 
 main :: IO ()
 main = do
+    -- xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
     xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
     xmonad
         . configureMRU
