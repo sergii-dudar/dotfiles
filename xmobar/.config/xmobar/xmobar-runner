@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-killall trayer
+# killall trayer
 # killall xmobar
 
 # xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs

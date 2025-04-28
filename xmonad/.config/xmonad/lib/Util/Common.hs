@@ -1,4 +1,8 @@
-module Util.Common (toRationalRect, notifySend) where
+module Util.Common
+    ( toRationalRect
+    , notifySend
+    , buildNotifyMsg
+    ) where
 
 import qualified Module.Variable as V
 import XMonad
@@ -14,4 +18,5 @@ y = (1 - heightFactor) / 2
 
 toRationalRect = W.RationalRect x y widthFactor heightFactor
 
-notifySend msg = spawn ("notify-send \"" ++ msg ++ "\" -t 700")
+buildNotifyMsg msg = "notify-send \"" ++ msg ++ "\" -t 700"
+notifySend msg = spawn $ buildNotifyMsg msg

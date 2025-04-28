@@ -100,7 +100,7 @@ mainConfiguration =
 main :: IO ()
 main = do
     -- xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
-    xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
+    -- xmproc <- spawnPipe "killall xmobar ; ~/dotfiles/xmobar/.config/xmobar/xmobar-runner"
     xmonad
         . configureMRU
         . ewmhFullscreen

@@ -20,8 +20,11 @@ import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDo
 -- Config Modules
 import qualified Module.Scratchpad as S
 import qualified Module.Variable as V
+import qualified Util.Common as U
 
 -- Utils
+
+import Util.Common (buildNotifyMsg)
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
 
 -- ######################## PUBLIC ##########################
@@ -69,7 +72,9 @@ bindKeys :: [(String, X ())]
 bindKeys =
     [ -- ##############################################################
       -- ######################## GENERAL #############################
-      ("M-S-r", spawn "xmonad --recompile &&  xmonad --restart") -- recompile and restart xmonad
+      --  && " ++ U.buildNotifyMsg "XMONAD RESTARTED ⭐"
+      --  xmonad --recompile &>> ~/tempDump.txt
+      ("M-S-r", spawn "xmonad --recompile && xmonad --restart") -- recompile and restart xmonad
     , ("M-<Return>", spawn V.appsTerminal) -- launch a terminal
     , ("M-<Tab>", sendMessage NextLayout) -- next layout
     , ("M-S-c", kill) -- Close/kill the focused window
