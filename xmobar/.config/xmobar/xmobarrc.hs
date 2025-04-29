@@ -1,9 +1,15 @@
 Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynamically.
-       , font     = "CaskaydiaCove Nerd Font Bold 18"
-       , bgColor  = "#5f5f5f"
-       , fgColor  = "#f8f8f2"
+       , dpi = 96 -- default - 96.0
+       , font = "CaskaydiaCove Nerd Font Bold 20"
+       , additionalFonts = [
+          "CaskaydiaCove Nerd Font Bold 22" -- 1
+        , "CaskaydiaCove Nerd Font Bold 24" -- 2
+        , "CaskaydiaCove Nerd Font Bold 26" -- 3
+       ]
+       , bgColor  = "#232634"
+       , fgColor  = "#94928F" -- "#83a598" -- "#f8f8f2"
        , lowerOnStart = True 
-       , position       = TopSize L 100 30 
+       , position       = TopSize L 100 35 
        , commands = [ 
                         Run XPropertyLog "_XMONAD_TRAYPAD"
                     ,   Run Weather "EGPF"
@@ -33,5 +39,5 @@ Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynam
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%UnsafeXMonadLog% }{ %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %date% | %_XMONAD_TRAYPAD%"
+       , template = "%UnsafeXMonadLog% } %date% { %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %_XMONAD_TRAYPAD%"
        }

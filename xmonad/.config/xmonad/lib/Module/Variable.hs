@@ -43,5 +43,21 @@ settingsFloatFactorWidth = 0.75
 settingsFloatFactorHeight :: Rational
 settingsFloatFactorHeight = 0.8
 
--- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
-workspacesList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+-- workspacesList = ["web", "irc", "code"] ++ map show [4 .. 9]
+-- workspacesList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+-- workspacesList = [" 1  ", " 2  ", " 3  ", " 4 󰆍 ", " 5  ", " 6 󰣇 ", " 7  ", " 8  ", " 9  "]"]
+
+workspacesList =
+    [ " 1 \xe62b " ++ space 3
+    , " 2 <fn=2>\xe7b5 </fn>"
+    , " 3 \xf268 " ++ space 7
+    , " 4 \xf489 " ++ space 10
+    , " 5 \xf346 " ++ space 6
+    , " 6 \xf08c7 "
+    , " 7 \xf31e " ++ space 6
+    , " 8 \xf345 " ++ space 6
+    , " 9 \xf14a " ++ space 6
+    ]
+
+space :: Int -> String
+space pixeds = "<hspace=" ++ show pixeds ++ "/>"

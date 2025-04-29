@@ -10,5 +10,5 @@ trayer -l \
     --expand true \
     --transparent true \
     --alpha 0 \
-    --tint 0x5f5f5f \
+    --tint 0x232634 \
     --height 30
