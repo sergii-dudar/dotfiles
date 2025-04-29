@@ -16,16 +16,20 @@ nm-applet &
 
 # Fix issues with running apps for some wm (small sleep, or order sensitive apps that have impact to particular wm)
 case "$wm_name" in
-    "i3")
+    i3)
         #ghostty --class=com.ghostty.group01 &
         brave &
         # i3-msg 'workspace 1' ; ghostty --class=com.ghostty.group01 &
         # sleep 0.5 && i3-msg 'workspace 2' ; brave &
         # sleep 0.5 && i3-msg 'workspace 1'
         ;;
-    "bspwm")
+    bspwm)
         ghostty --class=com.ghostty.group01 &
         (sleep 0.5 && brave) &
+        ;;
+    xmonad)
+        (sleep 0.4 && ghostty --class=com.ghostty.group01) &
+        (sleep 0.7 && brave) &
         ;;
     *)
         ghostty --class=com.ghostty.group01 &
@@ -35,7 +39,7 @@ esac
 
 # Global config of wm
 case "$wm_name" in
-    "i3")
+    i3)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
         ~/.config/polybar/launch-i3.sh &
 
@@ -57,19 +61,20 @@ case "$wm_name" in
         # kitty --name file_namager -e yazi
         # kitty --hold --name file_namager -e yazi &
         ;;
-    "dwm")
+    dwm)
         dwmblocks &
         killall sxhkd; sxhkd -c ~/.config/sxhkd/dwm/sxhkdrc &
         ;;
-    "bspwm")
+    bspwm)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/bspwm/sxhkdrc &
         ~/.config/polybar/launch-bspwm.sh &
         ;;
-    "qtile")
+    qtile)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/qtile/sxhkdrc &
         ;;
-    "xmonad")
+    xmonad)
         xsetroot -cursor_name left_ptr
+        killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
         ;;
     *)
         killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &

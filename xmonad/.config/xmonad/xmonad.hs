@@ -56,6 +56,7 @@ import XMonad (XConfig (manageHook), title)
 import XMonad.Actions.MostRecentlyUsed (Location (workspace), configureMRU)
 import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Hooks.RefocusLast (refocusLastLogHook)
+import XMonad.Util.ClickableWorkspaces (clickablePP)
 import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
@@ -98,11 +99,11 @@ mainConfiguration =
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
-xmobarSB = withEasySB (statusBarProp "xmobar" (pure BAR.xmobarPPConfig)) K.toggleStrutsKey
+xmobarSB = withEasySB (statusBarProp V.appsXmobarRun (clickablePP BAR.xmobarPPConfig)) K.toggleStrutsKey
 
 main :: IO ()
 main = do
-    xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
+    -- xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
     xmonad
         . configureMRU
         . ewmhFullscreen

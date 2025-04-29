@@ -129,8 +129,6 @@ bindKeys =
 
 toggleXmobarAndStruts :: X ()
 toggleXmobarAndStruts = do
-    spawn
-        "dbus-send --session --dest=org.Xmobar.Control --type=method_call '/org/Xmobar/Control' org.Xmobar.Control.SendSignal string:'Toggle 0'"
-    -- spawn "xdo id -n xmobar | xargs -I {} xdo hide {} || xdo id -n xmobar | xargs -I {} xdo show {}"
-    spawn "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle"
+    spawn V.appsXmobarToggle
+    spawn V.appsTrayerToggle
     sendMessage ToggleStruts

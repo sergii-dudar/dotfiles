@@ -29,9 +29,9 @@ Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynam
                     , Run Memory ["--template", "Mem: <usedratio>%"] 10
                     , Run Swap [] 10
                     , Run Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
-                    , Run XMonadLog
+                    , Run UnsafeXMonadLog -- XMonadLog
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%XMonadLog% }{ %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %date% | %_XMONAD_TRAYPAD%"
+       , template = "%UnsafeXMonadLog% }{ %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %date% | %_XMONAD_TRAYPAD%"
        }

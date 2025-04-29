@@ -21,6 +21,12 @@ appsTerminalHtop = "kitty --name htop_info -e htop"
 appsTerminalDiscUsage = "kitty --name disc_usage_info --hold zsh -c \"export MANUAL_RL=1; df; exec zsh\""
 appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu"
 
+appsTrayerRun = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-run"
+appsTrayerToggle = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle"
+
+appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/xmobar-run"
+appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/xmobar-toggle"
+
 -- ################## FONTS #############################
 
 -- "CaskaydiaCove Nerd Font:bold:pixelsize=24",
