@@ -1,4 +1,4 @@
-module Module.Xmobar (xmobarPPConfig) where
+module Module.Xmobar (statusBarConfig, xmobarPPConfig) where
 
 import XMonad
 
@@ -21,6 +21,14 @@ import XMonad.Layout.Magnifier
 import XMonad.Layout.ThreeColumns
 
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Util.ClickableWorkspaces (clickablePP)
+
+statusBarConfig :: StatusBarConfig
+statusBarConfig =
+    statusBarProp V.appsXmobarRun
+        . clickablePP
+        . filterOutWsPP ["NSP"]
+        $ xmobarPPConfig
 
 xmobarPPConfig :: PP
 xmobarPPConfig =

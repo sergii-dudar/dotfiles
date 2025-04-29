@@ -4,6 +4,7 @@ import XMonad
 
 -- Hooks
 import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isDialog, isFullscreen)
+import qualified XMonad.StackSet as W
 
 -- Config Modules
 
@@ -14,7 +15,13 @@ manageHookConfig =
     composeAll
         [ resource =? "desktop_window" --> doIgnore
         , resource =? "kdesktop" --> doIgnore
-        , isDialog --> doFloat
+        , -- , isFullscreen --> doFullFloat
+          -- , isDialog --> doCenterFloat
+          -- isDialog --> doF W.swapUp
+          --  isDialog --> doCenterFloat
+          --  isDialog --> doFloat <+> ask >>= doF . W.focusWindow
+          isDialog --> doCenterFloat
+        , isFullscreen --> doFullFloat
         , applyFloatToClass "MPlayer"
         , applyFloatToClass "Gimp"
         , applyFloatToClass "qBittorrent"

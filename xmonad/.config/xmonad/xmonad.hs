@@ -41,7 +41,7 @@ import Data.Tree
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
-import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isFullscreen)
+import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isDialog, isFullscreen)
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.StatusBar
@@ -50,12 +50,10 @@ import XMonad.Hooks.WindowSwallowing
 import XMonad.Hooks.WorkspaceHistory
 
 -- Utilities
-import XMonad (XConfig (manageHook), title)
 import XMonad.Actions.MostRecentlyUsed (Location (workspace), configureMRU)
 import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Hooks.RefocusLast (refocusLastLogHook)
 import XMonad.Util.ClickableWorkspaces (clickablePP)
-import XMonad.Util.Dmenu
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
     ( javaHack
@@ -66,11 +64,6 @@ import XMonad.Util.Hacks
     , trayerPaddingXmobarEventHook
     , windowedFullscreenFixEventHook
     )
-import XMonad.Util.NamedActions
-import XMonad.Util.NamedScratchpad
-import XMonad.Util.NamedWindows (getName)
-import XMonad.Util.Run (runProcessWithInput, safeSpawn, spawnPipe)
-import XMonad.Util.SpawnOnce
 
 mainConfiguration =
     K.applyKeybinds $
@@ -82,7 +75,13 @@ mainConfiguration =
             , terminal = V.appsTerminal
             , mouseBindings = K.bindMouseKeys
             , manageHook =
-                insertPosition End Newer <+> R.manageHookConfig <+> manageHook def <+> S.scratchpadsManageHooks <+> manageDocks
+                insertPosition End Newer
+                    <+> manageHook def
+                    <+> R.manageHookConfig
+                    <+> S.scratchpadsManageHooks
+                    -- <+> (isFullscreen --> doFullFloat)
+                    -- <+> (isDialog --> doF W.swapUp)
+                    <+> manageDocks
             , layoutHook = avoidStruts $ L.layoutsConfig
             , workspaces = V.workspacesList
             , handleEventHook =
@@ -97,7 +96,7 @@ mainConfiguration =
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
-xmobarSB = withEasySB (statusBarProp V.appsXmobarRun (clickablePP BAR.xmobarPPConfig)) K.toggleStrutsKey
+xmobarSB = withEasySB BAR.statusBarConfig K.toggleStrutsKey
 
 main :: IO ()
 main = do
