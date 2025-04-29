@@ -16,8 +16,6 @@ executable xmonad-config
 
 -- List of all custom libraries that need to be loaded on start by hls
  other-modules:        Util.Common
-                     , Util.CommonTwo
-                     , Util.Env.Environment
                      , Color.DoomOne
                      , Module.Variable
                      , Module.Layout

@@ -1,9 +1,9 @@
-stack install xmonad
-
-# xmonad custom build:
+# stack install xmonad
 
 ----------------------------------
-ghcup list:
+
+## ghcup list
+
 - hls 2.9.0.1
 - stack 3.1.1
 - hls 2.9.0.1
@@ -13,13 +13,14 @@ ghcup list:
 
 # ghc 9.6.6 to match haskell-language-server-9.6.6 by nvim h tools, as it should match to lsp work properly
 
-----------------------------------
-cd in ~/dotfiles/xmonad/.config/xmonad (symlink to ~/.config/xmonad)
-git clone https://github.com/xmonad/xmonad
-git clone https://github.com/xmonad/xmonad-contrib
+## dependencies
 
-----------------
-# deprecated:
-#git submodules
-#git submodule add <repository-url> <folder-path>
-#git submodule update --init --recursive
+```bash
+
+sudo pacman -S xdotool xdo trayer xmobar 
+
+```
+
+----------------------------------
+git clone <https://github.com/xmonad/xmonad>
+git clone <https://github.com/xmonad/xmonad-contrib>

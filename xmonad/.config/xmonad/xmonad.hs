@@ -1,7 +1,5 @@
 -- Config Functionality Modules
 import Control.Monad (when)
-import Util.CommonTwo
-import Util.Env.Environment
 
 -- Config Modules
 import qualified Module.Keybind as K
