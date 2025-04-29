@@ -6,8 +6,6 @@ import XMonad
 import XMonad.Layout.Accordion
 import XMonad.Layout.Gaps
 import XMonad.Layout.GridVariants (Grid (Grid))
-import XMonad.Layout.NoBorders (noBorders)
-import XMonad.Layout.ResizableTile
 import XMonad.Layout.SimplestFloat
 import XMonad.Layout.Spiral
 import XMonad.Layout.Tabbed
@@ -19,7 +17,7 @@ import XMonad.Layout.LimitWindows (decreaseLimit, increaseLimit, limitWindows)
 import XMonad.Layout.MultiToggle (EOT (EOT), mkToggle, single, (??))
 import qualified XMonad.Layout.MultiToggle as MT (Toggle (..))
 import XMonad.Layout.MultiToggle.Instances (StdTransformers (MIRROR, NBFULL, NOBORDERS))
-import XMonad.Layout.NoBorders (smartBorders)
+import XMonad.Layout.NoBorders (noBorders, smartBorders)
 import XMonad.Layout.Renamed
 import XMonad.Layout.ShowWName
 import XMonad.Layout.Simplest

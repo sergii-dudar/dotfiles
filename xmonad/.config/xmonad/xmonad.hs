@@ -1,5 +1,10 @@
--- Config Functionality Modules
+-- Haskell General
+
 import Control.Monad (when)
+import qualified Data.Map as M
+import Data.Monoid
+import Data.Tree
+import System.Directory
 
 -- Config Modules
 import qualified Module.Keybind as K
@@ -12,38 +17,11 @@ import qualified Module.Xmobar as BAR
 import qualified Util.Common as U
 
 -- Base
-import System.Directory
-import System.Exit (exitSuccess)
-import System.IO (hClose, hPutStr, hPutStrLn)
 import XMonad
-import qualified XMonad.StackSet as W
-
--- Actions
-import XMonad.Actions.CopyWindow (kill1)
-import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
-import qualified XMonad.Actions.FlexibleResize as Flex
-import XMonad.Actions.GridSelect
-import XMonad.Actions.MouseResize
-import XMonad.Actions.Promote
-import XMonad.Actions.RotSlaves (rotAllDown, rotSlavesDown)
-import qualified XMonad.Actions.Search as S
-import XMonad.Actions.WindowGo (runOrRaise)
-import XMonad.Actions.WithAll (killAll, sinkAll)
-
--- Data
-import Data.Char (isSpace, toUpper)
-import qualified Data.Map as M
-import Data.Maybe (fromJust, isJust)
-import Data.Monoid
-import Data.Tree
 
 -- Hooks
 import XMonad.Hooks.EwmhDesktops -- for some fullscreen events, also for xcomposite in obs.
-import XMonad.Hooks.InsertPosition
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
-import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isDialog, isFullscreen)
-import XMonad.Hooks.ServerMode
-import XMonad.Hooks.SetWMName
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.WindowSwallowing
@@ -51,7 +29,6 @@ import XMonad.Hooks.WorkspaceHistory
 
 -- Utilities
 import XMonad.Actions.MostRecentlyUsed (Location (workspace), configureMRU)
-import XMonad.Actions.Warp (warpToWindow)
 import XMonad.Hooks.RefocusLast (refocusLastLogHook)
 import XMonad.Util.ClickableWorkspaces (clickablePP)
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
@@ -75,14 +52,10 @@ mainConfiguration =
             , terminal = V.appsTerminal
             , mouseBindings = K.bindMouseKeys
             , manageHook =
-                insertPosition End Newer
-                    <+> manageHook def
+                manageHook def
                     <+> R.manageHookConfig
                     <+> S.scratchpadsManageHooks
-                    -- <+> (isFullscreen --> doFullFloat)
-                    -- <+> (isDialog --> doF W.swapUp)
-                    <+> manageDocks
-            , layoutHook = avoidStruts $ L.layoutsConfig
+            , layoutHook = avoidStruts L.layoutsConfig
             , workspaces = V.workspacesList
             , handleEventHook =
                 handleEventHook def

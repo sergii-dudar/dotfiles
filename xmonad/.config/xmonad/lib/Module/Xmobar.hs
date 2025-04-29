@@ -3,7 +3,6 @@ module Module.Xmobar (statusBarConfig, xmobarPPConfig) where
 import XMonad
 
 -- Hooks
-
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
 import XMonad.Hooks.ManageHelpers
@@ -14,14 +13,8 @@ import XMonad.Hooks.StatusBar.PP
 import qualified Module.Variable as V
 import qualified Util.Common as U
 
-import XMonad.Util.EZConfig
-import XMonad.Util.Loggers
-
-import XMonad.Layout.Magnifier
-import XMonad.Layout.ThreeColumns
-
-import XMonad.Hooks.EwmhDesktops
 import XMonad.Util.ClickableWorkspaces (clickablePP)
+import XMonad.Util.Loggers
 
 statusBarConfig :: StatusBarConfig
 statusBarConfig =

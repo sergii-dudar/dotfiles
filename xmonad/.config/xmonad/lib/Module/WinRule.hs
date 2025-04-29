@@ -3,11 +3,12 @@ module Module.WinRule (manageHookConfig) where
 import XMonad
 
 -- Hooks
+import XMonad.Hooks.InsertPosition
+import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
 import XMonad.Hooks.ManageHelpers (doCenterFloat, doFullFloat, doRectFloat, isDialog, isFullscreen)
 import qualified XMonad.StackSet as W
 
 -- Config Modules
-
 import qualified Module.Variable as V
 import qualified Util.Common as U
 
@@ -15,13 +16,10 @@ manageHookConfig =
     composeAll
         [ resource =? "desktop_window" --> doIgnore
         , resource =? "kdesktop" --> doIgnore
-        , -- , isFullscreen --> doFullFloat
-          -- , isDialog --> doCenterFloat
-          -- isDialog --> doF W.swapUp
-          --  isDialog --> doCenterFloat
-          --  isDialog --> doFloat <+> ask >>= doF . W.focusWindow
-          isDialog --> doCenterFloat
+        , isDialog --> doCenterFloat
         , isFullscreen --> doFullFloat
+        , manageDocks
+        , (not <$> (isDialog <||> isFullscreen)) --> insertPosition End Newer -- apply only to tile windows
         , applyFloatToClass "MPlayer"
         , applyFloatToClass "Gimp"
         , applyFloatToClass "qBittorrent"
