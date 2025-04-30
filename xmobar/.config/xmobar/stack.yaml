@@ -50,10 +50,14 @@ extra-deps:
 # Override default flag values for project packages and extra-deps
 # flags: {}
 
+# https://codeberg.org/xmobar/xmobar/src/branch/master/doc/compiling.org
 flags:
     xmobar:
         with_shared: true
         with_dbus: true
+        with_mpris: true
+        with_alsa: true
+        with_weather: true
 # Extra package databases containing global packages
 # extra-package-dbs: []
 
