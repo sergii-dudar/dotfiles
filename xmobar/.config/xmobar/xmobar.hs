@@ -43,17 +43,28 @@ config =
                     , "red"
                     ]
                     36000
-            , Run $ S.cpuCommand 10
+            , Run S.cpuCommand
             , Run S.alsaCommand
-            , Run $ S.memoryCommand 10
+            , Run S.memoryCommand
             , Run $ Swap [] 10
             , Run $ Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
-            , Run $ UnsafeXMonadLog -- XMonadLog
+            , Run UnsafeXMonadLog -- XMonadLog
             ]
         , sepChar = "%"
         , alignSep = "}{"
-        , template = "%UnsafeXMonadLog% } %date% { %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %_XMONAD_TRAYPAD%"
-        -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸
+        , template =
+            concat
+                [ "%UnsafeXMonadLog%"
+                , " } "
+                , "%date%"
+                , " { "
+                , "%alsa:default:Master%"
+                , " | %cpu%"
+                , " | %memory% * %swap%"
+                , " | %EGPF%"
+                , " | %_XMONAD_TRAYPAD%"
+                ]
+                -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸
         }
 
 main :: IO ()

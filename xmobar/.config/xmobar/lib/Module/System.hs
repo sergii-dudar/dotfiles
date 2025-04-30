@@ -2,7 +2,7 @@ module Module.System where
 
 import Xmobar
 
-cpuCommand :: Rate -> Monitors
+cpuCommand :: Monitors
 cpuCommand =
     Cpu
         [ "-L"
@@ -14,9 +14,10 @@ cpuCommand =
         , "--normal"
         , "green"
         ]
+        10
 
-memoryCommand :: Rate -> Monitors
-memoryCommand = Memory ["--template", "Mem: <usedratio>%"]
+memoryCommand :: Monitors
+memoryCommand = Memory ["--template", "Mem: <usedratio>%"] 10
 
 alsaCommand :: Monitors
 alsaCommand =
