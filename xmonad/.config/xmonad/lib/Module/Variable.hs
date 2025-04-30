@@ -49,7 +49,7 @@ settingsFloatFactorHeight = 0.8
 
 workspacesList =
     [ " 1 \xe62b " ++ space 3
-    , " 2 <fn=2>\xe7b5 </fn>"
+    , " 2 <fn=1>\xe7b5 </fn>"
     , " 3 \xf268 " ++ space 7
     , " 4 \xf489 " ++ space 10
     , " 5 \xf346 " ++ space 6

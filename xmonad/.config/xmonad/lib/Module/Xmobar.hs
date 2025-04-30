@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use ++" #-}
+
 module Module.Xmobar (statusBarConfig, xmobarPPConfig) where
 
 import XMonad
@@ -28,78 +32,92 @@ statusBarConfig =
 xmobarPPConfig :: PP
 xmobarPPConfig =
     def
-        { -- ppSep = magenta " • "
-          -- ppSep = "<fc=" ++ "#bd93f9" ++ "> <fn=1>|</fn> </fc>"
-          ppSep = "<hspace=4/>"
+        { ppSep = "<hspace=3/>"
         , ppWsSep = ""
-        , -- , ppTitleSanitize = xmobarStrip
-          ppTitle = yellow . shorten 60
-        , -- , ppCurrent = wrap " " "" . xmobarBorder "Top" "#8be9fd" 4 . xmobarBorder "Bottom" "#8be9fd" 4
-          ppCurrent =
-            blue
-                . wrap "" ""
-                -- . xmobarBorder "VBoth" "#8be9fd" 4
-                . wrap
-                    -- ("<fc=#FF0000,#000000><box type=VBoth width=4 mb=2 ml=5 mr=5 color=" ++ "#8be9fd" ++ ">")
-                    -- "</box></fc>"
-                    -- ("<fc=#FF0000,#000000:0> </fc><fc=#FF0000,#000000:0>")
-                    -- "</fc><fc=#FF0000,#000000:0> </fc>"
-                    ("<fc=#FF0000,#000000:0>")
-                    "</fc>"
-        , -- ppCurrent =
-          --   blue
-          --       . wrap " " ""
-          --       . wrap
-          --           ("<box type=Bottom width=2 mb=2 color=" ++ "#8be9fd" ++ ">")
-          --           "</box>"
-          ppHidden = white . wrap "" ""
-        , ppHiddenNoWindows = lowWhite . wrap "<fc=#94928F,#2E3440:0>" "</fc>"
-        , ppUrgent = red . wrap (yellow "!") (yellow "!")
+        , ppTitleSanitize = xmobarStrip
+        , ppTitle = color "#f1fa8c" . shorten 60
+        , ppCurrent = wrap tagCurrentLeft tagCurrentRight
+        , ppHidden = wrap tagNotEmptyLeft tagNotEmptyRight
+        , ppHiddenNoWindows = wrap tagEmptyLeft tagEmptyRight
+        , ppUrgent = color "#ff5555" . wrap (color "#f1fa8c" "!") (color "#f1fa8c" "!")
         , ppOrder = \[ws, l, _, wins] -> [ws, l, wins]
-        , -- , ppLayout =
-          --     ofColor "#d183e8"
-          --         . wrap (ofColor "#7C8377" "<fc=#d183e8,#2E3440:0>[<hspace=5/>") (ofColor "#7C8377" "</fc><hspace=5/>]")
-          ppLayout =
-            wrap
-                "<fc=#7C8377,#2E3440:0><hspace=4/>[</fc><fc=#a9a1e1,#2E3440:0><hspace=5/>"
-                "<hspace=5/></fc><fc=#7C8377,#2E3440:0>]<hspace=4/></fc><hspace=8/>"
+        , ppLayout = wrap layoutLeft layoutRight
         , ppExtras = [logTitles formatFocused formatUnfocused]
         }
     where
-        -- formatFocused = wrap (white "[") (white "]") . magenta . ppWindow
-        -- formatUnfocused = wrap (lowWhite "[") (lowWhite "]") . blue . ppWindow
-        -- formatFocused = wrap (white " 👉 ") "" . ofColor "#c678dd" . ppWindow
-        formatFocused = wrap (ofColor "#a6d189" "\xf061 ") "" . ofColor "#c678dd" . ppWindow
-        formatUnfocused = ofColor "#7C8377" . ppWindow
-
-        -- \| Windows should have *some* title, which should not not exceed a
-        -- sane length.
+        -- formatFocused = wrap (color "#a6d189" "\xf061 ") "" . color "#c678dd" . ppWindow
+        -- formatUnfocused = color "#7C8377" . ppWindow
+        formatFocused =
+            wrap (color "#a6d189" "[<hspace=5/>") (color "#a6d189" "<hspace=5/>]")
+                . color "#c678dd"
+                . ppWindow
+        formatUnfocused =
+            wrap " <hspace=5/>" "<hspace=5/> "
+                . color "#7C8377"
+                . ppWindow
         ppWindow :: String -> String
         ppWindow = xmobarRaw . (\w -> if null w then "untitled" else w) . shorten 30
 
-        blue, lowWhite, magenta, red, white, yellow :: String -> String
-        magenta = xmobarColor "#ff79c6" ""
-        blue = xmobarColor "#bd93f9" ""
-        white = xmobarColor "#f8f8f2" ""
-        yellow = xmobarColor "#f1fa8c" ""
-        red = xmobarColor "#ff5555" ""
-        lowWhite = xmobarColor "#bbbbbb" ""
+tagCurrentLeft =
+    concat
+        [ "<fc=#a6d189,#44475a:0>"
+        , "<hspace=2/>"
+        , "<box type=Bottom width=4 ml=0 mr=0 color=#80a0ff>"
+        ]
+tagCurrentRight =
+    concat
+        [ "</box>"
+        , "<hspace=2/>"
+        , "</fc>"
+        ]
+tagNotEmptyLeft =
+    concat
+        [ "<fc=#8caaee,#2E3440:0>"
+        , "<hspace=2/>"
+        , "<box type=Bottom width=4 ml=0 mr=0 color=#535d6c>"
+        ]
+tagNotEmptyRight =
+    concat
+        [ "</box>"
+        , "<hspace=2/>"
+        , "</fc>"
+        ]
+tagEmptyLeft =
+    concat
+        [ "<fc=#51576d,#2E3440:0>"
+        , "<hspace=2/>"
+        ]
+tagEmptyRight =
+    concat
+        [ "<hspace=2/>"
+        , "</fc>"
+        ]
 
-ofColor :: String -> String -> String
-ofColor color = xmobarColor color ""
+layoutLeft =
+    concat
+        [ "<fc=#7C8377,#2E3440:0>"
+        , "<hspace=4/>"
+        , "["
+        , "</fc>"
+        , "<fc=#a9a1e1,#2E3440:0>"
+        , "<hspace=5/>"
+        ]
 
-{-
-,
-, -- Hidden workspace
-    ppHidden =
-    xmobarColor color05 ""
-        . wrap
-            ("<box type=Top width=2 mt=2 color=" ++ color05 ++ ">")
-            "</box>"
-        . clickable
-, -- Hidden workspaces (no windows)
-    ppHiddenNoWindows = xmobarColor color05 "" . clickable
--}
+layoutRight =
+    concat
+        [ "<hspace=5/>"
+        , "</fc>"
+        , "<fc=#7C8377,#2E3440:0>"
+        , "]"
+        , "<hspace=4/>"
+        , "</fc><hspace=8/>"
+        ]
+
+space :: Int -> String
+space pixels = "<hspace=" ++ show pixels ++ "/>"
+
+color :: String -> String -> String
+color color = xmobarColor color ""
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.

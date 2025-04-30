@@ -1,10 +1,15 @@
 Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynamically.
        , dpi = 96 -- default - 96.0
-       , font = "CaskaydiaCove Nerd Font Bold 20"
+       , font = "CaskaydiaCove Nerd Font Bold 18"
        , additionalFonts = [
           "CaskaydiaCove Nerd Font Bold 22" -- 1
         , "CaskaydiaCove Nerd Font Bold 24" -- 2
         , "CaskaydiaCove Nerd Font Bold 26" -- 3
+        , "CaskaydiaCove Nerd Font Bold 28" -- 4
+        , "CaskaydiaCove Nerd Font Bold 30" -- 5
+        , "CaskaydiaCove Nerd Font Bold 32" -- 6
+        , "CaskaydiaCove Nerd Font Bold 34" -- 7
+        , "CaskaydiaCove Nerd Font Bold 36" -- 8
        ]
        , bgColor  = "#232634"
        , fgColor  = "#94928F" -- "#83a598" -- "#f8f8f2"
@@ -40,4 +45,5 @@ Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynam
        , sepChar  = "%"
        , alignSep = "}{"
        , template = "%UnsafeXMonadLog% } %date% { %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %_XMONAD_TRAYPAD%"
+       -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸 
        }

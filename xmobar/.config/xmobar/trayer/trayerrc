@@ -4,6 +4,7 @@ trayer -l \
     --margin 5 \
     --widthtype request \
     --padding 8 \
+    --distance 1 \
     --iconspacing 6 \
     --SetDockType true \
     --SetPartialStrut true \
@@ -11,4 +12,4 @@ trayer -l \
     --transparent true \
     --alpha 0 \
     --tint 0x232634 \
-    --height 30
+    --height 33
