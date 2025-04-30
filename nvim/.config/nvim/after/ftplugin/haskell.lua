@@ -18,7 +18,7 @@ end, { desc = "Forse HLS to restart fully and reload current buffer", nargs = "*
     end)
 end, { desc = "Forse HSL to recheck all diagnostics", nargs = "*" }) ]]
 
-local current_file = vim.fn.expand("%:p")
+--[[ local current_file = vim.fn.expand("%:p")
 local list_util = require("utils.list-util")
 local ignore_dirs = {
     "xmobar",
@@ -28,4 +28,4 @@ if list_util.any_match(current_file, ignore_dirs) then
     -- disabled autoformat to work with dwm
     vim.b.autoformat = false
     vim.diagnostic.enable(false)
-end
+end ]]

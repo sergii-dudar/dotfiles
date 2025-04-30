@@ -121,6 +121,7 @@ color color = xmobarColor color ""
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.
+-- https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Hooks-DynamicLog.html
 
 {- data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ how to print the tag of the currently focused

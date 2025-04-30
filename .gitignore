@@ -50,3 +50,11 @@ suckless/dwm/dwm
 **/.config/xmonad/.stack-work/
 **/.config/xmonad/xmonad/
 **/.config/xmonad/xmonad-contrib/
+
+**/.config/xmobar/stack.yaml.lock
+**/.config/xmobar/.stack-work/
+**/.config/xmobar/xmobar/
+
+**/.config/xmobar-config/stack.yaml.lock
+**/.config/xmobar-config/.stack-work/
+**/.config/xmobar-config/xmobar/

@@ -1,0 +1,1 @@
+pgrep trayer && killall trayer || ~/dotfiles/xmobar/.config/xmobar/trayer/trayerrc.sh

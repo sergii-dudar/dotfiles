@@ -1,0 +1,1 @@
+killall trayer ; sleep 0.5 ; ~/dotfiles/xmobar/.config/xmobar/trayer/trayerrc.sh
