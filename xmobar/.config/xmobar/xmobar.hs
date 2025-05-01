@@ -1,8 +1,13 @@
 import Xmobar
 
-import qualified Module.System as S
-import qualified Module.Variable as V
+import qualified Module.Battery as Battery
+import qualified Module.Date as Date
+import qualified Module.Runner as Runner
+import qualified Module.Simple as Simple
+import qualified Module.System as System
+import qualified Module.Volume as Volume
 import qualified Util.Common as U
+import qualified Util.Variable as V
 
 config :: Config
 config =
@@ -43,11 +48,12 @@ config =
                     , "red"
                     ]
                     36000
-            , Run S.cpuCommand
-            , Run S.alsaCommand
-            , Run S.memoryCommand
+            , Run Simple.kbdCommand
+            , Run System.cpuCommand
+            , Run Volume.alsaCommand
+            , Run System.memoryCommand
+            , Run Date.dateCommand
             , Run $ Swap [] 10
-            , Run $ Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
             , Run UnsafeXMonadLog -- XMonadLog
             ]
         , sepChar = "%"
@@ -58,6 +64,8 @@ config =
                 , " } "
                 , "%date%"
                 , " { "
+                , "%kbd%"
+                , "<hspace=3/>"
                 , "%alsa:default:Master%"
                 , " | %cpu%"
                 , " | %memory% * %swap%"
@@ -66,6 +74,10 @@ config =
                 ]
                 -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸
         }
+
+-- modules-left = applicaitons run-gnome-control-center run-sys-monitor run-htop run-disc-monitor run-torrent run-kitty run-wezterm run-ghostty run-pipette run-idea run-browser powermenu
+-- modules-right = keyboard pulseaudio battery memory cpu temperature filesystem open-weather systray
+-- "<hspace=5/>"
 
 main :: IO ()
 main = xmobar config

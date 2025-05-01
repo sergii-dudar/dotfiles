@@ -18,17 +18,3 @@ cpuCommand =
 
 memoryCommand :: Monitors
 memoryCommand = Memory ["--template", "Mem: <usedratio>%"] 10
-
-alsaCommand :: Monitors
-alsaCommand =
-    Alsa
-        "default"
-        "Master"
-        [ "--template"
-        , "<volumestatus>"
-        , "--suffix"
-        , "True"
-        , "--"
-        , "--on"
-        , ""
-        ]
