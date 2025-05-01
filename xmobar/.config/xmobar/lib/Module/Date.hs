@@ -2,18 +2,6 @@ module Module.Date where
 
 import Xmobar
 
--- Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
--- ( concat
---     [ "<fc=#7c8377>\xf073</fc>"
---     , " <fc=#6272a4>%a,</fc>"
---     , "<hspace=5/>%b"
---     , "<hspace=5/>%d"
---     , " <fc=#bd93f9>\xf017</fc>"
---     , " <hspace=5/><fc=#a6d189>%I:%M</fc>"
---     , "<hspace=5/><fc=#8caaee>%p</fc>"
---     ]
--- )
-
 dateCommand :: Date
 dateCommand =
     Date

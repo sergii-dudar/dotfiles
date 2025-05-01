@@ -63,48 +63,28 @@ diskCommand =
         []
         36000
 
-coreTempCommand :: Monitors
-coreTempCommand =
+cpuTempCommand :: Monitors
+cpuTempCommand =
     -- cpu core temperature monitor
     CoreTemp
         [ "--template"
-        , "Temp: <core0>°C|<core1>°C"
+        , concat
+            [ "<fc=#94928F,#2E3440:0>"
+            , "<hspace=12/>"
+            , "<fc=#a6e3a1,#2E3440:0>\xf2c7</fc>"
+            , "<hspace=5/><core0><hspace=1/>"
+            , "<fc=#6272a4,#2E3440:0>°C</fc><hspace=12/>"
+            , "</fc>"
+            ]
         , "--Low"
         , "70" -- units: °C
         , "--High"
         , "80" -- units: °C
-        , "--low"
-        , "darkgreen"
-        , "--normal"
-        , "darkorange"
-        , "--high"
-        , "darkred"
+        -- , "--low"
+        -- , "darkgreen"
+        -- , "--normal"
+        -- , "darkorange"
+        -- , "--high"
+        -- , "darkred"
         ]
         50
-
--- CoreTemp
---     [ "--template"
---     , -- , concat
---       --     [ "<fc=#94928F,#2E3440:0>"
---       --     , "<hspace=12/>"
---       --     , "<fc=#a6e3a1,#2E3440:0>\xf233 </fc>"
---       --     , "<hspace=5/><core0><hspace=1/>"
---       --     , "<fc=#6272a4,#2E3440:0>%</fc><hspace=12/>"
---       --     , "</fc>"
---       --     ]
---       "<core0>°C"
---     , "--ppad"
---     , "2" -- Add zero padding to make volume two digits wide
---     , "--High"
---     , "75"
---     , "--Low"
---     , "30"
---     ]
---     10
-
--- ["-t", "<fc=#CDB464><fn=1></fn></fc> <core0>°"
---                                    , "-L", "30"
---                                    , "-H", "75"
---                                    , "-l", "lightblue"
---                                    , "-n", "#bbc2cf"
---                                    , "-h", "#aa4450"]

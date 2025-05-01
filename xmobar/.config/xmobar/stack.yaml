@@ -59,6 +59,7 @@ flags:
         with_alsa: true
         with_weather: true
         with_xpm: true
+#         all_extensions: true
 # Extra package databases containing global packages
 # extra-package-dbs: []
 

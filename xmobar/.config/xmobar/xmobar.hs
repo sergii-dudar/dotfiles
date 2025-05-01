@@ -49,6 +49,7 @@ config =
             , Run System.cpuCommand
             , Run System.memoryCommand
             , Run System.diskCommand
+            , Run System.cpuTempCommand
             , Run Volume.alsaCommand
             , Run Date.dateCommand
             , Run Battery.batteryCommand
@@ -72,8 +73,7 @@ config =
                 , "<hspace=3/>"
                 , "%cpu%"
                 , "<hspace=3/>"
-                , -- , "%thermal1%"
-                  "%coretemp%"
+                , "%coretemp%"
                 , "<hspace=3/>"
                 , "%disku%"
                 , "<hspace=3/>"
