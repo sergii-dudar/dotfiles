@@ -24,8 +24,8 @@ appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu"
 appsTrayerRun = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-run.sh"
 appsTrayerToggle = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle.sh"
 
-appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/xmobar-run.sh"
-appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/xmobar-toggle.sh"
+appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-run.sh"
+appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-toggle.sh"
 
 -- ################## FONTS #############################
 
@@ -49,7 +49,7 @@ settingsFloatFactorHeight = 0.8
 
 workspacesList =
     [ " 1 \xe62b " ++ space 3
-    , " 2 <fn=1>\xe7b5 </fn>"
+    , " 2 <fn=2>\xe7b5 </fn>"
     , " 3 \xf268 " ++ space 7
     , " 4 \xf489 " ++ space 10
     , " 5 \xf346 " ++ space 6

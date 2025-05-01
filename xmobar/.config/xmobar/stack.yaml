@@ -58,6 +58,7 @@ flags:
         with_mpris: true
         with_alsa: true
         with_weather: true
+        with_xpm: true
 # Extra package databases containing global packages
 # extra-package-dbs: []
 

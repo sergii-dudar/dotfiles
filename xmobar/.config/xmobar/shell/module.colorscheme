@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+function of_color() {
+    echo "<fc=$2,#2E3440:0>$1</fc>"
+}
+
+export BG_COLOR="#242933" #"#2E3440"
+export FG_COLOR="#94928F"
+# "" --  󰇝  󰮾 󱋱
+export SPLIT=$(of_color " 󱋱 " "#7f849c")
+export SPLIT_LEFT=$(of_color " 󱋱" "#7f849c")

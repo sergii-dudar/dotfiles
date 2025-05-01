@@ -37,13 +37,22 @@ Config { overrideRedirect = False -- allows XMonad to manage/reserve space dynam
                         , "--"
                         , "--on", ""
                         ]
+                    , Run CoreTemp      
+                            [ "--template" , "Temp: <core0>°C|<core1>°C"
+                             , "--Low"      , "70"        -- units: °C
+                             , "--High"     , "80"        -- units: °C
+                             , "--low"      , "darkgreen"
+                             , "--normal"   , "darkorange"
+                             , "--high"     , "darkred"
+                             ] 50
                     , Run Memory ["--template", "Mem: <usedratio>%"] 10
                     , Run Swap [] 10
                     , Run Date "%a %Y-%m-%d <fc=#8be9fd>%H:%M</fc>" "date" 10
                     , Run UnsafeXMonadLog -- XMonadLog
+                    , Run ThermalZone 0 [] 30
                     ]
        , sepChar  = "%"
        , alignSep = "}{"
-       , template = "%UnsafeXMonadLog% } %date% { %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %_XMONAD_TRAYPAD%"
+       , template = "%UnsafeXMonadLog% } %date% | %coretemp% | %thermal0% { %alsa:default:Master% | %cpu% | %memory% * %swap% | %EGPF% | %_XMONAD_TRAYPAD%"
        -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸 
        }
