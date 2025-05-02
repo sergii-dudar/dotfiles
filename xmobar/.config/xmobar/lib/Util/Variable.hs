@@ -8,6 +8,7 @@ import System.Environment (getEnv)
 
 appsTerminal = "ghostty"
 appsVolumeControl = "pavucontrol"
+appsMonkeyType = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
 
 appsGnomeSystemMonitor = "gnome-system-monitor"
 appsGnomeSettings = "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
@@ -18,11 +19,11 @@ appsTerminalHtop = "kitty --name htop_info -e htop"
 appsTerminalDiscUsage = "kitty --name disc_usage_info --hold zsh -c \"export MANUAL_RL=1; df; exec zsh\""
 appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu"
 
-appsTrayerRun = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-run.sh"
-appsTrayerToggle = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle.sh"
-
-appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/xmobar-run.sh"
-appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/xmobar-toggle.sh"
+runChangeLanguage = "~/dotfiles/bin/change_language.sh"
+runVolumeToggle = "~/dotfiles/xmobar/.config/xmobar/shell/volume-toggle.sh"
+runVolumeIncrease = "~/dotfiles/xmobar/.config/xmobar/shell/volume-increase.sh"
+runVolumeDecrease = "~/dotfiles/xmobar/.config/xmobar/shell/volume-decrease.sh"
+runWeatherWeb = "brave https://sinoptik.ua/pohoda/vinnytsia"
 
 menusApps = "~/.config/rofi/scripts/launcher_t1"
 menusPower = "~/.config/rofi/scripts/powermenu_t1"
