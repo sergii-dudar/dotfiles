@@ -4,6 +4,12 @@ import Xmobar
 
 import qualified Util.Variable as V
 
+twoAction :: String -> String -> String -> String
+twoAction command1 command2 = oneAction command1 . action command2 3
+
+oneAction :: String -> String -> String
+oneAction command = action command 1
+
 -- | Pad a string with a leading and trailing space.
 pad :: String -> String
 pad = wrap " " " "

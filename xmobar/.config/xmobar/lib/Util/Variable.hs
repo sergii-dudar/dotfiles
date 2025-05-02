@@ -4,6 +4,12 @@ import GHC.IO.Unsafe (unsafePerformIO)
 import System.Directory
 import System.Environment (getEnv)
 
+-- ################## CONSTANTS #############################
+
+{-# NOINLINE homeDir #-}
+homeDir = unsafePerformIO getHomeDirectory
+xmobarHomeDir = homeDir ++ "/dotfiles/xmobar/.config/xmobar"
+
 -- ################## APPS #############################
 
 appsTerminal = "ghostty"
@@ -17,7 +23,7 @@ appsGnomeCalendar = "gnome-calendar"
 
 appsTerminalHtop = "kitty --name htop_info -e htop"
 appsTerminalDiscUsage = "kitty --name disc_usage_info --hold zsh -c \"export MANUAL_RL=1; df; exec zsh\""
-appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu"
+appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu ~"
 
 runChangeLanguage = "~/dotfiles/bin/change_language.sh"
 runVolumeToggle = "~/dotfiles/xmobar/.config/xmobar/shell/volume-toggle.sh"
@@ -64,9 +70,3 @@ additionalFonts =
     , toEmojiFont 36 -- 19
     , toEmojiFont 38 -- 20
     ]
-
--- ################## CONSTANTS #############################
-
-{-# NOINLINE homeDir #-}
-homeDir = unsafePerformIO getHomeDirectory
-xmobarHomeDir = homeDir ++ "/dotfiles/xmobar/.config/xmobar"

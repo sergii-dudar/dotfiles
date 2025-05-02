@@ -1,5 +1,6 @@
 import Xmobar
 
+import Data.List (intercalate)
 import qualified Module.Battery as Battery
 import qualified Module.Date as Date
 import qualified Module.RunnerApp as RunnerApp
@@ -41,28 +42,22 @@ config =
             concat
                 [ "%UnsafeXMonadLog%"
                 , " } "
-                , RunnerTemplate.dateRunner -- "%date%"
+                , RunnerTemplate.dateRunner
                 , " { "
-                , RunnerTemplate.kbdRunner -- "%kbd%"
-                , "<hspace=3/>"
-                , RunnerTemplate.alsaRunner
-                , "<hspace=3/>"
-                , "%battery%"
-                , "<hspace=3/>"
-                , "%memory%"
-                , "<hspace=3/>"
-                , "%cpu%"
-                , "<hspace=3/>"
-                , "%coretemp%"
-                , "<hspace=3/>"
-                , "%disku%"
-                , "<hspace=3/>"
-                , RunnerTemplate.weatherRunner
-                , "<hspace=3/>"
-                , "<action=`~/.config/rofi/scripts/launcher_t1` button=1><action=`~/.config/rofi/scripts/powermenu_t1` button=3><icon=haskell.xpm/></action></action>"
-                , " | <icon=haskell.xpm/> <icon=settings.xpm/> "
-                , "<hspace=3/>"
-                , "<fc=#7C8377,#2E3440:0>%_XMONAD_TRAYPAD%</fc>"
+                , intercalate
+                    "<hspace=3/>"
+                    [ RunnerTemplate.kbdRunner
+                    , RunnerTemplate.alsaRunner
+                    , RunnerTemplate.batteryRunner
+                    , RunnerTemplate.memoryRunner
+                    , RunnerTemplate.cpuRunner
+                    , RunnerTemplate.coreTempRunner
+                    , RunnerTemplate.diskRunner
+                    , RunnerTemplate.weatherRunner
+                    , "<action=`~/.config/rofi/scripts/launcher_t1` button=1><action=`~/.config/rofi/scripts/powermenu_t1` button=3><icon=haskell.xpm/></action></action>"
+                    , " | <icon=haskell.xpm/> <icon=settings.xpm/> "
+                    , "<fc=#7C8377,#2E3440:0>%_XMONAD_TRAYPAD%</fc>"
+                    ]
                 ]
                 -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸
         }
