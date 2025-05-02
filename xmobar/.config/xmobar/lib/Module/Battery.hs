@@ -30,6 +30,7 @@ batteryCommand =
         ]
         600
 
+toBatteryStatus :: String -> String
 toBatteryStatus iconCode =
     "<fc=#a6d189,#2E3440:0><fn=1>"
         ++ iconCode

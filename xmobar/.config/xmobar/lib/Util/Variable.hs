@@ -24,6 +24,11 @@ appsTrayerToggle = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle.sh"
 appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/xmobar-run.sh"
 appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/xmobar-toggle.sh"
 
+menusApps = "~/.config/rofi/scripts/launcher_t1"
+menusPower = "~/.config/rofi/scripts/powermenu_t1"
+
+modulesOpenWeather = xmobarHomeDir ++ "/shell/module.open-weather"
+
 -- ################## FONTS #############################
 
 toNerdFont :: Int -> String

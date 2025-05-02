@@ -1,6 +1,4 @@
-module Util.Common
-    ( buildNotifyMsg
-    ) where
+module Util.Common where
 
 import Xmobar
 

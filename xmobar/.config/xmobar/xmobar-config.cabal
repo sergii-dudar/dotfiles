@@ -26,9 +26,11 @@ executable xmobar-config
 -- List of all custom libraries that need to be loaded on start by hls
  other-modules:        Util.Common
                      , Util.Variable
+                     , Util.Element
                      , Module.Battery
                      , Module.Date
-                     , Module.Runner
+                     , Module.RunnerTemplate
+                     , Module.RunnerApp
                      , Module.Simple
                      , Module.System
                      , Module.Volume

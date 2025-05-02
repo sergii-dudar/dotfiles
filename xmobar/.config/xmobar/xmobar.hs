@@ -2,7 +2,8 @@ import Xmobar
 
 import qualified Module.Battery as Battery
 import qualified Module.Date as Date
-import qualified Module.Runner as Runner
+import qualified Module.RunnerApp as RunnerApp
+import qualified Module.RunnerTemplate as RunnerTemplate
 import qualified Module.Simple as Simple
 import qualified Module.System as System
 import qualified Module.Volume as Volume
@@ -40,7 +41,7 @@ config =
             concat
                 [ "%UnsafeXMonadLog%"
                 , " } "
-                , "%date%"
+                , RunnerTemplate.dateRunner -- "%date%"
                 , " { "
                 , "%kbd%"
                 , "<hspace=3/>"

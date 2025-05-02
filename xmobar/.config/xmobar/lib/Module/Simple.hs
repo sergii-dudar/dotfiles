@@ -1,5 +1,7 @@
 module Module.Simple where
 
+import qualified Util.Variable as V
+
 import Xmobar
 
 kbdCommand :: Kbd
@@ -12,7 +14,7 @@ kbdCommand =
 openWeatherCommand :: Command
 openWeatherCommand =
     Com
-        "/home/serhii/dotfiles/xmobar/.config/xmobar/shell/module.open-weather"
+        V.modulesOpenWeather
         []
         "openweather"
         6000 -- 600 + 0 # once a 10 min (bash script using cached value updated not ofter as once 30 min)
