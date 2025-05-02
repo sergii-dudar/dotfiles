@@ -7,13 +7,22 @@ import System.Environment (getEnv)
 -- ################## CONSTANTS #############################
 
 {-# NOINLINE homeDir #-}
-homeDir = unsafePerformIO getHomeDirectory
-xmobarHomeDir = homeDir ++ "/dotfiles/xmobar/.config/xmobar"
+homeDir = unsafePerformIO getHomeDirectory ++ "/"
+dotfilesDir = homeDir ++ "dotfiles/"
+xmobarHomeDir = dotfilesDir ++ "xmobar/.config/xmobar/"
+xmobarShellDir = xmobarHomeDir ++ "shell/"
+xmobarResourcesDir = xmobarHomeDir ++ "resources"
+rofiDir = dotfilesDir ++ "rofi/.config/rofi/scripts/"
 
 -- ################## APPS #############################
 
-appsTerminal = "ghostty"
+appsGhostty = "sh -c 'cd ~ && exec ghostty'"
+appsKitty = "sh -c 'cd ~ && exec kitty'"
 appsVolumeControl = "pavucontrol"
+appsBookReader = "evince"
+appsIntellij = "intellij-idea-ultimate"
+appsQbittorrent = "env QT_SCALE_FACTOR=1.4 qbittorrent"
+appsBrowser = "brave"
 appsMonkeyType = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
 
 appsGnomeSystemMonitor = "gnome-system-monitor"
@@ -26,15 +35,15 @@ appsTerminalDiscUsage = "kitty --name disc_usage_info --hold zsh -c \"export MAN
 appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu ~"
 
 runChangeLanguage = "~/dotfiles/bin/change_language.sh"
-runVolumeToggle = "~/dotfiles/xmobar/.config/xmobar/shell/volume-toggle.sh"
-runVolumeIncrease = "~/dotfiles/xmobar/.config/xmobar/shell/volume-increase.sh"
-runVolumeDecrease = "~/dotfiles/xmobar/.config/xmobar/shell/volume-decrease.sh"
+runVolumeToggle = xmobarShellDir ++ "volume-toggle.sh"
+runVolumeIncrease = xmobarShellDir ++ "volume-increase.sh"
+runVolumeDecrease = xmobarShellDir ++ "volume-decrease.sh"
 runWeatherWeb = "brave https://sinoptik.ua/pohoda/vinnytsia"
 
-menusApps = "~/.config/rofi/scripts/launcher_t1"
-menusPower = "~/.config/rofi/scripts/powermenu_t1"
+menusApps = rofiDir ++ "launcher_t1"
+menusPower = rofiDir ++ "powermenu_t1"
 
-modulesOpenWeather = xmobarHomeDir ++ "/shell/module.open-weather"
+modulesOpenWeather = xmobarShellDir ++ "module.open-weather"
 
 -- ################## FONTS #############################
 

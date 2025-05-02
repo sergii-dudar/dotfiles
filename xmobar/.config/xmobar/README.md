@@ -30,3 +30,11 @@ stack clean && stack build
 ~/dotfiles/xmobar/.config/xmobar/xmobar-run.sh
 
 ```
+
+## XPM images
+
+for conver to xmp, use:
+
+```bash
+magick book.png -resize 32x32 book.xpm
+```

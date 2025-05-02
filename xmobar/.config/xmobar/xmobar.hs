@@ -20,10 +20,10 @@ config =
         , font = V.defaultFont
         , additionalFonts = V.additionalFonts
         , bgColor = "#232634"
-        , fgColor = "#94928F" -- "#83a598" -- "#f8f8f2"
+        , fgColor = "#94928F"
         , lowerOnStart = True
         , position = TopSize L 100 35
-        , iconRoot = V.xmobarHomeDir ++ "/resources"
+        , iconRoot = V.xmobarResourcesDir
         , commands =
             [ Run $ XPropertyLog "_XMONAD_TRAYPAD"
             , Run Simple.openWeatherCommand
@@ -55,21 +55,25 @@ config =
                     , RunnerTemplate.coreTempRunner
                     , RunnerTemplate.diskRunner
                     , RunnerTemplate.weatherRunner
-                    , E.color "#d35f5e" "#2E3440:0" $
-                        concat
-                            [ RunnerApp.appsMenuRunner
-                            , RunnerApp.settingsRunner
-                            , RunnerApp.intellijRunner
-                            , RunnerApp.torrentRunner
-                            , RunnerApp.evinceRunner
-                            , RunnerApp.browserRunner
-                            , RunnerApp.terminalRunner
-                            , RunnerApp.powerMenuRunner
-                            ]
+                    , appRunners
                     , E.color "#7C8377" "#2E3440:0" "%_XMONAD_TRAYPAD% "
                     ]
                 ]
         }
+
+appRunners :: String
+appRunners =
+    E.color "#d35f5e" "#2E3440:0" $
+        concat
+            [ RunnerApp.appsMenuRunner
+            , RunnerApp.settingsRunner
+            , RunnerApp.intellijRunner
+            , RunnerApp.torrentRunner
+            , RunnerApp.evinceRunner
+            , RunnerApp.browserRunner
+            , RunnerApp.terminalRunner
+            , RunnerApp.powerMenuRunner
+            ]
 
 main :: IO ()
 main = xmobar config
