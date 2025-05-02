@@ -1,5 +1,9 @@
 module Util.Variable where
 
+import GHC.IO.Unsafe (unsafePerformIO)
+import System.Directory
+import System.Environment (getEnv)
+
 -- ################## APPS #############################
 
 appsTerminal = "ghostty"
@@ -22,14 +26,41 @@ appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/xmobar-toggle.sh"
 
 -- ################## FONTS #############################
 
--- "CaskaydiaCove Nerd Font:bold:pixelsize=24",
-toFont :: Int -> String
-toFont size = "xft:CaskaydiaCove Nerd Font:style=Bold:size=" ++ show size
+toNerdFont :: Int -> String
+toNerdFont size = "CaskaydiaCove Nerd Font Bold " ++ show size
 
-fontsDefault :: String
-fontsDefault = toFont 16
+toEmojiFont :: Int -> String
+toEmojiFont size = "Noto Color Emoji " ++ show size
+
+defaultFont :: String
+defaultFont = toNerdFont 18
+
+additionalFonts :: [String]
+additionalFonts =
+    [ toNerdFont 20 -- 1
+    , toNerdFont 22 -- 2
+    , toNerdFont 24 -- 3
+    , toNerdFont 26 -- 4
+    , toNerdFont 28 -- 5
+    , toNerdFont 30 -- 6
+    , toNerdFont 32 -- 7
+    , toNerdFont 34 -- 8
+    , toNerdFont 36 -- 9
+    , toNerdFont 38 -- 10
+    , toEmojiFont 20 -- 11
+    , toEmojiFont 22 -- 12
+    , toEmojiFont 24 -- 13
+    , toEmojiFont 26 -- 14
+    , toEmojiFont 28 -- 15
+    , toEmojiFont 30 -- 16
+    , toEmojiFont 32 -- 17
+    , toEmojiFont 34 -- 18
+    , toEmojiFont 36 -- 19
+    , toEmojiFont 38 -- 20
+    ]
 
 -- ################## CONSTANTS #############################
 
-space :: Int -> String
-space pixeds = "<hspace=" ++ show pixeds ++ "/>"
+{-# NOINLINE homeDir #-}
+homeDir = unsafePerformIO getHomeDirectory
+xmobarHomeDir = homeDir ++ "/dotfiles/xmobar/.config/xmobar"

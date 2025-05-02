@@ -41,7 +41,7 @@ xmobarPPConfig =
         , ppHiddenNoWindows = wrap tagEmptyLeft tagEmptyRight
         , ppUrgent = color "#ff5555" . wrap (color "#f1fa8c" "!") (color "#f1fa8c" "!")
         , ppOrder = \[ws, l, _, wins] -> [ws, l, wins]
-        , ppLayout = wrap layoutLeft layoutRight
+        , ppLayout = xmobarAction "xdotool key super+Tab" "1" . wrap layoutLeft layoutRight
         , ppExtras = [logTitles formatFocused formatUnfocused]
         }
     where
