@@ -1,4 +1,13 @@
-module Module.RunnerApp where
+module Module.RunnerApp
+    ( appsMenuRunner
+    , settingsRunner
+    , intellijRunner
+    , torrentRunner
+    , evinceRunner
+    , browserRunner
+    , terminalRunner
+    , powerMenuRunner
+    ) where
 
 import qualified Util.Element as E
 import qualified Util.Variable as V
@@ -6,46 +15,43 @@ import qualified Util.Variable as V
 import Xmobar
 
 appsMenuRunner :: String
-appsMenuRunner =
-    E.spaceWrapLeft 8
-        . E.oneAction V.menusApps
-        $ "<icon=haskell.xpm/>"
+appsMenuRunner = oneIconActionSpaceLeft V.menusApps "haskell" 8
 
 settingsRunner :: String
-settingsRunner =
-    E.spaceWrapLeft 6
-        . E.oneAction V.appsGnomeSettings
-        $ "<icon=settings.xpm/>"
+settingsRunner = oneIconActionSpaceLeft V.appsGnomeSettings "settings" 6
 
 intellijRunner :: String
-intellijRunner =
-    E.spaceWrapLeft 2
-        . E.oneAction V.appsIntellij
-        $ "<icon=intellij.xpm/>"
+intellijRunner = oneIconActionSpaceLeft V.appsIntellij "intellij" 2
 
 torrentRunner :: String
-torrentRunner =
-    E.spaceWrapLeft 3
-        . E.oneAction V.appsQbittorrent
-        $ "<icon=qbittorrent.xpm/>"
+torrentRunner = oneIconActionSpaceLeft V.appsQbittorrent "qbittorrent" 3
 
 evinceRunner :: String
-evinceRunner =
-    E.spaceWrapLeft 3
-        . E.oneAction V.appsBookReader
-        $ "<icon=book.xpm/>"
+evinceRunner = oneIconActionSpaceLeft V.appsBookReader "book" 3
 
 browserRunner :: String
-browserRunner =
-    E.spaceWrapLeft 3
-        . E.oneAction V.appsBrowser
-        $ "<icon=browser.xpm/>"
+browserRunner = oneIconActionSpaceLeft V.appsBrowser "browser" 3
 
 terminalRunner :: String
-terminalRunner = E.twoAction V.appsGhostty V.appsKitty "<icon=terminal.xpm/>"
+terminalRunner = twoIconAction V.appsGhostty V.appsKitty "terminal"
 
 powerMenuRunner :: String
-powerMenuRunner =
-    E.spaceWrap 2 8
-        . E.oneAction V.menusPower
-        $ "<icon=power.xpm/>"
+powerMenuRunner = oneIconActionSpace V.menusPower "power" 2 8
+
+oneIconActionSpace :: String -> String -> Int -> Int -> String
+oneIconActionSpace cmd xmpIconName pixelsl pixelsr =
+    E.spaceWrap pixelsl pixelsr
+        . E.oneAction cmd
+        $ toIcon xmpIconName
+
+oneIconActionSpaceLeft :: String -> String -> Int -> String
+oneIconActionSpaceLeft cmd xmpIconName pixelsl =
+    E.spaceWrapLeft pixelsl
+        . E.oneAction cmd
+        $ toIcon xmpIconName
+
+twoIconAction :: String -> String -> String -> String
+twoIconAction cmd1 cmd2 xmpIconName = E.twoAction cmd1 cmd2 $ toIcon xmpIconName
+
+toIcon :: String -> String
+toIcon xmpIconName = "<icon=" ++ xmpIconName ++ ".xpm/>"
