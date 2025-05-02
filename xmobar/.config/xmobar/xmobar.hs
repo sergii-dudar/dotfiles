@@ -71,11 +71,7 @@ modulesBg :: String -> String
 modulesBg = E.color "#d35f5e" "#2E3440:0"
 
 appRunnersLeft :: String
-appRunnersLeft =
-    modulesBg $
-        concat
-            [ RunnerApp.appsMenuRunner
-            ]
+appRunnersLeft = modulesBg RunnerApp.appsMenuRunner
 
 appRunnersRight :: String
 appRunnersRight =

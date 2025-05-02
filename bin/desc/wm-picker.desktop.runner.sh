@@ -21,8 +21,8 @@ function pick_by_month_number() {
             "$HOME"/dotfiles/bin/desc/xmonad.desktop.runner.sh
             ;;
         *)
-            # in any unknown situation, use dwm ;)
-            "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
+            # in any unknown situation, use xmonad ;)
+            "$HOME"/dotfiles/bin/desc/xmonad.desktop.runner.sh
             ;;
     esac
 }

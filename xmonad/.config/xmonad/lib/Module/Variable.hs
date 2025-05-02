@@ -29,7 +29,6 @@ appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-toggle.sh"
 
 -- ################## FONTS #############################
 
--- "CaskaydiaCove Nerd Font:bold:pixelsize=24",
 toFont :: Int -> String
 toFont size = "xft:CaskaydiaCove Nerd Font:style=Bold:size=" ++ show size
 
