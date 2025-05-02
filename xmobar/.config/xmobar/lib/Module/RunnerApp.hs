@@ -15,7 +15,7 @@ import qualified Util.Variable as V
 import Xmobar
 
 appsMenuRunner :: String
-appsMenuRunner = oneIconActionSpaceLeft V.menusApps "haskell" 8
+appsMenuRunner = oneIconActionSpace V.menusApps "haskell" 8 7
 
 settingsRunner :: String
 settingsRunner = oneIconActionSpaceLeft V.appsGnomeSettings "settings" 6

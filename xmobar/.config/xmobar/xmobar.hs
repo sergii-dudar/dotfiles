@@ -11,6 +11,7 @@ import qualified Module.Volume as Volume
 import qualified Util.Common as U
 import qualified Util.Element as E
 import qualified Util.Variable as V
+import qualified Xmobar as E
 
 config :: Config
 config =
@@ -41,12 +42,14 @@ config =
         , alignSep = "}{"
         , template =
             concat
-                [ "%UnsafeXMonadLog%"
+                [ appRunnersLeft
+                , modulesSpace
+                , "%UnsafeXMonadLog%"
                 , " } "
                 , RunnerTemplate.dateRunner
                 , " { "
                 , intercalate
-                    "<hspace=3/>"
+                    modulesSpace
                     [ RunnerTemplate.kbdRunner
                     , RunnerTemplate.alsaRunner
                     , RunnerTemplate.batteryRunner
@@ -55,18 +58,30 @@ config =
                     , RunnerTemplate.coreTempRunner
                     , RunnerTemplate.diskRunner
                     , RunnerTemplate.weatherRunner
-                    , appRunners
-                    , E.color "#7C8377" "#2E3440:0" "%_XMONAD_TRAYPAD% "
+                    , appRunnersRight
+                    , modulesBg "%_XMONAD_TRAYPAD% "
                     ]
                 ]
         }
 
-appRunners :: String
-appRunners =
-    E.color "#d35f5e" "#2E3440:0" $
+modulesSpace :: String
+modulesSpace = E.space 3
+
+modulesBg :: String -> String
+modulesBg = E.color "#d35f5e" "#2E3440:0"
+
+appRunnersLeft :: String
+appRunnersLeft =
+    modulesBg $
         concat
             [ RunnerApp.appsMenuRunner
-            , RunnerApp.settingsRunner
+            ]
+
+appRunnersRight :: String
+appRunnersRight =
+    modulesBg $
+        concat
+            [ RunnerApp.settingsRunner
             , RunnerApp.intellijRunner
             , RunnerApp.torrentRunner
             , RunnerApp.evinceRunner
