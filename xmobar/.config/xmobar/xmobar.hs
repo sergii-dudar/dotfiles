@@ -9,6 +9,7 @@ import qualified Module.Simple as Simple
 import qualified Module.System as System
 import qualified Module.Volume as Volume
 import qualified Util.Common as U
+import qualified Util.Element as E
 import qualified Util.Variable as V
 
 config :: Config
@@ -54,16 +55,21 @@ config =
                     , RunnerTemplate.coreTempRunner
                     , RunnerTemplate.diskRunner
                     , RunnerTemplate.weatherRunner
-                    , "<action=`~/.config/rofi/scripts/launcher_t1` button=1><action=`~/.config/rofi/scripts/powermenu_t1` button=3><icon=haskell.xpm/></action></action>"
-                    , " | <icon=haskell.xpm/> <icon=settings.xpm/> "
-                    , "<fc=#7C8377,#2E3440:0>%_XMONAD_TRAYPAD%</fc>"
+                    , E.color "#d35f5e" "#2E3440:0" $
+                        concat
+                            [ RunnerApp.appsMenuRunner
+                            , RunnerApp.settingsRunner
+                            , RunnerApp.intellijRunner
+                            , RunnerApp.torrentRunner
+                            , RunnerApp.evinceRunner
+                            , RunnerApp.browserRunner
+                            , RunnerApp.terminalRunner
+                            , RunnerApp.powerMenuRunner
+                            ]
+                    , E.color "#7C8377" "#2E3440:0" "%_XMONAD_TRAYPAD% "
                     ]
                 ]
-                -- <action=`~/.config/rofi/scripts/launcher_t1` button=1><fc=#ed8274,#212733><fn=8>  </fn></fc></action>🧸
         }
-
--- modules-left = applicaitons run-gnome-control-center run-sys-monitor run-htop run-disc-monitor run-torrent run-kitty run-wezterm run-ghostty run-pipette run-idea run-browser powermenu
--- "<hspace=5/>"
 
 main :: IO ()
 main = xmobar config

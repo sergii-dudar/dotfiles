@@ -3,7 +3,7 @@ trayer -l \
     --align right \
     --margin 5 \
     --widthtype request \
-    --padding 8 \
+    --padding 4 \
     --distance 1 \
     --iconspacing 6 \
     --SetDockType true \

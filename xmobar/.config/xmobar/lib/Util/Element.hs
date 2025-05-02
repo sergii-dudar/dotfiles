@@ -23,6 +23,9 @@ font
     -> String
 font index = wrap ("<fn=" ++ show index ++ ">") "</fn>"
 
+fgColor :: String -> String -> String
+fgColor fg = color fg "#2E3440:0"
+
 -- | Use xmobar escape codes to output a string with given foreground
 --   and background colors.
 color
@@ -77,6 +80,18 @@ border border color width = wrap prefix "</box>"
                 ++ " color="
                 ++ color
                 ++ ">"
+
+space :: Int -> String
+space pixels = "<hspace=" ++ show pixels ++ "/>"
+
+spaceWrap :: Int -> Int -> String -> String
+spaceWrap lpixels rpixels = wrap (space lpixels) (space rpixels)
+
+spaceWrapLeft :: Int -> String -> String
+spaceWrapLeft lpixels = wrap (space lpixels) ""
+
+spaceWrapRight :: Int -> String -> String
+spaceWrapRight rpixels = wrap "" (space rpixels)
 
 -- | Wrap a string in delimiters, unless it is empty.
 wrap
