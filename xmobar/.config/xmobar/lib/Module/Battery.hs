@@ -1,4 +1,4 @@
-module Module.Battery where
+module Module.Battery (batteryCommand) where
 
 import Xmobar
 

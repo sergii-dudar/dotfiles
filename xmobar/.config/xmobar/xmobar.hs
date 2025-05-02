@@ -75,7 +75,7 @@ config =
                 , "<hspace=3/>"
                 , "%coretemp%"
                 , "<hspace=3/>"
-                , "<action=`~/.config/rofi/scripts/launcher_t1` button=5>%disku%</action>"
+                , "<action=`~/.config/rofi/scripts/launcher_t1` button=1><action=`~/.config/rofi/scripts/powermenu_t1` button=3>%disku%</action></action>"
                 , -- , "%disku%"
                   "<hspace=3/>"
                 , "%openweather%"
