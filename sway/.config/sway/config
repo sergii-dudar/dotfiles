@@ -1,9 +1,36 @@
-include ~/.config/i3/theme.conf
-include ~/.config/i3/rules.conf
-include ~/.config/i3/modes.conf
+set $mod Mod4
+set $alt Mod1
+set $ctrl Control
 
-exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh sway
-exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh sway
+include ~/.config/sway/theme.conf
+include ~/.config/sway/rules.conf
+include ~/.config/sway/modes.conf
+
+exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh
+exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.w.sh sway
+exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
+
+input "type:keyboard" {
+    repeat_delay 200
+    repeat_rate 30
+    xkb_layout us,ua
+    # xkb_variant ,nodeadkeys
+    # xkb_options grp:alt_shift_toggle
+    # xkb_options grp:ralt_toggle
+}
+
+# swaymsg -t get_outputs
+# man 5 sway-output
+#
+# output "HDMI-A-1" {
+#    # ...config options...
+#    mode 3840x2160@60.000Hz
+# }
+
+output * bg ~/wallpapers/jpg/Wall147.jpg fill
+output "HDMI-A-1" mode 3840x2160@60.000Hz
+# output "HDMI-A-1" scale 1.4
+# output "HDMI-A-1" transform 90
 
 set $primary HDMI-1
 set $secondary HDMI-2
@@ -29,16 +56,12 @@ workspace 9 output $secondary
 
 workspace_auto_back_and_forth yes
 focus_on_window_activation focus
-set $mod Mod4
-set $alt Mod1
-set $ctrl Control
 floating_modifier $mod
 font pango:CaskaydiaCove Nerd Font 18
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 #
 # Bind a switch key, which focuses the previously focused window (based on i3-back)
 # bindsym $mod+Tab [con_mark=_back] focus
-bindsym $alt+Tab [con_mark=_back] focus
+# bindsym $alt+Tab [con_mark=_back] focus
 
 # move focused container to workspace and switch it
 # NOTE: cant move to sxhkrc shortcut as present strange behavior
@@ -53,7 +76,7 @@ bindsym $mod+6 workspace number 6
 bindsym $mod+7 workspace number 7
 bindsym $mod+8 workspace number 8
 bindsym $mod+9 workspace number 9
-bindsym $mod+0 workspace number 10
+# bindsym $mod+0 workspace number 10
 
 bindsym $mod+Shift+1 move container to workspace number 1, workspace number 1 output HDMI-1
 bindsym $mod+Shift+2 move container to workspace number 2, workspace number 2 output HDMI-1
@@ -89,9 +112,10 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term foot
+set $term ghostty
 # Your preferred application launcher
-set $menu wmenu-run
+set $menu ~/.config/rofi/scripts/launcher_t1
+set $pmenu ~/.config/rofi/scripts/powermenu_t1
 
 #-------------------------------------------------------------------------------
 #------------------ keybind ----------------------------------------------------
@@ -107,9 +131,10 @@ set $menu wmenu-run
 
     # Start your launcher
     # bindsym $mod+d exec $menu
-    bindsym $alt+space exec ~/.config/rofi/scripts/launcher_t1
-    bindsym $alt+q exec ~/.config/rofi/scripts/powermenu_t1
-    bindsym $ctrl+alt+q exec ~/.config/rofi/scripts/powermenu_t1
+    #bindsym $alt+q exec ~/.config/rofi/scripts/powermenu_t1
+    bindsym $alt+space exec $menu
+    bindsym $mod+q exec $pmenu
+    #bindsym $ctrl+alt+q exec ~/.config/rofi/scripts/powermenu_t1
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -183,7 +208,11 @@ mode "layout" {
 
         bindsym s layout stacking
         bindsym t layout tabbed
+
         bindsym e layout toggle split
+        bindsym h layout splith
+        bindsym v layout splitv
+
         bindsym f floating toggle
 
         # Toggle between stacking/tabbed/splith:
@@ -199,4 +228,22 @@ mode "layout" {
         bindsym Return mode "default"
         bindsym Escape mode "default"
         bindsym $mod+r mode "default"
+}
+
+#
+# Status Bar:
+#
+# Read `man 5 sway-bar` for more information about this section.
+bar {
+    position top
+
+    # When the status_command prints a new line to stdout, swaybar updates.
+    # The default just shows the current date and time.
+    status_command while date +'%a, %b %d %I:%M %p'; do sleep 1; done
+
+    colors {
+        statusline #ffffff
+        background #323232
+        inactive_workspace #32323200 #32323200 #5c5c5c
+    }
 }

@@ -58,3 +58,5 @@ suckless/dwm/dwm
 **/.config/xmobar-config/stack.yaml.lock
 **/.config/xmobar-config/.stack-work/
 **/.config/xmobar-config/xmobar/
+
+**/.config/swhkd/swhkd

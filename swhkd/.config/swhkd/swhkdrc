@@ -1,0 +1,70 @@
+# ---------- Rofi & dmenu ------------ #
+
+super + space
+    ~/.config/rofi/scripts/launcher_t1
+
+# alt + space
+#     ~/.config/rofi/scripts/launcher_t1
+#
+# super + q
+#     ~/.config/rofi/scripts/powermenu_t1
+#
+# ctrl + alt + q
+#     ~/dotfiles/bin/screen-lock
+#
+# # just the unconviniest combination to hit, as is mapping to right alt by `keyd`
+# alt + ctrl + super + shift + space
+#     ~/dotfiles/bin/change_language.w.sh
+
+# general:
+# XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#   lxqt-config
+# volume:
+#   pavucontrol
+# netrork
+#   nm-connection-editor
+
+# ---------- Application Keybindings ----------- #
+
+# #ctrl + alt + s
+# Print
+#     flameshot gui
+#
+# # open/close gnome-control-center
+# alt + shift + g
+#     kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#
+# alt + shift + b
+#     brave
+# # ---------- Audio Keybindings ------------- #
+#
+# super + Left
+#    amixer -D pulse sset Master 5%-
+#
+# super + Right
+#    amixer -D pulse sset Master 5%+
+#
+# # { Left, Down, Up, Right }
+# super + Down
+#    amixer -D pulse sset Master toggle
+#
+# # Media
+# #super + F9
+#
+# super + shift + Down
+#     playerctl play-pause
+#
+# super + shift + Right
+#     playerctl next
+#
+# super + shift + Left
+#     playerctl previous
+#
+# XF86AudioPlay
+#     playerctl play-pause
+#
+# XF86AudioNext
+#     playerctl next
+#
+# XF86AudioPrev
+#     playerctl previous

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Hyprland
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=/home/serhii/dotfiles/bin/desc/hyprland.desktop.runner.sh
+Type=Application
+DesktopNames=Hyprland
+Keywords=tiling;wayland;compositor;
