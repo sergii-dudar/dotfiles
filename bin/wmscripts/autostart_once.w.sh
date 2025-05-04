@@ -4,7 +4,7 @@ wm_name="${1:-}"
 
 #~/dotfiles/bin/apply-display-settings.sh
 ssh-add &
-dunst &
+swaync &  # dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
 # Automatically lock the screen after 10 minutes of inactivity
@@ -16,6 +16,10 @@ dunst &
 case "$wm_name" in
     sway)
         # killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
+
+        # Start the daemon which listens to focus changes and sets _back mark
+        i3-back &
+        # autotilin &
 
         # run scractchpad apps (i3 can't open them automatically)
         brave &

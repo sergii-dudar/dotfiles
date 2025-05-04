@@ -1,10 +1,7 @@
 # ---------- Rofi & dmenu ------------ #
 
-super + space
+alt + space
     ~/.config/rofi/scripts/launcher_t1
-
-# alt + space
-#     ~/.config/rofi/scripts/launcher_t1
 #
 # super + q
 #     ~/.config/rofi/scripts/powermenu_t1

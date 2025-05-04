@@ -1,0 +1,17 @@
+* {
+    font-family: "CaskaydiaCove Nerd Font", monospace;
+    font-weight: bold;
+    font-size: 22pt;
+}
+
+.notification {
+    min-height: 70px;
+    min-width: 50px;
+    padding: 1px;
+    margin: 1px;
+}
+
+.notification-row .notification-background .notification .notification-default-action .notification-content .text-box .time {
+    margin: 0;
+    margin-right: 10px; /* or whatever value you prefer */
+}

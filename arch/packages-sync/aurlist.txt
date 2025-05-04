@@ -6,6 +6,7 @@ clipboard
 dracula-gtk-theme
 dracula-icons-theme
 ghcup-hs-bin
+haskell-data-array-byte
 i3-back-bin
 i3lock-color
 insomnia
@@ -17,5 +18,6 @@ snapd
 sublime-text-4
 ttf-joypixels
 turbo-base64
+wlprop
 xautolock
 yay

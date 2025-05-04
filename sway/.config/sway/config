@@ -17,6 +17,7 @@ input "type:keyboard" {
     # xkb_variant ,nodeadkeys
     # xkb_options grp:alt_shift_toggle
     # xkb_options grp:ralt_toggle
+    # xkb_options "grp:win_space_toggle"
 }
 
 # swaymsg -t get_outputs
@@ -61,7 +62,7 @@ font pango:CaskaydiaCove Nerd Font 18
 #
 # Bind a switch key, which focuses the previously focused window (based on i3-back)
 # bindsym $mod+Tab [con_mark=_back] focus
-# bindsym $alt+Tab [con_mark=_back] focus
+bindsym $alt+Tab [con_mark=_back] focus
 
 # move focused container to workspace and switch it
 # NOTE: cant move to sxhkrc shortcut as present strange behavior
@@ -136,6 +137,74 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+q exec $pmenu
     #bindsym $ctrl+alt+q exec ~/.config/rofi/scripts/powermenu_t1
 
+    bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lock.w
+    bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
+
+    #ctrl + alt + s
+    bindsym Print exec "grim -g "$(slurp)" - | swappy -f -"
+     
+    # open/close gnome-control-center
+    bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
+    bindsym $alt+Shift+b exec brave
+    
+    # ---------- Audio Keybindings ------------- #
+    bindsym $mod+Left exec "amixer -D pulse sset Master 5%-"
+    bindsym $mod+Right exec "amixer -D pulse sset Master 5%+"
+    bindsym $mod+Down exec "amixer -D pulse sset Master toggle"
+    bindsym $mod+Shift+Down exec "playerctl play-pause"
+    bindsym $mod+Shift+Right exec "playerctl next"
+    bindsym $mod+Shift+Left exec "playerctl previous"
+
+# general:
+# XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#   lxqt-config
+# volume:
+#   pavucontrol
+# netrork
+#   nm-connection-editor
+
+# ---------- Application Keybindings ----------- #
+
+# #ctrl + alt + s
+# Print
+#     flameshot gui
+#
+# # open/close gnome-control-center
+# alt + shift + g
+#     kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+#
+# alt + shift + b
+#     brave
+# # ---------- Audio Keybindings ------------- #
+#
+# super + Left
+#    amixer -D pulse sset Master 5%-
+#
+# super + Right
+#    amixer -D pulse sset Master 5%+
+#
+# super + Down
+#    amixer -D pulse sset Master toggle
+#
+# super + shift + Down
+#     playerctl play-pause
+#
+# super + shift + Right
+#     playerctl next
+#
+# super + shift + Left
+#     playerctl previous
+
+
+
+
+
+
+
+
+#----------------------------------------------
+
+
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
     # Despite the name, also works for non-floating windows.
@@ -157,10 +226,10 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+$up focus up
     bindsym $mod+$right focus right
     # Or use $mod+[up|down|left|right]
-    bindsym $mod+Left focus left
-    bindsym $mod+Down focus down
-    bindsym $mod+Up focus up
-    bindsym $mod+Right focus right
+    #bindsym $mod+Left focus left
+    #bindsym $mod+Down focus down
+    #bindsym $mod+Up focus up
+    #bindsym $mod+Right focus right
 
     # Move the focused window with the same, but add Shift
     bindsym $mod+Shift+$left move left
@@ -168,10 +237,10 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+Shift+$up move up
     bindsym $mod+Shift+$right move right
     # Ditto, with arrow keys
-    bindsym $mod+Shift+Left move left
-    bindsym $mod+Shift+Down move down
-    bindsym $mod+Shift+Up move up
-    bindsym $mod+Shift+Right move right
+    # bindsym $mod+Shift+Left move left
+    # bindsym $mod+Shift+Down move down
+    # bindsym $mod+Shift+Up move up
+    # bindsym $mod+Shift+Right move right
 
 #-------------------------------------------------------------------------------
 #----------------------------- sway end ----------------------------------------

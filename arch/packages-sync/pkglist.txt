@@ -28,6 +28,7 @@ efibootmgr
 entr
 eog
 epiphany
+ethtool
 evince
 eza
 fastfetch
@@ -163,6 +164,11 @@ sof-firmware
 stow
 sublime-text-4
 sushi
+sway
+swaybg
+swayidle
+swaylock
+swaync
 sxhkd
 tecla
 telegram-desktop
@@ -170,8 +176,10 @@ terminus-font
 texlive-binextra
 thunar
 tldr
+tlp
 tmux
 totem
+trayer
 tree
 ttf-joypixels
 ttf-liberation
@@ -184,6 +192,8 @@ wezterm
 wget
 wireless_tools
 wireplumber
+wl-clipboard
+wlprop
 wmctrl
 wqy-zenhei
 xautolock
@@ -191,8 +201,10 @@ xclip
 xdg-desktop-portal-gnome
 xdg-user-dirs-gtk
 xdg-utils
+xdo
 xdotool
 xfce4-settings
+xmobar
 xorg-server
 xorg-server-xephyr
 xorg-xev
