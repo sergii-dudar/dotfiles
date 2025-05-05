@@ -10,10 +10,61 @@ import qualified Data.Map as M
 import XMonad
 
 -- Actions
-import XMonad.Actions.CycleWS (Direction1D (..), WSType (..), moveTo, nextScreen, prevScreen, shiftTo)
+import XMonad.Actions.CycleWS
+    ( Direction1D (..)
+    , WSType (..)
+    , moveTo
+    , nextScreen
+    , prevScreen
+    , shiftNextScreen
+    , shiftPrevScreen
+    , shiftTo
+    , swapNextScreen
+    , swapPrevScreen
+    , toggleWS
+    )
 import XMonad.Actions.MostRecentlyUsed (mostRecentlyUsed)
 import XMonad.Actions.WithAll (killAll, sinkAll)
 import qualified XMonad.StackSet as W
+
+import XMonad.Core as XMonad hiding
+    ( borderWidth
+    , clickJustFocuses
+    , clientMask
+    , focusFollowsMouse
+    , focusedBorderColor
+    , handleEventHook
+    , keys
+    , layoutHook
+    , logHook
+    , manageHook
+    , modMask
+    , mouseBindings
+    , normalBorderColor
+    , rootMask
+    , startupHook
+    , terminal
+    , workspaces
+    )
+import qualified XMonad.Core as XMonad
+    ( borderWidth
+    , clickJustFocuses
+    , clientMask
+    , focusFollowsMouse
+    , focusedBorderColor
+    , handleEventHook
+    , keys
+    , layoutHook
+    , logHook
+    , manageHook
+    , modMask
+    , mouseBindings
+    , normalBorderColor
+    , rootMask
+    , startupHook
+    , terminal
+    , workspaces
+    )
 
 -- Hooks
 import XMonad.Hooks.ManageDocks (ToggleStruts (..), avoidStruts, docks, manageDocks)
@@ -92,7 +143,12 @@ bindKeys =
     -- ##################### MULTI MONITORS #########################
     , ("M-.", nextScreen)
     , ("M-,", prevScreen)
-    , -- ##############################################################
+    , -- , ("M-z", toggleWS)
+      -- , ("M-.", swapNextScreen)
+      -- , ("M-,", swapPrevScreen)
+      -- , ("M-.", shiftNextScreen)
+      -- , ("M-,", shiftPrevScreen)
+      -- ##############################################################
       -- ########################## FOCUS #############################
       ("M-p", windows W.focusMaster) -- Move focus to the master window
     , ("M-j", windows W.focusDown) -- Move focus to the next window
@@ -126,6 +182,17 @@ bindKeys =
     , ("M1-p n", S.scratchpadsNautilusKeyAction)
     , ("M1-p u", S.scratchpadsMonkeyTypeKeyAction)
     ]
+        ++ [ (otherModMasks ++ "M-" ++ [key], action tag) -- (++) is needed here because the following list comprehension
+        -- is a list, not a single key binding. Simply adding it to the
+        -- list of key bindings would result in something like [ b1, b2,
+        -- [ b3, b4, b5 ] ] resulting in a type error. (Lists must
+        -- contain items all of the same type.)
+           | (tag, key) <- zip V.workspacesList "123456789"
+           , (otherModMasks, action) <-
+                [ ("", windows . W.view) -- was W.greedyView
+                , ("S-", windows . W.shift)
+                ]
+           ]
 
 toggleXmobarAndStruts :: X ()
 toggleXmobarAndStruts = do

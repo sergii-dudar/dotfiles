@@ -25,6 +25,7 @@ config =
         , lowerOnStart = True
         , position = TopSize L 100 35
         , iconRoot = V.xmobarResourcesDir
+        , allDesktops = True
         , commands =
             [ Run $ XPropertyLog "_XMONAD_TRAYPAD"
             , Run Simple.openWeatherCommand
@@ -87,4 +88,4 @@ appRunnersRight =
             ]
 
 main :: IO ()
-main = xmobar config
+main = configFromArgs config >>= xmobar

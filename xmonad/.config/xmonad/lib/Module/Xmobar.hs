@@ -24,10 +24,17 @@ import XMonad.Util.NamedScratchpad (scratchpadWorkspaceTag)
 
 statusBarConfig :: StatusBarConfig
 statusBarConfig =
-    statusBarProp V.appsXmobarRun
+    statusBarProp V.appsXmobarRunMonitor1
         . clickablePP
         . filterOutWsPP [scratchpadWorkspaceTag]
         $ xmobarPPConfig
+
+-- statusBarConfigSecond :: StatusBarConfig
+-- statusBarConfigSecond =
+--     statusBarProp V.appsXmobarRunMonitor2
+--         . clickablePP
+--         . filterOutWsPP [scratchpadWorkspaceTag]
+--         $ xmobarPPConfig
 
 xmobarPPConfig :: PP
 xmobarPPConfig =
@@ -37,6 +44,7 @@ xmobarPPConfig =
         , ppTitleSanitize = xmobarStrip
         , ppTitle = color "#f1fa8c" . shorten 60
         , ppCurrent = wrap tagCurrentLeft tagCurrentRight
+        , ppVisible = wrap tagVisibleScreenLeft tagVisibleScreenRight
         , ppHidden = wrap tagNotEmptyLeft tagNotEmptyRight
         , ppHiddenNoWindows = wrap tagEmptyLeft tagEmptyRight
         , ppUrgent = color "#ff5555" . wrap (color "#f1fa8c" "!") (color "#f1fa8c" "!")
@@ -65,6 +73,18 @@ tagCurrentLeft =
         , "<box type=Bottom width=4 ml=0 mr=0 color=#80a0ff>"
         ]
 tagCurrentRight =
+    concat
+        [ "</box>"
+        , "<hspace=2/>"
+        , "</fc>"
+        ]
+tagVisibleScreenLeft =
+    concat
+        [ "<fc=#bd93f9,#2E3440:0>"
+        , "<hspace=2/>"
+        , "<box type=VBoth width=4 ml=0 mr=0 color=#b8bb26>"
+        ]
+tagVisibleScreenRight =
     concat
         [ "</box>"
         , "<hspace=2/>"

@@ -12,6 +12,7 @@ bashdb
 bashtop
 bat
 bc
+xorg-xsetroot
 bspwm
 btrfs-progs
 clipboard
@@ -210,7 +211,6 @@ xorg-server-xephyr
 xorg-xev
 xorg-xinit
 xorg-xrandr
-xorg-xsetroot
 xsel
 xsettings-client
 xsettingsd

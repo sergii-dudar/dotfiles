@@ -24,7 +24,12 @@ appsTerminalDiscGdu = "kitty --name disc_ugd -e gdu"
 appsTrayerRun = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-run.sh"
 appsTrayerToggle = "~/dotfiles/xmobar/.config/xmobar/trayer/trayer-toggle.sh"
 
-appsXmobarRun = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-run.sh"
+appsXmobarRun :: Int -> String
+appsXmobarRun monitor = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-run.sh " ++ show monitor
+
+appsXmobarRunMonitor1 = appsXmobarRun 0
+appsXmobarRunMonitor2 = appsXmobarRun 1
+
 appsXmobarToggle = "~/dotfiles/xmobar/.config/xmobar/shell/xmobar-toggle.sh"
 
 -- ################## FONTS #############################
@@ -44,6 +49,7 @@ settingsFloatFactorHeight = 0.8
 
 -- workspacesList = ["web", "irc", "code"] ++ map show [4 .. 9]
 -- workspacesList = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
 -- workspacesList = [" 1  ", " 2  ", " 3  ", " 4 󰆍 ", " 5  ", " 6 󰣇 ", " 7  ", " 8  ", " 9  "]"]
 
 workspacesList =
@@ -57,6 +63,9 @@ workspacesList =
     , " 8 \xf345 " ++ space 6
     , " 9 \xf14a " ++ space 6
     ]
+
+lastWorkspaceId :: WorkspaceId
+lastWorkspaceId = last workspacesList
 
 space :: Int -> String
 space pixeds = "<hspace=" ++ show pixeds ++ "/>"

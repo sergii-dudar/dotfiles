@@ -40,6 +40,8 @@ packages:
 
 extra-deps:
     - xmobar-0.49
+    - hashtables-1.4.2
+
 # extra-deps:
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

@@ -14,7 +14,7 @@
 
 ```bash
 
-sudo pacman -S xdotool xdo trayer xmobar 
+sudo pacman -S xdotool xorg-xsetroot xdo trayer xmobar 
 
 ```
 

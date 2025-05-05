@@ -26,10 +26,15 @@ import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.WindowSwallowing
 import XMonad.Hooks.WorkspaceHistory
+import qualified XMonad.StackSet as W
 
 -- Utilities
+
+import Data.Maybe (isNothing)
 import XMonad.Actions.MostRecentlyUsed (Location (workspace), configureMRU)
+import XMonad.Actions.OnScreen (greedyViewOnScreen, onlyOnScreen)
 import XMonad.Hooks.RefocusLast (refocusLastLogHook)
+import XMonad.Layout.IndependentScreens (withScreens)
 import XMonad.Util.ClickableWorkspaces (clickablePP)
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkNamedKeymap, removeKeysP)
 import XMonad.Util.Hacks
@@ -41,6 +46,15 @@ import XMonad.Util.Hacks
     , trayerPaddingXmobarEventHook
     , windowedFullscreenFixEventHook
     )
+
+lastWsToSecondScreenStartupHook :: X ()
+lastWsToSecondScreenStartupHook = do
+    screens <- gets (W.screens . windowset)
+    U.notifySend $ "screens " ++ show (length screens)
+    when (length screens > 1) $ do
+        U.notifySend "1231"
+        modify $ \xstate ->
+            xstate {windowset = onlyOnScreen 1 V.lastWorkspaceId (windowset xstate)}
 
 mainConfiguration =
     K.applyKeybinds $
@@ -65,7 +79,11 @@ mainConfiguration =
                     <> swallowEventHook
                         (className =? "com.mitchellh.ghostty" <||> className =? "com.ghostty.group01" <||> className =? "kitty")
                         (return True)
-            , startupHook = return () >> checkKeymap mainConfiguration K.bindKeys >> SR.runStartup
+            , startupHook =
+                return ()
+                    >> checkKeymap mainConfiguration K.bindKeys
+                    >> SR.runStartup
+                    >> lastWsToSecondScreenStartupHook
             , logHook = refocusLastLogHook >> S.scratchpadsLogHooks
             }
 
@@ -73,12 +91,12 @@ xmobarSB = withEasySB BAR.statusBarConfig K.toggleStrutsKey
 
 main :: IO ()
 main = do
-    -- xmproc <- spawnPipe "killall xmobar ; xmobar ~/dotfiles/xmobar/.config/xmobar/xmobarrc.hs"
     xmonad
         . configureMRU
         . ewmhFullscreen
         . ewmh
         . xmobarSB
+        -- . xmobarSBSecond
         -- . docks
         $ mainConfiguration
 
