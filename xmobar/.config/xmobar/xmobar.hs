@@ -13,8 +13,8 @@ import qualified Util.Element as E
 import qualified Util.Variable as V
 import qualified Xmobar as E
 
-config :: Config
-config =
+buildConfig :: Bool -> Config
+buildConfig hasBattery =
     defaultConfig
         { overrideRedirect = False -- allows XMonad to manage/reserve space dynamically.
         , dpi = 96
@@ -44,39 +44,36 @@ config =
         , template =
             concat
                 [ appRunnersLeft
-                , modulesSpace
+                , E.modulesSpace
                 , "%UnsafeXMonadLog%"
                 , " } "
                 , RunnerTemplate.dateRunner
                 , " { "
-                , intercalate
-                    modulesSpace
-                    [ RunnerTemplate.kbdRunner
-                    , RunnerTemplate.alsaRunner
-                    , RunnerTemplate.batteryRunner
-                    , RunnerTemplate.memoryRunner
-                    , RunnerTemplate.cpuRunner
-                    , RunnerTemplate.coreTempRunner
-                    , RunnerTemplate.diskRunner
-                    , RunnerTemplate.weatherRunner
-                    , appRunnersRight
-                    , modulesBg "%_XMONAD_TRAYPAD% "
-                    ]
+                , intercalate E.modulesSpace $ buildRightSection hasBattery
                 ]
         }
 
-modulesSpace :: String
-modulesSpace = E.space 3
-
-modulesBg :: String -> String
-modulesBg = E.color "#d35f5e" "#2E3440:0"
+buildRightSection :: Bool -> [String]
+buildRightSection hasBattery =
+    [ RunnerTemplate.kbdRunner
+    , RunnerTemplate.alsaRunner
+    ]
+        ++ [RunnerTemplate.batteryRunner | hasBattery]
+        ++ [ RunnerTemplate.memoryRunner
+           , RunnerTemplate.cpuRunner
+           , RunnerTemplate.coreTempRunner
+           , RunnerTemplate.diskRunner
+           , RunnerTemplate.weatherRunner
+           , appRunnersRight
+           , E.modulesBg "%_XMONAD_TRAYPAD% "
+           ]
 
 appRunnersLeft :: String
-appRunnersLeft = modulesBg RunnerApp.appsMenuRunner
+appRunnersLeft = E.modulesBg RunnerApp.appsMenuRunner
 
 appRunnersRight :: String
 appRunnersRight =
-    modulesBg $
+    E.modulesBg $
         concat
             [ RunnerApp.settingsRunner
             , RunnerApp.intellijRunner
@@ -88,4 +85,7 @@ appRunnersRight =
             ]
 
 main :: IO ()
-main = configFromArgs config >>= xmobar
+main = do
+    hasBattery <- Battery.batteryExists
+    let config = buildConfig hasBattery :: Config
+    configFromArgs config >>= xmobar

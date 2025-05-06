@@ -4,6 +4,12 @@ import Xmobar
 
 import qualified Util.Variable as V
 
+modulesSpace :: String
+modulesSpace = space 3
+
+modulesBg :: String -> String
+modulesBg = color "#d35f5e" "#2E3440:0"
+
 twoAction :: String -> String -> String -> String
 twoAction command1 command2 = oneAction command1 . action command2 3
 

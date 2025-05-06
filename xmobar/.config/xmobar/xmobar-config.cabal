@@ -12,6 +12,7 @@ executable xmobar-config
                      , xmobar
                      , directory
                      , containers
+                     , filepath
 
   -- ghc-options:         -Wall
   --                      -Wcompat
