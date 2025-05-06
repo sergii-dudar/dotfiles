@@ -28,13 +28,18 @@ input "type:keyboard" {
 #    mode 3840x2160@60.000Hz
 # }
 
-output * bg ~/wallpapers/jpg/Wall147.jpg fill
-output "HDMI-A-1" mode 3840x2160@60.000Hz
+output "HDMI-A-1" mode 3840x2160@60.000Hz pos 0 0
+output "HDMI-A-2" mode 3840x2160@60.000Hz pos 0 0
+output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
+
+exec --no-startup-id "swaybg -o HDMI-A-* -i ~/wallpapers/jpg/Wall147.jpg -m fill"
+exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
+
 # output "HDMI-A-1" scale 1.4
 # output "HDMI-A-1" transform 90
 
-set $primary HDMI-1
-set $secondary HDMI-2
+set $primary HDMI-A-2
+set $secondary HDMI-A-3
 
 workspace 1 output $primary
 workspace 2 output $primary

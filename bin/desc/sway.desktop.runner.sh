@@ -1,1 +1,1 @@
-exec sway
+exec sway --unsupported-gpu
