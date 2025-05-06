@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+alpha='dd'
+background='#282a36'
+selection='#44475a'
+comment='#6272a4'
+
+yellow='#f1fa8c'
+orange='#ffb86c'
+red='#ff5555'
+magenta='#ff79c6'
+blue='#6272a4'
+cyan='#8be9fd'
+green='#50fa7b'
+clock='#ca9ee6'
+
+swaylock \
+    --daemonize \
+    --show-failed-attempts \
+    --clock \
+    --screenshots \
+    --effect-blur 3x4 \
+    --color 6272A4 \
+    --indicator \
+    --indicator-radius 280 \
+    --indicator-thickness 20 \
+    --line-color 282A36 \
+    --ring-color BD93F9 \
+    --inside-color 282A36 \
+    --key-hl-color 50FA7B \
+    --separator-color 00000000 \
+    --text-color F8F8F2 \
+    --text-caps-lock-color "" \
+    --line-ver-color BD93F9 \
+    --ring-ver-color BD93F9 \
+    --inside-ver-color 282A36 \
+    --text-ver-color 8BE9FD \
+    --ring-wrong-color FF5555 \
+    --text-wrong-color FF5555 \
+    --inside-wrong-color 282A36 \
+    --inside-clear-color 282A36 \
+    --text-clear-color 8BE9FD \
+    --ring-clear-color 8BE9FD \
+    --line-clear-color 8BE9FD \
+    --line-wrong-color 282A36 \
+    --bs-hl-color 8BE9FD \
+    --grace 2 \
+    --grace-no-mouse \
+    --grace-no-touch \
+    --datestr "%a %e %B %Y" \
+    --timestr "%H:%M %P" \
+    --fade-in 0.4 \
+    --ignore-empty-password \
+    --hide-keyboard-layout

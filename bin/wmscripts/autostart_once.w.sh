@@ -16,7 +16,7 @@ swaync &  # dunst &
 case "$wm_name" in
     sway)
         # killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
-
+        run_swayidle 'swaymsg "output * dpms off"' 'swaymsg "output * dpms on"'
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
         # autotilin &
@@ -37,9 +37,19 @@ case "$wm_name" in
 
         ;;
     *)
+        # hyprland
+        # run_swayidle 'hyprctl dispatch dpms off' 'hyprctl dispatch dpms on'
         #killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
         ;;
 esac
+
+function run_swayidle() {
+    swayidle -w \
+        timeout 600 "$HOME/dotfiles/bin/screen-lockw" \
+        timeout 1200 "$1" \
+        resume "$2" \
+        before-sleep "$HOME/dotfiles/bin/screen-lockw" &
+}
 
 # case "$XDG_SESSION_TYPE" in
 #     wayland)
