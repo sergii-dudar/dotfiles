@@ -143,7 +143,7 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+q exec $pmenu
     #bindsym $ctrl+alt+q exec ~/.config/rofi/scripts/powermenu_t1
 
-    bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lock.w
+    bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
     bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
 
     #ctrl + alt + s

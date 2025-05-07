@@ -95,7 +95,14 @@ case ${chosen} in
         systemctl reboot
         ;;
     $lock)
-        sh "$HOME/dotfiles/bin/screen-lock"
+        case "$XDG_SESSION_TYPE" in
+            wayland)
+                "$HOME/dotfiles/bin/screen-lockw"
+                ;;
+            *)
+                "$HOME/dotfiles/bin/screen-lock"
+                ;;
+        esac
         ;;
     $suspend)
         #run_cmd --suspend
