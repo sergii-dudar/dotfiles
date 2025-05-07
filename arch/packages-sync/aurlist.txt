@@ -16,6 +16,7 @@ qtile-extras
 sesh-bin
 snapd
 sublime-text-4
+swaylock-effects
 ttf-joypixels
 turbo-base64
 wlprop

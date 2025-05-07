@@ -12,7 +12,6 @@ bashdb
 bashtop
 bat
 bc
-xorg-xsetroot
 bspwm
 btrfs-progs
 clipboard
@@ -79,6 +78,7 @@ gnome-weather
 gnu-free-fonts
 gpick
 grilo-plugins
+grim
 gst-plugin-pipewire
 gum
 gvfs
@@ -137,6 +137,7 @@ pipewire-alsa
 pipewire-jack
 pipewire-pulse
 playerctl
+pngquant
 polkit-gnome
 polybar
 postgresql
@@ -165,10 +166,11 @@ sof-firmware
 stow
 sublime-text-4
 sushi
+swappy
 sway
 swaybg
 swayidle
-swaylock
+swaylock-effects
 swaync
 sxhkd
 tecla
@@ -211,6 +213,7 @@ xorg-server-xephyr
 xorg-xev
 xorg-xinit
 xorg-xrandr
+xorg-xsetroot
 xsel
 xsettings-client
 xsettingsd

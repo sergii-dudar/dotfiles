@@ -32,7 +32,8 @@ output "HDMI-A-1" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-2" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
 
-exec --no-startup-id "swaybg -o HDMI-A-* -i ~/wallpapers/jpg/Wall147.jpg -m fill"
+exec --no-startup-id "swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
+exec --no-startup-id "swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
 exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
 
 # output "HDMI-A-1" scale 1.4
@@ -146,7 +147,9 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
 
     #ctrl + alt + s
-    bindsym Print exec "grim -g "$(slurp)" - | swappy -f -"
+    #bindsym Print exec sh -c 'grim -g "$(slurp)" - | swappy -f -'
+    bindsym Print exec ~/dotfiles/bin/screenshot.w.sh
+#    bindsym Print exec sh -c 'mkdir -p ~/Pictures/Screenshots && FILE=~/Pictures/Screenshots/screenshot-$(date +%Y%m%d-%H%M%S).png && grim -g "$(slurp)" "$FILE" && swappy -f "$FILE"'
      
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
