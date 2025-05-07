@@ -86,8 +86,8 @@ entry {
 textbox-prompt-colon {
     enabled:                     true;
     expand:                      false;
-    str:                         "";
-    padding:                     10px 14px 10px 14px;
+    str:                         "";
+    padding:                     10px 11px 10px 11px;
     border-radius:               10px;
     background-color:            @urgent;
     text-color:                  @background;
