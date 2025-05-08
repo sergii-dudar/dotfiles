@@ -95,22 +95,6 @@ bindsym $mod+Shift+7 move container to workspace number 7, workspace number 7 ou
 bindsym $mod+Shift+8 move container to workspace number 8, workspace number 8 output HDMI-1
 bindsym $mod+Shift+9 move container to workspace number 9, workspace number 9 output HDMI-2
 
-# exec_always --no-startup-id pgrep -f '^kitty --class ttrm,ttrm' || kitty --class ttrm,ttrm
-# exec_always --no-startup-id pgrep -f '^kitty --class vol,vol' || kitty --class vol,vol -e pulsemixer
-# exec_always --no-startup-id pgrep -f '^kitty --class news,news' || kitty --class news,news -e newsboat
-# exec_always --no-startup-id pgrep -f '^kitty --class mus,mus' || kitty --class mus,mus -e ncmpcpp
-# exec_always --no-startup-id pgrep -f '^kitty --class fm,fm' || kitty --class fm,fm -e ranger
-
-# set $mode_launcher Launch: [f]irefox [t]hunderbird
-# bindsym $mod+o mode "$mode_launcher"
-
-# mode "$mode_launcher" {
-#     bindsym f exec firefox
-#     bindsym t exec thunderbird
-#
-#     bindsym Escape mode "default"
-#     bindsym Return mode "default"
-# }
 #----------------------------- sway start --------------------------------------
 #-------------------------------------------------------------------------------
 #------------------ base -------------------------------------------------------
@@ -137,19 +121,13 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+Shift+c kill
 
     # Start your launcher
-    # bindsym $mod+d exec $menu
-    #bindsym $alt+q exec ~/.config/rofi/scripts/powermenu_t1
     bindsym $alt+space exec $menu
     bindsym $mod+q exec $pmenu
-    #bindsym $ctrl+alt+q exec ~/.config/rofi/scripts/powermenu_t1
 
     bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
     bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
 
-    #ctrl + alt + s
-    #bindsym Print exec sh -c 'grim -g "$(slurp)" - | swappy -f -'
     bindsym Print exec ~/dotfiles/bin/screenshot.w.sh
-#    bindsym Print exec sh -c 'mkdir -p ~/Pictures/Screenshots && FILE=~/Pictures/Screenshots/screenshot-$(date +%Y%m%d-%H%M%S).png && grim -g "$(slurp)" "$FILE" && swappy -f "$FILE"'
      
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
@@ -170,45 +148,6 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
 #   pavucontrol
 # netrork
 #   nm-connection-editor
-
-# ---------- Application Keybindings ----------- #
-
-# #ctrl + alt + s
-# Print
-#     flameshot gui
-#
-# # open/close gnome-control-center
-# alt + shift + g
-#     kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
-#
-# alt + shift + b
-#     brave
-# # ---------- Audio Keybindings ------------- #
-#
-# super + Left
-#    amixer -D pulse sset Master 5%-
-#
-# super + Right
-#    amixer -D pulse sset Master 5%+
-#
-# super + Down
-#    amixer -D pulse sset Master toggle
-#
-# super + shift + Down
-#     playerctl play-pause
-#
-# super + shift + Right
-#     playerctl next
-#
-# super + shift + Left
-#     playerctl previous
-
-
-
-
-
-
-
 
 #----------------------------------------------
 
@@ -260,7 +199,7 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     # Switch the current container between different layout styles
     # bindsym $mod+s layout stacking
     # bindsym $mod+w layout tabbed
-    #bindsym $mod+e layout toggle split
+    bindsym $mod+e layout toggle split
 
     bindsym $mod+f fullscreen
     bindsym $mod+Tab exec "~/.config/sway/toggle_layout.sh"
