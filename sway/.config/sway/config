@@ -51,7 +51,6 @@ workspace 6 output $primary
 workspace 7 output $primary
 workspace 8 output $primary
 workspace 9 output $secondary
-
 # Check if HDMI-2 is connected, otherwise use HDMI-1
 # exec --no-startup-id bash -c 'xrandr | grep -q "$secondary connected" || i3-msg "workspace 9, move workspace to output $primary"'
 
@@ -59,7 +58,7 @@ workspace 9 output $secondary
 # workspace 9 output HDMI-2
 # workspace 2 output HDMI-1
 
-# exec --no-startup-id (sleep 0.7 && i3-msg 'workspace 1') &
+exec --no-startup-id (sleep 1 && swaymsg 'workspace 1') &
 
 workspace_auto_back_and_forth yes
 focus_on_window_activation focus
@@ -195,6 +194,8 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     # You can "split" the current object of your focus with
     # $mod+b or $mod+v, for horizontal and vertical splits
     # respectively.
+    # bindsym $mod+b splith
+    # bindsym $mod+v splitv
 
     # Switch the current container between different layout styles
     # bindsym $mod+s layout stacking

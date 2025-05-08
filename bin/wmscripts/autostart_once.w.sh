@@ -21,19 +21,11 @@ case "$wm_name" in
         i3-back &
         # autotilin &
 
-        # run scractchpad apps (i3 can't open them automatically)
-        brave &
-        telegram-desktop &
-        #nautilus &
-        #ghostty --class=com.scratchpad.yazi -e yazi &
-        ghostty --class=com.ghostty.group01 &
+        # brave &
+        # ghostty --class=com.ghostty.group01 &
 
-        # youtube_music
-        #brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod &
-        # google_chat
-        #brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi &
-        # monkey_type
-        #brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna &
+        (sleep 0.4 && ghostty --class=com.ghostty.group01) &
+        (sleep 0.7 && brave) &
 
         ;;
     *)
