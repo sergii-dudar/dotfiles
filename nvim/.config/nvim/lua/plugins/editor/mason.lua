@@ -24,6 +24,7 @@ return {
             "shellcheck",
             "ruff",
             "luacheck",
+            "stylelint",
 
             -- Formatter
             "xmlformatter",
@@ -36,6 +37,7 @@ return {
             "shellharden",
             -- haskell
             "fourmolu",
+            "prettier",
         },
     },
 }

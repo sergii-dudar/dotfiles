@@ -29,6 +29,7 @@ input "type:keyboard" {
 #    mode 3840x2160@60.000Hz
 # }
 
+set $scale 1
 output "HDMI-A-1" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-2" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
@@ -127,11 +128,13 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
     bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
 
+    # toggle waybar visibility
+    bindsym $mod+b exec "killall -SIGUSR1 waybar"
     bindsym Print exec ~/dotfiles/bin/screenshot.w.sh
      
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
-    bindsym $alt+Shift+b exec brave
+    bindsym $alt+Shift+b exec "brave --force-device-scale-factor=1.2"
     
     # ---------- Audio Keybindings ------------- #
     bindsym $mod+Left exec "amixer -D pulse sset Master 5%-"

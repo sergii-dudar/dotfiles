@@ -14,6 +14,7 @@ return {
                 -- Use the "_" filetype to run linters on filetypes that don't have other linters configured.
                 -- ['_'] = { 'fallback linter' },
                 -- ["*"] = { "typos" },
+                -- css = { "stylelint" },
             },
             -- LazyVim extension to easily override linter options
             -- or add custom linters.
