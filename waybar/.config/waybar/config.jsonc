@@ -8,11 +8,13 @@
     // Choose the order of the modules
     "modules-left": [
         "sway/workspaces",
+        "hyprland/workspaces",
         "sway/mode",
         "sway/scratchpad",
         "custom/media"
     ],
     "modules-center": [
+        "hyprland/window",
         "sway/window"
     ],
     "modules-right": [
@@ -225,7 +227,7 @@
         "max-length": 40,
         "format-icons": {
             "spotify": "",
-            "default": "🎜"
+            // "default": ""
         },
         "escape": true,
         "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null" // Script in resources folder
