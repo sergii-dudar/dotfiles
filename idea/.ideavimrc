@@ -520,9 +520,9 @@ nmap <leader>csu <Action>(Unwrap)
 "nmap <leader>cr <Action>(CopyReference)
 
 "======== Optimize
-map <leader>cO :action ReformatCode \| action OptimizeImports<CR>
+map <leader>cf :action ReformatCode \| action OptimizeImports<CR>
 map <leader>co <Action>(OptimizeImports)
-map <leader>cf <Action>(ReformatCode)
+"map <leader>cf <Action>(ReformatCode)
 
 
 nmap <leader>Ci <Action>(ImplementMethods)
