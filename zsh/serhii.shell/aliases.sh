@@ -21,6 +21,7 @@ if isMacOs; then
     alias brewu="brew update && brew upgrade"
     alias brewua="brew update && brew upgrade && yaziu"
     alias brave="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
+    alias move_cursor='bash -c "cd ~/dotfiles/work/python && pipenv run python mouse_cursor.py > /dev/null 2>&1"'
 else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
