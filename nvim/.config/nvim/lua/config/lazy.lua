@@ -71,6 +71,7 @@ require("lazy").setup({
         -- util
         --{ import = "lazyvim.plugins.extras.util.rest" },
         --{ import = "lazyvim.plugins.extras.util.project" },
+        { import = "lazyvim.plugins.extras.util.dot" },
 
         -- import/override with your plugins
         { import = "plugins.ui" },

@@ -13,6 +13,7 @@ return {
             --"lombok-nightly",
             --"spring-boot-tools", -- nvim-java/mason-registry
             "haskell-language-server",
+            "hyprls",
 
             -- DAP
             "bash-debug-adapter",
