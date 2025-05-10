@@ -12,6 +12,7 @@ bashdb
 bashtop
 bat
 bc
+brightnessctl
 bspwm
 btrfs-progs
 clipboard
@@ -191,6 +192,7 @@ usbutils
 vim
 vlc
 volumeicon
+waybar
 wezterm
 wget
 wireless_tools
@@ -202,6 +204,7 @@ wqy-zenhei
 xautolock
 xclip
 xdg-desktop-portal-gnome
+xdg-desktop-portal-wlr
 xdg-user-dirs-gtk
 xdg-utils
 xdo
