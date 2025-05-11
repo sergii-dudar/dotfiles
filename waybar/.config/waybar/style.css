@@ -8,11 +8,11 @@
     font-size: 22px;
     border-radius: 5px;
 
-    min-height: 32px;
+    min-height: 35px;
     /* margin: 0; */
     /* padding: 0; */
-    padding-bottom: 1px;
-    padding-top: 1px;
+    /* padding-bottom: 1px; */
+    /* padding-top: 1px; */
 }
 
 window.HDMI-A-3 * {
@@ -21,7 +21,7 @@ window.HDMI-A-3 * {
 }
 
 window#waybar {
-    background-color: rgba(43, 48, 59, 0.6);
+    background-color: rgba(35, 38, 52, 0.8); /* #232634; */
     /* border-bottom: 3px solid rgba(100, 114, 125, 0.5); */
     color: #ffffff;
     transition-property: background-color;
@@ -69,19 +69,56 @@ button:hover {
     background-color: #a37800;
 }
 
+/**/
+/* theme.taglist_fg_focus = "#a6d189" */
+/* theme.taglist_bg_focus = "#44475a" */
+/* theme.taglist_fg_empty = "#51576d" */
+/**/
+/* --theme.taglist_bg_occupied = "#44475a" */
+/* theme.taglist_fg_occupied = "#8caaee" */
+
+/* #workspaces */
+/* #workspaces button */
+/* #workspaces button.active */
+/* #workspaces button.empty */
+/* #workspaces button.persistent */
+/* #workspaces button.special */
+/* #workspaces button.visible */
+/* #workspaces button.urgent */
+/* #workspaces button.hosting-monitor (gets applied if workspace-monitor == waybar-monitor) */
+/**/
+
 #workspaces button {
     padding: 0 5px;
     background-color: transparent;
-    color: #ffffff;
+    color: #51576d;
 }
+
+/* #workspaces button.active { */
+/*     padding: 0 5px; */
+/*     background-color: #44475a; */
+/*     color: #a6d189; */
+/* } */
 
 #workspaces button:hover {
     background: rgba(0, 0, 0, 0.2);
 }
 
 #workspaces button.focused {
-    background-color: #64727d;
-    box-shadow: inset 0 -3px #ffffff;
+    background-color: #44475a;
+    color: #a6d189;
+    box-shadow: inset 0 -4px #80a0ff;
+}
+
+#workspaces button.visible {
+    background-color: #2e3440;
+    color: #8caaee;
+    box-shadow: inset 0 -4px #535d6c;
+}
+#workspaces button:not(.focused):not(.empty) {
+    background-color: #2e3440;
+    color: #8caaee;
+    box-shadow: inset 0 -4px #535d6c;
 }
 
 #workspaces button.urgent {
