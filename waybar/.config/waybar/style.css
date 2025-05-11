@@ -1,3 +1,5 @@
+@import url("module/sway.css");
+
 * {
     /* `otf-font-awesome` is required to be installed for icons */
     /* font-family: FontAwesome, Roboto, Helvetica, Arial, sans-serif; */
@@ -67,62 +69,6 @@ button:hover {
 /* you can set a style on hover for any module like this */
 #pulseaudio:hover {
     background-color: #a37800;
-}
-
-/**/
-/* theme.taglist_fg_focus = "#a6d189" */
-/* theme.taglist_bg_focus = "#44475a" */
-/* theme.taglist_fg_empty = "#51576d" */
-/**/
-/* --theme.taglist_bg_occupied = "#44475a" */
-/* theme.taglist_fg_occupied = "#8caaee" */
-
-/* #workspaces */
-/* #workspaces button */
-/* #workspaces button.active */
-/* #workspaces button.empty */
-/* #workspaces button.persistent */
-/* #workspaces button.special */
-/* #workspaces button.visible */
-/* #workspaces button.urgent */
-/* #workspaces button.hosting-monitor (gets applied if workspace-monitor == waybar-monitor) */
-/**/
-
-#workspaces button {
-    padding: 0 5px;
-    background-color: transparent;
-    color: #51576d;
-}
-
-/* #workspaces button.active { */
-/*     padding: 0 5px; */
-/*     background-color: #44475a; */
-/*     color: #a6d189; */
-/* } */
-
-#workspaces button:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-#workspaces button.focused {
-    background-color: #44475a;
-    color: #a6d189;
-    box-shadow: inset 0 -4px #80a0ff;
-}
-
-#workspaces button.visible {
-    background-color: #2e3440;
-    color: #8caaee;
-    box-shadow: inset 0 -4px #535d6c;
-}
-#workspaces button:not(.focused):not(.empty) {
-    background-color: #2e3440;
-    color: #8caaee;
-    box-shadow: inset 0 -4px #535d6c;
-}
-
-#workspaces button.urgent {
-    background-color: #eb4d4b;
 }
 
 #mode {
