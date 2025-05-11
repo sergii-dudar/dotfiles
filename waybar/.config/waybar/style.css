@@ -1,4 +1,5 @@
 @import url("module/style/sway.css");
+@import url("module/style/clock.css");
 
 * {
     /* `otf-font-awesome` is required to be installed for icons */
@@ -24,8 +25,8 @@ window.HDMI-A-3 * {
 
 window#waybar {
     background-color: rgba(35, 38, 52, 0.8); /* #232634; */
-    /* border-bottom: 3px solid rgba(100, 114, 125, 0.5); */
-    color: #ffffff;
+    /* border-bottom: 3px solid rgbastype(100, 114, 125, 0.5); */
+    color: #f5c2e7;
     transition-property: background-color;
     transition-duration: 0.5s;
 }
@@ -110,10 +111,6 @@ button:hover {
 /* If workspaces is the rightmost module, omit right margin */
 .modules-right > widget:last-child > #workspaces {
     margin-right: 0;
-}
-
-#clock {
-    background-color: #64727d;
 }
 
 #battery {

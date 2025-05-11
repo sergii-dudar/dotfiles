@@ -30,7 +30,7 @@ stow allacritty
 stow --adopt allacritty
 
 # after this, we need restore in git dotfiles alacritty configs
-# as --adopt just swapping existing configs with repo, and them make link with replacing existing config file 
+# as --adopt just swapping existing configs with repo, and them make link with replacing existing config file
 
 ```
 
@@ -117,18 +117,18 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 ##### Custom Shortcuts
 
-- Flameshot:           [ flameshot gui ]  key:Print
-- chrome:              [ google-chrome ]  key:Super+B (google-chrome-stable)
-- file manager:        [ nautilus ]  key:Super+F
-- intellij:            [ intellij-idea-ultimate ]  key:Super+I
-- rofi run:            [ rofi -show open ]  key:Super+S
-- zellij:              [ kitty --hold zsh -c "zellij" ]  key:Super+R
-- terminal kitty:      [ kitty ]  key:Super+Enter
+- Flameshot: [ flameshot gui ] key:Print
+- chrome: [ google-chrome ] key:Super+B (google-chrome-stable)
+- file manager: [ nautilus ] key:Super+F
+- intellij: [ intellij-idea-ultimate ] key:Super+I
+- rofi run: [ rofi -show open ] key:Super+S
+- zellij: [ kitty --hold zsh -c "zellij" ] key:Super+R
+- terminal kitty: [ kitty ] key:Super+Enter
 
-- terminal alacritty:  [ alacritty ]  key:Super+Enter
-- ranger:              [ alacritty -e zsh -i -c "ranger ." ]  key:Super+R
+- terminal alacritty: [ alacritty ] key:Super+Enter
+- ranger: [ alacritty -e zsh -i -c "ranger ." ] key:Super+R
 
-````
+```
 /usr/share/X11/xkb/rules/evdev.xml
 <configItem>
     <name>ua</name>
@@ -149,7 +149,7 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
       <iso639Id>eng</iso639Id>
     </languageList>
 </configItem>
-````
+```
 
 ##### /etc/pacman.conf
 
@@ -173,17 +173,17 @@ from third party repos using directory `dotfiles.extensions` near `dotfiles`.
 
 #### disable Wayland and use Xorg
 
-````
+```
 /etc/gdm/custom.conf file and uncomment the following line:
 #WaylandEnable=false
-````
+```
 
 #### disable logout on close laptop (Lid Switch)
 
-````
+```
 sudo nvim /etc/systemd/logind.conf
 HandleLidSwitch=ignore
-````
+```
 
 #### translate apps
 
@@ -191,13 +191,13 @@ HandleLidSwitch=ignore
 
 #### Burn iso from linux
 
-````
+```
 - connect USB
 - sudo fdisk -l | grep "Disk /dev/s"
 - ls | grep '.iso'
 - sudo dd bs=4M if=./archlinux-2024.07.01-x86_64.iso of=/dev/sda status=progress oflag=sync
 - (optionally) we can download iso.sig to check iso sign to verify: gpg --keyserver-options auto-key-retrieve --verify archlinux-2024.07.01-x86_64.iso.sig archlinux-2024.07.01-x86_64.iso
-````
+```
 
 #### Install Arch as by - `archinstall` script pre-actions
 
@@ -210,3 +210,11 @@ HandleLidSwitch=ignore
 # connect to internet by wify from tty
 
 # <https://wiki.archlinux.org/title/Iwd#iwctl>
+
+#### UA locale
+
+```bash
+sudo locale-gen uk_UA.UTF-8
+sudo nvim /etc/locale.gen # uncomment: uk_UA.UTF-8 UTF-8
+sudo locale-gen
+```

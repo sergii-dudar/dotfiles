@@ -1,0 +1,54 @@
+{
+    "clock#date": {
+        "format": "<span color='#7c8377'> </span><span color='#6272a4'>{:%a, %b %d}</span>",
+        // "format-alt": "<span color='#7c8377'> </span><span color='#6272a4'>{:%A, %B %d, %Y}</span>",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        // "on-click": "nautilus",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "tz_up",
+            "on-scroll-down": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+    "clock": {
+        "format": "<span color='#bd93f9'> </span> <span color='#8caaee'>{:%I:%M %p}</span>",
+        // "format-alt": "<span color='#bd93f9'> </span> <span color='#8caaee'>{:%R}</span>",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        //"locale": "uk_UA.UTF-8",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "left",
+            "on-scroll": 1,
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "tz_up",
+            "on-scroll-down": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    }
+}
