@@ -8,10 +8,22 @@
     background: rgba(0, 0, 0, 0.2);
 }
 
-#workspaces button.focused {
+/* fucused on current screen */
+/* #workspaces button.focused { */
+#workspaces button.visible.focused {
     background-color: #44475a;
     color: #a6d189;
     box-shadow: inset 0 -4px #80a0ff;
+}
+
+/* second screen ws */
+#workspaces button.visible:not(.focused) {
+    background-color: #2e3440;
+    color: #bd93f9;
+    box-shadow: inset 0 -4px #b8bb26;
+    /* box-shadow: */
+    /*     inset 0 -4px #b8bb26, */
+    /*     inset 0 4px #b8bb26; */
 }
 
 #workspaces button:not(.focused):not(.empty) {
