@@ -10,6 +10,7 @@
         "sway/workspaces",
         "hyprland/workspaces",
         "sway/mode",
+        "idle_inhibitor",
         "sway/scratchpad",
         "custom/media",
         "hyprland/window",
@@ -21,7 +22,7 @@
     ],
     "modules-right": [
         "mpd",
-        "idle_inhibitor",
+        "sway/language",
         "pulseaudio",
         "network",
         "power-profiles-daemon",
@@ -30,7 +31,6 @@
         "temperature",
         "backlight",
         "keyboard-state",
-        "sway/language",
         "battery",
         "battery#bat2",
         "tray",
@@ -38,7 +38,9 @@
     ],
     "include": [
         "~/.config/waybar/module/sway.jsonc",
-        "~/.config/waybar/module/clock.jsonc"
+        "~/.config/waybar/module/clock.jsonc",
+        "~/.config/waybar/module/system.jsonc",
+        "~/.config/waybar/module/simple.jsonc"
     ],
     // Modules configuration
     "keyboard-state": {
@@ -75,13 +77,6 @@
         },
         "tooltip-format": "MPD (connected)",
         "tooltip-format-disconnected": "MPD (disconnected)"
-    },
-    "idle_inhibitor": {
-        "format": "{icon}",
-        "format-icons": {
-            "activated": "",
-            "deactivated": ""
-        }
     },
     "tray": {
         // "icon-size": 21,

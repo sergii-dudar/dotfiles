@@ -1,0 +1,10 @@
+#idle_inhibitor.deactivated {
+    background-color: #2e3440;
+    /* color: #51576d; */
+    color: #928374;
+}
+
+#idle_inhibitor.activated {
+    background-color: #2e3440;
+    color: #c678dd;
+}
