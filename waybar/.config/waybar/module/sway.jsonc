@@ -1,4 +1,17 @@
 {
+    "sway/mode": {
+        "format": "<span color='#8caaee' style=\"italic\">{}</span>"
+    },
+    "sway/scratchpad": {
+        "format": "<span color='#6272a4'>{icon}</span> <span color='#bd93f9'>{count}</span>",
+        "show-empty": false,
+        "format-icons": [
+            "",
+            ""
+        ],
+        "tooltip": true,
+        "tooltip-format": "{app}: {title}"
+    },
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
@@ -33,5 +46,57 @@
         //     "8": [],
         //     "9": []
         // }
+    },
+    "sway/window": {
+        "format": "{app_id}{title}",
+        "max-length": 50,
+        "rewrite": {
+            "^com.ghostty.group01(.*)": " 🧑‍💻 $1",
+            "^com.mitchellh.ghostty(.*)": " 🧑‍💻 $1",
+            "^Alacritty(.*)": " 🧑‍💻 $1",
+            "^xterm(.*)": " 🧑‍💻 $1",
+            "^kitty(.*)": " 🐱 $1",
+            "^brave-browser(.*)": " 🛡️ $1",
+            "^org.wezfurlong.wezterm(.*)": " 🔮 $1",
+            "^crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi(.*)": " 💬 $1",
+            "^crx_picebhhlijnlefeleilfbanaghjlkkna(.*)": " ⌨️ $1",
+            "^crx_cinhimbnkkaeohfgghhklpknlkffjgod(.*)": " 🎹 $1",
+            "^crx_hklfmmehghkmgpoombkhphgoebceokhg(.*)": " 🔎 $1", // COMPARE
+            "^com.scratchpad.yazi(.*)": " 📂 $1",
+            "^code(.*)": " 📝 $1",
+            "^jetbrains-idea(.*)": " ☕ $1",
+            "^org.pulseaudio.pavucontrol(.*)": " 🔈 $1",
+            "^nwg-look(.*)": " 🚀 $1",
+            "^org.telegram.desktop(.*)": " ✈️ $1",
+            "^org.gnome.Nautilus(.*)": " 📂 $1",
+            "^thunar(.*)": " 📂 $1",
+            "^vlc(.*)": " 📺 $1",
+            "^com.viber.Viber(.*)": " ✉️ $1",
+            "^org.qbittorrent.qBittorrent(.*)": " 💾 $1",
+            "^steamwebhelper(.*)": " 🎮 $1",
+            "^gpick(.*)": " 🎨 $1",
+            "^org.gnome.Calculator(.*)": " 🖩 $1",
+            "^org.gnome.Characters(.*)": " 🌆 $1",
+            "^org.gnome.Weather(.*)": " 🌥️ $1",
+            "^org.gnome.tweaks(.*)": " ⚙️  $1",
+            "^org.gnome.TextEditor(.*)": " 📝 $1",
+            "^org.gnome.SystemMonitor(.*)": " 🔍 $1",
+            "^sublime_text(.*)": " 📝 $1",
+            "^rhythmbox(.*)": " 🎹 $1",
+            "^com.github.PintaProject.Pinta(.*)": " 🖌️ $1",
+            "^nitrogen(.*)": " 🏙️ $1",
+            "^insomnia(.*)": " 🎯 $1",
+            "^org.gnome.DiskUtility(.*)": " 💽 $1",
+            "^org.gnome.clocks(.*)": " 🕓 $1",
+            "^org.gnome.Evince(.*)": " 📑 $1",
+            "^org.gnome.Settings(.*)": " ⚙️ $1",
+            "^org.gnome.Calendar(.*)": " 📅 $1",
+            "^htop_info(.*)": " 🚀 $1",
+            "^disc_usage_info(.*)": " 🚀 $1",
+            "^disc_ugd(.*)": " 🚀 $1",
+            // "^(.*)": " 1 $1",
+            // "^(.*)": " 1 $1",
+        },
+        "separate-outputs": true
     }
 }
