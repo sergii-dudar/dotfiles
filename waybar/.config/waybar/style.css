@@ -86,7 +86,6 @@ button:hover {
 #network,
 #pulseaudio,
 #wireplumber,
-#tray,
 #mode,
 #idle_inhibitor,
 #scratchpad,
@@ -212,19 +211,6 @@ label:focus {
 }
 
 #temperature.critical {
-    background-color: #eb4d4b;
-}
-
-#tray {
-    background-color: #2980b9;
-}
-
-#tray > .passive {
-    -gtk-icon-effect: dim;
-}
-
-#tray > .needs-attention {
-    -gtk-icon-effect: highlight;
     background-color: #eb4d4b;
 }
 

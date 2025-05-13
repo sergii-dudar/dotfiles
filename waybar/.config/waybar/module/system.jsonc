@@ -6,4 +6,12 @@
             "deactivated": " "
         }
     },
+    "tray": {
+        "icon-size": 26,
+        "spacing": 10,
+        // "icons": {
+        //     "blueman": "bluetooth",
+        //     "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
+        // }
+    },
 }

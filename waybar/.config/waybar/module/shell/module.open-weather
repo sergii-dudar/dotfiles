@@ -5,8 +5,8 @@
 
 function of_font() {
     # echo "<span size=\"$2\">$1</span>"
-    # echo "$1"
-    echo "<span font=\"$2\">$1</span>"
+    echo "$1"
+    # echo "<span font=\"$2\">$1</span>"
 }
 
 function get_emoji() {
@@ -39,10 +39,10 @@ function get_emoji() {
     echo "$icon"
 }
 
-# echo "$(get_emoji $WEATHER_ICON) $(of_color $TEMPERATURE $FG_COLOR)$(of_color "°C" $units_color)"
+echo "$(get_emoji $WEATHER_ICON) $(of_color $TEMPERATURE $FG_COLOR)$(of_color "°C" $units_color)"
 
 # debug all emojis in xmobar
-echo -n "$(get_emoji "01d")|$(get_emoji "01n")|$(get_emoji "02d")|$(get_emoji "02n")|$(get_emoji "03d")|$(get_emoji "03n")|"
-echo -n "$(get_emoji "04d")|$(get_emoji "04n")|$(get_emoji "09d")|$(get_emoji "09n")|$(get_emoji "10d")|$(get_emoji "10n")|"
-echo -n "$(get_emoji "11d")|$(get_emoji "11n")|$(get_emoji "13d")|$(get_emoji "13n")|$(get_emoji "50d")|$(get_emoji "50n")|"
-echo "$(get_emoji "555")"
+# echo -n "$(get_emoji "01d")|$(get_emoji "01n")|$(get_emoji "02d")|$(get_emoji "02n")|$(get_emoji "03d")|$(get_emoji "03n")|"
+# echo -n "$(get_emoji "04d")|$(get_emoji "04n")|$(get_emoji "09d")|$(get_emoji "09n")|$(get_emoji "10d")|$(get_emoji "10n")|"
+# echo -n "$(get_emoji "11d")|$(get_emoji "11n")|$(get_emoji "13d")|$(get_emoji "13n")|$(get_emoji "50d")|$(get_emoji "50n")|"
+# echo "$(get_emoji "555")"

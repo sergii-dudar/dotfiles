@@ -18,7 +18,9 @@ prepend_keymap = [
     { on = "9", run = "plugin relative-motions --args=9", desc = "Move in relative steps" },
 
     # max preview
-    { on = "i", run  = "plugin max-preview", desc = "Maximize or restore preview" },
+    { on = "i", run  = "plugin toggle-pane max-preview", desc = "Maximize or restore the preview pane" },
+    # { on = "i", run  = "plugin toggle-pane max-current", desc = "Maximize or restore the preview pane" },
+    # { on = "i", run  = "plugin toggle-pane max-parent", desc = "Maximize or restore the preview pane" },
 
     # development, --interactive
     #{ on = [ "t", "t" ], run = 'shell "alacritty" --orphan',        desc = "open terminal" },

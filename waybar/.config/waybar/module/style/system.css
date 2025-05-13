@@ -8,3 +8,18 @@
     background-color: #2e3440;
     color: #c678dd;
 }
+
+#tray {
+    background-color: #2e3440;
+    padding: 0 10px;
+    color: #ffffff;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: #eb4d4b;
+}
