@@ -71,11 +71,6 @@ button:hover {
     box-shadow: inset 0 -3px #ffffff;
 }
 
-/* you can set a style on hover for any module like this */
-#pulseaudio:hover {
-    background-color: #a37800;
-}
-
 #clock,
 #battery,
 #cpu,
@@ -92,7 +87,8 @@ button:hover {
 #power-profiles-daemon,
 #mpd {
     padding: 0 10px;
-    color: #ffffff;
+    background-color: #2e3440;
+    /* color: #ffffff; */
 }
 
 /* #window, */
@@ -110,16 +106,16 @@ button:hover {
     margin-right: 0;
 }
 
-#battery {
-    background-color: #ffffff;
-    color: #000000;
-}
-
-#battery.charging,
-#battery.plugged {
-    color: #ffffff;
-    background-color: #26a65b;
-}
+/* #battery { */
+/*     background-color: #ffffff; */
+/*     color: #000000; */
+/* } */
+/**/
+/* #battery.charging, */
+/* #battery.plugged { */
+/*     color: #ffffff; */
+/*     background-color: #26a65b; */
+/* } */
 
 @keyframes blink {
     to {
@@ -162,40 +158,17 @@ label:focus {
     background-color: #000000;
 }
 
-#cpu {
-    background-color: #2ecc71;
-    color: #000000;
-}
-
-#memory {
-    background-color: #9b59b6;
-}
-
-#disk {
-    background-color: #964b00;
-}
-
 #backlight {
     background-color: #90b1b1;
 }
 
-#network {
-    background-color: #2980b9;
-}
-
-#network.disconnected {
-    background-color: #f53c3c;
-}
-
-#pulseaudio {
-    background-color: #f1c40f;
-    color: #000000;
-}
-
-#pulseaudio.muted {
-    background-color: #90b1b1;
-    color: #2a5c45;
-}
+/* #network { */
+/*     background-color: #2980b9; */
+/* } */
+/**/
+/* #network.disconnected { */
+/*     background-color: #f53c3c; */
+/* } */
 
 #wireplumber {
     background-color: #fff0f5;
@@ -204,14 +177,6 @@ label:focus {
 
 #wireplumber.muted {
     background-color: #f53c3c;
-}
-
-#temperature {
-    background-color: #f0932b;
-}
-
-#temperature.critical {
-    background-color: #eb4d4b;
 }
 
 #mpd {

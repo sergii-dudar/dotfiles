@@ -14,4 +14,116 @@
         //     "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
         // }
     },
+    "cpu": {
+        "format": "<span color='#8caaee'> </span> {usage}%",
+        "tooltip": false
+    },
+    "memory": {
+        "format": "<span color='#a6e3a1'> </span> {}%"
+    },
+    "disk": {
+        "interval": 600,
+        "format": "<span color='#e5c890'> </span> {percentage_used}% <span color='#6272a4'>SSD</span>",
+        "path": "/"
+    },
+    "temperature": {
+        "thermal-zone": 11,
+        // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+        "critical-threshold": 80,
+        // "format-critical": "{temperatureC}°C {icon}",
+        "format": "{icon} {temperatureC}°C",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
+    },
+    "pulseaudio": {
+        "scroll-step": 5, // %, can be a float
+        "format": "{icon} {volume}%",
+        "format-muted": "{icon} {volume}%",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default-muted": " ",
+            "default": [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+            ]
+        },
+        "on-click": "amixer -D pulse sset Master toggle",
+        "on-click-right": "pavucontrol"
+    },
+    "battery": {
+        "states": {
+            // "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-full": "{icon} {capacity}% ",
+        "format-charging": "󰂄  {capacity}%",
+        "format-plugged": " {capacity}%",
+        "format-alt": "{icon} {time}",
+        // "format-good": "", // An empty format will hide the module
+        // "format-full": "",
+        "format-icons": [
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " "
+        ]
+    },
+    "battery#bat2": {
+        "bat": "BAT2"
+    },
+    // "pulseaudio": {
+    //     // "scroll-step": 1, // %, can be a float
+    //     "format": "{volume}% {icon} {format_source}",
+    //     "format-bluetooth": "{volume}% {icon} {format_source}",
+    //     "format-bluetooth-muted": " {icon} {format_source}",
+    //     "format-muted": " {format_source}",
+    //     "format-source": "{volume}% ",
+    //     "format-source-muted": "",
+    //     "format-icons": {
+    //         "headphone": "",
+    //         "hands-free": "",
+    //         "headset": "",
+    //         "phone": "",
+    //         "portable": "",
+    //         "car": "",
+    //         "default": [
+    //             "",
+    //             "",
+    //             "",
+    //             ""
+    //         ]
+    //     },
+    //     "on-click": "pavucontrol"
+    // },
 }
