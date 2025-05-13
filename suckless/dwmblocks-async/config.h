@@ -27,9 +27,9 @@
     X("", "/home/serhii/dotfiles/bin/dwm/sb-cpu-temp",      120,    7) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-disk",          1200,   8) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-weather",       1200,   9) \
-    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '[dwm]' '#1177AA'",      0, 12) \
-    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner 'env XDG_CURRENT_DESKTOP=GNOME gnome-control-center' '' '#3071db'",     0, 13) \
-    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner 'env QT_SCALE_FACTOR=1.4 qbittorrent' '󱑤' '#8caaee'",                    0, 16) \
+    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' ' [dwm] ' '#1177AA'",      0, 12) \
+    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner 'env XDG_CURRENT_DESKTOP=GNOME gnome-control-center' ' ' '#3071db'",     0, 13) \
+    X("", "/home/serhii/dotfiles/bin/dwm/sb-runner 'env QT_SCALE_FACTOR=1.4 qbittorrent' '󱑤 ' '#8caaee'",                    0, 16) \
     X("", "/home/serhii/dotfiles/bin/dwm/sb-runner '/home/serhii/.config/rofi/scripts/powermenu_t1' '⏻' '#d35f5e'",         0, 17)
 #endif  // CONFIG_H
 

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+CURRENT_LAYOUT=$(swaymsg -t get_inputs | jq -r '.[] | select(.type=="keyboard") | .xkb_active_layout_index' | head -n 1)
+
+if [ "$CURRENT_LAYOUT" = 1 ]; then
+    echo "🇺🇦 <span color='#bc99ed'>UA</span>"
+else
+    echo "🇺🇸 <span color='#bc99ed'>US</span>"
+fi

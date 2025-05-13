@@ -7,6 +7,9 @@ export FG_COLOR="#94928F"
 # export SPLIT="^b#c965bf^ ^d^"
 # export SPLIT="^b#232634^ ^d^"
 
+# Thin Space 
 # export SPLIT="^b#1c1e29^ ^d^"
+
+# Hair Space
 export SPLIT="^b#1c1e29^ ^d^"
 export SPLIT_LEFT=$SPLIT

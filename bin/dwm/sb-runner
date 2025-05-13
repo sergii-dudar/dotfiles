@@ -6,4 +6,4 @@ esac
 
 # . "$HOME"/dotfiles/bin/dwm/colorscheme
 
-echo " ^c$3^$2"
+echo "^c$3^$2"

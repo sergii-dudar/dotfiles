@@ -1,0 +1,36 @@
+{
+    "custom/media": {
+        "format": " {text}",
+        "return-type": "json",
+        "max-length": 30,
+        "format-icons": {
+            "spotify": "",
+            // "default": ""
+        },
+        "hide-empty-text": true,
+        "escape": false,
+        "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null" // Script in resources folder
+    },
+    // "custom/weather": {
+    //     "format": " {} ",
+    //     "exec": "~/.config/waybar/module/shell/module.lang.sh",
+    //     "return-type": "text",
+    //     "on-click": "~/.config/waybar/module/shell/change_language.w.sh",
+    //     "on-click-right": "~/.config/waybar/module/shell/change_language.w.sh",
+    //     "on-scroll-up": "~/.config/waybar/module/shell/change_language.w.sh",
+    //     "on-scroll-down": "~/.config/waybar/module/shell/change_language.w.sh",
+    //     "interval": 60
+    // },
+    "custom/power": {
+        "format": "⏻ ",
+        "tooltip": false,
+        "menu": "on-click",
+        "menu-file": "$HOME/.config/waybar/custom_modules/power_menu.xml", // Menu file in resources folder
+        "menu-actions": {
+            "shutdown": "shutdown",
+            "reboot": "reboot",
+            "suspend": "systemctl suspend",
+            "hibernate": "systemctl hibernate"
+        }
+    }
+}

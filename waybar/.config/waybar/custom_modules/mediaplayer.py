@@ -123,11 +123,19 @@ class PlayerManager:
         else:
             track_info = title
 
+
+
         if track_info:
             if player.props.status == "Playing":
-                track_info = " " + track_info
+                # track_info =  track_info 
+                track_info = "<span color='#c678dd'> </span> <span color='#5699af'>"+track_info+"</span>"
+            elif (player.props.status == "Paused"):
+                logger.info(f"Player .............: {player.props.status}")
+                # track_info =  track_info
+                track_info = "<span color='#98be65'> </span> <span color='#5699af'>"+track_info+"</span>"
             else:
-                track_info = " " + track_info
+                track_info = ""
+
         # only print output if no other player is playing
         current_playing = self.get_first_playing_player()
         if current_playing is None or current_playing.props.player_name == player.props.player_name:

@@ -2,6 +2,7 @@
 @import url("module/style/clock.css");
 @import url("module/style/system.css");
 @import url("module/style/simple.css");
+@import url("module/style/custom.css");
 
 * {
     /* `otf-font-awesome` is required to be installed for icons */
@@ -28,7 +29,8 @@ window.HDMI-A-3 * {
 window#waybar {
     background-color: rgba(35, 38, 52, 0.8); /* #232634; */
     /* border-bottom: 3px solid rgbastype(100, 114, 125, 0.5); */
-    color: #f5c2e7;
+    /* color: #f5c2e7; */
+    color: #a9a1e1;
     transition-property: background-color;
     transition-duration: 0.5s;
 }
@@ -84,7 +86,6 @@ button:hover {
 #network,
 #pulseaudio,
 #wireplumber,
-#custom-media,
 #tray,
 #mode,
 #idle_inhibitor,
@@ -204,20 +205,6 @@ label:focus {
 
 #wireplumber.muted {
     background-color: #f53c3c;
-}
-
-#custom-media {
-    background-color: #66cc99;
-    color: #2a5c45;
-    min-width: 100px;
-}
-
-#custom-media.custom-spotify {
-    background-color: #66cc99;
-}
-
-#custom-media.custom-vlc {
-    background-color: #ffa000;
 }
 
 #temperature {

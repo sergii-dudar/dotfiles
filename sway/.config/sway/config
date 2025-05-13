@@ -130,7 +130,8 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+q exec $pmenu
 
     bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
-    bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
+    # bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
+    bindsym $mod+space exec ~/.config/waybar/module/shell/change_language.w.sh
 
     # toggle waybar visibility
     bindsym $mod+b exec "killall -SIGUSR1 waybar"

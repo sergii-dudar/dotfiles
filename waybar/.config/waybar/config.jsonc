@@ -22,7 +22,8 @@
     ],
     "modules-right": [
         "mpd",
-        "sway/language",
+        // "sway/language",
+        "custom/language",
         "pulseaudio",
         "network",
         "power-profiles-daemon",
@@ -40,6 +41,7 @@
         "~/.config/waybar/module/sway.jsonc",
         "~/.config/waybar/module/clock.jsonc",
         "~/.config/waybar/module/system.jsonc",
+        "~/.config/waybar/module/custom.jsonc",
         "~/.config/waybar/module/simple.jsonc"
     ],
     // Modules configuration
@@ -186,29 +188,5 @@
             ]
         },
         "on-click": "pavucontrol"
-    },
-    "custom/media": {
-        "format": "{icon} {text}",
-        "return-type": "json",
-        "max-length": 40,
-        "format-icons": {
-            "spotify": "",
-            // "default": ""
-        },
-        "escape": true,
-        "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null" // Script in resources folder
-        // "exec": "$HOME/.config/waybar/mediaplayer.py --player spotify 2> /dev/null" // Filter player based on name
-    },
-    "custom/power": {
-        "format": "⏻ ",
-        "tooltip": false,
-        "menu": "on-click",
-        "menu-file": "$HOME/.config/waybar/custom_modules/power_menu.xml", // Menu file in resources folder
-        "menu-actions": {
-            "shutdown": "shutdown",
-            "reboot": "reboot",
-            "suspend": "systemctl suspend",
-            "hibernate": "systemctl hibernate"
-        }
     }
 }

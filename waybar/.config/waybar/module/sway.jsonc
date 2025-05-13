@@ -12,6 +12,51 @@
         "tooltip": true,
         "tooltip-format": "{app}: {title}"
     },
+    "custom/language": {
+        "format": " {} ",
+        "exec": "~/.config/waybar/module/shell/module.lang",
+        "return-type": "text",
+        "on-click": "~/.config/waybar/module/shell/change_language.w.sh",
+        "on-click-right": "~/.config/waybar/module/shell/change_language.w.sh",
+        "on-scroll-up": "~/.config/waybar/module/shell/change_language.w.sh",
+        "on-scroll-down": "~/.config/waybar/module/shell/change_language.w.sh",
+        "signal": 2
+    },
+    // ~/.config/waybar/module/shell/change_language.w.sh
+    // "sway/language": {
+    //     "format": "{long}",
+    //     "tooltip": true,
+    //     "tooltip-format": "Current layout: {long}",
+    //     // "long-names": {
+    //     //     "us": "English",
+    //     //     "ua": "Ukrainian"
+    //     // }
+    //     "format-map": {
+    //         "us": "1English (US)", // Long name for 'us' layout
+    //         "ua": "2Ukrainian" // Long name for 'ua' layout
+    //     },
+    // }
+    // "sway/language": {
+    //     "format": "{flag} {short}", // Default format if no specific language format matches
+    //     "format-us": "1{flag} USA", // Custom format for 'us' layout
+    //     "format-ua": "2{flag} Україна", // Custom format for 'ua' layout (Ukraine in Ukrainian)
+    //     // Alternatively, for English text for Ukraine:
+    //     // "format-ua": "{flag} Ukraine",
+    //     "tooltip": true,
+    //     "tooltip-format": "{long}", // Shows the full system layout name on hover
+    //     "on-click": "swaymsg input type:keyboard xkb_switch_layout next", // Optional: switch layout on click
+    //     "on-scroll-up": "swaymsg input type:keyboard xkb_switch_layout next", // Optional
+    //     "on-scroll-down": "swaymsg input type:keyboard xkb_switch_layout prev" // Optional
+    // }
+    // "sway/language": {
+    //     "format": "123 {long}",
+    //     "tooltip": true,
+    //     "tooltip-format": "Current layout: {long}",
+    //     "long-names": {
+    //         "us": "🇺🇲 US",
+    //         "ua": "🇺🇦 UA"
+    //     }
+    // }
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
@@ -50,51 +95,51 @@
         "format": "{app_id}{title}",
         "max-length": 50,
         "rewrite": {
-            "^com.ghostty.group01(.*)": " 🧑‍💻 $1",
-            "^com.mitchellh.ghostty(.*)": " 🧑‍💻 $1",
-            "^Alacritty(.*)": " 🧑‍💻 $1",
-            "^xterm(.*)": " 🧑‍💻 $1",
-            "^kitty(.*)": " 🐱 $1",
-            "^brave-browser(.*)": " 🛡️ $1",
-            "^org.wezfurlong.wezterm(.*)": " 🔮 $1",
-            "^crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi(.*)": " 💬 $1",
-            "^crx_picebhhlijnlefeleilfbanaghjlkkna(.*)": " ⌨️ $1",
-            "^crx_cinhimbnkkaeohfgghhklpknlkffjgod(.*)": " 🎹 $1",
-            "^crx_hklfmmehghkmgpoombkhphgoebceokhg(.*)": " 🔎 $1", // COMPARE
-            "^com.scratchpad.yazi(.*)": " 📂 $1",
-            "^code(.*)": " 📝 $1",
-            "^jetbrains-idea(.*)": " ☕ $1",
-            "^org.pulseaudio.pavucontrol(.*)": " 🔈 $1",
-            "^nwg-look(.*)": " 🚀 $1",
-            "^org.telegram.desktop(.*)": " ✈️ $1",
-            "^org.gnome.Nautilus(.*)": " 📂 $1",
-            "^thunar(.*)": " 📂 $1",
-            "^vlc(.*)": " 📺 $1",
-            "^com.viber.Viber(.*)": " ✉️ $1",
-            "^org.qbittorrent.qBittorrent(.*)": " 💾 $1",
-            "^steamwebhelper(.*)": " 🎮 $1",
-            "^gpick(.*)": " 🎨 $1",
-            "^org.gnome.Calculator(.*)": " 🖩 $1",
-            "^org.gnome.Characters(.*)": " 🌆 $1",
-            "^org.gnome.Weather(.*)": " 🌥️ $1",
-            "^org.gnome.tweaks(.*)": " ⚙️  $1",
-            "^org.gnome.TextEditor(.*)": " 📝 $1",
-            "^org.gnome.SystemMonitor(.*)": " 🔍 $1",
-            "^sublime_text(.*)": " 📝 $1",
-            "^rhythmbox(.*)": " 🎹 $1",
-            "^com.github.PintaProject.Pinta(.*)": " 🖌️ $1",
-            "^nitrogen(.*)": " 🏙️ $1",
-            "^insomnia(.*)": " 🎯 $1",
-            "^org.gnome.DiskUtility(.*)": " 💽 $1",
-            "^org.gnome.clocks(.*)": " 🕓 $1",
-            "^org.gnome.Evince(.*)": " 📑 $1",
-            "^org.gnome.Settings(.*)": " ⚙️ $1",
-            "^org.gnome.Calendar(.*)": " 📅 $1",
-            "^htop_info(.*)": " 🚀 $1",
-            "^disc_usage_info(.*)": " 🚀 $1",
-            "^disc_ugd(.*)": " 🚀 $1",
-            // "^(.*)": " 1 $1",
-            // "^(.*)": " 1 $1",
+            "^com.ghostty.group01(.*)": " 🧑‍💻 $1",
+            "^com.mitchellh.ghostty(.*)": " 🧑‍💻 $1",
+            "^Alacritty(.*)": " 🧑‍💻 $1",
+            "^xterm(.*)": " 🧑‍💻 $1",
+            "^kitty(.*)": " 🐱 $1",
+            "^brave-browser(.*)": " 🛡️ $1",
+            "^org.wezfurlong.wezterm(.*)": " 🔮 $1",
+            "^crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi(.*)": " 💬 $1",
+            "^crx_picebhhlijnlefeleilfbanaghjlkkna(.*)": " ⌨️ $1",
+            "^crx_cinhimbnkkaeohfgghhklpknlkffjgod(.*)": " 🎹 $1",
+            "^crx_hklfmmehghkmgpoombkhphgoebceokhg(.*)": " 🔎 $1",
+            "^com.scratchpad.yazi(.*)": " 📂 $1",
+            "^code(.*)": " 📝 $1",
+            "^jetbrains-idea(.*)": " ☕ $1",
+            "^org.pulseaudio.pavucontrol(.*)": " 🔈 $1",
+            "^nwg-look(.*)": " 🚀 $1",
+            "^org.telegram.desktop(.*)": " ✈️ $1",
+            "^org.gnome.Nautilus(.*)": " 📂 $1",
+            "^thunar(.*)": " 📂 $1",
+            "^vlc(.*)": " 📺 $1",
+            "^com.viber.Viber(.*)": " ✉️ $1",
+            "^org.qbittorrent.qBittorrent(.*)": " 💾 $1",
+            "^steamwebhelper(.*)": " 🎮 $1",
+            "^gpick(.*)": " 🎨 $1",
+            "^org.gnome.Calculator(.*)": " 🖩 $1",
+            "^org.gnome.Characters(.*)": " 🌆 $1",
+            "^org.gnome.Weather(.*)": " 🌥️ $1",
+            "^org.gnome.tweaks(.*)": " ⚙️ $1",
+            "^org.gnome.TextEditor(.*)": " 📝 $1",
+            "^org.gnome.SystemMonitor(.*)": " 🔍 $1",
+            "^sublime_text(.*)": " 📝 $1",
+            "^rhythmbox(.*)": " 🎹 $1",
+            "^com.github.PintaProject.Pinta(.*)": " 🖌️ $1",
+            "^nitrogen(.*)": " 🏙️ $1",
+            "^insomnia(.*)": " 🎯 $1",
+            "^org.gnome.DiskUtility(.*)": " 💽 $1",
+            "^org.gnome.clocks(.*)": " 🕓 $1",
+            "^org.gnome.Evince(.*)": " 📑 $1",
+            "^org.gnome.Settings(.*)": " ⚙️ $1",
+            "^org.gnome.Calendar(.*)": " 📅 $1",
+            "^htop_info(.*)": " 🚀 $1",
+            "^disc_usage_info(.*)": " 🚀 $1",
+            "^disc_ugd(.*)": " 🚀 $1",
+            // "^(.*)": " 1 $1",
+            // "^(.*)": " 1 $1",
         },
         "separate-outputs": true
     }
