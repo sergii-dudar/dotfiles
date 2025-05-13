@@ -15,7 +15,7 @@ esac
 
 if [ "$(pamixer --get-mute)" == "true" ]; then
     notify-send --expire-time=1000 "Volume Muted 🔇"
-    echo "^c#d35f5e^ MUT$SPLIT"
+    echo " ^c#d35f5e^  MUT $SPLIT"
     exit 0
 fi
 
@@ -24,25 +24,25 @@ fi
 volume="$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | tr -d '%')"
 
 if [ -z "$volume" ]; then
-    icon="  "
-    volume=" "
+    icon="  "
+    volume=" "
     return 0
 fi
 
 if [ "$volume" -eq 125 ]; then
-    icon="  "
+    icon="  "
     notify-send -u critical "Volume 125%" "You are going to damage your ears!"
 elif [ "$volume" -gt 99 ]; then
-    icon="  "
+    icon="  "
 elif [ "$volume" -gt 40 ]; then
-    icon="  "
+    icon="  "
 elif [ "$volume" -gt 15 ]; then
     icon=" "
 elif [ "$volume" -lt 10 ]; then
     echo "[^c#ca9ee6^ ^c$FG_COLOR^0$volume%]$SPLIT"
     exit 0
 else
-    icon=" "
+    icon=" "
 fi
 
-echo "^c#ca9ee6^$icon^c$FG_COLOR^$volume%$SPLIT"
+echo " ^c#ca9ee6^$icon^c$FG_COLOR^$volume% $SPLIT"

@@ -10,7 +10,7 @@ ctrl + alt + q
     ~/dotfiles/bin/screen-lock
 
 # just the unconviniest combination to hit, as is mapping to right alt by `keyd`
-alt + ctrl + super + shift + space
+super + space
     ~/dotfiles/bin/change_language.sh
 
 # general:

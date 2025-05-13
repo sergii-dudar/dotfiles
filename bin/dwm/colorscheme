@@ -1,8 +1,12 @@
 export BG_COLOR="#242933" #"#2E3440"
 export FG_COLOR="#94928F"
 # "" --  󰇝  󰮾 󱋱
-export SPLIT="^c#7f849c^ 󱋱 ^d^"
-export SPLIT_LEFT="^c#7f849c^ 󱋱^d^"
+# export SPLIT="^c#7f849c^ 󱋱 ^d^"
+# export SPLIT_LEFT="^c#7f849c^ 󱋱^d^"
+#
 # export SPLIT="^b#c965bf^ ^d^"
-# export SPLIT="^b#1c1e29^ ^d^"
 # export SPLIT="^b#232634^ ^d^"
+
+# export SPLIT="^b#1c1e29^ ^d^"
+export SPLIT="^b#1c1e29^ ^d^"
+export SPLIT_LEFT=$SPLIT

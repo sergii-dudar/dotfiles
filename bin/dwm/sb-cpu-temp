@@ -35,4 +35,4 @@ else
     icon=""
 fi
 
-echo "^c$icon_fg^$icon ^c$FG_COLOR^$temp^c#6272a4^°C$SPLIT"
+echo " ^c$icon_fg^$icon ^c$FG_COLOR^$temp^c#6272a4^°C $SPLIT"

@@ -26,8 +26,10 @@ date_color="#6272a4"
 
 # time=$(date '+%H:%M')
 time=$(date '+%H:%M')
-timep=$(date '+%P')
-datenow=$(date '+%d-%m^c#7FBBB3^.%a')
+timep=$(date '+%p')
+#datenow=$(date '+%d-%m^c#7FBBB3^ %a')
+datenow=$(date '+^c#7FBBB3^%a,^c#6272a4^ %b %d')
+#date =      " %{F #7c8377} %{T13} %{T-}%{F #6272a4}%a,%{T13} %{T-}%b%{T13} %{T-}%d%{F-} "
 #datenow=$(date '+%a, %d %b %y')
 
 get_hour_icon() {
@@ -51,8 +53,9 @@ get_hour_icon() {
 
     echo "$icon"
 }
-time_part="^c$time_icon_color^$(get_hour_icon)^c$time_color^$time^c$timep_color^$timep"
-date_part="^c$date_icon_color^ ^c$date_color^$datenow"
+time_part="^c$time_icon_color^$(get_hour_icon)^c$time_color^$time^c$timep_color^ $timep"
+date_part="^c$date_icon_color^ $datenow"
 
-echo " $time_part $date_part^d^$SPLIT"
+#echo " $time_part^d^ $SPLIT $date_part^d^ $SPLIT"
+echo " $time_part^d^ $SPLIT $date_part^d^ $SPLIT"
 # echo " $time_part$SPLIT"

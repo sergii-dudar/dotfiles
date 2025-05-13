@@ -15,4 +15,4 @@ esac
 icon=$(get_emoji "$WEATHER_ICON")
 icon_color=$(get_emoji_color "$WEATHER_ICON")
 temperature=$TEMPERATURE
-echo "^c$icon_color^$icon^c$FG_COLOR^${temperature}^c$units_color^°C$SPLIT_LEFT"
+echo " ^c$icon_color^$icon^c$FG_COLOR^${temperature}^c$units_color^°C $SPLIT_LEFT"
