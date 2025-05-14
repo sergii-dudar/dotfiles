@@ -43,6 +43,7 @@
         "~/.config/waybar/module/clock.jsonc",
         "~/.config/waybar/module/system.jsonc",
         "~/.config/waybar/module/custom.jsonc",
+        "~/.config/waybar/module/other.jsonc",
         "~/.config/waybar/module/simple.jsonc"
     ],
     "mpd": {
@@ -96,21 +97,5 @@
             "balanced": "",
             "power-saver": ""
         }
-    },
-    "network": {
-        // "interface": "wlp2*", // (Optional) To force the use of this interface
-        "format-wifi": "{icon} {essid} ({signalStrength}%)",
-        "format-ethernet": "󰈀  {ipaddr}/{cidr}",
-        "tooltip-format": "{ifname} via {gwaddr}",
-        "format-linked": "󰈀  {ifname} (No IP)",
-        "format-disconnected": "Disconnected ⚠ 󰤭 ",
-        "format-alt": "{ifname}: {ipaddr}/{cidr}",
-        "format-icons": [
-            "󰤯 ",
-            "󰤟 ",
-            "󰤢 ",
-            "󰤥 ",
-            "󰤨 ",
-        ]
     },
 }

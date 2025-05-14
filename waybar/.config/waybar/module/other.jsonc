@@ -1,0 +1,25 @@
+{
+    "network": {
+        // "interface": "wlp2*", // (Optional) To force the use of this interface
+        "format-wifi": "{icon} {signalStrength}%",
+        "tooltip-format-wifi": "<span color='#4db5bd'>Wifi Connected</span> {icon} ({signalStrength}%)",
+        "format-ethernet": "<span color='#a6e3a1'>󰈀 󰈁</span>",
+        "tooltip-format-ethernet": "<span color='#50fa7b'>󰈀 󰈁</span> <span color='#4db5bd'>Ethernet Connected</span> <span color='#a9a1e1'>{ipaddr}</span>",
+        "format-linked": "<span color='#a6e3a1'>󰈀 󰈁 (No IP)</span>",
+        "format-disconnected": "<span color='#c678dd'>󰈂 󰤭 </span>",
+        "tooltip-format-disconnected": "<span color='#4db5bd'>Disconnected</span> <span color='#c678dd'>󰈂 󰤭 </span>",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        // "tooltip-format": "{ifname} via {gwaddr}",
+        "format-icons": [
+            "󰤯 ",
+            "󰤟 ",
+            "󰤟 ",
+            "󰤢 ",
+            "󰤢 ",
+            "󰤥 ",
+            "󰤥 ",
+            "󰤨 ",
+            "󰤨 "
+        ]
+    },
+}
