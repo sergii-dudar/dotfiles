@@ -18,9 +18,11 @@
     ],
     "modules-center": [
         "clock#date",
-        "clock"
+        "clock",
+        "group/group-power"
     ],
     "modules-right": [
+        "image#kitty",
         "mpd",
         // "sway/language",
         "custom/language",
@@ -34,6 +36,7 @@
         "disk",
         // "backlight",
         "custom/weather",
+        "privacy",
         "network",
         "tray",
         "custom/power"
@@ -44,8 +47,15 @@
         "~/.config/waybar/module/system.jsonc",
         "~/.config/waybar/module/custom.jsonc",
         "~/.config/waybar/module/other.jsonc",
+        "~/.config/waybar/module/runners.jsonc",
         "~/.config/waybar/module/simple.jsonc"
     ],
+    // /home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/kitty.svg
+    "image#kitty": {
+        "path": "/home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/ghostty.png",
+        "size": 32,
+        "on-click": "mpc toggle"
+    },
     "mpd": {
         "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
         "format-disconnected": "Disconnected ",

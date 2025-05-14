@@ -13,41 +13,45 @@
         //     "blueman": "bluetooth",
         //     "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
         // }
+        // <span color=''> </span>
     },
     "cpu": {
-        "format": "<span color='#8caaee'> </span> {usage}%",
-        "tooltip": false
+        "format": "<span color='#8caaee'> </span> {usage:02}<span color='#6272a4'>%</span>",
+        "tooltip": false,
+        "on-click": "gnome-system-monitor"
     },
     "memory": {
-        "format": "<span color='#a6e3a1'> </span> {}%"
+        "format": "<span color='#a6e3a1'> </span> {percentage:02}<span color='#6272a4'>%</span>",
+        "on-click": "ghostty --class=com.ghostty.float.htop_info -e htop",
     },
     "disk": {
         "interval": 600,
-        "format": "<span color='#e5c890'> </span> {percentage_used}% <span color='#6272a4'>SSD</span>",
-        "path": "/"
+        "format": "<span color='#e5c890'> </span> {percentage_used:02}<span color='#6272a4'>% SSD</span>",
+        "path": "/",
+        "on-click": "ghostty --class=com.ghostty.float.disc_ugd -e gdu ~"
     },
     "temperature": {
         "thermal-zone": 0,
         // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
         "critical-threshold": 80,
         // "format-critical": "{temperatureC}°C {icon}",
-        "format": "{icon} {temperatureC}°C",
+        "format": "{icon} {temperatureC:02}<span color='#6272a4'>°C</span>",
         "format-icons": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "<span color='#8caaee'></span>",
+            "<span color='#8caaee'></span>",
+            "<span color='#8caaee'></span>",
+            "<span color='#8caaee'></span>",
+            "<span color='#8caaee'></span>",
+            "<span color='#8caaee'></span>",
+            "<span color='#e5c890'></span>",
+            "<span color='#e78284'></span>",
+            "<span color='#ff5555'></span>"
         ]
     },
     "pulseaudio": {
         "scroll-step": 5, // %, can be a float
-        "format": "{icon} {volume}%",
-        "format-muted": "{icon} {volume}%",
+        "format": "{icon} {volume:02}<span color='#6272a4'>%</span>",
+        "format-muted": "{icon} {volume:02}<span color='#6272a4'>%</span>",
         "format-icons": {
             "headphone": "",
             "hands-free": "",
@@ -55,19 +59,19 @@
             "phone": "",
             "portable": "",
             "car": "",
-            "default-muted": " ",
+            "default-muted": "<span color='#d35f5e'> </span>",
             "default": [
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " ",
-                " "
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>",
+                "<span color='#ca9ee6'> </span>"
             ]
         },
         "on-click": "amixer -D pulse sset Master toggle",
@@ -79,10 +83,10 @@
             "warning": 30,
             "critical": 15
         },
-        "format": "{icon} {capacity}%",
-        "format-full": "{icon} {capacity}% ",
-        "format-charging": "󰂄  {capacity}%",
-        "format-plugged": " {capacity}%",
+        "format": "{icon} {capacity:02}<span color='#6272a4'>%</span>",
+        "format-full": "{icon} {capacity:02}<span color='#6272a4'>%</span>",
+        "format-charging": "󰂄  {capacity:02}<span color='#6272a4'>%</span>",
+        "format-plugged": " {capacity:02}<span color='#6272a4'>%</span>",
         "format-alt": "{icon} {time}",
         // "format-good": "", // An empty format will hide the module
         // "format-full": "",

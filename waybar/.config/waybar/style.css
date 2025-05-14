@@ -85,10 +85,11 @@ button:hover {
 #idle_inhibitor,
 #scratchpad,
 #power-profiles-daemon,
+#custom-weather,
 #mpd {
     padding: 0 10px;
     background-color: #2e3440;
-    /* color: #ffffff; */
+    color: #94928f;
 }
 
 /* #window, */

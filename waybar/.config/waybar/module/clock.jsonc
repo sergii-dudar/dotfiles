@@ -3,7 +3,7 @@
         "format": "<span color='#7c8377'> </span><span color='#6272a4'>{:%a, %b %d}</span>",
         // "format-alt": "<span color='#7c8377'> </span><span color='#6272a4'>{:%A, %B %d, %Y}</span>",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
-        // "on-click": "nautilus",
+        "on-click": "gnome-calendar",
         "calendar": {
             "mode": "year",
             "mode-mon-col": 3,
@@ -30,6 +30,7 @@
         // "format-alt": "<span color='#bd93f9'> </span> <span color='#8caaee'>{:%R}</span>",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         //"locale": "uk_UA.UTF-8",
+        "on-click": "gnome-clocks",
         "calendar": {
             "mode": "year",
             "mode-mon-col": 3,

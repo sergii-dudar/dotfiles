@@ -12,13 +12,11 @@
         "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null" // Script in resources folder
     },
     "custom/weather": {
-        "format": " {} ",
+        "format": "{}",
         "exec": "~/.config/waybar/module/shell/module.open-weather",
         "return-type": "text",
-        "on-click": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-click-right": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-scroll-up": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-scroll-down": "~/.config/waybar/module/shell/change_language.w.sh",
+        "on-click": "brave https://sinoptik.ua/pohoda/vinnytsia",
+        "on-click-right": "gnome-weather",
         "interval": 60
     },
     "custom/power": {

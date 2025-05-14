@@ -46,16 +46,15 @@
 }
 
 /* you can set a style on hover for any module like this */
-#pulseaudio:hover {
-    background-color: #a37800;
-}
+/* #pulseaudio:hover { */
+/*     background-color: #a37800; */
+/* } */
 
 #pulseaudio {
-    background-color: #f1c40f;
     color: #000000;
 }
 
 #pulseaudio.muted {
-    background-color: #90b1b1;
+    /* background-color: #90b1b1; */
     color: #2a5c45;
 }
