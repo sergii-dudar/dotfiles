@@ -7,8 +7,7 @@
     "spacing": 4, // Gaps between modules (4px)
     // Choose the order of the modules
     "modules-left": [
-        "sway/workspaces",
-        "hyprland/workspaces",
+        "group/group-runners",
         "sway/mode",
         "idle_inhibitor",
         "sway/scratchpad",
@@ -18,11 +17,11 @@
     ],
     "modules-center": [
         "clock#date",
-        "clock",
-        "group/group-power"
+        "hyprland/workspaces",
+        "sway/workspaces",
+        "clock"
     ],
     "modules-right": [
-        "image#kitty",
         "mpd",
         // "sway/language",
         "custom/language",
@@ -39,7 +38,7 @@
         "privacy",
         "network",
         "tray",
-        "custom/power"
+        "image#runner-power"
     ],
     "include": [
         "~/.config/waybar/module/sway.jsonc",
@@ -49,63 +48,5 @@
         "~/.config/waybar/module/other.jsonc",
         "~/.config/waybar/module/runners.jsonc",
         "~/.config/waybar/module/simple.jsonc"
-    ],
-    // /home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/kitty.svg
-    "image#kitty": {
-        "path": "/home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/ghostty.png",
-        "size": 32,
-        "on-click": "mpc toggle"
-    },
-    "mpd": {
-        "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
-        "format-disconnected": "Disconnected ",
-        "format-stopped": "{consumeIcon}{randomIcon}{repeatIcon}{singleIcon}Stopped ",
-        "unknown-tag": "N/A",
-        "interval": 5,
-        "consume-icons": {
-            "on": " "
-        },
-        "random-icons": {
-            "off": "<span color=\"#f53c3c\"></span> ",
-            "on": " "
-        },
-        "repeat-icons": {
-            "on": " "
-        },
-        "single-icons": {
-            "on": "1 "
-        },
-        "state-icons": {
-            "paused": "",
-            "playing": ""
-        },
-        "tooltip-format": "MPD (connected)",
-        "tooltip-format-disconnected": "MPD (disconnected)"
-    },
-    "backlight": {
-        // "device": "acpi_video1",
-        "format": "{percent}% {icon}",
-        "format-icons": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ]
-    },
-    "power-profiles-daemon": {
-        "format": "{icon}",
-        "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
-        "tooltip": true,
-        "format-icons": {
-            "default": "",
-            "performance": "",
-            "balanced": "",
-            "power-saver": ""
-        }
-    },
+    ]
 }

@@ -1,0 +1,31 @@
+#image.runner-power {
+    padding: 0 5px;
+    background-color: #2e3440;
+    color: #94928f;
+}
+
+#image.runner-arch,
+#image.runner-settings,
+#image.runner-kitty,
+#image.runner-ghostty,
+#image.runner-wezterm,
+#image.runner-brave,
+#image.runner-intellij,
+#image.runner-evince,
+#image.runner-qbittorrent {
+    padding: 0 5px;
+    background-color: #2e3440;
+    color: #94928f;
+    border-radius: 0px;
+}
+
+#image.runner-settings:hover,
+#image.runner-kitty:hover,
+#image.runner-ghostty:hover,
+#image.runner-wezterm:hover,
+#image.runner-brave:hover,
+#image.runner-intellij:hover,
+#image.runner-evince:hover,
+#image.runner-qbittorrent:hover {
+    background-color: #282a36;
+}

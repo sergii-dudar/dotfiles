@@ -10,19 +10,19 @@
         "tooltip-format-disconnected": "<span color='#4db5bd'>Disconnected</span> <span color='#c678dd'>󰈂 󰤭 </span>",
         // "format-alt": "{ifname}: {ipaddr}/{cidr}",
         // "tooltip-format": "{ifname} via {gwaddr}",
-        "on-click": "nm-connection-editor",
-        "on-click-right": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center",
-        "on-click-middle": "~/.config/rofi/scripts/wifimenu",
+        "on-click": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center",
+        "on-click-right": "~/.config/rofi/scripts/wifimenu",
+        "on-click-middle": "nm-connection-editor",
         "format-icons": [
-            "󰤯 ",
-            "󰤟 ",
-            "󰤟 ",
-            "󰤢 ",
-            "󰤢 ",
-            "󰤥 ",
-            "󰤥 ",
-            "󰤨 ",
-            "󰤨 "
+            "<span color='#ff6c6b'>󰤯 </span>",
+            "<span color='#da8548'>󰤟 </span>",
+            "<span color='#da8548'>󰤟 </span>",
+            "<span color='#98be65'>󰤢 </span>",
+            "<span color='#98be65'>󰤢 </span>",
+            "<span color='#4db5bd'>󰤥 </span>",
+            "<span color='#4db5bd'>󰤥 </span>",
+            "<span color='#a6e3a1'>󰤨 </span>",
+            "<span color='#a6e3a1'>󰤨 </span>"
         ]
     },
     "privacy": {
@@ -45,6 +45,47 @@
                 "tooltip": true,
                 "tooltip-icon-size": 24
             }
+        ]
+    },
+    "mpd": {
+        "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
+        "format-disconnected": "Disconnected ",
+        "format-stopped": "{consumeIcon}{randomIcon}{repeatIcon}{singleIcon}Stopped ",
+        "unknown-tag": "N/A",
+        "interval": 5,
+        "consume-icons": {
+            "on": " "
+        },
+        "random-icons": {
+            "off": "<span color=\"#f53c3c\"></span> ",
+            "on": " "
+        },
+        "repeat-icons": {
+            "on": " "
+        },
+        "single-icons": {
+            "on": "1 "
+        },
+        "state-icons": {
+            "paused": "",
+            "playing": ""
+        },
+        "tooltip-format": "MPD (connected)",
+        "tooltip-format-disconnected": "MPD (disconnected)"
+    },
+    "backlight": {
+        // "device": "acpi_video1",
+        "format": "{percent}% {icon}",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
         ]
     },
 }

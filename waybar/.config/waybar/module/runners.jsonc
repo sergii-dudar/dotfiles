@@ -1,5 +1,10 @@
 {
-    "group/group-power": {
+    "image#runner-power": {
+        "path": "/home/serhii/.config/waybar/resources/power.png",
+        "size": 34,
+        "on-click": "~/.config/rofi/scripts/powermenu_t1"
+    },
+    "group/group-runners": {
         "orientation": "inherit",
         "drawer": {
             "transition-duration": 500,
@@ -7,30 +12,86 @@
             "transition-left-to-right": true,
         },
         "modules": [
-            "custom/power", // First element is the "group leader" and won't ever be hidden
-            "custom/quit",
-            "custom/lock",
-            "custom/reboot",
+            "image#runner-arch", // First element is the "group leader" and won't ever be hidden
+            "image#runner-settings",
+            "image#runner-kitty",
+            "image#runner-ghostty",
+            "image#runner-wezterm",
+            "image#runner-brave",
+            "image#runner-intellij",
+            "image#runner-evince",
+            "image#runner-qbittorrent"
         ]
     },
-    "custom/quit": {
-        "format": "󰗼",
-        "tooltip": false,
-        "on-click": "hyprctl dispatch exit"
+    // /home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/kitty.svg
+    "image#runner-arch": {
+        "path": "/home/serhii/.config/waybar/resources/arch-linux.png",
+        "size": 28,
+        "on-click": "~/.config/rofi/scripts/launcher_t1"
     },
-    "custom/lock": {
-        "format": "󰍁",
-        "tooltip": false,
-        "on-click": "swaylock"
+    "image#runner-settings": {
+        "path": "/home/serhii/.config/waybar/resources/settings.png",
+        "size": 32,
+        "on-click": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
     },
-    "custom/reboot": {
-        "format": "󰜉",
-        "tooltip": false,
-        "on-click": "reboot"
+    "image#runner-kitty": {
+        "path": "/home/serhii/.config/waybar/resources/kitty.svg",
+        "size": 34,
+        "on-click": "kitty"
     },
-    "custom/power": {
-        "format": "",
-        "tooltip": false,
-        "on-click": "shutdown now"
-    }
+    "image#runner-ghostty": {
+        "path": "/home/serhii/.config/waybar/resources/ghostty.png",
+        "size": 34,
+        "on-click": "wezterm"
+    },
+    "image#runner-wezterm": {
+        "path": "/home/serhii/.config/waybar/resources/wezterm.png",
+        "size": 30,
+        "on-click": "ghostty"
+    },
+    "image#runner-brave": {
+        "path": "/home/serhii/.config/waybar/resources/brave.icns",
+        "size": 31,
+        "on-click": "brave --force-device-scale-factor=1.2"
+    },
+    "image#runner-intellij": {
+        "path": "/home/serhii/.config/waybar/resources/intellij.svg",
+        "size": 28,
+        "on-click": "intellij-idea-ultimate"
+    },
+    "image#runner-evince": {
+        "path": "/home/serhii/.config/waybar/resources/evince.png",
+        "size": 28,
+        "on-click": "evince"
+    },
+    "image#runner-qbittorrent": {
+        "path": "/home/serhii/.config/waybar/resources/qbittorrent.svg",
+        "size": 32,
+        "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent"
+    },
+    // "custom/quit": {
+    //     "format": "󰗼",
+    //     "tooltip": false,
+    //     "on-click": "hyprctl dispatch exit"
+    // },
+    // "custom/lock": {
+    //     "format": "󰍁",
+    //     "tooltip": false,
+    //     "on-click": "swaylock"
+    // },
+    // "custom/reboot": {
+    //     "format": "󰜉",
+    //     "tooltip": false,
+    //     "on-click": "reboot"
+    // },
+    // "custom/power": {
+    //     "format": "",
+    //     "tooltip": false,
+    //     "on-click": "shutdown now"
+    // },
+    // "custom/power1": {
+    //     // "exec": "/path/to/your/awesome/script",
+    //     "format": "<span color='#d35f5e'> </span>",
+    //     "on-click": "~/.config/rofi/scripts/powermenu_t1"
+    // },
 }

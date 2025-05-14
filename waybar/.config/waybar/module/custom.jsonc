@@ -1,6 +1,6 @@
 {
     "custom/media": {
-        "format": " {text}",
+        "format": "{text}",
         "return-type": "json",
         "max-length": 30,
         "format-icons": {
@@ -9,7 +9,10 @@
         },
         "hide-empty-text": true,
         "escape": false,
-        "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null" // Script in resources folder
+        "exec": "$HOME/.config/waybar/custom_modules/mediaplayer.py 2> /dev/null", // Script in resources folder
+        "on-click": "playerctl play-pause",
+        "on-scroll-up": "playerctl next",
+        "on-scroll-down": "playerctl previous"
     },
     "custom/weather": {
         "format": "{}",
@@ -19,16 +22,16 @@
         "on-click-right": "gnome-weather",
         "interval": 60
     },
-    "custom/power": {
-        "format": "⏻ ",
-        "tooltip": false,
-        "menu": "on-click",
-        "menu-file": "$HOME/.config/waybar/custom_modules/power_menu.xml", // Menu file in resources folder
-        "menu-actions": {
-            "shutdown": "shutdown",
-            "reboot": "reboot",
-            "suspend": "systemctl suspend",
-            "hibernate": "systemctl hibernate"
-        }
-    }
+    // "custom/power": {
+    //     "format": "⏻ ",
+    //     "tooltip": false,
+    //     "menu": "on-click",
+    //     "menu-file": "$HOME/.config/waybar/custom_modules/power_menu.xml", // Menu file in resources folder
+    //     "menu-actions": {
+    //         "shutdown": "shutdown",
+    //         "reboot": "reboot",
+    //         "suspend": "systemctl suspend",
+    //         "hibernate": "systemctl hibernate"
+    //     }
+    // }
 }

@@ -1,8 +1,10 @@
-@import url("module/style/sway.css");
 @import url("module/style/clock.css");
-@import url("module/style/system.css");
-@import url("module/style/simple.css");
 @import url("module/style/custom.css");
+@import url("module/style/other.css");
+@import url("module/style/runner.css");
+@import url("module/style/simple.css");
+@import url("module/style/sway.css");
+@import url("module/style/system.css");
 
 * {
     /* `otf-font-awesome` is required to be installed for icons */
@@ -86,6 +88,7 @@ button:hover {
 #scratchpad,
 #power-profiles-daemon,
 #custom-weather,
+#custom-media,
 #mpd {
     padding: 0 10px;
     background-color: #2e3440;
@@ -107,17 +110,6 @@ button:hover {
     margin-right: 0;
 }
 
-/* #battery { */
-/*     background-color: #ffffff; */
-/*     color: #000000; */
-/* } */
-/**/
-/* #battery.charging, */
-/* #battery.plugged { */
-/*     color: #ffffff; */
-/*     background-color: #26a65b; */
-/* } */
-
 @keyframes blink {
     to {
         background-color: #ffffff;
@@ -125,119 +117,6 @@ button:hover {
     }
 }
 
-/* Using steps() instead of linear as a timing function to limit cpu usage */
-#battery.critical:not(.charging) {
-    background-color: #f53c3c;
-    color: #ffffff;
-    animation-name: blink;
-    animation-duration: 0.5s;
-    animation-timing-function: steps(12);
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-}
-
-#power-profiles-daemon {
-    padding-right: 15px;
-}
-
-#power-profiles-daemon.performance {
-    background-color: #f53c3c;
-    color: #ffffff;
-}
-
-#power-profiles-daemon.balanced {
-    background-color: #2980b9;
-    color: #ffffff;
-}
-
-#power-profiles-daemon.power-saver {
-    background-color: #2ecc71;
-    color: #000000;
-}
-
 label:focus {
     background-color: #000000;
-}
-
-#backlight {
-    background-color: #90b1b1;
-}
-
-/* #network { */
-/*     background-color: #2980b9; */
-/* } */
-/**/
-/* #network.disconnected { */
-/*     background-color: #f53c3c; */
-/* } */
-
-#wireplumber {
-    background-color: #fff0f5;
-    color: #000000;
-}
-
-#wireplumber.muted {
-    background-color: #f53c3c;
-}
-
-#mpd {
-    background-color: #66cc99;
-    color: #2a5c45;
-}
-
-#mpd.disconnected {
-    background-color: #f53c3c;
-}
-
-#mpd.stopped {
-    background-color: #90b1b1;
-}
-
-#mpd.paused {
-    background-color: #51a37a;
-}
-
-#language {
-    background: #00b093;
-    color: #740864;
-    padding: 0 5px;
-    margin: 0 5px;
-    min-width: 16px;
-}
-
-#keyboard-state {
-    background: #97e1ad;
-    color: #000000;
-    padding: 0 0px;
-    margin: 0 5px;
-    min-width: 16px;
-}
-
-#keyboard-state > label {
-    padding: 0 5px;
-}
-
-#keyboard-state > label.locked {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-#privacy {
-    padding: 0;
-}
-
-#privacy-item {
-    padding: 0 5px;
-    color: white;
-}
-
-#privacy-item.screenshare {
-    background-color: #cf5700;
-}
-
-#privacy-item.audio-in {
-    background-color: #1ca000;
-}
-
-#privacy-item.audio-out {
-    background-color: #0069d4;
 }
