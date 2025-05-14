@@ -1,10 +1,10 @@
+#image.runner-arch,
 #image.runner-power {
     padding: 0 5px;
     background-color: #2e3440;
     color: #94928f;
 }
 
-#image.runner-arch,
 #image.runner-settings,
 #image.runner-kitty,
 #image.runner-ghostty,
@@ -16,7 +16,7 @@
     padding: 0 5px;
     background-color: #2e3440;
     color: #94928f;
-    border-radius: 0px;
+    /* border-radius: 0px; */
 }
 
 #image.runner-settings:hover,
