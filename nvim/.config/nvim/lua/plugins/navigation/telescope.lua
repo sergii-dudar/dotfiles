@@ -48,8 +48,10 @@ return {
                 end,
                 desc = "Telescope [f]iles [i]n args",
             },
-            { "<leader>.", LazyVim.pick("files", { root = true }), desc = "Find Files (cwd)" },
-            { "<leader>/", LazyVim.pick("live_grep", { root = true }), desc = "Grep (cwd)" },
+            -- { "<leader>.", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+            -- { "<leader>/", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
+            { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
+            { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
         },
         opts = function(_, opts)
             --opts.defaults.path_display = { "smart" }
@@ -72,6 +74,9 @@ return {
                 "--column",
                 "--smart-case",
                 "--fixed-strings",
+                "--hidden",
+                "--glob",
+                "!.git/",
                 --"--word-regexp"
             }
 
