@@ -11,6 +11,7 @@
         "sway/mode",
         "idle_inhibitor",
         "sway/scratchpad",
+        // "mpris",
         "custom/media",
         "hyprland/window",
         "sway/window"

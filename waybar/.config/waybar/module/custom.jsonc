@@ -14,6 +14,21 @@
         "on-scroll-up": "playerctl next",
         "on-scroll-down": "playerctl previous"
     },
+    "mpris": {
+        "format": "{status_icon} <span color='#5699af'>{dynamic}</span>",
+        // "format-paused": "{status_icon} <i>{dynamic}</i>",
+        "max-length": 30,
+        // "player-icons": {
+        //     "default": "▶",
+        //     "mpv": "🎵"
+        // },
+        "status-icons": {
+            "playing": "<span color='#c678dd'> </span>",
+            "paused": "<span color='#98be65'> </span>",
+            "stopped": "<span color='#FC9867'> </span>"
+        },
+        // "ignored-players": ["firefox"]
+    },
     "custom/weather": {
         "format": "{}",
         "exec": "~/.config/waybar/module/shell/module.open-weather",
