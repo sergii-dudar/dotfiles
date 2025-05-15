@@ -18,7 +18,6 @@
         ],
         "modules-center": [
             "clock#date",
-            "hyprland/workspaces",
             "sway/workspaces",
             "clock"
         ],

@@ -11,7 +11,7 @@ exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DE
 exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh
 exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.w.sh sway
 exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
-exec_always --no-startup-id "killall waybar ; waybar &"
+exec_always --no-startup-id ~/.config/waybar/waybar-sway
 
 seat seat0 xcursor_theme elementary 30
 
