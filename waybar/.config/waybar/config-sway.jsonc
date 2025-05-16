@@ -22,7 +22,7 @@
             "clock"
         ],
         "modules-right": [
-            "mpd",
+            // "mpd",
             "custom/language",
             "pulseaudio",
             "battery",

@@ -60,3 +60,9 @@ suckless/dwm/dwm
 **/.config/xmobar-config/xmobar/
 
 **/.config/swhkd/swhkd
+
+mpd-config/mpd/*
+!mpd-config/mpd/mpdconf.example
+!mpd-config/mpd/mpd.conf
+
+mpd-config/ncmpcpp/error.log
