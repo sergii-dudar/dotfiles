@@ -17,6 +17,7 @@ bspwm
 btrfs-progs
 clipboard
 cmatrix
+cmus
 conky
 delve
 dkms
@@ -118,9 +119,13 @@ lxqt-config
 malcontent
 man-db
 mermaid-cli
+mpc
+mpd
+mpd-mpris
 mpv
 nano
 nautilus
+ncmpcpp
 neovim
 network-manager-applet
 networkmanager

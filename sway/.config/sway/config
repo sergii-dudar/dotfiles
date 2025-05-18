@@ -148,6 +148,10 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+Shift+Down exec "playerctl play-pause"
     bindsym $mod+Shift+Right exec "playerctl next"
     bindsym $mod+Shift+Left exec "playerctl previous"
+    bindsym $mod+$ctrl+Down exec "mpc toggle"
+    bindsym $mod+$ctrl+Up exec "mpc stop"
+    bindsym $mod+$ctrl+Right exec "mpc next"
+    bindsym $mod+$ctrl+Left exec "mpc prev"
 
 # general:
 # XDG_CURRENT_DESKTOP=GNOME gnome-control-center

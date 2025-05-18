@@ -1,7 +1,7 @@
 {
     "image#runner-power": {
         "path": "/home/serhii/.config/waybar/resources/power.png",
-        "size": 34,
+        "size": 26,
         "on-click": "~/.config/rofi/scripts/powermenu_t1"
     },
     "group/group-runners": {
