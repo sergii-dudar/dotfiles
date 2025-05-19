@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if command -v notify-send &> /dev/null; then
+    notify-send "Now Playing ♫" "$1"
+else
+    terminal-notifier -message "$1" -title "Now Playing ♫"
+fi

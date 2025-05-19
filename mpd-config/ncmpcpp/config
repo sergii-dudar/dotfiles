@@ -78,7 +78,8 @@ external_editor = nvim
 ## Selected tracks ##
 selected_item_prefix = "* "
 discard_colors_if_item_is_selected = "no"
-execute_on_song_change = notify-send "Now Playing ♫" "$(mpc current)"
+# execute_on_song_change = notify-send "Now Playing ♫" "$(mpc current)" || terminal-notifier -message "$(mpc current)" -title "Now Playing ♫"
+execute_on_song_change = ~/.config/ncmpcpp/notify "$(mpc current)"
 
 ## Seeking ##
 incremental_seeking = "yes"
