@@ -5,35 +5,35 @@
 ##############################################################
 
 # Files
-mpd_music_dir = "~/Music"  
+mpd_music_dir = "~/Music"
 lyrics_directory = "~/.config/ncmpcpp/lyrics"
 ncmpcpp_directory = "~/.config/ncmpcpp"
 mpd_host = "localhost"
-mpd_port = "6600"  
-mpd_connection_timeout = "5"  
-mpd_crossfade_time = "5"  
+mpd_port = "6600"
+mpd_connection_timeout = "5"
+mpd_crossfade_time = "5"
 
 # Playlist
-playlist_disable_highlight_delay = "0"  
+playlist_disable_highlight_delay = "0"
 # playlist_display_mode = "classic"
-playlist_display_mode = "columns"  
+playlist_display_mode = "columns"
 playlist_show_remaining_time = "yes"
 
-browser_display_mode = "columns"  
-autocenter_mode = "yes"  
+browser_display_mode = "columns"
+autocenter_mode = "yes"
 # follow_now_playing_lyrics = no
-follow_now_playing_lyrics = "yes"  
-ignore_leading_the = "yes"  
-song_columns_list_format = "(10)[blue]{l} (30)[green]{a} (30)[magenta]{b} (50)[yellow]{t}"  
-colors_enabled = "yes"  
+follow_now_playing_lyrics = "yes"
+ignore_leading_the = "yes"
+song_columns_list_format = "(10)[blue]{l} (30)[green]{a} (30)[magenta]{b} (50)[yellow]{t}"
+colors_enabled = "yes"
 # main_window_color = default
-main_window_color = "white"  
+main_window_color = "white"
 # header_window_color = yellow
-header_window_color = "cyan"  
-# volume_color = "red"  
+header_window_color = "cyan"
+# volume_color = "red"
 volume_color = yellow
-progressbar_color = "cyan"  
-statusbar_color = "white"  
+progressbar_color = "cyan"
+statusbar_color = "white"
 # active_window_border = "blue"
 active_window_border = magenta
 state_line_color = red
@@ -110,19 +110,6 @@ display_bitrate = "yes"
 # enable_window_title = "no"
 empty_tag_marker = ""
 empty_tag_color = cyan
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #visualizer_fifo_path = "/tmp/mpd.fifo"
