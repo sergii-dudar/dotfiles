@@ -9,9 +9,9 @@ def_key "k"
     scroll_up
 
 def_key "J"
-    push_characters "jjjjjjjj"
+    push_characters "jjj"
 def_key "K"
-    push_characters "kkkkkkkk"
+    push_characters "kkk"
 def_key "u"
     page_up
 #push_characters "kkkkkkkkkkkkkkk"
@@ -72,6 +72,15 @@ def_key "x"
 def_key "P"
   show_playlist
 
+
+# def_key "m"
+#   move_selected_items_up
+# def_key "n"
+#   move_selected_items_down
+def_key "ctrl-j"
+  next
+def_key "ctrl-k"
+  previous
 
 
 ##############################################################

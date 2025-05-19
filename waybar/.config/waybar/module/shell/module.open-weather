@@ -15,13 +15,13 @@ function get_emoji() {
             # 01d) icon=$(of_font "☀️" 13)  ;; # Clear sky (day)
         01n) icon=$(of_font "🌛" 17) ;; # Clear sky (night) "🌙" "🌕"
         02d) icon=$(of_font "🌤️" 19) ;; # Few clouds (day) "🌤" 🌤️"
-        02n) icon=$(of_font "⛅" 20)  ;; # Few clouds (night) "🌥" "☁️"
+        02n) icon=$(of_font "☁️" 20)  ;; # Few clouds (night) "🌥" "☁️"
 
         03d) icon=$(of_font "⛅" 20) ;; # Scattered clouds
         03n) icon=$(of_font "☁️" 19)  ;; # Scattered clouds
             # 04d) icon=$(of_font "🌥" 15)  ;; # # Broken clouds "🌥" "☁️"
         04d) icon=$(of_font "⛅" 20)  ;; # # Broken clouds "🌥" "☁️"
-        04n) icon=$(of_font "⛅" 20)  ;; # Broken clouds "🌥" "☁️"
+        04n) icon=$(of_font "☁️" 20)  ;; # Broken clouds "🌥" "☁️"
         09d) icon=$(of_font "🌧️" 18) ;; # Shower rain (day) "🌧️" "🌧"
         09n) icon=$(of_font "🌧️" 18) ;; # Shower rain (night) "🌧️" "🌧"
 

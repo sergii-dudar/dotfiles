@@ -66,6 +66,7 @@ mpd-config/mpd*/*
 !mpd-config/mpd*/mpd.conf
 
 mpd-config/ncmpcpp/error.log
+mpd-config/ncmpcpp/lyrics
 
 cmus/.config/cmus/*
 !cmus/.config/cmus/rc
