@@ -22,7 +22,7 @@ default_place_to_search_in = "database"
 playlist_disable_highlight_delay = "0"
 
 ## ================== Playlist ==================
-playlist_show_remaining_time = "yes"
+playlist_show_remaining_time = "no"
 
 ## Display Modes ##
 playlist_editor_display_mode = "columns"
@@ -32,17 +32,20 @@ playlist_display_mode = "columns"
 
 ## ================== General Colors ================== ##
 colors_enabled = "yes"
-main_window_color = "white"
+main_window_color = 252
 header_window_color = "cyan"
 volume_color = "green"
 statusbar_color = "white"
-progressbar_color = "cyan"
-progressbar_elapsed_color = "white"
+
+# progressbar_color = "white"
+# progressbar_elapsed_color = "blue"
+progressbar_color = 245
+progressbar_elapsed_color = 28
 
 # active_window_border = "blue"
 active_window_border = magenta
 state_line_color = red
-state_flags_color = yellow
+# state_flags_color = yellow
 color1 = white
 color2 = green
 alternative_ui_separator_color = magenta
@@ -51,9 +54,10 @@ empty_tag_color = cyan
 
 ## ================== Song List ================== ##
 #song_columns_list_format = "(10)[blue]{l} (30)[green]{a} (30)[magenta]{b} (50)[yellow]{t}"
-song_columns_list_format = "(10)[blue]{l} (30)[green]{t} (30)[magenta]{a} (30)[yellow]{b}"
-# song_list_format = "{{%a - %t}|{%f}}{$R%l}"
-# song_list_format = "{$3%n │ $9}{$7%a - $9}{$5%t$9}|{$8%f$9}$R{$6 │ %b$9}{$3 │ %l$9}"
+song_columns_list_format = "(6)[blue]{l} (34)[green]{t} (30)[magenta]{a} (30)[yellow]{b}"
+
+#song_list_format = "{{%a - %t}|{%f}}{$R%l}"
+#song_list_format = "{$3%n │ $9}{$7%a - $9}{$5%t$9}|{$8%f$9}$R{$6 │ %b$9}{$3 │ %l$9}"
 song_list_format = "{$7%a - $9}{$5%t$9}|{$5%f$9}$R{$6%b $9}{$3%l$9}"
 
 ## ================== Current Item ================== ##
@@ -66,7 +70,7 @@ user_interface = "alternative"
 #alternative_header_first_line_format = "$0$aqqu$/a {$7%a - $9}{$5%t$9}|{$8%f$9} $0$atqq$/a$9"
 alternative_header_first_line_format = "$0$aqqu$/a {$6%a$9 - }{$3%t$9}|{$3%f$9} $0$atqq$/a$9"
 #alternative_header_second_line_format = "{{$6%b$9}{ [$6%y$9]}}|{%D}"
-alternative_header_second_line_format = "{{$4%b$9}{ [$8%y$9]}}|{$4%D$9}"
+alternative_header_second_line_format = "{{$4%b$9}{ [$7%y$9]}}|{$4%D$9}"
 
 ## ================== Classic Interface ================== ##
 song_status_format = " $6%a $7⟫⟫ $3%t $7⟫⟫ $4%b "
@@ -78,12 +82,20 @@ song_library_format = {{%a - %t} (%b)}|{%f}
 visualizer_data_source = "/tmp/mpd.fifo"
 #visualizer_output_name = "my_fifo"
 visualizer_output_name = "MPD_FIFO"
+## Available values: spectrum, wave, wave_filled, ellipse.
 visualizer_type = "spectrum"
 visualizer_in_stereo = "yes"
 #visualizer_look = "+|"
+#visualizer_look = ●▮
 #visualizer_look = "●┃"
 visualizer_look = "◆▋"
+#visualizer_look = "█"
 visualizer_color = cyan, green, yellow, magenta, red
+#visualizer_color = 47, 83, 119, 155, 191, 227, 221, 215, 209, 203, 197, 161
+
+## Note: The next few visualization options apply to the spectrum visualizer.
+visualizer_spectrum_smooth_look = no
+visualizer_spectrum_dft_size = 4
 
 ## ================== Navigation ================== ##
 cyclic_scrolling = "yes"
@@ -98,7 +110,9 @@ regular_expressions = "extended"
 external_editor = nvim
 
 ## ================== Selected tracks ================== ##
-selected_item_prefix = "* "
+#selected_item_prefix = "* "
+selected_item_prefix = "$(yellow) $(69_237)$b$u"
+selected_item_suffix = "$(yellow)  $(end)$9$/b$/u"
 discard_colors_if_item_is_selected = "yes"
 
 ## ================== Seeking ================== ##
@@ -112,13 +126,18 @@ titles_visibility = "yes"
 
 ## ================== Progress Bar ================== ##
 # progressbar_look =  "=>-"
-progressbar_look = "▃▃▃"
+#progressbar_look = "███"
+#progressbar_look = "▅▅▅"
+progressbar_look = "▄▄▄"
+#progressbar_look = "▃▃▃"
 
 ## ================== Now Playing ================== ##
 # now_playing_prefix = "$b$5"
-now_playing_prefix = "> "
+# now_playing_prefix = "$(yellow) $9"
+# now_playing_prefix = "👉"
+now_playing_prefix = "$(yellow_0) $(end)$b$u"
 centered_cursor = "yes"
-#now_playing_suffix = "$/b$9"
+now_playing_suffix = "$/b$/u$9"
 
 ## ================== Misc ================== ##
 display_bitrate = "yes"
@@ -128,6 +147,46 @@ empty_tag_marker = ""
 ## ================== Notifications ================== ##
 # execute_on_song_change = notify-send "Now Playing ♫" "$(mpc current)" || terminal-notifier -message "$(mpc current)" -title "Now Playing ♫"
 execute_on_song_change = ~/.config/ncmpcpp/notify "$(mpc current)"
+
+
+#######################################################################3
+#######################################################################3
+#######################################################################3
+
+## - 0 - default window color (discards all other colors)
+## - 1 - black
+## - 2 - red
+## - 3 - green
+## - 4 - yellow
+## - 5 - blue
+## - 6 - magenta
+## - 7 - cyan
+## - 8 - white
+## - 9 - end of current color
+## - b - bold text
+## - u - underline text
+## - r - reverse colors
+## - a - use alternative character set
+##
+## If you don't want to use a non-color attribute anymore, just put it again,
+## but this time insert character '/' between '$' and attribute character,
+## e.g. {$b%t$/b}|{$r%f$/r} will display bolded title tag or filename with
+## reversed colors.
+##
+## If you want to use 256 colors and/or background colors in formats (the naming
+## scheme is described below in section about color definitions), it can be done
+## with the syntax $(COLOR), e.g. to set the artist tag to one of the
+## non-standard colors and make it have yellow background, you need to write
+## $(197_yellow)%a$(end). Note that for standard colors this is interchangable
+## with attributes listed above.
+
+## It is possible to set a background color by setting a color value
+## "<foreground>_<background>", e.g. red_black will set foregound color to red
+## and background color to black.
+
+#######################################################################3
+#######################################################################3
+#######################################################################3
 
 ##### directories ######
 ##
