@@ -1,10 +1,10 @@
 return {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = {
-        registries = {
-            "github:mason-org/mason-registry",
-            -- "github:nvim-java/mason-registry",
-        },
+        -- registries = {
+        --     "github:mason-org/mason-registry",
+        --     -- "github:nvim-java/mason-registry",
+        -- },
         ensure_installed = {
             -- LSP
             "bash-language-server",

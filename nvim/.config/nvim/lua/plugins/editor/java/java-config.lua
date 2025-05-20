@@ -30,7 +30,7 @@ return {
     {
         "mfussenegger/nvim-jdtls",
         dependencies = {
-            "williamboman/mason.nvim",
+            "mason-org/mason.nvim",
             -- "JavaHello/spring-boot.nvim",
         },
         keys = {
