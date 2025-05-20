@@ -1,0 +1,44 @@
+[
+    {
+        "description": "volume_decrement",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "left_arrow",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "consumer_key_code": "volume_decrement"
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "volume_increment",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "right_arrow",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "consumer_key_code": "volume_increment"
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    }
+]

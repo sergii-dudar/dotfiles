@@ -292,7 +292,7 @@
                                 },
                                 "to": [
                                     {
-                                        "consumer_key_code": "volume_decrement"
+                                        "shell_command": "/opt/homebrew/bin/mpc volume -5"
                                     }
                                 ],
                                 "type": "basic"
@@ -313,7 +313,7 @@
                                 },
                                 "to": [
                                     {
-                                        "consumer_key_code": "volume_increment"
+                                        "shell_command": "/opt/homebrew/bin/mpc volume +5"
                                     }
                                 ],
                                 "type": "basic"

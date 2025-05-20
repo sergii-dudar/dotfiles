@@ -35,7 +35,7 @@ colors_enabled = "yes"
 main_window_color = 252
 header_window_color = "cyan"
 volume_color = "green"
-statusbar_color = "white"
+statusbar_color = "cyan"
 
 # progressbar_color = "white"
 # progressbar_elapsed_color = "blue"
