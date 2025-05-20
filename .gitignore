@@ -71,3 +71,5 @@ mpd-config/ncmpcpp/lyrics
 cmus/.config/cmus/*
 !cmus/.config/cmus/rc
 !cmus/.config/cmus/*.theme
+
+mpv/.config/mpv/watch_later
