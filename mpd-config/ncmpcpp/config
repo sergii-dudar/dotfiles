@@ -4,7 +4,7 @@
 ## and set up your preferences.                             ##
 ##############################################################
 
-# Files
+## ================== Files ================== ##
 mpd_music_dir = "~/Music"
 lyrics_directory = "~/.config/ncmpcpp/lyrics"
 ncmpcpp_directory = "~/.config/ncmpcpp"
@@ -13,27 +13,32 @@ mpd_port = "6600"
 mpd_connection_timeout = "5"
 mpd_crossfade_time = "5"
 
-# Playlist
-playlist_disable_highlight_delay = "0"
-# playlist_display_mode = "classic"
-playlist_display_mode = "columns"
-playlist_show_remaining_time = "yes"
-
-browser_display_mode = "columns"
+## ================== Flags ================== ##
 autocenter_mode = "yes"
-# follow_now_playing_lyrics = no
 follow_now_playing_lyrics = "yes"
 ignore_leading_the = "yes"
-song_columns_list_format = "(10)[blue]{l} (30)[green]{a} (30)[magenta]{b} (50)[yellow]{t}"
+ignore_diacritics = "yes"
+default_place_to_search_in = "database"
+playlist_disable_highlight_delay = "0"
+
+## ================== Playlist ==================
+playlist_show_remaining_time = "yes"
+
+## Display Modes ##
+playlist_editor_display_mode = "columns"
+search_engine_display_mode = "columns"
+browser_display_mode = "columns"
+playlist_display_mode = "columns"
+
+## ================== General Colors ================== ##
 colors_enabled = "yes"
-# main_window_color = default
 main_window_color = "white"
-# header_window_color = yellow
 header_window_color = "cyan"
-# volume_color = "red"
-volume_color = yellow
-progressbar_color = "cyan"
+volume_color = "green"
 statusbar_color = "white"
+progressbar_color = "cyan"
+progressbar_elapsed_color = "white"
+
 # active_window_border = "blue"
 active_window_border = magenta
 state_line_color = red
@@ -42,80 +47,88 @@ color1 = white
 color2 = green
 alternative_ui_separator_color = magenta
 window_border_color = green
+empty_tag_color = cyan
 
-alternative_header_first_line_format = "$0$aqqu$/a {$7%a - $9}{$5%t$9}|{$8%f$9} $0$atqq$/a$9"
-alternative_header_second_line_format = "{{$6%b$9}{ [$6%y$9]}}|{%D}"
+## ================== Song List ================== ##
+#song_columns_list_format = "(10)[blue]{l} (30)[green]{a} (30)[magenta]{b} (50)[yellow]{t}"
+song_columns_list_format = "(10)[blue]{l} (30)[green]{t} (30)[magenta]{a} (30)[yellow]{b}"
 # song_list_format = "{{%a - %t}|{%f}}{$R%l}"
-song_list_format = "{$3%n │ $9}{$7%a - $9}{$5%t$9}|{$8%f$9}$R{$6 │ %b$9}{$3 │ %l$9}"
-user_interface = "alternative"
-#user_interface =                    "classic"
-default_place_to_search_in = "database"
+# song_list_format = "{$3%n │ $9}{$7%a - $9}{$5%t$9}|{$8%f$9}$R{$6 │ %b$9}{$3 │ %l$9}"
+song_list_format = "{$7%a - $9}{$5%t$9}|{$5%f$9}$R{$6%b $9}{$3%l$9}"
 
-# visualizer
+## ================== Current Item ================== ##
+current_item_prefix = "$(blue)$r"
+current_item_suffix = "$/r$(end)"
+current_item_inactive_column_prefix = "$(cyan)$r"
+
+## ================== Alternative Interface ================== ##
+user_interface = "alternative"
+#alternative_header_first_line_format = "$0$aqqu$/a {$7%a - $9}{$5%t$9}|{$8%f$9} $0$atqq$/a$9"
+alternative_header_first_line_format = "$0$aqqu$/a {$6%a$9 - }{$3%t$9}|{$3%f$9} $0$atqq$/a$9"
+#alternative_header_second_line_format = "{{$6%b$9}{ [$6%y$9]}}|{%D}"
+alternative_header_second_line_format = "{{$4%b$9}{ [$8%y$9]}}|{$4%D$9}"
+
+## ================== Classic Interface ================== ##
+song_status_format = " $6%a $7⟫⟫ $3%t $7⟫⟫ $4%b "
+# song_status_format = "{{%a{ $2//$9 %b{, %y}} $2//$9 }{%t$/b}}|{$b%f$/b}"
+# song_status_format = " $2%a $4⟫$3⟫ $8%t $4⟫$3⟫ $5%b "
+song_library_format = {{%a - %t} (%b)}|{%f}
+
+## ================== Visualizer ================== ##
 visualizer_data_source = "/tmp/mpd.fifo"
 #visualizer_output_name = "my_fifo"
 visualizer_output_name = "MPD_FIFO"
-#visualizer_type = "wave" (spectrum/wave)
-# Available values: spectrum, wave, wave_filled, ellipse.
 visualizer_type = "spectrum"
 visualizer_in_stereo = "yes"
-visualizer_look = "+|"
+#visualizer_look = "+|"
 #visualizer_look = "●┃"
+visualizer_look = "◆▋"
 visualizer_color = cyan, green, yellow, magenta, red
 
-## Navigation ##
+## ================== Navigation ================== ##
 cyclic_scrolling = "yes"
 header_text_scrolling = "yes"
 jump_to_now_playing_song_at_start = "yes"
 lines_scrolled = "2"
 
-## Other ##
+## ================== Other ================== ##
 system_encoding = "utf-8"
 regular_expressions = "extended"
 # external_editor = nano
 external_editor = nvim
 
-## Selected tracks ##
+## ================== Selected tracks ================== ##
 selected_item_prefix = "* "
-discard_colors_if_item_is_selected = "no"
-# execute_on_song_change = notify-send "Now Playing ♫" "$(mpc current)" || terminal-notifier -message "$(mpc current)" -title "Now Playing ♫"
-execute_on_song_change = ~/.config/ncmpcpp/notify "$(mpc current)"
+discard_colors_if_item_is_selected = "yes"
 
-## Seeking ##
+## ================== Seeking ================== ##
 incremental_seeking = "yes"
 seek_time = "1"
 
-## Visivility ##
-# header_visibility = no
+## ================== Visibility ================== ##
 header_visibility = "yes"
-# statusbar_visibility = no
 statusbar_visibility = "yes"
-# titles_visibility = no
 titles_visibility = "yes"
 
+## ================== Progress Bar ================== ##
 # progressbar_look =  "=>-"
 progressbar_look = "▃▃▃"
-progressbar_elapsed_color = "white"
 
-#now_playing_prefix = "> "
-now_playing_prefix = "$b$5"
-now_playing_suffix = "$/b$9"
-# song_status_format = "{{%a{ $2//$9 %b{, %y}} $2//$9 }{%t$/b}}|{$b%f$/b}"
-song_status_format = " $2%a $4⟫$3⟫ $8%t $4⟫$3⟫ $5%b "
-song_library_format = {{%a - %t} (%b)}|{%f}
+## ================== Now Playing ================== ##
+# now_playing_prefix = "$b$5"
+now_playing_prefix = "> "
 centered_cursor = "yes"
+#now_playing_suffix = "$/b$9"
 
-# Misc
+## ================== Misc ================== ##
 display_bitrate = "yes"
-# enable_window_title = "no"
+enable_window_title = "yes"
 empty_tag_marker = ""
-empty_tag_color = cyan
 
+## ================== Notifications ================== ##
+# execute_on_song_change = notify-send "Now Playing ♫" "$(mpc current)" || terminal-notifier -message "$(mpc current)" -title "Now Playing ♫"
+execute_on_song_change = ~/.config/ncmpcpp/notify "$(mpc current)"
 
-#visualizer_fifo_path = "/tmp/mpd.fifo"
-#visualizer_sync_interval = "30" 
-
-#
 ##### directories ######
 ##
 ## Directory for storing ncmpcpp related files.  Changing it is useful if you
