@@ -135,7 +135,7 @@ progressbar_look = "▄▄▄"
 # now_playing_prefix = "$b$5"
 # now_playing_prefix = "$(yellow) $9"
 # now_playing_prefix = "👉"
-now_playing_prefix = "$(yellow_0) $(end)$b$u"
+now_playing_prefix = "$u$(blue_0)⮕ $(end)$b"
 centered_cursor = "yes"
 now_playing_suffix = "$/b$/u$9"
 
