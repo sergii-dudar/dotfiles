@@ -1,8 +1,5 @@
 # MPD & NCMPCC install
 
-Hyprland config and related tools manages directly by `ln` command
-instead `stow` to not mess in root config dir
-
 ```bash
 # ============ ncmpcpp ============
 sudo ln -s ~/dotfiles/mpd-config/ncmpcpp ~/.config/ncmpcpp
