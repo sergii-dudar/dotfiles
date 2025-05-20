@@ -8,6 +8,12 @@ case "$1" in
         run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
         notify_msg="📂 Yazi File Manager"
         ;;
+    "music")
+        shell="xdg_shell"
+        app_id="com.scratchpad.music"
+        run_cmd="ghostty --class=com.scratchpad.music -e ncmpcpp"
+        notify_msg="🎶 MPD-NCMPCPP"
+        ;;
     "nautilus")
         shell="xdg_shell"
         app_id="org.gnome.Nautilus"
