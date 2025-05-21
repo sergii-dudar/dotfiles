@@ -21,7 +21,8 @@
     highlight_border_style: (fg: "blue"),
     symbols: (song: "S", dir: "D", marker: "M", ellipsis: "..."),
     progress_bar: (
-        symbols: ["-", ">", " "],
+        // symbols: ["-", ">", " "],
+        symbols: ["▄", "▄", "▄"],
         track_style: (fg: "#1e2030"),
         elapsed_style: (fg: "blue"),
         thumb_style: (fg: "blue", bg: "#1e2030"),
@@ -59,20 +60,64 @@
             width: "30%",
         )
     ],
+    // layout: Split(
+    //     direction: Vertical,
+    //     panes: [
+    //         (
+    //             pane: Pane(Header),
+    //             size: "2",
+    //         ),
+    //         (
+    //             pane: Pane(Tabs),
+    //             size: "3",
+    //         ),
+    //         (
+    //             pane: Pane(TabContent),
+    //             size: "100%",
+    //         ),
+    //         (
+    //             pane: Pane(ProgressBar),
+    //             size: "1",
+    //         ),
+    //     ],
+    // ),
     layout: Split(
         direction: Vertical,
         panes: [
             (
-                pane: Pane(Header),
-                size: "2",
+                size: "8",
+                pane: Split(
+                    direction: Horizontal,
+                    panes: [
+                        (
+                            size: "14",
+                            borders: "ALL",
+                            pane: Pane(AlbumArt),
+                        ),
+                        (
+                            size: "100%",
+                            borders: "ALL",
+                            pane: Split(
+                                direction: Vertical,
+                                panes: [
+                                    (
+                                        size: "5",
+                                        pane: Pane(Header),
+                                    ),
+                                    (
+                                        size: "3",
+                                        pane: Pane(Tabs),
+                                    ),
+                                ]
+                            )
+                        ),
+                    ]
+                ),
             ),
             (
-                pane: Pane(Tabs),
-                size: "3",
-            ),
-            (
-                pane: Pane(TabContent),
                 size: "100%",
+                borders: "ALL",
+                pane: Pane(TabContent),
             ),
             (
                 pane: Pane(ProgressBar),
