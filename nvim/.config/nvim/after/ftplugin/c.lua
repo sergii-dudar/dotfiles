@@ -8,7 +8,7 @@ vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
 
-local current_file = vim.fn.expand("%:p")
+local current_file = vim.fn.getcwd() -- vim.fn.expand("%:p")
 local list_util = require("utils.list-util")
 local ignore_dirs = {
     "dwm",

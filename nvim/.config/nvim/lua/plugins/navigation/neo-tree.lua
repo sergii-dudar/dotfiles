@@ -1,5 +1,6 @@
 return {
     "nvim-neo-tree/neo-tree.nvim",
+    cond = require("utils.neo-tree-util").is_enable_neo_tree,
     opts = {
         source_selector = {
             winbar = true,

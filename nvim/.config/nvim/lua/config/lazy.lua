@@ -28,9 +28,9 @@ require("lazy").setup({
 
         -- { import = "lazyvim.plugins.extras.formatting.prettier" },
 
-        --editor
+        -- ========= editor =========
         { import = "lazyvim.plugins.extras.editor.telescope" },
-        { import = "lazyvim.plugins.extras.editor.harpoon2" },
+        -- { import = "lazyvim.plugins.extras.editor.harpoon2" },
         { import = "lazyvim.plugins.extras.editor.illuminate" },
         { import = "lazyvim.plugins.extras.editor.mini-move" },
         { import = "lazyvim.plugins.extras.editor.inc-rename" },
@@ -46,34 +46,36 @@ require("lazy").setup({
         --{ import = "lazyvim.plugins.extras.coding.luasnip" },
         { import = "lazyvim.plugins.extras.coding.nvim-cmp" },
 
-        -- lang
+        -- ========= lang =========
         { import = "lazyvim.plugins.extras.lang.markdown" },
         { import = "lazyvim.plugins.extras.lang.json" },
         { import = "lazyvim.plugins.extras.lang.python" },
-        --{ import = "lazyvim.plugins.extras.lang.typescript" },
         { import = "lazyvim.plugins.extras.lang.yaml" },
         { import = "lazyvim.plugins.extras.lang.helm" },
-        { import = "lazyvim.plugins.extras.lang.java" }, -- using original with one line ext, see immutable-java.lua
+        { import = "lazyvim.plugins.extras.lang.java" },
         { import = "lazyvim.plugins.extras.lang.sql" },
         { import = "lazyvim.plugins.extras.lang.terraform" },
         { import = "lazyvim.plugins.extras.lang.docker" },
         { import = "lazyvim.plugins.extras.lang.git" },
-        --{ import = "lazyvim.plugins.extras.lang.kotlin" },
-        --{ import = "lazyvim.plugins.extras.lang.scala" },
         { import = "lazyvim.plugins.extras.lang.toml" },
         { import = "lazyvim.plugins.extras.lang.rust" },
-        { import = "lazyvim.plugins.extras.lang.go" },
         { import = "lazyvim.plugins.extras.lang.haskell" },
-        { import = "lazyvim.plugins.extras.lang.omnisharp" },
         { import = "lazyvim.plugins.extras.lang.clangd" },
         { import = "lazyvim.plugins.extras.lang.cmake" },
 
-        -- util
+        -- ========= langs that using not very often: =========
+        --{ import = "lazyvim.plugins.extras.lang.go" },
+        --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
+        --{ import = "lazyvim.plugins.extras.lang.kotlin" },
+        --{ import = "lazyvim.plugins.extras.lang.scala" },
+        --{ import = "lazyvim.plugins.extras.lang.typescript" },
+
+        -- ========= util =========
         --{ import = "lazyvim.plugins.extras.util.rest" },
         --{ import = "lazyvim.plugins.extras.util.project" },
         { import = "lazyvim.plugins.extras.util.dot" },
 
-        -- import/override with your plugins
+        -- ========= import/override with your plugins =========
         { import = "plugins.ui" },
         { import = "plugins.navigation" },
         { import = "plugins.editor" },

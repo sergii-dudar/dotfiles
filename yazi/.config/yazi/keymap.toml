@@ -50,7 +50,10 @@ prepend_keymap = [
     { on = "F", run = "plugin smart-filter", desc = "Smart filter" },
 
     # mount
-    { on = "M", run = "plugin mount", desc = "Mount discs" }
+    { on = "M", run = "plugin mount", desc = "Mount discs" },
+
+    # smart-enter.yazi
+    { on = "l", run = "plugin smart-enter", desc = "Enter the child directory, or open the file" }
 ]
 
 keymap = [

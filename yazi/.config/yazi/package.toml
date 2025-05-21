@@ -48,5 +48,10 @@ use = "yazi-rs/plugins:toggle-pane"
 rev = "55bf699"
 hash = "f3853bbdd1da2fad09d059ab5464abfd"
 
+[[plugin.deps]]
+use = "yazi-rs/plugins:smart-enter"
+rev = "55bf699"
+hash = "7918aab6a71caf31b58411f789195677"
+
 [flavor]
 deps = []

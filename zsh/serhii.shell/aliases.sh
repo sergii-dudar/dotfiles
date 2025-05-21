@@ -5,14 +5,17 @@ alias dots="cd ~/dotfiles && nvim"
 
 # Changing "ls" to "eza"
 alias ls='eza -al --icons --color=always --group-directories-first'
-alias ls2='eza -al --tree --icons --level=2 --color=always --group-directories-first'
-alias la='eza -a --icons --color=always --group-directories-first'  # all files and dirs
-alias ll='eza -l --icons --color=always --group-directories-first'  # long format
-alias lt='eza -aT --icons --color=always --group-directories-first' # tree listing
-alias lh='eza -a | rg --color=always "^\."'
-alias l.='eza -al --icons --color=always --group-directories-first ../'         # ls on the PARENT directory
-alias l..='eza -al --icons --color=always --group-directories-first ../../'     # ls on directory 2 levels up
-alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
+#alias ls2='eza -al --tree --icons --level=2 --color=always --group-directories-first'
+# alias la='eza -a --icons --color=always --group-directories-first'  # all files and dirs
+# alias ll='eza -l --icons --color=always --group-directories-first'  # long format
+# alias lt='eza -aT --icons --color=always --group-directories-first' # tree listing
+# alias lh='eza -a | rg --color=always "^\."'
+alias lsraw='eza --oneline --color=never --icons=never'
+# alias l.='eza -al --icons --color=always --group-directories-first ../'         # ls on the PARENT directory
+# alias l..='eza -al --icons --color=always --group-directories-first ../../'     # ls on directory 2 levels up
+# alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
+
+alias music="ncmpcpp"
 
 alias yaziu="cargo install --locked yazi-fm yazi-cli"
 if isMacOs; then
