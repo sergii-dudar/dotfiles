@@ -91,7 +91,6 @@ vim.api.nvim_create_autocmd("UiEnter", {
         -- restore current proj session
         require("persistence").load()
 
-        -- if vim.fn.argc() == 0 then end
         open_tree_on_start()
 
         -- open load buffer if opened in tab, or skip

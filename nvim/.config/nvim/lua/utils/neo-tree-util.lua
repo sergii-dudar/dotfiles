@@ -5,12 +5,14 @@ M.is_enable_neo_tree = function()
     local list_util = require("utils.list-util")
     local open_if_dir_contains = {
         "dotfiles",
-        "git\\.",
-        "git\\-",
+        "git",
+        "work",
         --"myforks/my%-dwm",
     }
     -- vim.notify("result: " .. tostring(list_util.any_match(current_file, open_if_dir_contains)), vim.log.levels.INFO)
-    return list_util.any_match(current_file, open_if_dir_contains)
+
+    -- load neotree only to lister dirs, and disable for direct file[s] open (like `nvim [files...]`)
+    return list_util.any_match(current_file, open_if_dir_contains) and vim.fn.argc() == 0
 end
 
 return M
