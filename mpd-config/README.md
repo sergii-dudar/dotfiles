@@ -1,8 +1,9 @@
 # MPD & NCMPCC install
 
 ```bash
-# ============ ncmpcpp ============
+# ============ ncmpcpp/rmpc ============
 sudo ln -s ~/dotfiles/mpd-config/ncmpcpp ~/.config/ncmpcpp
+sudo ln -s ~/dotfiles/mpd-config/rmpc ~/.config/rmpc
 
 # ============== mpd ==============
 # ==== LINUX (note that as config in user dir, service should be run as service user (--user))

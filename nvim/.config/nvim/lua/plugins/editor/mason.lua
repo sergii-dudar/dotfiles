@@ -14,6 +14,7 @@ return {
             --"spring-boot-tools", -- nvim-java/mason-registry
             "haskell-language-server",
             "hyprls",
+            "rust-analyzer",
 
             -- DAP
             "bash-debug-adapter",
