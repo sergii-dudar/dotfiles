@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [[ $COLS -gt 100 ]]; then
+    rmpc remote --pid "$PID" set theme ~/.config/rmpc/themes/big.ron
+    rmpc remote --pid "$PID" status "Big theme set"
+else
+    rmpc remote --pid "$PID" set theme ~/.config/rmpc/themes/small.ron
+    rmpc remote --pid "$PID" status "Small theme set"
+fi

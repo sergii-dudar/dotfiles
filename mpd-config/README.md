@@ -7,7 +7,8 @@ sudo ln -s ~/dotfiles/mpd-config/rmpc ~/.config/rmpc
 
 # ============== mpd ==============
 # ==== LINUX (note that as config in user dir, service should be run as service user (--user))
-sudo pacman -S mpd mpc ncmpcpp mpd-mpris
+sudo pacman -S mpd mpd-mpris mpc ncmpcpp rmpc
+
 sudo ln -s ~/dotfiles/mpd-config/mpd ~/.config/mpd
 mkdir ~/.config/mpd/playlists
 
@@ -24,6 +25,8 @@ systemctl --user --now enable mpd-mpris
 # ===============================================================================
 # ==== MACOS (https://computingforgeeks.com/install-configure-mpd-ncmpcpp-macos/)
 brew install mpd mpc ncmpcpp terminal-notifier
+cargo install rmpc --locked
+
 sudo ln -s ~/dotfiles/mpd-config/mpd-osx ~/.mpd
 mkdir ~/.config/mpd/playlists
 

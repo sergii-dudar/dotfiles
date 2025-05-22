@@ -40,6 +40,7 @@ return {
             -- haskell
             "fourmolu",
             "prettier",
+            "sqlfluff",
         },
     },
 }

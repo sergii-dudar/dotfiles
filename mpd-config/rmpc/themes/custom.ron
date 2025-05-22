@@ -6,26 +6,31 @@
     show_song_table_header: true,
     draw_borders: true,
     browser_column_widths: [20, 38, 42],
-    background_color: None,
-    text_color: None,
+    background_color: None, // "#1e2030",
+    text_color: "253",
     header_background_color: None,
     modal_background_color: None,
     tab_bar: (
         enabled: true,
         active_style: (fg: "black", bg: "blue", modifiers: "Bold"),
-        inactive_style: (),
+        inactive_style: (fg: "cyan", bg: None, modifiers: None),
     ),
-    highlighted_item_style: (fg: "blue", modifiers: "Bold"),
+    highlighted_item_style: (fg: "blue", bg: "235", modifiers: "Bold | Underlined"),
     current_item_style: (fg: "black", bg: "blue", modifiers: "Bold"),
-    borders_style: (fg: "blue"),
-    highlight_border_style: (fg: "blue"),
-    symbols: (song: "S", dir: "D", marker: "M", ellipsis: "..."),
+    borders_style: (fg: "blue", modifiers: "Bold"),
+    highlight_border_style: (fg: "blue", modifiers: "Bold"),
+    symbols: (
+        song: "🎵", 
+        dir: "📂", 
+        marker: "⭐",// "✅", 
+        ellipsis: "..."
+    ),
     progress_bar: (
         // symbols: ["-", ">", " "],
         symbols: ["▄", "▄", "▄"],
         track_style: (fg: "#1e2030"),
         elapsed_style: (fg: "blue"),
-        thumb_style: (fg: "blue", bg: "#1e2030"),
+        // thumb_style: (fg: "blue", bg: "#1e2030"),
     ),
     scrollbar: (
         symbols: ["│", "█", "▲", "▼"],
@@ -36,28 +41,36 @@
     song_table_format: [
         (
             prop: (kind: Property(Duration),
-                default: (kind: Text("-"))
+                default: (kind: Text("-")),
+                style: (fg: "107"),
             ),
             width: "5%",
             alignment: Left,
         ),
         (
             prop: (kind: Property(Artist),
-                default: (kind: Text("Unknown"))
+                default: (kind: Text("Unknown")),
+                style: (fg: "134"),
             ),
             width: "20%",
         ),
         (
             prop: (kind: Property(Title),
-                default: (kind: Text("Unknown"))
+                default: (kind: Text("Unknown")),
+                style: (fg: "29"),
             ),
             width: "45%",
         ),
         (
-            prop: (kind: Property(Album), style: (fg: "white"),
-                default: (kind: Text("Unknown Album"), style: (fg: "white"))
+            prop: (kind: Property(Album),
+                style: (fg: "182", modifiers: "Italic"),
+                default: (
+                    kind: Text("Unknown Album"),
+                    // style: (fg: "blue")
+                )
             ),
             width: "30%",
+            // label: "Some Album"
         )
     ],
     // layout: Split(

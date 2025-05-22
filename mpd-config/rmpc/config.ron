@@ -8,7 +8,9 @@
     // theme: "main",
     // theme: "cattpuccin",
     cache_dir: None,
-    on_song_change: None,
+    lyrics_dir: "~/.config/rmpc/lyrics",
+    on_song_change: ["~/.config/rmpc/scripts/notify"],
+    // on_resize: ["~/.config/rmpc/scripts/onresize"],
     volume_step: 5,
     max_fps: 30,
     scrolloff: 5,
@@ -116,13 +118,17 @@
         album_sort_by: Date,
     ),
     tabs: [
+        // (
+        //     name: "Queue",
+        //     pane: Split(
+        //         direction: Horizontal,
+        //         // panes: [(size: "40%", pane: Pane(AlbumArt)), (size: "60%", pane: Pane(Queue))],
+        //         panes: [(size: "100%", pane: Pane(Queue))],
+        //     ),
+        // ),
         (
             name: "Queue",
-            pane: Split(
-                direction: Horizontal,
-                // panes: [(size: "40%", pane: Pane(AlbumArt)), (size: "60%", pane: Pane(Queue))],
-                panes: [(size: "100%", pane: Pane(Queue))],
-            ),
+            pane: Pane(Queue),
         ),
         (
             name: "Directories",

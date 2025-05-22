@@ -28,6 +28,16 @@ return {
             --     },
             -- }
 
+            --[[ opts.formatters.ronfmt = {
+                command = "ronfmt",
+                args = "$FILENAME",
+                --args = { "$FILENAME" },
+                stdin = false,
+                inherit = false,
+            }
+            opts.formatters_by_ft.ron = {
+                "ronfmt",
+            } ]]
             opts.default_format_opts.timeout_ms = 3000
 
             --formatters_by_ft = {

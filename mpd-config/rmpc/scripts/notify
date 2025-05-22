@@ -21,11 +21,16 @@ fi
 # magick convert "$ALBUM_ART_PATH" -resize 320x240^ "$ALBUM_ART_PATH"
 
 # Send the notification
-notify-send -i "${ALBUM_ART_PATH}" -a "rmpc" "Now Playing" "$ARTIST - $TITLE"
-
-sticker=$(rmpc sticker get "$FILE" "playCount" | jq -r '.value')
-if [ -z "$sticker" ]; then
-    rmpc sticker set "$FILE" "playCount" "1"
+if command -v notify-send &> /dev/null; then
+    # notify-send "Now Playing ♫" "$1"
+    notify-send -i "${ALBUM_ART_PATH}" -a "rmpc" "Now Playing" "$ARTIST - $TITLE"
 else
-    rmpc sticker set "$FILE" "playCount" "$((sticker + 1))"
+    terminal-notifier -message "$ARTIST - $TITLE" -title "🎹 Now Playing:"
 fi
+
+# sticker=$(rmpc sticker get "$FILE" "playCount" | jq -r '.value')
+# if [ -z "$sticker" ]; then
+#     rmpc sticker set "$FILE" "playCount" "1"
+# else
+#     rmpc sticker set "$FILE" "playCount" "$((sticker + 1))"
+# fi
