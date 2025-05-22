@@ -154,5 +154,9 @@
             name: "Search",
             pane: Pane(Search),
         ),
+        // (
+        //     name: "Lyrics",
+        //     pane: Pane(Lyrics),
+        // ),
     ],
 )
