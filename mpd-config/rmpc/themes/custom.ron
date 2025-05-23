@@ -238,6 +238,10 @@
                 ],
                 right: [
                     (kind: Property(Widget(Volume)), style: (fg: "#5699af"))
+                    // Style 2
+                    // (kind: Text("  Vol: "), style: (fg: "#5699af", modifiers: "Bold")),
+                    // (kind: Property(Status(Volume)), style: (fg: "#b7bdf8", modifiers: "Bold")),
+                    // (kind: Text("% "), style: (fg: "#6272a4", modifiers: "Bold"))
                 ]
             ),
             (
@@ -276,6 +280,23 @@
                     //     ),
                     //     style: (fg: "dark_gray")
                     // )
+                ]
+            ),
+            (
+                left: [(
+                        kind: Property(Song(Filename)),
+                        style: (modifiers: "Bold", fg: "#5699af"),
+                    )
+                    // (kind: Text("[ "), style: (fg: "dark_gray")),
+                    // (kind: Property(Status(Bitrate)), style: (fg: "dark_gray")),
+                    // (kind: Text(" kbps ]"), style: (fg: "dark_gray"))
+                ],
+                center: [(
+                    kind: Property(Song(Album)),
+                    style: (fg: "182", modifiers: "Italic"),
+                    default: (kind: Text("Unknown Album"))
+                )],
+                right: [
                     (
                         kind: Group([
                             (kind: Property(Status(RepeatV2(
@@ -321,22 +342,6 @@
                         ])
                     )
                 ]
-            ),
-            (
-                left: [(
-                        kind: Property(Song(Filename)),
-                        style: (modifiers: "Bold", fg: "#5699af"),
-                    )
-                    // (kind: Text("[ "), style: (fg: "dark_gray")),
-                    // (kind: Property(Status(Bitrate)), style: (fg: "dark_gray")),
-                    // (kind: Text(" kbps ]"), style: (fg: "dark_gray"))
-                ],
-                center: [(
-                    kind: Property(Song(Album)),
-                    style: (fg: "182", modifiers: "Italic"),
-                    default: (kind: Text("Unknown Album"))
-                )],
-                right: []
             ),
         ],
     ),
