@@ -8,7 +8,7 @@ include ~/.config/sway/modes.conf
 
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 #exec --no-startup-id /usr/lib/xdg-desktop-portal -r
-exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh
+exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh sway
 exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.w.sh sway
 exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
 exec_always --no-startup-id ~/.config/waybar/waybar-sway
@@ -130,8 +130,8 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $mod+q exec $pmenu
 
     bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
-    # bindsym $mod+space exec ~/dotfiles/bin/change_language.w.sh
-    bindsym $mod+space exec ~/.config/waybar/module/shell/change_language.w.sh
+    # bindsym $mod+space exec ~/dotfiles/bin/change_language.sh sway
+    bindsym $mod+space exec ~/.config/waybar/module/shell/change_language.sh sway
 
     # toggle waybar visibility
     bindsym $mod+b exec "killall -SIGUSR1 waybar"

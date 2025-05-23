@@ -214,6 +214,7 @@
             (
                 left: [
                     //(kind: Text("[ "), style: (fg: "#3071db", modifiers: "Bold")),
+                    (kind: Text(" ")),
                     (kind: Property(Status(StateV2(
                         playing_label: " Playing",
                         // playing_style: <style>,
@@ -237,7 +238,8 @@
                     (kind: Text(" ]"), style: (fg: "#a9a1e1", modifiers: "Bold")),
                 ],
                 right: [
-                    (kind: Property(Widget(Volume)), style: (fg: "#5699af"))
+                    (kind: Property(Widget(Volume)), style: (fg: "#5699af")),
+                    (kind: Text(" ")),
                     // Style 2
                     // (kind: Text("  Vol: "), style: (fg: "#5699af", modifiers: "Bold")),
                     // (kind: Property(Status(Volume)), style: (fg: "#b7bdf8", modifiers: "Bold")),
@@ -246,6 +248,7 @@
             ),
             (
                 left: [
+                    (kind: Text(" ")),
                     (kind: Property(Status(Elapsed)), style: (fg: "#5FB3B3", modifiers: "Bold")),
                     (kind: Text(" / "), style: (fg: "#a9a1e1", modifiers: "Bold")),
                     (kind: Property(Status(Duration)), style: (fg: "#5FB3B3", modifiers: "Bold")),
@@ -283,7 +286,9 @@
                 ]
             ),
             (
-                left: [(
+                left: [
+                    (kind: Text(" ")),
+                    (
                         kind: Property(Song(Filename)),
                         style: (modifiers: "Bold", fg: "#5699af"),
                     )
@@ -339,6 +344,7 @@
                                 off_style: (fg: "dark_gray"),
                                 oneshot_style: (fg: "#5FB3B3")
                             )))),
+                            (kind: Text(" ")),
                         ])
                     )
                 ]

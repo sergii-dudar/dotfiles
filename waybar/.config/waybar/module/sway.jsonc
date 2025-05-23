@@ -14,15 +14,15 @@
     },
     "custom/language": {
         "format": " {} ",
-        "exec": "~/.config/waybar/module/shell/module.lang",
+        "exec": "~/.config/waybar/module/shell/module.lang sway",
         "return-type": "text",
-        "on-click": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-click-right": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-scroll-up": "~/.config/waybar/module/shell/change_language.w.sh",
-        "on-scroll-down": "~/.config/waybar/module/shell/change_language.w.sh",
+        "on-click": "~/.config/waybar/module/shell/change_language.sh sway",
+        "on-click-right": "~/.config/waybar/module/shell/change_language.sh sway",
+        "on-scroll-up": "~/.config/waybar/module/shell/change_language.sh sway",
+        "on-scroll-down": "~/.config/waybar/module/shell/change_language.sh sway",
         "signal": 2
     },
-    // ~/.config/waybar/module/shell/change_language.w.sh
+    // ~/.config/waybar/module/shell/change_language.sh sway
     // "sway/language": {
     //     "format": "{long}",
     //     "tooltip": true,

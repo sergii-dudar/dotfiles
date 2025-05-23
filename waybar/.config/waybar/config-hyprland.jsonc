@@ -1,0 +1,79 @@
+// -*- mode: jsonc -*-
+[
+    // Main (default) monitor
+    {
+        // "layer": "top", // Waybar at top layer
+        // "position": "bottom", // Waybar position (top|bottom|left|right)
+        "height": 30, // Waybar height (to be removed for auto height)
+        // "width": 1280, // Waybar width
+        "spacing": 4, // Gaps between modules (4px)
+        "output": "!HDMI-A-3",
+        "modules-left": [
+            "group/group-runners",
+            "sway/mode",
+            "idle_inhibitor",
+            "sway/scratchpad",
+            "custom/media",
+            "sway/window"
+        ],
+        "modules-center": [
+            "clock#date",
+            "hyprland/workspaces",
+            "clock"
+        ],
+        "modules-right": [
+            // "mpd",
+            "custom/language",
+            "pulseaudio",
+            "battery",
+            "memory",
+            "cpu",
+            "temperature",
+            "disk",
+            "custom/weather",
+            "privacy",
+            "network",
+            "tray",
+            "image#runner-power"
+        ],
+        "include": [
+            "~/.config/waybar/module/hyprland.jsonc",
+            "~/.config/waybar/module/clock.jsonc",
+            "~/.config/waybar/module/system.jsonc",
+            "~/.config/waybar/module/custom.jsonc",
+            "~/.config/waybar/module/other.jsonc",
+            "~/.config/waybar/module/runners.jsonc",
+            "~/.config/waybar/module/simple.jsonc"
+        ]
+    },
+    // Second vertical monitor
+    {
+        // "layer": "top", // Waybar at top layer
+        // "position": "bottom", // Waybar position (top|bottom|left|right)
+        "height": 30, // Waybar height (to be removed for auto height)
+        // "width": 1280, // Waybar width
+        "spacing": 4, // Gaps between modules (4px)
+        "output": "HDMI-A-3",
+        "modules-left": [
+            "group/group-runners",
+            "sway/window"
+        ],
+        "modules-center": [
+            "sway/workspaces"
+        ],
+        "modules-right": [
+            "clock",
+            "clock#date",
+            "custom/weather",
+        ],
+        "include": [
+            "~/.config/waybar/module/sway.jsonc",
+            "~/.config/waybar/module/clock.jsonc",
+            "~/.config/waybar/module/system.jsonc",
+            "~/.config/waybar/module/custom.jsonc",
+            "~/.config/waybar/module/other.jsonc",
+            "~/.config/waybar/module/runners.jsonc",
+            "~/.config/waybar/module/simple.jsonc"
+        ]
+    }
+]

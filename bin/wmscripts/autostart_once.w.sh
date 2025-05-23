@@ -28,7 +28,9 @@ case "$wm_name" in
         (sleep 0.7 && brave --force-device-scale-factor=1.2) &
 
         ;;
-    *)
+    hyprland)
+        ghostty --class=com.ghostty.group01 &
+        brave --force-device-scale-factor=1.2 &
         # hyprland
         # run_swayidle 'hyprctl dispatch dpms off' 'hyprctl dispatch dpms on'
         #killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &

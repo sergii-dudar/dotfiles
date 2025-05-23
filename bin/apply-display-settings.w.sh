@@ -1,6 +1,14 @@
-if $( bat /proc/acpi/button/lid/*/state | grep -q closed )
-then
-    swaymsg output eDP-1 disable
+wm_name="${1:-}"
+
+if $( bat /proc/acpi/button/lid/*/state | grep -q closed ); then
+    case "$wm_name" in
+        sway)
+            swaymsg output eDP-1 disable
+            ;;
+        hyprland)
+            hyprctl keyword monitor eDP-1,disable
+            ;;
+    esac
 fi
 
 # xrdb -merge ~/.Xresources
