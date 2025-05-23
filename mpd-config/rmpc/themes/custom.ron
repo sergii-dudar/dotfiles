@@ -27,9 +27,16 @@
     ),
     progress_bar: (
         // symbols: ["-", ">", " "],
-        symbols: ["▄", "▄", "▄"],
+        // symbols: ["▄", "▄", "▄"],
+        //symbols: ["█", "█", "█"],
+        // symbols: ["▅", "▅", "▅"],
+        // symbols: ["▇", "▇", "▇"],
+        // symbols: ["■", "■", "■"],
+        // symbols: ["▣", "▣", "▣"],
+        symbols: ["▬", "▬", "▬"],
         track_style: (fg: "#1e2030"),
-        elapsed_style: (fg: "blue"),
+        elapsed_style: (fg: "#a074c4"),
+        thumb_style: (fg: "#a074c4"),
         // thumb_style: (fg: "blue", bg: "#1e2030"),
     ),
     scrollbar: (
@@ -132,9 +139,73 @@
                 borders: "ALL",
                 pane: Pane(TabContent),
             ),
+            //// ############# progress bar style 1 #############
+            // (
+            //     pane: Pane(ProgressBar),
+            //     size: "1",
+            // ),
+            //// ############# progress bar style 2 #############
+            // (
+            //     pane: Split(
+            //         direction: Horizontal,
+            //         panes: [
+            //             (
+            //                 size: "1",
+            //                 pane: Pane(Property(
+            //                     content: [
+            //                         (kind: Text("")),
+            //                     ], align: Right,
+            //                 )),
+            //             ),
+            //             (
+            //                 size: "100%",
+            //                 pane: Pane(ProgressBar),
+            //             ),
+            //             (
+            //                 size: "1",
+            //                 pane: Pane(Property(
+            //                     content: [
+            //                         (kind: Text("")),
+            //                     ], align: Right,
+            //                 )),
+            //             ),
+            //         ]
+            //     ),
+            //     size: "1",
+            // ),
+            //// ############# progress bar style 3 (change progress_bar.symbols) #############
             (
-                pane: Pane(ProgressBar),
                 size: "1",
+                pane: Split(
+                    direction: Horizontal,
+                    panes: [
+                        (
+                            size: "1",
+                            pane: Pane(Property(
+                                content: [
+                                    (kind: Text("")),
+                                ], align: Right,
+                            )),
+                            // pane: Pane(Property(content: [(kind: Property(Status(StateV2())))], align: Left)),
+                            // size: "10",
+                        ),
+                        (
+                            size: "100%",
+                            pane: Pane(ProgressBar),
+                        ),
+                        (
+                            size: "13",
+                            pane: Pane(Property(
+                                content: [
+                                    (kind: Property(Status(Elapsed)), style: (fg: "#5FB3B3", modifiers: "Bold")),
+                                    (kind: Text(" / "), style: (fg: "#a9a1e1", modifiers: "Bold")),
+                                    (kind: Property(Status(Duration)), style: (fg: "#5FB3B3", modifiers: "Bold")),
+                                    (kind: Text(" ")),
+                                ], align: Right,
+                            )),
+                        ),
+                    ]
+                ),
             ),
         ],
     ),
@@ -142,13 +213,13 @@
         rows: [
             (
                 left: [
-                    (kind: Text("["), style: (fg: "#3071db", modifiers: "Bold")),
+                    (kind: Text("[ "), style: (fg: "#3071db", modifiers: "Bold")),
                     (kind: Property(Status(StateV2(
                         playing_label: "Playing", 
                         paused_label: "Paused", 
                         stopped_label: "Stopped"
                     ))), style: (fg: "#a9a1e1", modifiers: "Bold")),
-                    (kind: Text("]"), style: (fg: "#3071db", modifiers: "Bold"))
+                    (kind: Text(" ]"), style: (fg: "#3071db", modifiers: "Bold"))
                 ],
                 center: [
                     (kind: Text("[ "), style: (fg: "#a9a1e1", modifiers: "Bold")),
@@ -184,15 +255,15 @@
                                 style: (fg: "yellow", modifiers: "Bold")
                             )
                         ),
-                        (
-                            kind: Text(" - "),
-                            style: (fg: "#c678dd", modifiers: "Bold"),
-                        ),
-                        (
-                            kind: Property(Song(Album)),
-                            style: (fg: "182", modifiers: "Italic"),
-                            default: (kind: Text("Unknown Album"))
-                        )
+                        // (
+                        //     kind: Text(" - "),
+                        //     style: (fg: "#c678dd", modifiers: "Bold"),
+                        // ),
+                        // (
+                        //     kind: Property(Song(Album)),
+                        //     style: (fg: "182", modifiers: "Italic"),
+                        //     default: (kind: Text("Unknown Album"))
+                        // )
                 ],
                 right: [(
                     kind: Property(Widget(States(
@@ -201,6 +272,22 @@
                     ),
                     style: (fg: "dark_gray")
                 )]
+            ),
+            (
+                left: [(
+                        kind: Property(Song(Filename)),
+                        style: (modifiers: "Bold", fg: "#5699af"),
+                    )
+                    // (kind: Text("[ "), style: (fg: "dark_gray")),
+                    // (kind: Property(Status(Bitrate)), style: (fg: "dark_gray")),
+                    // (kind: Text(" kbps ]"), style: (fg: "dark_gray"))
+                ],
+                center: [(
+                    kind: Property(Song(Album)),
+                    style: (fg: "182", modifiers: "Italic"),
+                    default: (kind: Text("Unknown Album"))
+                )],
+                right: []
             ),
         ],
     ),
