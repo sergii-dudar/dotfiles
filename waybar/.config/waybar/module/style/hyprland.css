@@ -1,22 +1,30 @@
-/* #workspaces button { */
-/*     padding: 0 5px; */
-/*     background-color: transparent; */
-/*     color: #51576d; */
-/* } */
-/**/
-/* #workspaces button:hover { */
-/*     background: rgba(0, 0, 0, 0.2); */
-/* } */
+/* #workspaces */
+/* #workspaces button */
+/* #workspaces button.active */
+/* #workspaces button.empty */
+/* #workspaces button.persistent */
+/* #workspaces button.special */
+/* #workspaces button.visible */
+/* #workspaces button.urgent */
+/* #workspaces button.hosting-monitor (gets applied if workspace-monitor == waybar-monitor) */
+
+#workspaces button {
+    padding: 0 5px;
+    background-color: transparent;
+    color: #51576d;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 -4px #80a0ff;
+}
 
 /* fucused on current screen */
-/* #workspaces button.focused { */
-/* #workspaces button.visible.focused { */
-/*     background-color: #44475a; */
-/*     color: #a6d189; */
-/*     box-shadow: inset 0 -4px #80a0ff; */
-/* } */
-
-/* visible flat empty */
+#workspaces button.active.visible {
+    background-color: #44475a;
+    color: #a6d189;
+    box-shadow: inset 0 -4px #80a0ff;
+}
 
 /* another (not focused) screen ws (empty|not empty) */
 /* #workspaces button.visible:not(.focused):not(.empty), */
@@ -26,29 +34,22 @@
 /*     box-shadow: inset 0 -4px #b8bb26; */
 /* } */
 
-/* #workspaces button:not(.focused):not(.empty) { */
-/*     background-color: #2e3440; */
-/*     color: #8caaee; */
-/*     box-shadow: inset 0 -4px #535d6c; */
-/* } */
-/**/
-/* #workspaces button.urgent { */
-/*     background-color: #eb4d4b; */
-/* } */
+/* #workspaces button:not(.active):not(.visible):not(.empty) { */
+#workspaces button:not(.empty) {
+    background-color: #2e3440;
+    color: #8caaee;
+    box-shadow: inset 0 -4px #535d6c;
+}
+
+#workspaces button.urgent {
+    background-color: #eb4d4b;
+}
 
 #submap {
     background-color: #2e3440;
     box-shadow: inset 0 -4px #bd93f9;
 }
-/**/
-/* #scratchpad { */
-/*     background-color: #2e3440; */
-/* } */
-/**/
-/* #scratchpad.empty { */
-/*     background-color: transparent; */
-/* } */
-/**/
-/* #custom-language { */
-/*     background-color: #2e3440; */
-/* } */
+
+#custom-language {
+    background-color: #2e3440;
+}
