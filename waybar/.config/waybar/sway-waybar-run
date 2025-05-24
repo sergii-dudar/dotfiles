@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+killall waybar ; waybar -c ~/.config/waybar/sway-config.jsonc -s ~/.config/waybar/sway-style.css &

@@ -12,7 +12,6 @@
             "group/group-runners",
             "hyprland/submap",
             "idle_inhibitor",
-            "sway/scratchpad",
             "custom/media",
             "hyprland/window"
         ],
@@ -57,10 +56,10 @@
         "output": "HDMI-A-3",
         "modules-left": [
             "group/group-runners",
-            "sway/window"
+            "hyprland/window"
         ],
         "modules-center": [
-            "sway/workspaces"
+            "hyprland/workspaces",
         ],
         "modules-right": [
             "clock",
@@ -68,7 +67,7 @@
             "custom/weather",
         ],
         "include": [
-            "~/.config/waybar/module/sway.jsonc",
+            "~/.config/waybar/module/hyprland.jsonc",
             "~/.config/waybar/module/clock.jsonc",
             "~/.config/waybar/module/system.jsonc",
             "~/.config/waybar/module/custom.jsonc",
