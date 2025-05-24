@@ -10,11 +10,11 @@
         "output": "!HDMI-A-3",
         "modules-left": [
             "group/group-runners",
-            "sway/mode",
+            "hyprland/submap",
             "idle_inhibitor",
             "sway/scratchpad",
             "custom/media",
-            "sway/window"
+            "hyprland/window"
         ],
         "modules-center": [
             "clock#date",
@@ -23,6 +23,7 @@
         ],
         "modules-right": [
             // "mpd",
+            // "hyprland/language",
             "custom/language",
             "pulseaudio",
             "battery",

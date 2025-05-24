@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
 
-CURRENT_LAYOUT=$(swaymsg -t get_inputs | jq -r '.[] | select(.type=="keyboard") | .xkb_active_layout_index' | head -n 1)
+wm_name="${1:-}"
 
-if [ "$CURRENT_LAYOUT" = 1 ]; then
-    echo "🇺🇦 <span color='#bc99ed'>UA</span>"
-else
-    echo "🇺🇸 <span color='#bc99ed'>US</span>"
-fi
+case "$wm_name" in
+    sway)
+        CURRENT_LAYOUT=$(swaymsg -t get_inputs | jq -r '.[] | select(.type=="keyboard") | .xkb_active_layout_index' | head -n 1)
+        if [ "$CURRENT_LAYOUT" = 1 ]; then
+            echo "🇺🇦 <span color='#bc99ed'>UA</span>"
+        else
+            echo "🇺🇸 <span color='#bc99ed'>US</span>"
+        fi
+        ;;
+    hyprland)
+        CURRENT_LAYOUT=$(hyprctl devices -j | jq -r '.keyboards[] | .active_keymap' | tail -n1 | cut -c1-2 | tr '[:lower:]' '[:upper:]')
+        if [ "$CURRENT_LAYOUT" = "EN" ]; then
+            echo "🇺🇸 <span color='#bc99ed'>US</span>"
+        else
+            echo "🇺🇦 <span color='#bc99ed'>UA</span>"
+        fi
+        ;;
+esac

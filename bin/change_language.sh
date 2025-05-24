@@ -17,7 +17,7 @@ case "$wm_name" in
         # hyprctl switchxkblayout all next
         # hyprctl switchxkblayout current next
         CURRENT_LAYOUT=$(hyprctl devices -j | jq -r '.keyboards[] | .active_keymap' | tail -n1 | cut -c1-2 | tr '[:lower:]' '[:upper:]')
-        echo "layout $CURRENT_LAYOUT"
+        # echo "layout $CURRENT_LAYOUT"
         if [ "$CURRENT_LAYOUT" = "EN" ]; then
             hyprctl switchxkblayout current 1
             notify-send "Lang: UA ""🇺🇦" -t 700

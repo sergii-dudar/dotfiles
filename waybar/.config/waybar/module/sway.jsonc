@@ -120,7 +120,7 @@
             "^org.qbittorrent.qBittorrent(.*)": " 💾 $1",
             "^steamwebhelper(.*)": " 🎮 $1",
             "^gpick(.*)": " 🎨 $1",
-            "^org.gnome.Calculator(.*)": " 🖩 $1",
+            "^org.gnome.Calculator(.*)": " 🧮 $1",
             "^org.gnome.Characters(.*)": " 🌆 $1",
             "^org.gnome.Weather(.*)": " 🌥️ $1",
             "^org.gnome.tweaks(.*)": " ⚙️ $1",
