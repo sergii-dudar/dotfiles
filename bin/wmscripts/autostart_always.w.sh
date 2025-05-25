@@ -5,3 +5,13 @@
 #feh --bg-fill ~/wallpapers/png/different/nord_scenary.png &
 
 # feh --bg-fill ~/wallpapers/jpg/Wall147.jpg --bg-fill /home/serhii/wallpapers/portrait/AzZxWk0.png &
+#
+wm_name="${1:-}"
+
+case "$wm_name" in
+    sway)
+        ;;
+    hyprland)
+        hyprpaper &
+        ;;
+esac
