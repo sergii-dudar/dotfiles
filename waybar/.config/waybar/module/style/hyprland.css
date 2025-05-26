@@ -28,11 +28,11 @@
 
 /* another (not focused) screen ws (empty|not empty) */
 /* #workspaces button.visible:not(.focused):not(.empty), */
-/* #workspaces button.visible:not(.focused) { */
-/*     background-color: #2e3440; */
-/*     color: #bd93f9; */
-/*     box-shadow: inset 0 -4px #b8bb26; */
-/* } */
+#workspaces button.visible:not(.hosting-monitor) {
+    background-color: #2e3440;
+    color: #bd93f9;
+    box-shadow: inset 0 -4px #b8bb26;
+}
 
 /* #workspaces button:not(.active):not(.visible):not(.empty) { */
 #workspaces button:not(.empty) {

@@ -31,6 +31,13 @@ case "$wm_name" in
     hyprland)
         ghostty --class=com.ghostty.group01 &
         brave --force-device-scale-factor=1.2 &
+
+        if hyprctl monitors | grep -q "HDMI-A-3"; then
+            hyprctl dispatch workspace 9 && \
+                hyprctl dispatch moveworkspacetomonitor 9 HDMI-A-3 && \
+                hyprctl dispatch workspace 1
+        fi
+
         # hyprland
         # run_swayidle 'hyprctl dispatch dpms off' 'hyprctl dispatch dpms on'
         #killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
