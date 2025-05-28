@@ -88,6 +88,7 @@ if ! is_app_running; then
         sleep 0.25
         is_app_running && break
     done
+    # move_app_to_scratchpad
 fi
 
 function hide_all_other_scratchpads() {
@@ -99,7 +100,6 @@ function hide_all_other_scratchpads() {
         hyprctl dispatch movetoworkspacesilent special:scratchpad, address:"$addr"
     done
 }
-# sleep 0.2
 
 if is_app_visible; then
     move_app_to_scratchpad
