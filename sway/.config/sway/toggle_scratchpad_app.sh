@@ -27,26 +27,30 @@ case "$1" in
         notify_msg="💬 Telegram"
         ;;
     "youtube_music")
-        shell="xwayland"
-        instance_name="crx_cinhimbnkkaeohfgghhklpknlkffjgod"
-        class_name="Brave-browser"
+        shell="xdg_shell"
+        app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
         run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
         notify_msg="💽 Music"
         ;;
     "google_chat")
-        shell="xwayland"
-        instance_name="crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"
-        class_name="Brave-browser"
+        shell="xdg_shell"
+        app_id="brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default"
         run_cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
         notify_msg="✉️  Google Chat"
         ;;
     "monkey_type")
-        shell="xwayland"
-        instance_name="crx_picebhhlijnlefeleilfbanaghjlkkna"
-        class_name="Brave-browser"
+        shell="xdg_shell"
+        app_id="brave-picebhhlijnlefeleilfbanaghjlkkna-Default"
         run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         notify_msg="  Monkey Type"
         ;;
+        # "monkey_type")
+        #     shell="xwayland"
+        #     instance_name="crx_picebhhlijnlefeleilfbanaghjlkkna"
+        #     class_name="Brave-browser"
+        #     run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        #     notify_msg="  Monkey Type"
+        #     ;;
     *)
         echo "$1 - is not supported"
         exit 1

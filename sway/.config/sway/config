@@ -201,6 +201,10 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     # bindsym $mod+Shift+Up move up
     # bindsym $mod+Shift+Right move right
 
+    bindsym $mod+$ctrl+$left resize shrink width 5 px or 5 ppt
+    bindsym $mod+$ctrl+$down resize grow height 5 px or 5 ppt
+    bindsym $mod+$ctrl+$up resize shrink height 5 px or 5 ppt
+    bindsym $mod+$ctrl+$right resize grow width 5 px or 5 ppt
 #
 # Layout stuff:
 #

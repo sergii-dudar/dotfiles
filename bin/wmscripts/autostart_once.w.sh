@@ -25,7 +25,8 @@ case "$wm_name" in
         # ghostty --class=com.ghostty.group01 &
 
         (sleep 0.4 && ghostty --class=com.ghostty.group01) &
-        (sleep 0.7 && brave --force-device-scale-factor=1.2) &
+        # (sleep 0.7 && brave --force-device-scale-factor=1.2) &
+        (sleep 0.7 && brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland) &
 
         ;;
     hyprland)
