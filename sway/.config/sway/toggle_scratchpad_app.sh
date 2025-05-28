@@ -5,7 +5,7 @@ case "$1" in
     "yazi")
         shell="xdg_shell"
         app_id="com.scratchpad.yazi"
-        run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        run_cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify_msg="📂 Yazi File Manager"
         ;;
     "music")

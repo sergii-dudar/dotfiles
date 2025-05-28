@@ -3,7 +3,7 @@ APP="$1"
 case "$APP" in
     "yazi")
         class="com.scratchpad.yazi"
-        cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify="📂 Yazi File Manager"
         ;;
     "music")
