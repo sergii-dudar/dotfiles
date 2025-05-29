@@ -11,3 +11,8 @@ sudo pacman -S hyprsunset
 sudo pacman -S hyprpolkitagent # [ systemctl --user --now enable hyprpolkitagent ]
 sudo pacman -S cliphist
 yay -S waypaper
+
+
+sudo pacman -S ddcutil
+sudo modprobe i2c-dev
+sudo ddcutil detect

@@ -38,9 +38,10 @@ output "HDMI-A-1" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-2" mode 3840x2160@60.000Hz pos 0 0
 output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
 
-exec --no-startup-id "swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
-exec --no-startup-id "swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
-exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
+exec waypaper --restore --backend swaybg
+# exec --no-startup-id "swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
+# exec --no-startup-id "swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
+# exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
 
 # output "HDMI-A-1" scale 1.4
 # output "HDMI-A-1" transform 90

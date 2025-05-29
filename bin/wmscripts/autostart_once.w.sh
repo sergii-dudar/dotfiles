@@ -36,6 +36,7 @@ case "$wm_name" in
         ghostty --class=com.ghostty.group01 &
         # brave --force-device-scale-factor=1.2 &
         brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland &
+        waypaper --restore --backend hyprpaper &
 
         if hyprctl monitors | grep -q "HDMI-A-3"; then
             hyprctl dispatch workspace 9 && \

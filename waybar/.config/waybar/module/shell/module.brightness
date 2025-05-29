@@ -6,7 +6,8 @@ step=5
 notify=0
 
 # first monitor bus number
-bus_number=$(ddcutil detect | awk '/Display 1/{flag=1}/Display 2/{flag=0}flag && /I2C bus:/{print $3}' | sed 's/.*-\([0-9]*\)/\1/')
+# bus_number=$(ddcutil detect | awk '/Display 1/{flag=1}/Display 2/{flag=0}flag && /I2C bus:/{print $3}' | sed 's/.*-\([0-9]*\)/\1/')
+bus_number=$(ddcutil detect | awk '/^Display 1/,/^$/' | awk '/I2C bus:/ { match($0, /\/dev\/i2c-([0-9]+)/, m); print m[1] }')
 
 ddcutil_fast() {
     # adjust the bus number and the multiplier for your display

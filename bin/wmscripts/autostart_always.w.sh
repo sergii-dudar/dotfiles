@@ -12,6 +12,6 @@ case "$wm_name" in
     sway)
         ;;
     hyprland)
-        hyprpaper &
+        # hyprpaper &
         ;;
 esac
