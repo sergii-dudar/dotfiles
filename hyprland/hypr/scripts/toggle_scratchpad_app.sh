@@ -113,5 +113,5 @@ else
     notify-send "$notify" -t 700
 fi
 
-# notify waybar `custom/hypr-scratchpad` module to update
+# signal waybar `custom/hypr-scratchpad` module to update
 pkill -RTMIN+3 waybar

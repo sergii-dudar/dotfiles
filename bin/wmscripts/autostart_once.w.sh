@@ -5,16 +5,17 @@ wm_name="${1:-}"
 #~/dotfiles/bin/apply-display-settings.sh
 ssh-add &
 swaync &  # dunst &
-/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
 # Automatically lock the screen after 10 minutes of inactivity
 #xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
 
 #nm-applet &
+wl-paste --type text --watch cliphist store & # Stores only text data
 
 # Global config of wm
 case "$wm_name" in
     sway)
+        /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
         # killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
         run_swayidle 'swaymsg "output * dpms off"' 'swaymsg "output * dpms on"'
         # Start the daemon which listens to focus changes and sets _back mark
@@ -30,6 +31,8 @@ case "$wm_name" in
 
         ;;
     hyprland)
+        # systemctl --user --now enable hyprpolkitagent
+
         ghostty --class=com.ghostty.group01 &
         # brave --force-device-scale-factor=1.2 &
         brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland &

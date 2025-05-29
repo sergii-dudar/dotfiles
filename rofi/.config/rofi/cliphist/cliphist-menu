@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Current Theme
+dir="$HOME/.config/rofi/cliphist"
+theme='style-1'
+
+cliphist list |\
+    rofi -dmenu -p "Clip" -theme ${dir}/${theme}.rasi |\
+    cliphist decode |\
+    wl-copy

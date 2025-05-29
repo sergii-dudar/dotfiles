@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+notify-send "Lang: US ""🇺🇸" -t 700

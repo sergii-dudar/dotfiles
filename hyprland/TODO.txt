@@ -1,4 +1,13 @@
-1. scratchpad plugin to waybar
-2. cliphistory selector
-3. screen brightness plugin to waybar
-4. screen temperature plugin to waybar
+- https://github.com/anufrievroman/waypaper + widget
+- hypridle & hyprlock
+- screen temperature plugin to waybar
+- https://wiki.hyprland.org/Hypr-Ecosystem/hyprsunset/
+- https://github.com/loqusion/hyprshade - https://github.com/folke/dot/blob/master/config/hypr/hyprshade.toml
+
+
+sudo pacman -S hyprpicker
+sudo pacman -S xdg-desktop-portal-hyprland
+sudo pacman -S hyprsunset
+sudo pacman -S hyprpolkitagent # [ systemctl --user --now enable hyprpolkitagent ]
+sudo pacman -S cliphist
+yay -S waypaper

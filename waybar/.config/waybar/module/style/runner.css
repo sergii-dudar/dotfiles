@@ -12,6 +12,8 @@
 #image.runner-brave,
 #image.runner-intellij,
 #image.runner-evince,
+#image.runner-color-picker,
+#image.runner-wallpapers,
 #image.runner-qbittorrent {
     padding: 0 5px;
     background-color: #2e3440;
@@ -26,6 +28,8 @@
 #image.runner-brave:hover,
 #image.runner-intellij:hover,
 #image.runner-evince:hover,
+#image.runner-wallpapers:hover,
+#image.runner-color-picker:hover,
 #image.runner-qbittorrent:hover {
     background-color: #282a36;
 }

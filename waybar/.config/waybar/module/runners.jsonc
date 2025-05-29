@@ -13,14 +13,16 @@
         },
         "modules": [
             "image#runner-arch", // First element is the "group leader" and won't ever be hidden
+            "image#runner-wallpapers",
             "image#runner-settings",
+            "image#runner-color-picker",
             "image#runner-kitty",
             "image#runner-ghostty",
             "image#runner-wezterm",
             "image#runner-brave",
             "image#runner-intellij",
             "image#runner-evince",
-            "image#runner-qbittorrent"
+            "image#runner-qbittorrent",
         ]
     },
     // /home/serhii/dotfiles/awesome/.config/awesome/themes/personal/icons/kitty.svg
@@ -68,6 +70,16 @@
         "path": "/home/serhii/.config/waybar/resources/qbittorrent.svg",
         "size": 32,
         "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent"
+    },
+    "image#runner-color-picker": {
+        "path": "/home/serhii/.config/waybar/resources/pipette.png",
+        "size": 32,
+        "on-click": "hyprpicker"
+    },
+    "image#runner-wallpapers": {
+        "path": "/home/serhii/.config/waybar/resources/wallpapers.icns",
+        "size": 32,
+        "on-click": "~/.config/waybar/module/shell/module.wallpapers"
     },
     // "custom/quit": {
     //     "format": "󰗼",
