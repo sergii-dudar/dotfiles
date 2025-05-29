@@ -112,3 +112,6 @@ else
     move_app_to_current_workspace_and_focus
     notify-send "$notify" -t 700
 fi
+
+# notify waybar `custom/hypr-scratchpad` module to update
+pkill -RTMIN+3 waybar

@@ -3,6 +3,7 @@
 default_brightness=40
 receive_pipe="/tmp/waybar-ddc-module-rx"
 step=5
+notify=0
 
 # first monitor bus number
 bus_number=$(ddcutil detect | awk '/Display 1/{flag=1}/Display 2/{flag=0}flag && /I2C bus:/{print $3}' | sed 's/.*-\([0-9]*\)/\1/')
@@ -24,7 +25,9 @@ print_brightness() {
     else
         brightness=-1
     fi
-    notify-send "☀️ level: ${brightness}%" -t 700
+    if [ $notify = 1 ]; then
+        notify-send "☀️ level: ${brightness}%" -t 700
+    fi
     echo '{ "percentage":' "$brightness" '}'
 }
 
@@ -50,5 +53,6 @@ while true; do
             ddcutil_fast setvcp 10 0
             ;;
     esac
+    notify=1
     print_brightness ddcutil_fast
 done

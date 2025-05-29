@@ -12,6 +12,7 @@
             "group/group-runners",
             "hyprland/submap",
             "idle_inhibitor",
+            "custom/hypr-scratchpad",
             "custom/media",
             "hyprland/window"
         ],

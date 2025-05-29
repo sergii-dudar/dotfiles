@@ -22,6 +22,12 @@
         "on-scroll-down": "~/.config/waybar/module/shell/change_language.sh hyprland",
         "signal": 2
     },
+    "custom/hypr-scratchpad": {
+        "format": "{text}",
+        "return-type": "json",
+        "exec": "~/.config/waybar/module/shell/module.hypr-scratchpad",
+        "signal": 3
+    },
     "hyprland/workspaces": {
         "all-outputs": true,
         "active-only": false,

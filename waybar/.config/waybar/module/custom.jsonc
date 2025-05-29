@@ -66,7 +66,7 @@
             "<span color='#ffe585'></span>",
             "<span color='#ffe585'></span>"
         ],
-        "exec": "~/.config/waybar/module/shell/module.brightness.sh",
+        "exec": "~/.config/waybar/module/shell/module.brightness",
         "return-type": "json",
         "on-scroll-up": "echo '+' > /tmp/waybar-ddc-module-rx",
         "on-scroll-down": "echo '-' > /tmp/waybar-ddc-module-rx",

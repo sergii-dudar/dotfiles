@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+total_scratchpads=$(hyprctl clients -j | jq -r ' .[] |
+    select(.workspace.name == "special:scratchpad") | .address ' | wc -l
+)
+# scratchpad_titles=$(hyprctl clients -j | jq -r ' .[] |
+#     select(.workspace.name == "special:scratchpad") | .title '
+# )
+# total_scratchpads=$(echo "$scratchpad_titles" | wc -l)
+
+icon="<span color='#6272a4'></span>"
+count="<span color='#bd93f9'>$total_scratchpads</span>"
+# tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads count: </span>$count\n\
+    # <span color='#bd93f9'>$(echo "$scratchpad_titles" | awk 'NR>1{printf "\\n"} {printf "%d. %s", NR, $0}')</span>"
+tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads count: </span>$count"
+
+if [ "$total_scratchpads" = 0 ]; then
+    text=""
+else
+    text="$icon $count"
+fi
+
+echo "{\"text\": \"$text\", \"tooltip\": \"$tooltip\"}"
