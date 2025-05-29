@@ -1,7 +1,7 @@
 * {
     font-family: "CaskaydiaCove Nerd Font", monospace;
     font-weight: bold;
-    font-size: 22pt;
+    font-size: 18pt;
 }
 
 .notification {
@@ -11,7 +11,13 @@
     margin: 1px;
 }
 
-.notification-row .notification-background .notification .notification-default-action .notification-content .text-box .time {
+.notification-row
+    .notification-background
+    .notification
+    .notification-default-action
+    .notification-content
+    .text-box
+    .time {
     margin: 0;
     margin-right: 10px; /* or whatever value you prefer */
 }

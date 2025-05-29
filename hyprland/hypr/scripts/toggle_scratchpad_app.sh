@@ -4,7 +4,7 @@ case "$APP" in
     "yazi")
         class="com.scratchpad.yazi"
         cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
-        notify="📂 Yazi File Manager"
+        notify="📂 Yazi Manager"
         ;;
     "music")
         class="com.scratchpad.music"
@@ -29,7 +29,7 @@ case "$APP" in
     "google_chat")
         class="brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default"
         cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
-        notify="✉️  Google Chat"
+        notify="✉️ Google Chat"
         ;;
     "monkey_type")
         class="brave-picebhhlijnlefeleilfbanaghjlkkna-Default"
@@ -48,14 +48,13 @@ function is_app_running() {
 }
 
 function get_window_address() {
-    # addr=$(hyprctl clients -j | jq -r --arg cls "$class" \
-        #     'map(select(.class == $cls)) | .[0].address')
-
     addr=$(hyprctl clients -j | jq -r --arg cls "$class" \
         'map(select(.class == $cls)) | .[0].address // empty')
 
     if [ -z "$addr" ]; then
-        notify-send "Failed to find window address by class: $class" -t 3000
+        # hyprctl notify [ICON] [TIME_MS] [COLOR] [MESSAGE]
+        # hyprctl notify 0 10000 "rgb(ff1ea3)" "Failed to find window address by class: $class"
+        hyprctl seterror "rgba(66ee66ff)" "$0: Failed to find window address by class: $class"
         exit 1
     fi
 
@@ -75,10 +74,15 @@ function move_app_to_scratchpad() {
 function move_app_to_current_workspace_and_focus() {
     addr=$(get_window_address)
     current_ws=$(hyprctl activeworkspace -j | jq -r .name)
-    [ -n "$addr" ] && \
-        hyprctl dispatch movetoworkspacesilent "$current_ws", address:"$addr" && \
-        hyprctl dispatch focuswindow address:"$addr" && \
-        hyprctl dispatch centerwindow
+    # [ -n "$addr" ] && \
+        #     hyprctl dispatch movetoworkspacesilent "$current_ws", address:"$addr" && \
+        #     hyprctl dispatch focuswindow address:"$addr" && \
+        #     hyprctl dispatch centerwindow
+
+    hyprctl --batch "\
+        dispatch movetoworkspacesilent $current_ws, address:$addr ;\
+        dispatch focuswindow address:$addr ;\
+        dispatch centerwindow"
 }
 
 # Start if not running
@@ -88,7 +92,7 @@ if ! is_app_running; then
         sleep 0.25
         is_app_running && break
     done
-    # move_app_to_scratchpad
+    # move_app_to_scratchpad # declared by hypr roles
 fi
 
 function hide_all_other_scratchpads() {

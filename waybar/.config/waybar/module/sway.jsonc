@@ -22,41 +22,6 @@
         "on-scroll-down": "~/.config/waybar/module/shell/change_language.sh sway",
         "signal": 2
     },
-    // ~/.config/waybar/module/shell/change_language.sh sway
-    // "sway/language": {
-    //     "format": "{long}",
-    //     "tooltip": true,
-    //     "tooltip-format": "Current layout: {long}",
-    //     // "long-names": {
-    //     //     "us": "English",
-    //     //     "ua": "Ukrainian"
-    //     // }
-    //     "format-map": {
-    //         "us": "1English (US)", // Long name for 'us' layout
-    //         "ua": "2Ukrainian" // Long name for 'ua' layout
-    //     },
-    // }
-    // "sway/language": {
-    //     "format": "{flag} {short}", // Default format if no specific language format matches
-    //     "format-us": "1{flag} USA", // Custom format for 'us' layout
-    //     "format-ua": "2{flag} Україна", // Custom format for 'ua' layout (Ukraine in Ukrainian)
-    //     // Alternatively, for English text for Ukraine:
-    //     // "format-ua": "{flag} Ukraine",
-    //     "tooltip": true,
-    //     "tooltip-format": "{long}", // Shows the full system layout name on hover
-    //     "on-click": "swaymsg input type:keyboard xkb_switch_layout next", // Optional: switch layout on click
-    //     "on-scroll-up": "swaymsg input type:keyboard xkb_switch_layout next", // Optional
-    //     "on-scroll-down": "swaymsg input type:keyboard xkb_switch_layout prev" // Optional
-    // }
-    // "sway/language": {
-    //     "format": "123 {long}",
-    //     "tooltip": true,
-    //     "tooltip-format": "Current layout: {long}",
-    //     "long-names": {
-    //         "us": "🇺🇲 US",
-    //         "ua": "🇺🇦 UA"
-    //     }
-    // }
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
@@ -102,10 +67,15 @@
             "^kitty(.*)": " 🐱 <span color='#928374'>Kitty: [</span> $1 <span color='#928374'>]</span>",
             "^org.wezfurlong.wezterm(.*)": " 🔮 <span color='#928374'>Wezterm [</span> $1 <span color='#928374'>]</span>",
             "^brave-browser(.*)": " 🛡️ $1",
-            "^crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi(.*)": " 💬 $1",
-            "^crx_picebhhlijnlefeleilfbanaghjlkkna(.*)": " ⌨️ $1",
-            "^crx_cinhimbnkkaeohfgghhklpknlkffjgod(.*)": " 🎹 $1",
-            "^crx_hklfmmehghkmgpoombkhphgoebceokhg(.*)": " 🔎 $1",
+            // "^crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi(.*)": " 💬 $1",
+            // "^crx_picebhhlijnlefeleilfbanaghjlkkna(.*)": " ⌨️ $1",
+            // "^crx_cinhimbnkkaeohfgghhklpknlkffjgod(.*)": " 🎹 $1",
+            // "^crx_hklfmmehghkmgpoombkhphgoebceokhg(.*)": " 🔎 $1",
+            "^brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default(.*)": " 💬 $1",
+            "^brave-picebhhlijnlefeleilfbanaghjlkkna-Default(.*)": " ⌨️ $1",
+            "^brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default(.*)": " 🎹 $1",
+            "^brave-hklfmmehghkmgpoombkhphgoebceokhg-Default(.*)": " 🔎 $1",
+            "^brave-agimnkijcaahngcdmfeangaknmldooml-Default(.*)": " 📽️ $1",
             "^com.scratchpad.yazi(.*)": " 📂 $1",
             "^com.scratchpad.music(.*)": "🎶 <span color='#928374'>Mpd: [</span> $1 <span color='#928374'>]</span>",
             "^code(.*)": " 📝 $1",
@@ -119,6 +89,7 @@
             "^com.viber.Viber(.*)": " ✉️ $1",
             "^org.qbittorrent.qBittorrent(.*)": " 💾 $1",
             "^steamwebhelper(.*)": " 🎮 $1",
+            "^dota2(.*)": " 🎮 $1",
             "^gpick(.*)": " 🎨 $1",
             "^org.gnome.Calculator(.*)": " 🧮 $1",
             "^org.gnome.Characters(.*)": " 🌆 $1",
