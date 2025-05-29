@@ -1,4 +1,3 @@
-- https://github.com/anufrievroman/waypaper + widget
 - hypridle & hyprlock
 - screen temperature plugin to waybar
 - https://wiki.hyprland.org/Hypr-Ecosystem/hyprsunset/

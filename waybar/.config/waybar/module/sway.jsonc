@@ -114,5 +114,10 @@
             // "^(.*)": " 1 $1",
         },
         "separate-outputs": true
-    }
+    },
+    "image#runner-wallpapers": {
+        "path": "/home/serhii/.config/waybar/resources/wallpapers.icns",
+        "size": 32,
+        "on-click": "~/.config/waypaper/toggle.sh sway"
+    },
 }

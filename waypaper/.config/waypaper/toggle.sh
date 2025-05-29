@@ -9,7 +9,7 @@ fi
 
 case "$wm_name" in
     sway)
-
+        waypaper --backend swaybg
         ;;
     hyprland)
         # first_monitor=$(hyprctl monitors | grep "Monitor " | head -n 1 | awk '{ print $2 }')

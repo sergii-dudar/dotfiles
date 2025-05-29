@@ -74,12 +74,7 @@
     "image#runner-color-picker": {
         "path": "/home/serhii/.config/waybar/resources/pipette.png",
         "size": 32,
-        "on-click": "hyprpicker"
-    },
-    "image#runner-wallpapers": {
-        "path": "/home/serhii/.config/waybar/resources/wallpapers.icns",
-        "size": 32,
-        "on-click": "~/.config/waybar/module/shell/module.wallpapers"
+        "on-click": "hyprpicker --autocopy"
     },
     // "custom/quit": {
     //     "format": "󰗼",
