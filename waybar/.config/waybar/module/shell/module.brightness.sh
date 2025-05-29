@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+default_brightness=40
+receive_pipe="/tmp/waybar-ddc-module-rx"
+step=5
+
+# first monitor bus number
+bus_number=$(ddcutil detect | awk '/Display 1/{flag=1}/Display 2/{flag=0}flag && /I2C bus:/{print $3}' | sed 's/.*-\([0-9]*\)/\1/')
+
+ddcutil_fast() {
+    # adjust the bus number and the multiplier for your display
+    # multiplier should be chosen so that it both works reliably and fast enough
+    ddcutil --noverify --bus "$bus_number" --sleep-multiplier .03 "$@" 2>/dev/null
+}
+
+ddcutil_slow() {
+    ddcutil --maxtries 15,15,15 "$@" 2>/dev/null
+}
+
+# takes ddcutil commandline as arguments
+print_brightness() {
+    if brightness=$("$@" -t getvcp 10); then
+        brightness=$(echo "$brightness" | cut -d ' ' -f 4)
+    else
+        brightness=-1
+    fi
+    notify-send "☀️ level: ${brightness}%" -t 700
+    echo '{ "percentage":' "$brightness" '}'
+}
+
+rm -rf $receive_pipe
+mkfifo $receive_pipe
+
+# in case waybar restarted the script after restarting/replugging a monitor
+print_brightness ddcutil_slow
+
+while true; do
+    read -r command < $receive_pipe
+    case $command in
+        + | -)
+            ddcutil_fast setvcp 10 "$command" $step
+            ;;
+        =)
+            ddcutil_fast setvcp 10 "$default_brightness"
+            ;;
+        max)
+            ddcutil_fast setvcp 10 100
+            ;;
+        min)
+            ddcutil_fast setvcp 10 0
+            ;;
+    esac
+    print_brightness ddcutil_fast
+done

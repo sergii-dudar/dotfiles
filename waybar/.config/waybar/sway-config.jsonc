@@ -25,6 +25,7 @@
             // "mpd",
             "custom/language",
             "pulseaudio",
+            "custom/brightness",
             "battery",
             "memory",
             "cpu",

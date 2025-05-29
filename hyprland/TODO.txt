@@ -1,0 +1,4 @@
+1. scratchpad plugin to waybar
+2. cliphistory selector
+3. screen brightness plugin to waybar
+4. screen temperature plugin to waybar
