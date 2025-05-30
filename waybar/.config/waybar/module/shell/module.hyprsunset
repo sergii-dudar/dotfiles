@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+default=6000 # max
+operation=$1
+
+function calculate_percentage() {
+    value=$(hyprctl hyprsunset temperature)
+    percentage=$((value * 100 / default))
+    echo "{ \"percentage\": "$percentage", \"tooltip\": \"💡 Temperature: $value\" }"
+}
+
+case $operation in
+    bblock) # blue block mode
+        notify-send "Night mode ON" -t 700
+        hyprctl hyprsunset temperature 2500 > /dev/null 2>&1
+
+        # hour=$(date +%H)
+        # hour=$((10#$hour))  # convert to base-10 to strip leading zero safely
+        #
+        # if [ "$current" = $default ]; then
+        #     exit 0
+        # fi
+        #
+        # if [ "$hour" -ge 19 ] || [ "$hour" -le 6 ]; then
+        #     notify-send "Night mode ON" -t 700
+        #     hyprctl hyprsunset temperature 2500 > /dev/null 2>&1
+        # else
+        #     notify-send "Day mode ON" -t 700
+        #     hyprctl hyprsunset temperature $default > /dev/null 2>&1
+        # fi
+        ;;
+    +)
+        current=$(hyprctl hyprsunset temperature)
+        hyprctl hyprsunset temperature $((current + 500)) > /dev/null 2>&1
+        ;;
+    -)
+        current=$(hyprctl hyprsunset temperature)
+        hyprctl hyprsunset temperature $((current - 500)) > /dev/null 2>&1
+        ;;
+    =)
+        hyprctl hyprsunset temperature $default > /dev/null 2>&1
+        ;;
+    *)
+        # on first load, and on every signal
+        calculate_percentage
+        ;;
+esac

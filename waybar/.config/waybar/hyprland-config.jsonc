@@ -26,6 +26,7 @@
             // "hyprland/language",
             "custom/language",
             "pulseaudio",
+            "custom/hyprsunset",
             "custom/brightness",
             "battery",
             "memory",

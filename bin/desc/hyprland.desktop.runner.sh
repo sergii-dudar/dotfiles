@@ -1,1 +1,1 @@
-exec Hyprland
+exec dbus-run-session Hyprland
