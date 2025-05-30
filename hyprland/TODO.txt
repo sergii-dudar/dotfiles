@@ -12,6 +12,7 @@ sudo pacman -S xdg-desktop-portal-hyprland
 sudo pacman -S hyprsunset
 sudo pacman -S hyprpolkitagent # [ systemctl --user --now enable hyprpolkitagent ]
 sudo pacman -S cliphist
+sudo pacman -S hypridle hyprlock
 yay -S waypaper
 yay -S hyprshade
 
