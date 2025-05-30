@@ -20,5 +20,3 @@ yay -S hyprshade
 sudo pacman -S ddcutil
 sudo modprobe i2c-dev
 sudo ddcutil detect
-
-3

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 song_info=$(playerctl metadata --format '{{title}}      {{artist}}')
 
