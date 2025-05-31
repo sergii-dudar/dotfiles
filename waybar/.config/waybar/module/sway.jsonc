@@ -76,6 +76,7 @@
             "^brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default(.*)": " 🎹 $1",
             "^brave-hklfmmehghkmgpoombkhphgoebceokhg-Default(.*)": " 🔎 $1",
             "^brave-agimnkijcaahngcdmfeangaknmldooml-Default(.*)": " 📽️ $1",
+            "^mpv(.*)": " 📽️ $1",
             "^com.scratchpad.yazi(.*)": " 📂 $1",
             "^com.scratchpad.music(.*)": "🎶 <span color='#928374'>Mpd: [</span> $1 <span color='#928374'>]</span>",
             "^code(.*)": " 📝 $1",

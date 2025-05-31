@@ -14,7 +14,8 @@
         "on-click-right": "~/.config/rofi/scripts/wifimenu",
         "on-click-middle": "nm-connection-editor",
         "format-icons": [
-            "<span color='#ff6c6b'>󰤯 </span>",
+            "<span color='#ff6c6b'>󰤫 </span>",
+            // "<span color='#ff6c6b'>󰤯 </span>",
             "<span color='#da8548'>󰤟 </span>",
             "<span color='#da8548'>󰤟 </span>",
             "<span color='#98be65'>󰤢 </span>",
