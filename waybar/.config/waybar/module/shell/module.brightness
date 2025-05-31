@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-default_brightness=40
+default_brightness=20
 receive_pipe="/tmp/waybar-ddc-module-rx"
 step=5
 notify=0
@@ -52,6 +52,9 @@ while true; do
             ;;
         min)
             ddcutil_fast setvcp 10 0
+            ;;
+        *)
+            ddcutil_fast setvcp 10 "$command"
             ;;
     esac
     notify=1
