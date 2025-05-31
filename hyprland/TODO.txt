@@ -20,3 +20,4 @@ yay -S hyprshade
 sudo pacman -S ddcutil
 sudo modprobe i2c-dev
 sudo ddcutil detect
+may need: `sudo usermod -aG i2c $USER` to be able to change without sudo
