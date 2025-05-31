@@ -84,32 +84,36 @@ exec_on_exit_action() {
 # Actions
 chosen="$(run_rofi)"
 case ${chosen} in
-    $shutdown)
+    "$shutdown")
         #run_cmd --shutdown
         exec_on_exit_action
         systemctl poweroff
         ;;
-    $reboot)
+    "$reboot")
         #run_cmd --reboot
         exec_on_exit_action
         systemctl reboot
         ;;
-    $lock)
-        case "$XDG_SESSION_TYPE" in
-            wayland)
-                "$HOME/dotfiles/bin/screen-lockw"
-                ;;
-            *)
-                "$HOME/dotfiles/bin/screen-lock"
-                ;;
-        esac
+    "$lock")
+        if [ "$XDG_SESSION_TYPE" == wayland ]; then
+            case "$XDG_CURRENT_DESKTOP" in
+                Hyprland)
+                    sleep 0.2 && hyprlock &
+                    ;;
+                *)
+                    sleep 0.2 && "$HOME/dotfiles/bin/screen-lockw" & # swaylock
+                    ;;
+            esac
+        else
+            "$HOME/dotfiles/bin/screen-lock"
+        fi
         ;;
-    $suspend)
+    "$suspend")
         #run_cmd --suspend
         exec_on_exit_action
         systemctl suspend
         ;;
-    $logout)
+    "$logout")
         #run_cmd --logout
         exec_on_exit_action
         pkill -KILL -u "$USER"
