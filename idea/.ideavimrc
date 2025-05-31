@@ -668,6 +668,8 @@ nmap <leader>. <Action>(GotoFile)
 "=== Find Recent
 nmap <leader>fr <Action>(RecentFiles)
 nmap <leader>, <Action>(RecentFiles)
+nmap <leader>m <Action>(RecentFiles)
+
 nmap <leader>fR <Action>(RecentChangedFiles)
 nmap <leader>fL <Action>(RecentLocations)
 
@@ -766,14 +768,15 @@ nmap <leader>\| <Action>(SplitHorizontally)
 
 "================================================ 🄼🄴🄽🅄: <leader>m =================================================="
 
-nmap <leader>mm <Action>(MainMenu)
-nmap <leader>ma <Action>(AnalyzeMenu)
-nmap <leader>mb <Action>(BuildMenu)
-nmap <leader>mf <Action>(FindMenuGroup)
-nmap <leader>mG <Action>(GoToMenu)
-nmap <leader>ms <Action>(ScopeViewPopupMenu)
-nmap <leader>mt <Action>(EditorTabPopupMenu)
-nmap <leader>mw <Action>(ToolWindowsGroup)
+" nmap <leader>mm <Action>(MainMenu)
+" nmap <leader>ma <Action>(AnalyzeMenu)
+" nmap <leader>mb <Action>(BuildMenu)
+" nmap <leader>mf <Action>(FindMenuGroup)
+" nmap <leader>mG <Action>(GoToMenu)
+" nmap <leader>ms <Action>(ScopeViewPopupMenu)
+" nmap <leader>mt <Action>(EditorTabPopupMenu)
+" nmap <leader>mw <Action>(ToolWindowsGroup)
+
 "nmap <leader>mgg <Action>(Git.Menu)
 
 "=================================================== 🄵🄾🄻🄳🅂: z ======================================================"

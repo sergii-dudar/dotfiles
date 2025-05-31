@@ -105,7 +105,7 @@ case ${chosen} in
                     ;;
             esac
         else
-            "$HOME/dotfiles/bin/screen-lock"
+            sleep 0.2 && "$HOME/dotfiles/bin/screen-lock"
         fi
         ;;
     "$suspend")
