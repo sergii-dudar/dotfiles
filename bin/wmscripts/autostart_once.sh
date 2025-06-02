@@ -13,6 +13,7 @@ xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
 #glate &
 nm-applet &
 #google-chrome-stable &
+(sleep 3 && redshift) &
 
 # Fix issues with running apps for some wm (small sleep, or order sensitive apps that have impact to particular wm)
 case "$wm_name" in

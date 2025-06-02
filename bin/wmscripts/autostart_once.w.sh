@@ -20,6 +20,7 @@ case "$wm_name" in
         run_swayidle 'swaymsg "output * dpms off"' 'swaymsg "output * dpms on"'
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
+        (sleep 3 && gammastep-indicator) &
         # autotilin &
 
         # brave &
