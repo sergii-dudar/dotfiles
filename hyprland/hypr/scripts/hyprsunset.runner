@@ -12,3 +12,4 @@ else
     # Nighttime: enable blue-light filter
     hyprctl hyprsunset temperature 2500
 fi
+pkill -RTMIN+4 waybar
