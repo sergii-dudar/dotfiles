@@ -19,22 +19,22 @@ nm-applet &
 case "$wm_name" in
     i3)
         #ghostty --class=com.ghostty.group01 &
-        brave &
+        ~/dotfiles/bin/start-browser &
         # i3-msg 'workspace 1' ; ghostty --class=com.ghostty.group01 &
         # sleep 0.5 && i3-msg 'workspace 2' ; brave &
         # sleep 0.5 && i3-msg 'workspace 1'
         ;;
     bspwm)
         ghostty --class=com.ghostty.group01 &
-        (sleep 0.5 && brave) &
+        (sleep 0.5 && ~/dotfiles/bin/start-browser) &
         ;;
     xmonad)
         (sleep 0.4 && ghostty --class=com.ghostty.group01) &
-        (sleep 0.7 && brave) &
+        (sleep 0.7 && ~/dotfiles/bin/start-browser) &
         ;;
     *)
         ghostty --class=com.ghostty.group01 &
-        brave &
+        ~/dotfiles/bin/start-browser &
         ;;
 esac
 

@@ -22,7 +22,7 @@ appsVolumeControl = "pavucontrol"
 appsBookReader = "evince"
 appsIntellij = "intellij-idea-ultimate"
 appsQbittorrent = "env QT_SCALE_FACTOR=1.4 qbittorrent"
-appsBrowser = "brave"
+appsBrowser = "~/dotfiles/bin/start-browser"
 appsMonkeyType = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
 
 appsGnomeSystemMonitor = "gnome-system-monitor"

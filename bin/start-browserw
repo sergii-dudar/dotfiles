@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland --password-store=basic --force-device-scale-factor=1.2
+
+# brave://flags/
+# enbable: Preferred Ozone platform to [Auto], Wayland UI scaling to [Enabled]

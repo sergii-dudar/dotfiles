@@ -28,7 +28,7 @@ case "$wm_name" in
 
         (sleep 0.4 && ghostty --class=com.ghostty.group01) &
         # (sleep 0.7 && brave --force-device-scale-factor=1.2) &
-        (sleep 0.7 && brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland) &
+        (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
 
         ;;
     hyprland)
@@ -36,7 +36,7 @@ case "$wm_name" in
 
         ghostty --class=com.ghostty.group01 &
         # brave --force-device-scale-factor=1.2 &
-        brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland &
+        ~/dotfiles/bin/start-browserw &
         waypaper --restore --backend hyprpaper &
 
         if hyprctl monitors | grep -q "HDMI-A-3"; then

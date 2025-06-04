@@ -24,7 +24,7 @@ alt + shift + g
     kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
 
 alt + shift + b
-    brave
+    ~/dotfiles/bin/start-browser
 
 # ---------- Audio Keybindings ------------- #
 

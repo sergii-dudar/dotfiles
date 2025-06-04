@@ -142,7 +142,7 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
     bindsym $alt+Shift+w exec ~/.config/waypaper/toggle.sh sway
-    bindsym $alt+Shift+b exec "brave --force-device-scale-factor=1.2"
+    bindsym $alt+Shift+b exec ~/dotfiles/bin/start-browserw
     
     # ---------- Audio Keybindings ------------- #
     bindsym $mod+Left exec "amixer -D pulse sset Master 5%-"

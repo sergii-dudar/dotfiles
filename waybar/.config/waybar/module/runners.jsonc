@@ -54,7 +54,7 @@
     "image#runner-brave": {
         "path": "/home/serhii/.config/waybar/resources/brave.icns",
         "size": 31,
-        "on-click": "brave --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform=wayland"
+        "on-click": "~/dotfiles/bin/start-browserw"
     },
     "image#runner-intellij": {
         "path": "/home/serhii/.config/waybar/resources/intellij.svg",
