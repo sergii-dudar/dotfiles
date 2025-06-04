@@ -8,7 +8,27 @@ dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
 # Automatically lock the screen after 10 minutes of inactivity
-xautolock -time 10 -locker "$HOME/dotfiles/bin/screen-lock" -detectsleep &
+# xautolock \
+    #     -time 10 \
+    #     -locker "$HOME/dotfiles/bin/screen-lock" \
+    #     -detectsleep &
+
+# Run xidlehook
+xidlehook \
+    --not-when-fullscreen \
+    --not-when-audio \
+    --timer 150 \
+    'ddcutil setvcp 10 0' \
+    'ddcutil setvcp 10 20' \
+    --timer 300 \
+    "$HOME/dotfiles/bin/screen-lock" \
+    '' \
+    --timer 450 \
+    'swaymsg "output * dpms off"' \
+    'swaymsg "output * dpms on"' \
+    --timer 1800 \
+    'systemctl suspend' \
+    ''
 
 #glate &
 nm-applet &
