@@ -7,12 +7,12 @@ ssh-add &
 dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
-# Automatically lock the screen after 10 minutes of inactivity
 # xautolock \
     #     -time 10 \
     #     -locker "$HOME/dotfiles/bin/screen-lock" \
     #     -detectsleep &
 
+# systemctl suspend: have issues on some nvidia cards on x11, temp disabled
 xidlehook \
     --not-when-fullscreen \
     --not-when-audio \
@@ -26,8 +26,8 @@ xidlehook \
     'xset dpms force off' \
     'xset dpms force on && ddcutil setvcp 10 20' &
 # --timer 1800 \
-    # "xset dpms force on && ddcutil setvcp 10 20 && sleep 1 && systemctl suspend" \
-    # '' &
+    # "systemctl suspend" \
+    # 'sleep 1 && xset dpms force on && ddcutil setvcp 10 20' &
 
 #glate &
 nm-applet &
@@ -37,7 +37,7 @@ nm-applet &
 # Fix issues with running apps for some wm (small sleep, or order sensitive apps that have impact to particular wm)
 case "$wm_name" in
     i3)
-        #ghostty --class=com.ghostty.group01 &
+        ghostty --class=com.ghostty.group01 &
         ~/dotfiles/bin/start-browser &
         # i3-msg 'workspace 1' ; ghostty --class=com.ghostty.group01 &
         # sleep 0.5 && i3-msg 'workspace 2' ; brave &

@@ -61,5 +61,5 @@ for battery in /sys/class/power_supply/BAT?*; do
         *) exit 1 ;;
     esac
 
-    echo "^c$icon_fg^$status ^c$FG_COLOR^$capacity%$SPLIT"
+    echo " ^c$icon_fg^$status ^c$FG_COLOR^$capacity% $SPLIT"
 done
