@@ -56,9 +56,9 @@ function run_swayidle() {
         timeout 150 "echo '0' > /tmp/waybar-ddc-module-rx" \
         resume "echo '20' > /tmp/waybar-ddc-module-rx" \
         timeout 300 "$HOME/dotfiles/bin/screen-lockw" \
-        timeout 150 'swaymsg "output * dpms off"' \
-        timeout 1800 'systemctl suspend' \
+        timeout 450 'swaymsg "output * dpms off"' \
         resume 'swaymsg "output * dpms on"' \
+        timeout 1800 'systemctl suspend' \
         before-sleep "$HOME/dotfiles/bin/screen-lockw" &
 }
 
