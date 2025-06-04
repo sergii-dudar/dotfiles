@@ -9,9 +9,10 @@ ghcup-hs-bin
 haskell-data-array-byte
 i3-back-bin
 i3lock-color
-insomnia
 networkmanager-dmenu-git
 pinta
+python-imageio-ffmpeg
+python-screeninfo
 qtile-extras
 sesh-bin
 snapd
@@ -19,6 +20,8 @@ sublime-text-4
 swaylock-effects
 ttf-joypixels
 turbo-base64
+waypaper
 wlprop
 xautolock
+xidlehook
 yay
