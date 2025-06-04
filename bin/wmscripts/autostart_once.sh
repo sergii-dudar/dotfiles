@@ -13,22 +13,21 @@ dunst &
     #     -locker "$HOME/dotfiles/bin/screen-lock" \
     #     -detectsleep &
 
-# Run xidlehook
-# xidlehook \
-    #     --not-when-fullscreen \
-    #     --not-when-audio \
-    #     --timer 3 \
-    #     'ddcutil setvcp 10 0' \
-    #     'ddcutil setvcp 10 20' \
-    #     --timer 6 \
-    #     "$HOME/dotfiles/bin/screen-lock" \
-    #     'ddcutil setvcp 10 20' \
-    #     --timer 9 \
-    #     'xset dpms force off' \
-    #     'xset dpms force on' \
-    #     --timer 20 \
-    #     'systemctl suspend' \
-    #     ''
+xidlehook \
+    --not-when-fullscreen \
+    --not-when-audio \
+    --timer 150 \
+    'ddcutil setvcp 10 0' \
+    'ddcutil setvcp 10 20' \
+    --timer 300 \
+    "$HOME/dotfiles/bin/screen-lock" \
+    'ddcutil setvcp 10 20' \
+    --timer 450 \
+    'xset dpms force off' \
+    'xset dpms force on && ddcutil setvcp 10 20' &
+# --timer 1800 \
+    # "xset dpms force on && ddcutil setvcp 10 20 && sleep 1 && systemctl suspend" \
+    # '' &
 
 #glate &
 nm-applet &
