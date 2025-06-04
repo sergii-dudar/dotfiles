@@ -52,17 +52,11 @@ case "$wm_name" in
 esac
 
 function run_swayidle() {
-    # swayidle -w \
-        #     timeout 600 "$HOME/dotfiles/bin/screen-lockw" \
-        #     timeout 1200 'swaymsg "output * dpms off"' \
-        #     resume 'swaymsg "output * dpms on"' \
-        #     before-sleep "$HOME/dotfiles/bin/screen-lockw" &
-
-
     swayidle -w \
         timeout 150 "echo '0' > /tmp/waybar-ddc-module-rx" \
+        resume "echo '20' > /tmp/waybar-ddc-module-rx" \
         timeout 300 "$HOME/dotfiles/bin/screen-lockw" \
-        timeout 450 'swaymsg "output * dpms off"' \
+        timeout 150 'swaymsg "output * dpms off"' \
         resume 'swaymsg "output * dpms on" ; echo "20" > /tmp/waybar-ddc-module-rx' \
         before-sleep "$HOME/dotfiles/bin/screen-lockw" &
 }
