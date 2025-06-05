@@ -23,25 +23,26 @@ function run_swayidle() {
 }
 
 function run_xidle() {
-    xautolock \
-        -time 10 \
-        -locker "$HOME/dotfiles/bin/screen-lock" \
-        -detectsleep &
+    # xautolock \
+        #     -time 10 \
+        #     -locker "$HOME/dotfiles/bin/screen-lock" \
+        #     -detectsleep &
 
     # suspend disabled: I'm using nvidia cards and proprietary drivers, and on some machines resume working not the best on x11
-    # xidlehook \
-        #     --not-when-fullscreen \
-        #     --not-when-audio \
-        #     --timer 150 \
-        #     'ddcutil setvcp 10 0' \
-        #     'ddcutil setvcp 10 20' \
-        #     --timer 300 \
-        #     "$HOME/dotfiles/bin/screen-lock" \
-        #     'ddcutil setvcp 10 20' \
-        #     --timer 450 \
-        #     'xset dpms force off' \
-        #     'xset dpms force on && ddcutil setvcp 10 20' \
-        #     --timer 1800 \
-        #     "systemctl suspend" \
-        #     'sleep 1 && xset dpms force on && ddcutil setvcp 10 20' &
+    xidlehook \
+        --not-when-fullscreen \
+        --not-when-audio \
+        --timer 150 \
+        'ddcutil setvcp 10 0' \
+        'ddcutil setvcp 10 20' \
+        --timer 300 \
+        "$HOME/dotfiles/bin/screen-lock" \
+        'ddcutil setvcp 10 20' \
+        --timer 450 \
+        'xset dpms force off' \
+        'xset dpms force on && ddcutil setvcp 10 20'
+
+    # --timer 1800 \
+        # "systemctl suspend" \
+        # 'sleep 1 && xset dpms force on && ddcutil setvcp 10 20' &
 }
