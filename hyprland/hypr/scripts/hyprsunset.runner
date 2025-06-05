@@ -3,9 +3,20 @@
 # Between 6:00 and 20:59 → set temperature to 4500
 # From 21:00 to 5:59 → set to 2500
 
-HOUR=$(date +%H)
+# HOUR=$(date +%H)
+#
+# if [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 21 ]; then
+#     # Daytime: disable blue-light filter or set warmer color
+#     hyprctl hyprsunset temperature 4500
+# else
+#     # Nighttime: enable blue-light filter
+#     hyprctl hyprsunset temperature 2500
+# fi
+# pkill -RTMIN+4 waybar
 
-if [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 21 ]; then
+LEVEL=$(hyprctl hyprsunset temperature)
+
+if [ "$LEVEL" == 2500 ]; then
     # Daytime: disable blue-light filter or set warmer color
     hyprctl hyprsunset temperature 4500
 else

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+period="${1:-}"
+. ~/dotfiles/cron/scripts/wm-common.sh
+
+if [ "$WM" == "hyprland" ]; then
+    level=$(hyprctl hyprsunset temperature)
+    case "$period" in
+        day)
+            if [ "$level" != 4500 ]; then
+                hyprctl hyprsunset temperature 4500 > /dev/null
+                notify-send "🏙️ Day mode" -t 2000
+            fi
+            ;;
+        night)
+            if [ "$level" != 2500 ]; then
+                hyprctl hyprsunset temperature 2500 > /dev/null
+                notify-send "🌃 Night mode" -t 2000
+            fi
+            ;;
+    esac
+    pkill -RTMIN+4 waybar
+fi
