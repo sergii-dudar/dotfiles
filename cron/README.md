@@ -5,7 +5,8 @@
 ```bash
 sudo pacman -S cronie
 sudo systemctl enable cronie.service --now
-crontab -e
+crontab -e # to edit/add cron jobs (automatically refreshing on close editor)
+crontab -l # to check list of active jobs
 ```
 
 ## Crontab
