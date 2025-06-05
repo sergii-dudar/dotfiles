@@ -41,7 +41,6 @@ fd
 feh
 ffmpegthumbnailer
 flameshot
-foot
 fuse2
 fzf
 gammastep

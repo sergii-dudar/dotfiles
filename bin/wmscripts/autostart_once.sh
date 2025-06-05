@@ -7,27 +7,7 @@ ssh-add &
 dunst &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
-# xautolock \
-    #     -time 10 \
-    #     -locker "$HOME/dotfiles/bin/screen-lock" \
-    #     -detectsleep &
-
-# systemctl suspend: have issues on some nvidia cards on x11, temp disabled
-xidlehook \
-    --not-when-fullscreen \
-    --not-when-audio \
-    --timer 150 \
-    'ddcutil setvcp 10 0' \
-    'ddcutil setvcp 10 20' \
-    --timer 300 \
-    "$HOME/dotfiles/bin/screen-lock" \
-    'ddcutil setvcp 10 20' \
-    --timer 450 \
-    'xset dpms force off' \
-    'xset dpms force on && ddcutil setvcp 10 20' &
-# --timer 1800 \
-    # "systemctl suspend" \
-    # 'sleep 1 && xset dpms force on && ddcutil setvcp 10 20' &
+~/dotfiles/bin/idle-lock wm_name
 
 #glate &
 nm-applet &

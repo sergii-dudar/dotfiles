@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+wm_name="${1:-}"
+
+case "$wm_name" in
+    sway)
+        run_swayidle
+        ;;
+    *)
+        run_xidle
+        ;;
+esac
+
+function run_swayidle() {
+    swayidle -w \
+        timeout 150 "echo '0' > /tmp/waybar-ddc-module-rx" \
+        resume "echo '20' > /tmp/waybar-ddc-module-rx" \
+        timeout 300 "$HOME/dotfiles/bin/screen-lockw" \
+        timeout 450 'swaymsg "output * dpms off"' \
+        resume 'swaymsg "output * dpms on"' \
+        timeout 1800 'systemctl suspend' \
+        before-sleep "$HOME/dotfiles/bin/screen-lockw" &
+}
+
+function run_xidle() {
+    xautolock \
+        -time 10 \
+        -locker "$HOME/dotfiles/bin/screen-lock" \
+        -detectsleep &
+
+    # suspend disabled: I'm using nvidia cards and proprietary drivers, and on some machines resume working not the best on x11
+    # xidlehook \
+        #     --not-when-fullscreen \
+        #     --not-when-audio \
+        #     --timer 150 \
+        #     'ddcutil setvcp 10 0' \
+        #     'ddcutil setvcp 10 20' \
+        #     --timer 300 \
+        #     "$HOME/dotfiles/bin/screen-lock" \
+        #     'ddcutil setvcp 10 20' \
+        #     --timer 450 \
+        #     'xset dpms force off' \
+        #     'xset dpms force on && ddcutil setvcp 10 20' \
+        #     --timer 1800 \
+        #     "systemctl suspend" \
+        #     'sleep 1 && xset dpms force on && ddcutil setvcp 10 20' &
+}

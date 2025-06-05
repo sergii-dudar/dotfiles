@@ -17,7 +17,7 @@ case "$wm_name" in
     sway)
         /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
         # killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &
-        run_swayidle
+        ~/dotfiles/bin/idle-lock sway
         # Start the daemon which listens to focus changes and sets _back mark
         i3-back &
         (sleep 3 && gammastep-indicator) &
@@ -46,21 +46,9 @@ case "$wm_name" in
         fi
 
         # hyprland
-        # run_swayidle 'hyprctl dispatch dpms off' 'hyprctl dispatch dpms on'
         #killall sxhkd; sxhkd -c ~/.config/sxhkd/sxhkdrc &
         ;;
 esac
-
-function run_swayidle() {
-    swayidle -w \
-        timeout 150 "echo '0' > /tmp/waybar-ddc-module-rx" \
-        resume "echo '20' > /tmp/waybar-ddc-module-rx" \
-        timeout 300 "$HOME/dotfiles/bin/screen-lockw" \
-        timeout 450 'swaymsg "output * dpms off"' \
-        resume 'swaymsg "output * dpms on"' \
-        timeout 1800 'systemctl suspend' \
-        before-sleep "$HOME/dotfiles/bin/screen-lockw" &
-}
 
 # case "$XDG_SESSION_TYPE" in
 #     wayland)
