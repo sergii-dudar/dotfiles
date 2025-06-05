@@ -2,27 +2,46 @@ picker_type="${1:-}"
 
 function pick_by_month_number() {
     case "$1" in
-        01|07)
-            "$HOME"/dotfiles/bin/desc/i3.desktop.runner.sh
+        01)
+            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
             ;;
-        02|08)
-            "$HOME"/dotfiles/bin/desc/qtile.desktop.runner.sh
+        02)
+            "$HOME/dotfiles/bin/desc/awesome.desktop.runner.sh"
             ;;
-        03|09)
-            "$HOME"/dotfiles/bin/desc/awesome.desktop.runner.sh
+        03)
+            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
             ;;
-        04|10)
-            "$HOME"/dotfiles/bin/desc/dwm.desktop.runner.sh
+        04)
+            "$HOME/dotfiles/bin/desc/bspwm.desktop.runner.sh"
             ;;
-        05|11)
-            "$HOME"/dotfiles/bin/desc/bspwm.desktop.runner.sh
+        05)
+            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
             ;;
-        06|12)
-            "$HOME"/dotfiles/bin/desc/xmonad.desktop.runner.sh
+        06)
+            "$HOME/dotfiles/bin/desc/dwm.desktop.runner.sh"
+            ;;
+        07)
+            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
+            ;;
+        08)
+            "$HOME/dotfiles/bin/desc/awesome.desktop.runner.sh"
+            ;;
+        09)
+            "$HOME/dotfiles/bin/desc/qtile.desktop.runner.sh"
+            ;;
+        10)
+            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
+            ;;
+        11)
+            #"$HOME/dotfiles/bin/desc/i3.desktop.runner.sh"
+            "$HOME/dotfiles/bin/desc/sway.desktop.runner.sh"
+            ;;
+        12)
+            "$HOME/dotfiles/bin/desc/dwm.desktop.runner.sh"
             ;;
         *)
             # in any unknown situation, use xmonad ;)
-            "$HOME"/dotfiles/bin/desc/xmonad.desktop.runner.sh
+            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
             ;;
     esac
 }
