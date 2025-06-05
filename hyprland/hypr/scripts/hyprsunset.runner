@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Between 6:00 and 20:59 → set temperature to 4500
-# From 21:00 to 5:59 → set to 2500
+# This script working in tandem with cron ~/dotfiles/cron/scripts/hypr/redshift
+# this script set right temperature value at startup, cron auto change at 6 or 21 day or night mode
 
 HOUR=$(date +%H)
 
