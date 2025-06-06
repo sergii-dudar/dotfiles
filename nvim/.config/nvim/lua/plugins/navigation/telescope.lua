@@ -6,7 +6,7 @@ local telescope_rg_opts = {
 return {
     {
         "nvim-telescope/telescope.nvim",
-        -- enabled = false,
+        enabled = false,
         dependencies = {
             --"nvim-telescope/telescope-file-browser.nvim",
 

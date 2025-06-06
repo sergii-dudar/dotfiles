@@ -29,8 +29,8 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.formatting.prettier" },
 
         -- ========= editor =========
-        { import = "lazyvim.plugins.extras.editor.telescope" },
-        -- { import = "lazyvim.plugins.extras.editor.fzf" },
+        -- { import = "lazyvim.plugins.extras.editor.telescope" },
+        { import = "lazyvim.plugins.extras.editor.fzf" },
         { import = "lazyvim.plugins.extras.editor.neo-tree" },
         -- { import = "lazyvim.plugins.extras.editor.harpoon2" },
         { import = "lazyvim.plugins.extras.editor.illuminate" },
