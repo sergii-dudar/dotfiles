@@ -26,6 +26,37 @@ return {
         --         },
         --     },
         -- },
+
+        -- :lua Snacks.picker.cliphist(opts?)
+        -- picker = {
+        --     -- preset = "ivy",
+        --     -- layout = { position = "bottom" },
+        --
+        --     enabled = true,
+        --     hidden = true,
+        --     ignored = true,
+        --     buffers = {
+        --         hidden = true,
+        --     },
+        --     explorer = {
+        --         hidden = true,
+        --         include = { "exclude", "ignored", "hidden" },
+        --     },
+        --     files = {
+        --         hidden = true,
+        --         ignored = true,
+        --     },
+        --     grep = {
+        --         hidden = true,
+        --         ignored = true,
+        --     },
+        --     sources = {
+        --         files = {
+        --             hidden = true,
+        --             ignored = true,
+        --         },
+        --     },
+        -- },
         --
         -- image = {
         --     -- your image configuration comes here

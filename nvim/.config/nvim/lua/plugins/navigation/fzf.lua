@@ -1,5 +1,6 @@
 return {
     "ibhagwan/fzf-lua",
+    enabled = false,
     keys = {
         -- { "<leader>.", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
         -- { "<leader>/", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
