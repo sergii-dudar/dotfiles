@@ -32,14 +32,15 @@ return {
         --     -- or leave it empty to use the default settings
         --     -- refer to the configuration section below
         -- },
-        image = {
-            force = true,
-            enabled = true,
-            debug = { request = false, convert = false, placement = false },
-            math = { enabled = true },
-            doc = { enabled = true, inline = true, float = true },
-            -- doc = { enabled = true, inline = true, float = false },
-        },
+        --
+        -- image = {
+        --     force = true,
+        --     enabled = true,
+        --     debug = { request = false, convert = false, placement = false },
+        --     math = { enabled = true },
+        --     doc = { enabled = true, inline = true, float = true },
+        --     -- doc = { enabled = true, inline = true, float = false },
+        -- },
     },
     {
         "snacks.nvim",
