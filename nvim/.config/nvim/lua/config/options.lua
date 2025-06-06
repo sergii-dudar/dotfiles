@@ -80,7 +80,8 @@ vim.g.snacks_animate = false
 function open_tree_on_start()
     if require("utils.neo-tree-util").is_enable_neo_tree() then
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
-        vim.cmd("Neotree filesystem reveal left")
+        -- vim.cmd("Neotree filesystem reveal left")
+        Snacks.picker.explorer()
     end
 end
 
@@ -93,7 +94,7 @@ vim.api.nvim_create_autocmd("UiEnter", {
         -- restore current proj session
         require("persistence").load()
 
-        open_tree_on_start()
+        -- open_tree_on_start()
 
         -- open load buffer if opened in tab, or skip
         if pcall(vim.cmd, "wincmd l") then

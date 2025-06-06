@@ -1,25 +1,35 @@
 return {
     "folke/snacks.nvim",
     opts = {
-        scroll = { enabled = false },
-        -- bigfile = { enabled = true },
-        -- dashboard = { enabled = true },
-        -- indent = { enabled = true },
-        -- input = { enabled = true },
-        -- notifier = { enabled = true },
-        -- quickfile = { enabled = true },
-        statuscolumn = { enabled = true },
-        -- words = { enabled = true },
-
         explorer = {
+
+            replace_netrw = true,
+
+            enabled = true,
+            hidden = true, -- Show hidden files in the explorer
+            ignored = true,
+            files = {
+                hidden = true, -- Show hidden files in the explorer
+                ignored = true,
+            },
             -- your explorer configuration comes here
             -- or leave it empty to use the default settings
             -- refer to the configuration section below
         },
         picker = {
+            enabled = true,
+            hidden = true, -- Show hidden files in the explorer
+            ignored = true,
+            files = {
+                hidden = true, -- Show hidden files in the explorer
+                ignored = true,
+            },
             sources = {
+                hidden = true, -- Show hidden files in the explorer
+                ignored = true,
                 explorer = {
-                    -- your explorer picker configuration comes here
+                    replace_netrw = true,
+                    -- your explreplace_netrworer picker configuration comes here
                     -- or leave it empty to use the default settings
                     ignored = true,
                     hidden = true,
@@ -30,6 +40,17 @@ return {
                 },
             },
         },
+
+        scroll = { enabled = false },
+        -- bigfile = { enabled = true },
+        -- dashboard = { enabled = true },
+        -- indent = { enabled = true },
+        -- input = { enabled = true },
+        -- notifier = { enabled = true },
+        -- quickfile = { enabled = true },
+        statuscolumn = { enabled = true },
+
+        -- words = { enabled = true },
 
         -- :lua Snacks.picker.cliphist(opts?)
         -- picker = {
