@@ -1,7 +1,5 @@
 return {
     "folke/snacks.nvim",
-    priority = 1000,
-    lazy = false,
     opts = {
         scroll = { enabled = false },
         -- bigfile = { enabled = true },
@@ -13,19 +11,25 @@ return {
         statuscolumn = { enabled = true },
         -- words = { enabled = true },
 
-        -- explorer = {
-        --     -- your explorer configuration comes here
-        --     -- or leave it empty to use the default settings
-        --     -- refer to the configuration section below
-        -- },
-        -- picker = {
-        --     sources = {
-        --         explorer = {
-        --             -- your explorer picker configuration comes here
-        --             -- or leave it empty to use the default settings
-        --         },
-        --     },
-        -- },
+        explorer = {
+            -- your explorer configuration comes here
+            -- or leave it empty to use the default settings
+            -- refer to the configuration section below
+        },
+        picker = {
+            sources = {
+                explorer = {
+                    -- your explorer picker configuration comes here
+                    -- or leave it empty to use the default settings
+                    ignored = true,
+                    hidden = true,
+                },
+                files = {
+                    ignored = true,
+                    hidden = true,
+                },
+            },
+        },
 
         -- :lua Snacks.picker.cliphist(opts?)
         -- picker = {
