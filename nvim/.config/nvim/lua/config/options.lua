@@ -94,14 +94,33 @@ vim.api.nvim_create_autocmd("UiEnter", {
         -- restore current proj session
         require("persistence").load()
 
-        -- open_tree_on_start()
+        open_tree_on_start()
 
         -- open load buffer if opened in tab, or skip
-        if pcall(vim.cmd, "wincmd l") then
-            vim.schedule(function()
-                pcall(vim.cmd, "e")
+        local timer = vim.uv.new_timer()
+        timer:start(
+            100,
+            0,
+            vim.schedule_wrap(function()
+                if pcall(vim.cmd, "wincmd l") then
+                    vim.schedule(function()
+                        pcall(vim.cmd, "e")
+                        -- pcall(vim.cmd, "bufdo e") -- reload all opened tabs (buffers) after startup
+                    end)
+                end
+                timer:close()
             end)
-        end
+        )
+
+        -- vim.schedule(function()
+        --     if pcall(vim.cmd, "wincmd l") then
+        --         Snacks.notify.info("Here 1")
+        --         vim.schedule(function()
+        --         Snacks.notify.info("Here 2")
+        --             pcall(vim.cmd, "e")
+        --         end)
+        --     end
+        -- end)
         -- end
     end,
 })

@@ -1,10 +1,12 @@
 return {
     {
         "folke/snacks.nvim",
-        lazy = false,
-        optional = false,
-        priority = 1000,
+        -- lazy = false,
+        -- optional = false,
+        -- priority = 1000,
         opts = function(_, opts)
+            vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
+
             return vim.tbl_deep_extend("force", opts or {}, {
                 picker = {
                     hidden = true, -- Include hidden files in grep
@@ -13,10 +15,7 @@ return {
                         cycle = false,
                     },
                     sources = {
-                        explorer = {
-                            -- layout = { layout = { position = "right" } },
-                            -- layout = { preset = "ivy", layout = { position = "top" } },
-                        },
+                        explorer = {},
                         -- files = {
                         --     -- cmd = "fd", -- "fd"| "rg"| "find" command to use. Leave empty to auto-detect
                         --     hidden = true, -- Show hidden files
@@ -27,6 +26,19 @@ return {
                     },
                 },
                 explorer = {
+                    -- win = {
+                    --     icons = {
+                    --         ui = {
+                    --             live = "󰐰 111",
+                    --             hidden = "",
+                    --             ignored = "",
+                    --             follow = "f",
+                    --             selected = "● ",
+                    --             unselected = "○ ",
+                    --             -- selected = " ",
+                    --         },
+                    --     },
+                    -- },
                     hidden = true, -- Show hidden files󰔊
                     ignored = true, -- Show git-ignored files
                     replace_netrw = true,
