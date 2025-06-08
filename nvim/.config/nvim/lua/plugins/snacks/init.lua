@@ -8,11 +8,11 @@ return {
 
             return vim.tbl_deep_extend("force", opts or {}, {
                 picker = {
-                    hidden = true, -- Include hidden files in grep
-                    ignored = true, -- Exclude git-ignored files
                     layout = {
                         cycle = false,
                     },
+                    hidden = true, -- Include hidden files in grep
+                    ignored = true, -- Exclude git-ignored files
                     sources = {
                         explorer = {},
                         -- files = {
@@ -22,6 +22,36 @@ return {
                         --     -- exclude = { "node_modules/*", "*.pyc", "*.log" }, -- Exclude patterns
                         --     -- preview = false, -- Enable file preview in picker
                         -- },
+                        grep = {
+                            layout = {
+                                reverse = true,
+                                layout = {
+                                    box = "horizontal",
+                                    backdrop = false,
+                                    width = 0.8,
+                                    height = 0.9,
+                                    border = "none",
+                                    {
+                                        box = "vertical",
+                                        { win = "list", title = " Results ", title_pos = "center", border = "rounded" },
+                                        {
+                                            win = "input",
+                                            height = 1,
+                                            border = "rounded",
+                                            title = "{title} {live} {flags}",
+                                            title_pos = "center",
+                                        },
+                                    },
+                                    {
+                                        win = "preview",
+                                        title = "{preview:Preview}",
+                                        width = 0.45,
+                                        border = "rounded",
+                                        title_pos = "center",
+                                    },
+                                },
+                            },
+                        },
                     },
                     toggles = {
                         hidden = "󱞞",
