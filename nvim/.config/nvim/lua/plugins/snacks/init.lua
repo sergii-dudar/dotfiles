@@ -6,6 +6,7 @@ return {
                 vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
             end)
 
+            -- local layout = require("plugins.snacks.layouts")
             return vim.tbl_deep_extend("force", opts or {}, {
                 picker = {
                     layout = {
@@ -13,8 +14,38 @@ return {
                     },
                     hidden = true, -- Include hidden files in grep
                     ignored = true, -- Exclude git-ignored files
+                    formatters = {
+                        file = {
+                            filename_first = true, -- display filename before the file path
+                            filename_only = false, -- only show the filename
+                            -- truncate = 40, -- truncate the file path to (roughly) this length
+                        },
+                    },
                     sources = {
-                        explorer = {},
+                        explorer = {
+                            -- layout = layout.explorer,
+                            layout = {
+                                preview = "main",
+                                layout = {
+                                    backdrop = false,
+                                    width = 40,
+                                    min_width = 40,
+                                    height = 0,
+                                    position = "left",
+                                    border = "none",
+                                    box = "vertical",
+                                    { win = "list", border = "none" },
+                                    {
+                                        win = "input",
+                                        height = 1,
+                                        border = "rounded",
+                                        title = "{title} {live} {flags}",
+                                        title_pos = "center",
+                                    },
+                                    { win = "preview", title = "{preview}", height = 0.4, border = "top" },
+                                },
+                            },
+                        },
                         -- files = {
                         --     -- cmd = "fd", -- "fd"| "rg"| "find" command to use. Leave empty to auto-detect
                         --     hidden = true, -- Show hidden files
