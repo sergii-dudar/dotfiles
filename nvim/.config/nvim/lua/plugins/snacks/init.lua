@@ -1,11 +1,10 @@
 return {
     {
         "folke/snacks.nvim",
-        -- lazy = false,
-        -- optional = false,
-        -- priority = 1000,
         opts = function(_, opts)
-            vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
+            vim.schedule(function()
+                vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
+            end)
 
             return vim.tbl_deep_extend("force", opts or {}, {
                 picker = {
@@ -24,22 +23,14 @@ return {
                         --     -- preview = false, -- Enable file preview in picker
                         -- },
                     },
+                    toggles = {
+                        hidden = "󱞞",
+                        ignored = "",
+                        modified = "",
+                    },
                 },
                 explorer = {
-                    -- win = {
-                    --     icons = {
-                    --         ui = {
-                    --             live = "󰐰 111",
-                    --             hidden = "",
-                    --             ignored = "",
-                    --             follow = "f",
-                    --             selected = "● ",
-                    --             unselected = "○ ",
-                    --             -- selected = " ",
-                    --         },
-                    --     },
-                    -- },
-                    hidden = true, -- Show hidden files󰔊
+                    hidden = true, -- Show hidden files
                     ignored = true, -- Show git-ignored files
                     replace_netrw = true,
                     auto_close = false, -- Keep explorer open
