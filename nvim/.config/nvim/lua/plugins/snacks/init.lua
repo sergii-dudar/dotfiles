@@ -22,7 +22,7 @@ return {
                         file = {
                             filename_first = true, -- display filename before the file path
                             filename_only = false, -- only show the filename
-                            -- truncate = 40, -- truncate the file path to (roughly) this length
+                            truncate = 250, -- truncate the file path to (roughly) this length
                         },
                     },
                     sources = {
@@ -98,13 +98,7 @@ return {
             { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
             { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
-            {
-                "<leader><space>",
-                function()
-                    Snacks.picker.smart()
-                end,
-                desc = "Smart Find Files",
-            },
+            { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             {
                 "<leader>dps",
