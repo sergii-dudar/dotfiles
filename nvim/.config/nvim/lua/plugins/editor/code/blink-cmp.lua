@@ -9,10 +9,10 @@ return {
         opts = {
             keymap = {
                 preset = "enter",
-                ["<Tab>"] = {
-                    LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
-                    "fallback",
-                },
+                -- ["<Tab>"] = {
+                --     LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
+                --     "fallback",
+                -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
             },
@@ -39,6 +39,8 @@ return {
             signature = { window = { border = "rounded" } },
             cmdline = {
                 enabled = true,
+                -- keymap = { preset = "inherit" },
+                -- completion = { menu = { auto_show = true } },
             },
             -- sources = {
             --     -- adding any nvim-cmp sources here will enable them
