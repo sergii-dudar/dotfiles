@@ -1,7 +1,6 @@
 return {
     {
         "saghen/blink.cmp",
-        -- Disabled for now and for now not very stable, switched back to nvim-cmp for now
         enabled = true,
         dependencies = {
             --"hrsh7th/cmp-cmdline",
@@ -16,8 +15,12 @@ return {
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
             },
+            fuzzy = {
+                implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua
+            },
             completion = {
                 menu = {
+                    auto_show = true,
                     scrollbar = false,
                     border = "rounded",
                     draw = {
@@ -29,18 +32,36 @@ return {
                         },
                     },
                 },
+
                 documentation = {
                     auto_show = true,
                     window = {
                         border = "rounded",
                     },
                 },
+                ghost_text = {
+                    enabled = true,
+                    show_with_menu = true,
+                },
             },
-            signature = { window = { border = "rounded" } },
+            -- Experimental signature help support
+            signature = {
+                enabled = true,
+                window = { border = "rounded" },
+            },
             cmdline = {
                 enabled = true,
                 -- keymap = { preset = "inherit" },
                 -- completion = { menu = { auto_show = true } },
+            },
+            sources = {
+                providers = {
+                    path = {
+                        opts = {
+                            show_hidden_files_by_default = true,
+                        },
+                    },
+                },
             },
             -- sources = {
             --     -- adding any nvim-cmp sources here will enable them
