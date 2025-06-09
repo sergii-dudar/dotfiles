@@ -64,6 +64,9 @@ vim.api.nvim_set_keymap("n", "<leader>|", ":split | wincmd j<CR>", { noremap = t
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 
+-- Snacks
+Snacks.toggle.zen():map("<leader>zz")
+
 --move selected block
 --vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 --vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")

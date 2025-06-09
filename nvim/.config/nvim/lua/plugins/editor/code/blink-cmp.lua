@@ -2,7 +2,7 @@ return {
     {
         "saghen/blink.cmp",
         -- Disabled for now and for now not very stable, switched back to nvim-cmp for now
-        enabled = false,
+        enabled = true,
         dependencies = {
             --"hrsh7th/cmp-cmdline",
         },
@@ -19,16 +19,7 @@ return {
             completion = {
                 menu = {
                     scrollbar = false,
-                    border = {
-                        "╭", --{ "󱐋", "WarningMsg" },
-                        "─",
-                        "╮",
-                        "│",
-                        "╯",
-                        "─",
-                        "╰",
-                        "│",
-                    },
+                    border = "rounded",
                     draw = {
                         columns = {
                             { "kind_icon" },
@@ -38,21 +29,16 @@ return {
                         },
                     },
                 },
-            },
-            documentation = {
-                auto_show = true,
-                window = {
-                    border = {
-                        "╭", --{ "", "DiagnosticHint" },
-                        "─",
-                        "╮",
-                        "│",
-                        "╯",
-                        "─",
-                        "╰",
-                        "│",
+                documentation = {
+                    auto_show = true,
+                    window = {
+                        border = "rounded",
                     },
                 },
+            },
+            signature = { window = { border = "rounded" } },
+            cmdline = {
+                enabled = true,
             },
             -- sources = {
             --     -- adding any nvim-cmp sources here will enable them

@@ -1,7 +1,7 @@
 return {
     {
         "hrsh7th/nvim-cmp",
-        enabled = true,
+        enabled = false,
         event = "VeryLazy",
         dependencies = {
             -- Autocompletion
@@ -180,6 +180,7 @@ return {
     },
     {
         "hrsh7th/cmp-cmdline",
+        enabled = false,
         dependencies = {
             "rcarriga/cmp-dap",
             "hrsh7th/nvim-cmp",

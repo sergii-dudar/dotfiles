@@ -49,7 +49,8 @@ require("lazy").setup({
 
         --comment it if want to use `nvim-snippets`
         --{ import = "lazyvim.plugins.extras.coding.luasnip" },
-        { import = "lazyvim.plugins.extras.coding.nvim-cmp" },
+        --{ import = "lazyvim.plugins.extras.coding.nvim-cmp" },
+        { import = "lazyvim.plugins.extras.coding.blink" },
 
         -- ========= lang =========
         { import = "lazyvim.plugins.extras.lang.markdown" },

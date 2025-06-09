@@ -11,6 +11,9 @@ return {
 
             local layouts = require("plugins.snacks.configs.layouts")
             return vim.tbl_deep_extend("force", opts or {}, {
+                zen = {
+                    win = { style = "zen", width = 0.85 },
+                },
                 picker = {
                     -- layout = {
                     --     cycle = false,
@@ -78,7 +81,6 @@ return {
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
-                zen = { enabled = true },
             })
         end,
         keys = {
