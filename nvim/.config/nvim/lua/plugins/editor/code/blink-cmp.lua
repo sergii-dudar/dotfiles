@@ -62,7 +62,10 @@ return {
                         },
                     },
                 },
+                -- default = { "lsp", "path", "snippets", "buffer" },
             },
+            -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },
+            snippets = { preset = "luasnip" },
         },
     },
 }
