@@ -14,6 +14,7 @@ return {
                 -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
+                ["<Space>"] = { "accept", "fallback" },
             },
             fuzzy = {
                 implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua
@@ -57,6 +58,14 @@ return {
                     ["<CR>"] = { "accept_and_enter", "fallback" },
                     ["<C-k>"] = { "select_prev", "fallback" },
                     ["<C-j>"] = { "select_next", "fallback" },
+                    ["<Space>"] = { "accept", "fallback" },
+                    -- ["<Space>"] = {
+                    --     "accept",
+                    --     function(cmp)
+                    --         vim.cmd("normal! i ")
+                    --     end,
+                    --     "fallback",
+                    -- },
                 },
                 enabled = true,
                 -- keymap = { preset = "inherit" },
