@@ -1,3 +1,4 @@
+local buffer_util = require("utils.buffer-util")
 return {
     {
         "saghen/blink.cmp",
@@ -6,7 +7,7 @@ return {
             --"hrsh7th/cmp-cmdline",
             "nvim-tree/nvim-web-devicons",
             "onsails/lspkind.nvim",
-            "echasnovski/mini.icons",
+            --"echasnovski/mini.icons",
         },
         opts = {
             keymap = {
@@ -115,13 +116,6 @@ return {
                     ["<C-k>"] = { "select_prev", "fallback" },
                     ["<C-j>"] = { "select_next", "fallback" },
                     ["<Space>"] = { "accept", "fallback" },
-                    -- ["<Space>"] = {
-                    --     "accept",
-                    --     function(cmp)
-                    --         vim.cmd("normal! i ")
-                    --     end,
-                    --     "fallback",
-                    -- },
                 },
                 enabled = true,
                 -- keymap = { preset = "inherit" },
@@ -132,6 +126,22 @@ return {
                     path = {
                         opts = {
                             show_hidden_files_by_default = true,
+                        },
+                    },
+                    -- Buffer completion from all open buffers
+                    buffer = {
+                        opts = {
+                            -- get all buffers, even ones like neo-tree
+                            -- get_bufnrs = vim.api.nvim_list_bufs,
+
+                            -- or (recommended) filter to only "normal" buffers
+                            -- get_bufnrs = function()
+                            --     return vim.tbl_filter(function(bufnr)
+                            --         return vim.bo[bufnr].buftype == ""
+                            --     end, vim.api.nvim_list_bufs())
+                            -- end,
+
+                            get_bufnrs = buffer_util.get_active_ls_buffers,
                         },
                     },
                 },
