@@ -6,6 +6,7 @@ return {
             --"hrsh7th/cmp-cmdline",
             "nvim-tree/nvim-web-devicons",
             "onsails/lspkind.nvim",
+            "echasnovski/mini.icons",
         },
         opts = {
             keymap = {
@@ -28,13 +29,32 @@ return {
                     border = "rounded",
                     draw = {
                         columns = {
-                            { "kind_icon" },
-                            { "label", "label_description", gap = 1 },
+                            { "kind_icon", "label", "label_description", gap = 2 },
                             { "kind" },
                             { "source_name" },
                             -- { "source_id" },
                         },
-                        components = {
+                        -- components = { -- mini.icons
+                        --     kind_icon = {
+                        --         text = function(ctx)
+                        --             local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
+                        --             return kind_icon
+                        --         end,
+                        --         -- (optional) use highlights from mini.icons
+                        --         highlight = function(ctx)
+                        --             local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+                        --             return hl
+                        --         end,
+                        --     },
+                        --     kind = {
+                        --         -- (optional) use highlights from mini.icons
+                        --         highlight = function(ctx)
+                        --             local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+                        --             return hl
+                        --         end,
+                        --     },
+                        -- },
+                        components = { -- nvim-web-devicons
                             kind_icon = {
                                 text = function(ctx)
                                     local icon = ctx.kind_icon
