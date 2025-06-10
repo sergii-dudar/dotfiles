@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Current Theme
+dir="$HOME/.config/rofi/killmenu/"
+theme='style-1'
+
+# rofi -dmenu -p "   " -i
+# command ps -a -u $USER --no-headers -o comm | sort | uniq -i | rofi -dmenu -p "Clip" -theme ${dir}/${theme}.rasi
+
+selected="$(ps -a -u $USER | \
+            rofi -dmenu -i -p "Kill" -theme ${dir}/${theme}.rasi | \
+            awk '{print $1" "$4}')";
+
+if [[ ! -z $selected ]]; then
+
+    answer="$(echo -e "Yes\nNo" | \
+            rofi -dmenu -i -p "$selected will be killed, are you sure?" -theme ${dir}/${theme}.rasi)"
+
+    if [[ $answer == "Yes" ]]; then
+        selpid="$(awk '{print $1}' <<< $selected)";
+        kill -9 "$selpid"
+        notify-send "$selpid is killed" -t 2000
+    fi
+fi
+
+exit 0
