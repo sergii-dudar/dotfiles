@@ -18,7 +18,7 @@ return {
                 -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
-                ["<Space>"] = { "accept", "fallback" },
+                -- ["<Space>"] = { "accept", "fallback" },
             },
             fuzzy = {
                 implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua
