@@ -4,6 +4,7 @@ return {
         enabled = true,
         dependencies = {
             --"hrsh7th/cmp-cmdline",
+            "nvim-tree/nvim-web-devicons",
         },
         opts = {
             keymap = {
@@ -30,6 +31,7 @@ return {
                             { "label", "label_description", gap = 1 },
                             { "kind" },
                             { "source_name" },
+                            -- { "source_id" },
                         },
                     },
                 },
