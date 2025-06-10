@@ -50,6 +50,14 @@ return {
                 window = { border = "rounded" },
             },
             cmdline = {
+                keymap = {
+                    -- recommended, as the default keymap will only show and select the next item
+                    -- ["<Tab>"] = { "show", "accept" },
+                    -- ["<Tab>"] = { "accept" },
+                    ["<CR>"] = { "accept_and_enter", "fallback" },
+                    ["<C-k>"] = { "select_prev", "fallback" },
+                    ["<C-j>"] = { "select_next", "fallback" },
+                },
                 enabled = true,
                 -- keymap = { preset = "inherit" },
                 -- completion = { menu = { auto_show = true } },
