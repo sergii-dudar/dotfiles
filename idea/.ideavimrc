@@ -669,6 +669,7 @@ nmap <leader>. <Action>(GotoFile)
 nmap <leader>fr <Action>(RecentFiles)
 nmap <leader>, <Action>(RecentFiles)
 nmap <leader>m <Action>(RecentFiles)
+nmap <leader><leader> <Action>(RecentFiles)
 
 nmap <leader>fR <Action>(RecentChangedFiles)
 nmap <leader>fL <Action>(RecentLocations)
