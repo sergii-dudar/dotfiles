@@ -18,7 +18,7 @@ case "$APP" in
         ;;
     "telegram")
         class="org.telegram.desktop"
-        cmd="telegram-desktop"
+        cmd="telegram-desktop || telegram"
         notify="💬 Telegram"
         ;;
     "youtube_music")

@@ -2,6 +2,7 @@ local M = {}
 
 M.default = {
     enabled = true,
+    -- width = 80,
     preset = {
         header = [[
 ███╗   ██╗ ███████╗ ██████╗  ██╗   ██╗ ██╗ ███╗   ███╗
@@ -20,8 +21,24 @@ M.default = {
         { icon = " ", title = "Projects: ", section = "projects", indent = 3, padding = { 1, 0 } },
         -- { section = "terminal", cmd = "fortune -s | cowsay", hl = "header", padding = 1, indent = 8 },
         -- { section = "terminal", cmd = "fortune -s", ttl = 0, hl = "header", padding = 1, indent = 8 },
+        -- {
+        --     section = "terminal",
+        --     cmd = "bash ~/tools/colorscripts/ColorScripts/alpha",
+        --     -- cmd = "fastfetch",
+        --     hl = "header",
+        --     height = 5,
+        --     -- indent = 1,
+        -- },
         -- { section = "startup", padding = { 0, 5 } },
     },
+    formats = {
+        key = function(item)
+            return { { "[", hl = "special" }, { item.key, hl = "key" }, { "]", hl = "special" } }
+        end,
+    },
 }
+-- invaders
+-- pacman
+-- rally-x
 
 return M
