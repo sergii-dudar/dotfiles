@@ -15,6 +15,7 @@ return {
             --     vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
             -- end)
             local pickers = require("plugins.snacks.configs.pickers")
+            local dashboards = require("plugins.snacks.configs.dashboards")
             return vim.tbl_deep_extend("force", opts or {}, {
                 zen = {
                     win = { style = "zen", width = 0.85 },
@@ -37,7 +38,7 @@ return {
                 },
                 scroll = { enabled = false },
                 -- bigfile = { enabled = true },
-                dashboard = { enabled = true },
+                dashboard = dashboards.default,
                 -- indent = { enabled = true },
                 -- input = { enabled = true },
                 -- notifier = { enabled = true },
