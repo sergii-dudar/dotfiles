@@ -255,6 +255,7 @@ iunmap f
 iunmap F
 iunmap t
 iunmap T
+iunmap <leader><leader>
 "iunmap <leader><leader>s
 "iunmap <leader><leader>f
 "iunmap <leader><leader>F
