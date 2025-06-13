@@ -255,7 +255,6 @@ iunmap f
 iunmap F
 iunmap t
 iunmap T
-iunmap <leader><leader>
 "iunmap <leader><leader>s
 "iunmap <leader><leader>f
 "iunmap <leader><leader>F
@@ -670,6 +669,8 @@ nmap <leader>. <Action>(GotoFile)
 nmap <leader>fr <Action>(RecentFiles)
 nmap <leader>, <Action>(RecentFiles)
 nmap <leader>m <Action>(RecentFiles)
+
+iunmap <leader><leader>
 nmap <leader><leader> <Action>(RecentFiles)
 
 nmap <leader>fR <Action>(RecentChangedFiles)
