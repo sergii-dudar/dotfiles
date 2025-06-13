@@ -1,8 +1,0 @@
--- myEventHook :: Event -> X ()
--- myEventHook MapNotifyEvent {ev_window = w} = withWindowSet $ \ws -> do
---     whenJust (W.findTag w ws) $ \_ -> do
---         floats <- gets (W.floating . windowset)
---         when (w `M.member` floats) $
---             windows (W.shiftMaster . W.focusWindow w)
--- myEventHook _ = return ()
-
