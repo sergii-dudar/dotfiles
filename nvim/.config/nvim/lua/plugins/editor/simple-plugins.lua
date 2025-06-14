@@ -20,7 +20,7 @@ return {
         opts = {
             modes = {
                 char = {
-                    jump_labels = true,
+                    -- jump_labels = true, # f,F,t,T...
                     -- jump = {
                     --     autojump = true,
                     -- },
