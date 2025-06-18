@@ -18,7 +18,7 @@ case "$APP" in
         ;;
     "telegram")
         class="org.telegram.desktop"
-        cmd="telegram-desktop || telegram"
+        cmd="Telegram || telegram-desktop || telegram"
         notify="💬 Telegram"
         ;;
     "youtube_music")
@@ -78,6 +78,12 @@ function move_app_to_current_workspace_and_focus() {
         #     hyprctl dispatch movetoworkspacesilent "$current_ws", address:"$addr" && \
         #     hyprctl dispatch focuswindow address:"$addr" && \
         #     hyprctl dispatch centerwindow
+
+    # hyprctl --batch "\
+        #     dispatch movetoworkspacesilent $current_ws, address:$addr ;\
+        #     dispatch focuswindow address:$addr ;\
+        #     dispatch tagwindow +scratchpad_dynamic address:$addr;\
+        #     dispatch centerwindow"
 
     hyprctl --batch "\
         dispatch movetoworkspacesilent $current_ws, address:$addr ;\
