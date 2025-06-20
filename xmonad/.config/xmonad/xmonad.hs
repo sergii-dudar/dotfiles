@@ -50,9 +50,9 @@ import XMonad.Util.Hacks
 lastWsToSecondScreenStartupHook :: X ()
 lastWsToSecondScreenStartupHook = do
     screens <- gets (W.screens . windowset)
-    U.notifySend $ "screens " ++ show (length screens)
+    -- U.notifySend $ "screens " ++ show (length screens)
     when (length screens > 1) $ do
-        U.notifySend "1231"
+        -- U.notifySend "1231"
         modify $ \xstate ->
             xstate {windowset = onlyOnScreen 1 V.lastWorkspaceId (windowset xstate)}
 

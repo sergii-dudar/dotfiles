@@ -27,9 +27,9 @@ case "$1" in
         notify_msg="📂 Nautilus"
         ;;
     "telegram")
-        instance_name="telegram-desktop"
+        instance_name="Telegram"
         class_name="TelegramDesktop"
-        run_cmd="telegram-desktop"
+        run_cmd="Telegram"
         notify_msg="💬 Telegram"
         ;;
     "youtube_music")

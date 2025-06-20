@@ -36,7 +36,7 @@ scratchpadsGoogleChatId = "google_chat-scratchpad-id-5"
 scratchpadsMonkeyTypeId = "monkey_type-scratchpad-id-6"
 
 appsTerminalYazi = "ghostty --class=com.scratchpad.yazi -e yazi"
-appsTelegram = "telegram-desktop"
+appsTelegram = "Telegram"
 appsNautilus = "nautilus"
 appsBraveYoutubeMusic = "brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
 appsBraveGoogleChat = "brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
@@ -45,7 +45,7 @@ appsBraveMonkeyType = "brave --profile-directory=Default --app-id=picebhhlijnlef
 scratchpads :: [NamedScratchpad]
 scratchpads =
     [ scratchToClass scratchpadsYaziId appsTerminalYazi "com.scratchpad.yazi"
-    , scratchTo scratchpadsTelegramId appsTelegram "TelegramDesktop" "telegram-desktop"
+    , scratchTo scratchpadsTelegramId appsTelegram "TelegramDesktop" "Telegram"
     , scratchTo scratchpadsNautilusId appsNautilus "org.gnome.Nautilus" "org.gnome.Nautilus"
     , scratchTo scratchpadsYoutubeMusicId appsBraveYoutubeMusic "Brave-browser" "crx_cinhimbnkkaeohfgghhklpknlkffjgod"
     , scratchTo scratchpadsGoogleChatId appsBraveGoogleChat "Brave-browser" "crx_mdpkiolbdkhdjpekfbkbmhigcaggjagi"

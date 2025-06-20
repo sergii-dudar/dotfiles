@@ -30,7 +30,7 @@ keys = [
     Key([mod], "f", lazy.window.toggle_fullscreen(), desc='toggle fullscreen'),
     Key([mod, "shift"], "m", funcs.minimize_all(), desc="Toggle hide/show all windows on current group"),
     #Key([mod], "m", lazy.layout.maximize(), desc='Toggle between min and max sizes'),
-    Key([mod], "m", lazy.function(cycle_layouts), desc='Toggle between min and max sizes'),
+    #Key([mod], "m", lazy.function(cycle_layouts), desc='Toggle between min and max sizes'),
 
     Key([mod], "b", lazy.hide_show_bar(position='all'), desc="Toggles the bar to show/hide"),
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # if ! pgrep --full "$run_cmd" >/dev/null; then
 # fi
 
@@ -23,7 +25,7 @@ case "$1" in
     "telegram")
         shell="xdg_shell"
         app_id="org.telegram.desktop"
-        run_cmd="telegram-desktop"
+        run_cmd="Telegram"
         notify_msg="💬 Telegram"
         ;;
     "youtube_music")
@@ -78,7 +80,8 @@ function is_app_running() {
 function is_target_visible() {
     swaymsg -t get_tree | jq -e '.. | objects |
         select('"$jq_wlprop_selector"') |
-    select(.scratchpad_state == "fresh" and .visible == true)' > /dev/null
+    select(.visible == true)' > /dev/null
+    # select(.scratchpad_state == "fresh" and .visible == true)' > /dev/null
 }
 
 # Helper: hide all other scratchpad windows except the target
@@ -93,7 +96,22 @@ function hide_all_other_scratchpads() {
     done
 }
 
-if ! is_app_running; then
+function show_scratchpad() {
+    swaymsg "$1" scratchpad show, border pixel 6, resize set 85ppt 90ppt, move position center
+}
+
+if is_app_running; then
+    if is_target_visible; then # if pressed same scratch app button to just hite, not show anothe scratch app
+        # Toggle off: hide it
+        swaymsg "$swaymsg_selector" move to scratchpad
+    else
+        # Toggle on: hide others, then show target
+        hide_all_other_scratchpads
+        show_scratchpad "$swaymsg_selector"
+
+        notify-send "$notify_msg" -t 700
+    fi
+else
     bash -c "$run_cmd" > /dev/null 2>&1 &
 
     # Wait until the window is available to sway
@@ -101,21 +119,14 @@ if ! is_app_running; then
         is_app_running && break
         sleep 0.25
     done
-fi
 
-if swaymsg -t get_tree | jq -e '.. | objects | select('"$jq_wlprop_selector"') | select(.scratchpad_state == "none")' >/dev/null; then
-    # move to scratchpad if not there yet
-    swaymsg "$swaymsg_selector" floating enable, move to scratchpad
-    sleep 0.5
-fi
+    if swaymsg -t get_tree | jq -e '.. | objects | select('"$jq_wlprop_selector"') | select(.scratchpad_state == "none")' >/dev/null; then
+        # move to scratchpad if not there yet
+        # swaymsg "$swaymsg_selector" floating enable #, move to scratchpad
 
-if is_target_visible; then # if pressed same scratch app button to just hite, not show anothe scratch app
-    # Toggle off: hide it
-    swaymsg "$swaymsg_selector" move to scratchpad
-    # notify-send "$notify_msg" -t 700
-else
-    # Toggle on: hide others, then show target
-    hide_all_other_scratchpads
-    swaymsg "$swaymsg_selector" scratchpad show, border pixel 5, resize set 75ppt 80ppt, move position center
-    notify-send "$notify_msg" -t 700
+        # we need move to scratchpad and back to mark app as `scratchpad_state` none -> fresh`
+        sleep 0.5
+        swaymsg "$swaymsg_selector" move to scratchpad;
+        show_scratchpad "$swaymsg_selector"
+    fi
 fi
