@@ -45,6 +45,20 @@ case "$APP" in
         ;;
 esac
 
+function set_scratch_app_roles() {
+    addr="$1"
+    scratch_border_color="rgb(AB9DF2)"
+
+    hyprctl --batch "\
+        dispatch setfloating address:$addr ;\
+        dispatch resizeactive exact 75% 80% address:$addr ; \
+        dispatch centerwindow address:$addr ;\
+        dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
+        dispatch setprop address:$addr bordersize 5 ;\
+        dispatch setprop address:$addr alpha 0.95 ;\
+        dispatch setprop address:$addr animationstyle 0"
+}
+
 function is_app_running() {
     hyprctl clients -j | jq -e --arg cls "$class" \
         'map(select(.class == $cls)) | length > 0'
@@ -69,9 +83,16 @@ function is_app_visible() {
         'map(select(.class == $cls and .workspace.name != "special:scratchpad")) | length > 0'
 }
 
+function is_app_floating() {
+    local addr=$1
+    hyprctl clients -j | jq -e --arg addr "$addr" 'any(.address == $addr and .floating == true)'
+}
+
 function move_app_to_scratchpad() {
     addr=$(get_window_address)
-    [ -n "$addr" ] && hyprctl dispatch movetoworkspacesilent special:scratchpad,address:"$addr"
+    if [ -n "$addr" ]; then
+        hyprctl dispatch movetoworkspacesilent special:scratchpad,address:"$addr"
+    fi
 }
 
 function move_app_to_current_workspace_and_focus() {
@@ -92,23 +113,12 @@ function move_app_to_current_workspace_and_focus() {
         dispatch movetoworkspacesilent $current_ws, address:$addr ;\
         dispatch focuswindow address:$addr ;\
         dispatch centerwindow"
+
+    # in case app started not as scratchpad, make it floating scratchpad
+    if ! is_app_floating "$addr"; then
+        set_scratch_app_roles "$addr"
+    fi
 }
-
-function set_scratch_app_roles() {
-    addr=$(get_window_address)
-    scratch_border_color="rgb(AB9DF2)"
-
-    # hyprctl dispatch movetoworkspacesilent name:special:scratchpad address:"$addr"
-    hyprctl --batch "\
-        dispatch setfloating address:$addr ;\
-        dispatch resizeactive exact 75% 80% address:$addr ; \
-        dispatch centerwindow address:$addr ;\
-        dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
-        dispatch setprop address:$addr bordersize 5 ;\
-        dispatch setprop address:$addr alpha 0.95 ;\
-        dispatch setprop address:$addr animationstyle 0"
-}
-
 
 function hide_all_other_scratchpads() {
     hyprctl clients -j | jq -r '.[] |
@@ -136,8 +146,11 @@ else
         is_app_running && break
     done
     # move_app_to_scratchpad # declared by hypr roles
-    set_scratch_app_roles
+
+    addr=$(get_window_address)
+    set_scratch_app_roles "$addr"
     hide_all_other_scratchpads
+    # move_app_to_current_workspace_and_focus
     notify-send "$notify" -t 700
 fi
 
