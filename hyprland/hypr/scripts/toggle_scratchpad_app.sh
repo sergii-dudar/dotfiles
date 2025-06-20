@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 APP="$1"
 
 case "$APP" in
@@ -37,7 +39,8 @@ case "$APP" in
         notify="  Monkey Type"
         ;;
     *)
-        echo "$APP - unsupported"
+        echo " $APP is unsupported"
+        notify="❌ $APP is unsupported"
         exit 1
         ;;
 esac
