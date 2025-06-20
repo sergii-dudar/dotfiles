@@ -98,7 +98,7 @@ function set_scratch_app_roles() {
     addr=$(get_window_address)
     scratch_border_color="rgb(AB9DF2)"
 
-    # hyprctl dispatch movetoworkspacesilent name:special:scratchpad address:$addr
+    # hyprctl dispatch movetoworkspacesilent name:special:scratchpad address:"$addr"
     hyprctl --batch "\
         dispatch setfloating address:$addr ;\
         dispatch resizeactive exact 75% 80% address:$addr ; \
@@ -109,16 +109,6 @@ function set_scratch_app_roles() {
         dispatch setprop address:$addr animationstyle 0"
 }
 
-# Start if not running
-if ! is_app_running; then
-    bash -c "$cmd" >/dev/null 2>&1 &
-    for i in {1..20}; do
-        sleep 0.25
-        is_app_running && break
-    done
-    # move_app_to_scratchpad # declared by hypr roles
-    set_scratch_app_roles
-fi
 
 function hide_all_other_scratchpads() {
     hyprctl clients -j | jq -r '.[] |
@@ -130,11 +120,24 @@ function hide_all_other_scratchpads() {
     done
 }
 
-if is_app_visible; then
-    move_app_to_scratchpad
+# Start if not running
+if is_app_running; then
+    if is_app_visible; then
+        move_app_to_scratchpad
+    else
+        hide_all_other_scratchpads
+        move_app_to_current_workspace_and_focus
+        notify-send "$notify" -t 700
+    fi
 else
+    bash -c "$cmd" >/dev/null 2>&1 &
+    for i in {1..20}; do
+        sleep 0.25
+        is_app_running && break
+    done
+    # move_app_to_scratchpad # declared by hypr roles
+    set_scratch_app_roles
     hide_all_other_scratchpads
-    move_app_to_current_workspace_and_focus
     notify-send "$notify" -t 700
 fi
 
