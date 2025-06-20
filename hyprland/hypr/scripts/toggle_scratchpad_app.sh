@@ -94,6 +94,21 @@ function move_app_to_current_workspace_and_focus() {
         dispatch centerwindow"
 }
 
+function set_scratch_app_roles() {
+    addr=$(get_window_address)
+    scratch_border_color="rgb(AB9DF2)"
+
+    # hyprctl dispatch movetoworkspacesilent name:special:scratchpad address:$addr
+    hyprctl --batch "\
+        dispatch setfloating address:$addr ;\
+        dispatch resizeactive exact 75% 80% address:$addr ; \
+        dispatch centerwindow address:$addr ;\
+        dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
+        dispatch setprop address:$addr bordersize 5 ;\
+        dispatch setprop address:$addr alpha 0.95 ;\
+        dispatch setprop address:$addr animationstyle 0"
+}
+
 # Start if not running
 if ! is_app_running; then
     bash -c "$cmd" >/dev/null 2>&1 &
@@ -102,6 +117,7 @@ if ! is_app_running; then
         is_app_running && break
     done
     # move_app_to_scratchpad # declared by hypr roles
+    set_scratch_app_roles
 fi
 
 function hide_all_other_scratchpads() {
