@@ -109,14 +109,37 @@ function move_app_to_current_workspace_and_focus() {
         #     dispatch tagwindow +scratchpad_dynamic address:$addr;\
         #     dispatch centerwindow"
 
-    hyprctl --batch "\
-        dispatch movetoworkspacesilent $current_ws, address:$addr ;\
-        dispatch focuswindow address:$addr ;\
-        dispatch centerwindow"
 
     # in case app started not as scratchpad, make it floating scratchpad
-    if ! is_app_floating "$addr"; then
+    # hyprctl --batch "\
+        #     dispatch movetoworkspacesilent $current_ws, address:$addr ;\
+        #     dispatch focuswindow address:$addr ;\
+        #     dispatch centerwindow"
+    #
+    # if ! is_app_floating "$addr"; then
+    #     set_scratch_app_roles "$addr"
+    # fi
+
+
+    if is_app_floating "$addr"; then
+        hyprctl --batch "\
+            dispatch movetoworkspacesilent $current_ws, address:$addr ;\
+            dispatch focuswindow address:$addr ;\
+            dispatch centerwindow"
         set_scratch_app_roles "$addr"
+    else
+        # combline to make is as smoth and fast as possible
+        scratch_border_color="rgb(AB9DF2)"
+        hyprctl --batch "\
+            dispatch setfloating address:$addr ;\
+            dispatch movetoworkspacesilent $current_ws, address:$addr ;\
+            dispatch focuswindow address:$addr ;\
+            dispatch resizeactive exact 75% 80% address:$addr ; \
+            dispatch centerwindow address:$addr ;\
+            dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
+            dispatch setprop address:$addr bordersize 5 ;\
+            dispatch setprop address:$addr alpha 0.95 ;\
+            dispatch setprop address:$addr animationstyle 0"
     fi
 }
 
