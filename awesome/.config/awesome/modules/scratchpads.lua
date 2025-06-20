@@ -43,7 +43,7 @@ end
 M = {}
 -- M.yazi = new_scratchpad("yazi-scratchpad-id-1", "kitty --class=yazi -e yazi")
 M.yazi = new_scratchpad("yazi-scratchpad-id-1", "ghostty --class=com.scratchpad.yazi -e yazi")
-M.telegram = new_scratchpad("telegram-scratchpad-id-2", "telegram-desktop")
+M.telegram = new_scratchpad("telegram-scratchpad-id-2", "Telegram")
 M.nautilus = new_scratchpad("nautilus-scratchpad-id-3", "nautilus")
 M.youtube_music = new_scratchpad(
     "youtube_music-scratchpad-id-4",

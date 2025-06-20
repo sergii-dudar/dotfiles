@@ -28,7 +28,7 @@ def add_scratchpad(groups, keys):
         ScratchPad(
             "scratchpad", [
                 DropDown("telegram",
-                         "telegram-desktop",
+                         "Telegram",
                          width=default_rate_width,
                          height=default_rate_height,
                          x=default_x,
