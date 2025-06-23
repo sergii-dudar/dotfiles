@@ -12,7 +12,12 @@ yay -S sublime-text && \
     yay -S google-chrome && \
     yay -S brave-bin
 #yay -S telegram-desktop# from pacman
-#yay -S viber# appimage from off site
+
+# Viber
+yay -S viber && sudo pacman -S noto-fonts
+# for viber to change scale: env QT_SCREEN_SCALE_FACTORS=1.75 viber
+#   sudo nvim /usr/share/applications/com.viber.Viber.desktop -> Exec=env QT_SCREEN_SCALE_FACTORS=1.75 viber %u
+
 yay -S appimagelauncher && \
 
     # https://github.com/jstkdng/ueberzugpp

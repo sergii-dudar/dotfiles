@@ -52,6 +52,7 @@ else
     export PATH=$PATH:$HOME/.local/bin
 
     export QT_SCALE_FACTOR=1.75
+    # export QT_SCREEN_SCALE_FACTORS=1.75
     export LC_CTYPE=en_US.UTF-8
 
     # LC_CTYPE=en_US.UTF-8 > /etc/locale.conf
