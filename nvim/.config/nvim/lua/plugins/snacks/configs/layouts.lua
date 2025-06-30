@@ -117,6 +117,7 @@ all_layouts.custom_horizontal = M.custom_horizontal
 all_layouts.custom_vertical = M.custom_vertical
 
 M.custom_default = {
+    preview = true,
     cycle = true,
     reverse = true,
     preset = function()

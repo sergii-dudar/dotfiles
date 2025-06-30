@@ -22,8 +22,10 @@ M.picker = {
     },
     sources = {
         explorer = {
-            layout = layouts.custom_explorer,
+            -- layout = layouts.custom_explorer,
+            layout = layouts.custom_default,
             auto_close = false,
+            focus = "input", -- input|list
         },
         files = {
             -- cmd = "fd", -- "fd"| "rg"| "find" command to use. Leave empty to auto-detect
