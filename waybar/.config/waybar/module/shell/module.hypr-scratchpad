@@ -6,13 +6,46 @@ total_scratchpads=$(hyprctl clients -j | jq -r ' .[] |
 # scratchpad_titles=$(hyprctl clients -j | jq -r ' .[] |
 #     select(.workspace.name == "special:scratchpad") | .title '
 # )
+
+scratchpad_titles=$(hyprctl clients -j | jq -r ' .[] |
+    select(.workspace.name == "special:scratchpad") | (.class + ":" + .title)' \
+        | while IFS=$':' read -r class title; do
+        case "$class" in
+            "brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default")
+                echo "$title"
+                ;;
+            "brave-picebhhlijnlefeleilfbanaghjlkkna-Default")
+                echo "Monkeytype"
+                ;;
+            "brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default")
+                echo "$title"
+                ;;
+            "com.scratchpad.music")
+                echo "MPD player"
+                ;;
+            "org.gnome.Nautilus")
+                echo "Nautilus: $title"
+                ;;
+            "com.scratchpad.yazi")
+                echo "Yazi Explorer: $title"
+                ;;
+            "org.telegram.desktop")
+                echo "Telegram: $title"
+                ;;
+            *)
+                echo "$class: $title"
+                ;;
+        esac
+    done
+)
+
 # total_scratchpads=$(echo "$scratchpad_titles" | wc -l)
 
 icon="<span color='#6272a4'></span>"
 count="<span color='#bd93f9'>$total_scratchpads</span>"
-# tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads count: </span>$count\n\
-    # <span color='#bd93f9'>$(echo "$scratchpad_titles" | awk 'NR>1{printf "\\n"} {printf "%d. %s", NR, $0}')</span>"
-tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads count: </span>$count"
+# tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads count: </span>$count
+tooltip="$icon <span color='#8caaee' style='italic'>Scratchpads: </span>\n\
+<span color='#bd93f9'>$(echo "$scratchpad_titles" | awk 'NR>1{printf "\\n"} {printf "%d. %s", NR, $0}')</span>"
 
 if [ "$total_scratchpads" = 0 ]; then
     text=""
