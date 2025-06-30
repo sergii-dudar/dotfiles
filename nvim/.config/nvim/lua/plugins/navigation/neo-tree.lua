@@ -1,7 +1,11 @@
 return {
     "nvim-neo-tree/neo-tree.nvim",
     cond = require("utils.neo-tree-util").is_enable_neo_tree,
-    enabled = false,
+    keys = {
+        -- same as default, just swapped [ <leader>E ] with [ <leader>e]
+        { "<leader>E", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
+        { "<leader>e", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
+    },
     opts = {
         source_selector = {
             winbar = true,

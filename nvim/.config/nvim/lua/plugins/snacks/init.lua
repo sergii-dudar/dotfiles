@@ -48,20 +48,36 @@ return {
             })
         end,
         keys = {
-            -- {
-            --     "<leader>.",
-            --     function()
-            --         Snacks.scratch()
-            --     end,
-            --     desc = "Toggle Scratch Buffer",
-            -- },
-            -- {
-            --     "<leader>S",
-            --     function()
-            --         Snacks.scratch.select()
-            --     end,
-            --     desc = "Select Scratch Buffer",
-            -- },
+            --[[ {
+                "<leader>.",
+                function()
+                    Snacks.scratch()
+                end,
+                desc = "Toggle Scratch Buffer",
+            },
+            {
+                "<leader>S",
+                function()
+                    Snacks.scratch.select()
+                end,
+                desc = "Select Scratch Buffer",
+            }, ]]
+            -- explorer
+            {
+                '<leader>"',
+                function()
+                    Snacks.explorer({ cwd = LazyVim.root() })
+                end,
+                desc = "Explorer Snacks (root dir)",
+            },
+            {
+                "<leader>'",
+                function()
+                    Snacks.explorer()
+                end,
+                desc = "Explorer Snacks (cwd)",
+            },
+            -- pickets
             { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
             { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },

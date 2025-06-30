@@ -80,8 +80,8 @@ vim.g.snacks_animate = false
 function open_tree_on_start()
     if require("utils.neo-tree-util").is_enable_neo_tree() then
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
-        -- vim.cmd("Neotree filesystem reveal left")
-        Snacks.picker.explorer()
+        vim.cmd("Neotree filesystem reveal left")
+        -- Snacks.picker.explorer()
     end
 end
 

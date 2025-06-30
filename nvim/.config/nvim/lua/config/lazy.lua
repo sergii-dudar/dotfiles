@@ -33,7 +33,7 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.editor.fzf" },
         -- { import = "lazyvim.plugins.extras.editor.neo-tree" },
         { import = "lazyvim.plugins.extras.editor.snacks_picker" },
-        { import = "lazyvim.plugins.extras.editor.snacks_explorer" },
+        -- { import = "lazyvim.plugins.extras.editor.snacks_explorer" },
 
         -- { import = "lazyvim.plugins.extras.editor.harpoon2" },
         { import = "lazyvim.plugins.extras.editor.illuminate" },
