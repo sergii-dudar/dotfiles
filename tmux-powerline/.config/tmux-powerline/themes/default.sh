@@ -43,12 +43,11 @@ if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_CURRENT" ]; then
     TMUX_POWERLINE_WINDOW_STATUS_CURRENT=(
         #"#[$(format inverse) bg=yellow]"
         "#[$(format inverse) bg=#6B6B6B]"
-        "󰜴[ "
+        "  "
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
         "#I#F"
         # "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
-        " #W"
-        " ]󰜱"
+        " #W "
         # 󰜴  󰜱
         #"#[$(format regular) fg=yellow]"
         "#[$(format regular)]"
@@ -69,7 +68,7 @@ if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_FORMAT" ]; then
         # "#[$(format inverse) bg=#6B6B6B]"
         "#[$(format inverse)]"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-        " #I#F "
+        " 󰄱 #I#F "
         # "#[$(format regular) fg=#6B6B6B]"
         "#[$(format regular)]"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
