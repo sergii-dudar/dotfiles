@@ -43,7 +43,7 @@ TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SEPARATOR=${TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SE
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_CURRENT" ]; then
     TMUX_POWERLINE_WINDOW_STATUS_CURRENT=(
         #"#[$(format inverse) bg=yellow]"
-        "#[$(format inverse) bg=#6B6B6B]"
+        "#[$(format inverse) bg=colour239]"
         "  "
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
         "#I#F"
