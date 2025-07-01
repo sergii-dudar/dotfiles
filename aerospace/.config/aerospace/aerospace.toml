@@ -321,10 +321,10 @@ run = 'layout floating'
 if.app-id = 'com.apple.finder'
 run = 'layout floating'
 
-[[on-window-detected]]
-if.app-id = 'com.sublimetext.4'
-#run = "move-node-to-workspace 3"
-run = 'layout floating'
+# [[on-window-detected]]
+# if.app-id = 'com.sublimetext.4'
+# #run = "move-node-to-workspace 3"
+# run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.googlecode.iterm2'

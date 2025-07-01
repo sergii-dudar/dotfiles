@@ -42,11 +42,12 @@ TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SEPARATOR=${TMUX_POWERLINE_DEFAULT_RIGHTSIDE_SE
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_CURRENT" ]; then
     TMUX_POWERLINE_WINDOW_STATUS_CURRENT=(
         #"#[$(format inverse) bg=yellow]"
-        "#[$(format inverse)]"
+        "#[$(format inverse) bg=#6B6B6B]"
+        "󰜴"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
-        " #I#F "
-        "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
-        " #W "
+        "#I#F"
+        # "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
+        " #W󰜱"
         #"#[$(format regular) fg=yellow]"
         "#[$(format regular)]"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
@@ -63,11 +64,12 @@ fi
 # shellcheck disable=SC2128
 if [ -z "$TMUX_POWERLINE_WINDOW_STATUS_FORMAT" ]; then
     TMUX_POWERLINE_WINDOW_STATUS_FORMAT=(
-        "#[$(format inverse) bg=#6B6B6B]"
+        # "#[$(format inverse) bg=#6B6B6B]"
+        "#[$(format inverse)]"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
         " #I#F "
-        #"#[$(format regular)]"
-        "#[$(format regular) fg=#6B6B6B]"
+        # "#[$(format regular) fg=#6B6B6B]"
+        "#[$(format regular)]"
         "$TMUX_POWERLINE_DEFAULT_LEFTSIDE_SEPARATOR"
         " #W "
         "$TMUX_POWERLINE_SEPARATOR_RIGHT_THIN"
