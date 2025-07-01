@@ -24,7 +24,7 @@ M.picker = {
         explorer = {
             -- layout = layouts.custom_explorer,
             layout = layouts.custom_default,
-            auto_close = false,
+            auto_close = true,
             focus = "input", -- input|list
         },
         files = {
