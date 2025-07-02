@@ -31,6 +31,11 @@ return {
                         .. java_util.java21_bin
                         .. " $dir $fileNameWithoutExt",
                 },
+                yaml = {
+                    -- k8s
+                    "kubectl apply -f $dir/$fileName && echo $dir/$fileName has successfully applied",
+                    -- "echo $dir/$fileName",
+                },
                 python = "python3.12 -u",
                 typescript = "deno run",
                 lua = "lua $dir/$fileName",
