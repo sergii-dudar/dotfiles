@@ -33,6 +33,7 @@
             "cpu",
             "temperature",
             "disk",
+            "custom/pacman-updates",
             "custom/weather",
             "privacy",
             "network",
