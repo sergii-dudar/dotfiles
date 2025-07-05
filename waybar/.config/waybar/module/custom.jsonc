@@ -39,13 +39,16 @@
     },
     "custom/pacman-updates": { // yay -S waybar-module-pacman-updates-git
         "format": "{icon} {text}",
+        // "format": "{} {icon}",
         "return-type": "json",
         "format-icons": {
             "has-updates": "<span color='#c678dd'>󱍷</span>",
             "updated": "<span color='#98be65'>󰂪</span>"
         },
         "exec-if": "which waybar-module-pacman-updates",
-        "exec": "waybar-module-pacman-updates --interval-seconds 300 --network-interval-seconds 300"
+        // "exec": "waybar-module-pacman-updates --interval-seconds 300 --network-interval-seconds 300 --tooltip-align-columns --color-semver-updates"
+        // "exec": "waybar-module-pacman-updates --interval-seconds 10 --network-interval-seconds 300 --tooltip-align-columns"
+        "exec": "waybar-module-pacman-updates --tooltip-align-columns 'CaskaydiaCove Nerd Font' --color-semver-updates F15D22,FFCE51,73C48F,48B9C7,88807C"
     },
     // "backlight": {
     //     "device": "intel_backlight",
