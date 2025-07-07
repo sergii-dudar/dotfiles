@@ -38,6 +38,11 @@ case "$APP" in
         cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         notify="  Monkey Type"
         ;;
+    "vim_hero")
+        class="brave-beifkklpdmlhanbkafbcldldbgnglbpn-Default"
+        cmd="brave --profile-directory=Default --app-id=beifkklpdmlhanbkafbcldldbgnglbpn"
+        notify="⌨️ Vim Hero"
+        ;;
     *)
         echo " $APP is unsupported"
         notify="❌ $APP is unsupported"

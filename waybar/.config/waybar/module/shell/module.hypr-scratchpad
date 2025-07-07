@@ -20,6 +20,9 @@ scratchpad_titles=$(hyprctl clients -j | jq -r ' .[] |
             "brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default")
                 echo "$title"
                 ;;
+            "brave-beifkklpdmlhanbkafbcldldbgnglbpn-Default")
+                echo "Vim Hero"
+                ;;
             "com.scratchpad.music")
                 echo "MPD player"
                 ;;
