@@ -184,9 +184,10 @@ alt-shift-r = 'mode resize'
 #cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
 
 cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
-cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"'
+cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi "Google Chat"'
 cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
 cmd-shift-u = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna "Monkeytype"'
+cmd-shift-v = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn "VimHero"'
 #cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
 # need terminal that all the time planning to be used only in float\scratchpad mode,
@@ -306,6 +307,10 @@ run = 'layout floating'
 [[on-window-detected]]
 # if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
 if.app-id = 'com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn' # VimHero
 run = 'layout floating'
 
 [[on-window-detected]]

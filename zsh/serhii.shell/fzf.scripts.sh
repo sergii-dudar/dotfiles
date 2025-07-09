@@ -1,8 +1,8 @@
 # Set up fzf key bindings and fuzzy completion
 
 if [ "$(command -v fzf)" ]; then
-  # Set up fzf key bindings and fuzzy completion
-  eval "$(fzf --zsh)"
+    # Set up fzf key bindings and fuzzy completion
+    eval "$(fzf --zsh)"
 fi
 
 # - ctrl + r to find command from zsh history
@@ -46,18 +46,18 @@ export FZF_CTRL_T_OPTS="
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
 export FZF_CTRL_R_OPTS="
-  --preview 'echo {}' --preview-window up:3:hidden:wrap
-  --bind 'ctrl-/:toggle-preview'
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-  --color header:italic
-  --header 'Press CTRL-Y to copy command into clipboard'"
+--preview 'echo {}' --preview-window up:3:hidden:wrap
+--bind 'ctrl-/:toggle-preview'
+--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+--color header:italic
+--header 'Press CTRL-Y to copy command into clipboard'"
 
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 # Print tree structure in the preview window
 export FZF_ALT_C_OPTS="
-  --walker-skip .git,node_modules,target
-  --preview 'tree -C -L 1 {}'"
+--walker-skip .git,node_modules,target
+--preview 'tree -C -L 1 {}'"
 
 if isMacOs; then
     # workaround for fzf keybinding with alt+
@@ -104,7 +104,7 @@ EOF
     fi
 
     # egrep -ir "($1)" .
-    rg -i -C 5 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    rg -i -C 15 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findtc() {
@@ -127,7 +127,7 @@ EOF
 
     # rg -i -g '*user*.java' "test"
     # rg -i -g 'pom.*ml' "spring"
-    rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    rg -i -C 15 -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findt_in_r() {
