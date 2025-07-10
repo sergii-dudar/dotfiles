@@ -32,7 +32,7 @@
             "temperature",
             "disk",
             "custom/updates",
-            "custom/pacman-updates",
+            // "custom/pacman-updates",
             "privacy",
             "network",
             "tray",
