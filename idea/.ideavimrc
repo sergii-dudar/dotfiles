@@ -115,13 +115,8 @@ noremap N Nzz
 " Function to create a visual mode substitution with prompt on every replace
 " help to replace intellij - replace qualified name with import
 xmap <leader>rr "hy:%s/<C-r>h//gc<Left><Left><Left>
-"vim.api.nvim_set_keymap(
-"    "v",
-"    "<leader>rr",
-"    '"hy:%s/<C-r>h//gc<Left><Left><Left>',
-"    { noremap = true, silent = false, desc = "Replace with prompt" }
-")
-
+xmap <leader>rn :<C-u>'<,'>normal<Space>
+" example - `'<,'>normal df( f)x`
 
 "================================================== 🅃🄴🅂🅃🄸🄽🄶 🅂🄿🄰🄲🄴 ============================================="
 
@@ -136,7 +131,8 @@ xmap <leader>rr "hy:%s/<C-r>h//gc<Left><Left><Left>
 " =============================================== 🄸🄳🄴🄰🅅🄸🄼 🄿🄻🅄🄶🄸🄽🅂 ============================================"
 " === https://jb.gg/ideavim-plugins
 set surround            "https://github.com/tpope/vim-surround
-set multiple-cursors
+" set multiple-cursors
+set multicursor
 set easymotion
 set commentary
 set highlightedyank
@@ -209,12 +205,21 @@ set clipboard+=unnamedplus
 "======================================================================================================================"
 "======================================= 🄼🅄🄻🅃🄸🄿🄻🄴-🄲🅄🅁🅂🄾🅁🅂 🄿🄻🅄🄶🄸🄽 ========================================"
 
-nmap <leader>n <Plug>NextWholeOccurrence
-xmap <leader>n <Plug>NextWholeOccurrence
-"nmap <C-n> <Plug>NextOccurrence
-"xmap <C-n> <Plug>NextOccurrence
-"xmap <C-x> <Plug>SkipOccurrence
-"xmap <C-p> <Plug>RemoveOccurrence
+" Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
+"   nmap <C-n> <Plug>NextWholeOccurrence
+"   xmap <C-n> <Plug>NextWholeOccurrence
+"   nmap g<C-n> <Plug>NextOccurrence
+"   xmap g<C-n> <Plug>NextOccurrence
+"   xmap <C-x> <Plug>SkipOccurrence
+"   xmap <C-p> <Plug>RemoveOccurrence
+
+" Note that the default <A-n> and g<A-n> shortcuts don't work on Mac due to dead keys.
+" <A-n> is used to enter accented text e.g. ñ
+" Feike to use <leader>
+"
+"   xmap <C-n> <Plug>AllWholeOccurrences
+"   nmap g<C-n> <Plug>AllOccurrences
+"   xmap g<C-n> <Plug>AllOccurrences
 
 " ----------------------------------------------------------------------------------------------------------
 " |   DESCRIPTION: (https://github.com/terryma/vim-multiple-cursors/blob/master/doc/multiple_cursors.txt)  |
@@ -244,6 +249,22 @@ xmap <leader>n <Plug>NextWholeOccurrence
 " |  For instance: `ciw`.                                                                                  |
 " ----------------------------------------------------------------------------------------------------------
 
+"======================================================================================================================"
+"======================================= IdeaVimMulticursor ========================================"
+" https://github.com/dankinsoid/IdeaVimMulticursor
+
+" map <C-n> <Plug>(multicursor-mcr)
+map <leader>mm <Plug>(multicursor-mcc)
+map <leader>mr <Plug>(multicursor-mcd)
+map <leader>ms <Plug>(multicursor-mcr)
+
+" mcc: Add or remove a cursor highlight at the current position (preview mode)
+" mcr: Convert cursor highlights to active editing cursors
+" mcd: Remove all cursors and highlights
+
+" Quick search-select
+" map <leader>qq <Plug>(multicursor-ms/)
+
 "=================================================== 🄵🄻🄰🅂🄷 🄿🄻🅄🄶🄸🄽 =============================================="
 " https://github.com/yelog/vim-flash
 "map s <Action>(flash.search)
@@ -266,10 +287,10 @@ iunmap T
 "map s <Plug>(easymotion-s)
 
 nmap s <Plug>(easymotion-s)
-nmap f <Plug>(easymotion-f)
-nmap F <Plug>(easymotion-F)
-nmap t <Plug>(easymotion-t)
-nmap T <Plug>(easymotion-T)
+" nmap f <Plug>(easymotion-f)
+" nmap F <Plug>(easymotion-F)
+" nmap t <Plug>(easymotion-t)
+" nmap T <Plug>(easymotion-T)
 
 " https://github.com/AlexPl292/IdeaVim-EasyMotion#supported-commands
 " https://github.com/easymotion/vim-easymotion/blob/master/doc/easymotion.txt
