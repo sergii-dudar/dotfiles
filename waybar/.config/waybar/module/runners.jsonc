@@ -13,8 +13,8 @@
         },
         "modules": [
             "image#runner-arch", // First element is the "group leader" and won't ever be hidden
-            "image#runner-viber",
             "image#runner-wallpapers",
+            "image#runner-viber",
             "image#runner-settings",
             "image#runner-color-picker",
             "image#runner-kitty",
