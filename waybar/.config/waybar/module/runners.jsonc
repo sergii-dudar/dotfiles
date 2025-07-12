@@ -13,6 +13,7 @@
         },
         "modules": [
             "image#runner-arch", // First element is the "group leader" and won't ever be hidden
+            "image#runner-viber",
             "image#runner-wallpapers",
             "image#runner-settings",
             "image#runner-color-picker",
@@ -70,6 +71,11 @@
         "path": "/home/serhii/.config/waybar/resources/qbittorrent.svg",
         "size": 32,
         "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent"
+    },
+    "image#runner-viber": {
+        "path": "/home/serhii/.config/waybar/resources/viber.png",
+        "size": 28,
+        "on-click": "env QT_SCREEN_SCALE_FACTORS=1.75 viber"
     },
     "image#runner-color-picker": {
         "path": "/home/serhii/.config/waybar/resources/pipette.png",
