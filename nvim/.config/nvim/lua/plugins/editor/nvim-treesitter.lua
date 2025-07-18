@@ -34,10 +34,10 @@ return {
         },
         indent = { enable = true, disable = { "java" } },
     },
-    {
-        "nvim-treesitter/nvim-treesitter-context",
-        enabled = false,
-    },
+    -- {
+    --     "nvim-treesitter/nvim-treesitter-context",
+    --     enabled = false,
+    -- },
 }
 
 --[[ {

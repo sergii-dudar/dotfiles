@@ -17,7 +17,7 @@ focus_app() {
     local app_window_id
     app_window_id=$(get_window_id)
     # echo "appid=$app_window_id"
-    aerospace move-node-to-workspace "$CURRENT_WORKSPACE" --window-id "$app_window_id" || \
+    aerospace move-node-to-workspace "$CURRENT_WORKSPACE" --window-id "$app_window_id" ; \
         aerospace focus --window-id "$app_window_id"
 }
 
