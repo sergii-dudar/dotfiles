@@ -1,6 +1,6 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
-rev = "43ff052"
+rev = "de53d90"
 hash = "3996fc74044bc44144b323686f887e1"
 
 [[plugin.deps]]
@@ -52,6 +52,11 @@ hash = "7c2e9d76c32931b949eccb694759f746"
 use = "yazi-rs/plugins:smart-enter"
 rev = "43ff052"
 hash = "a7ab702e1ef0c097defbc976ed34c186"
+
+[[plugin.deps]]
+use = "TD-Sky/sudo"
+rev = "af70636"
+hash = "a94dcbe9266512806c677138e8591ddb"
 
 [flavor]
 deps = []

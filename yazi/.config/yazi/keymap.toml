@@ -29,6 +29,8 @@ prepend_keymap = [
     #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
     #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan', desc = "open terminal" },
     { on = [ "e", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan', desc = "open terminal" },
+    { on = [ "e", "v" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
+    { on = [ "e", "s" ], run = 'shell "sudo nvim -p \"$@\"" --block', desc = "Sudo NeoVim [selected file]" },
     ###{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
     #{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
     #{ on = [ "n", "v" ], run = 'shell "kitty --hold zsh -c \"nvim \"$@\"\"" --orphan',        desc = "open in neovim" },
@@ -53,7 +55,35 @@ prepend_keymap = [
     { on = "M", run = "plugin mount", desc = "Mount discs" },
 
     # smart-enter.yazi
-    { on = "l", run = "plugin smart-enter", desc = "Enter the child directory, or open the file" }
+    { on = "l", run = "plugin smart-enter", desc = "Enter the child directory, or open the file" },
+
+    ### sudo.yazi
+    # sudo cp/mv
+    { on = ["R", "p", "p"], run = "plugin sudo -- paste", desc = "sudo paste" },
+
+    # sudo cp/mv --force
+    { on = ["R", "P"], run = "plugin sudo -- paste --force", desc = "sudo paste" },
+
+    # sudo mv
+    { on = ["R", "r"], run = "plugin sudo -- rename", desc = "sudo rename" },
+
+    # sudo ln -s (absolute-path)
+    { on = ["R", "p", "l"], run = "plugin sudo -- link", desc = "sudo link" },
+
+    # sudo ln -s (relative-path)
+    { on = ["R", "p", "r"], run = "plugin sudo -- link --relative", desc = "sudo link relative path" },
+
+    # sudo ln
+    { on = ["R", "p", "L"], run = "plugin sudo -- hardlink", desc = "sudo hardlink" },
+
+    # sudo touch/mkdir
+    { on = ["R", "a"], run = "plugin sudo -- create", desc = "sudo create" },
+
+    # sudo trash
+    { on = ["R", "d"], run = "plugin sudo -- remove", desc = "sudo trash" },
+
+    # sudo delete
+    { on = ["R", "D"], run = "plugin sudo -- remove --permanently", desc = "sudo delete" }
 ]
 
 keymap = [

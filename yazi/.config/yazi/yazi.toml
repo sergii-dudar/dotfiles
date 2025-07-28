@@ -31,6 +31,7 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 [opener]
 edit = [
     { run = '${EDITOR:=vi} "$@"', desc = "NeoVim [selected file]", block = true, for = "unix" },
+    { run = 'sudo ${EDITOR:=vi} "$@"', desc = "Sudo NeoVim [selected file]", block = true, for = "unix" },
     { run = '${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
     { run = 'subl "$@"', desc = "Sublime", for = "unix" },
     { run = 'code %*', orphan = true, desc = "code", for = "windows" },
