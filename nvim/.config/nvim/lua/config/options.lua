@@ -85,7 +85,11 @@ function open_tree_on_start()
     end
 end
 
--- by some reasons not firing from `autocmds`
+if vim.o.diff then
+    -- vim.notify("Started in diff mode!", vim.log.levels.INFO)
+    return
+end
+
 vim.api.nvim_create_autocmd("UiEnter", {
     desc = "Open Neotree automatically",
     group = myCustomGroup,
