@@ -24,10 +24,12 @@
 
 "============= (just some interesting vim notes)
 
-" 1. use '*' to next, and '#' to prev search, on word, to auto apply in find command!
+" 1. use '*' to next, and '#' to prev search (by using 'n'), on word, to auto apply in find command! (or use 'g*' or 'g#' to use partial match navigation)
 " 2. 'i' inside, 'a' around 'vi(', 'va('
 " 3. '=' format (=ap) format around paragraph etc
 " 4. '%' next\prex braces
+" 5. remove last word at end in insert mode - ctrl+w
+" 6. new line in insert mode - ctrl+j
 
 " changing case:
 " - gu followed by motion changes those characters to lowercase ( for example: gue, gu$, guiw, etc )
