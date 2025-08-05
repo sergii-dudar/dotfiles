@@ -108,6 +108,19 @@ sketchybar --add item clock right \
     --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
     --subscribe battery system_woke power_source_change
 
+# ------------- test
+input=(
+    script="$PLUGIN_DIR/input.sh"
+)
+
+sketchybar --add item input right \
+    --set input "${input[@]}" \
+    \
+    --add event input_change 'AppleSelectedInputSourcesChangedNotification' \
+    --subscribe input input_change
+# --------------
+
+
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update
 # sketchybar --hotload
