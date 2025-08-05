@@ -1,9 +1,15 @@
 return {
     { "mg979/vim-visual-multi" },
     {
-        "norcalli/nvim-colorizer.lua",
+        -- "norcalli/nvim-colorizer.lua",
+        "catgoose/nvim-colorizer.lua", -- fork with support of AARRGGBB and another color formats
         config = function()
-            require("colorizer").setup()
+            require("colorizer").setup({
+                user_default_options = {
+                    RRGGBBAA = true, -- #RRGGBBAA hex codes
+                    AARRGGBB = true, -- 0xAARRGGBB hex codes
+                },
+            })
         end,
     },
     {

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+source "$CONFIG_DIR/settings.sh"
+
+sketchybar --bar "${bar[@]}" --default "${default[@]}"
+
+# --- Left Side Items ---
+source $ITEM_DIR/disk.sh
+source $ITEM_DIR/ram.sh
+source $ITEM_DIR/cpu.sh
+source $ITEM_DIR/network_rates.sh
+source $ITEM_DIR/media.sh
+
+# --- Right Side Items ---
+source $ITEM_DIR/datetime.sh
+source $ITEM_DIR/input.sh
+source $ITEM_DIR/battery.sh
+source $ITEM_DIR/network.sh
+source $ITEM_DIR/sound.sh
+source $ITEM_DIR/brew.sh
+
+sketchybar --hotload on
+sketchybar --update

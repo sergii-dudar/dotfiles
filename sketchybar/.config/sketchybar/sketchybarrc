@@ -71,6 +71,8 @@ for sid in $(aerospace list-workspaces --all); do
         background.corner_radius=5 \
         background.height=25 \
         background.drawing=off \
+        icon.padding_left=4 \
+        icon.padding_right=4 \
         label.padding_left=1 \
         label.padding_right=10 \
         label="$sid" \
@@ -120,7 +122,6 @@ sketchybar --add item input right \
     --subscribe input input_change
 # --------------
 
-
 ##### Force all scripts to run the first time (never do this in a script) #####
+sketchybar --hotload on
 sketchybar --update
-# sketchybar --hotload
