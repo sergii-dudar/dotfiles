@@ -32,6 +32,8 @@ default=(
     icon.padding_right=4
     label.padding_left=4
     label.padding_right=4
+    label.y_offset=1
+    icon.y_offset=1
 )
 sketchybar --default "${default[@]}"
 
@@ -64,6 +66,12 @@ for sid in $(aerospace list-workspaces --all); do
     if [ "$sid" = 'NSP' ]; then
         continue
     fi
+
+    # color=0x44ffffff
+    # if [ $(aerospace list-windows --workspace 2 | wc -l | awk '{print $1}') -gt 0 ]; then
+    #     color=0x44ffffff
+    # fi
+
     sketchybar --add item space.$sid left \
         --subscribe space.$sid aerospace_workspace_change \
         --set space.$sid \
