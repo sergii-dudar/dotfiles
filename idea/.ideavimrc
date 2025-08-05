@@ -69,6 +69,7 @@ set notimeout
 vnoremap . :norm! .<CR>
 
 " ============================================= 🄱🄰🅂🄸🄲 🅅🄸🄼 🅂🄴🅃🅃🄸🄽🄶🅂🅂 ========================================"
+" https://github.com/JetBrains/ideavim?tab=readme-ov-file#ideavim-tips-and-tricks
 " https://github.com/JetBrains/ideavim/blob/master/doc/set-commands.md
 
 set number relativenumber
@@ -82,6 +83,7 @@ set ignorecase
 set smartcase
 set ideaput
 set which-key
+" set ideamarks " not working =(
 
 "let g:WhichKey_ShowVimActions = "false"
 let g:WhichKey_ShowVimActions = "true"
