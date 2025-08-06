@@ -7,7 +7,7 @@ if [ "$MUTED" = "missing value" ]; then
     ICON=" "
     VOLUME=100
 elif [ "$MUTED" != "false" ]; then
-    ICON="󰖁 "
+    ICON="􀊣 "
     VOLUME=0
 else
     case ${VOLUME} in

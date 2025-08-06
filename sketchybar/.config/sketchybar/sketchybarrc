@@ -1,25 +1,9 @@
 #!/usr/bin/env bash
 
-# This is a demo config to showcase some of the most important commands.
-# It is meant to be changed and configured, as it is intentionally kept sparse.
-# For a (much) more advanced configuration example see my dotfiles:
-# https://github.com/FelixKratz/dotfiles
-
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items" # Directory where the items are configured
 
-##### Bar Appearance #####
-# Configuring the general appearance of the bar.
-# These are only some of the options available. For all options see:
-# https://felixkratz.github.io/SketchyBar/config/bar
-# If you are looking for other colors, see the color picker:
-# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
-
 sketchybar --bar position=top height=25 blur_radius=30 color=0x40232634
-##### Changing Defaults #####
-# We now change some default values, which are applied to all further items.
-# For a full list of all available item properties see:
-# https://felixkratz.github.io/SketchyBar/config/items
 
 default=(
     padding_left=5
@@ -38,41 +22,17 @@ default=(
 sketchybar --default "${default[@]}"
 
 ##### Adding Left Items #####
-
-
-sketchybar --add item chevron left \
-    --set chevron icon= label.drawing=off padding_left=15 \
-    --add item front_app left \
-    --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
-    --subscribe front_app front_app_switched
+source "$ITEM_DIR/front_app.sh"
 
 ##### Adding Center Items #####
-
 source "$ITEM_DIR/date.sh"
 source "$ITEM_DIR/aerospace.sh"
 source "$ITEM_DIR/clock.sh"
 
 ##### Adding Right Items #####
+source "$ITEM_DIR/battery.sh"
+source "$ITEM_DIR/volume.sh"
+source "$ITEM_DIR/input.sh"
 
-sketchybar --add item volume right \
-    --set volume script="$PLUGIN_DIR/volume.sh" \
-    --subscribe volume volume_change \
-    --add item battery right \
-    --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
-    --subscribe battery system_woke power_source_change
-
-# ------------- test
-input=(
-    script="$PLUGIN_DIR/input.sh"
-)
-
-sketchybar --add item input right \
-    --set input "${input[@]}" \
-    \
-    --add event input_change 'AppleSelectedInputSourcesChangedNotification' \
-    --subscribe input input_change
-# --------------
-
-##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --hotload on
 sketchybar --update

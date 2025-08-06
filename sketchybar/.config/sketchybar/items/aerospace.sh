@@ -38,7 +38,7 @@ for sid in $(aerospace list-workspaces --all); do
         background.drawing=off \
         icon.padding_left=10 \
         icon.padding_right=2 \
-        label.padding_left=1 \
+        label.padding_left=5 \
         label.padding_right=8 \
         padding_left=0 \
         padding_right=2 \
