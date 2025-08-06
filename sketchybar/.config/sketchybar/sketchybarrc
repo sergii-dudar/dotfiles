@@ -12,6 +12,8 @@ default=(
     padding_right=5
     icon.font="CaskaydiaCove Nerd Font:Bold:17.0"
     label.font="CaskaydiaCove Nerd Font:Bold:16.0"
+    # icon.font="SF Pro:Semibold:17.0"
+    # label.font="SF Pro:Semibold:16.0"
     icon.color=0xff94928F
     label.color=0xff94928F
     icon.padding_left=4
@@ -35,6 +37,7 @@ source "$ITEM_DIR/aerospace.sh"
 source "$ITEM_DIR/clock.sh"
 
 ##### Adding Right Items #####
+source "$ITEM_DIR/bluetooth.sh"
 source "$ITEM_DIR/wifi.sh"
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"

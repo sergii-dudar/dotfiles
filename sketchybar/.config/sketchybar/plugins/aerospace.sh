@@ -36,5 +36,5 @@ else
     sketchybar --set "$NAME" \
         label.color=0xff51576d \
         icon.color=0xff51576d \
-        background.color=0x00000000
+        background.drawing=off
 fi
