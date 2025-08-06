@@ -25,6 +25,11 @@ default=(
 )
 sketchybar --default "${default[@]}"
 
+# Setting up and starting the helper process
+HELPER=git.felix.helper
+killall helper
+cd "$HOME"/.config/sketchybar/helper && make
+"$HOME"/.config/sketchybar/helper/helper $HELPER > /dev/null 2>&1 &
 
 ##### Adding Left Items #####
 source "$ITEM_DIR/apple.sh"
@@ -41,6 +46,9 @@ source "$ITEM_DIR/bluetooth.sh"
 source "$ITEM_DIR/wifi.sh"
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
+source $ITEM_DIR/disk.sh
+source $ITEM_DIR/ram.sh
+source $ITEM_DIR/cpu.sh
 source "$ITEM_DIR/input.sh"
 source $ITEM_DIR/brew.sh
 

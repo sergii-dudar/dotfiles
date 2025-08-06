@@ -31,21 +31,22 @@ update() {
     osascript -e 'display notification "Starting Brew package updates..." with title "Package Updates"'
     zsh -c 'brew upgrade >/dev/null && brew cleanup >/dev/null'
     osascript -e 'display notification "Brew packages updated" with title "Package Updates"'
+    # terminal-notifier -message "Brew packages updated" -title "Package Updates"
     sketchybar -m --set $NAME icon.color=$ICON_COLOR --remove '/brew.popup\.*/' >/dev/null
 }
 
 case "$SENDER" in
-"routine" | "forced")
-    refresh
-    ;;
-"mouse.entered")
-    popup on
-    ;;
-"mouse.exited" | "mouse.exited.global")
-    popup off
-    ;;
-"mouse.clicked")
-    popup off
-    update
-    ;;
+    "routine" | "forced")
+        refresh
+        ;;
+    "mouse.entered")
+        popup on
+        ;;
+    "mouse.exited" | "mouse.exited.global")
+        popup off
+        ;;
+    "mouse.clicked")
+        popup off
+        update
+        ;;
 esac
