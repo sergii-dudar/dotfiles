@@ -28,7 +28,7 @@ sketchybar --default "${default[@]}"
 
 ##### Adding Left Items #####
 source "$ITEM_DIR/apple.sh"
-source "$ITEM_DIR/media.sh"
+# source "$ITEM_DIR/media.sh"
 source "$ITEM_DIR/front_app.sh"
 
 ##### Adding Center Items #####
@@ -42,6 +42,7 @@ source "$ITEM_DIR/wifi.sh"
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
 source "$ITEM_DIR/input.sh"
+source $ITEM_DIR/brew.sh
 
 sketchybar --hotload on
 sketchybar --update
