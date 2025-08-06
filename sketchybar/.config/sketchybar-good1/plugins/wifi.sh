@@ -10,3 +10,14 @@ if [ -n "$IP" ]; then
 fi
 
 sketchybar --set $NAME icon=$ICON icon.highlight=$HIGHLIGHT
+
+# # Set icon and color based on connection status
+# if [[ "$WIFI_CONNECTED" == true ]]; then
+#     # WiFi is connected - green icon
+#     ICON="󰤨"
+#     COLOR=$ACCENT_SECONDARY  # Green
+# else
+#     # WiFi is disconnected - gray icon
+#     ICON="󰤭"
+#     COLOR=$GREY
+# fi

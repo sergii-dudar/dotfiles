@@ -2,6 +2,8 @@
 
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items" # Directory where the items are configured
+source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/icons.sh"
 
 sketchybar --bar position=top height=25 blur_radius=30 color=0x40232634
 
@@ -21,7 +23,10 @@ default=(
 )
 sketchybar --default "${default[@]}"
 
+
 ##### Adding Left Items #####
+source "$ITEM_DIR/apple.sh"
+source "$ITEM_DIR/media.sh"
 source "$ITEM_DIR/front_app.sh"
 
 ##### Adding Center Items #####
@@ -30,6 +35,7 @@ source "$ITEM_DIR/aerospace.sh"
 source "$ITEM_DIR/clock.sh"
 
 ##### Adding Right Items #####
+source "$ITEM_DIR/wifi.sh"
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
 source "$ITEM_DIR/input.sh"

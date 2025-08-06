@@ -2,7 +2,7 @@
 
 media=(
     icon=
-    icon.color=$SKY
+    # icon.color=$SKY
     script="$PLUGIN_DIR/media.sh"
     label.max_chars=35
     scroll_texts=on
