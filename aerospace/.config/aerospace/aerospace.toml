@@ -67,8 +67,8 @@ on-focus-changed = "move-mouse window-lazy-center"
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-inner.horizontal = 10
-inner.vertical = 10
+inner.horizontal = 5
+inner.vertical = 5
 
 outer.left = 3
 outer.right = 3
@@ -133,7 +133,7 @@ alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
-#alt-8 = 'workspace 8'
+alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
 #alt-b = 'workspace B'
 #alt-e = 'workspace E'

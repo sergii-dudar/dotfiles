@@ -3,10 +3,10 @@
 VOLUME=$(osascript -e "output volume of (get volume settings)")
 MUTED=$(osascript -e "output muted of (get volume settings)")
 
-if [[ $MUTED = "missing value" ]]; then
+if [ "$MUTED" = "missing value" ]; then
     ICON=" "
     VOLUME=100
-elif [[ $MUTED != "false" ]]; then
+elif [ "$MUTED" != "false" ]; then
     ICON="󰖁 "
     VOLUME=0
 else
@@ -27,5 +27,5 @@ else
 fi
 
 sketchybar -m \
-    --set $NAME icon=$ICON \
-    --set $NAME label="$VOLUME%"
+    --set "$NAME" icon="$ICON" \
+    --set "$NAME" label="$VOLUME%"
