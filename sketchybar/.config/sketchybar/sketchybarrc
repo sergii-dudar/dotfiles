@@ -22,14 +22,24 @@ default=(
     label.padding_right=4
     label.y_offset=1
     icon.y_offset=1
+    background.height=26
+    background.corner_radius=9
+    background.border_width=2
+    popup.background.border_width=2
+    popup.background.corner_radius=9
+    popup.background.border_color="$POPUP_BORDER_COLOR"
+    popup.background.color="$POPUP_BACKGROUND_COLOR"
+    popup.blur_radius=20
+    popup.background.shadow.drawing=on
+    scroll_texts=on
 )
 sketchybar --default "${default[@]}"
 
 # Setting up and starting the helper process
-HELPER=git.felix.helper
-killall helper
-cd "$HOME"/.config/sketchybar/helper && make
-"$HOME"/.config/sketchybar/helper/helper $HELPER > /dev/null 2>&1 &
+# HELPER=git.felix.helper
+# killall helper
+# cd "$HOME"/.config/sketchybar/helper && make
+# "$HOME"/.config/sketchybar/helper/helper $HELPER > /dev/null 2>&1 &
 
 ##### Adding Left Items #####
 source "$ITEM_DIR/apple.sh"
@@ -44,13 +54,14 @@ source "$ITEM_DIR/clock.sh"
 ##### Adding Right Items #####
 source "$ITEM_DIR/bluetooth.sh"
 source "$ITEM_DIR/wifi.sh"
+source "$ITEM_DIR/weather.sh"
+source $ITEM_DIR/disk.sh
+source $ITEM_DIR/cpu.sh
+source $ITEM_DIR/ram.sh
 source "$ITEM_DIR/battery.sh"
 source "$ITEM_DIR/volume.sh"
-source $ITEM_DIR/disk.sh
-source $ITEM_DIR/ram.sh
-source $ITEM_DIR/cpu.sh
+source "$ITEM_DIR/brew.sh"
 source "$ITEM_DIR/input.sh"
-source $ITEM_DIR/brew.sh
 
 sketchybar --hotload on
 sketchybar --update

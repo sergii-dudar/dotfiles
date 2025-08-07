@@ -50,7 +50,7 @@ if [[ "$BT_ENABLED" == true ]]; then
             AIRPODS_CONNECTED=true
         fi
     fi
-    
+
     # Method 2: Check if AirPods are active audio device (more reliable)
     if [[ "$AIRPODS_CONNECTED" == false ]]; then
         AIRPODS_AUDIO_CHECK=$(system_profiler SPAudioDataType 2>/dev/null | grep -i -A 5 -B 5 "airpods")
@@ -62,7 +62,7 @@ if [[ "$BT_ENABLED" == true ]]; then
             fi
         fi
     fi
-    
+
     # Method 3: Alternative check using blueutil if available
     if [[ "$AIRPODS_CONNECTED" == false ]] && command -v blueutil &> /dev/null; then
         CONNECTED_DEVICES=$(blueutil --connected 2>/dev/null)
@@ -77,17 +77,21 @@ if [[ "$AIRPODS_CONNECTED" == true ]]; then
     # AirPods connected - AirPods icon in white
     ICON="󰋋"
     COLOR=$ACCENT_PINK
+    DRAWING=on
 elif [[ "$BT_ENABLED" == true ]]; then
     # Bluetooth enabled but no AirPods - blue Bluetooth icon
     ICON="󰂯"
     COLOR=$ACCENT_PRIMARY  # Blue
+    DRAWING=on
 else
     # Bluetooth disabled - gray icon
     ICON="󰂲"
     COLOR=$GREY
+    DRAWING=off
 fi
 
 # Update the Bluetooth item - icon only, no label
 sketchybar --set "$NAME" icon="$ICON" \
-                        icon.color="$COLOR" \
-                        label.drawing=off 
+    icon.color="$COLOR" \
+    label.drawing=off \
+    drawing="$DRAWING"
