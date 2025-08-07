@@ -2,7 +2,7 @@
 
 # echo "$1, $FOCUSED_WORKSPACE" > /tmp/logs.txt
 
-ws_clients_number="$(aerospace list-windows --workspace "$1" | wc -l | awk '{print $1}')"
+ws_clients_number="$(aerospace list-windows --workspace "$1" 2>/dev/null | wc -l | awk '{print $1}')"
 
 if [ "$1" = "$FOCUSED_WORKSPACE" ] || [ "$1" = "$(aerospace list-workspaces --focused)" ]; then
     # Active ws

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export PATH=$HOME/.cargo/bin:$PATH
+
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items" # Directory where the items are configured
 source "$CONFIG_DIR/colors.sh"
@@ -22,9 +24,10 @@ default=(
     label.padding_right=4
     label.y_offset=1
     icon.y_offset=1
-    background.height=26
-    background.corner_radius=9
-    background.border_width=2
+    background.height=22
+    background.corner_radius=2
+    # background.color=0xff94928F
+    # background.border_width=2
     popup.background.border_width=2
     popup.background.corner_radius=9
     popup.background.border_color="$POPUP_BORDER_COLOR"
@@ -43,8 +46,9 @@ sketchybar --default "${default[@]}"
 
 ##### Adding Left Items #####
 source "$ITEM_DIR/apple.sh"
-# source "$ITEM_DIR/media.sh"
+# source "$ITEM_DIR/zen.sh"
 source "$ITEM_DIR/front_app.sh"
+source "$ITEM_DIR/now_playing.sh"
 
 ##### Adding Center Items #####
 source "$ITEM_DIR/date.sh"

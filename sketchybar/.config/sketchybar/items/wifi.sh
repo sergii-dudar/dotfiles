@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
 wifi=(
     padding_right=6
     padding_left=1
@@ -14,14 +11,6 @@ wifi=(
 sketchybar --add item wifi right \
     --set wifi "${wifi[@]}" \
     --subscribe wifi wifi_change mouse.clicked
-
-
-
-
-
-
-
-
 
 # sketchybar --add item wifi right \
     #     --set wifi \

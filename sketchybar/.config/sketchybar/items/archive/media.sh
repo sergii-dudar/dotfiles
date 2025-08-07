@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sketchybar --add item media left \
+sketchybar --add item zen left \
     --set media \
     label.max_chars=30 \
     icon.padding_left=0 \
