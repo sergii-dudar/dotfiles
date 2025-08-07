@@ -13,8 +13,10 @@ sketchybar --add item now_playing left \
     drawing=off \
     padding_left=4 \
     padding_right=4 \
-    --subscribe now_playing media_change
+    --subscribe now_playing media_change mouse.clicked mouse.scrolled
 
-# icon.font="SF Pro:Semibold:15.0" \
+# click_script="mpc toggle ; echo $SENDER > /tmp/logs.txt" \
+    #click_script="mpc toggle" \
+    # icon.font="SF Pro:Semibold:15.0" \
     # label.font="SF Pro:Medium:12.0" \
     # background.color=$BACKGROUND_1 \

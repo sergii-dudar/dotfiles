@@ -44,5 +44,6 @@ main() {
     else
         focus_app
     fi
+    sketchybar --trigger scratchpad_update
 }
 main

@@ -16,3 +16,5 @@ for app_name in "$@"; do
         aerospace move-node-to-workspace NSP --window-id "$app_window_id"
     fi
 done
+
+sketchybar --trigger scratchpad_update

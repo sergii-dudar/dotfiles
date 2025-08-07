@@ -1,8 +1,43 @@
 #!/usr/bin/env bash
 
-# Source colors for consistent theming
 #source "$CONFIG_DIR/colors.sh"
-LAT_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
+LAST_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
+if [ -f "$LAST_PLAYING_LABEL_FILE" ]; then
+    LAST_PLAYING_LABEL=$(bat -pp "$LAST_PLAYING_LABEL_FILE")
+else
+    LAST_PLAYING_LABEL="Paused"
+fi
+
+# Mouse control: supported only to MPD
+if [[ "$SENDER" == "mouse."* ]] && [[ "$LAST_PLAYING_LABEL" == "MPD "* ]]; then
+    # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
+    case "$SENDER" in
+        "mouse.clicked")
+            case "$BUTTON" in
+                "left")
+                    if [ "$MODIFIER" = "ctrl" ]; then
+                        ~/.cargo/bin/rmpc prev
+                    else
+                        ~/.cargo/bin/rmpc togglepause
+                    fi
+                    ;;
+                "right")
+                    if [ "$MODIFIER" = "ctrl" ]; then
+                        ~/.cargo/bin/rmpc next
+                    fi
+                    ;;
+            esac
+            ;;
+        "mouse.scrolled")
+            if [ "$SCROLL_DELTA" -gt 0 ]; then
+                ~/.cargo/bin/rmpc volume +5
+            else
+                ~/.cargo/bin/rmpc volume -5
+            fi
+            ;;
+    esac
+fi
+
 
 # Function to get Spotify info
 # function get_spotify_info() {
@@ -45,7 +80,8 @@ function get_apple_music_info() {
 # Function to get MPD info
 function get_mpd_info() {
     local state=$(~/.cargo/bin/rmpc status | jq -r '.state')
-    PLAYER="MPD"
+    local vol=$(~/.cargo/bin/rmpc volume)
+    PLAYER="MPD [ ${vol}%]"
     if [[ "$state" == "Play" ]]; then
         STATUS="playing"
         local song_json=$(~/.cargo/bin/rmpc song)
@@ -82,7 +118,7 @@ function process_player_info() {
             LABEL="$full_lable"
         fi
 
-        echo -e "$full_lable" > "${LAT_PLAYING_LABEL_FILE}"
+        echo -e "$full_lable" > "${LAST_PLAYING_LABEL_FILE}"
         update_music_item
 
         exit 0
@@ -99,15 +135,12 @@ process_player_info
 # process_player_info
 
 # in case no any player in status - playing
+echo "status: $STATUS" > /tmp/logs.txt
 if [[ "$STATUS" == "paused" ]]; then
     sketchybar --set "$NAME" drawing=on
     ICON=" "
     COLOR=$ACCENT_TERTIARY
-    if [ -f "$LAT_PLAYING_LABEL_FILE" ]; then
-        LABEL=$(bat -pp "$LAT_PLAYING_LABEL_FILE")
-    else
-        LABEL="Paused"
-    fi
+    LABEL=$LAST_PLAYING_LABEL
     update_music_item
 else
     # No music playing - hide the item completely
