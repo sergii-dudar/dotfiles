@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 declare -A ws_icons
 ws_icons["1"]=" "
 ws_icons["2"]=" "

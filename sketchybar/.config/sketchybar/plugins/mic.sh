@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 INPUT_NAME=$(SwitchAudioSource -t input -c)
 VOLUME=$(osascript -e 'input volume of (get volume settings)')

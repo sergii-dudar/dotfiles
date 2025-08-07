@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cpu_top=(
   label.font="$FONT:Semibold:7"

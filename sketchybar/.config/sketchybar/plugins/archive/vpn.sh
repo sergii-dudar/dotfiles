@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 VPN_STATUS=$(scutil --nwi | grep -E '^   utun[0-9]')
 

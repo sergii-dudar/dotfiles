@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 volume=(
     script="$PLUGIN_DIR/volume.sh"
