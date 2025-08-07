@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # File to store inhibitor state
 STATE_FILE="$HOME/.idle_inhibitor_state"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # make link & load the new service definition & start the service immediately & enable the service to start at boot
 #sudo ln -s /home/serhii/dotfiles/nonhome/systemd/enable_usb_wakeup.service /etc/systemd/system/enable_usb_wakeup.service && \

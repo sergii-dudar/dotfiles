@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Enable wake-up on USB devices
 for device in /sys/bus/usb/devices/*/power/wakeup; do

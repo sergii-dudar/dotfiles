@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # idle-inhibitor.sh
 # A script to toggle, enable, or disable the system's idle inhibitor on X11.

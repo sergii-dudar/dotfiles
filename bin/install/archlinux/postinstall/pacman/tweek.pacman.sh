@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # enable Color, ILoveCandy, Parallel load
 

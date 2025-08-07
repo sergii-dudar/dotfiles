@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # little customized this great script https://gist.github.com/pbnj/67c16c37918ba40bbb233b97f3e38456
 # see there to get explanation of most part

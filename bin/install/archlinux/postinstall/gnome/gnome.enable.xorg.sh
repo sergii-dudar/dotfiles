@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define the file and the line to uncomment
 file="/etc/gdm/custom.conf"

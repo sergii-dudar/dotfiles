@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # https://snapcraft.io/docs/installing-snap-on-arch-linux#confinement
 
