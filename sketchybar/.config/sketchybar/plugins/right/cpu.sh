@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Source colors for consistent theming
-source "$CONFIG_DIR/colors.sh"
-
 # Get CPU usage percentage
 CPU_USAGE=$(top -l 1 -n 0 | grep "CPU usage" | awk '{print $3}' | sed 's/%//')
 

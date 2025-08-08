@@ -14,15 +14,13 @@ sketchybar --bar position=top \
     blur_radius=30 \
     color=0x40232634 \
     padding_left=0 \
-    padding_right=0
+    padding_right=2
 
 default=(
     padding_left=5
     padding_right=5
     icon.font="CaskaydiaCove Nerd Font:Bold:17.0"
     label.font="CaskaydiaCove Nerd Font:Bold:16.0"
-    # icon.font="SF Pro:Semibold:17.0"
-    # label.font="SF Pro:Semibold:16.0"
     icon.color=0xff94928F
     label.color=0xff94928F
     #icon.padding_left=4
@@ -68,8 +66,7 @@ source "$ITEM_DIR/center/aerospace.sh"
 source "$ITEM_DIR/center/clock.sh"
 
 ##### Adding Right Items #####
-source "$ITEM_DIR/right/bluetooth.sh"
-source "$ITEM_DIR/right/wifi.sh"
+source "$ITEM_DIR/right/connections.sh"
 source "$ITEM_DIR/right/weather.sh"
 source "$ITEM_DIR/right/disk.sh"
 source "$ITEM_DIR/right/cpu.sh"

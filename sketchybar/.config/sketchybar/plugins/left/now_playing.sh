@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#source "$CONFIG_DIR/colors.sh"
 LAST_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
 if [ -f "$LAST_PLAYING_LABEL_FILE" ]; then
     LAST_PLAYING_LABEL=$(bat -pp "$LAST_PLAYING_LABEL_FILE")

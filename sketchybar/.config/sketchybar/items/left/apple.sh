@@ -8,7 +8,7 @@ apple_logo=(
     icon=$APPLE
     icon.color=$RED
     label.drawing=off
-    icon.y_offset=3
+    icon.y_offset=2
     click_script="$POPUP_CLICK_SCRIPT"
 )
 

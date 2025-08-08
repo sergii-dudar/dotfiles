@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source "$CONFIG_DIR/colors.sh"
-
 if [[ "$SENDER" == "mouse."* ]]; then
     # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
     case "$SENDER" in
@@ -33,7 +31,7 @@ case "$COUNT" in
         ;;
     0)
         COLOR=$GREEN
-        COUNT=􀆅
+        COUNT=" " # "􀆅 "
         ;;
 esac
 

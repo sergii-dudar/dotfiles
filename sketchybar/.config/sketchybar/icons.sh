@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # General Icons
 LOADING=􀖇
@@ -50,8 +50,8 @@ AIRPODS=􀪷
 HEADPHONES=􀑈
 
 # WiFi
-WIFI_CONNECTED=􀙇
-WIFI_DISCONNECTED=􀙈
+WIFI_CONNECTED="􀙇 " # "󰤨 " "􀙇 "
+WIFI_DISCONNECTED="􀙈 " #"󰤭 " "􀙈 "
 ETHERNET_CONNECTED=󰈀
 
 # svim

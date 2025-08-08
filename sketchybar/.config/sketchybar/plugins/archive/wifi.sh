@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Source colors for consistent theming
-source "$CONFIG_DIR/colors.sh"
-
 # Multiple methods to detect WiFi status
 WIFI_CONNECTED=false
 WIFI_SSID=""

@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Source colors for consistent theming
-source "$CONFIG_DIR/colors.sh"
-
 # Multiple methods to detect Bluetooth status
 BT_ENABLED=false
 AIRPODS_CONNECTED=false
@@ -92,6 +89,7 @@ fi
 
 # Update the Bluetooth item - icon only, no label
 sketchybar --set "$NAME" icon="$ICON" \
-    icon.color="$COLOR" \
     label.drawing=off
-#    drawing="$DRAWING"
+
+#  icon.color="$COLOR" \
+    #    drawing="$DRAWING"
