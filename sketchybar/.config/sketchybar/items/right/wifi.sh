@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
 wifi=(
-    padding_right=6
-    padding_left=1
-    label.width=0
+    "${right_items_common[@]}"
+    # padding_right=0
+    # padding_left=0
+    icon.padding_left=5
+    icon.padding_right=6
+    label.drawing=off
     icon="󰤭 "
-    script="$PLUGIN_DIR/wifi.sh"
+    script="$PLUGIN_DIR/right/wifi.sh"
 )
 
 sketchybar --add item wifi right \

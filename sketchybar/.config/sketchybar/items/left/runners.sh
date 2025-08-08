@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+conf=(
+    "${left_items_common[@]}"
+)
+
 run_settings_conf=(
     update_freq=0
     label.drawing=off

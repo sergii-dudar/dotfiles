@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 scratchpad=(
-    icon=
+    "${left_items_common[@]}"
+    icon=" "
     label=0
     update_freq=0
-    script="$PLUGIN_DIR/aerospace_scratchpad.sh"
+    script="$PLUGIN_DIR/left/aerospace_scratchpad.sh"
 )
 
 sketchybar --add event scratchpad_update \

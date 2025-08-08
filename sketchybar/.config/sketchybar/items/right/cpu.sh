@@ -10,10 +10,11 @@
     #     mach_helper="$HELPER"
 
 cpu=(
-    icon=" " \
-        # icon.color=$ORANGE
+    "${right_items_common[@]}"
+    icon=" "
+    # icon.color=$ORANGE
     update_freq=10
-    script="$PLUGIN_DIR/ram.sh"
+    script="$PLUGIN_DIR/right/cpu.sh"
     click_script="open -a Activity\ Monitor"
 )
 

@@ -200,6 +200,11 @@ cmd-shift-u = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Brows
 cmd-shift-v = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn "VimHero"'
 #cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
+# quick naviagation
+cmd-b = 'exec-and-forget open -a Brave\ Browser'
+cmd-i = 'exec-and-forget open -a IntelliJ\ IDEA'
+cmd-t = 'exec-and-forget open -a Ghostty'
+
 # need terminal that all the time planning to be used only in float\scratchpad mode,
 # unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
 # for me it's iterm2 :)

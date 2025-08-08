@@ -7,8 +7,14 @@ ITEM_DIR="$CONFIG_DIR/items" # Directory where the items are configured
 SCRIPTS_DIR="$CONFIG_DIR/scripts"
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/settings.sh"
 
-sketchybar --bar position=top height=25 blur_radius=30 color=0x40232634
+sketchybar --bar position=top \
+    height=25 \
+    blur_radius=30 \
+    color=0x40232634 \
+    padding_left=0 \
+    padding_right=0
 
 default=(
     padding_left=5
@@ -19,16 +25,19 @@ default=(
     # label.font="SF Pro:Semibold:16.0"
     icon.color=0xff94928F
     label.color=0xff94928F
-    icon.padding_left=4
+    #icon.padding_left=4
     #icon.padding_right=4
-    label.padding_left=4
-    label.padding_right=4
-    label.y_offset=1
+    #label.padding_left=4
+    #label.padding_right=4
+    label.y_offset=2
     icon.y_offset=1
     background.height=22
     background.corner_radius=2
-    # background.color=0xff94928F
-    # background.border_width=2
+    background.color=0xff2e3440
+    background.y_offset=1
+    background.padding_left=0
+    background.padding_right=0
+    background.border_width=0
     popup.background.border_width=2
     popup.background.corner_radius=9
     popup.background.border_color="$POPUP_BORDER_COLOR"
@@ -46,29 +55,29 @@ sketchybar --default "${default[@]}"
 # "$HOME"/.config/sketchybar/helper/helper $HELPER > /dev/null 2>&1 &
 
 ##### Adding Left Items #####
-source "$ITEM_DIR/apple.sh"
-source "$ITEM_DIR/aerospace_scratchpad.sh"
-source "$ITEM_DIR/runners.sh"
-# source "$ITEM_DIR/zen.sh"
-source "$ITEM_DIR/front_app.sh"
-source "$ITEM_DIR/now_playing.sh"
+source "$ITEM_DIR/left/apple.sh"
+source "$ITEM_DIR/left/aerospace_scratchpad.sh"
+source "$ITEM_DIR/left/runners.sh"
+# source "$ITEM_DIR/left/zen.sh"
+source "$ITEM_DIR/left/front_app.sh"
+source "$ITEM_DIR/left/now_playing.sh"
 
 ##### Adding Center Items #####
-source "$ITEM_DIR/date.sh"
-source "$ITEM_DIR/aerospace.sh"
-source "$ITEM_DIR/clock.sh"
+source "$ITEM_DIR/center/date.sh"
+source "$ITEM_DIR/center/aerospace.sh"
+source "$ITEM_DIR/center/clock.sh"
 
 ##### Adding Right Items #####
-source "$ITEM_DIR/bluetooth.sh"
-source "$ITEM_DIR/wifi.sh"
-source "$ITEM_DIR/weather.sh"
-source $ITEM_DIR/disk.sh
-source $ITEM_DIR/cpu.sh
-source $ITEM_DIR/ram.sh
-source "$ITEM_DIR/battery.sh"
-source "$ITEM_DIR/volume.sh"
-source "$ITEM_DIR/brew.sh"
-source "$ITEM_DIR/input.sh"
+source "$ITEM_DIR/right/bluetooth.sh"
+source "$ITEM_DIR/right/wifi.sh"
+source "$ITEM_DIR/right/weather.sh"
+source "$ITEM_DIR/right/disk.sh"
+source "$ITEM_DIR/right/cpu.sh"
+source "$ITEM_DIR/right/ram.sh"
+source "$ITEM_DIR/right/battery.sh"
+source "$ITEM_DIR/right/volume.sh"
+source "$ITEM_DIR/right/brew.sh"
+source "$ITEM_DIR/right/input.sh"
 
 sketchybar --hotload on
 sketchybar --update

@@ -48,5 +48,5 @@ for sid in $(aerospace list-workspaces --all); do
         icon="$ws_icon" \
         icon.font.size="$ws_icon_size" \
         click_script="aerospace workspace $sid" \
-        script="$PLUGIN_DIR/aerospace.sh $sid"
+        script="$PLUGIN_DIR/center/aerospace.sh $sid"
 done

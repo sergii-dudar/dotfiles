@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 
+now_playing=(
+    "${left_items_common[@]}"
+    update_freq=5
+    script="$PLUGIN_DIR/left/now_playing.sh"
+    background.drawing=on
+    drawing=off
+)
+
 # Now Playing
 sketchybar --add item now_playing left \
-    --set now_playing \
-    icon.padding_left=8 \
-    icon.padding_right=6 \
-    label.padding_left=4 \
-    label.padding_right=8 \
-    update_freq=5 \
-    script="$PLUGIN_DIR/now_playing.sh" \
-    background.drawing=on \
-    drawing=off \
-    padding_left=4 \
-    padding_right=4 \
+    --set now_playing "${now_playing[@]}" \
     --subscribe now_playing media_change mouse.clicked mouse.scrolled
 
 # click_script="mpc toggle ; echo $SENDER > /tmp/logs.txt" \

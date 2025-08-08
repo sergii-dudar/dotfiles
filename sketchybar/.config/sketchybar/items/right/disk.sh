@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 disk=(
-    icon=󱛟
+    "${right_items_common[@]}"
+    icon="󱛟 "
     # icon.color=$BLUE
     update_freq=300
-    script="$PLUGIN_DIR/disk.sh"
+    script="$PLUGIN_DIR/right/disk.sh"
     click_script="$SCRIPTS_DIR/run_external_bash.sh '/opt/homebrew/bin/gdu-go ~ && exit'"
 )
 
