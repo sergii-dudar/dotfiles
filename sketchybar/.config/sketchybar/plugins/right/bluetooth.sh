@@ -93,5 +93,5 @@ fi
 # Update the Bluetooth item - icon only, no label
 sketchybar --set "$NAME" icon="$ICON" \
     icon.color="$COLOR" \
-    label.drawing=off \
-    drawing="$DRAWING"
+    label.drawing=off
+#    drawing="$DRAWING"

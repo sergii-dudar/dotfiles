@@ -10,9 +10,7 @@ bluetooth=(
 
 # Bluetooth Status
 sketchybar --add item bluetooth right \
-    --set bluetooth "${bluetooth[@]}" \
-    drawing=off
-
+    --set bluetooth "${bluetooth[@]}"
 
 
 # background.color=$BACKGROUND_1 \

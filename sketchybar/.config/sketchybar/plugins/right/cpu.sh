@@ -29,4 +29,4 @@ CPU_INT=${CPU_USAGE%.*}
 #     COLOR=$RED  # Red
 # fi
 
-sketchybar --set "$NAME" label="$CPU_USAGE%"
+sketchybar --set "$NAME" label="$CPU_INT%"

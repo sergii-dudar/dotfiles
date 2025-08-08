@@ -9,11 +9,9 @@ if [[ "$SENDER" == "mouse."* ]]; then
             case "$BUTTON" in
                 "left")
                     "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && exit'
-                    exit 0
                     ;;
                 "right")
                     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
-                    exit 0
                     ;;
             esac
             ;;
