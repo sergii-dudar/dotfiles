@@ -3,6 +3,7 @@
 disk=(
     "${right_items_common[@]}"
     icon="󱛟 "
+    icon.font.size=20
     # icon.color=$BLUE
     update_freq=300
     script="$PLUGIN_DIR/right/disk.sh"

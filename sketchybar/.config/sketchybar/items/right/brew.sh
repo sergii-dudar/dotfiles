@@ -5,6 +5,7 @@
 
 brew=(
     "${right_items_common[@]}"
+    icon.y_offset=2
     icon="􀐛 "
     label="􀆅 "
     # Set update frequency to 30 min (30*60=1800)

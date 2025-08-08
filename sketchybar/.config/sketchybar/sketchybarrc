@@ -59,8 +59,8 @@ source "$ITEM_DIR/left/apple.sh"
 source "$ITEM_DIR/left/aerospace_scratchpad.sh"
 source "$ITEM_DIR/left/runners.sh"
 # source "$ITEM_DIR/left/zen.sh"
-source "$ITEM_DIR/left/front_app.sh"
 source "$ITEM_DIR/left/now_playing.sh"
+source "$ITEM_DIR/left/front_app.sh"
 
 ##### Adding Center Items #####
 source "$ITEM_DIR/center/date.sh"

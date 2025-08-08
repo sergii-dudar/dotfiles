@@ -11,7 +11,7 @@
 
 cpu=(
     "${right_items_common[@]}"
-    icon=" "
+    icon=" "
     # icon.color=$ORANGE
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"

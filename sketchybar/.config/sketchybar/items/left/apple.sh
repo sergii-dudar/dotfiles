@@ -3,16 +3,17 @@
 POPUP_OFF="sketchybar --set apple.logo popup.drawing=off"
 POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
 
-battery=(
+apple_logo=(
     "${left_items_common[@]}"
     icon=$APPLE
     icon.color=$RED
     label.drawing=off
+    icon.y_offset=3
     click_script="$POPUP_CLICK_SCRIPT"
 )
 
 sketchybar --add item apple.logo left \
-    --set apple.logo "${battery[@]}" \
+    --set apple.logo "${apple_logo[@]}" \
     --add item apple.prefs popup.apple.logo \
     --set apple.prefs    icon=$PREFERENCES \
     label="Preferences" \

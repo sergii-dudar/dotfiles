@@ -3,6 +3,7 @@
 mic=(
     "${right_items_common[@]}"
     update_freq=10
+    icon.y_offset=2
     script="$PLUGIN_DIR/right/mic.sh"
 )
 

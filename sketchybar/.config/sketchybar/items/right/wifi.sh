@@ -6,6 +6,7 @@ wifi=(
     # padding_left=0
     icon.padding_left=5
     icon.padding_right=6
+    icon.y_offset=2
     label.drawing=off
     icon="󰤭 "
     script="$PLUGIN_DIR/right/wifi.sh"

@@ -2,6 +2,8 @@
 
 weather=(
     "${right_items_common[@]}"
+    icon.y_offset=2
+    icon.padding_right=2
     script="$PLUGIN_DIR/right/weather.sh"
     click_script="open -a Weather"
 )

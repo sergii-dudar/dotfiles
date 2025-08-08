@@ -2,6 +2,7 @@
 
 scratchpad=(
     "${left_items_common[@]}"
+    background.padding_right=2
     icon=" "
     label=0
     update_freq=0

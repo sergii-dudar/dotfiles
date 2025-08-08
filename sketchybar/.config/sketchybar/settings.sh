@@ -19,3 +19,10 @@ left_items_common=(
     #background.padding_right=2
     background.padding_left=2
 )
+
+center_items_common=(
+    icon.padding_left=10
+    icon.padding_right=5
+    label.padding_left=0
+    label.padding_right=10
+)
