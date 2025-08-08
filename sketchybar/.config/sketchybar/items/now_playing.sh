@@ -7,7 +7,7 @@ sketchybar --add item now_playing left \
     icon.padding_right=6 \
     label.padding_left=4 \
     label.padding_right=8 \
-    update_freq=2 \
+    update_freq=5 \
     script="$PLUGIN_DIR/now_playing.sh" \
     background.drawing=on \
     drawing=off \

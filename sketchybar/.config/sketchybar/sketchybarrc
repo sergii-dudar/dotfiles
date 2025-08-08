@@ -4,6 +4,7 @@ export PATH=$HOME/.cargo/bin:$PATH
 
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 ITEM_DIR="$CONFIG_DIR/items" # Directory where the items are configured
+SCRIPTS_DIR="$CONFIG_DIR/scripts"
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 

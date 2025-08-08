@@ -23,7 +23,7 @@
     },
     "memory": {
         "format": "<span color='#a6e3a1'> </span> {percentage:02}<span color='#6272a4'>%</span>",
-        "on-click": "ghostty --class=com.ghostty.float.htop_info -e htop",
+        "on-click": "ghostty --class=com.ghostty.float.htop_info -e btop",
     },
     "disk": {
         "interval": 600,

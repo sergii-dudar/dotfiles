@@ -38,6 +38,7 @@ case "$SENDER" in
         update
         ;;
     "mouse.clicked")
-        click
+        # click
+        open "x-apple.systempreferences:com.apple.Network-Settings.extension"
         ;;
 esac

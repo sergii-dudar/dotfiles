@@ -14,6 +14,7 @@ cpu=(
         # icon.color=$ORANGE
     update_freq=10
     script="$PLUGIN_DIR/ram.sh"
+    click_script="open -a Activity\ Monitor"
 )
 
 sketchybar --add item cpu right \

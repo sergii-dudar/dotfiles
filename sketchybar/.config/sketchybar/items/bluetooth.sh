@@ -6,6 +6,7 @@ sketchybar --add item bluetooth right \
     label.drawing=off \
     update_freq=10 \
     script="$PLUGIN_DIR/bluetooth.sh" \
+    click_script="open \"x-apple.systempreferences:com.apple.BluetoothSettings\"" \
     background.drawing=on \
     drawing=off
 
