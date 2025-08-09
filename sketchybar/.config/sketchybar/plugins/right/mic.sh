@@ -51,11 +51,12 @@ case $INPUT_NAME in
         ;;
 esac
 
-ICON="$MICROPHONE_ON"
-HIGHLIGH=off
 if [ "$VOLUME" -eq 0 ]; then
     ICON="$MICROPHONE_OFF"
     HIGHLIGH=on
+else
+    ICON="$MICROPHONE_ON"
+    HIGHLIGH=off
 fi
 
 sketchybar --set "$NAME" \

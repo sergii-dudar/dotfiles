@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # chevron=(
 #     "${left_items_common[@]}"
 #     icon="$FRONT_APP_SEPARATOR"
@@ -11,8 +9,8 @@ front_app=(
     "${left_items_common[@]}"
     background.drawing=off
     icon.font="sketchybar-app-font:Regular:18.0"
-    label.color="0xff928374"
-    icon.color="0xff81A1C1" # "0xff5699af"
+    label.color="$FRONT_APP_LABEL_COLOR"
+    icon.color="$FRONT_APP_ICON_COLOR"
     script="$PLUGIN_DIR/left/front_app.sh"
 )
 

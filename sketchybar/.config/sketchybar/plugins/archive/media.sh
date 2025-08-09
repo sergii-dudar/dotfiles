@@ -3,10 +3,10 @@
 STATE="$(echo "$INFO" | jq -r '.state')"
 if [ "$STATE" = "playing" ]; then
     MEDIA="$(echo "$INFO" | jq -r '.title + " - " + .artist')"
-    sketchybar --set $NAME label="$MEDIA" drawing=on
+    sketchybar --set "$NAME" label="$MEDIA" drawing=on
     echo "$INFO, on" > /tmp/logs.txt
 else
-    sketchybar --set $NAME drawing=off
+    sketchybar --set "$NAME" drawing=off
     echo "$INFO, off" > /tmp/logs.txt
 fi
 
@@ -26,5 +26,4 @@ fi
 #         update_media
 #         ;;
 # esac
-
 

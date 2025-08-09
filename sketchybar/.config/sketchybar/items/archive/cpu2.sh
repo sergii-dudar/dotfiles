@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 sketchybar --add item cpu.percent right \
     --set cpu.percent \
     icon=" " \

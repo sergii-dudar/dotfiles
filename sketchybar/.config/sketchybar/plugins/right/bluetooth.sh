@@ -74,19 +74,19 @@ fi
 
 # Set icon and color based on connection status
 if [[ "$AIRPODS_CONNECTED" == true ]]; then
-    # AirPods connected - AirPods icon in white
+    # AirPods connected
     ICON="$HEADPHONES"
     COLOR=$ACCENT_PINK
     DRAWING=on
 elif [[ "$BT_ENABLED" == true ]]; then
-    # Bluetooth enabled but no AirPods - blue Bluetooth icon
+    # Bluetooth enabled but no AirPods
     ICON="$BLUETOOTH_ON"
-    COLOR=$ACCENT_PRIMARY  # Blue
+    COLOR="BLUETOOTH_ON_ICON_COLOR"
     DRAWING=on
 else
-    # Bluetooth disabled - gray icon
+    # Bluetooth disabled
     ICON="$BLUETOOTH_OFF"
-    COLOR=$GREY
+    COLOR="$BLUETOOTH_OFF_ICON_COLOR"
     DRAWING=off
 fi
 

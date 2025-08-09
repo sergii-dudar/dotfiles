@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 sketchybar --add item zen left \
     --set media \
     label.max_chars=30 \

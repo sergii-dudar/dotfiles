@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 weather=(
     "${right_items_common[@]}"
     icon.y_offset=2

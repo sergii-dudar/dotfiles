@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 zen=(
     "${left_items_common[@]}"
     label.max_chars=30

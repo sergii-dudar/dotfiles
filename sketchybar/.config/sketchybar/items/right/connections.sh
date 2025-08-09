@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 wifi=(
     "${right_items_common[@]}"
     background.drawing=off
@@ -8,6 +6,7 @@ wifi=(
     icon.y_offset=2
     label.drawing=off
     icon="$ETHERNET_CONNECTED"
+    icon.color="$WIFI_ICON_COLOR"
     script="$PLUGIN_DIR/right/wifi.sh"
 )
 bluetooth=(

@@ -21,11 +21,11 @@ GIT_COMMIT="􀡚 "
 GIT_INDICATOR="􀂓 "
 
 # Music Control Icons
-PLAY_PLAY=" " # "􀊎 "
-PLAY_PAUSE=" " #"􀊈 "
-PLAY_STOP=" " # "􀊐 "
-PLAY_SHUFFLE="􀊝 "
-PLAY_REPEAT="􀊞 " # " "
+PLAYER_PLAY=" " # "􀊎 "
+PLAYER_PAUSE=" " #"􀊈 "
+PLAYER_STOP=" " # "􀊐 "
+PLAYER_SHUFFLE="􀊝 "
+PLAYER_REPEAT="􀊞 " # " "
 
 # Window Icons
 WINDOW_STACK="􀏭 "

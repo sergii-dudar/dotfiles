@@ -1,9 +1,7 @@
-#!/usr/bin/env bash
-
 battery=(
     "${right_items_common[@]}"
     update_freq=120
-    icon.color="0xffa6e3a1"
+    icon.color="$BATTERY_ICON_COLOR"
     icon.y_offset=2
     icon.font.size=19
     script="$PLUGIN_DIR/right/battery.sh"

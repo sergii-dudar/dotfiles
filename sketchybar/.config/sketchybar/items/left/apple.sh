@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 POPUP_OFF="sketchybar --set apple.logo popup.drawing=off"
 POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
 
@@ -28,6 +26,7 @@ pupup_item=(
 
 sketchybar --add item apple.logo left \
     --set apple.logo "${apple_logo[@]}" \
+    \
     --add item apple.prefs popup.apple.logo \
     --set apple.prefs "${pupup_item[@]}" \
     icon="$PREFERENCES" \
@@ -35,6 +34,7 @@ sketchybar --add item apple.logo left \
     icon.color="$WHITE" \
     label.color="$WHITE" \
     click_script="open -a 'System Preferences' ; $POPUP_OFF" \
+    \
     --add item apple.activity popup.apple.logo \
     --set apple.activity "${pupup_item[@]}" \
     icon="$ACTIVITY" \
@@ -42,6 +42,7 @@ sketchybar --add item apple.logo left \
     icon.color="$WHITE" \
     label.color="$WHITE" \
     click_script="open -a 'Activity Monitor' ; $POPUP_OFF" \
+    \
     --add item apple.lock popup.apple.logo \
     --set apple.lock "${pupup_item[@]}" \
     icon="$LOCK" \

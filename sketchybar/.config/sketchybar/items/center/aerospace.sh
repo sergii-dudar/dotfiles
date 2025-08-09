@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 declare -A ws_icons_size
 ws_icons_size["1"]="18.5"
 ws_icons_size["2"]="19.0"
@@ -23,7 +21,7 @@ for sid in $(aerospace list-workspaces --all); do
     sketchybar --add item space.$sid center \
         --subscribe space.$sid aerospace_workspace_change \
         --set space.$sid \
-        background.color=0x44ffffff \
+        background.color="$WS_DEFAULT_BG_COLOR" \
         background.corner_radius=1 \
         background.height=25 \
         background.drawing=off \

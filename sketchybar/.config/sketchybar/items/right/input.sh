@@ -1,10 +1,8 @@
-#!/usr/bin/env bash
-
 input=(
     "${right_items_common[@]}"
     icon.padding_right=1
     icon.y_offset=3
-    label.color="0xffbc99ed"
+    label.color="$INPUT_LABEL_COLOR"
     script="$PLUGIN_DIR/right/input.sh"
 )
 

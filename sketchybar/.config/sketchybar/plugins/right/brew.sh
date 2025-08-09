@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/colors.sh"
 
 if [[ "$SENDER" == "mouse."* ]]; then
     # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
@@ -32,11 +33,11 @@ case "$COUNT" in
         COLOR=$WHITE
         ;;
     0)
-        COLOR=$GREEN
+        COLOR="$DEFAULT_LABEL_COLOR" # $GREEN
         COUNT="$PACKAGES_SYNC_OK"
         ;;
 esac
 
-sketchybar --set $NAME \
-    label=$COUNT
-#    icon.color=$COLOR
+sketchybar --set "$NAME" \
+    label="$COUNT" \
+    label.color="$COLOR"

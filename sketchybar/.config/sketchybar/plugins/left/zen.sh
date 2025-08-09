@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# ~/github/dotfiles-latest/sketchybar/felixkratz-linkarzu/plugins/zen.sh
-
 zen_on() {
     sketchybar --set apple.logo drawing=on \
         --set cpu drawing=on \

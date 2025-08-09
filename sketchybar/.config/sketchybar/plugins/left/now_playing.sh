@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/colors.sh"
 
 LAST_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
 if [ -f "$LAST_PLAYING_LABEL_FILE" ]; then
@@ -90,7 +91,7 @@ function update_music_item() {
     # Update the Now Playing item (only if we're showing it)
     sketchybar --set "$NAME" \
         icon="$ICON" \
-        icon.color="$COLOR" \
+        icon.color="$ICON_COLOR" \
         label="$LABEL"
 }
 
@@ -103,8 +104,8 @@ function process_player_info() {
         else
             LABEL="$full_lable"
         fi
-        COLOR="0xffc678dd"
-        ICON="$PLAY_PLAY"
+        ICON_COLOR="$PLAYER_PLAY_ICON_COLOR"
+        ICON="$PLAYER_PLAY"
         echo -e "$full_lable" > "${LAST_PLAYING_LABEL_FILE}"
         update_music_item
         exit 0
@@ -124,13 +125,13 @@ process_player_info
 echo "status: $STATUS" > /tmp/logs.txt
 if [[ "$STATUS" == "paused" ]]; then
     sketchybar --set "$NAME" drawing=on
-    ICON="$PLAY_PAUSE"
-    COLOR="0xff98be65"
+    ICON="$PLAYER_PAUSE"
+    ICON_COLOR="$PLAYER_PAUSE_ICON_COLOR"
     LABEL=$LAST_PLAYING_LABEL
     update_music_item
 else
     # No music playing - hide the item completely
-    COLOR="0xffFC9867"
-    ICON="$PLAY_STOP"
+    ICON_COLOR="$PLAYER_STOP_ICON_COLOR"
+    ICON="$PLAYER_STOP"
     sketchybar --set "$NAME" drawing=off
 fi

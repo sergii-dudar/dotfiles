@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 shared_run_settings_conf=(
     "${left_items_common[@]}"
     update_freq=0
@@ -14,7 +12,7 @@ run_settings_conf=(
     "${shared_run_settings_conf[@]}"
     icon.padding_left=3
     icon="$RUNNER_SETTINGS"
-    icon.color="0xff3071db"
+    icon.color="$RUNNER_SETTINGS_ICON_COLOR"
     icon.font.size=19
     icon.y_offset=2
     click_script="open -a System\ Settings"
@@ -29,29 +27,29 @@ run_kitty_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:19.0"
     icon=":kitty:"
-    icon.color="0xff89dceb"
+    icon.color="$RUNNER_KITTY_ICON_COLOR"
     click_script="open -na kitty"
 )
 run_ghostty_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:20.0"
     icon=":ghostty:"
-    icon.color="0xffcba6f7"
+    icon.color="$RUNNER_GHOSTTY_ICON_COLOR"
     click_script="open -na Ghostty"
-    icon.y_offset=1
+    icon.y_offset=2
 )
 run_wezterm_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:17.0"
     icon=":wezterm:"
-    icon.color="0xff4E49EE"
+    icon.color="$RUNNER_WEZTERM_ICON_COLOR"
     click_script="open -na WezTerm"
 )
 run_brave_browser_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:18.0"
     icon=":brave_browser:"
-    icon.color="0xfff38ba8"
+    icon.color="$RUNNER_BRAVE_BROWSER_ICON_COLOR"
     click_script="open -na Brave\ Browser"
 )
 run_idea_conf=(
@@ -59,7 +57,7 @@ run_idea_conf=(
     icon.padding_right=6
     icon.font="sketchybar-app-font:Regular:17.0"
     icon=":idea:"
-    icon.color="0xff8caaee"
+    icon.color="$RUNNER_IDEA_ICON_COLOR"
     click_script="open -a IntelliJ\ IDEA"
 )
 

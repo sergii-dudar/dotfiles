@@ -11,7 +11,8 @@ fi
 # Remove decimal point for comparison
 CPU_INT=${CPU_USAGE%.*}
 
-# Set icon and color based on CPU usage
+## Set icon and color based on CPU usage
+# source "$CONFIG_DIR/colors.sh"
 # if [[ $CPU_INT -le 25 ]]; then
 #     COLOR=$ACCENT_SECONDARY  # Green
 # elif [[ $CPU_INT -le 50 ]]; then

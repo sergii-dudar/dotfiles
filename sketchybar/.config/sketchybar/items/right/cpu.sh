@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # sketchybar --add item cpu.percent right \
     #     --set cpu.percent \
     #     icon="$SYSTEM_CPU" \
@@ -9,11 +7,10 @@
     #     update_freq=5 \
     #     mach_helper="$HELPER"
 
-
 cpu=(
     "${right_items_common[@]}"
     icon="$SYSTEM_CPU"
-    icon.color="0xff8caaee"
+    icon.color="$CPU_ICON_COLOR"
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"
     click_script="open -a Activity\ Monitor"
