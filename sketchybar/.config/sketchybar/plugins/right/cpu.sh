@@ -13,16 +13,12 @@ CPU_INT=${CPU_USAGE%.*}
 
 # Set icon and color based on CPU usage
 # if [[ $CPU_INT -le 25 ]]; then
-#     ICON="󰍛"  # Low CPU
 #     COLOR=$ACCENT_SECONDARY  # Green
 # elif [[ $CPU_INT -le 50 ]]; then
-#     ICON="󰍜"  # Medium CPU
 #     COLOR=$ACCENT_PRIMARY  # Blue
 # elif [[ $CPU_INT -le 75 ]]; then
-#     ICON="󰍝"  # High CPU
 #     COLOR=$ACCENT_TERTIARY  # Orange
 # else
-#     ICON="󰍞"  # Very High CPU
 #     COLOR=$RED  # Red
 # fi
 

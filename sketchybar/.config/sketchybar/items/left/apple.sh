@@ -24,16 +24,17 @@ sketchybar --add item apple.logo left \
 $POPUP_OFF" --add item apple.activity popup.apple.logo \
             --set apple.activity \
             icon=$ACTIVITY \
-                                label="Activity" \
-                                icon.color=$WHITE \
-                                label.color=$WHITE \
-                                click_script="open -a 'Activity Monitor';
+            label="Activity" \
+            icon.color=$WHITE \
+            label.color=$WHITE \
+            click_script="open -a 'Activity Monitor';
 
 $POPUP_OFF" --add item apple.lock popup.apple.logo \
             --set apple.lock \
             icon=$LOCK \
-                                label="Lock Screen" \
-                                icon.color=$WHITE \
-                                label.color=$WHITE \
-                                click_script="pmset displaysleepnow;
+            label="Lock Screen" \
+            icon.color=$WHITE \
+            label.color=$WHITE \
+            click_script="pmset displaysleepnow;
+
 $POPUP_OFF"

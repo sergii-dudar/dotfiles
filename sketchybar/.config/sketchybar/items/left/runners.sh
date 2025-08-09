@@ -13,12 +13,12 @@ shared_run_settings_conf=(
 run_settings_conf=(
     "${shared_run_settings_conf[@]}"
     icon.padding_left=3
-    icon="􀣋 "
+    icon="$RUNNER_SETTINGS"
     click_script="open -a System\ Settings"
 )
 # group.run.settings_updates_conf=(
 "${shared_run_settings_conf[@]}"
-#     icon=" "
+#     icon="$RUNNER_UPDATES"
 #     click_script="open \"x-apple.systempreferences:com.apple.Software-Update-Settings.extension\""
 # )
 run_kitty_conf=(

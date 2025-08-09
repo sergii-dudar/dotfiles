@@ -69,20 +69,22 @@ if [[ "$BT_ENABLED" == true ]]; then
     fi
 fi
 
+source "$CONFIG_DIR/icons.sh"
+
 # Set icon and color based on connection status
 if [[ "$AIRPODS_CONNECTED" == true ]]; then
     # AirPods connected - AirPods icon in white
-    ICON="󰋋"
+    ICON="$HEADPHONES"
     COLOR=$ACCENT_PINK
     DRAWING=on
 elif [[ "$BT_ENABLED" == true ]]; then
     # Bluetooth enabled but no AirPods - blue Bluetooth icon
-    ICON="󰂯"
+    ICON="$BLUETOOTH_ON"
     COLOR=$ACCENT_PRIMARY  # Blue
     DRAWING=on
 else
     # Bluetooth disabled - gray icon
-    ICON="󰂲"
+    ICON="$BLUETOOTH_OFF"
     COLOR=$GREY
     DRAWING=off
 fi

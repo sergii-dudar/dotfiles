@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source "$CONFIG_DIR/icons.sh"
 VOLUME=$(osascript -e 'input volume of (get volume settings)')
 
 if [[ "$SENDER" == "mouse."* ]]; then
@@ -50,10 +51,10 @@ case $INPUT_NAME in
         ;;
 esac
 
-ICON="􀊰 "
+ICON="$MICROPHONE_ON"
 HIGHLIGH=off
 if [ "$VOLUME" -eq 0 ]; then
-    ICON=􀊲
+    ICON="$MICROPHONE_OFF"
     HIGHLIGH=on
 fi
 

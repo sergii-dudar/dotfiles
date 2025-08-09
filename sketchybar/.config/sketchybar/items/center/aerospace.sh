@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
-declare -A ws_icons
-ws_icons["1"]=" "
-ws_icons["2"]=" "
-ws_icons["3"]=" "
-ws_icons["4"]="󰆍 "
-ws_icons["5"]=" "
-ws_icons["6"]="󰣇 "
-ws_icons["7"]=" "
-ws_icons["8"]=" "
-ws_icons["9"]=" "
-
 declare -A ws_icons_size
 ws_icons_size["1"]="18.5"
 ws_icons_size["2"]="19.0"
@@ -28,7 +17,7 @@ for sid in $(aerospace list-workspaces --all); do
         continue
     fi
 
-    ws_icon="${ws_icons[$sid]}"
+    ws_icon="${WS_ICONS[$sid]}"
     ws_icon_size="${ws_icons_size[$sid]}"
 
     sketchybar --add item space.$sid center \

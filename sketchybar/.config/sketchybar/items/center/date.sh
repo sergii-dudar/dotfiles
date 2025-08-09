@@ -3,7 +3,7 @@
 sketchybar --add item date center \
     --set date "${center_items_common[@]}" \
     update_freq=60 \
-    icon=" " \
+    icon="$CALENDAR" \
     icon.color=0xff7c8377 \
     icon.y_offset=2 \
     label.color=0xff6272a4 \

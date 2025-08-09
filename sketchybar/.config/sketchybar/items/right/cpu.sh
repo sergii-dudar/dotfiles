@@ -2,16 +2,17 @@
 
 # sketchybar --add item cpu.percent right \
     #     --set cpu.percent \
-    #     icon=" " \
+    #     icon="$SYSTEM_CPU" \
     #     label="8%" \
     #     icon.font="CaskaydiaCove Nerd Font:Bold:17.0" \
     #     label.font="CaskaydiaCove Nerd Font:Bold:16.0" \
     #     update_freq=5 \
     #     mach_helper="$HELPER"
 
+
 cpu=(
     "${right_items_common[@]}"
-    icon=" "
+    icon="$SYSTEM_CPU"
     # icon.color=$ORANGE
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"

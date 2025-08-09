@@ -2,7 +2,7 @@
 
 ram=(
     "${right_items_common[@]}"
-    icon=" " # 
+    icon="$SYSTEM_RAM"
     # icon.color=$ORANGE
     update_freq=10
     script="$PLUGIN_DIR/right/ram.sh"

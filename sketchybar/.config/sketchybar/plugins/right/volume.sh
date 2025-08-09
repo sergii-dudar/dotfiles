@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source "$CONFIG_DIR/icons.sh"
+
 if [[ "$SENDER" == "mouse."* ]]; then
     # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
     case "$SENDER" in
@@ -34,25 +36,25 @@ VOLUME=$(osascript -e "output volume of (get volume settings)")
 MUTED=$(osascript -e "output muted of (get volume settings)")
 
 if [ "$MUTED" = "missing value" ]; then
-    ICON=" "
+    ICON="$VOLUME_100"
     VOLUME=100
 elif [ "$MUTED" != "false" ]; then
-    ICON="􀊣 "
+    ICON="$VOLUME_0"
     VOLUME=0
 else
     case ${VOLUME} in
-        100) ICON=" " ;;
-        9[0-9]) ICON=" " ;;
-        8[0-9]) ICON=" " ;;
-        7[0-9]) ICON=" " ;;
-        6[0-9]) ICON=" " ;;
-        5[0-9]) ICON=" " ;;
-        4[0-9]) ICON=" " ;;
-        3[0-9]) ICON=" " ;;
-        2[0-9]) ICON=" " ;;
-        1[0-9]) ICON=" " ;;
-        [0-9]) ICON=" " ;;
-        *) ICON=" " ;;
+        100) ICON="$VOLUME_100" ;;
+        9[0-9]) ICON="$VOLUME_100" ;;
+        8[0-9]) ICON="$VOLUME_100" ;;
+        7[0-9]) ICON="$VOLUME_100" ;;
+        6[0-9]) ICON="$VOLUME_100" ;;
+        5[0-9]) ICON="$VOLUME_100" ;;
+        4[0-9]) ICON="$VOLUME_100" ;;
+        3[0-9]) ICON="$VOLUME_100" ;;
+        2[0-9]) ICON="$VOLUME_66" ;;
+        1[0-9]) ICON="$VOLUME_66" ;;
+        [0-9]) ICON="$VOLUME_33" ;;
+        *) ICON="$VOLUME_33" ;;
     esac
 fi
 

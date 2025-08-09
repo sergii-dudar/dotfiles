@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source "$CONFIG_DIR/icons.sh"
+
 LAST_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
 if [ -f "$LAST_PLAYING_LABEL_FILE" ]; then
     LAST_PLAYING_LABEL=$(bat -pp "$LAST_PLAYING_LABEL_FILE")
@@ -46,13 +48,13 @@ fi
 #         STATUS="playing"
 #         ARTIST=$(osascript -e 'tell application "Spotify" to artist of current track as string' 2>/dev/null)
 #         TRACK=$(osascript -e 'tell application "Spotify" to name of current track as string' 2>/dev/null)
-#         ICON=" "
+#         ICON="$PLAY_PLAY"
 #         COLOR=$ACCENT_QUATERNARY
 #     elif [[ "$state" == "paused" ]]; then
-#         ICON=" "
+#         ICON="$PLAY_PAUSE"
 #         STATUS="paused"
 #     else
-#         ICON=" "
+#         ICON="$PLAY_STOP"
 #         STATUS="stopped"
 #     fi
 # }
@@ -65,13 +67,13 @@ function get_apple_music_info() {
         STATUS="playing"
         ARTIST=$(osascript -e 'tell application "Music" to artist of current track as string' 2>/dev/null)
         TRACK=$(osascript -e 'tell application "Music" to name of current track as string' 2>/dev/null)
-        ICON=" "
+        ICON="$PLAY_PLAY"
         COLOR=$ACCENT_QUATERNARY
     elif [[ "$state" == "paused" ]]; then
-        ICON=" "
+        ICON="$PLAY_PAUSE"
         STATUS="paused"
     else
-        ICON=" "
+        ICON="$PLAY_STOP"
         STATUS="stopped"
     fi
 }
@@ -86,13 +88,13 @@ function get_mpd_info() {
         local song_json=$(~/.cargo/bin/rmpc song)
         ARTIST=$(echo $song_json | jq -r '.metadata.artist')
         TRACK=$(echo $song_json | jq -r '.metadata.title')
-        ICON=" "
+        ICON="$PLAY_PLAY"
         COLOR=$ACCENT_SECONDARY
     elif [[ "$state" == "Pause" ]]; then
-        ICON=" "
+        ICON="$PLAY_PAUSE"
         STATUS="paused"
     else
-        ICON=" "
+        ICON="$PLAY_STOP"
         STATUS="stopped"
     fi
 }
@@ -137,7 +139,7 @@ process_player_info
 echo "status: $STATUS" > /tmp/logs.txt
 if [[ "$STATUS" == "paused" ]]; then
     sketchybar --set "$NAME" drawing=on
-    ICON=" "
+    ICON="$PLAY_PAUSE"
     COLOR=$ACCENT_TERTIARY
     LABEL=$LAST_PLAYING_LABEL
     update_music_item

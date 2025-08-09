@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-chevron=(
-    "${left_items_common[@]}"
-    icon=""
-    label.drawing=off
-    background.drawing=off
-)
+# chevron=(
+#     "${left_items_common[@]}"
+#     icon="$FRONT_APP_SEPARATOR"
+#     label.drawing=off
+#     background.drawing=off
+# )
 
 front_app=(
     "${left_items_common[@]}"

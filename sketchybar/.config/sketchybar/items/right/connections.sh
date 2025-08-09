@@ -7,7 +7,7 @@ wifi=(
     icon.padding_right=3
     icon.y_offset=2
     label.drawing=off
-    icon="󰤭 "
+    icon="$ETHERNET_CONNECTED"
     script="$PLUGIN_DIR/right/wifi.sh"
 )
 bluetooth=(

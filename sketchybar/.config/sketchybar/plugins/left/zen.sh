@@ -12,7 +12,7 @@ zen_on() {
         --set brew drawing=off \
         --set volume drawing=off \
         --set wifi drawing=off \
-        --set zen icon="󰈉 "
+        --set zen icon="$EYE_OFF"
 }
 
 zen_off() {
@@ -25,7 +25,7 @@ zen_off() {
         --set brew drawing=on \
         --set volume drawing=on \
         --set wifi drawing=on \
-        --set zen icon="󰈈 "
+        --set zen icon="$EYE_ON"
 }
 
 if [ "$1" = "on" ]; then

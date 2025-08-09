@@ -12,14 +12,19 @@ update() {
     IP="$(ipconfig getifaddr "$INTERFACE")"
 
     if [[ "$HARDWARE_TYPE" == "Wi-Fi" ]]; then
+        ICON_OFFSET=2
         ICON="$([ -n "$IP" ] && echo "$WIFI_CONNECTED" || echo "$WIFI_DISCONNECTED")"
     else
         ICON="$([ -n "$IP" ] && echo "$ETHERNET_CONNECTED" || echo "$WIFI_DISCONNECTED")"
+        ICON_OFFSET=1
     fi
 
     LABEL="$([ -n "$IP" ] && echo "$SSID ($IP)" || echo "Disconnected")"
 
-    sketchybar --set $NAME icon="$ICON" label="$LABEL"
+    sketchybar --set $NAME \
+        icon="$ICON" \
+        label="$LABEL" \
+        icon.y_offset="$ICON_OFFSET"
 }
 
 click() {

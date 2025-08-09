@@ -2,7 +2,7 @@
 
 disk=(
     "${right_items_common[@]}"
-    icon="󱛟 "
+    icon="$SYSTEM_DISK"
     icon.font.size=20
     # icon.color=$BLUE
     update_freq=300

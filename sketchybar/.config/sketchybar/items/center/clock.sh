@@ -3,7 +3,7 @@
 sketchybar --add item clock center \
     --set clock "${center_items_common[@]}" \
     update_freq=10 \
-    icon=" " \
+    icon="$CLOCK" \
     icon.y_offset=1.5 \
     icon.color=0xffbd93f9 \
     label.color=0xff8caaee \
