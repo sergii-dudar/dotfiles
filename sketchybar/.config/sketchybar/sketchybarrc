@@ -40,6 +40,7 @@ default=(
     popup.background.corner_radius=9
     popup.background.border_color="$POPUP_BORDER_COLOR"
     popup.background.color="$POPUP_BACKGROUND_COLOR"
+    # popup.height=50
     popup.blur_radius=20
     popup.background.shadow.drawing=on
     scroll_texts=on
