@@ -6,7 +6,7 @@ zen=(
     update_freq=0
     icon.padding_left=0
     scroll_texts=on
-    icon=$EYE_ON"
+    icon="$EYE_ON"
     background.drawing=off
 )
 

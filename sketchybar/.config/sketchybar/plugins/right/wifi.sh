@@ -24,7 +24,8 @@ update() {
     sketchybar --set $NAME \
         icon="$ICON" \
         label="$LABEL" \
-        icon.y_offset="$ICON_OFFSET"
+        icon.y_offset="$ICON_OFFSET" \
+        icon.color="0xff4db5bd"
 }
 
 click() {

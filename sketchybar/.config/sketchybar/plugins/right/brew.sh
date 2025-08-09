@@ -8,7 +8,7 @@ if [[ "$SENDER" == "mouse."* ]]; then
         "mouse.clicked")
             case "$BUTTON" in
                 "left")
-                    "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && exit'
+                    "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && sketchybar --trigger brew_update && exit'
                     ;;
                 "right")
                     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'

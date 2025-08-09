@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/colors.sh"
+
 # Multiple methods to detect Bluetooth status
 BT_ENABLED=false
 AIRPODS_CONNECTED=false
@@ -69,8 +72,6 @@ if [[ "$BT_ENABLED" == true ]]; then
     fi
 fi
 
-source "$CONFIG_DIR/icons.sh"
-
 # Set icon and color based on connection status
 if [[ "$AIRPODS_CONNECTED" == true ]]; then
     # AirPods connected - AirPods icon in white
@@ -91,7 +92,6 @@ fi
 
 # Update the Bluetooth item - icon only, no label
 sketchybar --set "$NAME" icon="$ICON" \
-    label.drawing=off
-
-#  icon.color="$COLOR" \
-    #    drawing="$DRAWING"
+    label.drawing=off \
+    icon.color="$COLOR"
+#    drawing="$DRAWING"

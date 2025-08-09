@@ -39,7 +39,6 @@ if [[ "$SENDER" == "mouse."* ]] && [[ "$LAST_PLAYING_LABEL" == "MPD "* ]]; then
     esac
 fi
 
-
 # Function to get Spotify info
 # function get_spotify_info() {
 #     local state=$(osascript -e 'tell application "Spotify" to player state as string' 2>/dev/null)
@@ -48,13 +47,9 @@ fi
 #         STATUS="playing"
 #         ARTIST=$(osascript -e 'tell application "Spotify" to artist of current track as string' 2>/dev/null)
 #         TRACK=$(osascript -e 'tell application "Spotify" to name of current track as string' 2>/dev/null)
-#         ICON="$PLAY_PLAY"
-#         COLOR=$ACCENT_QUATERNARY
 #     elif [[ "$state" == "paused" ]]; then
-#         ICON="$PLAY_PAUSE"
 #         STATUS="paused"
 #     else
-#         ICON="$PLAY_STOP"
 #         STATUS="stopped"
 #     fi
 # }
@@ -67,13 +62,9 @@ function get_apple_music_info() {
         STATUS="playing"
         ARTIST=$(osascript -e 'tell application "Music" to artist of current track as string' 2>/dev/null)
         TRACK=$(osascript -e 'tell application "Music" to name of current track as string' 2>/dev/null)
-        ICON="$PLAY_PLAY"
-        COLOR=$ACCENT_QUATERNARY
     elif [[ "$state" == "paused" ]]; then
-        ICON="$PLAY_PAUSE"
         STATUS="paused"
     else
-        ICON="$PLAY_STOP"
         STATUS="stopped"
     fi
 }
@@ -88,25 +79,19 @@ function get_mpd_info() {
         local song_json=$(~/.cargo/bin/rmpc song)
         ARTIST=$(echo $song_json | jq -r '.metadata.artist')
         TRACK=$(echo $song_json | jq -r '.metadata.title')
-        ICON="$PLAY_PLAY"
-        COLOR=$ACCENT_SECONDARY
     elif [[ "$state" == "Pause" ]]; then
-        ICON="$PLAY_PAUSE"
         STATUS="paused"
     else
-        ICON="$PLAY_STOP"
         STATUS="stopped"
     fi
 }
 
 function update_music_item() {
     # Update the Now Playing item (only if we're showing it)
-    sketchybar --set "$NAME" icon="$ICON" \
+    sketchybar --set "$NAME" \
+        icon="$ICON" \
+        icon.color="$COLOR" \
         label="$LABEL"
-
-    # icon.color="$COLOR" \
-        # label.color=$WHITE \
-        # label.font="SF Pro:Medium:12.0"
 }
 
 function process_player_info() {
@@ -118,10 +103,10 @@ function process_player_info() {
         else
             LABEL="$full_lable"
         fi
-
+        COLOR="0xffc678dd"
+        ICON="$PLAY_PLAY"
         echo -e "$full_lable" > "${LAST_PLAYING_LABEL_FILE}"
         update_music_item
-
         exit 0
     fi
 }
@@ -140,10 +125,12 @@ echo "status: $STATUS" > /tmp/logs.txt
 if [[ "$STATUS" == "paused" ]]; then
     sketchybar --set "$NAME" drawing=on
     ICON="$PLAY_PAUSE"
-    COLOR=$ACCENT_TERTIARY
+    COLOR="0xff98be65"
     LABEL=$LAST_PLAYING_LABEL
     update_music_item
 else
     # No music playing - hide the item completely
+    COLOR="0xffFC9867"
+    ICON="$PLAY_STOP"
     sketchybar --set "$NAME" drawing=off
 fi

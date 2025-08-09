@@ -6,6 +6,7 @@ now_playing=(
     label.font.style="Bold Italic"
     script="$PLUGIN_DIR/left/now_playing.sh"
     background.drawing=on
+    label.color="0xff5699af"
     drawing=off
 )
 

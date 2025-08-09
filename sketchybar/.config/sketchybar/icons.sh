@@ -51,8 +51,8 @@ VOLUME_0="􀊣 "
 AIRPODS="􀪷 "
 HEADPHONES="􀑈 "
 
-MICROPHONE_ON="􀊰 "
-MICROPHONE_OFF="􀊲 "
+MICROPHONE_ON=" " # "􀊰 "
+MICROPHONE_OFF=" " # "􀊲 "
 
 BLUETOOTH_ON="󰂯"
 BLUETOOTH_OFF="󰂲"
@@ -63,7 +63,7 @@ EYE_OFF="󰈉 "
 INPUT_FLAG_UA="🇺🇦"
 INPUT_FLAG_ABC="🇺🇲"
 
-PACKAGES_SYNC="􀐛 "
+PACKAGES_SYNC="􀐚 " # "􀐛 "
 PACKAGES_SYNC_OK=" " # "􀆅 "
 
 FRONT_APP_SEPARATOR=""
@@ -79,7 +79,7 @@ SYSTEM_DISK="󱛟 "
 SYSTEM_CPU=" " # " "
 
 # Runners Icons
-RUNNER_SETTINGS="􀣋 "
+RUNNER_SETTINGS=" " # "􀣋 "
 RUNNER_UPDATES=" "
 
 # Svim Icons

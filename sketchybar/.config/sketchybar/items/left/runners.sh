@@ -14,23 +14,29 @@ run_settings_conf=(
     "${shared_run_settings_conf[@]}"
     icon.padding_left=3
     icon="$RUNNER_SETTINGS"
+    icon.color="0xff3071db"
+    icon.font.size=19
+    icon.y_offset=2
     click_script="open -a System\ Settings"
 )
 # group.run.settings_updates_conf=(
 "${shared_run_settings_conf[@]}"
 #     icon="$RUNNER_UPDATES"
 #     click_script="open \"x-apple.systempreferences:com.apple.Software-Update-Settings.extension\""
+#     icon.color="0xff"
 # )
 run_kitty_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:19.0"
     icon=":kitty:"
+    icon.color="0xff89dceb"
     click_script="open -na kitty"
 )
 run_ghostty_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:20.0"
     icon=":ghostty:"
+    icon.color="0xffcba6f7"
     click_script="open -na Ghostty"
     icon.y_offset=1
 )
@@ -38,12 +44,14 @@ run_wezterm_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:17.0"
     icon=":wezterm:"
+    icon.color="0xff4E49EE"
     click_script="open -na WezTerm"
 )
 run_brave_browser_conf=(
     "${shared_run_settings_conf[@]}"
     icon.font="sketchybar-app-font:Regular:18.0"
     icon=":brave_browser:"
+    icon.color="0xfff38ba8"
     click_script="open -na Brave\ Browser"
 )
 run_idea_conf=(
@@ -51,6 +59,7 @@ run_idea_conf=(
     icon.padding_right=6
     icon.font="sketchybar-app-font:Regular:17.0"
     icon=":idea:"
+    icon.color="0xff8caaee"
     click_script="open -a IntelliJ\ IDEA"
 )
 

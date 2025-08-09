@@ -13,7 +13,7 @@
 cpu=(
     "${right_items_common[@]}"
     icon="$SYSTEM_CPU"
-    # icon.color=$ORANGE
+    icon.color="0xff8caaee"
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"
     click_script="open -a Activity\ Monitor"

@@ -7,6 +7,7 @@ apple_logo=(
     "${left_items_common[@]}"
     icon=$APPLE
     icon.color=$RED
+    icon.font.size=18
     label.drawing=off
     icon.y_offset=2
     click_script="$POPUP_CLICK_SCRIPT"

@@ -5,12 +5,14 @@ mic=(
     update_freq=10
     icon.y_offset=2
     script="$PLUGIN_DIR/right/mic.sh"
+    icon.color="0xff5699af"
 )
 
 volume=(
     "${right_items_common[@]}"
     script="$PLUGIN_DIR/right/volume.sh"
     icon.y_offset=2
+    icon.color="0xffca9ee6"
 )
 
 sketchybar --add item volume right \
