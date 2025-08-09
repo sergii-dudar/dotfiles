@@ -9,3 +9,5 @@ osascript -e 'tell application "iTerm"
         write text "'"$COMMAND"'"
     end tell
 end tell'
+sleep 0.2
+~/.config/aerospace/size_and_center_float.sh "iTerm"

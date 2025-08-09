@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 
+if [[ "$SENDER" == "mouse."* ]]; then
+    case "$SENDER" in
+        "mouse.clicked")
+            # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
+            case "$BUTTON" in
+                "left")
+                    "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/btop && exit'
+                    ;;
+                "right")
+                    open -a "Activity Monitor"
+                    ;;
+            esac
+            ;;
+    esac
+fi
+
 # Get CPU usage percentage
 CPU_USAGE=$(top -l 1 -n 0 | grep "CPU usage" | awk '{print $3}' | sed 's/%//')
 

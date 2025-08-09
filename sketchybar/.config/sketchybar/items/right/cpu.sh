@@ -13,8 +13,9 @@ cpu=(
     icon.color="$CPU_ICON_COLOR"
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"
-    click_script="open -a Activity\ Monitor"
+    # click_script="open -a Activity\ Monitor"
 )
 
 sketchybar --add item cpu right \
-    --set cpu "${cpu[@]}"
+    --set cpu "${cpu[@]}" \
+    --subscribe cpu mouse.clicked

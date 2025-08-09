@@ -122,7 +122,6 @@ process_player_info
 # process_player_info
 
 # in case no any player in status - playing
-echo "status: $STATUS" > /tmp/logs.txt
 if [[ "$STATUS" == "paused" ]]; then
     sketchybar --set "$NAME" drawing=on
     ICON="$PLAYER_PAUSE"

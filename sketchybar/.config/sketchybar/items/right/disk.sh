@@ -5,8 +5,8 @@ disk=(
     icon.color="$DISK_ICON_COLOR"
     update_freq=300
     script="$PLUGIN_DIR/right/disk.sh"
-    click_script="$SCRIPTS_DIR/run_external_bash.sh '/opt/homebrew/bin/gdu-go ~ && exit'"
 )
 
 sketchybar --add item disk right \
-    --set disk "${disk[@]}"
+    --set disk "${disk[@]}" \
+    --subscribe disk mouse.clicked

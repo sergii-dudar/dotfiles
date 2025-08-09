@@ -1,5 +1,5 @@
-# to get rid some issues with intellij during loading environment on start main ide instant
-if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
+# if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
+if [[ $EMPTY_ZSH ]]; then
     return
 fi
 
@@ -159,7 +159,8 @@ source "$HOME/serhii.shell/tmux.scripts.sh"
 setopt no_beep
 
 # if [[ -z "$MANUAL_RL" && ! -d "./.git" ]]; then
-if [[ -z "$MANUAL_RL" ]] && ! find_git_root; then
+# also ignore iTerm.app, as I'm using it to pupup TUI proprams run on macos, like run btop on click icon in bar, need disable `fastfetch` to get rid conflicts with push commands from `osascript`
+if [[ "$TERM_PROGRAM" != "iTerm.app" ]] && [[ -z "$MANUAL_RL" ]] && ! find_git_root; then
     fastfetch
     #colorscript random
 fi

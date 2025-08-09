@@ -359,6 +359,14 @@ if.app-id = 'com.apple.clock'
 run = 'layout floating'
 
 [[on-window-detected]]
+if.app-id = 'com.apple.Automator'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ScriptEditor2'
+run = 'layout floating'
+
+[[on-window-detected]]
 if.app-id = 'com.apple.weather'
 run = 'layout floating'
 
