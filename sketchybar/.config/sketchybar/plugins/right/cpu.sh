@@ -38,5 +38,5 @@ CPU_INT=${CPU_USAGE%.*}
 # else
 #     COLOR=$RED  # Red
 # fi
-
-sketchybar --set "$NAME" label="$CPU_INT%"
+CPU_INT_FORMATTED=$(printf "%02d" "$CPU_INT")
+sketchybar --set "$NAME" label="$CPU_INT_FORMATTED%"

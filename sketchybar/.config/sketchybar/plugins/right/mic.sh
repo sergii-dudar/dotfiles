@@ -60,7 +60,8 @@ else
     ICON_COLOR="$MIC_ICON_COLOR"
 fi
 
+VAL_FORMATTED=$(printf "%02d" "$VOLUME")
 sketchybar --set "$NAME" \
-    label="$VOLUME% $DEVICE_ICON" \
+    label="$VAL_FORMATTED% $DEVICE_ICON" \
     icon="$ICON" \
     icon.color="$ICON_COLOR"
