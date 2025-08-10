@@ -1,11 +1,37 @@
 #!/usr/bin/env bash
 
+# Focused to support players: MPD, Apple Music, Spotify (Disabled, need uncomment related functions).
+# Apple Music & Spotify have basic support (without mouse control, volume scroll control, player volume level indication and change on play\pause statuse etc).
+# MPD have full functionality (As it's my primary (platform independed) players between linux and macos)
+
 source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/colors.sh"
 
-LAST_PLAYING_LABEL_FILE="$HOME/dotfiles/temp/now_playing_last.label"
-if [ -f "$LAST_PLAYING_LABEL_FILE" ]; then
-    LAST_PLAYING_LABEL=$(bat -pp "$LAST_PLAYING_LABEL_FILE")
+CACHE_DIR="$HOME/dotfiles/temp"
+CACHE_FILE="$CACHE_DIR/cache.now_playing.envs"
+
+function build_mpd_player_name() {
+    local vol=$(~/.cargo/bin/rmpc volume)
+    PLAYER="MPD [ ${vol}%]"
+}
+function __write_tmp_envs_file() {
+    mkdir -p "$CACHE_DIR"
+    file_envs_content="PLAYER=\"$PLAYER\"\nTRACK=\"$TRACK\"\nARTIST=\"$ARTIST\""
+    echo -e "$file_envs_content" > "${CACHE_FILE}"
+}
+function __read_tmp_envs_file() {
+    if [ ! -f "$CACHE_FILE" ]; then
+        return
+    fi
+    . "$CACHE_FILE"
+}
+function build_music_label() {
+    echo "$PLAYER: ${TRACK} • ${ARTIST}"
+}
+if [ -f "$CACHE_FILE" ]; then
+    # LAST_PLAYING_LABEL=$(bat -pp "$CACHE_FILE")
+    __read_tmp_envs_file
+    LAST_PLAYING_LABEL=$(build_music_label)
 else
     LAST_PLAYING_LABEL="Paused"
 fi
@@ -36,6 +62,10 @@ if [[ "$SENDER" == "mouse."* ]] && [[ "$LAST_PLAYING_LABEL" == "MPD "* ]]; then
             else
                 ~/.cargo/bin/rmpc volume -5
             fi
+            build_mpd_player_name
+            __write_tmp_envs_file
+            LAST_PLAYING_LABEL=$(build_music_label)
+            # echo "$LAST_PLAYING_LABEL" > /tmp/logs.txt
             ;;
     esac
 fi
@@ -73,8 +103,7 @@ function get_apple_music_info() {
 # Function to get MPD info
 function get_mpd_info() {
     local state=$(~/.cargo/bin/rmpc status | jq -r '.state')
-    local vol=$(~/.cargo/bin/rmpc volume)
-    PLAYER="MPD [ ${vol}%]"
+    build_mpd_player_name
     if [[ "$state" == "Play" ]]; then
         STATUS="playing"
         local song_json=$(~/.cargo/bin/rmpc song)
@@ -98,7 +127,7 @@ function update_music_item() {
 function process_player_info() {
     if [[ "$STATUS" == "playing" ]]; then
         sketchybar --set "$NAME" drawing=on
-        full_lable="$PLAYER: ${TRACK} • ${ARTIST}"
+        full_lable=$(build_music_label)
         if [[ ${#full_lable} -gt 60 ]]; then
             LABEL="${full_lable:0:60}..."
         else
@@ -106,7 +135,8 @@ function process_player_info() {
         fi
         ICON_COLOR="$PLAYER_PLAY_ICON_COLOR"
         ICON="$PLAYER_PLAY"
-        echo -e "$full_lable" > "${LAST_PLAYING_LABEL_FILE}"
+        # echo -e "$full_lable" > "${CACHE_FILE}"
+        __write_tmp_envs_file
         update_music_item
         exit 0
     fi
