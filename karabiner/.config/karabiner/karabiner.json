@@ -205,7 +205,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc stop"
+                                        "shell_command": "/opt/homebrew/bin/mpc stop ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"
@@ -227,7 +227,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc toggle"
+                                        "shell_command": "/opt/homebrew/bin/mpc toggle ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"
@@ -249,7 +249,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc next"
+                                        "shell_command": "/opt/homebrew/bin/mpc next ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"
@@ -271,7 +271,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc prev"
+                                        "shell_command": "/opt/homebrew/bin/mpc prev ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"
@@ -292,7 +292,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc volume -5"
+                                        "shell_command": "/opt/homebrew/bin/mpc volume -5 ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"
@@ -313,7 +313,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/opt/homebrew/bin/mpc volume +5"
+                                        "shell_command": "/opt/homebrew/bin/mpc volume +5 ; /opt/homebrew/bin/sketchybar --trigger now_playing_update"
                                     }
                                 ],
                                 "type": "basic"

@@ -14,4 +14,4 @@ scratchpad=(
 sketchybar --add event scratchpad_update \
     --add item scratchpad left \
     --set scratchpad "${scratchpad[@]}" \
-    --subscribe scratcsketchybarhpad scratchpad_update
+    --subscribe scratchpad scratchpad_update

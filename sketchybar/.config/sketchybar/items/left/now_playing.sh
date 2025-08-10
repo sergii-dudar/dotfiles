@@ -11,7 +11,8 @@ now_playing=(
 # Now Playing
 sketchybar --add item now_playing left \
     --set now_playing "${now_playing[@]}" \
-    --subscribe now_playing media_change mouse.clicked mouse.scrolled
+    --add event now_playing_update \
+    --subscribe now_playing now_playing_update media_change mouse.clicked mouse.scrolled
 
 # click_script="mpc toggle ; echo $SENDER > /tmp/logs.txt" \
     #click_script="mpc toggle" \

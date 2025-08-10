@@ -18,4 +18,5 @@ sketchybar --add item volume right \
     \
     --add item mic right \
     --set mic "${mic[@]}" \
-    --subscribe mic mouse.clicked mouse.scrolled
+    --add event mic_update \
+    --subscribe mic mic_update mouse.clicked mouse.scrolled

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/colors.sh"
 
 if [[ "$SENDER" == "mouse."* ]]; then
     # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
@@ -34,13 +35,33 @@ fi
 
 VOLUME=$(osascript -e "output volume of (get volume settings)")
 MUTED=$(osascript -e "output muted of (get volume settings)")
+OUTPUT_NAME=$(SwitchAudioSource -t output -c)
+
+case $OUTPUT_NAME in
+    'MacBook'*)
+        DEVICE_ICON="$VOL_DEVICE_INTERNAL"
+        ;;
+    'LG'*)
+        DEVICE_ICON="$VOL_DEVICE_EX_MONITOR"
+        ;;
+    'External Headphones')
+        DEVICE_ICON="$VOL_DEVICE_EX_HEADPHONES"
+        ;;
+        # 'USB')
+        #     DEVICE_ICON="$VOL_DEVICE_EX_DAC"
+        #     ;;
+    *) DEVICE_ICON="$QUESTION" ;;
+esac
+
 
 if [ "$MUTED" = "missing value" ]; then
     ICON="$VOLUME_100"
     VOLUME=100
+    ICON_COLOR="$VOLUME_ICON_COLOR"
 elif [ "$MUTED" != "false" ]; then
     ICON="$VOLUME_0"
     VOLUME=0
+    ICON_COLOR="$RED"
 else
     case ${VOLUME} in
         100) ICON="$VOLUME_100" ;;
@@ -56,8 +77,10 @@ else
         [0-9]) ICON="$VOLUME_33" ;;
         *) ICON="$VOLUME_33" ;;
     esac
+    ICON_COLOR="$VOLUME_ICON_COLOR"
 fi
 
-sketchybar -m \
-    --set "$NAME" icon="$ICON" \
-    --set "$NAME" label="$VOLUME%"
+sketchybar \
+    --set "$NAME" label="$VOLUME% $DEVICE_ICON" \
+    icon="$ICON" \
+    icon.color="$ICON_COLOR"

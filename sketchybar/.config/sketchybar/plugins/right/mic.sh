@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source "$CONFIG_DIR/icons.sh"
+source "$CONFIG_DIR/colors.sh"
 VOLUME=$(osascript -e 'input volume of (get volume settings)')
 
 if [[ "$SENDER" == "mouse."* ]]; then
@@ -9,7 +10,6 @@ if [[ "$SENDER" == "mouse."* ]]; then
         "mouse.clicked")
             case "$BUTTON" in
                 "left")
-
                     # Check if the microphone is currently muted (volume is 0)
                     if [ "$VOLUME" -eq 0 ]; then
                         # Unmute the microphone (set volume to 100)
@@ -20,6 +20,7 @@ if [[ "$SENDER" == "mouse."* ]]; then
                         osascript -e "set volume input volume 0"
                         osascript -e "display notification \"Microphone is OFF\" with title \"🎤 Muted\" sound name \"Pop\""
                     fi
+                    sketchybar --trigger mic_update
                     ;;
                 "right")
                     open 'x-apple.systempreferences:com.apple.Sound-Settings.extension?input'
@@ -41,25 +42,25 @@ INPUT_NAME=$(SwitchAudioSource -t input -c)
 
 case $INPUT_NAME in
     'MacBook Pro Microphone')
-        INPUT_NAME="Mic"
+        DEVICE_ICON="$MICROPHONE_DEVICE_INTERNAL"
         ;;
-    'USB PnP Audio Device')
-        INPUT_NAME="USB"
+    'USB'*|'HD'*)
+        DEVICE_ICON="$MICROPHONE_DEVICE_EXTERNAL"
         ;;
-    'HD Pro Webcam C920')
-        INPUT_NAME="USB"
-        ;;
+    *) DEVICE_ICON="$QUESTION" ;;
 esac
 
 if [ "$VOLUME" -eq 0 ]; then
     ICON="$MICROPHONE_OFF"
     HIGHLIGH=on
+    ICON_COLOR="$RED"
 else
     ICON="$MICROPHONE_ON"
     HIGHLIGH=off
+    ICON_COLOR="$MIC_ICON_COLOR"
 fi
 
 sketchybar --set "$NAME" \
-    label="$VOLUME%" \
+    label="$VOLUME% $DEVICE_ICON" \
     icon="$ICON" \
-    icon.highlight=$HIGHLIGH
+    icon.color="$ICON_COLOR"
