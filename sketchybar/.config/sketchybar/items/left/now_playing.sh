@@ -15,6 +15,8 @@ sketchybar --add item now_playing left \
     --add event now_playing_update \
     --subscribe now_playing now_playing_update media_change mouse.clicked mouse.scrolled
 
+# `now_playing_update` event triggering in karabiner elements config after changing MPD player controlling
+
 # click_script="mpc toggle ; echo $SENDER > /tmp/logs.txt" \
     #click_script="mpc toggle" \
     # icon.font="SF Pro:Semibold:15.0" \
