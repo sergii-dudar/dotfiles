@@ -6,8 +6,8 @@
 
 ##### SECOND MONITOR
 
-![aerospace-scratchpad.png](../../../screenshots/aerospace/aerospace-scratchpad.png)
+![aerospace-second.png](../../../screenshots/aerospace/aerospace-second.png)
 
 ##### SCRATCHPAD
 
-![aerospace-second.png](../../../screenshots/aerospace/aerospace-second.png)
+![aerospace-scratchpad.png](../../../screenshots/aerospace/aerospace-scratchpad.png)
