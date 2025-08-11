@@ -11,7 +11,7 @@ M.is_enable_neo_tree = function()
         ".tmux",
         "personal",
         "serhii.home",
-        --"myforks/my%-dwm",
+        "myforks/my%-dwm",
     }
     -- vim.notify("result: " .. tostring(list_util.any_match(current_file, open_if_dir_contains)), vim.log.levels.INFO)
 
