@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
 options=(
-	style=round
-	width=6.0
-	hidpi=off
-	active_color=0xffe2e2e3
-	inactive_color=0xff414550
+    style=round # round or square
+    width=6.0
+    hidpi=off # off|on
+    active_color=0xff80a0ff # 0xff4452ff  # 0xffe2e2e3
+    background_color=0xff80a0ff
+    inactive_color=0xff535d6c  # 0xff111416 # 0xff414550
+    blacklist="Ghostty,IntelliJ\ IDEA"
+    # whitelist="com.mitchellh.ghostty"
 )
 
 borders "${options[@]}"
