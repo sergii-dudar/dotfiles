@@ -29,4 +29,4 @@ cpu_percentage=$(awk '/^cpu / {
   }
 } END { printf "%.0f\n", avg_usage }' /proc/stat)
 
-echo " ^c#8caaee^  ^c$FG_COLOR^$cpu_percentage% $SPLIT"
+echo " ^c#8caaee^  ^c$FG_COLOR^$cpu_percentage^c#6272a4^% $SPLIT"

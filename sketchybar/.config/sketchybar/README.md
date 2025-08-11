@@ -1,3 +1,18 @@
+# Sketchybar
+
+## Deps
+
+```bash
+brew tap FelixKratz/formulae
+brew install sketchybar
+
+# Fonts
+brew install --cask sf-symbols
+brew install --cask font-sf-mono
+brew install --cask font-sf-pro
+brew install --cask font-sketchybar-app-font
+```
+
 ## Info
 
 In case `display notification` is not working from shell command, do next one time:

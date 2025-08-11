@@ -45,4 +45,4 @@ else
     icon=" "
 fi
 
-echo " ^c#ca9ee6^$icon^c$FG_COLOR^$volume% $SPLIT"
+echo " ^c#ca9ee6^$icon^c$FG_COLOR^$volume^c#6272a4^% $SPLIT"

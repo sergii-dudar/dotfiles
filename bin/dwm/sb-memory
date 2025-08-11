@@ -14,4 +14,4 @@ total_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f2)"
 
 # used_percentage="$(echo "scale=2; $used_mib / $total_mib * 100" | bc)"
 used_percentage="$((used_mib * 100 / total_mib))"
-echo " ^c#a6e3a1^  ^c$FG_COLOR^$used_percentage% $SPLIT"
+echo " ^c#a6e3a1^  ^c$FG_COLOR^$used_percentage^c#6272a4^% $SPLIT"

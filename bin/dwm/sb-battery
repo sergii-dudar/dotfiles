@@ -34,10 +34,11 @@ for battery in /sys/class/power_supply/BAT?*; do
         icon_fg="#a6d189"
     elif [ "$capacity" -gt 60 ]; then
         status=" "
-        icon_fg="#f1fa8c"
+        icon_fg="#a6d189"
     elif [ "$capacity" -gt 40 ]; then
         status=" "
-        icon_fg="#ef9f76"
+        icon_fg="#f1fa8c"
+        # icon_fg="#ef9f76"
     elif [ "$capacity" -gt 10 ]; then
         status=" "
         icon_fg="#e78284"
@@ -61,5 +62,5 @@ for battery in /sys/class/power_supply/BAT?*; do
         *) exit 1 ;;
     esac
 
-    echo " ^c$icon_fg^$status ^c$FG_COLOR^$capacity% $SPLIT"
+    echo " ^c$icon_fg^$status ^c$FG_COLOR^$capacity^c#6272a4^% $SPLIT"
 done
