@@ -31,8 +31,16 @@ xmonad --recompile
 
 ```
 
+# Screenshots
+
 ##### MAIN MONITOR
+
+![xmonad-main.png](../../../screenshots/xmonad/xmonad-main.png)
 
 ##### SECOND MONITOR
 
+![xmonad-second.png](../../../screenshots/xmonad/xmonad-second.png)
+
 ##### SCRATCHPAD
+
+![xmonad-scratchpad.png](../../../screenshots/xmonad/xmonad-scratchpad.png)

@@ -5,3 +5,5 @@
 - ranger-zoxide (git clone <https://github.com/jchook/ranger-zoxide.git> ~/.config/ranger/plugins/ranger_zoxide)
 
 # Screenshots
+
+![ranger.png](../../../screenshots/ranger/ranger.png)

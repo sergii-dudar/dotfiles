@@ -13,6 +13,12 @@ sudo ln -s ~/dotfiles/hyprland/swappy ~/.config/swappy
 
 ##### MAIN MONITOR
 
+![hyprland-main.png](../screenshots/hyprland/hyprland-main.png)
+
 ##### SECOND MONITOR
 
+![hyprland-second.png](../screenshots/hyprland/hyprland-second.png)
+
 ##### SCRATCHPAD
+
+![hyprland-scratchpad.png](../screenshots/hyprland/hyprland-scratchpad.png)

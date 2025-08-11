@@ -37,6 +37,7 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 - [Hyprland](hyprland/README.md)
 - [Aerospace](aerospace/.config/aerospace/README.md) 
 - [Xmonad](xmonad/.config/xmonad/README.md)
+- [DWM](suckless/DWM_README.md)
 - [Sway](sway/.config/sway/README.md)
 - [Awesome](awesome/.config/awesome/README.md) 
 - [Bspwm](bspwm/.config/bspwm/README.md)
