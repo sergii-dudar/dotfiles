@@ -83,6 +83,7 @@
             "^com.scratchpad.music(.*)": "🎶 <span color='#928374'>Mpd: [</span> $1 <span color='#928374'>]</span>",
             "^code(.*)": " 📝 $1",
             "^jetbrains-idea(.*)": " ☕ $1",
+            "^com-intellij-updater-Runner(.*)": " ☕ $1",
             "^org.pulseaudio.pavucontrol(.*)": " 🔈 $1",
             "^nwg-look(.*)": " 🚀 $1",
             "^org.telegram.desktop(.*)": " ✈️ $1",

@@ -9,129 +9,46 @@ All scripts that using by dot configurations required to have `dotfiles` to be c
 Some of my configurations (terminals etc) are using wallpapers that can be found here [my wallpaper collection](https://gitlab.com/Serhii.Dudar1/wallpapers).
 It's also required to have wallpaper in home directory `~/wallpapers`
 
-My current tool preferences:
-
-- Terminal: [kitty](kitty), [wezterm](wezterm)
-- Multiplexer: [tmux](tmux) + [tmux-powerline](tmux/.tmux/plugins/tmux-powerline) (customized), [sesh](https://github.com/joshmedeski/sesh) (as sessions manager + own customizations based on it and tmux api)
+## My current tool preferences:
+- Terminal: [ghostty](ghostty), [kitty](kitty), [wezterm](wezterm)
+- Multiplexer: [tmux](tmux) + [tmux-powerline](tmux-powerline), [sesh](https://github.com/joshmedeski/sesh) (as sessions manager + own customizations based on it and tmux api)
 - SHELL: [zsh](zsh) + [ohmyz](https://ohmyz.sh/) + [starship](https://starship.rs/) + [fastfetch](https://github.com/fastfetch-cli/fastfetch) and so on
-- Editor: [nvim](nvim), [intellij](idea) (for specific work tasks)
-- Nerd-Fonts: [hack](https://www.programmingfonts.org/#hack), [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [FiraCode](https://www.programmingfonts.org/#firacode), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
-- File Manager: [yazi](yazi) (used [ranger](ranger) in past)
+- Code: [nvim](nvim), [intellij](idea) (only for working tasks, driven by [.ideavimrc](idea/.ideavimrc))
+- Nerd-Fonts: [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [hack](https://www.programmingfonts.org/#hack), [FiraCode](https://www.programmingfonts.org/#firacode), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
+- File Manager: [yazi](yazi), (used [ranger](ranger) in past)
 - OS: linux (arch, ubuntu), macos
-- Tiling WM: macos - [aerospace](https://github.com/nikitabobko/AeroSpace), linux - [awesome wm - best wm ever created!](https://awesomewm.org/index.html) / [qtile - amazing wm](https://qtile.org/) / [i3wm + polybar - simple but effective](https://i3wm.org/)
-- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim) with focus on effective working with many programming languages I'm working (java, gradle, maven, yaml, bash, lua, python, js/ts etc). My nvim configuration still evolving and I have many commented parts, but finished on ~85-90%, and I'm quite effectively using it in my daily workflow as `s/l java engineear`. Yes I still have to use intellij to do many specific tasks that have better support in intellij or no alternative in neovim (working with RDBMD (yes vim-dadbod is cool but not for professional using by my point of view for now), generation, previewing openapi etc), but in 80% cases I'm using neovim for all, especially for codding.
+- Tiling WM: linux (Wayland) - [hyprland](hyprland) + [waybar-hyprland](waybar/.config/waybar/hyprland-config.jsonc), [sway](sway) + [waybar-sway](waybar/.config/waybar/sway-config.jsonc) 
+- Tiling WM: linux (X11) - [xmonad](xmonad) + [xmobar](xmobar), [awesome](awesome), [qtile](qtile), [bspwm](bspwm) + [polybar](polybar), [i3](i3) + [polybar](polybar), [DWM](https://github.com/sergii-dudar/my-dwm) + [dwmblocks-async](suckless/dwmblocks-async)
+- X11 compositor: [picom](picom)
+- Tiling WM: macos - [aerospace](aerospace) + [sketchybar](sketchybar) + [janky-borders](janky-borders)
+- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim)
 - Keyboard OS level tools: macos - [karabiner](karabiner), linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
-- Theme: [catppuccin-mocha](https://github.com/catppuccin/nvim)
-- Intellij: [.ideavimrc](idea/.ideavimrc), my [customized catppuccin-mocha](idea/Catppuccin_Mocha.icls) of [catppuccin theme](https://github.com/catppuccin/jetbrains) that I'm very used to in neovim
+- HotKeys launchers daemon: macos - using [aerospace](aerospace) support, X11 - [sxhkd](sxhkd)
+- Launchers (Wayland, X11): [rofi](rofi) by using [fork with wayland support](https://github.com/in0ni/rofi-wayland)
+- Notifications: X11 - [dunst](dunst), Wayland - [swaync](swaync), macos - builtin & [terminal-notifier](https://github.com/julienXX/terminal-notifier)
+- Screen color temperature: X11 - [redshift](redshift), sway -[gammastep](gammastep), hyprland - [hyprsunset](hyprland/hypr/scripts/hyprsunset.runner)  
+- Cron tasks: [cronie](cron) 
+- Music & Players: [rmpc](mpd-config/rmpc), [mpd-linux](mpd-config/mpd), [mpd-macos](mpd-config/mpd-osx), [mpv](mpv), [ncmpcpp](mpd-config/ncmpcpp), [cmus](cmus)
+- Other tools: [btop](btop), [fastfetch](fastfetch), [k9s](k9s), [lazygit](lazygit), [zellij](zellij)
 
-## Random screenshots
+## Configs readme with screenshots:
 
----
+### Tiling Window Managers:
+- [Hyprland](hyprland/README.md)
+- [Aerospace](aerospace/.config/aerospace/README.md) 
+- [Xmonad](xmonad/.config/xmonad/README.md)
+- [Sway](sway/.config/sway/README.md)
+- [Awesome](awesome/.config/awesome/README.md) 
+- [Bspwm](bspwm/.config/bspwm/README.md)
+- [Qtile](qtile/.config/qtile/README.md)
+- [i3wm](i3/.config/i3/README.md)
 
----
-
-#### ARCH LINUX + AWESOME WM (The best WM ever created!)
-
-##### DESKTOP
-
-![desk.png](images/awesome/desk.png)
-
-##### NEOVIM
-
-![neovim-yazi.png](images/awesome/neovim-yazi.png)
-
-##### TMUX
-
-![nvim-tmux-pupup.png](images/awesome/nvim-tmux-pupup.png)
-
-##### SCRATCHPAD
-
-![scratchpad.png](images/awesome/scratchpad.png)
-
-##### Intellij
-
-![intellij.png](images/awesome/intellij.png)
-
-##### LAUNCHER
-
-![rofi-launcher.png](images/awesome/rofi-launcher.png)
-
-##### POWER MENU
-
-![power-menu.png](images/awesome/power-menu.png)
-
----
-
----
-
-#### ARCH LINUX + QTILE (My second best WM!)
-
-##### DESKTOP
-
-![desktop.png](images/qtile/desktop.png)
-
-##### NEOVIM
-
-![nvim.png](images/qtile/nvim.png)
-
-##### SCRATCHPAD
-
-![scratchpad.png](images/qtile/scratchpad.png)
-
-##### Intellij
-
-![intellij.png](images/qtile/intellij.png)
-
----
-
----
-
-#### ARCH LINUX + I3WM + Polybar
-
-##### DESKTOP
-
-![desk.png](images/i3wm/desk.png)
-
-##### NEOVIM
-
-![nvim.png](images/i3wm/nvim.png)
-
-##### SCRATCHPAD
-
-![scratchpad.png](images/i3wm/scratchpad.png)
-
-##### Intellij
-
-![idea.png](images/i3wm/idea.png)
-
----
-
----
-
-#### MACOS + AEROSPACE
-
-##### NEOVIM
-
-![img.png](images/mac/nvim.png)
-
-##### SCRATCHPAD
-
-![scratchpad.png](images/mac/scratchpad_iterm.png)
-
-![scratchpad.png](images/mac/scratchpad_music.png)
-
-##### TMUX POPUP
-
-![img.png](images/mac/tmux_popup.png)
-
-##### TMUX SESSION MANAGER
-
-![img.png](images/mac/tmux_session_manager.png)
-
-##### YAZI
-
-![img.png](images/mac/yazi.png)
-
-##### Intellij
-
-![intellij.png](images/mac/intellij.png)
+### Other:
+- [Nvim](nvim/.config/README.md)
+- [Tmux](tmux/README.md)
+- [Fastfetch](fastfetch/.config/fastfetch/README.md)
+- [MPD Ncmpcpp](mpd-config/ncmpcpp/README.md)
+- [MPD Rmpc](mpd-config/rmpc/README.md)
+- [Rofi](rofi/.config/rofi/README.md)
+- [Yazi](yazi/.config/yazi/README.md)
+- [Ranger](ranger/.config/ranger/README.md)

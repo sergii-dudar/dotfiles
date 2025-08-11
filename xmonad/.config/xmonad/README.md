@@ -30,3 +30,9 @@ stack clean && stack build && stack install
 xmonad --recompile
 
 ```
+
+##### MAIN MONITOR
+
+##### SECOND MONITOR
+
+##### SCRATCHPAD

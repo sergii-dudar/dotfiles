@@ -7,5 +7,12 @@ instead `stow` to not mess in root config dir
 sudo ln -s ~/dotfiles/hyprland/hypr ~/.config/hypr
 sudo ln -s ~/dotfiles/hyprland/swappy ~/.config/swappy
 
-
 ```
+
+# Screenshots
+
+##### MAIN MONITOR
+
+##### SECOND MONITOR
+
+##### SCRATCHPAD
