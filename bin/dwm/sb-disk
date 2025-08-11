@@ -20,4 +20,4 @@ esac
 . "$HOME"/dotfiles/bin/dwm/colorscheme
 disk_usage=$(df -B 1K | grep '/home' | tr -s ' ' | cut -d' ' -f5 | tr -d '%')
 
-echo " ^c#e5c890^ ^c$FG_COLOR^ $disk_usage% ^c#6272a4^SSD $SPLIT"
+echo " ^c#e5c890^ ^c$FG_COLOR^ $disk_usage^c#6272a4^% ^c#6272a4^SSD $SPLIT"

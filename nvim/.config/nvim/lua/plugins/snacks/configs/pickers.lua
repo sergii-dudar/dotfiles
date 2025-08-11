@@ -20,6 +20,10 @@ M.picker = {
             truncate = 250, -- truncate the file path to (roughly) this length
         },
     },
+    -- matcher = {
+    --     smartcase = false, -- use smartcase
+    --     -- ignorecase = true, -- use ignorecase
+    -- },
     sources = {
         explorer = {
             -- layout = layouts.custom_explorer,
@@ -34,10 +38,16 @@ M.picker = {
             ignored = true, -- Exclude git-ignored files
             -- exclude = { "node_modules/*", "*.pyc", "*.log" }, -- Exclude patterns
             -- preview = false, -- Enable file preview in picker
+            -- args = {
+            --     "--ignore-case",
+            -- },
         },
         grep = {
             hidden = true, -- Show hidden files
             ignored = true, -- Exclude git-ignored files
+            -- args = {
+            --     "--ignore-case",
+            -- },
         },
     },
     toggles = {
