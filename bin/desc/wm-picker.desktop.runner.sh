@@ -1,72 +1,32 @@
 picker_type="${1:-}"
 
+declare -A WMS
+WMS[0]="$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
+WMS[1]="$HOME/dotfiles/bin/desc/awesome.desktop.runner.sh"
+WMS[2]="$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
+WMS[3]="$HOME/dotfiles/bin/desc/bspwm.desktop.runner.sh"
+WMS[4]="$HOME/dotfiles/bin/desc/dwm.desktop.runner.sh"
+WMS[5]="$HOME/dotfiles/bin/desc/qtile.desktop.runner.sh"
+WMS[6]="$HOME/dotfiles/bin/desc/sway.desktop.runner.sh"
+# WMS[]="$HOME/dotfiles/bin/desc/i3.desktop.runner.sh"
+TOTAL_WMS=7
+
 function pick_by_month_number() {
-    case "$1" in
-        01)
-            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
-            ;;
-        02)
-            "$HOME/dotfiles/bin/desc/awesome.desktop.runner.sh"
-            ;;
-        03)
-            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
-            ;;
-        04)
-            "$HOME/dotfiles/bin/desc/bspwm.desktop.runner.sh"
-            ;;
-        05)
-            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
-            ;;
-        06)
-            "$HOME/dotfiles/bin/desc/dwm.desktop.runner.sh"
-            ;;
-        07)
-            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
-            ;;
-        08)
-            "$HOME/dotfiles/bin/desc/awesome.desktop.runner.sh"
-            ;;
-        09)
-            "$HOME/dotfiles/bin/desc/qtile.desktop.runner.sh"
-            ;;
-        10)
-            "$HOME/dotfiles/bin/desc/hyprland.desktop.runner.sh"
-            ;;
-        11)
-            #"$HOME/dotfiles/bin/desc/i3.desktop.runner.sh"
-            "$HOME/dotfiles/bin/desc/sway.desktop.runner.sh"
-            ;;
-        12)
-            "$HOME/dotfiles/bin/desc/dwm.desktop.runner.sh"
-            ;;
-        *)
-            # in any unknown situation, use xmonad ;)
-            "$HOME/dotfiles/bin/desc/xmonad.desktop.runner.sh"
-            ;;
-    esac
+    WS_MONTH_INDEX_TO_PICK=$(("$1" % "$TOTAL_WMS"))
+    # bash "${WMS[$WS_MONTH_INDEX_TO_PICK]}"
+    "${WMS[$WS_MONTH_INDEX_TO_PICK]}"
 }
 
 function pick_by_month() {
-    month=$(date +%m) # get current month number
-    pick_by_month_number "$month"
+    year=$(date -u +%Y)
+    month=$(date -u +%-m)
+    MONTH_NUMBEER=$(( ("$year" - 2020) * 12 + "$month" ))
+    pick_by_month_number "$MONTH_NUMBEER"
 }
 
 function pick_by_random() {
     random_number=$(( (RANDOM % 129) + 1 ))  # Generates a number from 1 to 129
-    whole_part=$(( random_number / 10 ))     # Integer division (floor division)
-
-    if [[ $random_number -ge 100 ]]; then
-        mnumber="$whole_part"
-    elif [[ $random_number -lt 10 ]]; then
-        mnumber="01"
-    else
-        mnumber="0${whole_part}"
-    fi
-
-    # echo "Whole part: $whole_part"
-    # echo "Random Number: $random_number"
-    # echo "Month: $mnumber"
-    pick_by_month_number $mnumber
+    pick_by_month_number $random_number
 }
 
 case "$picker_type" in
