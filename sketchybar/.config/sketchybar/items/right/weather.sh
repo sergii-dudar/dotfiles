@@ -4,6 +4,7 @@ weather=(
     icon.padding_right=2
     script="$PLUGIN_DIR/right/weather.sh"
     click_script="open -a Weather"
+    display=1
 )
 
 sketchybar --add item weather right \

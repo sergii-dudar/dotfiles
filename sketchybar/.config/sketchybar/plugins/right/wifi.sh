@@ -11,12 +11,15 @@ update() {
     # Adjust IP and icon assignment based on the hardware type of the active interface
     IP="$(ipconfig getifaddr "$INTERFACE")"
 
-    if [[ "$HARDWARE_TYPE" == "Wi-Fi" ]]; then
+    if [[ "$HARDWARE_TYPE" == "Wi-Fi" ]] && [ -n "$IP" ]; then
         ICON_OFFSET=2
-        ICON="$([ -n "$IP" ] && echo "$WIFI_CONNECTED" || echo "$WIFI_DISCONNECTED")"
-    else
-        ICON="$([ -n "$IP" ] && echo "$ETHERNET_CONNECTED" || echo "$WIFI_DISCONNECTED")"
+        ICON="$WIFI_CONNECTED"
+    elif [ -n "$IP" ]; then
         ICON_OFFSET=1
+        ICON="$ETHERNET_CONNECTED"
+    else
+        ICON_OFFSET=2
+        ICON="$WIFI_DISCONNECTED"
     fi
 
     LABEL="$([ -n "$IP" ] && echo "$SSID ($IP)" || echo "Disconnected")"

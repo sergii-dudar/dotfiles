@@ -14,6 +14,7 @@ cpu=(
     update_freq=10
     script="$PLUGIN_DIR/right/cpu.sh"
     # click_script="open -a Activity\ Monitor"
+    display=1
 )
 
 sketchybar --add item cpu right \

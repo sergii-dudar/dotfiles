@@ -41,18 +41,17 @@ case $OUTPUT_NAME in
     'MacBook'*)
         DEVICE_ICON="$VOL_DEVICE_INTERNAL"
         ;;
-    'LG'*)
+    'LG'*|'DELL'*)
         DEVICE_ICON="$VOL_DEVICE_EX_MONITOR"
         ;;
     'External Headphones')
         DEVICE_ICON="$VOL_DEVICE_EX_HEADPHONES"
         ;;
-        # 'USB')
-        #     DEVICE_ICON="$VOL_DEVICE_EX_DAC"
-        #     ;;
+    'USB'*|'CA DacMagic'*)
+        DEVICE_ICON="$VOL_DEVICE_EX_DAC"
+        ;;
     *) DEVICE_ICON="$QUESTION" ;;
 esac
-
 
 if [ "$MUTED" = "missing value" ]; then
     ICON="$VOLUME_100"

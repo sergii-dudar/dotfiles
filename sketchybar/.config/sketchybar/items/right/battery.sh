@@ -6,6 +6,7 @@ battery=(
     icon.font.size=19
     script="$PLUGIN_DIR/right/battery.sh"
     click_script="open \"x-apple.systempreferences:com.apple.Battery-Settings.extension\""
+    display=1
 )
 
 sketchybar --add item battery right \

@@ -6,6 +6,7 @@ shared_run_settings_conf=(
     icon.padding_left=1.5
     icon.padding_right=1.5
     icon.y_offset=2
+    display=1
 )
 
 run_settings_conf=(
@@ -69,4 +70,4 @@ sketchybar \
     --add item group_run_brave_browser left --set group_run_brave_browser "${run_brave_browser_conf[@]}" \
     --add item group_run_idea left --set group_run_idea "${run_idea_conf[@]}" \
     --add bracket runners_group '/group_run_.*/' \
-    --set runners_group
+    --set runners_group display=1

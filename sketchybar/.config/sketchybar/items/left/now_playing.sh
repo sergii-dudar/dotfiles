@@ -6,6 +6,7 @@ now_playing=(
     background.drawing=on
     label.color="$PLAYER_LABLE_COLOR"
     drawing=off
+    display=1
 )
 
 # Now Playing
