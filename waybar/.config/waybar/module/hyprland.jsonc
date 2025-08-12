@@ -110,6 +110,8 @@
             "^org.gnome.clocks(.*)": " 🕓 $1",
             "^org.gnome.Evince(.*)": " 📑 $1",
             "^org.gnome.Settings(.*)": " ⚙️ $1",
+            "^com.ghostty.float.htop_info(.*)": " 🔍 Btop",
+            "^com.ghostty.float.disc_ugd(.*)": " 💽 Disk",
             "^org.gnome.Calendar(.*)": " 📅 $1",
             "^htop_info(.*)": " 🚀 $1",
             "^disc_usage_info(.*)": " 🚀 $1",
