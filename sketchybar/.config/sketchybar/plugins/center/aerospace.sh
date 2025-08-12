@@ -6,7 +6,7 @@ source "$CONFIG_DIR/colors.sh"
 
 ws_clients_number="$(aerospace list-windows --workspace "$1" 2>/dev/null | wc -l | awk '{print $1}')"
 
-echo "ws: $1" > /tmp/logs.txt
+# echo "ws: $1" > /tmp/logs.txt
 
 if [ "$1" = "$FOCUSED_WORKSPACE" ] || [ "$1" = "$(aerospace list-workspaces --focused)" ]; then
     # Active ws

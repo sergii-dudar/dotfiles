@@ -9,7 +9,6 @@ ws_icons_size["7"]="18.0"
 ws_icons_size["8"]="18.0"
 ws_icons_size["9"]="18.0"
 
-sketchybar --add event aerospace_workspace_change
 for sid in $(aerospace list-workspaces --all); do
     if [ "$sid" = 'NSP' ]; then
         continue
@@ -18,8 +17,10 @@ for sid in $(aerospace list-workspaces --all); do
     ws_icon="${WS_ICONS[$sid]}"
     ws_icon_size="${ws_icons_size[$sid]}"
 
+    # trigger only new and prev ws helps to sketchybar ws item works much faster, as we reloading only 2 sub-items, instead all ws items
+    sketchybar --add event aerospace_workspace_change_"$sid"
     sketchybar --add item space."$sid" center \
-        --subscribe space."$sid" aerospace_workspace_change \
+        --subscribe space."$sid" aerospace_workspace_change_"$sid" \
         --set space."$sid" \
         background.color="$WS_DEFAULT_BG_COLOR" \
         background.corner_radius=1 \
