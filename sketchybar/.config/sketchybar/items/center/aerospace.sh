@@ -18,9 +18,9 @@ for sid in $(aerospace list-workspaces --all); do
     ws_icon="${WS_ICONS[$sid]}"
     ws_icon_size="${ws_icons_size[$sid]}"
 
-    sketchybar --add item space.$sid center \
-        --subscribe space.$sid aerospace_workspace_change \
-        --set space.$sid \
+    sketchybar --add item space."$sid" center \
+        --subscribe space."$sid" aerospace_workspace_change \
+        --set space."$sid" \
         background.color="$WS_DEFAULT_BG_COLOR" \
         background.corner_radius=1 \
         background.height=25 \
