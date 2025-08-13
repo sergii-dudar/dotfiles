@@ -73,6 +73,7 @@ source "$ITEM_DIR/right/battery.sh"
 source "$ITEM_DIR/right/volume.sh"
 source "$ITEM_DIR/right/brew.sh"
 source "$ITEM_DIR/right/input.sh"
+source "$ITEM_DIR/right/aerospace_keymode.sh"
 
 sketchybar --hotload on
 sketchybar --update

@@ -12,6 +12,7 @@ BLUETOOTH=" "
 RESTART=" "
 CLOCK=" "
 CALENDAR=" "
+KEYBOARD="􀞺 "
 QUESTION=""
 
 # Git Icons

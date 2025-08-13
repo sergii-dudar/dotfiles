@@ -74,7 +74,7 @@ require("lazy").setup({
         --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
         --{ import = "lazyvim.plugins.extras.lang.kotlin" },
         --{ import = "lazyvim.plugins.extras.lang.scala" },
-        --{ import = "lazyvim.plugins.extras.lang.typescript" },
+        { import = "lazyvim.plugins.extras.lang.typescript" },
 
         -- ========= util =========
         --{ import = "lazyvim.plugins.extras.util.rest" },

@@ -11,9 +11,12 @@ if [[ "$SENDER" == "mouse."* ]]; then
                 "left")
                     "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && sketchybar --trigger brew_update && exit'
                     ;;
-                "right")
+                "other")
                     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
                     ;;
+                    # "right")
+                    #     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
+                    #     ;;
             esac
             ;;
     esac
@@ -22,6 +25,7 @@ fi
 COUNT=$(brew outdated | wc -l | tr -d ' ')
 COLOR=$RED
 
+# echo "COUNT: $COUNT" > /tmp/logs.txt
 case "$COUNT" in
     [3-5][0-9])
         COLOR=$ORANGE
@@ -30,10 +34,10 @@ case "$COUNT" in
         COLOR=$YELLOW
         ;;
     [1-9])
-        COLOR=$WHITE
+        #COLOR=$WHITE
         ;;
     0)
-        COLOR="$DEFAULT_LABEL_COLOR" # $GREEN
+        #COLOR="$DEFAULT_LABEL_COLOR" # $GREEN
         COUNT="$PACKAGES_SYNC_OK"
         ;;
 esac

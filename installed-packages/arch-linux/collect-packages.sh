@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-info_path=~/dotfiles/arch/packages-sync
+info_path=~/dotfiles/arch
 
 # pacman -Qqe > "$info_path"/pkglist.txt
 # pacman -Qqe | grep -v -- '-git$' > "$info_path"/pkglist.txt
