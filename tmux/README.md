@@ -12,6 +12,16 @@
 
 ##### Custom session manager with session preview (based on `joshmedeski/sesh` and `sainnhe/tmux-fzf`)
 
+session manager have ability to:
+
+- search (with pewview) exists sessions
+- create new sessions from existing directory on system (with dir content preview), with ability to find by `fd`, `zoxide`
+- put custom session name (no such dir), and create this session
+- kill existing session
+- show in mixed mode (existing session, and dirs up that had session recently)
+
+###### Small demonstration
+
 - with exists session preview
 
 ![tmux-session-manager with files preview where session can be created etc](../screenshots/tmux/tmux-session-manager.png)
