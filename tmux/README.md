@@ -16,7 +16,7 @@
 
 ![tmux-session-manager with files preview where session can be created etc](../screenshots/tmux/tmux-session-manager.png)
 
-- with dir content preve to create new session
+- with dir content preview to create new session
 
 ![tmux-session-manager with ](../screenshots/tmux/tmux-session-manager-dirs-preview.png)
 
