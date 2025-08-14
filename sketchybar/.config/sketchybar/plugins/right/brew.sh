@@ -39,6 +39,7 @@ case "$COUNT" in
     0)
         #COLOR="$DEFAULT_LABEL_COLOR" # $GREEN
         COUNT="$PACKAGES_SYNC_OK"
+        COLOR="$DEFAULT_LABEL_COLOR"
         ;;
 esac
 
