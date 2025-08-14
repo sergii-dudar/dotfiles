@@ -23,7 +23,8 @@ if [[ "$SENDER" == "mouse."* ]]; then
 fi
 
 COUNT=$(brew outdated | wc -l | tr -d ' ')
-COLOR=$RED
+# COLOR=$RED
+COLOR="$DEFAULT_LABEL_COLOR"
 
 # echo "COUNT: $COUNT" > /tmp/logs.txt
 case "$COUNT" in
@@ -37,9 +38,7 @@ case "$COUNT" in
         #COLOR=$WHITE
         ;;
     0)
-        #COLOR="$DEFAULT_LABEL_COLOR" # $GREEN
         COUNT="$PACKAGES_SYNC_OK"
-        COLOR="$DEFAULT_LABEL_COLOR"
         ;;
 esac
 
