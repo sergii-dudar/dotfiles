@@ -5,6 +5,7 @@ set -euo pipefail
 APP_ID="$1"
 APP_NAME="$2"
 CURRENT_WORKSPACE=$(aerospace list-workspaces --focused)
+CONFIG_DIR="$HOME/.config/aerospace/"
 
 function get_window_id() {
     aerospace list-windows --all --format "%{window-id}%{right-padding} | '%{app-name}'" | \
@@ -38,13 +39,13 @@ function main() {
     if is_app_closed; then
         open -a "$APP_NAME"
         sleep 0.5
-        ~/.config/aerospace/size_and_center_float.sh "$APP_NAME"
+        "$CONFIG_DIR/size_and_center_float.sh" "$APP_NAME"
         #elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-bundle-id}" | grep -q "$APP_ID"; then
     elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-name}" | grep "$APP_NAME"; then
         move_app_to_scratchpad
     else
         focus_app
-        ~/.config/aerospace/size_and_center_float.sh "$APP_NAME"
+        "$CONFIG_DIR/size_and_center_float.sh" "$APP_NAME"
     fi
     sketchybar --trigger scratchpad_update
 }
