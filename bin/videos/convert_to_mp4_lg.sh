@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-INPUT=$1
+IN_FILE_NAME=$1
+OUTPUT_DIR=$2
 
-ffmpeg -i "$INPUT" \
+# echo "---------$IN_FILE_NAME"
+# echo "---------$OUTPUT_DIR/${IN_FILE_NAME}.mp4"
+
+ffmpeg -i "$IN_FILE_NAME" \
     -c:v copy \
     -c:a aac -b:a 192k \
     -movflags +faststart \
-    "con-${INPUT}.mp4"
+    "$OUTPUT_DIR/${IN_FILE_NAME}.mp4"
 
 # ffmpeg -i S01E001_Епізод\ 1.mkv -c copy -movflags +faststart S01E001_Епізод\ 1-02.mp4
 #
