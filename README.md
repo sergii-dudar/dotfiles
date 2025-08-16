@@ -22,7 +22,7 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 - Tiling WM: linux (X11) - [xmonad](xmonad/.config/xmonad) + [xmobar](xmobar/.config/xmobar), [awesome](awesome/.config/awesome), [qtile](qtile/.config/qtile), [bspwm](bspwm/.config/bspwm) + [polybar](polybar/.config/polybar), [i3](i3/.config/i3) + [polybar](polybar/.config/polybar), [DWM](https://github.com/sergii-dudar/my-dwm) + [dwmblocks-async](suckless/dwmblocks-async)
 - X11 compositor: [picom](picom/.config/picom)
 - Tiling WM: macos - [aerospace](aerospace/.config/aerospace) + [sketchybar](sketchybar/.config/sketchybar) + [janky-borders](janky-borders/.config/borders)
-- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim), theme - `everforest` bd `hard` (the most eyes comfortable theme ever used be me), also I'm big fan of `catppuccin-mocha` theme, but my eyes not very likes it to work 24/7 😺
+- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim), theme - `everforest`, bd - `hard` (the most eyes comfortable theme I ever used!), also I'm big fan of `catppuccin-mocha` theme, but my eyes not very like it to work 24/7 😺
 - Keyboard OS level tools: macos - [karabiner](karabiner/.config/karabiner), linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
 - HotKeys launchers daemon: macos - using [aerospace](aerospace/.config/aerospace) support, X11 - [sxhkd](sxhkd/.config/sxhkd)
 - Launchers (Wayland, X11): [rofi](rofi/.config/rofi) by using [fork with wayland support](https://github.com/in0ni/rofi-wayland)
