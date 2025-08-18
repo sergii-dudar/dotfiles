@@ -8,6 +8,11 @@ case "$APP" in
         cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify="📂 Yazi Manager"
         ;;
+    "mini_terminal")
+        class="com.scratchpad.mini_terminal"
+        cmd="ghostty --class=com.scratchpad.mini_terminal"
+        notify="🧑🏻‍💻 Mini Terminal"
+        ;;
     "music")
         class="com.scratchpad.music"
         cmd="ghostty --class=com.scratchpad.music -e rmpc"
