@@ -47,4 +47,3 @@ topWindow.bounds = windowBounds;
     '
 
 fi
-
