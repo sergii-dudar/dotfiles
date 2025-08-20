@@ -24,7 +24,7 @@ after-startup-command = [
 # Notify Sketchybar about workspace change
 exec-on-workspace-change = ['/opt/homebrew/bin/bash', '-c',
     # '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
-    
+ 
     # trigger only new and prev ws helps to sketchybar ws item works much faster, as we reloading only 2 sub-items, instead all ws items
     '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change_$AEROSPACE_FOCUSED_WORKSPACE FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE ; /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change_$AEROSPACE_PREV_WORKSPACE FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
 ]

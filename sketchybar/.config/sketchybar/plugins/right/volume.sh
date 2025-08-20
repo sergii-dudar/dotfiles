@@ -47,9 +47,13 @@ case $OUTPUT_NAME in
     'External Headphones')
         DEVICE_ICON="$VOL_DEVICE_EX_HEADPHONES"
         ;;
-    'USB'*|'CA DacMagic'*)
+    'USB'*)
+        DEVICE_ICON="$USB"
+        ;;
+    'CA DacMagic'*)
         DEVICE_ICON="$VOL_DEVICE_EX_DAC"
         ;;
+
     *) DEVICE_ICON="$QUESTION" ;;
 esac
 

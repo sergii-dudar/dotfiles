@@ -14,6 +14,7 @@ CLOCK=" "
 CALENDAR=" "
 KEYBOARD="􀞺 "
 QUESTION=""
+USB=" "
 
 # Git Icons
 GIT_ISSUE="􀍷 "
