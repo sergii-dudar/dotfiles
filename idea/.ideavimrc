@@ -275,11 +275,11 @@ map <leader>ms <Plug>(multicursor-mcr)
 
 "======================================================================================================================"
 "=============================================== 🄴🄰🅂🅈🄼🄾🅃🄸🄾🄽 🄿🄻🅄🄶🄸🄽 ========================================="
-iunmap s
-iunmap f
-iunmap F
-iunmap t
-iunmap T
+"iunmap s
+"iunmap f
+"iunmap F
+"iunmap t
+"iunmap T
 "iunmap <leader><leader>s
 "iunmap <leader><leader>f
 "iunmap <leader><leader>F
@@ -291,6 +291,11 @@ iunmap T
 "map s <Plug>(easymotion-s)
 
 nmap s <Plug>(easymotion-s)
+nmap <leader><leader>f <Plug>(easymotion-f)
+nmap <leader><leader>F <Plug>(easymotion-F)
+nmap <leader><leader>t <Plug>(easymotion-t)
+nmap <leader><leader>T <Plug>(easymotion-T)
+
 " nmap f <Plug>(easymotion-f)
 " nmap F <Plug>(easymotion-F)
 " nmap t <Plug>(easymotion-t)
@@ -358,7 +363,8 @@ let g:highlightedyank_highlight_duration = "300"
 let g:NERDTreeMapActivateNode='l'
 let g:NERDTreeMapJumpParent='h'
 
-nmap <leader>e :NERDTreeToggle<cr>
+nmap <leader>E :NERDTreeToggle<cr>
+nmap <leader>e <Action>(ActivateProjectToolWindow)
 
 nmap <leader>pw <Action>(ActivateProjectToolWindow)
 nmap <leader>pv <Action>(SelectInProjectView)
@@ -570,6 +576,13 @@ map <leader>cxv <Action>(IntroduceVariable)
 ""map <leader>iiv <Action>(IntroduceFunctionalVariable)
 ""map <leader>iop <Action>(IntroduceParameterObject)
 
+
+"================================================== BUILD: <leader>l ================================================"
+
+" refresh maven
+map <leader>rm <Action>(Maven.SyncIncrementally)
+
+
 "================================================== 🄻🄸🄽🄴: <leader>l ================================================"
 
 " Join with next line
@@ -630,6 +643,8 @@ nmap <C-Right> <Action>(ResizeToolWindowRight)
 
 "nmap <C-e> <Action>(GotoNextError)
 "nmap <A-e> <Action>(GotoPreviousError)
+nmap <leader>i <Action>(GotoNextError)
+nmap <leader>I <Action>(GotoPreviousError)
 
 "nmap <C-m> <Action>(MethodDown)
 "nmap <A-m> <Action>(MethodUp)
@@ -695,8 +710,8 @@ nmap <leader>fr <Action>(RecentFiles)
 nmap <leader>, <Action>(RecentFiles)
 nmap <leader>m <Action>(RecentFiles)
 
-iunmap <leader><leader>
-nmap <leader><leader> <Action>(RecentFiles)
+"iunmap <leader><leader>
+"nmap <leader><leader> <Action>(RecentFiles)
 
 nmap <leader>fR <Action>(RecentChangedFiles)
 nmap <leader>fL <Action>(RecentLocations)
