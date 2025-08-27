@@ -577,11 +577,12 @@ map <leader>cxv <Action>(IntroduceVariable)
 ""map <leader>iop <Action>(IntroduceParameterObject)
 
 
-"================================================== BUILD: <leader>l ================================================"
+"================================================== REFRESH: <leader>r ================================================"
 
 " refresh maven
 map <leader>rm <Action>(Maven.SyncIncrementally)
-
+map <leader>rM <Action>(Maven.Reimport)
+map <leader>Rm <Action>(ExternalSystem.ProjectRefreshAction)
 
 "================================================== 🄻🄸🄽🄴: <leader>l ================================================"
 
