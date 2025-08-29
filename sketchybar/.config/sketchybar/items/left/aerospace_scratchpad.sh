@@ -14,4 +14,4 @@ scratchpad=(
 sketchybar --add event scratchpad_update \
     --add item scratchpad left \
     --set scratchpad "${scratchpad[@]}" \
-    --subscribe scratchpad scratchpad_update
+    --subscribe scratchpad "${popup_events[@]}" scratchpad_update mouse.clicked
