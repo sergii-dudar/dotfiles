@@ -11,7 +11,7 @@ function load_outdated() {
 
 function refresh() {
     load_outdated
-    echo "update oudated 2" > /tmp/logs.txt
+    # echo "update oudated 2" > /tmp/logs.txt
     if [ -z "$OUTDATED" ]; then
         return
     fi
@@ -43,16 +43,13 @@ function refresh() {
 case "$SENDER" in
     "routine" | "forced")
         refresh
-        echo "refreshed" > /tmp/logs.txt
         ;;
     "mouse.entered")
         popup on
-        echo "popup on" > /tmp/logs.txt
         exit 0
         ;;
     "mouse.exited" | "mouse.exited.global")
         popup off
-        echo "popup off" > /tmp/logs.txt
         exit 0
         ;;
     "mouse.clicked")
@@ -77,7 +74,7 @@ COLOR="$DEFAULT_LABEL_COLOR"
 
 if [ -z "$OUTDATED_COUNT" ]; then
     load_outdated
-    echo "update oudated 1" > /tmp/logs.txt
+    # echo "update oudated 1" > /tmp/logs.txt
 fi
 
 # echo "COUNT: $COUNT" > /tmp/logs.txt
