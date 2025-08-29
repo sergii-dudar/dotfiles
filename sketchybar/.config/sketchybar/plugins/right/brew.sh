@@ -2,32 +2,86 @@
 
 source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/settings.sh"
 
-if [[ "$SENDER" == "mouse."* ]]; then
-    # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
-    case "$SENDER" in
-        "mouse.clicked")
-            case "$BUTTON" in
-                "left")
-                    "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && sketchybar --trigger brew_update && exit'
-                    ;;
-                "other")
-                    open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
-                    ;;
-                    # "right")
-                    #     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
-                    #     ;;
-            esac
-            ;;
-    esac
-fi
+function load_outdated() {
+    OUTDATED=$(/opt/homebrew/bin/brew update &>/dev/null ; /opt/homebrew/bin/brew outdated --verbose)
+    OUTDATED_COUNT=$(echo "$OUTDATED" | wc -l | tr -d ' ')
+}
 
-COUNT=$(brew outdated | wc -l | tr -d ' ')
+function refresh() {
+    load_outdated
+    echo "update oudated 2" > /tmp/logs.txt
+    if [ -z "$OUTDATED" ]; then
+        return
+    fi
+
+    # args=(--set "$NAME" icon.color="$RED")
+    args=(--set "$NAME")
+    if sketchybar --query "$NAME" | jq '.popup.items | length != 0'; then
+        args+=(--remove '/brew.popup\.*/')
+    fi
+
+    COUNTER=0
+    while IFS= read -r package; do
+        args+=(
+            --add item "$NAME".popup."$COUNTER" popup."$NAME"
+            --set "$NAME".popup."$COUNTER" \
+                label="${package}" \
+                label.color="$ACCENT_PRIMARY" \
+                background.padding_right=10 \
+                background.padding_left=10 \
+                background.drawing=off
+        )
+        COUNTER=$((COUNTER + 1))
+    done <<<"$OUTDATED"
+
+    sketchybar -m "${args[@]}" >/dev/null
+}
+
+# echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
+case "$SENDER" in
+    "routine" | "forced")
+        refresh
+        echo "refreshed" > /tmp/logs.txt
+        ;;
+    "mouse.entered")
+        popup on
+        echo "popup on" > /tmp/logs.txt
+        exit 0
+        ;;
+    "mouse.exited" | "mouse.exited.global")
+        popup off
+        echo "popup off" > /tmp/logs.txt
+        exit 0
+        ;;
+    "mouse.clicked")
+        case "$BUTTON" in
+            "left")
+                # refresh
+                popup off
+                # "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && /opt/homebrew/bin/brew cleanup && sketchybar --trigger brew_update && exit'
+                ;;
+            "other")
+                open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
+                ;;
+                # "right")
+                #     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
+                #     ;;
+        esac
+        ;;
+esac
+
 # COLOR=$RED
 COLOR="$DEFAULT_LABEL_COLOR"
 
+if [ -z "$OUTDATED_COUNT" ]; then
+    load_outdated
+    echo "update oudated 1" > /tmp/logs.txt
+fi
+
 # echo "COUNT: $COUNT" > /tmp/logs.txt
-case "$COUNT" in
+case "$OUTDATED_COUNT" in
     [3-5][0-9])
         COLOR=$ORANGE
         ;;
@@ -38,10 +92,10 @@ case "$COUNT" in
         #COLOR=$WHITE
         ;;
     0)
-        COUNT="$PACKAGES_SYNC_OK"
+        OUTDATED_COUNT="$PACKAGES_SYNC_OK"
         ;;
 esac
 
 sketchybar --set "$NAME" \
-    label="$COUNT" \
+    label="$OUTDATED_COUNT" \
     label.color="$COLOR"

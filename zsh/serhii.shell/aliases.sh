@@ -16,6 +16,7 @@ alias lsraw='eza --oneline --color=never --icons=never'
 # alias l...='eza -al --icons --color=always --group-directories-first ../../../' # ls on directory 3 levels up
 
 alias music="rmpc" # "ncmpcpp"
+alias top="btop"
 
 alias yaziu="cargo install --locked yazi-fm yazi-cli"
 if isMacOs; then

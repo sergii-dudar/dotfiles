@@ -352,9 +352,19 @@ map gb <Action>(CommentByBlockComment)
 "=========================================== 🄷🄸🄶🄷🄻🄸🄶🄷🅃🄴🄳🅈🄰🄽🄺 🄿🄻🅄🄶🄸🄽 ====================================="
 
 " https://github.com/machakann/vim-highlightedyank/blob/master/doc/highlightedyank.txt"
+"rgba(172, 205, 218, 1)
+
+"let g:highlightedyank_highlight_color = "rgba(135, 62, 35, 255)"
+"let g:highlightedyank_highlight_color = "rgba(55, 82, 80, 0.8)"
+let g:highlightedyank_highlight_color = "rgba(143, 73, 73, 255)"
+
+" let g:highlightedyank_highlight_foreground_color = "rgba(0, 0, 0, 255)"
 
 "let g:highlightedyank_highlight_color = "rgba(172, 205, 218, 1)""
-let g:highlightedyank_highlight_duration = "300"
+let g:highlightedyank_highlight_duration = "500"
+"let g:highlightedyank_highlight_in_visual = 0
+
+
 
 "======================================================================================================================"
 "================================================= 🄽🄴🅁🄳🅃🅁🄴🄴 🄿🄻🅄🄶🄸🄽 ==========================================="
@@ -582,6 +592,7 @@ map <leader>cxv <Action>(IntroduceVariable)
 " refresh maven
 map <leader>rm <Action>(Maven.SyncIncrementally)
 map <leader>rM <Action>(Maven.Reimport)
+map <leader>rv <Action>(IdeaVim.ReloadVimRc.reload)
 map <leader>Rm <Action>(ExternalSystem.ProjectRefreshAction)
 
 "================================================== 🄻🄸🄽🄴: <leader>l ================================================"

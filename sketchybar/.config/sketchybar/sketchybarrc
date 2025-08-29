@@ -27,6 +27,7 @@ default=(
     #label.padding_right=4
     label.y_offset=2
     icon.y_offset=1
+
     background.height=22
     background.corner_radius=2
     background.color="$DEFAULT_BACKGROUND_COLOR"
@@ -34,12 +35,14 @@ default=(
     background.padding_left=0
     background.padding_right=0
     background.border_width=0
+
     popup.background.border_width=2
     popup.background.corner_radius=9
     popup.background.border_color="$POPUP_BORDER_COLOR"
     popup.background.color="$POPUP_BACKGROUND_COLOR"
     popup.blur_radius=20
     popup.background.shadow.drawing=on
+
     scroll_texts=on
 )
 sketchybar --default "${default[@]}"

@@ -24,3 +24,13 @@ center_items_common=(
     label.padding_left=0
     label.padding_right=10
 )
+
+popup_events=(
+    mouse.entered
+    mouse.exited
+    mouse.exited.global
+)
+
+popup() {
+    sketchybar --set "$NAME" popup.drawing="$1"
+}
