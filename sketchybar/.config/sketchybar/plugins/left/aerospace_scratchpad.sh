@@ -4,6 +4,9 @@ source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/settings.sh"
 
+# POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
+POPUP_OFF="sketchybar --set scratchpad popup.drawing=off"
+
 # COUNT="$(aerospace list-windows --workspace "NSP" 2>/dev/null | wc -l | awk '{print $1}')"
 function load_scratchpad_info() {
     SCRATCHPAD_APPS=$(aerospace list-windows --workspace "NSP" 2>/dev/null)
@@ -43,6 +46,13 @@ function refresh() {
         #     "Terminal")    icon="💻" ;;
         #     *)             icon="❓" ;;
         # esac
+        # '~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
+        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi "Google Chat"'
+        # '~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
+        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna "Monkeytype"'
+        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn "VimHero"'
+        # '~/.config/aerospace/scratchpad.sh com.apple.Music Music'
+
 
         args+=(
             --add item "$NAME".popup."$COUNTER" popup."$NAME"
@@ -52,8 +62,9 @@ function refresh() {
                 label.color="$ACCENT_PRIMARY" \
                 background.padding_right=10 \
                 background.padding_left=10 \
-                background.drawing=off
-        )
+                background.drawing=off \
+                click_script="open -a 'System Preferences' ; $POPUP_OFF" \
+            )
         COUNTER=$((COUNTER + 1))
 
         # echo "$icon $name"
