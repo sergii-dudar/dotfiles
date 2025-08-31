@@ -19,8 +19,16 @@
     # light = true
 
 [merge]
-    conflictstyle = diff3
-    tool = vimdiff
+    # conflictstyle = diff3
+    # tool = vimdiff
+    tool = diffview
+
+[mergetool]
+  prompt = false
+  keepBackup = false
+
+[mergetool "diffview"]
+  cmd = nvim -n -c "DiffviewOpen" "$MERGE"
 
 [diff]
     colorMoved = default

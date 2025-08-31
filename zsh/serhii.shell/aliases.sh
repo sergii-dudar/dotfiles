@@ -88,7 +88,7 @@ alias short='tldr'
 alias vim="nvim"
 alias vi="nvim"
 alias vit="nvim -p"
-alias vimdiff='nvim -d'
+# alias vimdiff='nvim -d'
 alias lg="lazygit"
 
 # alias fz="fzf --preview='bat {}'"

@@ -1,71 +1,16 @@
 #!/bin/env bash
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-SUSPEND="⏸ Sleep"
 LOCK="🔒 Lock"
-||||||| 5b7a224
-LOCK="🔒 Lock"
-=======
->>>>>>> 2c36dce27891f309248a02d44d3e68922ec77b97
-LOGOUT="🚪 Logout"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-LOCK="🔒 Lock"
-||||||| 5b7a224
-LOCK="🔒 Lock"
-=======
->>>>>>> 2c36dce27891f309248a02d44d3e68922ec77b97
 LOGOUT="🚪 Logout"
 SUSPEND="⏸ Sleep"
 REBOOT="🔁 Restart"
 SHUTDOWN="⛔ Shutdown"
-<<<<<<< HEAD
-<<<<<<< HEAD
-LOCK="🔒 Lock"
-SUSPEND="⏸ Sleep"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-LOGOUT="🚪 Logout"
-||||||| 5b7a224
-=======
-LOCK="🔒 Lock"
-LOGOUT="🚪 Logout"
-LOGOUT="🚪 Logout"
-SUSPEND="⏸ Sleep"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-SUSPEND="⏸ Sleep"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-LOGOUT="🚪 Logout"
->>>>>>> 2c36dce27891f309248a02d44d3e68922ec77b97
-||||||| 5b7a224
-=======
-LOCK="🔒 Lock"
-LOGOUT="🚪 Logout"
-LOGOUT="🚪 Logout"
-SUSPEND="⏸ Sleep"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-SUSPEND="⏸ Sleep"
-REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-LOGOUT="🚪 Logout"
->>>>>>> 2c36dce27891f309248a02d44d3e68922ec77b97
 
 choice=$(printf "$LOCK\n$LOGOUT\n$SUSPEND\n$REBOOT\n$SHUTDOWN" | rofi -dmenu)
 case "$choice" in
     "$LOCK") sh $HOME/dotfiles/bin/screen-lock ;;
     "$LOGOUT") pkill -KILL -u "$USER" ;;
     "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
-<<<<<<< HEAD
-    "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
-    "$REBOOT") systemctl reboot ;;
-||||||| 5b7a224
-=======
-    "$SUSPEND") systemctl suspend && sh $HOME/dotfiles/bin/screen-lock ;;
->>>>>>> 2c36dce27891f309248a02d44d3e68922ec77b97
     "$REBOOT") systemctl reboot ;;
     "$SHUTDOWN") systemctl poweroff ;;
 esac
