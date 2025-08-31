@@ -4,7 +4,7 @@
 	pager = delta
 
 [user]
-	name = serhii.dudar
+	name = Serhii Dudar
 	email = shtanga.net@gmail.com
 
 [interactive]
@@ -19,16 +19,21 @@
     # light = true
 
 [merge]
-    # conflictstyle = diff3
+    conflictstyle = diff3
     # tool = vimdiff
-    tool = diffview
+    # tool = diffview
+    tool = "nvim"
+
+[alias]
+    # Thanks r00k, this creates a pretty graph view of the log
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
 
 [mergetool]
-  prompt = false
-  keepBackup = false
+    prompt = false
+    keepBackup = false
 
-[mergetool "diffview"]
-  cmd = nvim -n -c "DiffviewOpen" "$MERGE"
+[mergetool "nvim"]
+    cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
 
 [diff]
     colorMoved = default

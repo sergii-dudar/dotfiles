@@ -8,7 +8,6 @@ SHUTDOWN="⛔ Shutdown"
 
 LOCK="🔒 Lock"
 LOGOUT="🚪 Logout"
-SUSPEND="⏸ Sleep"
 REBOOT="🔁 Restart"
 SHUTDOWN="⛔ Shutdown"
 
