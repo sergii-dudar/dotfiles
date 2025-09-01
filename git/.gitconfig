@@ -7,37 +7,47 @@
 	name = Serhii Dudar
 	email = shtanga.net@gmail.com
 
-[interactive]
-    diffFilter = delta --color-only
+; [diff]
+;     colorMoved = default
+;
+; [pull]
+;     rebase = true
+;     default = current
 
-[delta]
-    navigate = true    # use n and N to move between diff sections
-    line-numbers = true
+[push]
+    autoSetupRemote = true  # easier to push new branches
+    default = current  # push only current branch by default
+    # followTags = true  # push also tags
 
-    # delta detects terminal colors automatically; set one of these to disable auto-detection
-    # dark = true
-    # light = true
+[rebase]
+    autoStash = true
+    missingCommitsCheck = warn  # warn if rebasing with missing commits
+
+[init]
+    defaultBranch = main
+
+#################
 
 [merge]
+    tool = nvimdiff
     conflictstyle = diff3
-    # tool = vimdiff
-    # tool = diffview
-    tool = "nvim"
 
-[alias]
-    st = status -sb
-    # lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --decorate --date=short --color --decorate
-
-[mergetool]
-    prompt = false
-    keepBackup = false
-
-[mergetool "nvim"]
-    cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
+[mergetool "nvimdiff"]
+    cmd = nvim -d $BASE $LOCAL $REMOTE $MERGED -c 'wincmd J' -c 'wincmd h' -c 'bufdo diffthis'
 
 [diff]
+    tool = nvimdiff
     colorMoved = default
 
-[pull]
-	rebase = false
+[core]
+    pager = delta
+
+[delta]
+    navigate = true
+    light = false
+    side-by-side = true
+    line-numbers = true
+    syntax-theme = gruvbox-dark
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-style = file line-number syntax

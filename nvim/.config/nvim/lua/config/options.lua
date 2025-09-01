@@ -85,6 +85,10 @@ function open_tree_on_start()
     end
 end
 
+-- Improve diff experience
+-- vim.opt.diffopt:append("algorithm:patience")
+-- vim.opt.diffopt:append("indent-heuristic")
+
 if vim.o.diff then
     -- vim.notify("Started in diff mode!", vim.log.levels.INFO)
     return
