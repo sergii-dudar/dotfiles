@@ -20,7 +20,7 @@
     # followTags = true  # push also tags
 
 [rebase]
-    autoStash = true
+    # autoStash = true
     missingCommitsCheck = warn  # warn if rebasing with missing commits
 
 [init]
@@ -29,11 +29,12 @@
 #################
 
 [merge]
-    tool = nvimdiff
-    conflictstyle = diff3
+    tool = nvimdiff # nvimdiff, vimdiff
+    # conflictstyle = diff3
 
 [mergetool "nvimdiff"]
-    cmd = nvim -d $BASE $LOCAL $REMOTE $MERGED -c 'wincmd J' -c 'wincmd h' -c 'bufdo diffthis'
+    # cmd = nvim -u NONE -d $BASE $LOCAL $REMOTE $MERGED -c 'wincmd J' -c 'wincmd h' -c 'bufdo diffthis'
+    cmd = nvim -u NONE -d $LOCAL $BASE $REMOTE $MERGED
 
 [diff]
     tool = nvimdiff
