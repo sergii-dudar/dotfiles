@@ -1,12 +1,10 @@
-#!/bin/env bash
+#!/bin/env123 bash
 
 LOCK="🔒 Lock"
 LOGOUT="🚪 Logout"
 SUSPEND="⏸ Sleep"
 REBOOT="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
-REBOOT2="🔁 Restart"
-SHUTDOWN2="⛔ Shutdown"
+
 
 choice=$(printf "$LOCK\n$LOGOUT\n$SUSPEND\n$REBOOT\n$SHUTDOWN" | rofi -dmenu)
 case "$choice" in
