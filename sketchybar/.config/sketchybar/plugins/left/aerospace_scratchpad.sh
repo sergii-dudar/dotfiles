@@ -4,10 +4,6 @@ source "$CONFIG_DIR/icons.sh"
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/settings.sh"
 
-# POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
-POPUP_OFF="sketchybar --set scratchpad popup.drawing=off"
-
-# COUNT="$(aerospace list-windows --workspace "NSP" 2>/dev/null | wc -l | awk '{print $1}')"
 function load_scratchpad_info() {
     SCRATCHPAD_APPS=$(aerospace list-windows --workspace "NSP" 2>/dev/null)
     SCRATCHPAD_COUNT=$(echo "$SCRATCHPAD_APPS" | wc -l | awk '{print $1}')
@@ -16,15 +12,11 @@ function load_scratchpad_info() {
 function refresh() {
     load_scratchpad_info
 
-    echo "update oudated 2" > /tmp/logs.txt
-
     if [ -z "$SCRATCHPAD_APPS" ]; then
         return
     fi
 
-
-    args=(--set "$NAME")
-    args+=(--remove '/scratchpad.popup\.*/')
+    args=(--remove '/scratchpad.popup\.*/' )
 
     local counter=0
     while IFS='|' read -r id label rest; do
@@ -50,8 +42,7 @@ function refresh() {
             esac
         fi
 
-        # click_script="open -a 'System Preferences' ; $POPUP_OFF" \
-            args+=(\
+        args+=(\
                 --add item "$NAME".popup."$counter" popup."$NAME" \
                 --set "$NAME".popup."$counter" \
                 label="$label" \
@@ -61,13 +52,12 @@ function refresh() {
                 label.color="$ACCENT_PRIMARY" \
                 background.padding_right=10 \
                 background.padding_left=10 \
-                background.drawing=off \
+                background.drawing=off\
             )
         counter=$((counter + 1))
 
     done <<< "$SCRATCHPAD_APPS"
 
-    echo "${args[@]}" > /tmp/logs.txt
     sketchybar -m "${args[@]}" >/dev/null
 }
 
@@ -88,7 +78,6 @@ esac
 
 if [ -z "$SCRATCHPAD_COUNT" ]; then
     load_scratchpad_info
-    echo "update oudated 1" > /tmp/logs.txt
 fi
 
 sketchybar --set "$NAME" \

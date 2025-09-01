@@ -17,8 +17,8 @@ function refresh() {
     fi
 
     # args=(--set "$NAME" icon.color="$RED")
-    args=(--set "$NAME")
-    if sketchybar --query "$NAME" | jq '.popup.items | length != 0'; then
+    args=()
+    if sketchybar --query "$NAME" | jq '.popup.items | length != 0' | rg -q true; then
         args+=(--remove '/brew.popup\.*/')
     fi
 
