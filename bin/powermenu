@@ -6,7 +6,6 @@ SUSPEND="⏸ Sleep"
 REBOOT="🔁 Restart"
 SUSPEND1="⏸ Sleep"
 REBOOT1="🔁 Restart"
-SHUTDOWN="⛔ Shutdown"
 REBOOT2="🔁 Restart"
 SHUTDOWN2="⛔ Shutdown"
 
