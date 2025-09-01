@@ -1,0 +1,56 @@
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+	pager = delta
+
+[color]
+    ui = auto
+
+[user]
+	name = IUADA144
+	email = serhii.dudar@raiffeisen.ua
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true    # use n and N to move between diff sections
+    line-numbers = true
+    # delta detects terminal colors automatically; set one of these to disable auto-detection
+    # dark = true
+    # light = true
+
+[merge]
+    conflictstyle = diff3
+    tool = "nvim" # vimdiff, diffview
+
+[alias]
+    st = status -sb
+    # lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --decorate --date=short --color --decorate
+
+[mergetool]
+    prompt = false
+    keepBackup = false
+
+[mergetool "nvim"]
+    cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
+
+[diff]
+    colorMoved = default
+
+[pull]
+    rebase = true
+    default = current
+
+[push]
+    autoSetupRemote = true  # easier to push new branches
+    default = current  # push only current branch by default
+    # followTags = true  # push also tags
+
+[rebase]
+    autoStash = true
+    missingCommitsCheck = warn  # warn if rebasing with missing commits
+
+[init]
+    defaultBranch = main

@@ -36,6 +36,7 @@ edit = [
     { run = 'subl "$@"', desc = "Sublime", for = "unix" },
     { run = 'code %*', orphan = true, desc = "code", for = "windows" },
     { run = 'code -w %*', block = true, desc = "code (block)", for = "windows" },
+    { run = 'nvim -d "$@"', desc = "Merge [selected file]", block = true, for = "unix" },
 ]
 folder = [
     #{ run = '${EDITOR:=vi} "$@"', desc = "NeoVim", block = true, for = "unix" },
