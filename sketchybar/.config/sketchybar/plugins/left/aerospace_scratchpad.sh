@@ -6,7 +6,7 @@ source "$CONFIG_DIR/settings.sh"
 
 function load_scratchpad_info() {
     SCRATCHPAD_APPS=$(aerospace list-windows --workspace "NSP" 2>/dev/null)
-    SCRATCHPAD_COUNT=$(echo "$SCRATCHPAD_APPS" | wc -l | awk '{print $1}')
+    SCRATCHPAD_COUNT=$(echo "$SCRATCHPAD_APPS" | rg -v '^$' | wc -l | awk '{print $1}')
 }
 
 function refresh() {
