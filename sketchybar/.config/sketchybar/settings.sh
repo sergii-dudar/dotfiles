@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+ICON_FONT="CaskaydiaCove Nerd Font:Bold:17.0"
+ICON_APP_FONT="sketchybar-app-font:Regular:18.0"
+LABEL_FONT="CaskaydiaCove Nerd Font:Bold:16.0"
+
 right_items_common=(
     icon.padding_left=6
     icon.padding_right=5

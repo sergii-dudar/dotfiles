@@ -10,7 +10,7 @@ POPUP_OFF="sketchybar --set scratchpad popup.drawing=off"
 # COUNT="$(aerospace list-windows --workspace "NSP" 2>/dev/null | wc -l | awk '{print $1}')"
 function load_scratchpad_info() {
     SCRATCHPAD_APPS=$(aerospace list-windows --workspace "NSP" 2>/dev/null)
-    SCRATCHPAD_COUNT=$($SCRATCHPAD_APPS | wc -l | awk '{print $1}')
+    SCRATCHPAD_COUNT=$(echo "$SCRATCHPAD_APPS" | wc -l | awk '{print $1}')
 }
 
 function refresh() {
@@ -26,84 +26,70 @@ function refresh() {
     args=(--set "$NAME")
     args+=(--remove '/scratchpad.popup\.*/')
 
-    COUNTER=0
-    while IFS='|' read -r id name rest; do
+    local counter=0
+    while IFS='|' read -r id label rest; do
         # trim leading/trailing spaces
-        name="${name#"${name%%[![:space:]]*}"}"
-        name="${name%"${name##*[![:space:]]}"}"
+        label="${label#"${label%%[![:space:]]*}"}"
+        label="${label%"${label##*[![:space:]]}"}"
 
-        icon=$("$CONFIG_DIR"/scripts/icon_map_fn.sh "$name")
+        icon=$("$CONFIG_DIR"/scripts/icon_map_fn.sh "$label")
+        icon_font="$ICON_APP_FONT"
 
-        # iTerm
-        # Google Chat
-        # Sublime Text
-        # Monkeytype
-        # VimHero
+        if [ "$icon" = ":default:" ]; then
+            case "$label" in
+                "Google Chat")
+                    icon=":messages:" # :messages: :messenger:
+                    ;;
+                "Monkeytype")
+                    icon=" "
+                    icon_font="$ICON_FONT"
+                    ;;
+                "VimHero")
+                    icon=":neovim:"
+                    ;;
+            esac
+        fi
 
-        # case $name in
-        #     "Google Chat") icon="💬" ;;
-        #     "Monkey Type") icon="🐒" ;;
-        #     "Terminal")    icon="💻" ;;
-        #     *)             icon="❓" ;;
-        # esac
-        # '~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
-        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi "Google Chat"'
-        # '~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
-        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna "Monkeytype"'
-        # '~/.config/aerospace/scratchpad.sh com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn "VimHero"'
-        # '~/.config/aerospace/scratchpad.sh com.apple.Music Music'
-
-
-        args+=(
-            --add item "$NAME".popup."$COUNTER" popup."$NAME"
-            --set "$NAME".popup."$COUNTER" \
-                label="$name" \
+        # click_script="open -a 'System Preferences' ; $POPUP_OFF" \
+            args+=(\
+                --add item "$NAME".popup."$counter" popup."$NAME" \
+                --set "$NAME".popup."$counter" \
+                label="$label" \
+                icon.font="$icon_font" \
                 icon="$icon" \
+                icon.padding_right=6 \
                 label.color="$ACCENT_PRIMARY" \
                 background.padding_right=10 \
                 background.padding_left=10 \
                 background.drawing=off \
-                click_script="open -a 'System Preferences' ; $POPUP_OFF" \
             )
-        COUNTER=$((COUNTER + 1))
+        counter=$((counter + 1))
 
-        # echo "$icon $name"
     done <<< "$SCRATCHPAD_APPS"
 
+    echo "${args[@]}" > /tmp/logs.txt
     sketchybar -m "${args[@]}" >/dev/null
 }
 
 # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
 case "$SENDER" in
-    "routine" | "forced" | "scratchpad_update")
-        refresh
-        echo "refreshed" > /tmp/logs.txt
-        ;;
     "mouse.entered")
         popup on
-        echo "focused" > /tmp/logs.txt
         exit 0
         ;;
-    "mouse.exited" | "mouse.exited.global")
+    "mouse.exited" | "mouse.exited.global" | "mouse.clicked")
         popup off
-        echo "focuse exited" > /tmp/logs.txt
         exit 0
         ;;
-    "mouse.clicked")
-        popup off
-        echo "clicked" > /tmp/logs.txt
-        exit 0
+    *)
+        refresh
         ;;
 esac
-
-
 
 if [ -z "$SCRATCHPAD_COUNT" ]; then
     load_scratchpad_info
     echo "update oudated 1" > /tmp/logs.txt
 fi
-
-# COUNT="$(aerospace list-windows --workspace "NSP" 2>/dev/null | wc -l | awk '{print $1}')"
 
 sketchybar --set "$NAME" \
     label="$SCRATCHPAD_COUNT"

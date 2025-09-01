@@ -36,14 +36,13 @@ function refresh() {
         COUNTER=$((COUNTER + 1))
     done <<<"$OUTDATED"
 
+    # echo "rendering" > /tmp/logs.txt
     sketchybar -m "${args[@]}" >/dev/null
+    # echo "rendered" > /tmp/logs.txt
 }
 
 # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
 case "$SENDER" in
-    "routine" | "forced")
-        refresh
-        ;;
     "mouse.entered")
         popup on
         exit 0
@@ -66,6 +65,9 @@ case "$SENDER" in
                 #     open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'
                 #     ;;
         esac
+        ;;
+    *)
+        refresh
         ;;
 esac
 
