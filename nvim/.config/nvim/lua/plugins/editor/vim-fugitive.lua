@@ -1,9 +1,9 @@
-return {
-    "tpope/vim-fugitive",
-    cmd = { "Git", "G" },
-}
+return {}
+-- return {
+--     "tpope/vim-fugitive",
+--     cmd = { "Git", "G" },
+-- }
 
--- return {}
 -- return {
 --     "tpope/vim-fugitive",
 --     -- enabled = false,

@@ -3,9 +3,6 @@
 	autocrlf = input
 	pager = delta
 
-[color]
-    ui = auto
-
 [user]
 	name = IUADA144
 	email = serhii.dudar@raiffeisen.ua
@@ -20,23 +17,10 @@
     # dark = true
     # light = true
 
-[merge]
-    tool = "nvim" # vimdiff, diffview
-    conflictstyle = diff3
-
 [alias]
     st = status -sb
     # lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --decorate --date=short --color --decorate
-
-[mergetool]
-    prompt = false
-    keepBackup = false
-
-[mergetool "nvim"]
-    # cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
-    # cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
-    cmd = nvim -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J'
 
 [diff]
     colorMoved = default
@@ -56,3 +40,21 @@
 
 [init]
     defaultBranch = main
+
+###### ===============
+
+[merge]
+    tool = "nvimdiff" # vimdiff, diffview
+    # tool = vimdiff # diffview
+    conflictstyle = diff3
+
+[mergetool]
+    prompt = false
+    keepBackup = false
+
+[mergetool "nvimdiff"]
+    cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
+    # cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+    # cmd = nvim -d $LOCAL $BASE $REMOTE $MERGED -c 'wincmd J'
+    # cmd = "nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c 'wincmd l' -c 'wincmd l' -c 'wincmd k'"
+    trustExitCode = true
