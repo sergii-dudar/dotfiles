@@ -1,6 +1,7 @@
 #!/bin/env bash
 
 LOCK="🔒 Lock"
+LOGOUT="🚪 Logout"
 SUSPEND="⏸ Sleep"
 <<<<<<< HEAD
 LOGOUT1="🚪 Logout"
@@ -10,9 +11,16 @@ LOGOUT="🚪 Logout"
 =======
 REBOOT="🔁 Restart"
 <<<<<<< HEAD
+<<<<<<< HEAD
 LOGOUT="🚪 Logout"
 >>>>>>> 3be94ed (fix powermenu)
+||||||| parent of 3df9324 (changes)
+<<<<<<< HEAD
+LOGOUT="🚪 Logout"
+=======
+>>>>>>> 3df9324 (changes)
 SHUTDOWN="⛔ Shutdown"
+<<<<<<< HEAD
 <<<<<<< HEAD
 REBOOT="🔁 Restart"
 ||||||| parent of 3be94ed (fix powermenu)
@@ -26,6 +34,17 @@ SHUTDOWN2="⛔ Shutdown"
 SHUTDOWN="⛔ Shutdown"
 >>>>>>> 3a2014e (fix powermenu)
 >>>>>>> 3be94ed (fix powermenu)
+||||||| parent of 3df9324 (changes)
+||||||| parent of 3a2014e (fix powermenu)
+SUSPEND1="⏸ Sleep"
+REBOOT1="🔁 Restart"
+REBOOT2="🔁 Restart"
+SHUTDOWN2="⛔ Shutdown"
+=======
+SHUTDOWN="⛔ Shutdown"
+>>>>>>> 3a2014e (fix powermenu)
+=======
+>>>>>>> 3df9324 (changes)
 
 choice=$(printf "$LOCK\n$LOGOUT\n$SUSPEND\n$REBOOT\n$SHUTDOWN" | rofi -dmenu)
 case "$choice" in
