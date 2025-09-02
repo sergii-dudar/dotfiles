@@ -10,6 +10,9 @@
 [interactive]
     diffFilter = delta --color-only
 
+[init]
+    defaultBranch = main
+
 [delta]
     navigate = true    # use n and N to move between diff sections
     line-numbers = true
@@ -19,7 +22,17 @@
     # light = true
 
 [merge]
-    conflictstyle = diff3
+    # tool = vimdiff
+    tool = "nvimdiff"
+    # conflictstyle = diff3
+
+[mergetool]
+	keepBackup = false
+	prompt = false
+
+[mergetool "nvimdiff"]
+    # cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
+    cmd = nvim -n -c "DiffviewOpen" "$MERGE"
 
 [diff]
     colorMoved = default
