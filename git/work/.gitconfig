@@ -7,6 +7,11 @@
 	name = IUADA144
 	email = serhii.dudar@raiffeisen.ua
 
+[alias]
+    st = status -sb
+    # lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --decorate --date=short --color --decorate
+
 [interactive]
     diffFilter = delta --color-only
 
@@ -16,26 +21,48 @@
 [delta]
     navigate = true    # use n and N to move between diff sections
     line-numbers = true
-
+    light = false
+    side-by-side = false
+    line-numbers = true
+    syntax-theme = gruvbox-dark
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-style = file line-number syntax
     # delta detects terminal colors automatically; set one of these to disable auto-detection
     # dark = true
     # light = true
 
 [merge]
-    # tool = vimdiff
-    tool = "nvimdiff"
-    # conflictstyle = diff3
+    tool = diffview # diffview|nvimdiff|vimdiff
+    conflictstyle = diff3
 
 [mergetool]
 	keepBackup = false
 	prompt = false
 
-[mergetool "nvimdiff"]
-    # cmd = "nvim -d -c \"wincmd l\" -c \"norm ]c\" \"$LOCAL\" \"$MERGED\" \"$REMOTE\""
+[mergetool "diffview"]
     cmd = nvim -n -c "DiffviewOpen" "$MERGE"
+    trustExitCode = true
+
+# need have configured [https://github.com/akinsho/git-conflict.nvim] or similar solution to works with conflicts, I prefer diffview
+[mergetool "nvimdiff"]
+    cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+    trustExitCode = true
 
 [diff]
     colorMoved = default
+    tool = nvimdiff
 
 [pull]
-	rebase = false
+    # rebase = false
+    rebase = true
+    default = current
+
+[rebase]
+    autoStash = true
+    missingCommitsCheck = warn  # warn if rebasing with missing commits
+
+[push]
+    autoSetupRemote = true  # easier to push new branches
+    default = current  # push only current branch by default
+    # followTags = true  # push also tags
