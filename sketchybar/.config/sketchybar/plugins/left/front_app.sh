@@ -11,7 +11,7 @@ if [ "$SENDER" = "front_app_switched" ]; then
             ICON_COLOR=0xff4E49EE
             ICON_FONT_SIZE=20
             ;;
-        :idea:) ICON_COLOR=0xff8caaee ;;
+        :idea:) ICON_COLOR=0xffa6d189 ;;
         :brave_browser:)
             ICON_COLOR=0xfff38ba8
             ICON_FONT_SIZE=18
