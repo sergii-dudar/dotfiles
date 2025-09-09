@@ -14,7 +14,7 @@ function refresh() {
     # echo "update oudated 2" > /tmp/logs.txt
     if [ -z "$OUTDATED" ]; then
         sketchybar -m --remove '/brew.popup\.*/' >/dev/null
-        echo "cleared" > /tmp/logs.txt
+        # echo "cleared" > /tmp/logs.txt
         return
     fi
 
@@ -40,7 +40,6 @@ function refresh() {
 
     echo "rendering" > /tmp/logs.txt
     sketchybar -m "${args[@]}" >/dev/null
-    echo "rendered" > /tmp/logs.txt
 }
 
 # echo "sender: $SENDER, button: $BUTTON, modifier: $MODIFIER, scroll_delta: $SCROLL_DELTA" > /tmp/logs.txt
@@ -58,7 +57,8 @@ case "$SENDER" in
             "left")
                 # refresh
                 popup off
-                "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && /opt/homebrew/bin/brew cleanup && sketchybar --trigger brew_update && exit'
+                # "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew update && /opt/homebrew/bin/brew upgrade && /opt/homebrew/bin/brew cleanup && sketchybar --trigger brew_update && exit'
+                "$CONFIG_DIR"/scripts/run_external_bash.sh '/opt/homebrew/bin/brew upgrade && /opt/homebrew/bin/brew cleanup && sketchybar --trigger brew_update && exit'
                 ;;
             "other")
                 open 'x-apple.systempreferences:com.apple.Software-Update-Settings.extension'

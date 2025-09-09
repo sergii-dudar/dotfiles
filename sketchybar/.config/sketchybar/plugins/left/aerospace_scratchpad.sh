@@ -80,5 +80,12 @@ if [ -z "$SCRATCHPAD_COUNT" ]; then
     load_scratchpad_info
 fi
 
+# if [ -z "$SCRATCHPAD_APPS" ]; then
+#     DRAWING=off
+# else
+#     DRAWING=on
+# fi
+
 sketchybar --set "$NAME" \
     label="$SCRATCHPAD_COUNT"
+#    drawing="$DRAWING"

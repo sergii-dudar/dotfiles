@@ -104,11 +104,11 @@ EOF
     fi
 
     # egrep -ir "($1)" .
-    rg -i -C 15 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    rg -i -N -C 15 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findtc() {
-   rg -I -i -c -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | awk '{sum += $1} END {print sum}'
+   rg -I -i -N -c -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | awk '{sum += $1} END {print sum}'
 }
 
 function findt_in() {
@@ -127,7 +127,7 @@ EOF
 
     # rg -i -g '*user*.java' "test"
     # rg -i -g 'pom.*ml' "spring"
-    rg -i -C 15 -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
+    rg -i -N -C 15 -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findt_in_r() {
@@ -136,7 +136,7 @@ function findt_in_r() {
 	 # fd -f "$2" . --exec sed -i "s/$1/$3/g" {} \;
 
 	 #rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
-	 rg -l -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
+	 rg -l -i -N -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
 
 	 # fd -e $2 | xargs sed -i "s/$1/$3/g"
 	# fd -f "$1" .

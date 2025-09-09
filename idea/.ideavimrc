@@ -790,7 +790,12 @@ nmap <S-h> <Action>(PreviousTab)
 nmap <leader>bm <Action>(MaximizeEditorInSplit)
 nmap <leader>br <Action>(ReopenClosedTab)
 nmap <leader>bp <Action>(PinActiveEditorTab)
+
+nmap <leader>bo <Action>(CloseAllEditorsButActive)
+nmap <leader>bh <Action>(CloseAllToTheLeft)
+nmap <leader>bl <Action>(CloseAllToTheRight)
 nmap <leader>bd <Action>(CloseContent)
+"nmap <leader>bd <Action>(CloseEditor)
 
 "============================================ 🅂🄿🄻🄸🅃🅂: <leader>\,| ================================================="
 nmap <leader>\\ <Action>(SplitVertically)
