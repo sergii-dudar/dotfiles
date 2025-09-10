@@ -24,6 +24,7 @@ return {
             "terraform",
             "haskell",
             "hyprlang",
+            -- "commonlisp",
             -- "css",
             -- "latex",
             -- "norg",
