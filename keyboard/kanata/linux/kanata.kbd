@@ -5,6 +5,8 @@
 
 (defsrc
   caps a s d f j k l ;
+  ;;, ;; .
+  ralt
 )
 (defvar
   tap-time 150
@@ -21,8 +23,16 @@
   k (multi f24 (tap-hold $tap-time $hold-time k rsft))
   l (multi f24 (tap-hold $tap-time $hold-time l ralt))
   ; (multi f24 (tap-hold $tap-time $hold-time ; rmet))
+  ;; ctrl_comma_up C-up
+  ;; ctrl_dot_down C-down
+  ;; C-, up
+  ;; C-. down)
+  altspc M-spc
+  
 )
 
 (deflayer base
   @escctrl @a @s @d @f @j @k @l @;
+  ;; @ck_u 
+  @altspc
 )
