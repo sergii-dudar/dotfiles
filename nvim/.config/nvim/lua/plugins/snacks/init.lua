@@ -97,6 +97,14 @@ return {
                 end,
                 desc = "Profiler Scratch Buffer",
             },
+            {
+                -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
+                "<leader>,",
+                function()
+                    require("snipe").open_buffer_menu()
+                end,
+                desc = "Open Snipe buffer menu",
+            },
         },
     },
 }
