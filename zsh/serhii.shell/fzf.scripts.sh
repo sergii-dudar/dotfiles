@@ -80,19 +80,29 @@ alias grepco="grepf code";
 alias grepvi="grepf nvim";
 alias grepsu="grepf subl";
 
-function grepf() {
-    local editor="${1:-nvim}"
-    shift
-    # echo $editor
-
-    rg --color=always --line-number --no-heading --smart-case "${*:-}" "$PWD" |
-      fzf --ansi \
+function fzf_preview() {
+    while IFS= read -r line; do
+        echo "$line"
+    done | fzf --ansi \
           --exact \
           --color "hl:-1:underline,hl+:-1:underline:reverse" \
           --delimiter : \
-          --preview 'bat --color=always {1} --highlight-line {2}' \
+          --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
           --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
-          --bind "enter:become($editor {1})"
+          --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
+}
+
+function grept() {
+    search="$1"
+
+    rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+}
+
+function grept_in() {
+    search="$1"
+    search_in="$2"
+
+    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
 }
 
 function findt() {
