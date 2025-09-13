@@ -1,23 +1,23 @@
 return {
     -- ##############  FAVORITE ###################
-    {
-        "catppuccin/nvim",
-        name = "catppuccin",
-        priority = 1000,
-        optional = false,
-        lazy = false,
-        opts = {
-            custom_highlights = function()
-                return {
-                    Visual = { bg = "#373267" },
-                }
-            end,
-        },
-        --[[opts = {
-          term_colors = true,
-          transparent_background = true
-      }]]
-    },
+    -- {
+    --     "catppuccin/nvim",
+    --     name = "catppuccin",
+    --     priority = 1000,
+    --     optional = false,
+    --     lazy = false,
+    --     opts = {
+    --         custom_highlights = function()
+    --             return {
+    --                 Visual = { bg = "#373267" },
+    --             }
+    --         end,
+    --     },
+    --     --[[opts = {
+    --       term_colors = true,
+    --       transparent_background = true
+    --   }]]
+    -- },
     -- {
     --     "LazyVim/LazyVim",
     --     opts = {
@@ -27,22 +27,46 @@ return {
     -- },
     -- ############## MOVE EYE (Monokai, Gruvbox, Everforest) ###################
     {
-        "sainnhe/everforest",
+        "sainnhe/gruvbox-material",
         lazy = false,
         optional = false,
         priority = 1000,
         config = function()
-            -- Everforest is a green based color scheme; it's designed to be warm and soft in order to protect developers' eyes.
-
-            -- Optionally configure and load the colorscheme
-            -- directly inside the plugin declaration.
-
-            vim.g.everforest_enable_italic = true
-            vim.g.everforest_background = "hard" -- `'hard'`, `'medium'`, `'soft'`
-            -- vim.cmd("set background=dark") -- dark,  light
-            vim.cmd.colorscheme("everforest")
+            -- Available values: 'hard', 'medium'(default), 'soft'
+            vim.g.gruvbox_material_background = "hard"
+            vim.g.gruvbox_material_enable_italic = true
+            vim.cmd.colorscheme("gruvbox-material")
         end,
     },
+    -- {
+    --     "sainnhe/everforest",
+    --     lazy = false,
+    --     optional = false,
+    --     priority = 1000,
+    --     config = function()
+    --         -- Everforest is a green based color scheme; it's designed to be warm and soft in order to protect developers' eyes.
+    --
+    --         -- Optionally configure and load the colorscheme
+    --         -- directly inside the plugin declaration.
+    --
+    --         vim.g.everforest_enable_italic = true
+    --         vim.g.everforest_background = "hard" -- `'hard'`, `'medium'`, `'soft'`
+    --         -- vim.cmd("set background=dark") -- dark,  light
+    --         vim.cmd.colorscheme("everforest")
+    --     end,
+    -- },
+    -- {
+    --     "sainnhe/sonokai",
+    --     lazy = false,
+    --     optional = false,
+    --     priority = 1000,
+    --     config = function()
+    --         vim.g.sonokai_enable_italic = true
+    --         -- Available values:   `'default'`, `'atlantis'`, `'andromeda'`, `'shusia'`, `'maia'`, `'espresso'`
+    --         vim.g.sonokai_style = "shusia" -- atlantis, andromeda, maia
+    --         vim.cmd.colorscheme("sonokai")
+    --     end,
+    -- },
     -- {
     --     "navarasu/onedark.nvim",
     --     priority = 1000,
@@ -56,24 +80,6 @@ return {
     --         })
     --         -- Enable theme
     --         require("onedark").load()
-    --     end,
-    -- },
-    -- {
-    --     "ellisonleao/gruvbox.nvim",
-    --     priority = 1000,
-    --     optional = false,
-    --     lazy = false,
-    --     config = function()
-    --         require("gruvbox").setup({
-    --             contrast = "hard", -- can be "hard", "soft" or empty string
-    --             -- overrides = {
-    --             --     ["@lsp.type.method"] = { bg = "#000000" },
-    --             --     ["@comment.lua"] = { bg = "#000000" },
-    --             -- },
-    --         })
-    --
-    --         -- vim.o.background = "dark" -- or "light" for light mod
-    --         vim.cmd.colorscheme("gruvbox")
     --     end,
     -- },
     -- {
