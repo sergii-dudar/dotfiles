@@ -26,6 +26,15 @@ return {
     --     },
     -- },
     -- ############## MOVE EYE (Monokai, Gruvbox, Everforest) ###################
+    -- {
+    --     "",
+    --     lazy = false,
+    --     optional = false,
+    --     priority = 1000,
+    --     config = function()
+    --         vim.cmd.colorscheme("")
+    --     end,
+    -- },
     {
         "sainnhe/gruvbox-material",
         lazy = false,
@@ -92,6 +101,17 @@ return {
     --         -- require("monokai").setup({ palette = require("monokai").pro })
     --         -- require("monokai").setup({ palette = require("monokai").soda })
     --         -- require("monokai").setup({ palette = require("monokai").ristretto })
+    --     end,
+    -- },
+    -- { -- very dark, gool to work at night ;)
+    --     "vague2k/vague.nvim",
+    --     lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    --     priority = 1000, -- make sure to load this before all the other plugins
+    --     config = function()
+    --         require("vague").setup({
+    --             -- optional configuration here
+    --         })
+    --         vim.cmd("colorscheme vague")
     --     end,
     -- },
 }
