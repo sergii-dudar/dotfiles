@@ -22,6 +22,7 @@ macos-option-as-alt = true
 confirm-close-surface = false
 background-opacity = 0.95
 #background = #232634
+app-notifications = no-clipboard-copy
 
 copy-on-select = clipboard
 keybind = ctrl+v=paste_from_clipboard
