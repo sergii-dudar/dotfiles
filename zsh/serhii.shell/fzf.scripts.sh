@@ -106,14 +106,6 @@ function grept_in() {
 }
 
 function findt() {
-    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-        cat << EOF
-find text in files from currect dir: findt [text]
-EOF
-        return 0
-    fi
-
-    # egrep -ir "($1)" .
     rg -i -N -C 15 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
@@ -122,93 +114,69 @@ function findtc() {
 }
 
 function findt_in() {
-    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-        cat << EOF
-find text in files from currect dir: findt [text] [*.yaml]
-EOF
-        return 0
-    fi
-
-    #    grep -r -n -i --include="$2" "$1" .
-    #    rg -n -i --glob "$2" "$1" .
-    # rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
-    # rg -t java -t js "$1"
-    # rg -i -f "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
-
-    # rg -i -g '*user*.java' "test"
-    # rg -i -g 'pom.*ml' "spring"
     rg -i -N -C 15 -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
 
 function findt_in_r() {
-	#fd --max-depth 3 "$2" . --exec sed -i "s/$1/$3/g" {} \;
-
-	 # fd -f "$2" . --exec sed -i "s/$1/$3/g" {} \;
-
-	 #rg -i -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
-	 rg -l -i -N -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
-
-	 # fd -e $2 | xargs sed -i "s/$1/$3/g"
-	# fd -f "$1" .
-	# fd -i -e js 'User' .
+    rg -l -i -N -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
 }
 
 # ============================
 # =================== testing
 
 # fkill - kill process
-fkill() {
+p_kill() {
   # with ability to updating the list of processes by pressing CTRL-R
 
-  (date; ps -ef) |
+  (date; command ps -ef) |
     fzf --exact --bind='ctrl-r:reload(date; ps -ef)' \
         --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
         --preview='echo {}' --preview-window=down,5,wrap \
         --layout=reverse --height=80% | awk '{print $2}' | xargs kill -9
 }
 
-ffind() {
-    fd --type file |
-      fzf --exact --prompt 'Files> ' \
-          --header 'CTRL-T: Switch between Files/Directories' \
-          --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Files ]] &&
-                  echo "change-prompt(Files> )+reload(fd --type file)" ||
-                  echo "change-prompt(Directories> )+reload(fd --type directory)"' \
-          --preview '[[ $FZF_PROMPT =~ Files ]] && bat --color=always {} || tree -C -L 1 {}'
-}
+# ffind() {
+#     fd --type file |
+#       fzf --exact --prompt 'Files> ' \
+#           --header 'CTRL-T: Switch between Files/Directories' \
+#           --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Files ]] &&
+#                   echo "change-prompt(Files> )+reload(fd --type file)" ||
+#                   echo "change-prompt(Directories> )+reload(fd --type directory)"' \
+#           --preview '[[ $FZF_PROMPT =~ Files ]] && bat --color=always {} || tree -C -L 1 {}'
+# }
 
 # ==============================================
 # ======================= find and edit by EDITOR
 
-function fze() {
-    result=$(fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}')
-    if [ -n "$result" ]; then
-        $EDITOR $result
-    fi
-}
-
-function fzc() {
-     result=$( ( \
-        fd . --type f --color=always --hidden --exclude .git \
-            $HOME/ \
-            $HOME/.local/bin \
-             --max-depth 1 \
-        ; \
-        fd . --type f --color=always --hidden --exclude .git \
-            $HOME/.config/ranger \
-            $HOME/.config/rofi \
-            $HOME/.config/qtile \
-            $HOME/.config/nvim \
-            $HOME/.config/nitrogen \
-            $HOME/.config/awesome \
-            $HOME/.config/alacritty \
-            /etc/keyd \
-             --max-depth 2 \
-        ; \
-        fd . --type d --color=always --hidden --exclude .git $HOME/serhii.home/work/git.work \
-            --max-depth 1 ) | ( fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}' ) )
-
-        if [ -n "$result" ]; then
-            $EDITOR $result
-        fi
-}
+# function fze() {
+#     result=$(fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}')
+#     if [ -n "$result" ]; then
+#         $EDITOR $result
+#     fi
+# }
+#
+# function fzc() {
+#      result=$( ( \
+#         fd . --type f --color=always --hidden --exclude .git \
+#             $HOME/ \
+#             $HOME/.local/bin \
+#              --max-depth 1 \
+#         ; \
+#         fd . --type f --color=always --hidden --exclude .git \
+#             $HOME/.config/ranger \
+#             $HOME/.config/rofi \
+#             $HOME/.config/qtile \
+#             $HOME/.config/nvim \
+#             $HOME/.config/nitrogen \
+#             $HOME/.config/awesome \
+#             $HOME/.config/alacritty \
+#             /etc/keyd \
+#              --max-depth 2 \
+#         ; \
+#         fd . --type d --color=always --hidden --exclude .git $HOME/serhii.home/work/git.work \
+#             --max-depth 1 ) | ( fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}' ) )
+#
+#         if [ -n "$result" ]; then
+#             $EDITOR $result
+#         fi
+# }
