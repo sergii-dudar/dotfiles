@@ -1,6 +1,6 @@
 local register_snippets = function()
     local languages = {
-        "lua",
+        -- "lua",
         "javascript",
         "yaml",
         "java",

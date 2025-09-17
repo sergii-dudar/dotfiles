@@ -41,6 +41,9 @@ return {
             "fourmolu",
             "prettier",
             "sqlfluff",
+
+            -- CLI
+            "tree-sitter-cli",
         },
     },
 }
