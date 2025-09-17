@@ -33,7 +33,7 @@ setopt appendhistory
 
 # Default command & options to use when input is tty
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
-export FZF_DEFAULT_OPTS="--ansi --info=inline --height 80% --layout reverse --border"
+export FZF_DEFAULT_OPTS="--ansi --info=inline --height 95% --layout reverse --border"
 
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
 export FZF_CTRL_T_COMMAND='fd --color=always --hidden --exclude .git'
@@ -88,7 +88,7 @@ function fzf_preview() {
           --color "hl:-1:underline,hl+:-1:underline:reverse" \
           --delimiter : \
           --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
-          --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+          --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
           --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
 }
 
@@ -103,6 +103,19 @@ function grept_in() {
     search_in="$2"
 
     rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+}
+
+function grept_src() {
+    search="$1"
+
+    rg -g '!node_modules*' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+}
+
+function grept_src_in() {
+    search="$1"
+    search_in="$2"
+
+    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
 }
 
 function findt() {

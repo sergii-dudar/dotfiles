@@ -45,4 +45,5 @@ else
         icon.color="$WS_DEFAULT_COLOR" \
         background.drawing=off \
         drawing=off
+    # remove `drawing=off` in case you want to render empty workspaces also.
 fi

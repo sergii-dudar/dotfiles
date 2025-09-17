@@ -32,7 +32,8 @@
 # Show line numbers, Git modifications and file header (but no grid)
 # Possible values: *default*, full, auto, plain, changes, header, header-filename, header-filesize, grid, rule, numbers, snip.
 # --style="changes,header-filename,header-filesize"
---style="plain"
+#--style="plain"
+--style="changes,header-filename,header-filesize"
 
 
 # -p, --plain
