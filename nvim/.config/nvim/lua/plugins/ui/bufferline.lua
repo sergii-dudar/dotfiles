@@ -6,7 +6,7 @@ return {
     },
     opts = {
         options = {
-            mode = "tabs", -- buffers|tabs: set to "tabs" to only show tabpages instead
+            -- mode = "tabs", -- buffers|tabs: set to "tabs" to only show tabpages instead
             separator_style = "thick", --thin, thick, slant
             show_buffer_close_icons = false,
             show_close_icon = false,
