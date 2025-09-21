@@ -1,3 +1,7 @@
+-- local name = vim.fn.input("Tab name: ")
+-- print(name)
+-- map("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New Tab" })
+
 return {
     "akinsho/bufferline.nvim",
     keys = {
@@ -5,6 +9,15 @@ return {
         { "<S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", desc = "Prev tab" },
     },
     opts = {
+        highlights = {
+            tab_selected = {
+                fg = "#000000",
+                bg = "#676868",
+            },
+            tab_separator_selected = {
+                bg = "#676868",
+            },
+        },
         options = {
             -- mode = "tabs", -- buffers|tabs: set to "tabs" to only show tabpages instead
             separator_style = "thick", --thin, thick, slant

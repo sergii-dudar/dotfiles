@@ -13,6 +13,19 @@ vim.keymap.set("n", "<leader>d2", ":diffget 2<CR>") -- get from right [REMORE]
 vim.keymap.set("n", "<leader>d3", ":diffget 3<CR>") -- get from right [REMORE]
 -- vim.keymap.set("n", "<leader>dl", ":diffget 3<CR>") -- get from right [REMORE]
 
+-- tabs
+--[[ map("n", "<leader><tab>n", function()
+    vim.cmd.tabnew()
+    local name = vim.fn.input("Tab name: ")
+    vim.cmd("BufferLineTabRename " .. name)
+end, { desc = "New Tab Named" })
+
+map("n", "<leader><tab>r", function()
+    local name = vim.fn.input("Tab name: ")
+    local current_tab_num = vim.fn.tabpagenr()
+    vim.cmd("BufferLineTabRename " .. current_tab_num .. " " .. name)
+end, { desc = "Rename Current Tab" }) ]]
+
 -- Select all
 vim.keymap.set("n", "<C-a>", "gg<S-v>G")
 
