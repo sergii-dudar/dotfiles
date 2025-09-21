@@ -1,7 +1,3 @@
--- local name = vim.fn.input("Tab name: ")
--- print(name)
--- map("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New Tab" })
-
 return {
     "akinsho/bufferline.nvim",
     keys = {
