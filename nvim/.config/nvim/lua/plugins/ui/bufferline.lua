@@ -11,7 +11,7 @@ return {
             show_buffer_close_icons = false,
             show_close_icon = false,
             always_show_bufferline = true,
-            show_tab_indicators = false,
+            show_tab_indicators = true,
             auto_toggle_bufferline = true,
             tab_size = 8,
             indicator = {
