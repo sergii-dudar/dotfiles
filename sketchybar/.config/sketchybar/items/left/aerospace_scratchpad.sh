@@ -11,6 +11,7 @@ scratchpad=(
     click_script="aerospace workspace NSP"
 )
 
+# icon.padding_right=2
 sketchybar --add event scratchpad_update \
     --add item scratchpad left \
     --set scratchpad "${scratchpad[@]}" \

@@ -5,6 +5,7 @@
 ```bash
 brew tap FelixKratz/formulae
 brew install sketchybar
+brew services start sketchybar
 
 # Fonts
 brew install --cask sf-symbols

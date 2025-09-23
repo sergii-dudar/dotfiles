@@ -201,7 +201,7 @@ cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.
 cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi "Google Chat"'
 cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
 cmd-shift-u = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna "Monkeytype"'
-cmd-shift-v = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn "VimHero"'
+cmd-shift-v = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh "VimHero"'
 #cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
 # quick naviagation
@@ -335,7 +335,7 @@ if.app-id = 'com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytyp
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.brave.Browser.app.beifkklpdmlhanbkafbcldldbgnglbpn' # VimHero
+if.app-id = 'com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh' # VimHero
 run = 'layout floating'
 
 [[on-window-detected]]

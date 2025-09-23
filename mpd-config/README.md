@@ -27,8 +27,8 @@ systemctl --user --now enable mpd-mpris
 brew install mpd mpc ncmpcpp terminal-notifier
 cargo install rmpc --locked
 
-sudo ln -s ~/dotfiles/mpd-config/mpd-osx ~/.mpd
-mkdir ~/.config/mpd/playlists
+ln -s ~/dotfiles/mpd-config/mpd-osx ~/.mpd
+mkdir ~/.mpd/playlists
 
 brew services start mpd
 brew services stop mpd

@@ -148,6 +148,7 @@ process_player_info
 get_apple_music_info
 process_player_info
 
+# echo "STATUS: $STATUS" >/tmp/logs.txt
 # get_spotify_info
 # process_player_info
 

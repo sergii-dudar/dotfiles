@@ -1,5 +1,5 @@
-# if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
-if [[ $EMPTY_ZSH ]]; then
+if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
+    # to ignore config scan on intellij startup (have no impact on builtin intellij terminal)
     return
 fi
 

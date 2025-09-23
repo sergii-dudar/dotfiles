@@ -1,5 +1,5 @@
 now_playing=(
-    "${left_items_common[@]}"
+    "${right_items_common[@]}"
     update_freq=5
     label.font.style="Bold Italic"
     script="$PLUGIN_DIR/left/now_playing.sh"

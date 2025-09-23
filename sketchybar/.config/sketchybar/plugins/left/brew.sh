@@ -38,7 +38,6 @@ function refresh() {
         COUNTER=$((COUNTER + 1))
     done <<<"$OUTDATED"
 
-    echo "rendering" > /tmp/logs.txt
     sketchybar -m "${args[@]}" >/dev/null
 }
 

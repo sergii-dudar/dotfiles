@@ -6,12 +6,13 @@
 # )
 
 front_app=(
-    "${left_items_common[@]}"
+    "${right_items_common[@]}"
     background.drawing=off
     icon.font="$ICON_APP_FONT"
     label.color="$FRONT_APP_LABEL_COLOR"
     icon.color="$FRONT_APP_ICON_COLOR"
     script="$PLUGIN_DIR/left/front_app.sh"
+    icon.padding_left=5
 )
 
 sketchybar --add item front_app left \
