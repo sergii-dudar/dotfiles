@@ -10,6 +10,7 @@
         "output": "!HDMI-A-3",
         "modules-left": [
             "group/group-runners",
+            "custom/weather",
             "hyprland/submap",
             "idle_inhibitor",
             "custom/hypr-scratchpad",
@@ -34,7 +35,6 @@
             "temperature",
             "disk",
             // "custom/pacman-updates",
-            "custom/weather",
             "privacy",
             "network",
             "tray",
@@ -60,6 +60,7 @@
         "output": "HDMI-A-3",
         "modules-left": [
             "group/group-runners",
+            "custom/weather",
             "hyprland/window"
         ],
         "modules-center": [
@@ -68,7 +69,6 @@
         "modules-right": [
             "clock",
             "clock#date",
-            "custom/weather",
         ],
         "include": [
             "~/.config/waybar/module/hyprland.jsonc",

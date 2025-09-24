@@ -10,6 +10,7 @@
         "output": "!HDMI-A-3",
         "modules-left": [
             "group/group-runners",
+            "custom/weather",
             "sway/mode",
             "idle_inhibitor",
             "sway/scratchpad",
@@ -58,6 +59,7 @@
         "output": "HDMI-A-3",
         "modules-left": [
             "group/group-runners",
+            "custom/weather",
             "sway/window"
         ],
         "modules-center": [
@@ -66,7 +68,6 @@
         "modules-right": [
             "clock",
             "clock#date",
-            "custom/weather",
         ],
         "include": [
             "~/.config/waybar/module/sway.jsonc",
