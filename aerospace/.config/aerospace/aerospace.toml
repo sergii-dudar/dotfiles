@@ -68,12 +68,17 @@ on-focus-changed = "move-mouse window-lazy-center"
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-inner.horizontal = 5
-inner.vertical = 5
+# inner.horizontal = 5
+# inner.vertical = 5
+inner.horizontal = 0
+inner.vertical = 0
 
-outer.left = 3
-outer.right = 3
-outer.bottom = 2
+# outer.left = 3
+# outer.right = 3
+# outer.bottom = 2
+outer.left = 0
+outer.right = 0
+outer.bottom = 0
 outer.top = 27
 
 # 'main' binding mode declaration
@@ -289,13 +294,13 @@ run = "move-node-to-workspace 1"
 if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 1"
 
-[[on-window-detected]]
-if.app-id = 'com.jetbrains.intellij'
-run = "move-node-to-workspace 2"
-
-[[on-window-detected]]
-if.app-id = 'com.jetbrains.intellij.ce'
-run = "move-node-to-workspace 2"
+# [[on-window-detected]]
+# if.app-id = 'com.jetbrains.intellij'
+# run = "move-node-to-workspace 2"
+#
+# [[on-window-detected]]
+# if.app-id = 'com.jetbrains.intellij.ce'
+# run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
 if.app-id = 'com.microsoft.VSCode'
@@ -305,9 +310,9 @@ run = "move-node-to-workspace 2"
 if.app-id = 'com.google.Chrome'
 run = "move-node-to-workspace 3"
 
-[[on-window-detected]]
-if.app-id = 'com.brave.Browser'
-run = "move-node-to-workspace 3"
+# [[on-window-detected]]
+# if.app-id = 'com.brave.Browser'
+# run = "move-node-to-workspace 3"
 
 # second monitor configuration: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]

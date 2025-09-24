@@ -138,7 +138,7 @@ function findt_in_r() {
 # =================== testing
 
 # fkill - kill process
-p_kill() {
+killp() {
   # with ability to updating the list of processes by pressing CTRL-R
 
   (date; command ps -ef) |
