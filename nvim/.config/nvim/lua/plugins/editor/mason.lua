@@ -28,6 +28,8 @@ return {
             "xmlformatter",
             "google-java-format",
             "ktfmt",
+
+            -- ~/.local/share/nvim/mason/packages/beautysh/venv/bin/python -m pip install setuptools
             "beautysh",
             --"black",
             "ruff",

@@ -258,9 +258,9 @@ set clipboard+=unnamedplus
 " https://github.com/dankinsoid/IdeaVimMulticursor
 
 " map <C-n> <Plug>(multicursor-mcr)
-map <leader>mm <Plug>(multicursor-mcc)
-map <leader>mr <Plug>(multicursor-mcd)
-map <leader>ms <Plug>(multicursor-mcr)
+" map <leader>mm <Plug>(multicursor-mcc)
+" map <leader>mr <Plug>(multicursor-mcd)
+" map <leader>ms <Plug>(multicursor-mcr)
 
 " mcc: Add or remove a cursor highlight at the current position (preview mode)
 " mcr: Convert cursor highlights to active editing cursors
@@ -522,6 +522,10 @@ map <leader>ghr <Action>(Vcs.RollbackChangedLines)
 "=== git hunk blame
 nmap <leader>ghb <Action>(Annotate)
 nmap <leader>ghB <Action>(Annotate)
+
+"Vcs.UpdateProject
+"GitUpdateSelectedBranchAction
+map <leader>gb <Action>(Git.Branches)
 
 ""nmap <leader>so <Action>(SelectAllOccurrences)
 ""map <leader>sf <Action>(FindUsages)
