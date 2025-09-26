@@ -136,13 +136,13 @@ xmap <leader>rn :<C-u>'<,'>normal<Space>
 " === https://jb.gg/ideavim-plugins
 set surround            "https://github.com/tpope/vim-surround
 " set multiple-cursors
-set multicursor
+" set multicursor
 set easymotion
 set commentary
 set highlightedyank
 set NERDTree
-set exchange
-set textobj-indent
+" set exchange
+" set textobj-indent
 " set clipboard+=unnamed
 set clipboard+=unnamedplus
 
@@ -586,6 +586,13 @@ map <leader>cxv <Action>(IntroduceVariable)
 ""map <leader>iiv <Action>(IntroduceFunctionalVariable)
 ""map <leader>iop <Action>(IntroduceParameterObject)
 
+" ============== Caret (Native Multicursor)
+
+"EditorCloneCaretAbove
+"EditorCloneCaretBelow
+
+" one of the most powerful feature of ideavim - convert vim vertical visually selected column to idea editor carets
+xmap <leader>cc :'<,'>action EditorAddOrRemoveCaret<CR>
 
 "================================================== REFRESH: <leader>r ================================================"
 
@@ -636,8 +643,8 @@ map <S-A-k> <Action>(MoveStatementUp)
 map <S-A-j> <Action>(MoveStatementDown)
 
 " original vim back/forward binding
-nmap <C-i> <Action>(Forward)
-nmap <C-o> <Action>(Back)
+map <C-i> <Action>(Forward)
+map <C-o> <Action>(Back)
 
 nmap <C-Left> <Action>(ResizeToolWindowLeft)
 nmap <C-Down> <Action>(ResizeToolWindowDown)
@@ -689,13 +696,17 @@ nmap <leader>hh <Action>(HideActiveWindow)
 
 "============================================== 🅅🄸🄴🅆 🄼🄾🄳🄴: <leader>v ============================================="
 
-nmap <leader>vf <Action>(ToggleFullScreen)
-nmap <leader>vv <Action>(ToggleDistractionFreeMode)
-nmap <leader>vp <Action>(TogglePresentationMode)
+map <leader>vf <Action>(ToggleFullScreen)
+map <leader>vv <Action>(ToggleDistractionFreeMode)
+map <leader>vp <Action>(TogglePresentationMode)
 
 "=================================================== 🅉🄴🄽: <leader>z ================================================="
 
-map <leader>z <Action>(ToggleZenMode)
+map <leader>zd <Action>(ToggleDistractionFreeMode)
+map <leader>zz <Action>(ToggleZenMode)
+" map <leader>zd :action ToggleDistractionFreeMode \| action ActivateProjectToolWindow \| action EditorEscape<CR>
+map <leader>zt :action ViewToolButtons \| action ViewToolBar<CR>
+
 
 "=========================================== 🅂🄴🄰🅁🄲🄷 / 🅁🄴🄿🄻🄰🄲🄴: <leader>s ====================================="
 
@@ -838,6 +849,8 @@ nmap <leader>\| <Action>(SplitHorizontally)
 " nmap <leader>mw <Action>(ToolWindowsGroup)
 
 "nmap <leader>mgg <Action>(Git.Menu)
+"nmap <leader>mm <Action>(MainMenu)
+
 
 "=================================================== 🄵🄾🄻🄳🅂: z ======================================================"
 
@@ -853,7 +866,7 @@ map zR <Action>(ExpandAllRegions)
 
 "=========================================== 🅃🄴🅁🄼🄸🄽🄰🄻: <leader>o ================================================="
 
-map <leader>ot <Action>(ActivateTerminalToolWindow)
+map <leader>tt <Action>(ActivateTerminalToolWindow)
 map <leader>oc <Action>(Terminal.OpenInTerminal)
 
 "==================================== 🄿🅁🄾🄹🄴🄲🅃 🄼🄰🄽🄰🄶🄴🄼🄴🄽🅃: <leader>p ========================================"

@@ -13,9 +13,10 @@ local system = "linux"
 --print("config_path: "..config_path)
 --print("config.cmd" .. vim.inspect(config.cmd))
 
--- sdk install java 21.0.4-oracle
-local java21_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/21.0.6-amzn")
-local java21_bin = java21_dir .. "/bin/java"
+-- sdk install java 25-amzn
+-- sdk install maven 3.9.11
+local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
+local java_bin = java_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
 local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
@@ -58,8 +59,8 @@ M.install_pkgs = function(packages)
     end
 end
 
-M.java21_dir = java21_dir
-M.java21_bin = java21_bin
+M.java_dir = java_dir
+M.java_bin = java_bin
 M.java_google_style_file = java_google_style_file
 M.get_spring_boot_tools_path_ls_path = function()
     --M.install_pkgs({{ name = 'spring-boot-tools', version = '1.55.1' }})
@@ -79,7 +80,7 @@ end
 
 M.jdtls_settings = {
     java = {
-        home = java21_dir,
+        home = java_dir,
         project = {
             importHint = true,
         },
@@ -97,8 +98,8 @@ M.jdtls_settings = {
                 --     path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
                 -- },
                 {
-                    name = "JavaSE-21",
-                    path = java21_dir,
+                    name = "JavaSE-25",
+                    path = java_dir,
                 },
             },
             -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change

@@ -28,7 +28,7 @@ return {
                 java = {
                     --'echo "$dir , $fileNameWithoutExt"',
                     "$HOME/dotfiles/work/java/runner "
-                        .. java_util.java21_bin
+                        .. java_util.java_bin
                         .. " $dir $fileNameWithoutExt",
                 },
                 yaml = {
@@ -115,7 +115,7 @@ return {
                 ["~/serhii.home/work/git.work/ua-payments-payment-prevalidation"] = {
                     name = "Run Profile1",
                     description = "Run Profile1",
-                    command = java_util.java21_bin
+                    command = java_util.java_bin
                         .. " -classpath "
                         .. "$(cd payment-prevalidation && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"
                         .. ":$(cd payment-prevalidation-api && $HOME/dotfiles/work/java/mvn_cp_cash.sh $PWD)"

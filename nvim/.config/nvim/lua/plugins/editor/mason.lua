@@ -1,10 +1,6 @@
 return {
     "mason-org/mason.nvim",
     opts = {
-        -- registries = {
-        --     "github:mason-org/mason-registry",
-        --     -- "github:nvim-java/mason-registry",
-        -- },
         ensure_installed = {
             -- LSP
             "bash-language-server",
@@ -12,13 +8,13 @@ return {
             "jdtls",
             --"lombok-nightly",
             --"spring-boot-tools", -- nvim-java/mason-registry
-            "haskell-language-server",
+            -- "haskell-language-server",
             "hyprls",
             "rust-analyzer",
 
             -- DAP
             "bash-debug-adapter",
-            "haskell-debug-adapter",
+            -- "haskell-debug-adapter",
 
             -- Linter
             "checkstyle",
