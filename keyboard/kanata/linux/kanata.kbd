@@ -86,6 +86,8 @@
     (on-idle-fakekey to-base tap 20)
   )
 
+  mg (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys))
+
   ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lalt $left-hand-keys))
   ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lmet $left-hand-keys))
   md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lctl $left-hand-keys))
@@ -100,15 +102,15 @@
   ;; ctrl_dot_down C-down
   ;; C-, up
   ;; C-. down)
-  altspc M-spc
+  mralt M-spc
 
   ;; --- SpaceFN ---
   ;; tap = space, hold = layer switch
   ;; spcfn (tap-hold-release-timeout 200 200 space (l_navigation))
   ;; spcfn (multi spc (tap-hold-press 150 200 spc (layer-while-held l_navigation)))
   ;; spcfn (tap-hold-release-timeout 200 200 spc (layer-while-held l_navigation) spc)
-  spcfn (tap-hold-release 200 200 spc (layer-while-held l_nav_num))
-  escsymb (tap-hold-release 200 200 esc (layer-while-held l_symbols))
+  mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
+  mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
 
   ;; ----------------------------
   ;; ----------------------------
@@ -148,9 +150,9 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-  @escsymb   @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
+     @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
       lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-      lctl  lmet lalt            @spcfn                     @altspc rmet rctl     ◀    ▼    ▶
+      lctl  lmet lalt            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -164,14 +166,13 @@
 )
 
 ;; ;; --- Layer: Navigation ---
-(deflayer l_nav_num
+(deflayer l_navigation
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    1     2     3     4     5     XX    7     8     9     0     bspc  XX    XX    XX    XX    XX
-   ;;    a     s     d     f     g     h     j     k     l     ;     '          enter
-   XX    XX    XX    XX    XX    6     h     j     k     l     XX    XX          XX
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    h     j     k     l     XX    XX          XX
    lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
 )
 
 ;; ;; --- Layer: Symbols ---
@@ -182,6 +183,15 @@
   esc    a    s    d    f    g    h    S-9    S-0    l    ;    '         enter
   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
   lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
+)
+
+(deflayer l_numbers
+   XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX          
+   XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX
+   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
 )
 
 ;; --- TEMPLATES --- 
