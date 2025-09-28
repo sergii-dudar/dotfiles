@@ -1,5 +1,6 @@
 ;; Kanata docs
 ;; https://github.com/jtroo/kanata/blob/main/docs/config.adoc
+;; https://raw.githubusercontent.com/jtroo/kanata/main/cfg_samples/kanata.kbd
 
 ;; OS key code mappings
 ;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs
@@ -85,15 +86,15 @@
     (on-idle-fakekey to-base tap 20)
   )
 
-  actl (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lctl $left-hand-keys))
-  salt (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lalt $left-hand-keys))
-  dmet (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lmet $left-hand-keys))
-  fsft (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lsft $left-hand-keys))
+  ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lalt $left-hand-keys))
+  ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lmet $left-hand-keys))
+  md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lctl $left-hand-keys))
+  mf (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lsft $left-hand-keys))
 
-  jsft (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rsft $right-hand-keys))
-  kmet (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) rmet $right-hand-keys))
-  lalt (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) ralt $right-hand-keys))
-  ;ctl (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) rctl $right-hand-keys))
+  mj (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rsft $right-hand-keys))
+  mk (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) rctl $right-hand-keys))
+  ml (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) rmet $right-hand-keys))
+  m; (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) ralt $right-hand-keys))
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -106,7 +107,7 @@
   ;; spcfn (tap-hold-release-timeout 200 200 space (l_navigation))
   ;; spcfn (multi spc (tap-hold-press 150 200 spc (layer-while-held l_navigation)))
   ;; spcfn (tap-hold-release-timeout 200 200 spc (layer-while-held l_navigation) spc)
-  spcfn (tap-hold-release 200 200 spc (layer-while-held l_navigation))
+  spcfn (tap-hold-release 200 200 spc (layer-while-held l_nav_num))
   escsymb (tap-hold-release 200 200 esc (layer-while-held l_symbols))
 
   ;; ----------------------------
@@ -147,7 +148,7 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-  @escsymb @actl @salt @dmet @fsft g   h @jsft @kmet @lalt @;ctl '       enter
+  @escsymb   @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
       lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
       lctl  lmet lalt            @spcfn                     @altspc rmet rctl     ◀    ▼    ▶
 )
@@ -157,20 +158,20 @@
   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
   ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
   tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-  esc   a    s    d    f    g    h    j    k    l    ;    '         enter
+  esc    a    s    d    f    g    h    j    k    l    ;    '         enter
   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
   lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
 )
 
 ;; ;; --- Layer: Navigation ---
-(deflayer l_navigation
-  esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
-  ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-  tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-  esc  a    s    d    f    g    ◀    ▼    ▲    ▶    ;    '         enter
-;;  caps   a    s    d    f    g    h    j    k    l    ;    '         enter
-  lsft   z    x    c    v    b    n    m    ▲    ▼    /              rsft          ▲
-  lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
+(deflayer l_nav_num
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+   XX    1     2     3     4     5     XX    7     8     9     0     bspc  XX    XX    XX    XX    XX
+   ;;    a     s     d     f     g     h     j     k     l     ;     '          enter
+   XX    XX    XX    XX    XX    6     h     j     k     l     XX    XX          XX
+   lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX
+   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
 )
 
 ;; ;; --- Layer: Symbols ---
@@ -178,10 +179,35 @@
   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
   ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
   tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-  esc   a    s    d    f    g    h    S-9    S-0    l    ;    '         enter
+  esc    a    s    d    f    g    h    S-9    S-0    l    ;    '         enter
   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-  lctl  lmet lalt                spc                  ralt rmet rctl     ◀    ▼    ▶
+  lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
 )
+
+;; --- TEMPLATES --- 
+;; All transparent
+;; (deflayer name
+;;   _    _    _    _    _      _    _    _    _       _    _    _    _    _    _    _
+;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _
+;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _
+;;   ;;   a    s    d    f    g    h    j    k    l    ;    '         enter
+;;   _    _    _    _    _    _    _    _    _    _    _    _         _
+;;   _    _    _    _    _    _    _    _    _    _    _              _         _
+;;   _    _    _                        _                   _    _    _    _    _    _
+;; )
+
+;; All nothing
+;; (deflayer name
+;;   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+;;   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX
+;;   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+;; )
+
+
 ;; (deflayer symbols
 ;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX
 ;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX     XX
