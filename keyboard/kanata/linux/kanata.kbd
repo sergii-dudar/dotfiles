@@ -6,7 +6,7 @@
 
 (defcfg
   process-unmapped-keys yes
-  ;; log-layer-changes no
+  log-layer-changes no
   ;; danger-enable-cmd yes
   ;; concurrent-tap-hold yes
 
@@ -20,6 +20,23 @@
   tap-time 150
   hold-time 200
 
+  hrm-tap-time 200
+  hrm-hold-time 200
+
+  left-hand-keys (
+    1 2 3 4 5
+    q w e r t
+    a s d f g
+    z x c v b
+  )
+  right-hand-keys (
+    6 7 8 9 0 - =
+    y u i o p [ ]
+    h j k l ; '
+    n m , . /
+  )
+
+  space-hold-timeout 200
   tap-higher 400
   chord-time 60
   subl-time 200
@@ -42,25 +59,55 @@
   lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
 )
 
+(deffakekeys
+  to-base (layer-switch base)
+)
+
 (defalias
   ;; Modifier keys
+  
+  ;; alt2 (multi alt (layer-while-held l_navigation))
 
-  escctrl (tap-hold 130 130 esc lctl)
-  actl (multi f24 (tap-hold $tap-time $hold-time a lctl))
-  salt (multi f24 (tap-hold $tap-time $hold-time s lalt))
-  dmet (multi f24 (tap-hold $tap-time $hold-time d lmet))
-  fsft (multi f24 (tap-hold $tap-time $hold-time f lsft))
+  ;; escctrl (tap-hold 200 200 esc lctl)
 
-  jsft (multi f24 (tap-hold $tap-time $hold-time j rsft))
-  kmet (multi f24 (tap-hold $tap-time $hold-time k rmet))
-  lalt (multi f24 (tap-hold $tap-time $hold-time l ralt))
-  ;ctl (multi f24 (tap-hold $tap-time $hold-time ; rctl))
+  ;; actl (multi f24 (tap-hold $tap-time $hold-time a lctl))
+  ;; salt (multi f24 (tap-hold $tap-time $hold-time s lalt))
+  ;; dmet (multi f24 (tap-hold $tap-time $hold-time d lmet))
+  ;; fsft (multi f24 (tap-hold $tap-time $hold-time f lsft))
+  ;;
+  ;; jsft (multi f24 (tap-hold $tap-time $hold-time j rsft))
+  ;; kmet (multi f24 (tap-hold $tap-time $hold-time k rmet))
+  ;; lalt (multi f24 (tap-hold $tap-time $hold-time l ralt))
+  ;; ;ctl (multi f24 (tap-hold $tap-time $hold-time ; rctl))
+ 
+  tap (multi
+    (layer-switch nomods)
+    (on-idle-fakekey to-base tap 20)
+  )
+
+  actl (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lctl $left-hand-keys))
+  salt (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lalt $left-hand-keys))
+  dmet (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lmet $left-hand-keys))
+  fsft (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lsft $left-hand-keys))
+
+  jsft (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rsft $right-hand-keys))
+  kmet (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) rmet $right-hand-keys))
+  lalt (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) ralt $right-hand-keys))
+  ;ctl (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) rctl $right-hand-keys))
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
   ;; C-, up
   ;; C-. down)
   altspc M-spc
+
+  ;; --- SpaceFN ---
+  ;; tap = space, hold = layer switch
+  ;; spcfn (tap-hold-release-timeout 200 200 space (l_navigation))
+  ;; spcfn (multi spc (tap-hold-press 150 200 spc (layer-while-held l_navigation)))
+  ;; spcfn (tap-hold-release-timeout 200 200 spc (layer-while-held l_navigation) spc)
+  spcfn (tap-hold-release 200 200 spc (layer-while-held l_navigation))
+  escsymb (tap-hold-release 200 200 esc (layer-while-held l_symbols))
 
   ;; ----------------------------
   ;; ----------------------------
@@ -100,30 +147,51 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-@escctrl @actl @salt @dmet @fsft g    h @jsft @kmet @lalt @;ctl '       enter
+  @escsymb @actl @salt @dmet @fsft g   h @jsft @kmet @lalt @;ctl '       enter
       lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-      lctl  lmet lalt                spc                     @altspc rmet rctl    ◀    ▼    ▶
+      lctl  lmet lalt            @spcfn                     @altspc rmet rctl     ◀    ▼    ▶
+)
+
+;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
+(deflayer nomods
+  esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
+  ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
+  tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
+  esc   a    s    d    f    g    h    j    k    l    ;    '         enter
+  lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
+  lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
 )
 
 ;; ;; --- Layer: Navigation ---
-;; (deflayer l_navigation
-;;   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
-;;   ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-;;   tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-;;   caps   a    s    d    f    g    h    j    k    l    ;    '         enter
-;;   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-;;   fn   lctl  lmet lalt                spc                  ralt rmet rctl     ◀    ▼    ▶
-;; )
-;;
+(deflayer l_navigation
+  esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
+  ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
+  tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
+  esc  a    s    d    f    g    ◀    ▼    ▲    ▶    ;    '         enter
+;;  caps   a    s    d    f    g    h    j    k    l    ;    '         enter
+  lsft   z    x    c    v    b    n    m    ▲    ▼    /              rsft          ▲
+  lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
+)
+
 ;; ;; --- Layer: Symbols ---
-;; (deflayer l_symbols
-;;   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
-;;   ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-;;   tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-;;   caps   a    s    d    f    g    h    j    k    l    ;    '         enter
-;;   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-;;   fn   lctl  lmet lalt                spc                  ralt rmet rctl     ◀    ▼    ▶
+(deflayer l_symbols
+  esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
+  ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
+  tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
+  esc   a    s    d    f    g    h    S-9    S-0    l    ;    '         enter
+  lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
+  lctl  lmet lalt                spc                  ralt rmet rctl     ◀    ▼    ▶
+)
+;; (deflayer symbols
+;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX
+;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX     XX
+;;   XX   S-1    S-2     S-3     S-4     S-5     S-6     S-7     S-8     S-9     S-0     XX      XX     XX
+;;   bspc 1      2       3       4       5       6       7       8       9       0       XX      @msym2
+;;   spc  @mleft XX      XX      [       ]       S-[     S-]     ,       .       /       XX      rsft
+;;   XX    XX   XX     XX         spc            @msym2      XX         XX     XX     XX                   ;;MOD
 ;; )
+
+
 ;;
 ;; ;; --- Layer: System ---
 ;; (deflayer l_system
