@@ -493,13 +493,16 @@ nmap <leader>pv <Action>(SelectInProjectView)
 "================================================ 🅁🅄🄽 🄲🄾🄳🄴: <leader>r ============================================"
 
 nmap <leader>rr <Action>(Run)
+nmap <leader>dr <Action>(Debug)
+nmap <leader>re <Action>(Rerun)
+
+
+
+nmap <leader>rs <Action>(Stop)
+
 " run file
 nmap <leader>rf <Action>(RunClass)
-""nmap <leader>ed <Action>(Debug)
-""nmap <leader>es <Action>(Stop)
-""nmap <leader>er <Action>(Rerun)
-
-"nmap <leader>ecd <Action>(DebugClass)
+nmap <leader>df <Action>(DebugClass)
 
 "=============================================== 🅁🅄🄽 🅃🄴🅂🅃🅂: <leader>t ============================================"
 
