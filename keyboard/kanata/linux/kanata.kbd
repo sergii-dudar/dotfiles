@@ -8,7 +8,7 @@
 (defcfg
   process-unmapped-keys yes
   log-layer-changes no
-  ;; danger-enable-cmd yes
+  danger-enable-cmd yes
   ;; concurrent-tap-hold yes
 
   ;; When any non-chord activation happens, this timeout begins. Until this timeout expires
@@ -145,6 +145,10 @@
 
 )
 
+(defalias
+    mpd_toggle (cmd bash -c "mpc toggle > /dev/null 2>&1")
+)
+
 ;; --- Layer: Base ---
 (deflayer base
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
@@ -169,7 +173,7 @@
 (deflayer l_navigation
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    @mpd_toggle XX    XX    XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    h     j     k     l     XX    XX          XX
    lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX
    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX

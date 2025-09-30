@@ -4,6 +4,9 @@
 # install
 cargo install --locked kanata
 
+# with cmd support
+cargo install --features cmd --locked kanata
+
 # config rule to run without sudo
 sudo groupadd uinput
 sudo usermod -aG input $USER
