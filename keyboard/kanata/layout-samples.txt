@@ -34,4 +34,5 @@ X  (  )  =  _        ^  [  ]  $  :
 personal variant 2 (not used easy accessed symbols in base layer, for codding in vim)
 !  @  {  }  *        #  <  >  X  |
 `  ~  (  )  =        ^  [  ]  $  _
-'  &  -  +  %        0  "  '  X  \
+X  &  -  +  %        0  X  X  X  \
+
