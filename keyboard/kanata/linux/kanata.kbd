@@ -80,8 +80,7 @@
     (on-idle-fakekey to-base tap 20)
   )
 
-  mg (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys))
-
+  ;; --- Homee row monds ---
   ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lsft $left-hand-keys))
   ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lctl $left-hand-keys))
   md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lalt $left-hand-keys))
@@ -98,13 +97,13 @@
   ;; C-. down)
   mralt M-spc
 
-  ;; --- FN Hold Keys ---
+  ;; --- FN (Layers) Hold Keys ---
   mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
   mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
-)
+  mg (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys))
 
-(defalias
-    mpd_toggle (cmd bash -c "mpc toggle > /dev/null 2>&1")
+  mz (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys))
+  m/ (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys))
 )
 
 ;; --- Layer: Base ---
@@ -113,7 +112,7 @@
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
      @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
-      lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
+      lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
       lctl  lmet lalt            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
@@ -129,12 +128,13 @@
 
 ;; --- Layer: Navigation ---
 (deflayer l_navigation
-   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    h     j     k     l     XX    XX          XX
-   lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX
-   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    XX    XX    XX    XX    XX    h     j     k     l     XX    XX          XX                    ;;A
+   lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX        ;;Z
+   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
 )
 
 ;; --- Layer: Symbols ---
@@ -145,52 +145,59 @@
 ;; `  ~  (  )  =        ^  [  ]  $  _
 ;; X  &  -  +  %        0  X  X  X  \
 (deflayer l_symbols
-   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX
-   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   XX          XX
-   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX  ;;Q
+   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   XX          XX                    ;;A
+   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX        ;;Z
+   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
 )
 
 (deflayer l_numbers
-   XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX
-   XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX
-   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
+   ;;    a     s     d     f     g     h     j     k     l    ;      '           enter
+   XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX  ;;F1
+   XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX                    ;;A
+   XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX        ;;Z
+   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
+)
+
+(defalias
+    mpdt (cmd bash -c "mpc toggle > /dev/null 2>&1")
 )
 
 (deflayer l_system
-  XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
-  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX
-  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX
-  XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    @mpdt XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                    ;;A
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
+   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
 )
 
 ;; --- TEMPLATES --- 
 ;; All transparent
 ;; (deflayer name
-;;   _    _    _    _    _      _    _    _    _       _    _    _    _    _    _    _
-;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _
-;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _
 ;;   ;;   a    s    d    f    g    h    j    k    l    ;    '         enter
-;;   _    _    _    _    _    _    _    _    _    _    _    _         _
-;;   _    _    _    _    _    _    _    _    _    _    _              _         _
-;;   _    _    _                        _                   _    _    _    _    _    _
+;;   _    _    _    _    _      _    _    _    _       _    _    _    _    _    _    _  ;;F1
+;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _  ;;NUM
+;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _  ;;Q
+;;   _    _    _    _    _    _    _    _    _    _    _    _         _                 ;;A
+;;   _    _    _    _    _    _    _    _    _    _    _              _         _       ;;Z
+;;   _    _    _                        _                   _    _    _    _    _    _  ;;MOD
 ;; )
 
 ;; All nothing
 ;; (deflayer name
-;;   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  
-;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX
-;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX
-;;   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+;;   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;Q
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                    ;;A
+;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
+;;   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
 ;; )
 
