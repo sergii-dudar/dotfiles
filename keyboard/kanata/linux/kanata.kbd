@@ -104,7 +104,7 @@
 
   mz (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys))
   m/ (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys))
-  ;; mlctl (multi lctl (layer-while-held l_system))
+  mlctl (multi lctl (layer-while-held l_ctl_system))
 )
 
 ;; --- Layer: Base ---
@@ -114,7 +114,7 @@
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
      @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-      lctl  lmet lalt            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+    @mlctl  lmet lalt            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -181,25 +181,35 @@
 
 (deflayer l_system
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu  ;;NUM
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu    ;;NUM
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                    ;;A
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
-   XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn ;;MOD
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                       ;;A
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX           ;;Z
+   XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn    ;;MOD
+)
+
+(deflayer l_ctl_system
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+   _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
 )
 
 ;; --- TEMPLATES --- 
 ;; All transparent
 ;; (deflayer name
-;;   ;;   a    s    d    f    g    h    j    k    l    ;    '         enter
-;;   _    _    _    _    _      _    _    _    _       _    _    _    _    _    _    _  ;;F1
-;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _  ;;NUM
-;;   _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _    _  ;;Q
-;;   _    _    _    _    _    _    _    _    _    _    _    _         _                 ;;A
-;;   _    _    _    _    _    _    _    _    _    _    _              _         _       ;;Z
-;;   _    _    _                        _                   _    _    _    _    _    _  ;;MOD
-;; )
+;;   ;;    a     s     d     f     g     h    j    k    l    ;    '         enter
+;;   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+;;   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+;;)
 
 ;; All nothing
 ;; (deflayer name
