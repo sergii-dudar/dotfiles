@@ -181,11 +181,11 @@
 (deflayer l_system
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu  ;;NUM
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                    ;;A
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
-   XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn ;;MOD
+   XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn ;;MOD
 )
 
 ;; --- TEMPLATES --- 
@@ -210,4 +210,3 @@
 ;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
 ;;   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
 ;; )
-
