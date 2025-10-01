@@ -44,12 +44,6 @@
   tmux-delay 40
 )
 
-;; Only one defsrc is allowed.
-;;
-;; defsrc defines the keys that will be intercepted by kanata. The order of the
-;; keys matches with deflayer declarations and all deflayer declarations must
-;; have the same number of keys as defsrc. Any keys not listed in defsrc will
-;; be passed straight to the operating system.
 ;; --- Physical layout (ANSI TKL, 87 keys) ---
 (defsrc
   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
@@ -104,45 +98,9 @@
   ;; C-. down)
   mralt M-spc
 
-  ;; --- SpaceFN ---
-  ;; tap = space, hold = layer switch
-  ;; spcfn (tap-hold-release-timeout 200 200 space (l_navigation))
-  ;; spcfn (multi spc (tap-hold-press 150 200 spc (layer-while-held l_navigation)))
-  ;; spcfn (tap-hold-release-timeout 200 200 spc (layer-while-held l_navigation) spc)
+  ;; --- FN Hold Keys ---
   mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
   mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
-
-  ;; ----------------------------
-  ;; ----------------------------
-  ;; mescc (tap-hold $tap-time $hold-time esc caps)
-  ;; mskit (tap-hold $tap-higher $tap-higher e (macro @akitty 100 C-b $tmux-delay k)) ;; skitty-notes
-
-  ;; Other layers tap-hold-press
-  ;; mappr (tap-hold-press $tap-time $hold-time ret (layer-toggle apps))
-  ;;; msymb (tap-hold-press $tap-time $hold-time bspc (layer-while-held symbols))
-  ;;; mnavi (tap-hold-press $tap-time $hold-time esc (layer-toggle navi))
-
-  ;; Other layers tap-hold
-  ;;; msyst (tap-hold $tap-time $hold-time s (layer-toggle system))
-
-  ;; Multi
-  ;; mhypr (tap-hold $tap-time $hold-time spc (multi lsft lctl lalt lmet)) ;; Hyper key
-
-  ;; Sublayers
-  ;; I implemented sublayers thanks to the help in this discussion
-  ;; https://github.com/jtroo/kanata/discussions/1765
-  ;; DO NOT USE THE SUBLAYERS IN A FREQUENTLY PRESSED KEY LIKE SPACEBAR
-  ;; It made typing spaces a pain in the ass, enter is not pressed to often, so it works way better
-  ;; msubl (tap-hold-press $subl-time $subl-time ret (layer-while-held sublayers))
-
-  ;; msess (tap-hold-press $subl-time $subl-time t (layer-while-held sessions))
-  ;; mrayc (tap-hold-press $subl-time $subl-time r (layer-while-held raycast))
-  ;; m-obs (tap-hold-press $subl-time $subl-time o (layer-while-held obs-scenes))
-  ;; mapps (tap-hold-press $subl-time $subl-time bspc (layer-while-held applications))
-  ;; msym2 (tap-hold-press $subl-time $subl-time ret (layer-while-held symbols2))
-  ;; mleft (tap-hold-press $subl-time $subl-time z (layer-while-held left-hand))
-  ;; mlets (tap-hold-press $subl-time $subl-time s (layer-while-held letter-s))
-
 )
 
 (defalias
@@ -173,7 +131,7 @@
 (deflayer l_navigation
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    XX    XX    XX    XX    XX    XX    @mpd_toggle XX    XX    XX    XX    XX    XX    XX    XX    XX
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    h     j     k     l     XX    XX          XX
    lsft  XX    XX    XX    XX    XX    ◀     ▼     ▲     ▶     XX                XX          XX
    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
@@ -205,6 +163,15 @@
    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
 )
 
+(deflayer l_system
+  XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
+  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
+  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX
+  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX
+  XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
+)
+
 ;; --- TEMPLATES --- 
 ;; All transparent
 ;; (deflayer name
@@ -219,104 +186,11 @@
 
 ;; All nothing
 ;; (deflayer name
-;;   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
+;;   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  
 ;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
 ;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-;;   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
 ;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX
 ;;   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX
 ;;   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
 ;; )
 
-
-;; (deflayer symbols
-;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX
-;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX     XX
-;;   XX   S-1    S-2     S-3     S-4     S-5     S-6     S-7     S-8     S-9     S-0     XX      XX     XX
-;;   bspc 1      2       3       4       5       6       7       8       9       0       XX      @msym2
-;;   spc  @mleft XX      XX      [       ]       S-[     S-]     ,       .       /       XX      rsft
-;;   XX    XX   XX     XX         spc            @msym2      XX         XX     XX     XX                   ;;MOD
-;; )
-
-
-;;
-;; ;; --- Layer: System ---
-;; (deflayer l_system
-;;   esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
-;;   ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-;;   tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-;;   caps   a    s    d    f    g    h    j    k    l    ;    '         enter
-;;   lsft   z    x    c    v    b    n    m    ,    .    /              rsft          ▲
-;;   fn   lctl  lmet lalt                spc                  ralt rmet rctl     ◀    ▼    ▶
-;; )
-
-;; ----------------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------------
-;; ----------------------------------------------------------------------------------
-
-;; ;; Set cmd on "d" due to cmd+r, cmd+f
-;; (deflayer main
-;;   ;;     a      s      d      f      g      h      j      k      l      ;      '
-;;   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX
-;;   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     @msymb
-;;   @mretu q      w      @mskit @mdail t      y      u      i      o      p      \      XX     \ 
-;;   @mnavi @mlctl @msyst @mlmet @mlalt @mtrik h      @mralt @mrmet @mmous @mrctl @mral2 @msubl
-;;   lsft   @mmtab @mmgrv @mcopy @mpast @maltk n      @mtcop ,      @mhome /      XX     rsft
-;;   XX    XX   XX   @msymb            spc             @msubl      XX         XX     XX     XX
-;; )
-;;
-;;
-;; (deflayer symbols
-;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX
-;;   XX   XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX     XX
-;;   XX   S-1    S-2     S-3     S-4     S-5     S-6     S-7     S-8     S-9     S-0     XX      XX     XX
-;;   bspc 1      2       3       4       5       6       7       8       9       0       XX      @msym2
-;;   spc  @mleft XX      XX      [       ]       S-[     S-]     ,       .       /       XX      rsft
-;;   XX    XX   XX     XX         spc            @msym2      XX         XX     XX     XX                   ;;MOD
-;; )
-;;
-;; (deflayer symbols2
-;;   ;;     a      s      d      f      g      h      j      k      l      ;      '
-;;   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX            ;;F1
-;;   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     bspc   ;;NUM
-;;   XX     XX     S--    S-`    S-=    XX     XX     -      `      =      XX     XX     XX     XX     ;;Q
-;;   bspc   S-1    S-2    S-3    S-4    S-5    S-6    S-7    S-8    S-9    S-0    XX     XX            ;;A
-;;   spc    S-,    S-.    S-/    [      ]      S-[    S-]    ,      .      /      XX     XX            ;;Z
-;;   XX    XX   XX     XX         spc             XX      XX         XX     XX     XX                  ;;MOD
-;; )
-;;
-;; ;; The user executing the command is the user that kanata was started with. 
-;; ;; For example, if kanata was started by root, the command will be run by 
-;; ;; the root user. If you need to execute as a different user, on Unix platforms 
-;; ;; you can use sudo -u USER before the rest of your command to achieve this.
-;; (defalias
-;;   s-task (macro @aghost 100 C-b $tmux-delay @7)
-;;   saircn (cmd open "btt://execute_assigned_actions_for_trigger/?uuid=9A1CFA49-416C-480E-9430-184D2DAEE1CA") ;; Connect airpods
-;;   scolor (cmd open "btt://execute_assigned_actions_for_trigger/?uuid=6793CE15-C70A-43E7-ADA9-479DF1539A39") ;; colorscheme-selector
-;;   sairsw (cmd bash -c "/opt/homebrew/bin/SwitchAudioSource -s 'AirPods Pro'; /opt/homebrew/bin/SwitchAudioSource -t input -s 'AirPods Pro'") ;; Switch to airpods
-;;   smute (cmd sudo -u linkarzu bash -c "~/github/dotfiles-latest/scripts/macos/mac/misc/200-micMute.sh")
-;; )
-;;
-;; ;; To live reload / hot reload the config:
-;; ;; If kanata can’t parse the file, the previous configuration will continue to be used.
-;; (deflayer system
-;;   ;;   a      s       d       f       g       h       j       k       l       ;       '
-;;   esc  XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX        ;;F1 
-;;   grv  XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX    XX  ;;NUM
-;;   tab  XX     XX      M-w     XX      @s-task prev    brdn    brup    next    ▶⏸      XX      XX    XX  ;;Q  
-;;   XX   @smute XX      M-=     volu    @scolor M-S-[   XX      XX      M-S-]   XX      XX      ret       ;;A  
-;;   lsft M-C-q  XX      M--     vold    XX      @saircn @sairsw XX      XX      XX      ▲       rsft      ;;Z  
-;;   fn    lctl lalt lmet                 lrld                 rmet  ralt        ◀       ▼       ▶         ;;MOD
-;; )
-;;
-;;
-;; (deflayer navi
-;;   ;;   a      s       d       f       g       h       j       k       l       ;       '
-;;   esc  XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX
-;;   grv  XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      XX      XX    del
-;; @scamt @scam0 @scamw  @scamd  XX      XX      S-A-◀   S-A-▼   S-A-▲   S-A-▶   XX      XX      XX    XX
-;;   XX   @scam= @scam9  M-[     M-]     @scamg  ◀       ▼       ▲       ▶       @scam;  XX      XX
-;;   lsft XX     XX      XX      XX      XX      XX      XX      XX      XX      XX      ▲       rsft
-;;   fn    lctl lalt lmet                  _                      rmet    ralt    ◀      ▼       ▶
-;; )
-;;
