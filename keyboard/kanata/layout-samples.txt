@@ -1,3 +1,7 @@
+-----------------------------------
+a  s  d  f  g        h  j  k  l  ;
+-----------------------------------
+
 symbols 1
 `  <  >  -  |        ^  {  }  $ ->
 ~  *  /  =  &        #  (  )  ;  "
@@ -9,8 +13,25 @@ symbols 2
 !  -  +  =  #        |  :  (  )  ?
 `  /  *  \  _        ~  ^  [  ]  @
 
+symbols 3
+X  _  [  ]  ^        !  <  >  =  &
+\  /  {  }  *        ?  (  )  -  :
+#  $  |  ~  `        +  %  "  '  ;
 
-personal 3
-.  <  >  ?  ?        ?  $  {  }  %
-!  -  +  =  ?        ?  ?  (  )  ?
-`  ?  *  ?  _        ?  ^  [  ]  ?
+-------------------------------
+personal variant 1
+!  X  X  *  #        X  {  }  X  X
++  X  +  =  X        ^  (  )  $  X
+`  -  -  [  ]        %  X  <  >  X
+
+
+personal variant 2
+!  {  }  X  X        #  <  >  ?  &
+X  (  )  =  _        ^  [  ]  $  :
+~  X  +  -  %        *  "  '  `  ;
+
+
+personal variant 2 (not used easy accessed symbols in base layer, for codding in vim)
+!  @  {  }  *        #  <  >  X  |
+`  ~  (  )  =        ^  [  ]  $  _
+'  &  -  +  %        0  "  '  X  \

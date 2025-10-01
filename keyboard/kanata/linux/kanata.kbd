@@ -88,15 +88,15 @@
 
   mg (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys))
 
-  ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lalt $left-hand-keys))
-  ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lmet $left-hand-keys))
-  md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lctl $left-hand-keys))
-  mf (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lsft $left-hand-keys))
+  ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lsft $left-hand-keys))
+  ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lctl $left-hand-keys))
+  md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lalt $left-hand-keys))
+  mf (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lmet $left-hand-keys))
 
-  mj (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rsft $right-hand-keys))
-  mk (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) rctl $right-hand-keys))
-  ml (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) rmet $right-hand-keys))
-  m; (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) ralt $right-hand-keys))
+  mj (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rmet $right-hand-keys))
+  mk (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) ralt $right-hand-keys))
+  ml (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) rctl $right-hand-keys))
+  m; (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) rsft $right-hand-keys))
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -169,7 +169,7 @@
   lctl  lmet lalt                spc                       ralt rmet rctl     ◀    ▼    ▶
 )
 
-;; ;; --- Layer: Navigation ---
+;; --- Layer: Navigation ---
 (deflayer l_navigation
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
@@ -179,13 +179,21 @@
    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX
 )
 
-;; ;; --- Layer: Symbols ---
+
+;; --- Layer: Symbols ---
+;; -----------------------------------
+;; a  s  d  f  g        h  j  k  l  ;
+;; -----------------------------------
+;; !  @  {  }  *        #  <  >  X  |
+;; `  ~  (  )  =        ^  [  ]  $  _
+;; X  &  -  +  %        0  "  '  X  \
 (deflayer l_symbols
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX
-   XX    `     S-,   S-.   -     S-\   S-6   S-[   S-]   S-4   XX    XX    XX    XX    XX    XX    XX
-   XX    S-1   S-8   /     =     S-7   S-3   S-9   S-0   ;     S-'   XX          XX
-   XX    S-`   S-=   [     ]     S-5   S-2   S-;   ,     .     '                 XX          XX
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX
+   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   XX          XX
+   XX    XX    S-7   -     S-=   S-5   0     S-'   '     XX    \                 XX          XX
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX
 )
 
