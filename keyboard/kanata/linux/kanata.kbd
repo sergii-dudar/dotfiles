@@ -165,17 +165,27 @@
 )
 
 (defalias
-    mpdt (cmd bash -c "mpc toggle > /dev/null 2>&1")
+    menu (cmd bash -c "/home/serhii/.config/rofi/scripts/launcher_t1")
+    vd (cmd bash -c "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+    vu (cmd bash -c "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")
+    vt (cmd bash -c "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+    pb (cmd bash -c "playerctl previous")
+    pn (cmd bash -c "playerctl next")
+    pp (cmd bash -c "playerctl play-pause")
+    mpdt (cmd bash -c "mpc toggle")
+    mpds (cmd bash -c "mpc stop")
+    mpdn (cmd bash -c "mpc next")
+    mpdp (cmd bash -c "mpc prev")
 )
 
 (deflayer l_system
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    @mpdt XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                    ;;A
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX        ;;Z
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
+   XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn ;;MOD
 )
 
 ;; --- TEMPLATES --- 
