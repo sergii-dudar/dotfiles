@@ -8,24 +8,26 @@ cargo install --locked kanata
 cargo install --features cmd --locked kanata
 
 # config rule to run without sudo
+# https://github.com/jtroo/kanata/wiki/Avoid-using-sudo-on-Linux
+
 sudo groupadd uinput
 sudo usermod -aG input $USER
 sudo usermod -aG uinput $USER
 
-cd /etc/udev/rules.d
-sudo nvim 99-uinput.rules
-# KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
+echo 'KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"' | \
+  sudo tee /etc/udev/rules.d/99-uinput.rules
 
 # Then reload udev rules:
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 
+sudo modprobe uinput
+# relogin
+
 # -----------------------------
 # verify
 ls -l /dev/uinput
 groups $USER
-
-sudo modprobe uinput
 
 # -----------------------------
 # put config
