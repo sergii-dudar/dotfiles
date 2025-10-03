@@ -26,6 +26,9 @@ sudo modprobe uinput
 
 # -----------------------------
 # verify
+getfacl /dev/uinput
+
+
 ls -l /dev/uinput
 groups $USER
 
