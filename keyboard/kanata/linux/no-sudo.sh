@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# config rule to run without sudo
+# https://github.com/jtroo/kanata/wiki/Avoid-using-sudo-on-Linux
+
 set -e
 
 # Ensure group exists
@@ -11,7 +15,9 @@ sudo usermod -aG uinput "$USER"
 # cat <<EOF | sudo tee /etc/udev/rules.d/99-uinput.rules
 # KERNEL=="uinput", MODE="0660", GROUP="uinput"
 # EOF
-echo 'KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"' | \
+# echo 'KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"' | \
+    #     sudo tee /etc/udev/rules.d/99-uinput.rules
+echo 'KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="uinput"' | \
     sudo tee /etc/udev/rules.d/99-uinput.rules
 
 # Reload udev rules
@@ -23,3 +29,5 @@ sudo modprobe uinput
 
 echo "✅ uinput group and rule installed."
 echo "ℹ️  Log out and log back in (or reboot) for group membership to take effect."
+
+# NOTE: In case not working, see README.md - Troubleshooting
