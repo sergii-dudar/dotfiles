@@ -879,6 +879,7 @@ map <leader>oc <Action>(Terminal.OpenInTerminal)
 "==================================== 🄿🅁🄾🄹🄴🄲🅃 🄼🄰🄽🄰🄶🄴🄼🄴🄽🅃: <leader>p ========================================"
 
 map <leader>pp <Action>(ManageRecentProjects)
+map <leader>pP <Action>(CloseProject)
 map <leader>pl <Action>(RecentProjectListGroup)
 map <leader>px <Action>(CloseProject)
 
