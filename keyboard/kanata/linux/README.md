@@ -16,6 +16,12 @@ kanata --cfg ~/.config/kanata/kanata.kbd
 sudo systemctl stop keyd
 sudo systemctl disable keyd
 
+### install as systemd user service (non root)
+./setup-kanata.sh
+
+# logs from service can be checked by
+tail -f /home/serhii/.local/share/kanata/kanata.log
+
 ```
 
 ## Troubleshooting
