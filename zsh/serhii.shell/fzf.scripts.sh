@@ -92,10 +92,34 @@ function fzf_preview() {
           --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
 }
 
-function grept() {
-    search="$1"
+function fzf_preview_no_select() {
+    while IFS= read -r line; do
+        echo "$line"
+    done | fzf --ansi \
+          --exact \
+          --color "hl:-1:underline,hl+:-1:underline:reverse" \
+          --delimiter : \
+          --preview 'bat --style=numbers --color=always {1}' \
+          --preview-window 'up,85%,border-bottom' \
+          --bind "enter:become(bat --color=always {1})"
+}
 
-    rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+function filet() {
+    if [ -z "$1" ]; then
+        fd --type f --color=always --hidden --exclude .git | fzf_preview_no_select
+    else
+        search="$1"
+        fd --type f --color=always --hidden --exclude .git "$search" | fzf_preview_no_select
+    fi
+}
+
+function grept() {
+    if [ -z "$1" ]; then
+        rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
+    else
+        search="$1"
+        rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+    fi
 }
 
 function grept_in() {
