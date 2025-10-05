@@ -2,8 +2,7 @@
 
 ```bash
 # ========== install
-cargo install --locked kanata
-cargo install --features cmd --locked kanata # with cmd support
+cargo install --features cmd --locked kanata
 
 # ========== put config
 sudo ln -s ~/dotfiles/keyboard/kanata/linux ~/.config/kanata

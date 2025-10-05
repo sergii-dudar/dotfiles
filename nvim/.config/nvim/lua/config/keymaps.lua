@@ -57,6 +57,9 @@ vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" }
 
 vim.keymap.set({ "n", "x" }, "K", "8kzz", { noremap = true, silent = true }) -- Mapping K to 6kzz
 vim.keymap.set({ "n", "x" }, "J", "8jzz", { noremap = true, silent = true }) -- Mapping J to 6jzz
+vim.keymap.set({ "n", "x" }, "H", "^", { noremap = true, silent = true }) -- Mapping K to 6kzz
+vim.keymap.set({ "n", "x" }, "L", "$", { noremap = true, silent = true }) -- Mapping J to 6jzz
+
 -- vim.keymap.set({ "n", "x" }, "H", "12h", { noremap = true, silent = true })
 -- vim.keymap.set({ "n", "x" }, "L", "12l", { noremap = true, silent = true })
 
@@ -82,6 +85,9 @@ vim.api.nvim_set_keymap("n", "<leader>|", ":split | wincmd j<CR>", { noremap = t
 -- standard vim quickfix (ad default replaced to trouble.nvim)
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
+
+-- map("n", "<S-h>", "^", { desc = "Prev Buffer" })
+-- map("n", "<S-l>", "$", { desc = "Next Buffer" })
 
 -- Snacks
 Snacks.toggle.zen():map("<leader>zz")

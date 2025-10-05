@@ -3,6 +3,8 @@ return {
     keys = {
         { "<Tab>", "<Cmd>BufferLineCycleNext<CR>", desc = "Next tab" },
         { "<S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", desc = "Prev tab" },
+        { "<S-h>", false },
+        { "<S-l>", false },
     },
     opts = {
         highlights = {

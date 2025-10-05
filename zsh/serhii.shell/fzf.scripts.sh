@@ -104,7 +104,7 @@ function fzf_preview_no_select() {
           --bind "enter:become(bat --color=always {1})"
 }
 
-function filet() {
+function findf() {
     if [ -z "$1" ]; then
         fd --type f --color=always --hidden --exclude .git | fzf_preview_no_select
     else

@@ -142,10 +142,10 @@ function process_player_info() {
     fi
 }
 
-get_mpd_info
+get_apple_music_info
 process_player_info
 
-get_apple_music_info
+get_mpd_info
 process_player_info
 
 # echo "STATUS: $STATUS" >/tmp/logs.txt
