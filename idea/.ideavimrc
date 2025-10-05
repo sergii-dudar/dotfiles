@@ -107,6 +107,8 @@ nnoremap R @q " R to execute q macro
 
 noremap J 8jzz
 noremap K 8kzz
+noremap H ^
+noremap L $
 
 "vertically navigation
 noremap <C-u> <C-u>zz
@@ -783,8 +785,8 @@ nmap gS <Action>(GotoSuperMethod)
 nmap <Tab>     <Action>(NextTab)
 nmap <S-Tab>   <Action>(PreviousTab)
 
-nmap <S-l> <Action>(NextTab)
-nmap <S-h> <Action>(PreviousTab)
+" nmap <S-l> <Action>(NextTab)
+" nmap <S-h> <Action>(PreviousTab)
 
 ""nmap <leader>1 <Action>(GoToTab1)
 ""nmap <leader>2 <Action>(GoToTab2)

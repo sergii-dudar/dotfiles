@@ -7,7 +7,7 @@
 
 (defcfg
   process-unmapped-keys yes
-  ;;log-layer-changes no
+  log-layer-changes no
   danger-enable-cmd yes
   concurrent-tap-hold yes
 
@@ -97,7 +97,10 @@
   ;; C-. down)
 
   mralt S-C-A-M-spc
-  mkill A-w
+  ;; mpscrn S-M-4 ;; print screen
+  mpscrn S-C-M-4 ;; print screen
+  ;; mpscrn (macro h e l l o)
+  ;; mkill A-w
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-while-held l_navigation))
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-switch l_numbers))
 
@@ -108,23 +111,27 @@
 
   mz (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys)
   m/ (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys)
-  mlctl (multi lctl (layer-while-held l_ctl_system))
-  mlalt (multi lalt (layer-while-held l_alt))
+  ;; mlctl (multi lctl (layer-while-held l_ctl))
+  ;; mlalt (multi lalt (layer-while-held l_alt))
+
+  ;; --- Sub Layers ---
+  ;; ms_lctl_shift (tap-hold-release 200 200 esc (layer-while-held l_ctl_sub_shift))
+  ;; ms_lalt_shift (tap-hold-release 200 200 esc (layer-while-held l_alt_sub_shift))
 )
 
-(defchordsv2
-  ;; (participating-keys1) action1 timeout1 release-behaviour1 (disabled-layers1)
-  (lctl lmet) (layer-while-held l_ctl_option) $chord-time first-release ()
-)
+;; (defchordsv2
+;;   ;; (participating-keys1) action1 timeout1 release-behaviour1 (disabled-layers1)
+;;   (lctl lmet) (layer-while-held l_ctl_option) $chord-time first-release ()
+;; )
 
 ;; --- Layer: Base ---
 (deflayer base
-      esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13 slck pause
+      esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
      @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-    @mlctl  @mlalt lmet            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+      lctl   lalt lmet            @mspc                     @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -195,41 +202,41 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX  @mpscrn XX    XX    XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
 )
 
-(deflayer l_ctl_option
-   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
-   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _     _     _     _     _     _                 _           @mpds        ;;Z
-   _     _     _                             _                       _     _     _     @mpdp @mpdt @mpdn  ;;MOD
-)
+;; (deflayer l_ctl_option
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           @mpds        ;;Z
+;;    _     _     _                             _                       _     _     _     @mpdp @mpdt @mpdn  ;;MOD
+;; )
 
-(deflayer l_ctl_system
-   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
-   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
-)
-
-(deflayer l_alt
-   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
-   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-   _     _     _                             _                       _     _     _    @mpdvd _     @mpdvi ;;MOD
-)
+;; (deflayer l_ctl
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+;;    _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+;; )
+;;
+;; (deflayer l_alt
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+;;    _     _     _                             _                       _     _     _    @mpdvd _     @mpdvi ;;MOD
+;; )
 
 ;; --- TEMPLATES --- 
 ;; All transparent
