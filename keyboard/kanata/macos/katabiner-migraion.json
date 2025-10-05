@@ -1,0 +1,139 @@
+[
+    {
+        "description": "print screen",
+        "manipulators": [
+            {
+                "from": {
+                    "consumer_key_code": "scan_previous_track"
+                },
+                "to": [
+                    {
+                        "key_code": "4",
+                        "modifiers": [
+                            "left_command",
+                            "left_shift"
+                        ]
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "print screen to clipboard",
+        "manipulators": [
+            {
+                "from": {
+                    "consumer_key_code": "scan_previous_track",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_control"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "key_code": "4",
+                        "modifiers": [
+                            "left_control",
+                            "left_command",
+                            "left_shift"
+                        ]
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "close window",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "c",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_shift",
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "key_code": "w",
+                        "modifiers": [
+                            "left_command"
+                        ]
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "play_or_pause",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "down_arrow",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_shift",
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "consumer_key_code": "play_or_pause"
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "play_next",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "right_arrow",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_shift",
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "consumer_key_code": "scan_next_track"
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+    {
+        "description": "play_previous",
+        "manipulators": [
+            {
+                "from": {
+                    "key_code": "left_arrow",
+                    "modifiers": {
+                        "mandatory": [
+                            "left_shift",
+                            "left_option"
+                        ]
+                    }
+                },
+                "to": [
+                    {
+                        "consumer_key_code": "scan_previous_track"
+                    }
+                ],
+                "type": "basic"
+            }
+        ]
+    },
+]

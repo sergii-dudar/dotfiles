@@ -7,9 +7,9 @@
 
 (defcfg
   process-unmapped-keys yes
-  log-layer-changes no
+  ;;log-layer-changes no
   danger-enable-cmd yes
-  ;; concurrent-tap-hold yes
+  concurrent-tap-hold yes
 
   ;; When any non-chord activation happens, this timeout begins. Until this timeout expires
   ;; all inputs will immediately skip chords processing and be processed by the active layer.
@@ -96,7 +96,8 @@
   ;; C-, up
   ;; C-. down)
 
-  mralt M-spc
+  mralt S-C-A-M-spc
+  mkill A-w
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-while-held l_navigation))
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-switch l_numbers))
 
@@ -108,6 +109,12 @@
   mz (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys)
   m/ (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys)
   mlctl (multi lctl (layer-while-held l_ctl_system))
+  mlalt (multi lalt (layer-while-held l_alt))
+)
+
+(defchordsv2
+  ;; (participating-keys1) action1 timeout1 release-behaviour1 (disabled-layers1)
+  (lctl lmet) (layer-while-held l_ctl_option) $chord-time first-release ()
 )
 
 ;; --- Layer: Base ---
@@ -117,7 +124,7 @@
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
      @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-    @mlctl  lalt lmet            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+    @mlctl  @mlalt lmet            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -142,18 +149,18 @@
 )
 
 ;; --- Layer: Symbols ---
-;; -----------------------------------
-;; a  s  d  f  g        h  j  k  l  ;
-;; -----------------------------------
+;; --------------------------------------
+;; a  s  d  f  g        h  j  k  l  ;  '
+;; --------------------------------------
 ;; !  @  {  }  *        #  <  >  X  |
-;; `  ~  (  )  =        ^  [  ]  $  _
+;; `  ~  (  )  =        ^  [  ]  $  _  ' (apostrof on UK)
 ;; X  &  -  +  %        0  X  X  X  \
 (deflayer l_symbols
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
    XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX  ;;Q
-   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   XX          XX                    ;;A
+   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   S-A-p       XX                    ;;A
    XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX        ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
 )
@@ -169,38 +176,59 @@
 )
 
 (defalias
-    menu (cmd bash -c "/home/serhii/.config/rofi/scripts/launcher_t1")
-    vd (cmd bash -c "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
-    vu (cmd bash -c "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")
-    vt (cmd bash -c "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
-    pb (cmd bash -c "playerctl previous")
-    pn (cmd bash -c "playerctl next")
-    pp (cmd bash -c "playerctl play-pause")
-    ;; mpdt (cmd bash -c "mpc toggle")
-    mpdt (cmd bash -c "/opt/homebrew/bin/mpc toggle ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpds (cmd bash -c "mpc stop")
-    mpdn (cmd bash -c "mpc next")
-    mpdp (cmd bash -c "mpc prev")
+    ;; menu (cmd bash -c "/home/serhii/.config/rofi/scripts/launcher_t1")
+    ;; vd (cmd bash -c "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+    ;; vu (cmd bash -c "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")
+    ;; vt (cmd bash -c "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+    ;; pb (cmd bash -c "playerctl previous")
+    ;; pn (cmd bash -c "playerctl next")
+    ;; pp (cmd bash -c "playerctl play-pause")
+    mpdt (cmd bash -c "/opt/homebrew/bin/mpc toggle ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpds (cmd bash -c "/opt/homebrew/bin/mpc stop ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdn (cmd bash -c "/opt/homebrew/bin/mpc next ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdp (cmd bash -c "/opt/homebrew/bin/mpc prev ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdvd (cmd bash -c "/opt/homebrew/bin/mpc volume -5 ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdvi (cmd bash -c "/opt/homebrew/bin/mpc volume +5 ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
 )
 
 (deflayer l_system
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu    ;;NUM
-   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
+   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX           ;;Z
-   XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn    ;;MOD
+   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
+)
+
+(deflayer l_ctl_option
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _     _     _     _     _     _                 _           @mpds        ;;Z
+   _     _     _                             _                       _     _     _     @mpdp @mpdt @mpdn  ;;MOD
 )
 
 (deflayer l_ctl_system
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-   _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
+   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+)
+
+(deflayer l_alt
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+   _     _     _                             _                       _     _     _    @mpdvd _     @mpdvi ;;MOD
 )
 
 ;; --- TEMPLATES --- 
