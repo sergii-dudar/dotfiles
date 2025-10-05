@@ -164,12 +164,12 @@
 ;; X  &  -  +  %        0  X  X  X  \
 (deflayer l_symbols
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX  ;;Q
-   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   S-A-p       XX                    ;;A
-   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX        ;;Z
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX   ;;F1
+   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX @mpdvd @mpds @mpdvi ;;NUM
+   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX @mpdp  @mpdt @mpdn  ;;Q
+   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   S-A-p       XX                     ;;A
+   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX         ;;Z
+   XX    XX    XX                            XX                      XX    XX    XX    ◀◀    ▶⏸    ▶▶   ;;MOD
 )
 
 (deflayer l_numbers
