@@ -45,3 +45,6 @@ systemctl --user enable --now kanata.service
 
 echo "Kanata service installed and started."
 echo "Logs: $LOG_FILE"
+
+echo "📄 Attaching to logs: $LOG_FILE (we can freely kill it, all oppparations finished succesfully)"
+tail -f "$LOG_FILE"
