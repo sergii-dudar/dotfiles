@@ -18,11 +18,14 @@
 
 ;; Variables
 (defvar
-  tap-time 150
-  hold-time 200
+  tap-time    200
+  hold-time   200
 
-  hrm-tap-time 200
-  hrm-hold-time 200
+  hold-index  200
+  hold-middle 230
+  hold-ring   260
+  hold-pinky  290
+  hold-thumb  250
 
   left-hand-keys (
     1 2 3 4 5
@@ -65,15 +68,15 @@
 
   ;; escctrl (tap-hold 200 200 esc lctl)
 
-  ;; actl (multi f24 (tap-hold $tap-time $hold-time a lctl))
-  ;; salt (multi f24 (tap-hold $tap-time $hold-time s lalt))
-  ;; dmet (multi f24 (tap-hold $tap-time $hold-time d lmet))
-  ;; fsft (multi f24 (tap-hold $tap-time $hold-time f lsft))
+  ;; ma (multi f24 (tap-hold $tap-time $hold-time a lctl))
+  ;;;; ms (multi f24 (tap-hold $tap-time $hold-time s lsft))
+  ;; md (multi f24 (tap-hold $tap-time $hold-time d lalt))
+  ;; mf (multi f24 (tap-hold $tap-time $hold-time f lmet))
   ;;
-  ;; jsft (multi f24 (tap-hold $tap-time $hold-time j rsft))
-  ;; kmet (multi f24 (tap-hold $tap-time $hold-time k rmet))
-  ;; lalt (multi f24 (tap-hold $tap-time $hold-time l ralt))
-  ;; ;ctl (multi f24 (tap-hold $tap-time $hold-time ; rctl))
+  ;; mj (multi f24 (tap-hold $tap-time $hold-time j rmet))
+  ;; mk (multi f24 (tap-hold $tap-time $hold-time k ralt))
+  ;;;; ml (multi f24 (tap-hold $tap-time $hold-time l rsft))
+  ;; m; (multi f24 (tap-hold $tap-time $hold-time ; rctl))
  
   tap (multi
     (layer-switch nomods)
@@ -81,15 +84,15 @@
   )
 
   ;; --- Homee row monds ---
-  ma (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lsft $left-hand-keys))
-  ms (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lctl $left-hand-keys))
-  md (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lalt $left-hand-keys))
-  mf (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lmet $left-hand-keys))
+  ma (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lctl $left-hand-keys))
+  ms (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lsft $left-hand-keys))
+  md (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lalt $left-hand-keys))
+  mf (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lmet $left-hand-keys))
 
-  mj (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rmet $right-hand-keys))
-  mk (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) ralt $right-hand-keys))
-  ml (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) rctl $right-hand-keys))
-  m; (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) rsft $right-hand-keys))
+  mj (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rmet $right-hand-keys))
+  mk (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi k @tap) ralt $right-hand-keys))
+  ml (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi l @tap) rsft $right-hand-keys))
+  m; (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rctl $right-hand-keys))
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -103,10 +106,10 @@
   ;; --- FN (Layers) Hold Keys ---
   mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
   mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
-  mg (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys))
+  mg (multi f24 (tap-hold-release-keys $tap-time $hold-time g (layer-while-held l_numbers) $left-hand-keys))
 
-  mz (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys))
-  m/ (multi f24 (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys))
+  mz (multi f24 (tap-hold-release-keys $tap-time $hold-time z (layer-while-held l_system) $left-hand-keys))
+  m/ (multi f24 (tap-hold-release-keys $tap-time $hold-time / (layer-while-held l_system) $right-hand-keys))
   mlctl (multi lctl (layer-while-held l_ctl_system))
 )
 
