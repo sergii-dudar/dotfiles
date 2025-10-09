@@ -162,12 +162,13 @@
 )
 
 ;; --- Layer: Symbols ---
-;; --------------------------------------
-;; a  s  d  f  g        h  j  k  l  ;  '
-;; --------------------------------------
-;; !  @  {  }  *        #  <  >  X  |
-;; `  ~  (  )  =        ^  [  ]  $  _  ' (apostrof on UK)
-;; X  &  -  +  %        ◀  ▼  ▲  ▶  \
+;; |   |---------------------------------------
+;; |   | a  s  d  f  g        h  j  k  l  ;  '
+;; |   |---------------------------------------
+;; | 1 | X  X  X  X  X        X  X  [  ]  X
+;; | q | !  @  #  *  %        X  {  }  -  _
+;; | a | `  ~  X  X  X        ^  (  )  $  =  ' (apostrof on UK)
+;; | z | \  |  &  -> X        ◀  ▼  ▲  ▶  +
 (deflayer l_symbols
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX   ;;F1
