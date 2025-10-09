@@ -86,11 +86,11 @@
   ;; --- Homee row monds ---
   ma (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lctl $left-hand-keys)
   ms (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lsft $left-hand-keys)
-  md (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lalt $left-hand-keys)
-  mf (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lmet $left-hand-keys)
+  md (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lmet $left-hand-keys)
+  mf (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lalt $left-hand-keys)
 
-  mj (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rmet $right-hand-keys)
-  mk (tap-hold-release-keys $tap-time $hold-time (multi k @tap) ralt $right-hand-keys)
+  mj (tap-hold-release-keys $tap-time $hold-time (multi j @tap) ralt $right-hand-keys)
+  mk (tap-hold-release-keys $tap-time $hold-time (multi k @tap) rmet $right-hand-keys)
   ml (tap-hold-release-keys $tap-time $hold-time (multi l @tap) rsft $right-hand-keys)
   m; (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rctl $right-hand-keys)
 
