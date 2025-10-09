@@ -1,5 +1,5 @@
 return {
-    { "mg979/vim-visual-multi" },
+    --{ "mg979/vim-visual-multi" },
     {
         -- "norcalli/nvim-colorizer.lua",
         "catgoose/nvim-colorizer.lua", -- fork with support of AARRGGBB and another color formats

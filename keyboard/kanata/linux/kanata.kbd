@@ -69,13 +69,13 @@
   ;; escctrl (tap-hold 200 200 esc lctl)
 
   ;; ma (multi f24 (tap-hold $tap-time $hold-time a lctl))
-  ;;;; ms (multi f24 (tap-hold $tap-time $hold-time s lsft))
+  ;; ms (multi f24 (tap-hold $tap-time $hold-time s lsft))
   ;; md (multi f24 (tap-hold $tap-time $hold-time d lalt))
   ;; mf (multi f24 (tap-hold $tap-time $hold-time f lmet))
   ;;
   ;; mj (multi f24 (tap-hold $tap-time $hold-time j rmet))
   ;; mk (multi f24 (tap-hold $tap-time $hold-time k ralt))
-  ;;;; ml (multi f24 (tap-hold $tap-time $hold-time l rsft))
+  ;; ml (multi f24 (tap-hold $tap-time $hold-time l rsft))
   ;; m; (multi f24 (tap-hold $tap-time $hold-time ; rctl))
  
   tap (multi

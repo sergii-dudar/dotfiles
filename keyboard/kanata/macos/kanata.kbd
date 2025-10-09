@@ -9,7 +9,7 @@
   process-unmapped-keys yes
   log-layer-changes no
   danger-enable-cmd yes
-  concurrent-tap-hold yes
+  ;; concurrent-tap-hold yes
 
   ;; When any non-chord activation happens, this timeout begins. Until this timeout expires
   ;; all inputs will immediately skip chords processing and be processed by the active layer.
@@ -18,11 +18,14 @@
 
 ;; Variables
 (defvar
-  tap-time 150
+  tap-time 200
   hold-time 200
-
-  hrm-tap-time 200
-  hrm-hold-time 200
+  
+  hold-index  200
+  hold-middle 230
+  hold-ring   260
+  hold-pinky  290
+  hold-thumb  250
 
   left-hand-keys (
     1 2 3 4 5
@@ -65,15 +68,15 @@
 
   ;; escctrl (tap-hold 200 200 esc lctl)
 
-  ;; actl (multi f24 (tap-hold $tap-time $hold-time a lctl))
-  ;; salt (multi f24 (tap-hold $tap-time $hold-time s lalt))
-  ;; dmet (multi f24 (tap-hold $tap-time $hold-time d lmet))
-  ;; fsft (multi f24 (tap-hold $tap-time $hold-time f lsft))
+  ;; ma (multi f24 (tap-hold $tap-time $hold-time a lctl))
+  ;; ms (multi f24 (tap-hold $tap-time $hold-time s lsft))
+  ;; md (multi f24 (tap-hold $tap-time $hold-time d lalt))
+  ;; mf (multi f24 (tap-hold $tap-time $hold-time f lmet))
   ;;
-  ;; jsft (multi f24 (tap-hold $tap-time $hold-time j rsft))
-  ;; kmet (multi f24 (tap-hold $tap-time $hold-time k rmet))
-  ;; lalt (multi f24 (tap-hold $tap-time $hold-time l ralt))
-  ;; ;ctl (multi f24 (tap-hold $tap-time $hold-time ; rctl))
+  ;; mj (multi f24 (tap-hold $tap-time $hold-time j rmet))
+  ;; mk (multi f24 (tap-hold $tap-time $hold-time k ralt))
+  ;; ml (multi f24 (tap-hold $tap-time $hold-time l rsft))
+  ;; m; (multi f24 (tap-hold $tap-time $hold-time ; rctl))
  
   tap (multi
     (layer-switch nomods)
@@ -81,15 +84,15 @@
   )
 
   ;; --- Homee row monds ---
-  ma (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi a @tap) lsft $left-hand-keys)
-  ms (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi s @tap) lctl $left-hand-keys)
-  md (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi d @tap) lalt $left-hand-keys)
-  mf (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi f @tap) lmet $left-hand-keys)
+  ma (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lctl $left-hand-keys)
+  ms (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lsft $left-hand-keys)
+  md (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lalt $left-hand-keys)
+  mf (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lmet $left-hand-keys)
 
-  mj (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi j @tap) rmet $right-hand-keys)
-  mk (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi k @tap) ralt $right-hand-keys)
-  ml (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi l @tap) rctl $right-hand-keys)
-  m; (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi ; @tap) rsft $right-hand-keys)
+  mj (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rmet $right-hand-keys)
+  mk (tap-hold-release-keys $tap-time $hold-time (multi k @tap) ralt $right-hand-keys)
+  ml (tap-hold-release-keys $tap-time $hold-time (multi l @tap) rsft $right-hand-keys)
+  m; (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rctl $right-hand-keys)
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -97,8 +100,8 @@
   ;; C-. down)
 
   mralt S-C-A-M-spc
-  ;; mpscrn S-M-4 ;; print screen
-  mpscrn S-C-M-4 ;; print screen
+  mpscrn S-M-4 ;; print screen
+  ;; mpscrn S-C-M-4 ;; print screen
   ;; mpscrn (macro h e l l o)
   ;; mkill A-w
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-while-held l_navigation))
@@ -106,13 +109,16 @@
 
   ;; --- FN (Layers) Hold Keys ---
   mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
-  mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
-  mg (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys)
+  ;; mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
 
-  mz (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys)
-  m/ (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys)
   ;; mlctl (multi lctl (layer-while-held l_ctl))
   ;; mlalt (multi lalt (layer-while-held l_alt))
+  mcaps (tap-hold-release 200 200 esc (layer-while-held l_navigation))
+  ;; mtab (tap-hold-release 200 200 tab (layer-while-held l_navigation))
+  ;; mg (tap-hold-release-keys $hrm-tap-time $hrm-hold-time (multi g @tap) (layer-while-held l_numbers) $left-hand-keys)
+
+  mz (tap-hold-release-keys $tap-time $hold-time (multi z @tap) (layer-while-held l_system) $left-hand-keys)
+  m/ (tap-hold-release-keys $tap-time $hold-time (multi / @tap) (layer-while-held l_system) $right-hand-keys)
 
   ;; --- Sub Layers ---
   ;; ms_lctl_shift (tap-hold-release 200 200 esc (layer-while-held l_ctl_sub_shift))
@@ -129,9 +135,9 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-     @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
+     @mcaps  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-      lctl   lalt lmet            @mspc                     @mralt  rmet rctl     ◀    ▼    ▶
+      lctl   lalt lmet           @mspc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -161,26 +167,26 @@
 ;; --------------------------------------
 ;; !  @  {  }  *        #  <  >  X  |
 ;; `  ~  (  )  =        ^  [  ]  $  _  ' (apostrof on UK)
-;; X  &  -  +  %        0  X  X  X  \
+;; X  &  -  +  %        ◀  ▼  ▲  ▶  \
 (deflayer l_symbols
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX   ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX @mpdvd @mpds @mpdvi ;;NUM
    XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX @mpdp  @mpdt @mpdn  ;;Q
    XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   S-A-p       XX                     ;;A
-   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX         ;;Z
+   XX    XX    S-7   -     S-=   S-5   ◀     ▼     ▲     ▶     \     XX          XX         ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    ◀◀    ▶⏸    ▶▶   ;;MOD
 )
 
-(deflayer l_numbers
-   ;;    a     s     d     f     g     h     j     k     l    ;      '           enter
-   XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX  ;;Q
-   XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX                    ;;A
-   XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX        ;;Z
-   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
-)
+;; (deflayer l_numbers
+;;    ;;    a     s     d     f     g     h     j     k     l    ;      '           enter
+;;    XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX  ;;F1
+;;    XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX  ;;NUM
+;;    XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX  ;;Q
+;;    XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX                    ;;A
+;;    XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX        ;;Z
+;;    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
+;; )
 
 (defalias
     ;; menu (cmd bash -c "/home/serhii/.config/rofi/scripts/launcher_t1")
