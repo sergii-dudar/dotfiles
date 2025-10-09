@@ -21,6 +21,7 @@ vim.opt.fileencoding = "utf-8"
 vim.opt.wrap = false
 vim.opt.swapfile = false
 -- vim.opt.showtabline = 2
+-- vim.opt.cursorcolumn = true
 
 -- Enable syntax highlighting
 --vim.cmd('syntax on')

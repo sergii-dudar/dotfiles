@@ -84,15 +84,15 @@
   )
 
   ;; --- Homee row monds ---
-  ma (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi a @tap) lctl $left-hand-keys))
-  ms (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi s @tap) lsft $left-hand-keys))
-  md (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi d @tap) lalt $left-hand-keys))
-  mf (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi f @tap) lmet $left-hand-keys))
+  ma (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys))
+  ms (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys))
+  md (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lalt $left-hand-keys))
+  mf (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lmet $left-hand-keys))
 
-  mj (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi j @tap) rmet $right-hand-keys))
-  mk (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi k @tap) ralt $right-hand-keys))
-  ml (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi l @tap) rsft $right-hand-keys))
-  m; (multi f24 (tap-hold-release-keys $tap-time $hold-time (multi ; @tap) rctl $right-hand-keys))
+  mj (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi j @tap) rmet $right-hand-keys))
+  mk (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys))
+  ml (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys))
+  m; (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys))
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -100,17 +100,16 @@
   ;; C-. down)
 
   mralt M-spc
-  ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-while-held l_navigation))
-  ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-switch l_numbers))
 
   ;; --- FN (Layers) Hold Keys ---
-  mspc (tap-hold-release 200 200 spc (layer-while-held l_symbols))
-  mesc (tap-hold-release 200 200 esc (layer-while-held l_navigation))
-  mg (multi f24 (tap-hold-release-keys $tap-time $hold-time g (layer-while-held l_numbers) $left-hand-keys))
+  mspc (multi f24 (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols)))
+  mesc (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
 
-  mz (multi f24 (tap-hold-release-keys $tap-time $hold-time z (layer-while-held l_system) $left-hand-keys))
-  m/ (multi f24 (tap-hold-release-keys $tap-time $hold-time / (layer-while-held l_system) $right-hand-keys))
-  mlctl (multi lctl (layer-while-held l_ctl_system))
+  mz (multi f24 (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys))
+  m/ (multi f24 (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys))
+  
+  ;; marsos
+  rarrow (macro - S-.)
 )
 
 ;; --- Layer: Base ---
@@ -118,9 +117,9 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-     @mesc   @ma @ms   @md @mf   @mg  h    @mj  @mk  @ml  @m;  '         enter
+     @mesc   @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-    @mlctl  lmet lalt            @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+      lctl   lmet lalt           @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -145,30 +144,22 @@
 )
 
 ;; --- Layer: Symbols ---
-;; -----------------------------------
-;; a  s  d  f  g        h  j  k  l  ;
-;; -----------------------------------
-;; !  @  {  }  *        #  <  >  X  |
-;; `  ~  (  )  =        ^  [  ]  $  _
-;; X  &  -  +  %        0  X  X  X  \
+;; |   |---------------------------------------
+;; |   | a  s  d  f  g        h  j  k  l  ;  '
+;; |   |---------------------------------------
+;; | 1 | X  X  X  X  X        X  X  [  ]  X
+;; | q | !  @  #  *  |        0  {  }  -> X
+;; | a | `  ~  +  =  &        ^  (  )  $  X  ' (apostrof on UK)
+;; | z | X  \  _  -  %        ◀  ▼  ▲  ▶  X
+
 (deflayer l_symbols
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    S-1   S-2   S-[   S-]   S-8   S-3   S-,   S-.   XX    S-\   XX    XX    XX    XX    XX    XX  ;;Q
-   XX    `     S-`   S-9   S-0   =     S-6   [     ]     S-4   S--   XX          XX                    ;;A
-   XX    XX    S-7   -     S-=   S-5   0     XX    XX    XX    \                 XX          XX        ;;Z
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX  ;;MOD
-)
-
-(deflayer l_numbers
-   ;;    a     s     d     f     g     h     j     k     l    ;      '           enter
-   XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX  ;;Q
-   XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX                    ;;A
-   XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX        ;;Z
-   XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
+   XX    XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX    XX    XX    XX  ;;NUM
+   XX    S-1   S-2   S-3   S-8   S-\   0     S-[   S-] @rarrow XX    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    `     S-`   S-=   =     S-7   S-6   S-9   S-0   S-4   XX    S-A-p       XX                    ;;A
+   XX    XX    \     S--   -     S-5   ◀     ▼     ▲     ▶     XX                XX          XX        ;;Z
+   XX    XX    XX                            XX                      XX    XX    XX    XX    XX     XX ;;MOD
 )
 
 (defalias
@@ -195,15 +186,25 @@
    XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn    ;;MOD
 )
 
-(deflayer l_ctl_system
-   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
-   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-   _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
-)
+;; (deflayer l_numbers
+;;    ;;    a     s     d     f     g     h     j     k     l    ;      '           enter
+;;    XX    XX    XX    XX    XX       XX    XX    XX    XX      XX     XX    XX    XX    XX    XX    XX  ;;F1
+;;    XX    XX    XX    XX    XX    XX    XX    /    S-8    -    +      XX    XX    XX    XX    XX    XX  ;;NUM
+;;    XX    XX    XX    XX    XX    XX    XX    7     8     9   bspc    XX    XX    XX    XX    XX    XX  ;;Q
+;;    XX    XX    XX    XX    XX    XX    XX    4     5     6     .     XX          XX                    ;;A
+;;    XX    XX    XX    XX    XX    XX    0     1     2     3  enter                XX          XX        ;;Z
+;;    XX    XX    XX                XX                                  XX    XX    XX    XX    XX    XX  ;;MOD
+;; )
+
+;; (deflayer l_ctl_system
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+;;    _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
+;; )
 
 ;; --- TEMPLATES --- 
 ;; All transparent

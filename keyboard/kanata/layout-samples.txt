@@ -36,3 +36,13 @@ personal variant 2 (not used easy accessed symbols in base layer, for codding in
 `  ~  (  )  =        ^  [  ]  $  _
 X  &  -  +  %        0  X  X  X  \
 
+;; --- Layer: Symbols ---
+;; |   |---------------------------------------
+;; |   | a  s  d  f  g        h  j  k  l  ;  '
+;; |   |---------------------------------------
+;; | 1 | X  X  X  X  X        X  X  [  ]  X
+;; | q | !  @  #  *  %        X  {  }  -  _
+;; | a | `  ~  X  X  X        ^  (  )  $  =  ' (apostrof on UK)
+;; | z | \  |  &  -> X        ◀  ▼  ▲  ▶  +
+
+
