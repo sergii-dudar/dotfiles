@@ -21,11 +21,16 @@
   tap-time    200
   hold-time   200
 
-  hold-index  200
-  hold-middle 230
-  hold-ring   260
-  hold-pinky  290
-  hold-thumb  250
+  ;; hold-index  200
+  ;; hold-middle 230
+  ;; hold-ring   260
+  ;; hold-pinky  290
+  ;; hold-thumb  250
+  hold-index  $hold-time
+  hold-middle $hold-time
+  hold-ring   $hold-time
+  hold-pinky  $hold-time
+  hold-thumb  $hold-time
 
   left-hand-keys (
     1 2 3 4 5
