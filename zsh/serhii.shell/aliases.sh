@@ -1,4 +1,5 @@
 alias rl='export MANUAL_RL=1 ; exec zsh' # reload shell with variable
+alias cl="clear"
 
 # short edit
 alias dots="cd ~/dotfiles && nvim"

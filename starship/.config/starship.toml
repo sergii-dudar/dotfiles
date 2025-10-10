@@ -5,6 +5,11 @@
 #[╰─cmd────❯](bold green)
 #"""
 
+# A minimal left prompt
+# format = """$directory$character"""
+# move the rest of the prompt to the right
+# right_format = """$all"""
+
 # Inserts a blank line between shell prompts
 add_newline = false
 command_timeout = 1000
@@ -36,6 +41,7 @@ style = "bold italic yellow"
 symbol = " "
 truncation_length = 27
 truncation_symbol = '…'
+format =  '[$symbol$branch(:$remote_branch)]($style)'
 
 [git_status]
 format = '([\[$all_status$ahead_behind\]]($style) )'
