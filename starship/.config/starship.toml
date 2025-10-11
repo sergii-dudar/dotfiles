@@ -20,8 +20,9 @@ disabled = true
 
 # Replace the "❯" symbol in the prompt with "➜"
 [character] # The name of the module we are configuring is "character"
-success_symbol = "[❯](bold cyan)" # The "success_symbol" segment is being set to "➜" with the color "bold green"
+success_symbol = "[❯](bold green)" # The "success_symbol" segment is being set to "➜" with the color "bold green"
 error_symbol = "[❯](bold red)"
+vimcmd_symbol = '[❮](bold 95)'
 
 # configure directory
 [directory]
@@ -41,7 +42,7 @@ style = "bold italic yellow"
 symbol = " "
 truncation_length = 27
 truncation_symbol = '…'
-format =  '[$symbol$branch(:$remote_branch)]($style)'
+format = '[$symbol$branch(:$remote_branch)]($style) '
 
 [git_status]
 format = '([\[$all_status$ahead_behind\]]($style) )'

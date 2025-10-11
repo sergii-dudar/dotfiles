@@ -20,7 +20,7 @@ return {
             -- mode = "tabs", -- buffers|tabs: set to "tabs" to only show tabpages instead
             separator_style = "thick", --thin, thick, slant
             show_buffer_close_icons = false,
-            show_close_icon = false,
+            show_close_icon = true,
             always_show_bufferline = true,
             show_tab_indicators = true,
             auto_toggle_bufferline = true,
