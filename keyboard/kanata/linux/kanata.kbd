@@ -7,7 +7,7 @@
 
 (defcfg
   process-unmapped-keys yes
-  log-layer-changes no
+  log-layer-changes yes
   danger-enable-cmd yes
   ;; concurrent-tap-hold yes
 
@@ -108,13 +108,16 @@
 
   ;; --- FN (Layers) Hold Keys ---
   mspc (multi f24 (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols)))
-  mesc (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
+  mcaps (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
 
   mz (multi f24 (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys))
   m/ (multi f24 (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys))
   
   ;; marsos
   rarrow (macro - S-.)
+
+  ;; Modifiers
+  mlctl (multi lctl (layer-while-held l_ctl))
 )
 
 ;; --- Layer: Base ---
@@ -122,9 +125,9 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-     @mesc   @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
+     @mcaps  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-      lctl   lmet lalt           @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+      @mlctl   lmet lalt           @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -210,6 +213,37 @@
 ;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
 ;;    _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
 ;; )
+
+;; (deflayer l_ctl_option
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           @mpds        ;;Z
+;;    _     _     _                             _                       _     _     _     @mpdp @mpdt @mpdn  ;;MOD
+;; )
+
+(deflayer l_ctl
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _     _     _     (unmod ▼)     (unmod ▲)     _                 _           _            ;;Z
+   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+)
+
+;; (deflayer l_alt
+;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+;;    _     _     _                             _                       _     _     _    @mpdvd _     @mpdvi ;;MOD
+;; )
+
 
 ;; --- TEMPLATES --- 
 ;; All transparent

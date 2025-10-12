@@ -114,7 +114,7 @@
 
   ;; --- FN (Layers) Hold Keys ---
   mspc (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols))
-  mesc (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation))
+  mcaps (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation))
 
   mz (tap-hold-release-keys $tap-time $hold-pinky (multi z @tap) (layer-while-held l_system) $left-hand-keys)
   m/ (tap-hold-release-keys $tap-time $hold-pinky (multi / @tap) (layer-while-held l_system) $right-hand-keys)
@@ -128,7 +128,7 @@
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
       tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
-     @mesc  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
+     @mcaps  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
       lctl   lalt lmet           @mspc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
