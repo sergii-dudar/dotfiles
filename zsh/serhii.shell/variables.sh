@@ -29,7 +29,7 @@ if isMacOs; then
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
 
-    export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
+    #export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
 
     # dotnet
     # export DOTNET_ROOT="$(dirname $(which dotnet))"
