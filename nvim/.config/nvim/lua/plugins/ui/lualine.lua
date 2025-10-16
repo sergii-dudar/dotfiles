@@ -14,7 +14,7 @@ local clients_lsp = function()
 end
 local get_filename = function()
     -- print(vim.fn.expand("%:p"):match("^.+/(.+)$"))
-    local path = vim.api.nvim_eval_statusline('%f', {}).str
+    local path = vim.api.nvim_eval_statusline("%f", {}).str
     return path:match("^.+/(.+)$")
 end
 
@@ -51,8 +51,25 @@ return {
             lualine_y = {
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
                 { "location", padding = { left = 0, right = 1 } },
-                { clients_lsp, color = { fg = "black", bg = "#676868", gui = "bold" } },
+                --{ clients_lsp, color = { fg = "black", bg = "#676868", gui = "bold" } },
                 --{ "'['..table.concat(vim.tbl_map(function(client) return client.name end, vim.lsp.get_active_clients()),\"|\")..']'", padding = { left = 0, right = 1 } }
+                {
+                    "lsp_status",
+                    icon = "\u{f085}",
+                    symbols = {
+                        -- Standard unicode symbols to cycle through for LSP progress:
+                        spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+                        -- Standard unicode symbol for when LSP is done:
+                        done = "✓",
+                        -- Delimiter inserted between LSP names:
+                        separator = " | \u{f085} ",
+                    },
+                    -- List of LSP names to ignore (e.g., `null-ls`):
+                    ignore_lsp = {},
+                    -- Display the LSP name
+                    show_name = true,
+                    color = { fg = "black", bg = "#676868", gui = "bold" },
+                },
             },
         },
         --sections = {
