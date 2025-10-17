@@ -39,10 +39,11 @@ elif [ "$volume" -gt 40 ]; then
 elif [ "$volume" -gt 15 ]; then
     icon=" "
 elif [ "$volume" -lt 10 ]; then
-    echo "[^c#ca9ee6^ ^c$FG_COLOR^0$volume%]$SPLIT"
+    icon=" "
+    echo " ^c#ca9ee6^$icon^c$FG_COLOR^0$volume^c#6272a4^% $SPLIT"
     exit 0
 else
-    icon=" "
+    icon=" "
 fi
 
 echo " ^c#ca9ee6^$icon^c$FG_COLOR^$volume^c#6272a4^% $SPLIT"
