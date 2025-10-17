@@ -89,15 +89,22 @@
   )
 
   ;; --- Homee row monds ---
-  ma (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys))
-  ms (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys))
-  md (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lalt $left-hand-keys))
-  mf (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lmet $left-hand-keys))
-
-  mj (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi j @tap) rmet $right-hand-keys))
-  mk (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys))
-  ml (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys))
-  m; (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys))
+  ;; ma (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys))
+  ;; ms (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys))
+  ;; md (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lalt $left-hand-keys))
+  ;; mf (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lmet $left-hand-keys))
+  ;; mj (multi f24 (tap-hold-release-keys $tap-time $hold-index (multi j @tap) rmet $right-hand-keys))
+  ;; mk (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys))
+  ;; ml (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys))
+  ;; m; (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys))
+  ma (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys)
+  ms (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys)
+  md (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lalt $left-hand-keys)
+  mf (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lmet $left-hand-keys)
+  mj (tap-hold-release-keys $tap-time $hold-index (multi j @tap) rmet $right-hand-keys)
+  mk (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys)
+  ml (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys)
+  m; (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys)
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -107,11 +114,14 @@
   mralt M-spc
 
   ;; --- FN (Layers) Hold Keys ---
-  mspc (multi f24 (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols)))
-  mcaps (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
-
-  mz (multi f24 (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys))
-  m/ (multi f24 (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys))
+  ;; mspc (multi f24 (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols)))
+  ;; mcaps (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
+  ;; mz (multi f24 (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys))
+  ;; m/ (multi f24 (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys))
+  mspc (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols))
+  mcaps (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation))
+  mz (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys)
+  m/ (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys)
   
   ;; marsos
   rarrow (macro - S-.)
