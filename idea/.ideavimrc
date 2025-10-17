@@ -877,6 +877,7 @@ map zR <Action>(ExpandAllRegions)
 
 map <leader>tt <Action>(ActivateTerminalToolWindow)
 map <leader>oc <Action>(Terminal.OpenInTerminal)
+map <leader>rt <Action>(ActivateRunToolWindow)
 
 "==================================== 🄿🅁🄾🄹🄴🄲🅃 🄼🄰🄽🄰🄶🄴🄼🄴🄽🅃: <leader>p ========================================"
 
