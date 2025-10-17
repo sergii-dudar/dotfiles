@@ -6,10 +6,10 @@
 ;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs
 
 (defcfg
-  process-unmapped-keys yes
+  process-unmapped-keys no
   log-layer-changes no
   danger-enable-cmd yes
-  ;; concurrent-tap-hold yes
+  concurrent-tap-hold yes
 
   ;; When any non-chord activation happens, this timeout begins. Until this timeout expires
   ;; all inputs will immediately skip chords processing and be processed by the active layer.
@@ -18,7 +18,7 @@
 
 ;; Variables
 (defvar
-  tap-time 200
+  tap-time 150
   hold-time 200
   
   ;; hold-index  200
@@ -73,19 +73,19 @@
 
   ;; escctrl (tap-hold 200 200 esc lctl)
 
-  ;; ma (multi f24 (tap-hold $tap-time $hold-time a lctl))
-  ;; ms (multi f24 (tap-hold $tap-time $hold-time s lsft))
-  ;; md (multi f24 (tap-hold $tap-time $hold-time d lalt))
-  ;; mf (multi f24 (tap-hold $tap-time $hold-time f lmet))
+  ;; ma (tap-hold $tap-time $hold-pinky a lctl)
+  ;; ms (tap-hold $tap-time $hold-ring s lsft)
+  ;; md (tap-hold $tap-time $hold-middle d lmet)
+  ;; mf (tap-hold $tap-time $hold-index f lalt)
   ;;
-  ;; mj (multi f24 (tap-hold $tap-time $hold-time j rmet))
-  ;; mk (multi f24 (tap-hold $tap-time $hold-time k ralt))
-  ;; ml (multi f24 (tap-hold $tap-time $hold-time l rsft))
-  ;; m; (multi f24 (tap-hold $tap-time $hold-time ; rctl))
+  ;; mj (tap-hold $tap-time $hold-index j ralt)
+  ;; mk (tap-hold $tap-time $hold-middle k rmet)
+  ;; ml (tap-hold $tap-time $hold-ring l rsft)
+  ;; m; (tap-hold $tap-time $hold-pinky ; rctl)
  
   tap (multi
     (layer-switch nomods)
-    (on-idle-fakekey to-base tap 20)
+    (on-idle-fakekey to-base tap 50)
   )
 
   ;; --- Homee row monds ---
@@ -121,15 +121,28 @@
 
   ;; marsos
   rarrow (macro - S-.)
+
+  ;; Double actions,.
+  mcopy (tap-hold $tap-time $hold-time c M-c)
+  mpast (tap-hold $tap-time $hold-time v M-v)
+  mmtab (tap-hold $tap-time $hold-time z M-tab)
+  mmgrv (tap-hold $tap-time $hold-time x M-grv)
+
+  ;; Applications
+  aghost (cmd sudo -u iuada144 bash -lc "$HOME/dotfiles/keyboard/kanata/macos/scripts/500-switchApp.sh Ghostty")
+
+  ;; Tmux
+  ;; maltt (tap-hold $tap-time $hold-time b (macro @aghost 100 C-f $tmux-delay spc)) ;; tmux alternate session
+  maltk (tap-hold $tap-time $hold-time t (macro @aghost 100 C-f $tmux-delay l)) ;; kitty alternate session
 )
 
 ;; --- Layer: Base ---
 (deflayer base
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-      tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  @mralt
+      tab    q    w    e    r    @maltk    y    u    i    o    p    [    ]    \       del  end  @mralt
      @mcaps  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
-      lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
+      lsft   @mz  x @mcopy @mpast b n    m    ,    .    @m/            rsft          ▲
       lctl   lalt lmet           @mspc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
 
@@ -181,12 +194,12 @@
     ;; pb (cmd bash -c "playerctl previous")
     ;; pn (cmd bash -c "playerctl next")
     ;; pp (cmd bash -c "playerctl play-pause")
-    mpdt (cmd bash -c "/opt/homebrew/bin/mpc toggle ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpds (cmd bash -c "/opt/homebrew/bin/mpc stop ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpdn (cmd bash -c "/opt/homebrew/bin/mpc next ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpdp (cmd bash -c "/opt/homebrew/bin/mpc prev ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpdvd (cmd bash -c "/opt/homebrew/bin/mpc volume -5 ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
-    mpdvi (cmd bash -c "/opt/homebrew/bin/mpc volume +5 ; sudo -u iuada144 -- /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdt (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc toggle ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpds (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc stop ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdn (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc next ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdp (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc prev ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdvd (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc volume -5 ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
+    mpdvi (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc volume +5 ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
 )
 
 (deflayer l_system
