@@ -11,8 +11,8 @@ function M.setup(config)
     --config.disable_default_key_bindings = true
     config.keys = {
         -- Clipboard
-        { mods = 'CTRL', key = "c", action = act.CopyTo("Clipboard") },
-        { mods = 'CTRL', key = "v", action = act.PasteFrom("Clipboard") },
+        --{ mods = 'CTRL', key = "c", action = act.CopyTo("Clipboard") },
+        { mods = "CTRL", key = "v", action = act.PasteFrom("Clipboard") },
         --{ mods = 'CMD', key = 'k', action = act.DisableDefaultAssignment },
 
         --[[{ key = 'F11', action = wezterm.action.ToggleFullScreen },

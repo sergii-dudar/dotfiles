@@ -66,9 +66,6 @@ cat > "$PLIST_PATH" <<EOF
 
   <key>StandardErrorPath</key>
   <string>$LOG_PATH</string>
-
-  <key>UserName</key>
-  <string>root</string>
 </dict>
 </plist>
 EOF
