@@ -79,6 +79,7 @@ ZSH_THEME="simple"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     git
+    # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/vi-mode
     vi-mode
     sdk
     tmux
@@ -88,6 +89,7 @@ plugins=(
     #dotenv
     #zsh-autosuggestions
     zsh-syntax-highlighting
+    #zsh-interactive-cd
 )
 
 # vi-mode

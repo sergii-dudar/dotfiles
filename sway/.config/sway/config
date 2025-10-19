@@ -16,8 +16,8 @@ exec_always --no-startup-id ~/.config/waybar/sway-waybar-run
 seat seat0 xcursor_theme elementary 30
 
 input "type:keyboard" {
-    repeat_delay 300
-    repeat_rate 50
+    repeat_delay 275
+    repeat_rate 30
     xkb_layout us,ua
     # xkb_variant ,nodeadkeys
     # xkb_options grp:alt_shift_toggle
