@@ -88,6 +88,9 @@
     (on-idle-fakekey to-base tap 20)
   )
 
+  ;; Modifiers
+  mlctl (multi lctl (layer-while-held l_ctl))
+
   ;; --- Homee row monds ---
   ;; ma (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys))
   ;; ms (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys))
@@ -97,14 +100,14 @@
   ;; mk (multi f24 (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys))
   ;; ml (multi f24 (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys))
   ;; m; (multi f24 (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys))
-  ma (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys)
-  ms (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys)
+  ma (tap-hold-release-keys $tap-time $hold-pinky  (multi a @tap) @mlctl $left-hand-keys)
+  ms (tap-hold-release-keys $tap-time $hold-ring   (multi s @tap) lsft $left-hand-keys)
   md (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lalt $left-hand-keys)
-  mf (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lmet $left-hand-keys)
-  mj (tap-hold-release-keys $tap-time $hold-index (multi j @tap) rmet $right-hand-keys)
+  mf (tap-hold-release-keys $tap-time $hold-index  (multi f @tap) lmet $left-hand-keys)
+  mj (tap-hold-release-keys $tap-time $hold-index  (multi j @tap) rmet $right-hand-keys)
   mk (tap-hold-release-keys $tap-time $hold-middle (multi k @tap) ralt $right-hand-keys)
-  ml (tap-hold-release-keys $tap-time $hold-ring (multi l @tap) rsft $right-hand-keys)
-  m; (tap-hold-release-keys $tap-time $hold-pinky (multi ; @tap) rctl $right-hand-keys)
+  ml (tap-hold-release-keys $tap-time $hold-ring   (multi l @tap) rsft $right-hand-keys)
+  m; (tap-hold-release-keys $tap-time $hold-pinky  (multi ; @tap) rctl $right-hand-keys)
 
   ;; ctrl_comma_up C-up
   ;; ctrl_dot_down C-down
@@ -125,9 +128,6 @@
   
   ;; marsos
   rarrow (macro - S-.)
-
-  ;; Modifiers
-  mlctl (multi lctl (layer-while-held l_ctl))
 )
 
 ;; --- Layer: Base ---
@@ -240,7 +240,7 @@
    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _     _     _     (unmod ▼)     (unmod ▲)     _                 _           _            ;;Z
+   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
    _     _     _                             _                       _     _     _     _     _     _      ;;MOD
 )
 
