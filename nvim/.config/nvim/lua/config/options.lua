@@ -79,9 +79,9 @@ vim.opt.path:append("**")
 vim.g.snacks_animate = false
 
 function open_tree_on_start()
-    if require("utils.neo-tree-util").is_enable_neo_tree() then
+    if require("utils.project-util").is_multifile_proj() then
         -- restore current proj session
-        -- require("persistence").load()
+        require("persistence").load()
 
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
         vim.cmd("Neotree filesystem reveal left")

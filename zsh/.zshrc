@@ -79,7 +79,6 @@ ZSH_THEME="simple"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     git
-    # https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/vi-mode
     vi-mode
     sdk
     tmux
@@ -99,6 +98,15 @@ VI_MODE_SET_CURSOR=true
 MODE_INDICATOR="[%F{yellow}normal%f]"
 #INSERT_MODE_INDICATOR="%F{yellow}INSERT%f"
 VI_MODE_DISABLE_CLIPBOARD=false
+
+## Text objects: quotes support
+# autoload -U select-quoted
+# zle -N select-quoted
+# for m in visual viopp; do
+#     for c in {a,i}{\',\",\`}; do
+#         bindkey -M $m $c select-quoted
+#     done
+# done
 
 # zsh-autosuggestions
 # git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions

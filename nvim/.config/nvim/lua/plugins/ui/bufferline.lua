@@ -6,6 +6,7 @@ return {
         { "<S-h>", false },
         { "<S-l>", false },
     },
+    cond = require("utils.project-util").is_multifile_proj,
     opts = {
         highlights = {
             tab_selected = {
