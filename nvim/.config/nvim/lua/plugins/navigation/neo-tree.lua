@@ -14,8 +14,8 @@ return {
         window = {
             mappings = {
                 --    e = 'none'
-                ["/"] = "noop",
-                ["<esc>"] = "noop",
+                --["/"] = "noop",
+                --["<esc>"] = "noop",
             },
             --position = "float",
             popup = { -- settings that apply to float position only
