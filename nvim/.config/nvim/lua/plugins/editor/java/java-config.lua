@@ -75,14 +75,15 @@ return {
         },
     },
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
-    {
-        "simaxme/java.nvim",
-        ft = "java",
-        dependencies = { "mfussenegger/nvim-jdtls" },
-        config = function()
-            require("simaxme-java").setup()
-        end,
-    },
+    -- {
+    --     "simaxme/java.nvim",
+    --     -- "sergii-dudar/java.nvim",
+    --     ft = "java",
+    --     dependencies = { "mfussenegger/nvim-jdtls" },
+    --     config = function()
+    --         require("simaxme-java").setup()
+    --     end,
+    -- },
     -- Fully customizable previewer for LSP code actions.
     --{
     --    "aznhe21/actions-preview.nvim",
