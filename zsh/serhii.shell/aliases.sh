@@ -56,9 +56,9 @@ alias rg="rg --color=always"
 # Changing "find" to "fd"
 # defined after sdkman definition
 
-# Changing "cat" to "bat"
+# Changing "cat" to "bat" (brake sdkman)
 #alias cat='bat --decorations=always --color=always' # present issue with ansi
-alias cat='bat'
+#alias cat='bat'
 
 alias yyc='yazi --clear-cache && yy'
 
@@ -87,9 +87,6 @@ alias cdi='zi'
 #alias tldr='tldr --color=always'
 alias short='tldr'
 
-alias vim="nvim"
-alias vi="nvim"
-alias vit="nvim -p"
 # alias vimdiff='nvim -d'
 alias lg="lazygit"
 

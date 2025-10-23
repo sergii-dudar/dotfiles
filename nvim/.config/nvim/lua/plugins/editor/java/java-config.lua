@@ -31,7 +31,11 @@ return {
         "mfussenegger/nvim-jdtls",
         dependencies = {
             "mason-org/mason.nvim",
-            -- "JavaHello/spring-boot.nvim",
+            -- {
+            --     "JavaHello/spring-boot.nvim",
+            --     ft = { "java", "yaml", "jproperties" },
+            --     opts = {},
+            -- },
         },
         keys = {
             { "<leader>jc", ":JdtCompile<CR>", desc = "JDTLS Compile" },

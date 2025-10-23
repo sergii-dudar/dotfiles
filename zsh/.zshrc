@@ -187,6 +187,7 @@ export SDKMAN_DIR="$HOME/.sdkman"
 
 # Changing "find" to "fd" - commend when installing sdkman, or install from bash
 #alias find="fd --color=always"
+#alias cat='bat'
 
 # slow, don't enable it, if you not need nvm, just install and export path
 # export NVM_DIR="$HOME/.nvm"
