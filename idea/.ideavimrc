@@ -531,6 +531,7 @@ nmap <leader>ghB <Action>(Annotate)
 "Vcs.UpdateProject
 "GitUpdateSelectedBranchAction
 map <leader>gb <Action>(Git.Branches)
+" main.toolbar.git.Branches
 
 ""nmap <leader>so <Action>(SelectAllOccurrences)
 ""map <leader>sf <Action>(FindUsages)

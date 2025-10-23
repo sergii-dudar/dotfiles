@@ -6,10 +6,10 @@
 ;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs
 
 (defcfg
-  process-unmapped-keys no
+  process-unmapped-keys yes
   log-layer-changes no
   danger-enable-cmd yes
-  concurrent-tap-hold yes
+  ;; concurrent-tap-hold yes
 
   ;; When any non-chord activation happens, this timeout begins. Until this timeout expires
   ;; all inputs will immediately skip chords processing and be processed by the active layer.
@@ -18,7 +18,7 @@
 
 ;; Variables
 (defvar
-  tap-time 150
+  tap-time 200
   hold-time 200
   
   ;; hold-index  200
@@ -88,8 +88,11 @@
     (on-idle-fakekey to-base tap 50)
   )
 
+  ;; Modifiers
+  mlctl (multi lctl (layer-while-held l_ctl))
+
   ;; --- Homee row monds ---
-  ma (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) lctl $left-hand-keys)
+  ma (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) @mlctl $left-hand-keys)
   ms (tap-hold-release-keys $tap-time $hold-ring (multi s @tap) lsft $left-hand-keys)
   md (tap-hold-release-keys $tap-time $hold-middle (multi d @tap) lmet $left-hand-keys)
   mf (tap-hold-release-keys $tap-time $hold-index (multi f @tap) lalt $left-hand-keys)
@@ -123,10 +126,10 @@
   rarrow (macro - S-.)
 
   ;; Double actions,.
-  mcopy (tap-hold $tap-time $hold-time c M-c)
-  mpast (tap-hold $tap-time $hold-time v M-v)
-  mmtab (tap-hold $tap-time $hold-time z M-tab)
-  mmgrv (tap-hold $tap-time $hold-time x M-grv)
+  ;; mcopy (tap-hold $tap-time $hold-time c M-c)
+  ;; mpast (tap-hold $tap-time $hold-time v M-v)
+  ;; mmtab (tap-hold $tap-time $hold-time z M-tab)
+  ;; mmgrv (tap-hold $tap-time $hold-time x M-grv)
 
   ;; Applications
   aghost (cmd sudo -u iuada144 bash -lc "$HOME/dotfiles/keyboard/kanata/macos/scripts/500-switchApp.sh Ghostty")
@@ -140,9 +143,9 @@
 (deflayer base
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-      tab    q    w    e    r    @maltk    y    u    i    o    p    [    ]    \       del  end  @mralt
-     @mcaps  @ma @ms   @md @mf   g  h      @mj  @mk  @ml  @m;  '         enter
-      lsft   @mz  x @mcopy @mpast b n    m    ,    .    @m/            rsft          ▲
+      tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  @mralt
+     @mcaps  @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
+      lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
       lctl   lalt lmet           @mspc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
 
@@ -232,16 +235,16 @@
 ;;    _     _     _                             _                       _     _     _     @mpdp @mpdt @mpdn  ;;MOD
 ;; )
 
-;; (deflayer l_ctl
-;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
-;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-;;    _     _     _                             _                       _     _     _     _     _     _      ;;MOD
-;; )
-;;
+(deflayer l_ctl
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
+   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+)
+
 ;; (deflayer l_alt
 ;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
 ;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1

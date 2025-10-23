@@ -18,7 +18,11 @@ M.is_multifile_proj = function()
     -- load neotree only to lister dirs, and disable for direct file[s] open (like `nvim [files...]`)
     -- vim.notify("result 1: " .. tostring(list_util.any_match(current_file, open_if_dir_contains)), vim.log.levels.INFO)
     -- vim.notify("result 2: " .. tostring(vim.fn.argc()), vim.log.levels.INFO)
-    return list_util.any_match(current_file, multifile_projs_dirs) -- and vim.fn.argc() == 0
+
+    -- log_table(vim.fn.argv())
+    -- print(vim.fn.argc())
+
+    return list_util.any_match(current_file, multifile_projs_dirs) and vim.fn.argc() == 0
 end
 
 return M
