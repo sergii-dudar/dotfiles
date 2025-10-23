@@ -141,6 +141,49 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
     end,
 })
 
+-- vim.api.nvim_create_user_command("NeoTreeToggleGroupEmptyDirs", function()
+--     local fs = require("neo-tree.sources.filesystem")
+--     local state = require("neo-tree.sources.manager").get_state("filesystem")
+--     local current = state
+--         and state.default_component_configs
+--         and state.default_component_configs.filesystem.group_empty_dirs
+--     local new_value = not (current or fs.group_empty_dirs or false)
+--
+--     fs.group_empty_dirs = new_value
+--     vim.notify("Neo-tree: group_empty_dirs = " .. tostring(new_value))
+--     require("neo-tree.command").execute({ source = "filesystem", action = "refresh" })
+-- end, {})
+
+-- vim.api.nvim_create_user_command("NeoTreeToggleGroupEmptyDirs", function()
+--     local fs = require("neo-tree.sources.filesystem")
+--     local manager = require("neo-tree.sources.manager")
+--
+--     -- Get the current state
+--     local state = manager.get_state("filesystem")
+--     local current_value = fs.group_empty_dirs or false
+--
+--     -- Toggle the setting
+--     fs.group_empty_dirs = not current_value
+--
+--     -- Close and reopen the filesystem to apply it
+--     require("neo-tree.command").execute({ source = "filesystem", action = "close" })
+--     require("neo-tree.command").execute({
+--         source = "filesystem",
+--         action = "show",
+--         reveal = true,
+--     })
+--
+--     vim.notify("Neo-tree: group_empty_dirs = " .. tostring(fs.group_empty_dirs))
+-- end, {})
+
+-- vim.keymap.set("n", "<leader>ge", function()
+--     local neotree_config = require("neo-tree.sources.filesystem")
+--     neotree_config.group_empty_dirs = not neotree_config.group_empty_dirs
+--     vim.cmd("Neotree refresh")
+-- end, {
+--     desc = "Toggle grouping of empty directories in Neo-tree",
+-- })
+
 -- Hyprlang LSP
 -- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 --     pattern = { "*.hl", "hypr*.conf" },

@@ -79,15 +79,33 @@ return {
         },
     },
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
-    -- {
-    --     "simaxme/java.nvim",
-    --     -- "sergii-dudar/java.nvim",
-    --     ft = "java",
-    --     dependencies = { "mfussenegger/nvim-jdtls" },
-    --     config = function()
-    --         require("simaxme-java").setup()
-    --     end,
-    -- },
+    { -- just for testing purposes of migration java.nvim to neo-tree
+        "nvim-tree/nvim-tree.lua",
+        config = function()
+            require("nvim-tree").setup({
+                view = {
+                    centralize_selection = true,
+                    number = false,
+                    relativenumber = false,
+                },
+                renderer = {
+                    group_empty = true,
+                },
+            })
+        end,
+    },
+    {
+        -- "simaxme/java.nvim",
+        "sergii-dudar/java.nvim", -- neotree support not finished
+        ft = "java",
+        dependencies = {
+            "mfussenegger/nvim-jdtls",
+            "nvim-tree/nvim-tree.lua",
+        },
+        config = function()
+            require("simaxme-java").setup()
+        end,
+    },
     -- Fully customizable previewer for LSP code actions.
     --{
     --    "aznhe21/actions-preview.nvim",
