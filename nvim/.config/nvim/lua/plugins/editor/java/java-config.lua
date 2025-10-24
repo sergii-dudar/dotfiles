@@ -83,6 +83,10 @@ return {
         "nvim-tree/nvim-tree.lua",
         config = function()
             require("nvim-tree").setup({
+                update_focused_file = {
+                    enable = true,
+                    -- Other options for update_focused_file can be added here if needed
+                },
                 view = {
                     centralize_selection = true,
                     number = false,
@@ -103,7 +107,12 @@ return {
             "nvim-tree/nvim-tree.lua",
         },
         config = function()
-            require("simaxme-java").setup()
+            require("simaxme-java").setup({
+                rename = {
+                    neotree = true,
+                    nvimtree = true,
+                },
+            })
         end,
     },
     -- Fully customizable previewer for LSP code actions.

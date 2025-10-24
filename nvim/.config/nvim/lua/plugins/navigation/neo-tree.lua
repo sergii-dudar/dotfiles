@@ -8,7 +8,7 @@ return {
     },
     opts = {
         source_selector = {
-            winbar = true,
+            winbar = false,
             statusline = false,
         },
         window = {
