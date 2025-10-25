@@ -26,7 +26,42 @@ return {
     },
     -- {
     --     "Weissle/persistent-breakpoints.nvim",
-    --     event = "BufReadPost",
-    --     config = true,
+    --     config = function()
+    --         require("persistent-breakpoints").setup({
+    --             load_breakpoints_event = { "BufReadPost" },
+    --         })
+    --     end,
     -- },
+    -- debugging nvim lua plugins config ( real game changer for customizing nvim config )
+    --[[ Quickstart:
+        - Launch the server in the debuggee using <leader>dl
+        - Open another Neovim instance with the source file
+        - Place breakpoint with <leader>db
+        - Connect using the DAP client with <leader>dc
+        - Run your script/plugin in the debuggee ]]
+    {
+        "mfussenegger/nvim-dap",
+        dependencies = {
+            "jbyuki/one-small-step-for-vimkind",
+        },
+        lazy = false,
+        config = function()
+            local dap = require("dap")
+            dap.configurations.lua = {
+                {
+                    type = "nlua",
+                    request = "attach",
+                    name = "Attach to running Neovim instance",
+                },
+            }
+
+            dap.adapters.nlua = function(callback, config)
+                callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
+            end
+
+            vim.keymap.set("n", "<leader>dl", function()
+                require("osv").launch({ port = 8086 })
+            end, { noremap = true })
+        end,
+    },
 }

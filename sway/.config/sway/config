@@ -71,7 +71,7 @@ exec --no-startup-id (sleep 1 && swaymsg 'workspace 1') &
 workspace_auto_back_and_forth yes
 focus_on_window_activation focus
 floating_modifier $mod
-font pango:CaskaydiaCove Nerd Font 18
+font pango:CaskaydiaCove Nerd Font Bold 18
 #
 # Bind a switch key, which focuses the previously focused window (based on i3-back)
 # bindsym $mod+Tab [con_mark=_back] focus
