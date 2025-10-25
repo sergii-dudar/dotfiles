@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-# Get GPU utilization using nvidia-smi and extract the percentage
-gpu_utilization=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits)
-
-echo "${gpu_utilization}%"
-

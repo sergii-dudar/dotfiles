@@ -54,7 +54,7 @@
         "format": "{icon} {volume:02}<span color='#6272a4'>%</span>",
         "format-muted": "{icon} {volume:02}<span color='#6272a4'>%</span>",
         "format-icons": {
-            "headphone": "",
+            "headphone": "<span color='#ca9ee6'> </span>",
             "hands-free": "",
             "headset": "",
             "phone": "",
