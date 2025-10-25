@@ -195,7 +195,6 @@
 )
 
 (defalias
-    menu (cmd bash -c "/home/serhii/.config/rofi/scripts/launcher_t1")
     vd (cmd bash -c "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
     vu (cmd bash -c "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")
     vt (cmd bash -c "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
@@ -215,7 +214,7 @@
    XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX  @tmuxs  XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
-   XX    XX    XX                            @menu                   XX    XX    XX    @pb   @pp   @pn    ;;MOD
+   XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn    ;;MOD
 )
 
 ;; (deflayer l_numbers

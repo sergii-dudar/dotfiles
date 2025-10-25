@@ -12,13 +12,35 @@ vim.diagnostic.config({
 return {
     {
         "neovim/nvim-lspconfig",
-        opts = function()
-            local keys = require("lazyvim.plugins.lsp.keymaps").get()
-            keys[#keys + 1] = { "K", false }
-            keys[#keys + 1] = { "<leader>k", vim.lsp.buf.hover, desc = "Hover" }
-            keys[#keys + 1] = { "<F1>", vim.lsp.buf.hover, desc = "Hover" }
-        end,
+        opts = {
+            servers = {
+                ["*"] = {
+                    keys = {
+                        { "K", false },
+                        {
+                            "<leader>k",
+                            function()
+                                return vim.lsp.buf.hover()
+                            end,
+                            desc = "Hover",
+                        },
+                        {
+                            "<F1>",
+                            function()
+                                return vim.lsp.buf.hover()
+                            end,
+                            desc = "Hover",
+                        },
+                    },
+                },
+            },
+        },
     },
+    -- Nvim plugin for nvim-lspconfig: stop idle servers & restart upon focus; keep your RAM usage low
+    -- {
+    --     "hinell/lsp-timeout.nvim",
+    --     dependencies = { "neovim/nvim-lspconfig" },
+    -- },
     -- LSP diagnostics in virtual text at the top right of your screen
     {
         "dgagn/diagflow.nvim",
@@ -34,11 +56,15 @@ return {
     {
         "rmagatti/goto-preview",
         event = "BufEnter",
-        dependencies = { "folke/which-key.nvim" },
+        dependencies = { "folke/which-key.nvim", "rmagatti/logger.nvim" },
         config = function()
             require("goto-preview").setup({
                 default_mappings = false,
                 preview_window_title = { enable = false },
+                references = { -- Configure the telescope UI for slowing the references cycling window.
+                    provider = "snacks", -- telescope|fzf_lua|snacks|mini_pick|default
+                    -- telescope = require("telescope.themes").get_dropdown({ hide_preview = false }),
+                },
                 post_open_hook = function(buffer, window)
                     --vim.api.nvim_buf_set_keymap(0, "n", "q", ":q<CR>", { noremap = true, silent = true })
                     vim.api.nvim_buf_set_keymap(0, "n", "q", ":bdelete<CR>", { noremap = true, silent = true })

@@ -24,4 +24,9 @@ return {
             virt_text_win_col = 80,
         },
     },
+    -- {
+    --     "Weissle/persistent-breakpoints.nvim",
+    --     event = "BufReadPost",
+    --     config = true,
+    -- },
 }

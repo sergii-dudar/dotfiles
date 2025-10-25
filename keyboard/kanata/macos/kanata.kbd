@@ -131,12 +131,17 @@
   ;; mmtab (tap-hold $tap-time $hold-time z M-tab)
   ;; mmgrv (tap-hold $tap-time $hold-time x M-grv)
 
-  ;; Applications
-  aghost (cmd sudo -u iuada144 bash -lc "$HOME/dotfiles/keyboard/kanata/macos/scripts/500-switchApp.sh Ghostty")
-
   ;; Tmux
   ;; maltt (tap-hold $tap-time $hold-time b (macro @aghost 100 C-f $tmux-delay spc)) ;; tmux alternate session
-  maltk (tap-hold $tap-time $hold-time t (macro @aghost 100 C-f $tmux-delay l)) ;; kitty alternate session
+  tmuxnts (macro C-f $tmux-delay S-0) ;; tmux next session
+  tmuxlts (macro C-f $tmux-delay l) ;; tmux prev session
+  tmuxs (tap-hold $tap-time $hold-time @tmuxlts @tmuxnts)
+  ;; tmuxsls (macro C-f $tmux-delay t) ;; tmux fzf session
+  ;; tmuxs (tap-hold $tap-time $hold-time (tap-dance 200 (@tmuxlts @tmuxsls)) @tmuxnts)
+
+  tmuxntw (macro C-f $tmux-delay n) ;; tmux next window
+  tmuxltw (macro C-f $tmux-delay spc) ;; tmux prev window
+  tmuxw (tap-hold $tap-time $hold-time @tmuxltw @tmuxntw)
 )
 
 ;; --- Layer: Base ---
@@ -209,9 +214,9 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX  @mpscrn XX    XX    XX    XX    XX    XX     ;;Q
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX          XX                       ;;A
-   XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX                XX          XX           ;;Z
+   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
+   XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
 )
 
