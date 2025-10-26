@@ -132,16 +132,22 @@
   ;; mmgrv (tap-hold $tap-time $hold-time x M-grv)
 
   ;; Tmux
-  ;; maltt (tap-hold $tap-time $hold-time b (macro @aghost 100 C-f $tmux-delay spc)) ;; tmux alternate session
+  ;; - sessions
   tmuxnts (macro C-f $tmux-delay S-0) ;; tmux next session
   tmuxlts (macro C-f $tmux-delay l) ;; tmux prev session
   tmuxs (tap-hold $tap-time $hold-time @tmuxlts @tmuxnts)
   ;; tmuxsls (macro C-f $tmux-delay t) ;; tmux fzf session
   ;; tmuxs (tap-hold $tap-time $hold-time (tap-dance 200 (@tmuxlts @tmuxsls)) @tmuxnts)
 
+  ;; - windows
   tmuxntw (macro C-f $tmux-delay n) ;; tmux next window
   tmuxltw (macro C-f $tmux-delay spc) ;; tmux prev window
   tmuxw (tap-hold $tap-time $hold-time @tmuxltw @tmuxntw)
+
+  ;; - panels | popups
+  tmuxptb (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
+  tmuxptp (macro C-f $tmux-delay p) ;; tmux toggle popup
+  tmuxp (tap-hold $tap-time $hold-time @tmuxptb @tmuxptp)
 )
 
 ;; --- Layer: Base ---
@@ -214,7 +220,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    lrld  XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    lrld  XX    XX    XX    XX @tmuxp   XX    XX    XX    XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
