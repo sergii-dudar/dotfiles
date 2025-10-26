@@ -24,13 +24,13 @@ return {
                             end,
                             desc = "Hover",
                         },
-                        {
-                            "<F1>",
-                            function()
-                                return vim.lsp.buf.hover()
-                            end,
-                            desc = "Hover",
-                        },
+                        -- {
+                        --     "<F1>",
+                        --     function()
+                        --         return vim.lsp.buf.hover()
+                        --     end,
+                        --     desc = "Hover",
+                        -- },
                     },
                 },
             },

@@ -22,6 +22,7 @@ require("lazy").setup({
         -- import any extras modules here
 
         { import = "lazyvim.plugins.extras.dap.core" },
+        { import = "lazyvim.plugins.extras.dap.nlua" }, -- jbyuki/one-small-step-for-vimkind config
         { import = "lazyvim.plugins.extras.test.core" },
         { import = "lazyvim.plugins.extras.ui.treesitter-context" },
         { import = "lazyvim.plugins.extras.coding.mini-surround" },
