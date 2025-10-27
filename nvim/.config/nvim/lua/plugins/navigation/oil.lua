@@ -41,6 +41,7 @@ return {
                     return name == ".." or name == ".git"
                 end,
             },
+            -- stylua: ignore
             keymaps = {
                 ["<C-c>"] = false,
                 ["q"] = "actions.close",
@@ -48,6 +49,7 @@ return {
                 ["<C-h>"] = "actions.parent",
                 ["<Right>"] = "actions.select",
                 ["<Left>"] = "actions.parent",
+                ["<C-s>"] = { function() vim.cmd("w") end, mode = "n", nowait = true, desc = "Save", },
             },
             -- default keymaps
             --[[ keymaps = {
