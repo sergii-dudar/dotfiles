@@ -8,42 +8,15 @@ return {
             "rcarriga/nvim-dap-ui", -- recommended
             "theHamsta/nvim-dap-virtual-text", -- recommended
         },
+        -- stylua: ignore
         keys = {
-            {
-                "<leader>tt",
-                function()
-                    require("neotest").run.run(vim.fn.expand("%"))
-                end,
-                mode = "n",
-                desc = "Run File",
-            },
+            { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, mode = "n", desc = "Run File", },
             -- run nearest test
-            {
-                "<leader>tr",
-                function()
-                    require("neotest").run.run()
-                end,
-                mode = "n",
-                desc = "Run Nearest",
-            },
+            { "<leader>tr", function() require("neotest").run.run() end, mode = "n", desc = "Run Nearest", },
             -- debug test file
-            {
-                "<leader>tD",
-                function()
-                    require("neotest").run.run({ strategy = "dap" })
-                end,
-                mode = "n",
-                desc = "Debug File",
-            },
+            { "<leader>tD", function() require("neotest").run.run({ strategy = "dap" }) end, mode = "n", desc = "Debug File", },
             -- debug nearest test
-            {
-                "<leader>td",
-                function()
-                    require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" })
-                end,
-                mode = "n",
-                desc = "Debug Nearest",
-            },
+            { "<leader>td", function() require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" }) end, mode = "n", desc = "Debug Nearest", },
         },
     },
     {

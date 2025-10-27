@@ -44,13 +44,7 @@ return {
                         { "K", false },
                         { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
-                        -- {
-                        --     "<F1>",
-                        --     function()
-                        --         return vim.lsp.buf.hover()
-                        --     end,
-                        --     desc = "Hover",
-                        -- },
+                        -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                     },
                 },
             },
