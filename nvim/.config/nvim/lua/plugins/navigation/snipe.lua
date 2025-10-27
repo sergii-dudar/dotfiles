@@ -1,15 +1,10 @@
 return {
     "leath-dub/snipe.nvim",
     -- replaced in snasks
-    -- keys = {
-    --     {
-    --         "<leader>,",
-    --         function()
-    --             require("snipe").open_buffer_menu()
-    --         end,
-    --         desc = "Open Snipe buffer menu",
-    --     },
-    -- },
+    -- stylua: ignore
+    keys = {
+        -- { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
+    },
     opts = {
         ui = {
             position = "center", -- "topleft"|"bottomleft"|"topright"|"bottomright"|"center"|"cursor"
