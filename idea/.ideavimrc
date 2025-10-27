@@ -661,6 +661,7 @@ map <leader>qi <Action>(QuickImplementations)
 map <leader>qs <Action>(QuickChangeScheme)
 map <leader>qe <Action>(QuickEvaluateExpression)
 
+
 "map <leader>qa <Action>(QuickActions)
 "map <leader>qt <Action>(QuickTypeDefinition)
 
@@ -908,6 +909,12 @@ map <leader>pp <Action>(ManageRecentProjects)
 map <leader>pP <Action>(CloseProject)
 map <leader>pl <Action>(RecentProjectListGroup)
 map <leader>px <Action>(CloseProject)
+
+"==================================== PREVIEW: <leader>p ========================================"
+
+" quick code definition popup (preview definition)
+map <leader>pd <Action>(QuickImplementations)
+" QuickTypeDefinition
 
 "=============================================== 🄱🄾🄾🄺🄼🄰🅁🄺🅂: (?) ================================================="
 "nmap <leader>bb <Action>(Bookmarks)

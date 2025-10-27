@@ -81,7 +81,7 @@ return {
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
     {
         -- "simaxme/java.nvim",
-        "sergii-dudar/java.nvim", -- neotree support not finished
+        "sergii-dudar/java.nvim", -- my fork with neo-tree and oil.nvim support
         ft = "java",
         dependencies = {
             "mfussenegger/nvim-jdtls",
@@ -97,13 +97,6 @@ return {
             })
         end,
     },
-    -- Fully customizable previewer for LSP code actions.
-    --{
-    --    "aznhe21/actions-preview.nvim",
-    --    config = function()
-    --        vim.keymap.set({ "v", "n" }, "gf", require("actions-preview").code_actions)
-    --    end,
-    --}
     --{
     --    "elmcgill/springboot-nvim",
     --    enabled = false,

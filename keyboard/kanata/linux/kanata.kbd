@@ -218,7 +218,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu    ;;NUM
-   XX    XX    XX    XX    lrld  XX    XX    XX    XX  @tmuxp  XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
+   XX    XX    XX    XX  lrld @tmuxsvi XX    XX    XX  @tmuxp  XX    XX    XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX  @tmuxs  XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn    ;;MOD

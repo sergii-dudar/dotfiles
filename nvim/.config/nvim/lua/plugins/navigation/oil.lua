@@ -46,6 +46,8 @@ return {
                 ["q"] = "actions.close",
                 ["<C-l>"] = "actions.select",
                 ["<C-h>"] = "actions.parent",
+                ["<Right>"] = "actions.select",
+                ["<Left>"] = "actions.parent",
             },
             -- default keymaps
             --[[ keymaps = {
