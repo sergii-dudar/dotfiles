@@ -124,6 +124,16 @@ xmap <leader>rr "hy:%s/<C-r>h//gc<Left><Left><Left>
 xmap <leader>rn :<C-u>'<,'>normal<Space>
 " example - `'<,'>normal df( f)x`
 
+" ---
+" Map * in visual mode to search for the selected text forward
+" Map # in visual mode to search for the selected text backward
+
+" vnoremap * y/<C-R>"<CR>
+" vnoremap # y?<C-R>"<CR>
+" vnoremap * y:let @/ = escape(@", '\.*[]~=/')<CR>n
+" vnoremap # y:let @/ = escape(@", '\.*[]~=/')<CR>N
+vnoremap * :<C-u>let @/ = escape(@", '\.*[]~=/')<CR>gvy/<CR>
+vnoremap # :<C-u>let @/ = escape(@", '\.*[]~=/')<CR>gvy?<CR>
 "================================================== 🅃🄴🅂🅃🄸🄽🄶 🅂🄿🄰🄲🄴 ============================================="
 
 "(Copy to system clipboard)"
