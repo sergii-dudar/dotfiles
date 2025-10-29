@@ -84,7 +84,7 @@ require("lazy").setup({
 
         -- ========= ai ==========
         { import = "lazyvim.plugins.extras.ai.sidekick" },
-        -- { import = "lazyvim.plugins.extras.ai.copilot" },
+        { import = "lazyvim.plugins.extras.ai.copilot" },
 
         -- ========= import/override with your plugins =========
         { import = "plugins.ui" },

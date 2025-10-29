@@ -41,4 +41,17 @@ return {
             },
         },
     },
+    {
+        "saghen/blink.cmp",
+        opts = {
+            sources = {
+                providers = {
+                    copilot = {
+                        -- score_offset = 100,
+                        score_offset = -1, -- lsp is top priority
+                    },
+                },
+            },
+        },
+    },
 }
