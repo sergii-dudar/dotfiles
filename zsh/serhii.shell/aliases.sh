@@ -32,9 +32,8 @@ else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
     alias wifimenu="~/.config/rofi/scripts/wifimenu"
-
-    alias collect_packages="~/dotfiles/arch/packages-sync/collect-packages.sh"
-    alias sync_packages="~/dotfiles/arch/packages-sync/sync-packages.sh"
+    alias collect_packages="~/dotfiles/installed-packages/arch-linux/collect-packages.sh"
+    alias sync_packages="~/dotfiles/installed-packages/arch-linux/sync-packages.sh"
 
     alias portsStatus='for device in /sys/bus/usb/devices/*/power/wakeup; do cat "$device"; done'
 

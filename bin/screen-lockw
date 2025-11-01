@@ -14,6 +14,9 @@ cyan='#8be9fd'
 green='#50fa7b'
 clock='#ca9ee6'
 
+# --font "CaskaydiaCove Nerd Font"
+# --font-size 92
+
 swaylock \
     --daemonize \
     --show-failed-attempts \
@@ -47,7 +50,7 @@ swaylock \
     --grace 2 \
     --grace-no-mouse \
     --grace-no-touch \
-    --datestr "%a %e %B %Y" \
+    --datestr "%a %e %b %Y" \
     --timestr "%H:%M %P" \
     --fade-in 0.4 \
     --ignore-empty-password \
