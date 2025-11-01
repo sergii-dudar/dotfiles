@@ -1,20 +1,18 @@
 return {
     {
         "folke/sidekick.nvim",
+        -- stylua: ignore
         keys = {
             { "<a-a>", false },
-            {
-                "<leader>aa",
-                function()
-                    require("sidekick.cli").toggle({ name = "copilot", focus = true })
-                end,
-                desc = "Toggle Copilot CLI",
-            },
+            { "<leader>aa", function() require("sidekick.cli").toggle({ name = "copilot", focus = true }) end, desc = "Toggle Copilot CLI", },
+            { "<leader>an", function() require("sidekick").nes_jump_or_apply() end, desc = "Goto/Apply Next Edit Suggestion" },
+            -- { "<leader>an", function() require("sidekick.nes").jump() end, desc = "Goto Next Edit Suggestion" },
+            -- { "<leader>am", function() require("sidekick.nes").apply() end, desc = "Apply Current Edit Suggestion" },
         },
         opts = {
-            debug = true,
+            debug = false,
             nes = {
-                enabled = false, -- disable Next Edit Suggestions as I don't like it, I need only CLI AI Chat
+                enabled = true, -- disable Next Edit Suggestions as I don't like it, I need only CLI AI Chat
             },
             cli = {
                 picker = "snacks",

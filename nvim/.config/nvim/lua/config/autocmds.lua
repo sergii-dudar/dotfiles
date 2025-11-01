@@ -41,12 +41,29 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
--- try: silent grep vim %
---vim.api.nvim_create_autocmd("QuickFixCmdPost", {
---    callback = function()
---        vim.cmd([[Trouble qflist open]])
---    end,
---})
+-------------------------------------------
+------------ folke/trouble.nvim -----------
+
+-- AUTOMATICALLY OPEN TROUBLE QUICKFIX (-- Test with something like: silent grep vim %)
+vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+    callback = function()
+        vim.cmd([[Trouble qflist open]])
+    end,
+})
+
+-- OPEN TROUBLE QUICKFIX WHEN THE QF LIST OPENS
+-- This is **NOT** recommended, since you won’t be able to use the quickfix list for other things.
+
+vim.api.nvim_create_autocmd("BufRead", {
+    callback = function(ev)
+        if vim.bo[ev.buf].buftype == "quickfix" then
+            vim.schedule(function()
+                vim.cmd([[cclose]])
+                vim.cmd([[Trouble qflist open]])
+            end)
+        end
+    end,
+})
 
 --vim.api.nvim_create_autocmd("BufReadCmd", {
 --    pattern = "*.class",

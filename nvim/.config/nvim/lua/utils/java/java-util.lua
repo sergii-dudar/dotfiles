@@ -2,96 +2,90 @@ local home = os.getenv("HOME")
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
 local workspace_dir = vim.env.HOME .. "/jdtls-workspace/" .. project_name
 
---local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml";
-
-local system = "linux"
---local jdtls_path = mason.get_package('jdtls'):get_install_path()
---local jdtls_path = home .. "/.local/share/nvim/mason/packages/jdtls"
---local lombok_path = jdtls_path .. '/lombok.jar'
---local equinox_launcher_path = vim.fn.glob(jdtls_path .. '/plugins/org.eclipse.equinox.launcher_*.jar')
---local config_path = vim.fn.glob(jdtls_path .. '/config_' .. system)
---print("config_path: "..config_path)
---print("config.cmd" .. vim.inspect(config.cmd))
-
 -- sdk install java 25-amzn
 -- sdk install maven 3.9.11
 local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
 local java_bin = java_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
---local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
-local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
---vim.notify(java_google_style_file)
+--local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
+
+-- https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
+local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
 
 local M = {}
-
-M.is_installed = function(package_name, package_version)
-    local mason_reg = require("mason-registry")
-    local pkg = mason_reg.get_package(package_name)
-    local is_installed = pkg:is_installed()
-
-    if not is_installed then
-        return false
-    end
-
-    local installed_version
-    pkg:get_installed_version(function(ok, version)
-        if not ok then
-            return
-        end
-
-        installed_version = version
-    end)
-
-    return installed_version == package_version
-end
-
-M.install_pkgs = function(packages)
-    local mason_reg = require("mason-registry")
-    for _, dep in ipairs(packages) do
-        if not M.is_installed(dep.name, dep.version) then
-            local pkg = mason_reg.get_package(dep.name)
-
-            pkg:install({
-                version = dep.version,
-                force = true,
-            })
-        end
-    end
-end
 
 M.java_dir = java_dir
 M.java_bin = java_bin
 M.java_google_style_file = java_google_style_file
-M.get_spring_boot_tools_path_ls_path = function()
-    --M.install_pkgs({{ name = 'spring-boot-tools', version = '1.55.1' }})
-    --local mason_reg = require('mason-registry')
-    --local spring_boot_tools_path = mason_reg.get_package('spring-boot-tools'):get_install_path()
-    --vim.notify(spring_boot_tools_path .. "/extension/language-server")
-    --return spring_boot_tools_path .. "/extension/language-server"
 
-    --local mason_reg = require('mason-registry')
-    return home .. "/.local/share/nvim/mason/packages/spring-boot-tools/extension"
-end
-
--- not using sources:
--- mvn dependency:sources
--- mvn dependency:resolve -Dclassifier=javadoc
--- rm ~/.cache/nvim/jdtls/[project] (or all projects)
+-- ============================================================================
+-- JDTLS FULL SETTINGS CONFIGURATION
+-- urls:
+-- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
+-- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/blob/main/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
+-- ============================================================================
 
 M.jdtls_settings = {
     java = {
+        -- ====================================================================
+        -- GENERAL JAVA SETTINGS
+        -- ====================================================================
+        -- Specify Java home directory
         home = java_dir,
+        -- JDK detection and configuration
+        jdt = {
+            ls = {
+                -- Lombok support from project classpath
+                lombokSupport = {
+                    enabled = true,
+                },
+                -- Protocol Buffers support
+                protofBufSupport = {
+                    enabled = true,
+                },
+            },
+        },
+        -- ====================================================================
+        -- PROJECT CONFIGURATION
+        -- ====================================================================
         project = {
             importHint = true,
         },
+        -- ====================================================================
+        -- BUILD CONFIGURATION
+        -- ====================================================================
+        -- Automatic build settings
         autobuild = {
-            enabled = false,
+            enabled = true, -- Auto-compile on save
         },
-        -- Setup automatical package import oranization on file save
-        saveActions = {
-            organizeImports = true,
+        -- Max number of concurrent builds
+        maxConcurrentBuilds = 1,
+        -- Compilation settings
+        compile = {
+            -- Null analysis annotations
+            nullAnalysis = {
+                mode = "automatic", -- "disabled", "interactive", or "automatic"
+                nullable = {
+                    "javax.annotation.Nullable",
+                    "jakarta.annotation.Nullable",
+                    "org.eclipse.jdt.annotation.Nullable",
+                    "org.springframework.lang.Nullable",
+                    "org.jetbrains.annotations.Nullable",
+                },
+                nonnull = {
+                    "javax.annotation.Nonnull",
+                    "jakarta.annotation.Nonnull",
+                    "org.eclipse.jdt.annotation.NonNull",
+                    "org.springframework.lang.NonNull",
+                    "org.jetbrains.annotations.NotNull",
+                },
+            },
         },
+        -- ====================================================================
+        -- RUNTIME CONFIGURATION
+        -- ====================================================================
         configuration = {
+            -- Multiple JDK runtimes for different Java versions
             runtimes = {
                 -- {
                 --     name = "JavaSE-17",
@@ -103,54 +97,44 @@ M.jdtls_settings = {
                 },
             },
             -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
-            updateBuildConfiguration = "interactive",
-        },
-        -- Enable code formatting
-        format = {
-            enabled = true,
-            -- Use the Google Style guide for code formattingh
-            settings = {
-                url = java_google_style_file,
-                -- Optional formatter profile name from the Eclipse formatter settings.
-                profile = "GoogleStyle",
+            updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
+            maven = {
+                userSettings = home .. "/.m2/settings.xml",
             },
         },
-        -- Enable downloading archives from eclipse automatically
-        eclipse = {
-            downloadSources = true,
-        },
-        -- enable inlay hints for parameter names,
-        inlayHints = {
-            parameterNames = {
-                enabled = "all", --none, all,
+        -- ====================================================================
+        -- IMPORT SETTINGS (Maven/Gradle)
+        -- ====================================================================
+        import = {
+            exclusions = {
+                "**/node_modules/**",
+                "**/.metadata/**",
+                "**/archetype-resources/**",
+                "**/META-INF/maven/**",
+                "**/.git/**",
+                "**/target/**",
+                "**/build/**",
             },
-        },
-        -- Enable downloading archives from maven automatically
-        maven = {
-            downloadSources = true,
-        },
-        -- Enable method signature help
-        signatureHelp = {
-            enabled = true,
-            description = {
+            maven = {
                 enabled = true,
+                offline = {
+                    enabled = false,
+                },
+                -- executable = home .. "/.sdkman/candidates/maven/current/bin/mvn",
+            },
+            gradle = {
+                enabled = true,
+                offline = {
+                    enabled = false,
+                },
+                wrapper = {
+                    enabled = true,
+                },
             },
         },
-        -- Use the fernflower decompiler when using the javap command to decompile byte code back to java code
-        contentProvider = {
-            preferred = "fernflower",
-        },
-        references = {
-            includeDecompiledSources = true,
-        },
-        implementationsCodeLens = {
-            enabled = true,
-        },
-        -- enable code lens in the lsp
-        referencesCodeLens = {
-            enabled = true,
-        },
-        -- Customize completion options
+        -- ====================================================================
+        -- CODE COMPLETION
+        -- ====================================================================
         completion = {
             enabled = true,
             -- Defines a list of static members or types with static members. Content
@@ -189,6 +173,40 @@ M.jdtls_settings = {
                 enabled = false,
             },
         },
+        -- ====================================================================
+        -- CODE FORMATTING
+        -- ====================================================================
+        format = {
+            enabled = true,
+            -- Use the Google Style guide for code formattingh
+            settings = {
+                url = java_google_style_file,
+                -- Optional formatter profile name from the Eclipse formatter settings.
+                profile = "GoogleStyle",
+            },
+            -- Format on type
+            onType = {
+                enabled = false,
+            },
+            -- Insert spaces
+            insertSpaces = true,
+            -- Tab size
+            tabSize = 4,
+            -- Format comments
+            comments = {
+                enabled = true,
+            },
+        },
+        -- ====================================================================
+        -- SAVE ACTIONS
+        -- ====================================================================
+        saveActions = {
+            -- Setup automatical package import oranization on file save
+            organizeImports = true,
+        },
+        -- ====================================================================
+        -- ORGANIZE IMPORTS
+        -- ====================================================================
         sources = {
             -- How many classes from a specific package should be imported before automatic imports combine them all into a single import
             organizeImports = {
@@ -200,72 +218,107 @@ M.jdtls_settings = {
                 staticStarThreshold = 3,
             },
         },
-        redhat = { telemetry = { enabled = false } },
-        -- How should different pieces of code be generated?
+        -- ====================================================================
+        -- CODE GENERATION
+        -- ====================================================================
         codeGeneration = {
+            -- Generate method comments
+            generateComments = false,
+            -- Use blocks for generated code
+            useBlocks = true,
+            -- Insertion location
+            insertionLocation = "afterCursor", -- or "beforeCursor", "lastMember"
             -- When generating toString use a json format
             toString = {
                 template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}",
+                codeStyle = "STRING_CONCATENATION", -- or "STRING_BUILDER", "STRING_FORMAT"
+                skipNullValues = false,
+                listArrayContents = true,
+                limitElements = 0, -- 0 = unlimited
             },
             -- When generating hashCode and equals methods use the java 7 objects method
             hashCodeEquals = {
                 useJava7Objects = true,
-            },
-            -- When generating code use code blocks
-            useBlocks = true,
-        },
-        jdt = {
-            ls = {
-                lombokSupport = {
-                    -- Whether to load lombok processors from project classpath
-                    enabled = true,
-                },
-                protofBufSupport = {
-                    -- Specify whether to automatically add Protobuf output source directories to the classpath.
-                    enabled = true,
-                },
+                useInstanceof = false,
             },
         },
-        compile = {
-            nullAnalysis = {
-                mode = "automatic",
-                nullable = {
-                    "javax.annotation.Nullable",
-                    "jakarta.annotation.Nullable",
-                    "org.eclipse.jdt.annotation.Nullable",
-                    "org.springframework.lang.Nullable",
-                },
-                nonnull = {
-                    "javax.annotation.Nonnull",
-                    "jakarta.annotation.Nonnull",
-                    "org.eclipse.jdt.annotation.NonNull",
-                    "org.springframework.lang.NonNull",
-                },
+        -- ====================================================================
+        -- CODE LENS
+        -- ====================================================================
+        implementationCodeLens = "all", -- all, types, methods
+        -- enable code lens in the lsp
+        referencesCodeLens = {
+            enabled = true,
+        },
+        -- ====================================================================
+        -- INLAY HINTS
+        -- ====================================================================
+        inlayHints = {
+            -- enable inlay hints for parameter names,
+            parameterNames = {
+                enabled = "all", --none, all,
             },
         },
-        import = {
-            exclusions = {
-                "**/node_modules/**",
-                "**/.metadata/**",
-                "**/archetype-resources/**",
-                "**/META-INF/maven/**",
+        -- ====================================================================
+        -- FOLDING
+        -- ====================================================================
+        -- foldingRange = {
+        --     enabled = true,
+        -- },
+        -- ====================================================================
+        -- ECLIPSE SETTINGS
+        -- ====================================================================
+        eclipse = {
+            -- Enable downloading archives from eclipse automatically
+            downloadSources = true,
+        },
+        -- ====================================================================
+        -- CODE ACTIONS
+        -- ====================================================================
+        codeAction = {
+            -- Sort members
+            sortMembers = {
+                avoidVolatileChanges = false,
             },
-            maven = {
+        },
+        -- ====================================================================
+        -- SELECTION RANGE
+        -- ====================================================================
+        selectionRange = {
+            enabled = true,
+        },
+        -- ====================================================================
+        -- SIGNATURE HELP
+        -- ====================================================================
+        signatureHelp = {
+            -- Enable method signature help
+            enabled = true,
+            description = {
                 enabled = true,
-                offline = {
-                    enabled = false,
-                },
-            },
-            gradle = {
-                enabled = true,
-                offline = {
-                    enabled = false,
-                },
-                wrapper = {
-                    enabled = true,
-                },
             },
         },
+        -- ====================================================================
+        -- CONTENT PROVIDER
+        -- ====================================================================
+        contentProvider = {
+            -- Use the fernflower decompiler when using the javap command to decompile byte code back to java code
+            preferred = "fernflower",
+        },
+        -- ====================================================================
+        -- RENAME
+        -- ====================================================================
+        rename = {
+            enabled = true,
+        },
+        -- Enable downloading archives from maven automatically
+        maven = {
+            downloadSources = true,
+            updateSnapshots = true,
+        },
+        references = {
+            includeDecompiledSources = true,
+        },
+        redhat = { telemetry = { enabled = false } },
     },
 }
 

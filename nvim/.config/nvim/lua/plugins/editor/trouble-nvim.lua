@@ -15,7 +15,7 @@ return {
             type = "split",
             relative = "win",
             position = "right",
-            size = 0.3,
+            size = 0.4,
         },
         modes = {
             lsp = {
