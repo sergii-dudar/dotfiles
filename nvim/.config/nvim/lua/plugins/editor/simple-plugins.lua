@@ -13,14 +13,6 @@ return {
         end,
     },
     {
-        "akinsho/toggleterm.nvim",
-        --opts = {--[[ things you want to change go here]]}
-        enabled = false,
-        config = function()
-            require("toggleterm").setup()
-        end,
-    },
-    {
         "folke/flash.nvim",
         event = "VeryLazy",
         opts = {
