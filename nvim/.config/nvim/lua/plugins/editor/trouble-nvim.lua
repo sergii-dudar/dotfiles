@@ -1,16 +1,16 @@
 return {
     "folke/trouble.nvim",
     opts = {
-        --preview = {
-        --    type = "float",
-        --    relative = "editor",
-        --    border = "rounded",
-        --    title = "Preview",
-        --    title_pos = "center",
-        --    position = { 0, -2 },
-        --    size = { width = 0.3, height = 0.3 },
-        --    zindex = 200,
-        --},
+        -- preview = {
+        --     type = "float",
+        --     relative = "editor",
+        --     border = "rounded",
+        --     title = "Preview",
+        --     title_pos = "center",
+        --     position = { 0, -2 },
+        --     size = { width = 0.3, height = 0.3 },
+        --     zindex = 200,
+        -- },
         preview = {
             type = "split",
             relative = "win",
@@ -27,6 +27,11 @@ return {
                 win = { position = "bottom" },
             },
         },
+        auto_close = true, -- auto close when there are no items
+        auto_preview = true, -- automatically open preview when on an item
+        auto_refresh = true, -- auto refresh when open
+        auto_jump = true, -- auto jump to the item when there's only one
+        focus = true, -- Focus the window when opened
     },
     keys = {
         { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix List (Trouble)" },
