@@ -149,7 +149,7 @@
   tmuxptb (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
   tmuxptp (macro C-f $tmux-delay p) ;; tmux toggle popup
   ;; tmuxp (tap-hold $tap-time $hold-time @tmuxptb @tmuxptp)
-  tmuxp (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
+  ;; tmuxp (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
 )
 
 ;; --- Layer: Base ---
@@ -222,7 +222,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX  lrld @tmuxsvi XX    XX    XX @tmuxp   XX    XX    XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX  lrld @tmuxsvi XX    XX    XX @tmuxptb @tmuxptp XX XX    XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
