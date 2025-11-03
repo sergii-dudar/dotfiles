@@ -1,5 +1,5 @@
 return {
-    {
+    --[[ {
         "rcasia/neotest-java",
         ft = "java",
         dependencies = {
@@ -7,16 +7,6 @@ return {
             "mfussenegger/nvim-dap", -- for the debugger
             "rcarriga/nvim-dap-ui", -- recommended
             "theHamsta/nvim-dap-virtual-text", -- recommended
-        },
-        -- stylua: ignore
-        keys = {
-            { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, mode = "n", desc = "Run File", },
-            -- run nearest test
-            { "<leader>tr", function() require("neotest").run.run() end, mode = "n", desc = "Run Nearest", },
-            -- debug test file
-            { "<leader>tD", function() require("neotest").run.run({ strategy = "dap" }) end, mode = "n", desc = "Debug File", },
-            -- debug nearest test
-            { "<leader>td", function() require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" }) end, mode = "n", desc = "Debug Nearest", },
         },
     },
     {
@@ -27,6 +17,16 @@ return {
             "antoinemadec/FixCursorHold.nvim",
             "nvim-treesitter/nvim-treesitter",
         },
+        -- stylua: ignore
+        keys = {
+            -- { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, mode = "n", desc = "Run File", },
+            -- -- run nearest test
+            -- { "<leader>tr", function() require("neotest").run.run() end, mode = "n", desc = "Run Nearest", },
+            -- debug test file
+            { "<leader>tD", function() require("neotest").run.run({ strategy = "dap" }) end, mode = "n", desc = "Debug File", },
+            -- debug nearest test
+            { "<leader>td", function() require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" }) end, mode = "n", desc = "Debug Nearest", },
+        },
         opts = {
             adapters = {
                 ["neotest-java"] = {
@@ -34,7 +34,7 @@ return {
                 },
             },
         },
-    },
+    }, ]]
 
     --https://github.com/nvim-java/neotest-jdtls
     --https://github.com/atm1020/neotest-jdtls
