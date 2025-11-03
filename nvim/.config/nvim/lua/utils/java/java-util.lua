@@ -140,13 +140,14 @@ M.jdtls_settings = {
             -- Defines a list of static members or types with static members. Content
             -- assist will propose those static members even if the import is missing.
             favoriteStaticMembers = {
-                "org.hamcrest.MatcherAssert.assertThat",
-                "org.hamcrest.Matchers.*",
-                "org.hamcrest.CoreMatchers.*",
-                "org.junit.jupiter.api.Assertions.*",
-                "java.util.Objects.requireNonNull",
-                "java.util.Objects.requireNonNullElse",
+                -- "org.hamcrest.MatcherAssert.assertThat",
+                -- "org.hamcrest.Matchers.*",
+                -- "org.hamcrest.CoreMatchers.*",
+                -- "org.junit.jupiter.api.Assertions.*",
+                -- "java.util.Objects.requireNonNull",
+                -- "java.util.Objects.requireNonNullElse",
                 "org.mockito.Mockito.*",
+                "org.assertj.core.api.Assertions.*",
             },
             -- Defines the type filters. All types whose fully qualified name matches
             -- the selected filter strings will be ignored in content assist or quick
