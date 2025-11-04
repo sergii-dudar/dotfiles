@@ -9,6 +9,8 @@ return {
             --"lombok-nightly",
             --"spring-boot-tools", -- nvim-java/mason-registry
             -- "haskell-language-server",
+            "vscode-spring-boot-tools",
+            "vscode-java-dependency",
             "hyprls",
             "rust-analyzer",
 

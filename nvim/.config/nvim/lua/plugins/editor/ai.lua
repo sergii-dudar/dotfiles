@@ -5,9 +5,9 @@ return {
         keys = {
             { "<a-a>", false },
             { "<leader>aa", function() require("sidekick.cli").toggle({ name = "copilot", focus = true }) end, desc = "Toggle Copilot CLI", },
-            { "<leader>an", function() require("sidekick").nes_jump_or_apply() end, desc = "Goto/Apply Next Edit Suggestion" },
+            -- { "<leader>an", function() require("sidekick").nes_jump_or_apply() end, desc = "Goto/Apply Next Edit Suggestion" },
             -- { "<leader>an", function() require("sidekick.nes").jump() end, desc = "Goto Next Edit Suggestion" },
-            -- { "<leader>am", function() require("sidekick.nes").apply() end, desc = "Apply Current Edit Suggestion" },
+            { "<leader>am", function() require("sidekick.nes").apply() end, desc = "Apply Current Edit Suggestion" },
         },
         opts = {
             debug = false,
