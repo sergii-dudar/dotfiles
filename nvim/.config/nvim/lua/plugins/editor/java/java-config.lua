@@ -4,67 +4,12 @@ local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
 return {
-    -- vs spring-boot tools ls to integrate in jdtls
-    --[[{
-        "JavaHello/spring-boot.nvim",
-        -- latest working only with vmware.vscode-spring-boot-1.57.0, need manual install tools
-        -- "commit": "7c2c9d90691e536bb00941a143e961f4c8db647d"
-        commit = "218c0c26c14d99feca778e4d13f5ec3e8b1b60f0", -- stable, working with mason spring-boot-tools@1.55.1
-        ft = "java",
-        dependencies = {
-            "mfussenegger/nvim-jdtls",
-            "ibhagwan/fzf-lua",
-        },
-        config = function()
-            -- requiring install https://marketplace.visualstudio.com/items?itemName=vmware.vscode-spring-boot
-            -- https://github.com/spring-projects/sts4/releases
-
-            require("spring_boot").setup({
-                --ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.57.0/language-server")
-                --ls_path = vim.fn.glob(home .. "/.vscode/extensions/vmware.vscode-spring-boot-1.56.0/language-server")
-                ls_path = vim.fn.expand("$MASON/packages/spring-boot-tools/extension/language-server"),
-            })
-        end,
-    },]]
-    {
-        "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
-        version = "*",
-        -- ft = { "java", "yaml", "jproperties" },
-        ft = "java",
-        dependencies = {
-            "mfussenegger/nvim-jdtls",
-        },
-        opts = function()
-            local opts = {}
-            -- opts.ls_path = mason_registery.get_package("spring-boot-tools"):get_install_path()
-            -- 	.. "/extension/language-server"
-
-            -- /Users/jgarcia/.local/share/nvim/mason/packages/spring-boot-tools/extension/language-server/spring-boot-language-server-1.59.0-SNAPSHOT-exec.jar
-            -- opts.ls_path = os.getenv("MASON") .. "/packages/spring-boot-tools/extension/language-server/spring-boot-language-server-1.59.0-SNAPSHOT-exec.jar"
-            opts.ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar")
-            -- print("jdtls opts.ls_path: ", opts.ls_path)
-
-            -- jdtls opts.ls_path:  /Users/jgarcia/.local/share/nvim/mason/packages/spring-boot-tools/extension/language-server
-            -- opts.ls_path = "/home/sangram/.vscode/extensions/vmware.vscode-spring-boot-1.55.1"
-            -- vim.notify("spring boot ls path : " .. opts.ls_path, vim.log.levels.INFO, {title = "Spring boot"})
-            opts.java_cmd = "java"
-            -- opts.exploded_ls_jar_data = true
-            opts.jdtls_name = "jdtls"
-            opts.log_file = home .. "/.local/state/nvim/spring-boot-ls.log"
-            return opts
-        end,
-    },
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
         dependencies = {
             "mason-org/mason.nvim",
             "JavaHello/spring-boot.nvim",
-            -- {
-            --     "JavaHello/spring-boot.nvim",
-            --     ft = { "java", "yaml", "jproperties" },
-            --     opts = {},
-            -- },
         },
         -- stylua: ignore
         keys = {
@@ -83,12 +28,34 @@ return {
                     LazyVim.info("jdtls lsp initialized", notify_title)
                 end,
             },]]
-            extend_jdtls_bundles = function(bundles)
-                vim.list_extend(bundles, require("spring_boot").java_extensions())
-                vim.notify("jdtls bundles extende ", vim.log.levels.INFO)
-            end,
+            -- extend_jdtls_bundles = function(bundles)
+            --     vim.list_extend(bundles, require("spring_boot").java_extensions())
+            --     vim.notify("jdtls bundles extende ", vim.log.levels.INFO)
+            -- end,
             settings = java_util.jdtls_settings,
         },
+    },
+    -- vs spring-boot tools ls to integrate in jdtls
+    {
+        "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
+        version = "*",
+        ft = { "java", "yaml", "properties", "yml" },
+        dependencies = {
+            "mfussenegger/nvim-jdtls",
+        },
+        opts = function()
+            local opts = {}
+            -- opts.ls_path = os.getenv("MASON") .. "/packages/spring-boot-tools/extension/language-server/spring-boot-language-server-1.59.0-SNAPSHOT-exec.jar"
+            opts.ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar")
+            -- opts.ls_path = os.getenv("MASON") .. "/share/vscode-spring-boot-tools/language-server.jar"
+            -- print(opts.ls_path)
+
+            -- opts.java_cmd = "java"
+            -- -- opts.exploded_ls_jar_data = true
+            -- opts.jdtls_name = "jdtls"
+            opts.log_file = home .. "/.local/state/nvim/spring-boot-ls.log"
+            return opts
+        end,
     },
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
     {

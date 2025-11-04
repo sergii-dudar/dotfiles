@@ -5,12 +5,15 @@ return {
             -- LSP
             "bash-language-server",
             "lemminx",
+
+            -- Java
             "jdtls",
-            --"lombok-nightly",
-            --"spring-boot-tools", -- nvim-java/mason-registry
-            -- "haskell-language-server",
             "vscode-spring-boot-tools",
             "vscode-java-dependency",
+            "vscode-java-decompiler",
+
+            -- "haskell-language-server", -- issues with securities on macos
+
             "hyprls",
             "rust-analyzer",
 
