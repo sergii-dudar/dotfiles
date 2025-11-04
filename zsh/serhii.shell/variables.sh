@@ -45,7 +45,7 @@ else
     export PATH=$PATH:$HOME/tools/temporal
 
     # in case commented nvm (as slow)
-    export PATH=$PATH:$HOME/.nvm/versions/node/v20.17.0/bin
+    export PATH=$HOME/.nvm/versions/node/v20.17.0/bin:$PATH
     #export PATH=$HOME/.ghcup/bin:$PATH
     export PATH=$PATH:$HOME/.ghcup/bin
     export PATH=$HOME/.cargo/bin:$PATH
