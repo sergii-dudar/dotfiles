@@ -105,13 +105,13 @@ return {
                 },
             },
             -- Experimental signature help support
-            signature = {
-                enabled = true,
-                window = {
-                    border = "rounded",
-                    show_documentation = true, -- to only show the signature, and not the documentation.
-                },
-            },
+            -- signature = { -- disabled as using lsp doc
+            --     enabled = true,
+            --     window = {
+            --         border = "rounded",
+            --         show_documentation = true, -- to only show the signature, and not the documentation.
+            --     },
+            -- },
             cmdline = {
                 keymap = {
                     -- recommended, as the default keymap will only show and select the next item
