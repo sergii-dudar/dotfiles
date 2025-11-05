@@ -11,6 +11,7 @@ return {
         },
         opts = {
             keymap = {
+                -- https://cmp.saghen.dev/configuration/keymap.html#default
                 preset = "enter",
                 -- ["<Tab>"] = {
                 --     LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
@@ -18,7 +19,8 @@ return {
                 -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
-                -- ["<Space>"] = { "accept", "fallback" },
+                ["<Space>"] = { "select_and_accept", "fallback" },
+                -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
             },
             fuzzy = {
                 implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua
@@ -105,7 +107,10 @@ return {
             -- Experimental signature help support
             signature = {
                 enabled = true,
-                window = { border = "rounded" },
+                window = {
+                    border = "rounded",
+                    show_documentation = true, -- to only show the signature, and not the documentation.
+                },
             },
             cmdline = {
                 keymap = {

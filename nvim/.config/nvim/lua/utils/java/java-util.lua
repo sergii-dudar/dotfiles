@@ -173,6 +173,14 @@ M.jdtls_settings = {
             chain = {
                 enabled = false,
             },
+            -- guessMethodArguments = {
+            --     -- enabled = true,
+            --     enabled = {
+            --         off = "off",
+            --         insertParameterNames = "insertParameterNames",
+            --         insertBestGuessedArguments = "insertBestGuessedArguments",
+            --     },
+            -- },
         },
         -- ====================================================================
         -- CODE FORMATTING
