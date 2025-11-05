@@ -64,7 +64,7 @@ return {
         lazy = true,
         -- stylua: ignore
         keys = {
-            { "<leader>je", function() require('java-deps').toggle_outline() end },
+            { "<leader>je", function() require('java-deps').toggle_outline() end, desc = "Toogle Java Dependencies" },
             -- :lua require('java-deps').open_outline()
             -- :lua require('java-deps').close_outline()
         },
@@ -113,6 +113,10 @@ return {
         -- "simaxme/java.nvim",
         "sergii-dudar/java.nvim", -- my fork with neo-tree and oil.nvim support
         ft = "java",
+        -- stylua: ignore
+        keys = {
+            { "<leader>cR", function() require("simaxme-java").snacks.rename_current() end, desc = "Rename File (Java)" },
+        },
         dependencies = {
             "mfussenegger/nvim-jdtls",
             "nvim-tree/nvim-tree.lua",

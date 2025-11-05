@@ -120,7 +120,7 @@ return {
                     -- ["<CR>"] = { "accept_and_enter", "fallback" },
                     ["<C-k>"] = { "select_prev", "fallback" },
                     ["<C-j>"] = { "select_next", "fallback" },
-                    ["<Space>"] = { "accept", "fallback" },
+                    -- ["C-<Space>"] = { "accept", "fallback" },
                 },
                 enabled = true,
                 -- keymap = { preset = "inherit" },
