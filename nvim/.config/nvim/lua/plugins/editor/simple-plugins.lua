@@ -13,6 +13,21 @@ return {
         end,
     },
     {
+        "hedyhli/outline.nvim",
+        opts = {
+            preview_window = {
+                auto_preview = true,
+                width = 50, -- Percentage or integer of columns
+                min_width = 50, -- Minimum number of columns
+                height = 80, -- Percentage or integer of lines
+                min_height = 10, -- Minimum number of lines
+            },
+            outline_window = {
+                show_relative_numbers = true,
+            },
+        },
+    },
+    {
         "folke/flash.nvim",
         event = "VeryLazy",
         opts = {

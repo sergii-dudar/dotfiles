@@ -57,6 +57,56 @@ return {
             return opts
         end,
     },
+    {
+        "JavaHello/java-deps.nvim",
+        ft = { "java" },
+        lazy = true,
+        -- stylua: ignore
+        keys = {
+            { "<leader>je", function() require('java-deps').toggle_outline() end },
+            -- :lua require('java-deps').open_outline()
+            -- :lua require('java-deps').close_outline()
+        },
+        dependencies = {
+            { "mfussenegger/nvim-jdtls" },
+            { "hedyhli/outline.nvim" },
+            -- {
+            --     "simrat39/symbols-outline.nvim",
+            --     config = function()
+            --         require("symbols-outline").setup()
+            --     end,
+            -- },
+        },
+        -- config = function()
+        --     require("java-deps").setup({})
+        -- end,
+        opts = {
+            -- jdtls_name = "jdtls",
+            options = {
+                width = 60,
+                show_relative_numbers = true,
+                position = "right",
+                --     show_guides = true,
+                --     auto_close = false,
+                --     show_numbers = false,
+                --     preview_bg_highlight = "Pmenu",
+                --     winblend = 0,
+                --     fold_markers = { "", "" },
+                --     position = "right",
+                --     wrap = false,
+                --     hierarchical_view = true,
+                --     keymaps = {
+                --         close = "q",
+                --         toggle_fold = "o",
+                --     },
+                --     symbols = {
+                --         icons = {},
+                --     },
+            },
+        },
+        config = true,
+    },
+
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
     {
         -- "simaxme/java.nvim",

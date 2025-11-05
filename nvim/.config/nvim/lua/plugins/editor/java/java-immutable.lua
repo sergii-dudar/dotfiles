@@ -167,6 +167,7 @@ return {
             ---
             vim.list_extend(bundles, require("spring_boot").java_extensions())
             -- vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-decompiler/bundles/*.jar", false, true))
+            vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true))
 
             --#####################################
 
