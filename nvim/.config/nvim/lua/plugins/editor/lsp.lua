@@ -40,7 +40,7 @@ return {
         opts = {
             inlay_hints = {
                 enabled = true,
-                exclude = { "java" }, -- filetypes for which you don't want to enable inlay hints
+                -- exclude = { "java" }, -- filetypes for which you don't want to enable inlay hints
             },
             servers = {
                 ["*"] = {

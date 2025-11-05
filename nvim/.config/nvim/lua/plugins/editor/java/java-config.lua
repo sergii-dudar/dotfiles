@@ -9,7 +9,7 @@ return {
         "mfussenegger/nvim-jdtls",
         dependencies = {
             "mason-org/mason.nvim",
-            "JavaHello/spring-boot.nvim",
+            -- "JavaHello/spring-boot.nvim",
         },
         -- stylua: ignore
         keys = {
@@ -37,7 +37,7 @@ return {
         },
     },
     -- vs spring-boot tools ls to integrate in jdtls
-    {
+    --[[ {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
         ft = { "java", "yaml", "properties", "yml" },
@@ -57,7 +57,7 @@ return {
             opts.log_file = home .. "/.local/state/nvim/spring-boot-ls.log"
             return opts
         end,
-    },
+    }, ]]
     {
         "JavaHello/java-deps.nvim",
         ft = { "java" },
