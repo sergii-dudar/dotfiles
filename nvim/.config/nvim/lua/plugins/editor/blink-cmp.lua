@@ -1,4 +1,5 @@
 local buffer_util = require("utils.buffer-util")
+
 return {
     {
         "saghen/blink.cmp",
@@ -19,7 +20,7 @@ return {
                 -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
-                ["<Space>"] = { "select_and_accept", "fallback" },
+                -- ["<Space>"] = { "select_and_accept", "fallback" },
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
             },
             fuzzy = {
