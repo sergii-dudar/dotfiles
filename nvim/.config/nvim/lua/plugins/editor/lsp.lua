@@ -4,6 +4,7 @@
 -- end
 vim.lsp.handlers["$/progress"] = function(_, result, ctx) end
 -- vim.lsp.handlers['textDocument/inlayHint'] = function() end
+-- local originalHint = vim.lsp.handlers['textDocument/inlayHint'] = function() end
 
 vim.diagnostic.config({
     float = { border = "rounded" },
@@ -37,6 +38,10 @@ return {
             "aznhe21/actions-preview.nvim",
         },
         opts = {
+            inlay_hints = {
+                enabled = true,
+                exclude = { "java" }, -- filetypes for which you don't want to enable inlay hints
+            },
             servers = {
                 ["*"] = {
                     -- stylua: ignore

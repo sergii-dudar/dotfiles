@@ -169,6 +169,13 @@ return {
             -- vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-decompiler/bundles/*.jar", false, true))
             vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true))
 
+            -- vscode java tests
+
+            local home = os.getenv("HOME")
+            local tests_modules = home .. "/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar"
+            -- print(tests_modules)
+            vim.list_extend(bundles, vim.fn.glob(tests_modules, false, true))
+
             --#####################################
 
             local function attach_jdtls()
