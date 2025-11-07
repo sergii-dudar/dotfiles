@@ -48,4 +48,19 @@ return {
             -- },
         },
     },
+    {
+        "phelipetls/jsonpath.nvim",
+        ft = { "json", "jsonc" },
+        keys = {
+            {
+                "<leader>cp",
+                function()
+                    local path = require("jsonpath").get()
+                    vim.fn.setreg("+", path)
+                    vim.notify("`" .. path .. "`\n copied to clipboard", vim.log.levels.INFO)
+                end,
+                { desc = "copy json path", buffer = true },
+            },
+        },
+    },
 }

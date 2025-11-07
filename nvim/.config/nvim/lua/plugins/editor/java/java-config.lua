@@ -33,7 +33,7 @@ return {
             --     vim.notify("jdtls bundles extende ", vim.log.levels.INFO)
             -- end,
             settings = java_util.jdtls_settings,
-            test = false, -- issue with java-test in latest mason module, using from vscode
+            -- test = false, -- issue with java-test in latest mason module, using from vscode build instead
         },
     },
     -- vs spring-boot tools ls to integrate in jdtls
@@ -71,16 +71,7 @@ return {
         dependencies = {
             { "mfussenegger/nvim-jdtls" },
             { "hedyhli/outline.nvim" },
-            -- {
-            --     "simrat39/symbols-outline.nvim",
-            --     config = function()
-            --         require("symbols-outline").setup()
-            --     end,
-            -- },
         },
-        -- config = function()
-        --     require("java-deps").setup({})
-        -- end,
         opts = {
             -- jdtls_name = "jdtls",
             options = {
@@ -107,11 +98,10 @@ return {
         },
         config = true,
     },
-
     -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
     {
         -- "simaxme/java.nvim",
-        "sergii-dudar/java.nvim", -- my fork with neo-tree and oil.nvim support
+        "sergii-dudar/java.nvim", -- my fork with [ neo-tree, oil.nvim, snacks rename ] support
         ft = "java",
         -- stylua: ignore
         keys = {
