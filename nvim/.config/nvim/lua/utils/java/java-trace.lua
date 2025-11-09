@@ -31,6 +31,7 @@ M.parse_java_stack_trace = function(trace)
         end
     end
 
+    dd(items)
     return items
 end
 

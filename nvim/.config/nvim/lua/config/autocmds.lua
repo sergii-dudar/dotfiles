@@ -44,68 +44,42 @@ vim.api.nvim_create_autocmd("FileType", {
 -------------------------------------------
 ------------ folke/trouble.nvim -----------
 
--- AUTOMATICALLY OPEN TROUBLE QUICKFIX (-- Test with something like: silent grep vim %)
-vim.api.nvim_create_autocmd("QuickFixCmdPost", {
-    callback = function()
-        vim.cmd([[Trouble qflist open]])
-    end,
-})
-
--- OPEN TROUBLE QUICKFIX WHEN THE QF LIST OPENS
--- This is **NOT** recommended, since you won’t be able to use the quickfix list for other things.
-
-vim.api.nvim_create_autocmd("BufRead", {
-    callback = function(ev)
-        if vim.bo[ev.buf].buftype == "quickfix" then
-            vim.schedule(function()
-                vim.cmd([[cclose]])
-                vim.cmd([[Trouble qflist open]])
-            end)
-        end
-    end,
-})
+-- -- AUTOMATICALLY OPEN TROUBLE QUICKFIX (-- Test with something like: silent grep vim %)
+-- vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+--     callback = function()
+--         vim.cmd([[Trouble qflist open]])
+--     end,
+-- })
+--
+-- -- OPEN TROUBLE QUICKFIX WHEN THE QF LIST OPENS
+-- -- This is **NOT** recommended, since you won’t be able to use the quickfix list for other things.
+--
+-- vim.api.nvim_create_autocmd("BufRead", {
+--     callback = function(ev)
+--         if vim.bo[ev.buf].buftype == "quickfix" then
+--             vim.schedule(function()
+--                 vim.cmd([[cclose]])
+--                 vim.cmd([[Trouble qflist open]])
+--             end)
+--         end
+--     end,
+-- })
 
 -------------------------------------------
 ----------------- TESTS
 
-vim.api.nvim_create_user_command("RunMyScript", function()
-    -- 1. Run the command and get output
-    local output = vim.fn.system("mvn clean verify -q")
-    if vim.v.shell_error ~= 0 then
-        print("Command failed: " .. output)
-        return
-    end
-
-    local qf_list = {}
-
-    -- 2. Parse the raw string output
-    for line in vim.gsplit(output, "\n") do
-        -- Lua pattern to match: [INFO] src/main.lua:25: Found it
-        -- local _, _, filename, lnum, text = line:find("^%[.+%]%s+(.+):(%d+):%s+(.+)$")
-        local filename =
-            "/home/serhii/serhii.home/git/tests/serhii-application/src/test/java/ua/serhii/application/Tests.java"
-        local lnum = 4
-        local text = "some test issue"
-
-        if filename then
-            -- 3. Build the list of tables
-            table.insert(qf_list, {
-                filename = filename,
-                lnum = tonumber(lnum),
-                text = text,
-            })
-        end
-    end
-
-    -- 4. Send the list to the quickfix
-    if #qf_list > 0 then
-        vim.fn.setqflist(qf_list)
-        vim.cmd("copen")
-    else
-        print("No matches found.")
-    end
+local maven = require("utils.java.maven-tests")
+vim.api.nvim_create_user_command("MavenCompile", function()
+    maven.compile()
 end, {})
--------------------------------------------
+
+vim.api.nvim_create_user_command("MavenTest", function()
+    maven.test()
+end, {})
+
+vim.api.nvim_create_user_command("MavenVerify", function()
+    maven.verify()
+end, {})
 
 --vim.api.nvim_create_autocmd("BufReadCmd", {
 --    pattern = "*.class",
