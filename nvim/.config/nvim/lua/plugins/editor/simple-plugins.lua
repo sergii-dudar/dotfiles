@@ -63,4 +63,14 @@ return {
             },
         },
     },
+    {
+        "vinnymeller/swagger-preview.nvim",
+        ft = { "yaml", "yml" },
+        cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
+        keys = {
+            { "<leader>ot", ":SwaggerPreviewToggle<CR>", desc = "Swagger Preview" },
+        },
+        build = "npm i",
+        config = true,
+    },
 }

@@ -106,17 +106,17 @@ Snacks.toggle.zen():map("<leader>zz")
 
 -- Function to create a visual mode substitution with prompt on every replace
 -- help to replace intellij - replace qualified name with import
-vim.api.nvim_set_keymap(
-    "v",
-    "<leader>rr",
-    '"hy:%s/<C-r>h//gc<Left><Left><Left>',
-    { noremap = true, silent = false, desc = "Replace with prompt" }
-)
+
+-- stylua: ignore start
+vim.api.nvim_set_keymap( "v", "<leader>rr", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
 
 -- run lua in runtime
 map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
-map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
-map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
+-- map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
+-- map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
+map("n", "<space>rl", function() Snacks.debug.run() end, { desc = "Run current lua buffer (file)" })
+map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selected code" })
+-- stylua: ignore end
 
 -- mouse horisontal scrolling
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
