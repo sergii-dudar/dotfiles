@@ -124,14 +124,8 @@ vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, sil
 -- Example usage for jdtls
 vim.opt.path:append("**")
 
-map("v", "<leader>xp", function()
-    require("utils.java.java-trace").parse_selected_trace_to_qflist()
-end, { desc = "Parse trace to quick fix list" })
-
-map("n", "<leader>xp", function()
-    require("utils.java.java-trace").parse_buffer_trace_to_qflist()
-end, { desc = "Parse trace to quick fix list" })
-
+map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
+map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 -- stylua: ignore end
 
 map("n", "<leader>fs", function()
