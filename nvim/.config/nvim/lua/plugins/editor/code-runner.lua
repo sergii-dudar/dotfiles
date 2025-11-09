@@ -134,11 +134,15 @@ return {
         --vim.keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false, desc = "CRF iletype" })
         --vim.keymap.set('n', '<leader>crp', ':CRProjects<CR>', { noremap = true, silent = false, desc = "CR Projects" })
 
+        local map = LazyVim.safe_keymap_set
         vim.api.nvim_create_autocmd("TermOpen", {
             group = vim.api.nvim_create_augroup("RunClose", { clear = true }),
             desc = "RunClose with q",
             callback = function()
-                vim.keymap.set("n", "q", "<cmd>RunClose<cr>", { buffer = true })
+                map("n", "q", "<cmd>RunClose<cr>", { buffer = true })
+                map("n", "p", function()
+                    require("utils.java.java-trace").parse_buffer_trace_to_qflist()
+                end, { buffer = true })
             end,
         })
     end,

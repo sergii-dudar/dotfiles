@@ -116,7 +116,6 @@ map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
 -- map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
 map("n", "<space>rl", function() Snacks.debug.run() end, { desc = "Run current lua buffer (file)" })
 map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selected code" })
--- stylua: ignore end
 
 -- mouse horisontal scrolling
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
@@ -126,16 +125,14 @@ vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, sil
 vim.opt.path:append("**")
 
 map("v", "<leader>xp", function()
-    local helpers = require("utils.common-util")
-    local stack_trace = helpers.get_visual_selection()
-    helpers.show_stack_trace_qflist(stack_trace)
+    require("utils.java.java-trace").parse_selected_trace_to_qflist()
 end, { desc = "Parse trace to quick fix list" })
 
 map("n", "<leader>xp", function()
-    local helpers = require("utils.common-util")
-    local stack_trace = helpers.get_current_buffer_text()
-    helpers.show_stack_trace_qflist(stack_trace)
+    require("utils.java.java-trace").parse_buffer_trace_to_qflist()
 end, { desc = "Parse trace to quick fix list" })
+
+-- stylua: ignore end
 
 map("n", "<leader>fs", function()
     local helpers = require("utils.common-util")
@@ -160,10 +157,10 @@ map("n", "<leader>fs", function()
     })
 end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
--- debug purposes
-_G.log_table = function(table)
-    require("utils.common-util").log_table(table)
-end
+-- -- debug purposes
+-- _G.log_table = function(table)
+--     require("utils.common-util").log_table(table)
+-- end
 
 --local buff_utils = require("utils.buffer-util")
 --_G.get_goto_preview_buffers = function()

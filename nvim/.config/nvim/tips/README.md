@@ -42,3 +42,24 @@ PropertyAccessor.CREATOR, Visibility.NONE)
 TimeZone.getTimeZone("GMT"))
 
 ```
+
+```text
+additional navigation:
+
+1. Using Neovim's Built-in Navigation
+Neovim has built-in commands to move through jump locations:
+Ctrl+o: Move to the previous location (similar to "back" in IntelliJ).
+Ctrl+i: Move to the next location (similar to "forward" in IntelliJ).
+
+2.
+gf - go to file under cursor,
+gF - go to file under cursor and to number after : (File.java:20)
+
+3.
+:[line number] - got to line number in buffer
+
+4.
+cfdo %s/serhii_dudar/just_serhii/g | update | bd
+cfdo %s/just_serhii/serhii_dudar/g | update | bd
+
+```

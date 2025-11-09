@@ -65,6 +65,48 @@ vim.api.nvim_create_autocmd("BufRead", {
     end,
 })
 
+-------------------------------------------
+----------------- TESTS
+
+vim.api.nvim_create_user_command("RunMyScript", function()
+    -- 1. Run the command and get output
+    local output = vim.fn.system("mvn clean verify -q")
+    if vim.v.shell_error ~= 0 then
+        print("Command failed: " .. output)
+        return
+    end
+
+    local qf_list = {}
+
+    -- 2. Parse the raw string output
+    for line in vim.gsplit(output, "\n") do
+        -- Lua pattern to match: [INFO] src/main.lua:25: Found it
+        -- local _, _, filename, lnum, text = line:find("^%[.+%]%s+(.+):(%d+):%s+(.+)$")
+        local filename =
+            "/home/serhii/serhii.home/git/tests/serhii-application/src/test/java/ua/serhii/application/Tests.java"
+        local lnum = 4
+        local text = "some test issue"
+
+        if filename then
+            -- 3. Build the list of tables
+            table.insert(qf_list, {
+                filename = filename,
+                lnum = tonumber(lnum),
+                text = text,
+            })
+        end
+    end
+
+    -- 4. Send the list to the quickfix
+    if #qf_list > 0 then
+        vim.fn.setqflist(qf_list)
+        vim.cmd("copen")
+    else
+        print("No matches found.")
+    end
+end, {})
+-------------------------------------------
+
 --vim.api.nvim_create_autocmd("BufReadCmd", {
 --    pattern = "*.class",
 --    callback = function()
@@ -91,7 +133,8 @@ vim.api.nvim_create_autocmd("BufRead", {
 --    end
 --})
 
--- winbar file path
+-------------------------------------------
+------------ winbar file path -----------
 vim.api.nvim_create_autocmd("BufWinEnter", {
     pattern = "*",
     callback = function()
@@ -157,59 +200,3 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
         --vim.bo.indentexpr = "v:lua.GetJavaIndent()"
     end,
 })
-
--- vim.api.nvim_create_user_command("NeoTreeToggleGroupEmptyDirs", function()
---     local fs = require("neo-tree.sources.filesystem")
---     local state = require("neo-tree.sources.manager").get_state("filesystem")
---     local current = state
---         and state.default_component_configs
---         and state.default_component_configs.filesystem.group_empty_dirs
---     local new_value = not (current or fs.group_empty_dirs or false)
---
---     fs.group_empty_dirs = new_value
---     vim.notify("Neo-tree: group_empty_dirs = " .. tostring(new_value))
---     require("neo-tree.command").execute({ source = "filesystem", action = "refresh" })
--- end, {})
-
--- vim.api.nvim_create_user_command("NeoTreeToggleGroupEmptyDirs", function()
---     local fs = require("neo-tree.sources.filesystem")
---     local manager = require("neo-tree.sources.manager")
---
---     -- Get the current state
---     local state = manager.get_state("filesystem")
---     local current_value = fs.group_empty_dirs or false
---
---     -- Toggle the setting
---     fs.group_empty_dirs = not current_value
---
---     -- Close and reopen the filesystem to apply it
---     require("neo-tree.command").execute({ source = "filesystem", action = "close" })
---     require("neo-tree.command").execute({
---         source = "filesystem",
---         action = "show",
---         reveal = true,
---     })
---
---     vim.notify("Neo-tree: group_empty_dirs = " .. tostring(fs.group_empty_dirs))
--- end, {})
-
--- vim.keymap.set("n", "<leader>ge", function()
---     local neotree_config = require("neo-tree.sources.filesystem")
---     neotree_config.group_empty_dirs = not neotree_config.group_empty_dirs
---     vim.cmd("Neotree refresh")
--- end, {
---     desc = "Toggle grouping of empty directories in Neo-tree",
--- })
-
--- Hyprlang LSP
--- vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
---     pattern = { "*.hl", "hypr*.conf" },
---     callback = function(event)
---         print(string.format("starting hyprls for %s", vim.inspect(event)))
---         vim.lsp.start({
---             name = "hyprlang",
---             cmd = { "hyprls" },
---             root_dir = vim.fn.getcwd(),
---         })
---     end,
--- })

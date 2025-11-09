@@ -73,4 +73,5 @@ return {
         build = "npm i",
         config = true,
     },
+    { "skywind3000/asyncrun.vim" },
 }

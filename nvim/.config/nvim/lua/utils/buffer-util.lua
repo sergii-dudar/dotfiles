@@ -5,7 +5,7 @@ local work_buffer_types = {
     lua = true,
 }
 
--- get loaded buffers, same as by `:ls` command or telescope buffers
+-- get loaded bufferIds list, same as by `:ls` command or telescope buffers
 M.get_active_ls_buffers = function()
     local buffers = vim.api.nvim_list_bufs()
     local active_buffers = {}
