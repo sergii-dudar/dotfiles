@@ -49,8 +49,12 @@ return {
         end,
         -- stylua: ignore
         keys = {
-            -- { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer", },
+            -- { "<leader>S", desc = "Scratch ..." },
+            -- { "<leader>SS", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
+            -- { "<leader>Sf", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },
             -- { "<leader>S", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },
+            -- { "<leader>.", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer", },
+            { "<leader>S", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer", },
             -- explorer
             { '<leader>"', function() Snacks.explorer({ cwd = LazyVim.root() }) end, desc = "Explorer Snacks (root dir)", },
             { "<leader>'", function() Snacks.explorer() end, desc = "Explorer Snacks (cwd)", },
