@@ -188,7 +188,7 @@
 ;; |   | a  s  d  f  g        h  j  k  l  ;  '
 ;; |   |---------------------------------------
 ;; | 1 | X  X  X  X  X        X  X  [  ]  X
-;; | q | !  @  #  *  |        0  {  }  -> X
+;; | q | !  @  #  *  |        0  -> {  }  X
 ;; | a | `  ~  +  =  &        ^  (  )  $  X  ' (apostrof on UK)
 ;; | z | X  \  _  -  %        ◀  ▼  ▲  ▶  X
 
@@ -196,7 +196,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    S-1   S-2   S-3   S-8   S-\   0     S-[   S-] @rarrow XX    XX    XX    XX    XX    XX    XX  ;;Q
+   XX    S-1   S-2   S-3   S-8   S-\   0  @rarrow  S-[   S-]   XX    XX    XX    XX    XX    XX    XX  ;;Q
    XX    `     S-`   S-=   =     S-7   S-6   S-9   S-0   S-4   XX    S-A-p       XX                    ;;A
    XX    XX    \     S--   -     S-5   ◀     ▼     ▲     ▶     XX                XX          XX        ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX     XX ;;MOD

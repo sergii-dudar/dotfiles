@@ -48,6 +48,7 @@ return {
             -- },
         },
     },
+<<<<<<< HEAD
     {
         "phelipetls/jsonpath.nvim",
         ft = { "json", "jsonc" },
@@ -75,3 +76,8 @@ return {
     },
     { "skywind3000/asyncrun.vim" },
 }
+||||||| parent of c992e64 (kanata, ideavimrc)
+}
+=======
+}
+>>>>>>> c992e64 (kanata, ideavimrc)

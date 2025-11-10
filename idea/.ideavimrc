@@ -590,14 +590,14 @@ nmap <leader>cr <Action>(RenameElement)
 nmap <leader>cR <Action>(RenameFile)
 
 " integration menus
-nmap <leader>ca <Action>(Refactorings.QuickListPopupAction)
-nmap <leader>ci <Action>(ShowIntentionActions)
-nmap <leader>cg <Action>(Generate)
-nmap <leader>cm <Action>(CodeMenu)
-nmap <leader>cR <Action>(RefactoringMenu)
+map <leader>ca <Action>(Refactorings.QuickListPopupAction)
+map <leader>ci <Action>(ShowIntentionActions)
+map <leader>cg <Action>(Generate)
+map <leader>cm <Action>(CodeMenu)
+map <leader>cR <Action>(RefactoringMenu)
 
-nmap <leader>css <Action>(SurroundWith)
-nmap <leader>csu <Action>(Unwrap)
+map <leader>css <Action>(SurroundWith)
+map <leader>csu <Action>(Unwrap)
 "nmap <leader>gic <Action>(InspectCode)
 
 "=== Copy
@@ -755,8 +755,8 @@ map <leader>zt :action ViewToolButtons \| action ViewToolBar<CR>
 "=========================================== 🅂🄴🄰🅁🄲🄷 / 🅁🄴🄿🄻🄰🄲🄴: <leader>s ====================================="
 
 nmap <leader>sg <Action>(FindInPath)
-" nmap <leader>/ <Action>(FindInPath) disabled as conflicted with IdeaVim-CmdFloat plugin
-nmap <leader>, <Action>(FindInPath)
+nmap <leader>/ <Action>(FindInPath)
+nmap <leader>, <Action>(RecentFiles)
 nmap <leader>ss <Action>(Find)
 
 "=== search and replace
