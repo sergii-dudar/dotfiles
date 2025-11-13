@@ -7,4 +7,4 @@ vim.opt.smartindent = true
 vim.opt.breakindent = true
 
 vim.b.autoformat = false
-vim.diagnostic.enable(false)
+-- vim.diagnostic.enable(false)
