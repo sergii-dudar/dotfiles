@@ -28,10 +28,18 @@ return {
         },
         -- stylua: ignore
         keys = {
-            { "<leader>jc", ":JdtCompile<CR>", desc = "JDTLS Compile" },
-            { "<leader>jf", ":JdtCompile full<CR>", desc = "JDTLS Compile Full" },
-            { "<leader>ji", ":JdtCompile incremental<CR>", desc = "JDTLS Compile Incremental" },
-            { "<leader>jr", ":JdtRestart<CR>", desc = "JDTLS Restart" },
+            { "<leader>jcc", ":JdtCompile<CR>", desc = "JDTLS Compile" },
+            { "<leader>jcf", ":JdtCompile full<CR>", desc = "JDTLS [C]ompile [F]ull" },
+            { "<leader>jci", ":JdtCompile incremental<CR>", desc = "JDTLS [C]ompile [I]ncremental" },
+            -- In general, when something is not working, “:JdtRestart” might fix things.
+            { "<leader>jdr", ":JdtRestart<CR>", desc = "JDTLS [R]estart" },
+            -- If you add a dependency to the POM or change one of the existing dependencies version, 
+            -- you must run “:JdtUpdateConfig” so the Java LSP can download the new dependencies.
+            { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
+            -- In case of misalignments of the workspace, e.g., if you wipe the local Maven cache (“~/.m2/repository”) when restarting 
+            -- an already opened project, you get errors due to unresolved dependencies, you can run “:JdtWipeDataAndRestart”
+            -- which will resolve the Maven dependencies from scratch
+            { "<leader>jdf", ":JdtWipeDataAndRestart<CR>", desc = "JDTLS Wipe Data and [F]ull Restart" },
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests ", },
             { "<leader>ci", function() require("utils.java.java-import-util").import_class_and_replace() end, desc = "[I]mport class package and apply simple name", },

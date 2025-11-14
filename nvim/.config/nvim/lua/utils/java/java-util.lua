@@ -2,8 +2,10 @@ local home = os.getenv("HOME")
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
 local workspace_dir = vim.env.HOME .. "/jdtls-workspace/" .. project_name
 
--- sdk install java 25-amzn
--- sdk install maven 3.9.11
+-- sdk list java
+-- sdk install java 25xxx-amzn
+-- sdk list maven
+-- sdk install maven 3.9.xxx
 local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
 local java_bin = java_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
