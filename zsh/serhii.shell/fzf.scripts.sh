@@ -113,6 +113,15 @@ function findf() {
     fi
 }
 
+function findf_src() {
+    if [ -z "$1" ]; then
+        fd --type f --color=always --hidden --exclude .git --exclude test | fzf_preview_no_select
+    else
+        search="$1"
+        fd --type f --color=always --hidden --exclude .git  --exclude test "$search" | fzf_preview_no_select
+    fi
+}
+
 function grept() {
     if [ -z "$1" ]; then
         rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview

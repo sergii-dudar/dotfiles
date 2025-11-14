@@ -4,6 +4,21 @@ local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
 return {
+    -- Nice dependency tree viewers for Maven \ Gradle
+    -- {
+    --     "oclay1st/maven.nvim", -- "oclay1st/gradle.nvim",
+    --     cmd = { "Maven", "MavenInit", "MavenExec", "MavenFavorites" },
+    --     dependencies = {
+    --         "nvim-lua/plenary.nvim",
+    --         "MunifTanjim/nui.nvim",
+    --     },
+    --     opts = {}, -- options, see default configuration
+    --     keys = {
+    --         { "<leader>M", desc = "+Maven", mode = { "n", "v" } },
+    --         { "<leader>Mm", "<cmd>Maven<cr>", desc = "Maven Projects" },
+    --         { "<leader>Mf", "<cmd>MavenFavorites<cr>", desc = "Maven Favorite Commands" },
+    --     },
+    -- },
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
