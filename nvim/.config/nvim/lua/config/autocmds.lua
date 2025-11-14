@@ -68,18 +68,13 @@ vim.api.nvim_create_autocmd("FileType", {
 -------------------------------------------
 ----------------- TESTS
 
+-- stylua: ignore start
 local maven = require("utils.java.maven-tests")
-vim.api.nvim_create_user_command("MavenCompile", function()
-    maven.compile()
-end, {})
-
-vim.api.nvim_create_user_command("MavenTest", function()
-    maven.test()
-end, {})
-
-vim.api.nvim_create_user_command("MavenVerify", function()
-    maven.verify()
-end, {})
+vim.api.nvim_create_user_command("MavenCompile", function() maven.compile() end, {})
+vim.api.nvim_create_user_command("MavenCleanCompile", function() maven.clearn_compile() end, {})
+vim.api.nvim_create_user_command("MavenTest", function() maven.test() end, {})
+vim.api.nvim_create_user_command("MavenVerify", function() maven.verify() end, {})
+-- stylua: ignore end
 
 --vim.api.nvim_create_autocmd("BufReadCmd", {
 --    pattern = "*.class",

@@ -13,7 +13,7 @@ return {
         opts = {
             debug = false,
             nes = {
-                enabled = true, -- disable Next Edit Suggestions as I don't like it, I need only CLI AI Chat
+                enabled = false, -- disable Next Edit Suggestions as I don't like it, I need only CLI AI Chat
             },
             cli = {
                 picker = "snacks",

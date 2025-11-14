@@ -1,11 +1,32 @@
 local M = {}
 
--- Parse lines like:
--- /path/to/File.java:[12,34] error: message
+local function dedupe_qf(qf)
+    local seen = {}
+    local out = {}
+
+    for _, item in ipairs(qf) do
+        -- unique key for each error location
+        local key = table.concat({
+            item.filename,
+            item.lnum,
+            item.col,
+            item.text,
+        }, ":")
+
+        if not seen[key] then
+            seen[key] = true
+            table.insert(out, item)
+        end
+    end
+
+    return out
+end
+
 local function parse_maven_output(lines)
     local qf = {}
 
-    local file_pattern = "([^:%[]+):%[?(%d+),?(%d*)%]?%s*(.*)"
+    -- local file_pattern = "([^:%[]+):%[?(%d+),?(%d*)%]?%s*(.*)"
+    local file_pattern = "%[ERROR%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)"
     for _, line in ipairs(lines) do
         local file, lnum, col, msg = line:match(file_pattern)
         if file then
@@ -29,23 +50,32 @@ local function run_maven(cmd_args)
         local combined = vim.split(res.stdout .. res.stderr, "\n")
         dd(combined)
         local qf = parse_maven_output(combined)
+        qf = dedupe_qf(qf)
         dd(qf)
 
-        if next(qf) == nil then
-            vim.notify("Maven OK", vim.log.levels.INFO)
-            -- vim.fn.qflist({})
-            -- vim.fn.cmd("Trouble diagnostics close")
-        else
-            vim.notify("Maven NOT OK", vim.log.levels.WARN)
-            vim.fn.setqflist(qf)
-            vim.fn.cmd("[[Trouble diagnostics open]]")
-            -- vim.fn.cmd("Trouble diagnostics close")
-            -- vim.cmd("copen")
-        end
+        -- if next(qf) == nil then
+        vim.schedule(function()
+            if res.code == 0 then
+                vim.notify("Maven OK", vim.log.levels.INFO)
+                -- vim.fn.qflist({})
+                -- vim.fn.cmd("Trouble diagnostics close")
+                vim.cmd("Trouble qflist close")
+            else
+                vim.notify("Maven NOT OK", vim.log.levels.WARN)
+                vim.fn.setqflist(qf)
+                vim.cmd("Trouble qflist toggle")
+                -- vim.fn.cmd("Trouble diagnostics close")
+                -- vim.cmd("copen")
+            end
+        end)
     end)
 end
 
 M.compile = function()
+    run_maven({ "-q", "compile" })
+end
+
+M.clearn_compile = function()
     run_maven({ "-q", "clean", "compile" })
 end
 
