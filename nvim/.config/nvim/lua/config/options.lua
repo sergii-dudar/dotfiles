@@ -13,6 +13,7 @@ vim.g.maplocalleader = " "
 vim.g.background = "light"
 vim.g.have_nerd_font = true
 vim.g.lazyvim_picker = "snacks"
+-- vim.o.mousemoveevent = true
 
 vim.scriptencoding = "utf-8"
 vim.opt.encoding = "utf-8"

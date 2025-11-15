@@ -11,6 +11,49 @@ vim.diagnostic.config({
 })
 
 return {
+    -- A Neovim plugin for displaying inline diagnostic messages with customizable styles and icons.
+    {
+        "rachartier/tiny-inline-diagnostic.nvim",
+        event = "VeryLazy",
+        priority = 1000,
+        opts = {
+            preset = "modern", -- Available: "modern", "classic", "minimal", "powerline", "ghost", "simple", "nonerdfont", "amongus"
+            transparent_bg = false,
+            -- hi = {
+            --     error = "DiagnosticError", -- Highlight for error diagnostics
+            --     warn = "DiagnosticWarn", -- Highlight for warning diagnostics
+            --     info = "DiagnosticInfo", -- Highlight for info diagnostics
+            --     hint = "DiagnosticHint", -- Highlight for hint diagnostics
+            --     arrow = "NonText", -- Highlight for the arrow pointing to diagnostic
+            --     background = "CursorLine", -- Background highlight for diagnostics
+            --     mixing_color = "Normal", -- Color to blend background with (or "None")
+            -- },
+            options = {
+                use_icons_from_diagnostic = false,
+                multilines = {
+                    enabled = true, -- Enable support for multiline diagnostic messages
+                    always_show = true, -- Always show messages on all lines of multiline diagnostics
+                    trim_whitespaces = false, -- Remove leading/trailing whitespace from each line
+                },
+                show_source = { -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
+                    enabled = false, -- Enable showing source names
+                    if_many = true, -- Only show source if multiple sources exist for the same diagnostic
+                },
+                -- Only show diagnostics when the cursor is directly over them, no fallback to line diagnostics
+                show_diags_only_under_cursor = false,
+            },
+        },
+    },
+    -- Show diagnostics and lsp info inside a custom window
+    -- {
+    --     "soulis-1256/eagle.nvim",
+    --     config = function()
+    --         require("eagle").setup({
+    --             keyboard_mode = true,
+    --         })
+    --         vim.keymap.set("n", "<Tab>", ":EagleWin<CR>", { noremap = true, silent = true })
+    --     end,
+    -- },
     -- Fully customizable previewer for LSP code actions.
     {
         "aznhe21/actions-preview.nvim",
@@ -42,6 +85,7 @@ return {
                 enabled = true,
                 -- exclude = { "java" }, -- filetypes for which you don't want to enable inlay hints
             },
+            diagnostics = { virtual_text = false }, -- disable to use tiny-inline-diagnostic.nvim instead
             servers = {
                 ["*"] = {
                     -- stylua: ignore
@@ -62,16 +106,16 @@ return {
     --     dependencies = { "neovim/nvim-lspconfig" },
     -- },
     -- LSP diagnostics in virtual text at the top right of your screen
-    {
-        "dgagn/diagflow.nvim",
-        -- event = 'LspAttach', This is what I use personnally and it works great
-        opts = {
-            show_borders = true,
-        },
-        config = function()
-            require("diagflow").setup()
-        end,
-    },
+    -- {
+    --     "dgagn/diagflow.nvim",
+    --     -- event = 'LspAttach', This is what I use personnally and it works great
+    --     opts = {
+    --         show_borders = true,
+    --     },
+    --     config = function()
+    --         require("diagflow").setup()
+    --     end,
+    -- },
     -- A small Neovim plugin for previewing definitions using floating windows.
     {
         "rmagatti/goto-preview",
