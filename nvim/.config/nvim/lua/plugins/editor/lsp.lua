@@ -47,7 +47,7 @@ return {
                     -- stylua: ignore
                     keys = {
                         { "K", false },
-                        { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
+                        -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         -- override default preveiw mapping
                         { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                         -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
