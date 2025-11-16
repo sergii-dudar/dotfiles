@@ -124,6 +124,7 @@ vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, sil
 -- maven compile
 vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader><F10>", ":MavenCleanCompile<CR>", { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true })
 
 vim.opt.path:append("**")
 
