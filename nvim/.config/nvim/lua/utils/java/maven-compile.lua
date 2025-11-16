@@ -80,6 +80,7 @@ local function run_maven_compile(cmd_args)
 end
 
 M.toggle_auto_compile = function(key)
+    key = key or "toggle_compile"
     if compile_autocmds[key] then
         -- remove existing autocmd
         vim.api.nvim_del_autocmd(compile_autocmds[key])
@@ -106,7 +107,7 @@ M.compile = function()
     -- run_maven({ "compile" })
 end
 
-M.clearn_compile = function()
+M.clean_compile = function()
     run_maven_compile({ "-q", "clean", "compile" })
     -- run_maven({ "clean", "compile" })
 end

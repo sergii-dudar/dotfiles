@@ -42,9 +42,17 @@ vim.opt.breakindent = true
 
 -- stylua: ignore start
 local maven_compile = require("utils.java.maven-compile")
-vim.api.nvim_create_user_command("MavenCompile", function() maven_compile.compile() end, {})
-vim.api.nvim_create_user_command("MavenAutoCompileToggle", function() maven_compile.toggle_auto_compile("toggle_compile") end, {})
-vim.api.nvim_create_user_command("MavenCleanCompile", function() maven_compile.clearn_compile() end, {})
+vim.api.nvim_create_user_command("MavenCompile", maven_compile.compile, {})
+vim.api.nvim_create_user_command("MavenAutoCompileToggle", maven_compile.toggle_auto_compile, {})
+vim.api.nvim_create_user_command("MavenCleanCompile", maven_compile.clean_compile, {})
+
+
+----------------- Keybinds
+local map = LazyVim.safe_keymap_set
+
+vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = true, silent = true, desc = "Maven Compile" })
+vim.api.nvim_set_keymap("n", "<leader><F10>", ":MavenCleanCompile<CR>", { noremap = true, silent = true, desc = "Maven Clean Compile" })
+-- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true, desc = "Maven Auto Compile Toggle" })
 
 -- local java_utils = require("utils.java.utils")
 local maven_tests = require("utils.java.maven-tests")
@@ -52,24 +60,34 @@ local maven_tests = require("utils.java.maven-tests")
 -- vim.api.nvim_create_user_command("MavenVerify", function() maven_tests.verify() end, {})
 
 
-vim.api.nvim_create_user_command("MavenPrint", function() maven_tests.verify() end, {})
+vim.keymap.set("n", "<leader>Tm", maven_tests.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
+vim.keymap.set("n", "<leader>TM", maven_tests.run_java_test_method_debug, { noremap = true, silent = true, desc = "Maven Run Current Test Method (Debug)" })
+vim.keymap.set("n", "<leader>Tc", maven_tests.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
+vim.keymap.set("n", "<leader>TC", maven_tests.run_java_test_class_debug, { noremap = true, silent = true, desc = "Mave Run Current Test Class (Debug)" })
+vim.keymap.set("n", "<leader>Ta", maven_tests.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
+vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap = true, silent = true, desc = "Mave Run Test All (Debug)" })
+-- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
+-- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
+
+-- vim.api.nvim_create_user_command("MavenPrint", function() vim.notify("notify".. java_utils.get_current_class_name(), vim.log.levels.WARN) end, {})
+--
+-- -- tests
+-- local java_ts_util = require("utils.java.java-ts-util")
+--
+-- vim.keymap.set("n", "<leader>tjc", function()
+--     vim.notify(java_ts_util.get_class_name(), vim.log.levels.INFO)
+-- end)
+--
+-- vim.keymap.set("n", "<leader>tjm", function()
+--     vim.notify(java_ts_util.get_full_method("\\#"), vim.log.levels.INFO)
+-- end)
+
+
+map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
+map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 
 -- stylua: ignore end
-
------------------ Keybinds
-local map = LazyVim.safe_keymap_set
-
-vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader><F10>", ":MavenCleanCompile<CR>", { noremap = true, silent = true })
--- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true })
-
-map("v", "<leader>xp", function()
-    require("utils.java.java-trace").parse_selected_trace_to_qflist()
-end, { desc = "Parse trace to quick fix list" })
-map("n", "<leader>xp", function()
-    require("utils.java.java-trace").parse_buffer_trace_to_qflist()
-end, { desc = "Parse trace to quick fix list" })
-
+--
 map("n", "<leader>fs", function()
     local helpers = require("utils.common-util")
 
