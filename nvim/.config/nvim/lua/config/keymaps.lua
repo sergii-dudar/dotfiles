@@ -110,7 +110,7 @@ Snacks.toggle.zen():map("<leader>zz")
 -- stylua: ignore start
 vim.api.nvim_set_keymap( "v", "<leader>rr", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
 
--- run lua in runtime
+-- run lua in runtime (in all buffers!)
 map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
 -- map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
 -- map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
@@ -121,39 +121,9 @@ map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selec
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
 
--- maven compile
-vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<leader><F10>", ":MavenCleanCompile<CR>", { noremap = true, silent = true })
--- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true })
 
 vim.opt.path:append("**")
-
-map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 -- stylua: ignore end
-
-map("n", "<leader>fs", function()
-    local helpers = require("utils.common-util")
-
-    local jdtls_client_id = helpers.get_client_id_by_name("jdtls")
-    if jdtls_client_id then
-        local current_buf_id = vim.api.nvim_get_current_buf()
-        if not vim.lsp.buf_is_attached(current_buf_id, jdtls_client_id) then
-            vim.lsp.buf_attach_client(current_buf_id, jdtls_client_id)
-
-            LazyVim.info("jdtls client found by ID:" .. jdtls_client_id)
-            LazyVim.info("attaching jdtls to current buffer by ID:" .. current_buf_id)
-        end
-    end
-
-    local fileName = helpers.get_file_with_no_ext()
-    -- LazyVim.info("fileName:" .. fileName)
-
-    require("telescope.builtin").lsp_dynamic_workspace_symbols({
-        symbols = LazyVim.config.get_kind_filter(),
-        default_text = fileName,
-    })
-end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
 -- -- debug purposes
 -- _G.log_table = function(table)
