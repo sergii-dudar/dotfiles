@@ -36,7 +36,7 @@ return {
                     trim_whitespaces = false, -- Remove leading/trailing whitespace from each line
                 },
                 show_source = { -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
-                    enabled = false, -- Enable showing source names
+                    enabled = true, -- Enable showing source names
                     if_many = true, -- Only show source if multiple sources exist for the same diagnostic
                 },
                 -- Only show diagnostics when the cursor is directly over them, no fallback to line diagnostics
