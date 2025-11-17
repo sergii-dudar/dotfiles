@@ -1,6 +1,7 @@
 local M = {}
 
 local maven_util = require("utils.java.maven-util")
+local spinner = require("utils.ui.spinner")
 
 local java_namespace = vim.api.nvim_create_namespace("java.compile.namespace")
 local compile_autocmds = {}
@@ -45,7 +46,8 @@ local function parse_maven_output_diagnostics(lines)
 end
 
 local function run_maven_compile(cmd_args)
-    vim.notify("🚀 mvn " .. table.concat(cmd_args, " "), vim.log.levels.INFO)
+    -- vim.notify("🚀 mvn " .. table.concat(cmd_args, " "), vim.log.levels.INFO)
+    spinner.start("🚀 mvn " .. table.concat(cmd_args, " "))
 
     vim.system({ "mvn", unpack(cmd_args) }, { text = true }, function(res)
         local combined = vim.split(res.stdout .. res.stderr, "\n")
@@ -53,14 +55,15 @@ local function run_maven_compile(cmd_args)
 
         -- if next(qf) == nil then
         vim.schedule(function()
+            spinner.stop(res.code == 0, "Maven compile finished")
             if res.code == 0 then
-                vim.notify("✅🎉 Maven OK", vim.log.levels.INFO)
+                -- vim.notify("✅🎉 Maven OK", vim.log.levels.INFO)
                 -- vim.fn.qflist({})
                 -- vim.cmd("Trouble diagnostics close")
                 -- vim.cmd("Trouble qflist close")
                 vim.diagnostic.reset(java_namespace)
             else
-                vim.notify("❌ Maven NOT OK", vim.log.levels.WARN)
+                -- vim.notify("❌ Maven NOT OK", vim.log.levels.WARN)
 
                 for file, diags in pairs(parsed) do
                     -- load all buffers in hidden mode

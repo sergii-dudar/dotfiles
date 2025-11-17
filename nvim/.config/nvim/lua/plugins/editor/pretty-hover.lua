@@ -49,6 +49,6 @@ return {
         end
         require("pretty_hover").setup({})
         -- vim.keymap.set("n", "<leader>k", require("pretty_hover").hover, { buffer = true, desc = "Pretty hover" })
-        vim.keymap.set("n", "<leader>k", extended_hover, { buffer = true, desc = "Pretty hover" })
+        vim.keymap.set("n", "<leader>k", extended_hover, { desc = "Pretty hover" })
     end,
 }
