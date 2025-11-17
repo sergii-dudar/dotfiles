@@ -37,7 +37,6 @@ vim.opt.breakindent = true
 
 --set indentexpr?
 
-
 ----------------- Maven Cmds
 
 -- stylua: ignore start
@@ -45,6 +44,8 @@ local maven_compile = require("utils.java.maven-compile")
 vim.api.nvim_create_user_command("MavenCompile", maven_compile.compile, {})
 vim.api.nvim_create_user_command("MavenAutoCompileToggle", maven_compile.toggle_auto_compile, {})
 vim.api.nvim_create_user_command("MavenCleanCompile", maven_compile.clean_compile, {})
+
+
 
 
 ----------------- Keybinds
@@ -60,11 +61,11 @@ local maven_tests = require("utils.java.maven-tests")
 -- vim.api.nvim_create_user_command("MavenVerify", function() maven_tests.verify() end, {})
 
 
-vim.keymap.set("n", "<leader>Tm", maven_tests.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
+vim.keymap.set("n", "<leader><F6>", maven_tests.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
 vim.keymap.set("n", "<leader>TM", maven_tests.run_java_test_method_debug, { noremap = true, silent = true, desc = "Maven Run Current Test Method (Debug)" })
-vim.keymap.set("n", "<leader>Tc", maven_tests.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
+vim.keymap.set("n", "<leader><F7>", maven_tests.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
 vim.keymap.set("n", "<leader>TC", maven_tests.run_java_test_class_debug, { noremap = true, silent = true, desc = "Mave Run Current Test Class (Debug)" })
-vim.keymap.set("n", "<leader>Ta", maven_tests.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
+vim.keymap.set("n", "<leader><F8>", maven_tests.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
 vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap = true, silent = true, desc = "Mave Run Test All (Debug)" })
 -- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
 -- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })

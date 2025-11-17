@@ -56,6 +56,9 @@ function M.stop(success, msg)
 
     -- local icon = success and "✔" or "✘"
     local icon = success and "✅🎉" or "❌"
+    if msg then
+        msg = msg .. (success and " successfully finished" or " failed")
+    end
     local text = msg or (success and "Done" or "Failed")
 
     vim.api.nvim_echo({ { icon .. " " .. text, success and "DiffAdded" or "DiffRemoved" } }, false, {})

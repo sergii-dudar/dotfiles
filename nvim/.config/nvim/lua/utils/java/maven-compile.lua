@@ -55,12 +55,13 @@ local function run_maven_compile(cmd_args)
 
         -- if next(qf) == nil then
         vim.schedule(function()
-            spinner.stop(res.code == 0, "Maven compile finished")
+            spinner.stop(res.code == 0, "Maven compile")
             if res.code == 0 then
                 -- vim.notify("✅🎉 Maven OK", vim.log.levels.INFO)
                 -- vim.fn.qflist({})
                 -- vim.cmd("Trouble diagnostics close")
                 -- vim.cmd("Trouble qflist close")
+                vim.cmd("JdtUpdateConfig") -- tell jdts about fix
                 vim.diagnostic.reset(java_namespace)
             else
                 -- vim.notify("❌ Maven NOT OK", vim.log.levels.WARN)

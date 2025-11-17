@@ -28,7 +28,7 @@ end
 M.run_java_test_method = function(debug)
     -- local method_name = utils.get_current_full_method_name("\\#")
     local method_name = java_ts_util.get_full_method("\\#")
-    vim.cmd("term " .. get_test_runner(method_name, debug))
+    vim.cmd("15sp|term " .. get_test_runner(method_name, debug))
 end
 
 M.run_java_test_method_debug = function()
@@ -38,7 +38,7 @@ end
 M.run_java_test_class = function(debug)
     -- local class_name = utils.get_current_full_class_name()
     local class_name = java_ts_util.get_class_name()
-    vim.cmd("term " .. get_test_runner(class_name, debug))
+    vim.cmd("15sp|term " .. get_test_runner(class_name, debug))
 end
 
 M.run_java_test_class_debug = function()
@@ -46,7 +46,7 @@ M.run_java_test_class_debug = function()
 end
 
 M.run_java_test_all = function(debug)
-    vim.cmd("term " .. get_verify_runner(debug))
+    vim.cmd("15sp|term " .. get_verify_runner(debug))
 end
 
 M.run_java_test_all_debug = function()
