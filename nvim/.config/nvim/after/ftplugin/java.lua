@@ -55,25 +55,23 @@ vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = tr
 vim.api.nvim_set_keymap("n", "<leader><F10>", ":MavenCleanCompile<CR>", { noremap = true, silent = true, desc = "Maven Clean Compile" })
 -- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true, desc = "Maven Auto Compile Toggle" })
 
--- local java_utils = require("utils.java.utils")
-local maven_tests = require("utils.java.maven-tests")
--- vim.api.nvim_create_user_command("MavenTest", function() maven_tests.test() end, {})
--- vim.api.nvim_create_user_command("MavenVerify", function() maven_tests.verify() end, {})
-
-
+--[[ local maven_tests = require("utils.java.maven-tests")
 vim.keymap.set("n", "<leader><F6>", maven_tests.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
 vim.keymap.set("n", "<leader>TM", maven_tests.run_java_test_method_debug, { noremap = true, silent = true, desc = "Maven Run Current Test Method (Debug)" })
 vim.keymap.set("n", "<leader><F7>", maven_tests.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
 vim.keymap.set("n", "<leader>TC", maven_tests.run_java_test_class_debug, { noremap = true, silent = true, desc = "Mave Run Current Test Class (Debug)" })
 vim.keymap.set("n", "<leader><F8>", maven_tests.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
-vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap = true, silent = true, desc = "Mave Run Test All (Debug)" })
+vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap = true, silent = true, desc = "Mave Run Test All (Debug)" }) ]]
 -- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
 -- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
 
+
+local maven_tests2 = require("utils.java.maven-tests2")
+vim.keymap.set("n", "<leader><F6>", maven_tests2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
+vim.keymap.set("n", "<leader><F7>", maven_tests2.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
+vim.keymap.set("n", "<leader><F8>", maven_tests2.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
+
 ----------------------------- Testing cmds start
-vim.api.nvim_create_user_command("MvnVerify", function()
-    require("utils.java.maven-tests2").run_mvn_verify()
-end, {})
 ----------------------------- Testing cmds end
 
 -- vim.api.nvim_create_user_command("MavenPrint", function() vim.notify("notify".. java_utils.get_current_class_name(), vim.log.levels.WARN) end, {})

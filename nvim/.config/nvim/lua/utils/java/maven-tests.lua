@@ -2,14 +2,6 @@ local M = {}
 
 local java_ts_util = require("utils.java.java-ts-util")
 
--- M.test = function()
---     -- run_maven({ "-q", "-DskipTests=false", "test" })
--- end
---
--- M.verify = function()
---     -- run_maven({ "-q", "verify" })
--- end
-
 local function get_test_runner(test_name, debug)
     if debug then
         return 'mvn -q test -Dmaven.surefire.debug -Dtest="' .. test_name .. '"'
