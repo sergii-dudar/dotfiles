@@ -70,6 +70,12 @@ vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap
 -- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
 -- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
 
+----------------------------- Testing cmds start
+vim.api.nvim_create_user_command("MvnVerify", function()
+    require("utils.java.maven-tests2").run_mvn_verify()
+end, {})
+----------------------------- Testing cmds end
+
 -- vim.api.nvim_create_user_command("MavenPrint", function() vim.notify("notify".. java_utils.get_current_class_name(), vim.log.levels.WARN) end, {})
 --
 -- -- tests

@@ -23,6 +23,13 @@ local autocmd = vim.api.nvim_create_autocmd
 --         end, 100)
 --     end,
 -- })
+vim.api.nvim_create_autocmd("TermOpen", {
+    pattern = "*",
+    callback = function()
+        -- Make the terminal leave insert mode and close with q
+        vim.keymap.set("n", "q", "<cmd>bd!<CR>", { buffer = true })
+    end,
+})
 
 -- highlight yanks
 autocmd("TextYankPost", {
