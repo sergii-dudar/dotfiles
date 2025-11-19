@@ -10,6 +10,10 @@
 
 --vim.g.java_recommended_style = 0
 
+--------------------------------------------------------------------
+-- Options
+--------------------------------------------------------------------
+
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
@@ -37,7 +41,9 @@ vim.opt.breakindent = true
 
 --set indentexpr?
 
------------------ Maven Cmds
+--------------------------------------------------------------------
+-- CMDs
+--------------------------------------------------------------------
 
 -- stylua: ignore start
 local maven_compile = require("utils.java.maven-compile")
@@ -45,10 +51,10 @@ vim.api.nvim_create_user_command("MavenCompile", maven_compile.compile, {})
 vim.api.nvim_create_user_command("MavenAutoCompileToggle", maven_compile.toggle_auto_compile, {})
 vim.api.nvim_create_user_command("MavenCleanCompile", maven_compile.clean_compile, {})
 
+--------------------------------------------------------------------
+-- Keybinds
+--------------------------------------------------------------------
 
-
-
------------------ Keybinds
 local map = LazyVim.safe_keymap_set
 
 vim.api.nvim_set_keymap("n", "<leader><F9>", ":MavenCompile<CR>", { noremap = true, silent = true, desc = "Maven Compile" })
@@ -72,28 +78,14 @@ vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { norema
 vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
 vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
 
------------------------------ Testing cmds start
------------------------------ Testing cmds end
-
--- vim.api.nvim_create_user_command("MavenPrint", function() vim.notify("notify".. java_utils.get_current_class_name(), vim.log.levels.WARN) end, {})
---
--- -- tests
--- local java_ts_util = require("utils.java.java-ts-util")
---
--- vim.keymap.set("n", "<leader>tjc", function()
---     vim.notify(java_ts_util.get_class_name(), vim.log.levels.INFO)
--- end)
---
--- vim.keymap.set("n", "<leader>tjm", function()
---     vim.notify(java_ts_util.get_full_method("\\#"), vim.log.levels.INFO)
--- end)
-
-
 map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 
+----------------------------- Testing cmds start
+----------------------------- Testing cmds end
+
 -- stylua: ignore end
---
+
 map("n", "<leader>fs", function()
     local helpers = require("utils.common-util")
 
@@ -117,7 +109,9 @@ map("n", "<leader>fs", function()
     })
 end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
 
------------------ Format
+--------------------------------------------------------------------
+-- Format
+--------------------------------------------------------------------
 
 -- Lua function for Java indentation
 -- TODO: implement better behavior as current default
@@ -158,11 +152,50 @@ function GetJavaIndent()
     return prev_indent
 end
 
+--------------------------------------------------------------------
+-- Auto Cmd
+--------------------------------------------------------------------
+
+local java_group = vim.api.nvim_create_augroup("JavaGroup", { clear = true })
+
 -- Disable Tree-sitter indent for Java files
 vim.api.nvim_create_autocmd({ "FileType" }, {
+    group = java_group,
     pattern = "java",
     callback = function()
         vim.bo.indentexpr = ""
         --vim.bo.indentexpr = "v:lua.GetJavaIndent()"
     end,
 })
+
+-- Highlight pattern in terminal output
+-- vim.api.nvim_create_autocmd("TermOpen", {
+--     group = java_group,
+--     pattern = "*",
+--     callback = function(args)
+--         local buf = args.buf
+--
+--         -- Create a namespace for highlights
+--         local ns = vim.api.nvim_create_namespace("TermStacktrace")
+--
+--         -- Periodically scan new lines
+--         vim.fn.timer_start(100, function()
+--             if not vim.api.nvim_buf_is_valid(buf) then
+--                 return
+--             end
+--             local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+--             for i, line in ipairs(lines) do
+--                 if line:find("%.java:%d+") then
+--                     vim.api.nvim_buf_add_highlight(
+--                         buf,
+--                         ns,
+--                         "Underlined", -- any highlight group
+--                         i - 1,
+--                         0,
+--                         -1
+--                     )
+--                 end
+--             end
+--         end, { ["repeat"] = -1 })
+--     end,
+-- })

@@ -25,7 +25,7 @@ local autocmd = vim.api.nvim_create_autocmd
 -- })
 vim.api.nvim_create_autocmd("TermOpen", {
     pattern = "*",
-    callback = function()
+    callback = function(args)
         -- Make the terminal leave insert mode and close with q
         vim.keymap.set("n", "q", "<cmd>bd!<CR>", { buffer = true })
     end,

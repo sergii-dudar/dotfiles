@@ -1,12 +1,22 @@
 local M = {}
 
 local java_test_namespace = vim.api.nvim_create_namespace("java.test.namespace")
+local term_stacktrace_ns = vim.api.nvim_create_namespace("TermStacktrace")
 local java_ts_util = require("utils.java.java-ts-util")
 local util = require("utils.common-util")
 local java_util = require("utils.java.java-common")
 local spinner = require("utils.ui.spinner")
 local last_runned_test_cmd_args = nil
 local current_term_win = nil
+
+local project_link_color = "#1E90FF"
+local ex_link_color = "#8A2BE2"
+vim.api.nvim_set_hl(0, "DemoBlueUnderline", {
+    fg = "#8A2BE2", -- blue
+    -- fg = "#ffffff", -- blue
+    underline = true,
+    bold = true,
+})
 
 local function push_frame(diagnostics_table, classname, method, msg, number, file, lnum)
     table.insert(diagnostics_table, {
@@ -174,6 +184,28 @@ local function run_mvn_test_cmd(cmd_args)
             all = util.strip_ansi(all)
             -- vim.notify(all, vim.log.levels.INFO)
             M.publish_maven_diagnostics(all)
+
+            ------------------------------------
+
+            if vim.api.nvim_buf_is_valid(term_buf) then
+                -- vim.notify("highlight", vim.log.levels.INFO)
+                local lines = vim.api.nvim_buf_get_lines(term_buf, 0, -1, false)
+
+                for i, line in ipairs(lines) do
+                    if line:find("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$") then
+                        local start_ix = string.find(line, "at") + 2
+                        vim.notify(line, vim.log.levels.INFO)
+                        local line_ix = i - 1
+                        vim.api.nvim_buf_set_extmark(term_buf, term_stacktrace_ns, line_ix, start_ix, {
+                            end_line = line_ix, -- only current line
+                            end_col = #line,
+                            hl_group = "DemoBlueUnderline",
+                        })
+                    end
+                end
+            end
+
+            ------------------------------------
 
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
