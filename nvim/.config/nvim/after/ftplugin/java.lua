@@ -66,10 +66,11 @@ vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap
 -- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
 
 
-local maven_tests2 = require("utils.java.maven-tests2")
-vim.keymap.set("n", "<leader><F6>", maven_tests2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
-vim.keymap.set("n", "<leader><F7>", maven_tests2.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
-vim.keymap.set("n", "<leader><F8>", maven_tests2.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
+local maven_tests_v2 = require("utils.java.maven-tests-v2")
+vim.keymap.set("n", "<leader><F6>", maven_tests_v2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
+vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { noremap = true, silent = true, desc = "Maven Run Current Test Class" })
+vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
+vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
 
 ----------------------------- Testing cmds start
 ----------------------------- Testing cmds end

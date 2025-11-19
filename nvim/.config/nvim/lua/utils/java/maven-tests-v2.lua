@@ -1,24 +1,12 @@
 local M = {}
 
+local java_test_namespace = vim.api.nvim_create_namespace("java.test.namespace")
 local java_ts_util = require("utils.java.java-ts-util")
 local util = require("utils.common-util")
+local java_util = require("utils.java.java-common")
 local spinner = require("utils.ui.spinner")
--- local root = vim.fn.getcwd()
-local root = vim.fs.root(0, { ".git", "pom.xml", "mvnw", "gradlew", "build.gradle", "build.gradle.kts" })
-local src_dir = root .. "/src/main/java/"
-local test_dir = root .. "/src/test/java/"
+local last_runned_test_cmd_args = nil
 local current_term_win = nil
-
-local java_test_namespace = vim.api.nvim_create_namespace("java.test.namespace")
-
-local function java_class_to_path(classname)
-    local relative_path = classname:gsub("%.", "/") .. ".java"
-    local full_path_src = src_dir .. relative_path
-    if util.is_file_exists(full_path_src) then
-        return full_path_src
-    end
-    return test_dir .. relative_path
-end
 
 local function push_frame(diagnostics_table, classname, method, msg, number, file, lnum)
     table.insert(diagnostics_table, {
@@ -100,7 +88,7 @@ M.parse_maven_output = function(text)
 
             if classpath then
                 -- print(classpath, methodname, filename, lnum)
-                local file_path = java_class_to_path(classpath)
+                local file_path = java_util.java_class_to_path(classpath)
                 table.insert(current.stack, {
                     file = file_path,
                     line = tonumber(lnum),
@@ -159,8 +147,8 @@ local function run_mvn_test_cmd(cmd_args)
     local term_buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_win_set_buf(current_term_win, term_buf)
 
+    last_runned_test_cmd_args = cmd_args
     local output = {}
-
     local job_id = vim.fn.jobstart(cmd_args, {
         term = true, -- the modern replacement for termopen()
         stdout_buffered = false,
@@ -227,6 +215,14 @@ end
 
 M.run_java_test_all = function()
     run_mvn_test_cmd(get_verify_runner())
+end
+
+M.rerun_last_cmd = function()
+    if last_runned_test_cmd_args then
+        run_mvn_test_cmd(last_runned_test_cmd_args)
+    else
+        vim.notify("⚠️ No previous mvn test cmd to run", vim.log.levels.WARN)
+    end
 end
 
 return M

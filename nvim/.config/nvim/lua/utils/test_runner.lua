@@ -1,4 +1,4 @@
-local module = require("utils.java.maven-tests2")
+local module = require("utils.java.maven-tests-v2")
 
 local test_out = [[WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
 WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/home/serhii/.sdkman/candidates/maven/current/lib/guice-5
