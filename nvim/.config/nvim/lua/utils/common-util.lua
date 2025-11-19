@@ -52,6 +52,25 @@ M.get_client_id_by_name = function(name)
     return nil -- Return nil if no client with the specified name is found
 end
 
+M.strip_ansi = function(s)
+    if not s then
+        return s
+    end
+
+    -- Remove ANSI CSI sequences: ESC [ digits ; digits ... letter
+    return s:gsub("\27%[[0-9;]*[A-Za-z]", "")
+end
+
+M.is_file_exists = function(filepath)
+    return vim.fn.filereadable(filepath) == 1
+end
+
+M.close_window_if_exists = function(win_id)
+    if win_id and vim.api.nvim_win_is_valid(win_id) then
+        vim.api.nvim_win_close(win_id, true)
+    end
+end
+
 -- M.table_to_string = function(tbl, indent)
 --     indent = indent or 0
 --     local to_log = string.rep(" ", indent) .. "{\n"

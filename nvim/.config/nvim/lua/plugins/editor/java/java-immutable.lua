@@ -173,6 +173,9 @@ return {
             -- local home = os.getenv("HOME")
             -- local tests_modules = home .. "/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar"
             -- vim.list_extend(bundles, vim.fn.glob(tests_modules, false, true))
+            opts.on_attach = function(args)
+                vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
+            end
 
             --#####################################
 
