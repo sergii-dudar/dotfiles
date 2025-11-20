@@ -2,6 +2,41 @@ local M = {}
 
 local common = require("utils.common-util")
 
+local project_link_color = "#1E90FF"
+local ex_link_color = "#8A2BE2"
+vim.api.nvim_set_hl(0, "TraceProjectClassHl", {
+    fg = project_link_color,
+    underline = true,
+    bold = true,
+})
+vim.api.nvim_set_hl(0, "TraceNonProjectClassHl", {
+    fg = ex_link_color,
+    underline = true,
+    bold = true,
+})
+
+M.highlight_mvn_test_trace = function(buffer, namespace)
+    if vim.api.nvim_buf_is_valid(buffer) then
+        -- vim.notify("highlight", vim.log.levels.INFO)
+        local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
+
+        for i, line in ipairs(lines) do
+            if line:find("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$") then
+                local start_ix = string.find(line, "at") + 2
+                -- vim.notify(line, vim.log.levels.INFO)
+                local line_ix = i - 1
+                vim.api.nvim_buf_set_extmark(buffer, namespace, line_ix, start_ix, {
+                    end_line = line_ix, -- only current line
+                    end_col = #line,
+                    hl_group = "TraceProjectClassHl",
+                })
+            end
+        end
+    end
+end
+
+M.highlight_mvn_compile_trace = function() end
+
 M.parse_java_stack_trace = function(trace)
     local items = {}
 

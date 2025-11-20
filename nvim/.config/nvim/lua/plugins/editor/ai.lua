@@ -40,7 +40,7 @@ return {
             },
         },
     },
-    {
+    --[[ {
         "saghen/blink.cmp",
         opts = {
             sources = {
@@ -52,5 +52,5 @@ return {
                 },
             },
         },
-    },
+    }, ]]
 }
