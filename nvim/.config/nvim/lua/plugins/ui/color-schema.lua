@@ -44,7 +44,15 @@ return {
             -- Available values: 'hard', 'medium'(default), 'soft'
             vim.g.gruvbox_material_background = "hard"
             vim.g.gruvbox_material_enable_italic = true
+
             vim.cmd.colorscheme("gruvbox-material")
+            vim.api.nvim_set_hl(0, "LuaLineFileNameHl", {
+                fg = "#818596", -- "#676868",
+                bold = true,
+            })
+            vim.api.nvim_set_hl(0, "LuaLineDirectoryHl", {
+                fg = "#44475a",
+            })
         end,
     },
     -- {

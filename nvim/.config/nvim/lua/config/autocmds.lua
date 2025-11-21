@@ -48,6 +48,23 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+local original_termopen = vim.fn.termopen
+vim.fn.termopen = function(cmd, opts)
+    opts = opts or {}
+    local user_callback = opts.on_exit
+    opts.on_exit = function(job_id, exit_code, event_type)
+        local is_java = (type(cmd) == "table" and cmd[1] or cmd):match(".*(java).*")
+        if is_java then
+            -- TODO:
+        end
+
+        if user_callback then
+            user_callback(job_id, exit_code, event_type)
+        end
+    end
+    return original_termopen(cmd, opts)
+end
+
 -------------------------------------------
 ------------ folke/trouble.nvim -----------
 

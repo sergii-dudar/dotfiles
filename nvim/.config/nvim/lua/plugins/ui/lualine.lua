@@ -45,7 +45,13 @@ return {
                     },
                 },
                 { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-                { LazyVim.lualine.pretty_path({ length = 0 }) },
+                {
+                    LazyVim.lualine.pretty_path({
+                        length = 0,
+                        filename_hl = "LuaLineFileNameHl",
+                        directory_hl = "LuaLineDirectoryHl",
+                    }),
+                },
                 --{ get_filename, color = { gui = "bold" } },
             },
             lualine_y = {

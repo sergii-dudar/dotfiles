@@ -17,24 +17,29 @@ class_main=${class_main#.}
 # echo "pfile_ext; $pfile_ext"
 # echo "class_main; $class_main"
 
+run_scope=$([[ "$pdir" == *"src/test/java"* ]] && echo "test" || echo "runtime")
+# echo "SCOPE: $SCOPE"
+
 cd "$pdir" || exit 1
 
-case "$pfile" in
-    *Run*|*Simple*|*Test*)
-        build_system_path="N\A"
-        ;;
-    *)
-        build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
-        ;;
-esac
+# case "$pfile" in
+#     *Run*|*Simple*|*Test*)
+#         build_system_path="N\A"
+#         ;;
+#     *)
+#         build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
+#         ;;
+# esac
+build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
 
 # echo "build_system: $build_system_path"
+
 case "$build_system_path" in
     *pom.xml*)
         build_system_dir="${build_system_path%/*}"
         # echo "build_system: maven"
         # echo "build_system_dir: $build_system_dir"
-        app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$build_system_dir")
+        app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$build_system_dir" "$run_scope")
         ;;
     *build.gradle*)
         build_system_dir="${build_system_path%/*}"

@@ -107,12 +107,12 @@ M.toggle_auto_compile = function(key)
 end
 
 M.compile = function()
-    run_maven_compile({ "-q", "compile" })
+    run_maven_compile({ "-q", "compile", "test-compile" })
     -- run_maven({ "compile" })
 end
 
 M.clean_compile = function()
-    run_maven_compile({ "-q", "clean", "compile" })
+    run_maven_compile({ "-q", "clean", "compile", "test-compile" })
     -- run_maven({ "clean", "compile" })
 end
 
