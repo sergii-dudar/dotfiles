@@ -86,29 +86,6 @@ map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_
 
 -- stylua: ignore end
 
-map("n", "<leader>fs", function()
-    local helpers = require("utils.common-util")
-
-    local jdtls_client_id = helpers.get_client_id_by_name("jdtls")
-    if jdtls_client_id then
-        local current_buf_id = vim.api.nvim_get_current_buf()
-        if not vim.lsp.buf_is_attached(current_buf_id, jdtls_client_id) then
-            vim.lsp.buf_attach_client(current_buf_id, jdtls_client_id)
-
-            LazyVim.info("jdtls client found by ID:" .. jdtls_client_id)
-            LazyVim.info("attaching jdtls to current buffer by ID:" .. current_buf_id)
-        end
-    end
-
-    local fileName = helpers.get_file_with_no_ext()
-    -- LazyVim.info("fileName:" .. fileName)
-
-    require("telescope.builtin").lsp_dynamic_workspace_symbols({
-        symbols = LazyVim.config.get_kind_filter(),
-        default_text = fileName,
-    })
-end, { desc = "Find word under curser in lsp dynamic_workspace_symbols" })
-
 --------------------------------------------------------------------
 -- Format
 --------------------------------------------------------------------
