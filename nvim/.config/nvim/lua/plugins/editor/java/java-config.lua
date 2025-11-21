@@ -1,5 +1,5 @@
 local home = os.getenv("HOME")
-local java_util = require("utils.java.java-util")
+local jdtlsc_util = require("utils.java.jdtls-config-util")
 local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
@@ -55,7 +55,7 @@ return {
             --     vim.list_extend(bundles, require("spring_boot").java_extensions())
             --     vim.notify("jdtls bundles extende ", vim.log.levels.INFO)
             -- end,
-            settings = java_util.jdtls_settings,
+            settings = jdtlsc_util.jdtls_settings,
             -- test = false, -- issue with java-test in latest mason module, using from vscode build instead
         },
     },

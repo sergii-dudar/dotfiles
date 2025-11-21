@@ -83,18 +83,25 @@ M.parse_maven_output = function(text)
             --------------------------------------------------------------------
 
             -- local line = "        at ua.serhii.application.test.utils.TestUtil.assertThat(TestUtil.java:10)"
-            local classpath, methodname, filename, lnum =
-                line:match("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$")
+            -- local classpath, methodname, filename, lnum =
+            --     line:match("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$")
+            local trace = java_util.parse_java_trace_error_line(line)
             -- print(classpath, methodname, filename, lnum)
             -- print(file_path)
 
-            if classpath then
+            if trace then
                 -- print(classpath, methodname, filename, lnum)
-                local file_path = java_util.java_class_to_path(classpath)
-                table.insert(current.stack, {
-                    file = file_path,
-                    line = tonumber(lnum),
-                })
+                local file_path = java_util.java_class_to_proj_path(trace.class_path)
+                -- dd({ trace = trace, path = file_path })
+
+                if file_path then
+                    table.insert(current.stack, {
+                        file = file_path,
+                        line = tonumber(trace.class_line_number),
+                    })
+                else
+                    -- TODO: jdtls lib qflist
+                end
             else
                 --------------------------------------------------------------------
                 -- Capture exception message (one or more lines)
@@ -178,7 +185,7 @@ local function run_mvn_test_cmd(cmd_args)
             M.publish_maven_diagnostics(all)
 
             ------------------------------------
-            java_trace.highlight_mvn_test_trace(term_buf, term_stacktrace_ns)
+            java_trace.highlight_java_test_trace(term_buf, term_stacktrace_ns)
             ------------------------------------
 
             if code == 0 then

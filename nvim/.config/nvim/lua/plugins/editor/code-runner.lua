@@ -1,4 +1,4 @@
-local java_util = require("utils.java.java-util")
+local java_util = require("utils.java.jdtls-config-util")
 
 return {
     "CRAG666/code_runner.nvim",
