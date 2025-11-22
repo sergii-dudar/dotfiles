@@ -124,6 +124,9 @@ vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, sil
 -- java parse trace
 map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
+map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "Parse current line trace to quick fix list" })
+map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
+map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Parse current line trace and open in buffer" })
 
 vim.opt.path:append("**")
 -- stylua: ignore end

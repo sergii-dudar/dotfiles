@@ -1,5 +1,9 @@
 local M = {}
 
+M.get_line_under_cursor = function()
+    return vim.api.nvim_get_current_line()
+end
+
 M.get_visual_selection = function()
     vim.cmd('noau normal! "vy"')
     local text = vim.fn.getreg("v")
@@ -7,14 +11,16 @@ M.get_visual_selection = function()
     return text
 end
 
-M.get_current_buffer_text = function()
-    local current_buf_id = vim.api.nvim_get_current_buf()
-
+M.get_buffer_text = function(buf_id)
     -- Get all lines from the current buffer
-    local lines = vim.api.nvim_buf_get_lines(current_buf_id, 0, -1, false)
+    local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
 
     -- Join the lines into a single string (optional)
     return table.concat(lines, "\n")
+end
+
+M.get_current_buffer_text = function()
+    return M.get_buffer_text(vim.api.nvim_get_current_buf())
 end
 
 M.get_file_with_line = function()

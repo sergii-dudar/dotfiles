@@ -2,6 +2,7 @@ local M = {}
 
 -- Split class name and line number (e.g., "java.util.List:50")
 -- local class_name, line_number = arg:match("([^:]+):?(%d*)")
+local list_util = require("utils.list-util")
 
 M.jdt_open_class = function(class_name, line_number)
     if not class_name or class_name == "" then
@@ -25,17 +26,26 @@ M.jdt_open_class = function(class_name, line_number)
 
         -- Filter for exact matches or the best candidate (usually the first Class/Interface)
         -- Note: might add filtering if we get too many results
-        local target = result[1]
 
         -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
+        local target = nil
         if #result > 1 then
-            vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
-            for _, symbol in ipairs(result) do
-                if symbol.kind == 5 or symbol.kind == 11 then
-                    target = symbol
-                    break
-                end
+            local single_result = list_util.find_by(result, "containerName", class_name)
+            if single_result then
+                target = single_result
+            else
+                vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
+                target = result[1]
             end
+
+            -- vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
+            -- dd(result)
+            -- for _, symbol in ipairs(result) do
+            --     if symbol.kind == 5 or symbol.kind == 11 then
+            --         target = symbol
+            --         break
+            --     end
+            -- end
 
             -- Snacks.picker.lsp_workspace_symbols({
             --     search = "HashMap",
@@ -43,6 +53,8 @@ M.jdt_open_class = function(class_name, line_number)
             --         dd(picker:selected())
             --     end,
             -- })
+        else
+            target = result[1]
         end
 
         -- Open the file and jump to the position

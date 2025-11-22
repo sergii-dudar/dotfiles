@@ -43,16 +43,20 @@ return {
         config = function()
             -- Available values: 'hard', 'medium'(default), 'soft'
             vim.g.gruvbox_material_background = "hard"
+            vim.g.gruvbox_material_foreground = "material" -- 'material', 'mix', 'original'
             vim.g.gruvbox_material_enable_italic = true
-
+            vim.g.gruvbox_material_enable_bold = true
+            -- `'grey background'`, `'green background'`, `'blue background'`, `'red background'`, `'reverse'`
+            vim.g.gruvbox_material_visual = "red background"
+            -- vim.g.gruvbox_material_cursor = "green" -- `'auto'`, `'red'`, `'orange'`, `'yellow'`, `'green'`, `'aqua'`, `'blue'`, `'purple'`
+            vim.g.gruvbox_material_float_style = "blend" -- `'bright'`, `'dim'`, `'blend'`
+            vim.g.gruvbox_material_statusline_style = "default" -- `'default'`, `'mix'`, `'original'`
+            -- vim.g.gruvbox_material_ui_contrast = "low"
+            -- vim.g.gruvbox_material_colors_override = {
+            --   bg0 = { "#1d2021", "234" },
+            --   bg2 = { "#282828", "235" },
+            -- }
             vim.cmd.colorscheme("gruvbox-material")
-            vim.api.nvim_set_hl(0, "LuaLineFileNameHl", {
-                fg = "#818596", -- "#676868",
-                bold = true,
-            })
-            vim.api.nvim_set_hl(0, "LuaLineDirectoryHl", {
-                fg = "#44475a",
-            })
         end,
     },
     -- {

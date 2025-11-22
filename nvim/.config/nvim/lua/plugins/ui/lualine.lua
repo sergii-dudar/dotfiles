@@ -28,7 +28,8 @@ return {
             -- ... the rest of your lualine config
             --codedark,ayu_dark,iceberg_dark,nightfly,palenight,
             --onedark, pywal
-            theme = "iceberg_dark",
+            -- theme = "iceberg_dark",
+            theme = "gruvbox-material",
             section_separators = "",
             component_separators = " ",
         },
@@ -48,8 +49,10 @@ return {
                 {
                     LazyVim.lualine.pretty_path({
                         length = 0,
-                        filename_hl = "LuaLineFileNameHl",
-                        directory_hl = "LuaLineDirectoryHl",
+                        filename_hl = "GreenBold", -- "PurpleBold", "BlueBold", "Function", "QuickFixLine",
+                        directory_hl = "Grey",
+                        -- filename_hl = "LuaLineFileNameHl",
+                        -- directory_hl = "LuaLineDirectoryHl",
                     }),
                 },
                 --{ get_filename, color = { gui = "bold" } },

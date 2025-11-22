@@ -2,6 +2,7 @@ local M = {}
 
 local maven_util = require("utils.java.maven-util")
 local spinner = require("utils.ui.spinner")
+local java_util = require("utils.java.java-common")
 
 local java_namespace = vim.api.nvim_create_namespace("java.compile.namespace")
 local compile_autocmds = {}
@@ -19,24 +20,18 @@ local function parse_maven_output_diagnostics(lines)
 
     local grouped = {}
 
-    local file_pattern = "%[([A-Z]+)%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)"
-    -- local line =
-    --     '[WARNING] /home/serhii/serhii.home/git/tests/serhii-application/src/main/java/ua/serhii/application/mapper/UserMapper.java:[14,13] Unmapped target properties: "age, address".'
-    -- local level, file, lnum, col, msg = line:match(file_pattern)
-    -- print(to_severity(level))
-
     for _, line in ipairs(lines) do
-        local level, file, lnum, col, msg = line:match(file_pattern)
-        if file then
-            grouped[file] = grouped[file] or {}
-            col = (tonumber(col) or 1) - 1
-            table.insert(grouped[file], {
-                lnum = (tonumber(lnum) or 1) - 1,
+        local parsed = java_util.parse_mvn_compile_java_line(line)
+        if parsed then
+            grouped[parsed.file] = grouped[parsed.file] or {}
+            local col = (tonumber(parsed.col) or 1) - 1
+            table.insert(grouped[parsed.file], {
+                lnum = (tonumber(parsed.lnum) or 1) - 1,
                 col = col,
                 end_col = col + 20,
-                message = msg,
+                message = parsed.message,
                 -- severity = vim.diagnostic.severity.ERROR,
-                severity = maven_util.to_severity(level),
+                severity = parsed.severity,
                 source = "Maven",
             })
         end

@@ -1,7 +1,6 @@
 local M = {}
 
 local java_test_namespace = vim.api.nvim_create_namespace("java.test.namespace")
-local term_stacktrace_ns = vim.api.nvim_create_namespace("TermStacktrace")
 local java_ts_util = require("utils.java.java-ts-util")
 local util = require("utils.common-util")
 local java_util = require("utils.java.java-common")
@@ -85,7 +84,7 @@ M.parse_maven_output = function(text)
             -- local line = "        at ua.serhii.application.test.utils.TestUtil.assertThat(TestUtil.java:10)"
             -- local classpath, methodname, filename, lnum =
             --     line:match("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$")
-            local trace = java_util.parse_java_trace_error_line(line)
+            local trace = java_util.parse_java_mvn_run_class_line(line)
             -- print(classpath, methodname, filename, lnum)
             -- print(file_path)
 
@@ -185,7 +184,7 @@ local function run_mvn_test_cmd(cmd_args)
             M.publish_maven_diagnostics(all)
 
             ------------------------------------
-            java_trace.highlight_java_test_trace(term_buf, term_stacktrace_ns)
+            java_trace.highlight_java_test_trace(term_buf)
             ------------------------------------
 
             if code == 0 then

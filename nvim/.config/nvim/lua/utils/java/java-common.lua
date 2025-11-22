@@ -1,9 +1,91 @@
 local M = {}
 
---local util = require("utils.common-util")
+local maven_util = require("utils.java.maven-util")
+local util = require("utils.common-util")
 -- local trace_class_pattern = "(.-)([^/]-)%.([^%.]+)%((.-):(%d+)%)"
 -- cp_path, method, file, line in string.gmatch(trace, "([%w%.%/%_-]*)%.([%w_-]+)%(([%w%.%/%_-]+%.java):(%d+)") do
-local trace_class_pattern = "([^%s]-)([^/^%s]-)%.([^%.]+)%((.-):(%d+)%)"
+local java_mvn_class_pattern = "at%s+([^%s]-)([^/^%s]-)%.([^%.]+)%((.-)%.java:(%d+)%)"
+
+-- local java_class_pattern = "%[([A-Z]+)%]%s+([^:]+)%:%[(%d+),(%d+)%]%s*([^\n]*)" -- for gmatch
+local java_compile_java_pattern = "%[([A-Z]+)%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)"
+
+---@return { class_path: string,
+---class_line_number: integer,
+---line_start_position: integer,
+---line_end_position: integer,
+---method: string} | nil
+M.parse_java_mvn_run_class_line = function(line)
+    -- line = util.strip_ansi(line)
+    local prefix, class_path, method, file_name, line_num = line:match(java_mvn_class_pattern)
+    if class_path then
+        return {
+            class_path = class_path,
+            class_line_number = (tonumber(line_num) or 1),
+            line_start_position = string.find(line, prefix .. class_path) - 1,
+            line_end_position = #line,
+            method = method,
+        }
+    end
+    return nil
+end
+
+---@return { file: string,
+---lnum: integer,
+---col: integer,
+---end_col: integer,
+---message: string,
+---severity: string} | nil
+M.parse_mvn_compile_java_line = function(line)
+    -- line = util.strip_ansi(line)
+    local level, file, lnum, col, msg = line:match(java_compile_java_pattern)
+    if file then
+        col = (tonumber(col) or 1) - 1
+        return {
+            file = file,
+            lnum = (tonumber(lnum) or 1) - 1,
+            col = col,
+            end_col = col + 20,
+            message = msg,
+            -- severity = vim.diagnostic.severity.ERROR,
+            severity = maven_util.to_severity(level),
+        }
+    end
+    return nil
+end
+
+---@return [{ class_path: string,
+---class_line_number: integer,
+---line_start_position: integer,
+---line_end_position: integer,
+---method: string}]
+M.parse_java_mvn_run_class_text = function(text)
+    local items = {}
+    for line in text:gmatch("[^\n]+") do
+        local p = M.parse_java_mvn_run_class_line(line)
+        if p then
+            items[#items + 1] = p
+        end
+    end
+    return items
+end
+
+---@return [{ file: string,
+---lnum: integer,
+---col: integer,
+---end_col: integer,
+---message: string,
+---severity: string}]
+M.parse_mvn_compile_java_text = function(text)
+    local items = {}
+    -- for line in trace:gmatch("[^\r\n]+") do
+    for line in text:gmatch("[^\n]+") do
+        local p = M.parse_mvn_compile_java_line(line)
+        if p then
+            items[#items + 1] = p
+        end
+    end
+    return items
+end
 
 -- local root = vim.fn.getcwd()
 -- local root = vim.fs.root(0, { ".git", "pom.xml", "mvnw", "gradlew", "build.gradle", "build.gradle.kts" })
@@ -13,6 +95,9 @@ local trace_class_pattern = "([^%s]-)([^/^%s]-)%.([^%.]+)%((.-):(%d+)%)"
 M.java_class_to_proj_path = function(classname)
     local relative_path = classname:gsub("%.", "/") .. ".java"
     local file_path = vim.fn.glob("*/**/" .. relative_path)
+
+    -- local file_path = vim.fn.findfile(file)
+    -- resolve file full path from root
 
     if file_path ~= nil and #file_path ~= 0 then
         return file_path
@@ -30,45 +115,5 @@ M.java_class_to_proj_path = function(classname)
     -- then it's dependency lib
     return nil ]]
 end
-
-----------------------------------------
----@return { class_path: string,
----class_line_number: integer,
----line_start_position: integer,
----line_end_position: integer } | nil
-M.parse_java_trace_error_line = function(line)
-    local prefix, class_path, method, file_name, line_num = line:match(trace_class_pattern)
-    if class_path then
-        return {
-            class_path = class_path,
-            class_line_number = line_num,
-            line_start_position = string.find(line, prefix .. class_path) - 1,
-            line_end_position = #line,
-        }
-    end
-    return nil
-end
-
---[[ local line1 = "at java.base/java.util.Objects.requireNonNull(Objects.java:246)"
-local line2 = "at org.apache.commons.lang3.ObjectUtils.requireNonEmpty(ObjectUtils.java:1211)"
-local line3 = "at ua.serhii.application.test.utils.testutil.assertthat(testutil.java:10)"
-local line4 = "at ua.serhii.application.tests2.testassdrt(tests2.java:23)"
-local line5 = "at ua.serhii.application.tests2.testsomething3(tests2.java:18)"
-
-dd({
-    M.parse_java_trace_error_line(line1),
-    M.parse_java_trace_error_line(line2),
-    M.parse_java_trace_error_line(line3),
-    M.parse_java_trace_error_line(line4),
-    M.parse_java_trace_error_line(line5),
-}) ]]
-
--- local term_stacktrace_ns = vim.api.nvim_create_namespace("TermStacktrace")
-
--- 2. Target buffer and line index
--- local buf = vim.fn.bufnr("/home/serhii/dotfiles/test.txt")
--- M.highlight_java_test_trace(buf, term_stacktrace_ns)
-
-----------------------------------------
 
 return M
