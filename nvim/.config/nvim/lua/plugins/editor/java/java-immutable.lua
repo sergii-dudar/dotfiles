@@ -132,15 +132,14 @@ return {
                 -- Can set this to false to disable main class scan, which is a performance killer for large project
                 dap_main = {},
                 test = true,
-                settings = {
-                    java = {
-                        inlayHints = {
-                            parameterNames = {
-                                enabled = "all",
-                            },
-                        },
-                    },
-                },
+
+                --#########################################
+                --###### Custom Jdtls Config START ########
+                --#########################################
+                settings = require("utils.java.jdtls-config-util").jdtls_settings,
+                --#####################################
+                --################ END ################
+                --#####################################
             }
         end,
         config = function(_, opts)
@@ -159,9 +158,9 @@ return {
                 end
             end
 
-            --#####################################
-            --######## Custom Extensions ##########
-            --#####################################
+            --###########################################
+            --######## Custom Extensions START ##########
+            --###########################################
             ---
             -- Include spring boot ls bundle if present
             ---
@@ -177,6 +176,8 @@ return {
                 vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
             end
 
+            --#####################################
+            --################ END ################
             --#####################################
 
             local function attach_jdtls()
