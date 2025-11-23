@@ -24,7 +24,7 @@ return {
         "mfussenegger/nvim-jdtls",
         dependencies = {
             "mason-org/mason.nvim",
-            -- "JavaHello/spring-boot.nvim",
+            "JavaHello/spring-boot.nvim",
         },
         -- stylua: ignore
         keys = {
@@ -60,7 +60,7 @@ return {
         },
     },
     -- vs spring-boot tools ls to integrate in jdtls
-    --[[ {
+    {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
         ft = { "java", "yaml", "properties", "yml" },
@@ -68,19 +68,20 @@ return {
             "mfussenegger/nvim-jdtls",
         },
         opts = function()
-            local opts = {}
-            -- opts.ls_path = os.getenv("MASON") .. "/packages/spring-boot-tools/extension/language-server/spring-boot-language-server-1.59.0-SNAPSHOT-exec.jar"
-            opts.ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar")
-            -- opts.ls_path = os.getenv("MASON") .. "/share/vscode-spring-boot-tools/language-server.jar"
-            -- print(opts.ls_path)
-
-            -- opts.java_cmd = "java"
-            -- -- opts.exploded_ls_jar_data = true
-            -- opts.jdtls_name = "jdtls"
-            opts.log_file = home .. "/.local/state/nvim/spring-boot-ls.log"
-            return opts
+            local util = require("spring_boot.util")
+            return {
+                ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar"),
+                log_file = home .. "/.local/state/nvim/spring-boot-ls.log",
+                server = {
+                    on_init = function(client, ctx)
+                        client.server_capabilities.inlayHintProvider = false -- disable to not conflict with jdtls inlay hint
+                        client.server_capabilities.documentHighlightProvider = false
+                        util.boot_ls_init(client, ctx)
+                    end,
+                },
+            }
         end,
-    }, ]]
+    },
     {
         "JavaHello/java-deps.nvim",
         ft = { "java" },

@@ -102,6 +102,7 @@ M.jdtls_settings = {
             updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
             maven = {
                 userSettings = home .. "/.m2/settings.xml",
+                globalSettings = home .. "/.m2/settings.xml",
             },
         },
         -- ====================================================================
@@ -114,8 +115,8 @@ M.jdtls_settings = {
                 "**/archetype-resources/**",
                 "**/META-INF/maven/**",
                 "**/.git/**",
-                "**/target/**",
-                "**/build/**",
+                -- "**/target/**",
+                -- "**/build/**",
             },
             maven = {
                 enabled = true,
@@ -148,8 +149,21 @@ M.jdtls_settings = {
                 -- "org.junit.jupiter.api.Assertions.*",
                 -- "java.util.Objects.requireNonNull",
                 -- "java.util.Objects.requireNonNullElse",
-                "org.mockito.Mockito.*",
+
+                "org.junit.Assert.*",
+                "org.junit.Assume.*",
+                "org.junit.jupiter.api.Assertions.*",
+                "org.junit.jupiter.api.Assumptions.*",
+                "org.junit.jupiter.api.DynamicContainer.*",
+                "org.junit.jupiter.api.DynamicTest.*",
                 "org.assertj.core.api.Assertions.*",
+                "org.assertj.core.api.Assertions.assertThat",
+                "org.assertj.core.api.Assertions.assertThatThrownBy",
+                "org.assertj.core.api.Assertions.assertThatExceptionOfType",
+                "org.assertj.core.api.Assertions.catchThrowable",
+                "java.util.Objects.requireNonNull",
+                "java.util.Objects.requireNonNullElse",
+                "org.mockito.Mockito.*",
             },
             -- Defines the type filters. All types whose fully qualified name matches
             -- the selected filter strings will be ignored in content assist or quick
@@ -159,6 +173,7 @@ M.jdtls_settings = {
                 "com.sun.*",
                 "io.micrometer.shaded.*",
                 "java.awt.*",
+                "org.graalvm.*",
                 "jdk.*",
                 "sun.*",
             },
@@ -170,6 +185,8 @@ M.jdtls_settings = {
                 "java", -- java.*
                 "javax", -- javax.*
                 "jakarta", -- jakarta.*
+                "org",
+                "com",
                 "#", -- Import static all other imports
             },
             chain = {
