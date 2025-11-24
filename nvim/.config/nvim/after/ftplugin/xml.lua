@@ -6,5 +6,5 @@ vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
 
-vim.b.autoformat = false
+-- vim.b.autoformat = true
 -- vim.diagnostic.enable(false)
