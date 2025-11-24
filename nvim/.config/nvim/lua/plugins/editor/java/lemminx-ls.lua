@@ -12,15 +12,15 @@ end
 return {
     "neovim/nvim-lspconfig",
     opts = {
-        capabilities = {
-            workspace = {
-                didChangeConfiguration = {
-                    dynamicRegistration = true,
-                },
-            },
-        },
         servers = {
             lemminx = {
+                -- capabilities = {
+                --     workspace = {
+                --         didChangeConfiguration = {
+                --             dynamicRegistration = true,
+                --         },
+                --     },
+                -- },
                 cmd = {
                     jdtls_util.java_bin,
                     "-cp",

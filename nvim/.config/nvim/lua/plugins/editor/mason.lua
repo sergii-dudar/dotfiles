@@ -4,7 +4,7 @@ return {
         ensure_installed = {
             -- LSP
             "bash-language-server",
-            -- "lemminx",
+            "lemminx",
 
             -- Java
             "jdtls",

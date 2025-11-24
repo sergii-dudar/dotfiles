@@ -26,9 +26,22 @@ return {
         popup_border_style = "rounded", --'solid',
         filesystem = {
             filtered_items = {
-                visible = true,
+                visible = false,
                 hide_dotfiles = false,
                 hide_gitignored = false,
+                hide_by_name = {
+                    ".neotreeignore",
+                    ".ignore",
+                    ".git",
+                    ".idea",
+                    ".settings",
+                    ".project",
+                    ".factorypath",
+                    -- ".rgignore"
+                },
+                hide_by_pattern = { -- uses glob style patterns
+                    ".classpath*",
+                },
             },
             follow_current_file = {
                 enabled = true, -- This will find and focus the file in the active buffer every time

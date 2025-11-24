@@ -45,7 +45,7 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 - Tiling WM:
   macos - [aerospace](aerospace/.config/aerospace) + [sketchybar](sketchybar/.config/sketchybar) + [janky-borders](janky-borders/.config/borders)
 - Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim), theme - `everforest`, bd -
-  `hard` (the most eyes comfortable theme I ever used!), also I'm big fan of `catppuccin-mocha` theme, but my eyes not
+  `hard` (the most eyes comfortable theme I ever used!), also I'm big fan of `gruvbox-material` and `catppuccin-mocha` (but my eyes not)
   very like it to work 24/7 (too much blue) 😺
 - Keyboard OS level tools: macos - [karabiner](karabiner/.config/karabiner),
   linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
