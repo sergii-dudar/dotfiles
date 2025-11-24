@@ -44,20 +44,6 @@ M.get_file_with_no_ext = function()
     return string.match(fileName, "([^.]+)")
 end
 
-M.get_client_id_by_name = function(name)
-    -- local clients = vim.lsp.buf_get_clients()
-    local clients = vim.lsp.get_clients()
-
-    for client_id, client in pairs(clients) do
-        -- LazyVim.info("jdtls client:" .. client_id .. ", name: " .. client.name)
-        if client.name == name then
-            return client_id
-        end
-    end
-
-    return nil -- Return nil if no client with the specified name is found
-end
-
 M.strip_ansi = function(s)
     if not s then
         return s

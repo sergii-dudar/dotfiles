@@ -4,6 +4,7 @@ local stacktrace_ns = vim.api.nvim_create_namespace("StackTraceNs")
 local common = require("utils.common-util")
 local java_util = require("utils.java.java-common")
 local jdtls_util = require("utils.java.jdtls-util")
+local lsp_util = require("utils.lsp-util")
 
 local project_link_color = "#1E90FF"
 local ex_link_color = "#8A2BE2"
@@ -96,7 +97,7 @@ M.parse_trace_and_open_in_buffer = function()
         -- vim.api.nvim_win_set_cursor(0, { tonumber(lnum), 0 })
     else
         -- vim.notify(string.format("⚠️ no local file found to open for %s", parsed.class_path))
-        local jdtls_client_id = common.get_client_id_by_name("jdtls")
+        local jdtls_client_id = lsp_util.get_client_id_by_name("jdtls")
         if jdtls_client_id then
             local current_buf_id = vim.api.nvim_get_current_buf()
             if not vim.lsp.buf_is_attached(current_buf_id, jdtls_client_id) then

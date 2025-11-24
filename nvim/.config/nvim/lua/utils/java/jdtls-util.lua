@@ -3,6 +3,8 @@ local M = {}
 -- Split class name and line number (e.g., "java.util.List:50")
 -- local class_name, line_number = arg:match("([^:]+):?(%d*)")
 local list_util = require("utils.list-util")
+local util = require("utils.common-util")
+local lsp_util = require("utils.lsp-util")
 
 M.jdt_open_class = function(class_name, line_number)
     if not class_name or class_name == "" then
@@ -12,7 +14,15 @@ M.jdt_open_class = function(class_name, line_number)
     line_number = line_number or 0
 
     -- Request LSP to find the symbol
-    vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
+    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+        return
+    end
+
+    -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
+    jdtls_client:request("workspace/symbol", { query = class_name }, function(err, result, ctx)
         if err then
             vim.notify("Error: " .. tostring(err), vim.log.levels.WARN)
             return
@@ -29,6 +39,7 @@ M.jdt_open_class = function(class_name, line_number)
 
         -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
         local target = nil
+        dd(result)
         if #result > 1 then
             local single_result = list_util.find_by(result, "containerName", class_name)
             if single_result then
@@ -77,9 +88,7 @@ end
 
 --- Find word under curser in lsp dynamic_workspace_symbols
 M.connect_jdtls_and_search_symbol_under_cursor = function()
-    local helpers = require("utils.common-util")
-
-    local jdtls_client_id = helpers.get_client_id_by_name("jdtls")
+    local jdtls_client_id = lsp_util.get_client_id_by_name("jdtls")
     if jdtls_client_id then
         local current_buf_id = vim.api.nvim_get_current_buf()
         if not vim.lsp.buf_is_attached(current_buf_id, jdtls_client_id) then
@@ -90,7 +99,7 @@ M.connect_jdtls_and_search_symbol_under_cursor = function()
         end
     end
 
-    local fileName = helpers.get_file_with_no_ext()
+    local fileName = util.get_file_with_no_ext()
     LazyVim.info("fileName:" .. fileName)
 
     -- require("telescope.builtin").lsp_dynamic_workspace_symbols({
