@@ -39,13 +39,13 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.editor.harpoon2" },
         { import = "lazyvim.plugins.extras.editor.illuminate" },
         { import = "lazyvim.plugins.extras.editor.mini-move" },
-        { import = "lazyvim.plugins.extras.editor.inc-rename" },
-        { import = "lazyvim.plugins.extras.coding.neogen" }, -- some issues with `JavaHello/spring-boot.nvim` disabled for now
+        -- { import = "lazyvim.plugins.extras.editor.inc-rename" }, -- issues with `spring-boot ls` disabled for now
+        { import = "lazyvim.plugins.extras.coding.neogen" },
         --{ import = "lazyvim.plugins.extras.editor.navic" },
         { import = "lazyvim.plugins.extras.editor.outline" },
         { import = "lazyvim.plugins.extras.editor.overseer" },
         --{ import = "lazyvim.plugins.extras.editor.fzf" },
-        --{ import = "lazyvim.plugins.extras.editor.refactoring" },
+        -- { import = "lazyvim.plugins.extras.editor.refactoring" },
         --{ import = "lazyvim.plugins.extras.vscode" },
 
         --comment it if want to use `nvim-snippets`

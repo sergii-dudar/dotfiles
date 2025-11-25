@@ -33,13 +33,12 @@ M.jdt_open_class = function(class_name, line_number)
         end
 
         -- dd(result)
-
         -- Filter for exact matches or the best candidate (usually the first Class/Interface)
         -- Note: might add filtering if we get too many results
 
         -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
         local target = nil
-        dd(result)
+        -- dd(result)
         if #result > 1 then
             local single_result = list_util.find_by(result, "containerName", class_name)
             if single_result then

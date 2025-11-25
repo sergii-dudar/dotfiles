@@ -4,6 +4,10 @@ return {
     "CRAG666/code_runner.nvim",
     keys = {
         { "<leader>r", desc = "Run ..." },
+        { "<leader>rr", ":RunCode<CR>", desc = "Run Code", noremap = true, silent = false },
+        { "<leader>rf", ":RunFile<CR>", desc = "Run File", noremap = true, silent = false },
+        { "<leader>rp", ":RunProject<CR>", desc = "Run Project", noremap = true, silent = false },
+        { "<leader>rc", ":RunClose<CR>", desc = "Run Close", noremap = true, silent = false },
     },
     config = function()
         require("code_runner").setup({
@@ -124,10 +128,10 @@ return {
             },
         })
 
-        vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "Run Code" })
-        vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "Run File" })
-        vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "Run Project" })
-        vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "Run Close" })
+        -- vim.keymap.set("n", "<leader>rr", ":RunCode<CR>", { noremap = true, silent = false, desc = "Run Code" })
+        -- vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false, desc = "Run File" })
+        -- vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false, desc = "Run Project" })
+        -- vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false, desc = "Run Close" })
         --vim.keymap.set("n", "<leader>rd", ":CrStopHr<CR>", { noremap = true, silent = false, desc = "Stop Hot Reload" })
 
         --vim.keymap.set('n', '<leader>rft', ':RunFile tab<CR>', { noremap = true, silent = false, desc = "Run File tab" })

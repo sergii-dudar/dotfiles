@@ -45,7 +45,11 @@ end
 M.parse_java_stack_trace = function(trace)
     local items = {}
 
-    for i, parsed in ipairs(java_util.parse_java_mvn_run_class_text(trace)) do
+    -- for i, parsed in ipairs(java_util.parse_java_mvn_run_class_text(trace)) do
+    local parsed_trace = java_util.parse_java_mvn_run_class_text(trace)
+    local trace_number = 1
+    for i = #parsed_trace, 1, -1 do
+        local parsed = parsed_trace[i]
         local file_path = java_util.java_class_to_proj_path(parsed.class_path)
         --LazyVim.info("path: " .. file_path .. " file: " .. file)
         if file_path then
@@ -54,8 +58,11 @@ M.parse_java_stack_trace = function(trace)
                 lnum = parsed.class_line_number,
                 col = 1, -- Default to column 1
                 --text = file .. " error location from stack trace"
-                text = string.format("( %s ) %s", i, parsed.method),
+                text = string.format("( %s ) %s", trace_number, parsed.method),
             })
+            trace_number = trace_number + 1
+        else
+            -- TODO:
         end
     end
 
@@ -64,7 +71,7 @@ end
 
 M.show_stack_trace_qflist = function(stack_trace)
     local trace_items = M.parse_java_stack_trace(stack_trace)
-    -- dd(trace_items)
+    dd(trace_items)
     vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
     vim.cmd("Trouble qflist toggle")
 end

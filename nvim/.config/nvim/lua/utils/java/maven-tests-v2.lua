@@ -9,12 +9,12 @@ local java_trace = require("utils.java.java-trace")
 local last_runned_test_cmd_args = nil
 local current_term_win = nil
 
-local function push_frame(diagnostics_table, classname, method, msg, number, file, lnum)
+local function push_frame(diagnostics_table, classname, method, msg, number, frame_number, file, lnum)
     table.insert(diagnostics_table, {
         lnum = lnum - 1,
         col = 0,
         -- message = string.format("[%s.%s] %s", classname, method, msg),
-        message = string.format("(%s): %s", number, msg),
+        message = string.format("(%s-%s): %s", number, frame_number, msg),
         -- "Bold text in nvim term\e[0m\n"
         source = "maven-test",
         filename = file,
@@ -25,16 +25,21 @@ end
 local function push_current(diagnostics_table, current_error)
     if current_error then
         local base_msg = current_error.msg or "Test failure"
-        for _, frame in ipairs(current_error.stack) do
+        -- for index, frame in ipairs(current_error.stack) do
+        local frame_number = 1
+        for i = #current_error.stack, 1, -1 do
+            local frame = current_error.stack[i]
             push_frame(
                 diagnostics_table,
                 current_error.class,
                 current_error.method,
                 base_msg,
                 current_error.number,
+                frame_number,
                 frame.file,
                 frame.line
             )
+            frame_number = frame_number + 1
         end
     end
 end

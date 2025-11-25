@@ -26,6 +26,22 @@ return {
                 --win = { position = "right" },
                 win = { position = "bottom" },
             },
+            qflist = {
+                -- groups = {
+                --     { "filename", format = "{file_icon} {filename} {count}" },
+                -- },
+                -- sort = { "severity", "filename", "pos", "message" },
+                sort = { { by = "none" } },
+                -- format = "{severity_icon|item.type:DiagnosticSignWarn} {text:ts} {pos}",
+            },
+            diagnostics = {
+                groups = {
+                    { "directory" },
+                    { "filename", format = "{file_icon} {basename} {count}" },
+                },
+                -- sort = { "severity", "filename", "pos", "message" },
+                sort = { { by = "none" } },
+            },
         },
         auto_close = true, -- auto close when there are no items
         auto_open = false, -- auto open when there are items
