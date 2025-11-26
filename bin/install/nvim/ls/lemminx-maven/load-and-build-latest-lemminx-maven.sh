@@ -15,7 +15,7 @@ cd "lemminx-maven-repo" \
     && unzip lemminx-maven-*-with-dependencies.zip -d lemminx-maven/ \
     && mv lemminx-maven "$lemminx_maven_dir"
 
-echo "Lemminx Maven Extension successfully installed to $lemminx_ls_dir"
+echo "Lemminx Maven Extension successfully installed to $lemminx_maven_dir"
 
 # # Fetch the latest release JSON from the GitHub API
 # latest_json=$(curl -s https://api.github.com/repos/eclipse-lemminx/lemminx-maven/releases/latest)

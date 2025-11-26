@@ -19,6 +19,8 @@ local function push_frame(diagnostics_table, classname, method, msg, number, fra
         source = "maven-test",
         filename = file,
         severity = vim.diagnostic.severity.ERROR,
+        class_name = classname,
+        method = method,
     })
 end
 
@@ -127,6 +129,9 @@ end
 
 M.publish_maven_diagnostics = function(clean_text)
     local diags = M.parse_maven_output(clean_text)
+    if vim.tbl_isempty(diags) then
+        return
+    end
 
     -- group by filename because vim.diagnostic.set needs per-buffer
     local grouped = {}
@@ -144,6 +149,13 @@ M.publish_maven_diagnostics = function(clean_text)
         -- diags = maven_util.dedupe_file_diagnstics(diags)
         vim.diagnostic.set(java_test_namespace, bufnr, list, {})
     end
+
+    -- Future planning
+    -- TODO: print number of failed tests
+    -- TODO: virtual marks on opened buffers with failed tests
+    -- TODO: test debugging
+
+    -- vim.notify("❌😬 Test Finished with Fails", vim.log.levels.WARN)
     vim.cmd("Trouble diagnostics open")
 end
 
@@ -194,6 +206,7 @@ local function run_mvn_test_cmd(cmd_args)
 
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
+                vim.notify("✅ 💪 Test Successfully Passed", vim.log.levels.INFO)
             end
         end,
     })

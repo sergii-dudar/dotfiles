@@ -37,9 +37,10 @@ build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
 case "$build_system_path" in
     *pom.xml*)
         build_system_dir="${build_system_path%/*}"
-        # echo "build_system: maven"
-        # echo "build_system_dir: $build_system_dir"
+        echo "build_system: maven"
+        echo "build_system_dir: $build_system_dir"
         app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$build_system_dir" "$run_scope")
+        env_file="$build_system_dir/.dev.env"
         ;;
     *build.gradle*)
         build_system_dir="${build_system_path%/*}"
@@ -67,6 +68,12 @@ case "$build_system_path" in
 
         ;;
 esac
+
+
+if [ -f "$env_file" ]; then
+    # echo "env file: $env_file"
+    . "$env_file"
+fi
 
 run_cmd="$java_bin_path -classpath $app_classpath $class_main"
 # echo "$run_cmd"

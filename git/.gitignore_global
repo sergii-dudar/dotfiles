@@ -12,5 +12,6 @@ application-work.yaml
 .trouble.trace
 .idea
 .settings
+.dev.env
 *.iml
 target
