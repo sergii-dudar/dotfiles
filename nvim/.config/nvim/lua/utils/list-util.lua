@@ -48,4 +48,18 @@ M.find_by = function(tbl, key, value)
     end
 end
 
+M.to_unique_list = function(tbl)
+    local seen_map = {}
+    local unique = {}
+
+    for _, v in ipairs(tbl) do
+        if not seen_map[v] then
+            seen_map[v] = true
+            table.insert(unique, v)
+        end
+    end
+
+    return unique
+end
+
 return M

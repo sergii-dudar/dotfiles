@@ -11,6 +11,7 @@ local string_util = require("utils.string-util")
 ---@param handler function([table])
 M.jdt_load_unique_class_list = function(class_names, handler)
     local all_items = {}
+    class_names = list_util.to_unique_list(class_names)
     local pending = #class_names
 
     -- Request LSP to find the symbol
