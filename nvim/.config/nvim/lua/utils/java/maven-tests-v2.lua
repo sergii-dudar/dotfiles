@@ -130,6 +130,7 @@ end
 M.publish_maven_diagnostics = function(clean_text)
     local diags = M.parse_maven_output(clean_text)
     if vim.tbl_isempty(diags) then
+        vim.diagnostic.reset()
         return
     end
 
@@ -206,7 +207,7 @@ local function run_mvn_test_cmd(cmd_args)
 
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
-                vim.notify("✅ 💪 Test Successfully Passed", vim.log.levels.INFO)
+                -- vim.notify("✅ 💪 Test Successfully Passed", vim.log.levels.INFO)
             end
         end,
     })
@@ -217,7 +218,10 @@ local function run_mvn_test_cmd(cmd_args)
     end
 end
 
-local function get_test_runner(test_name)
+local function get_test_runner(test_name, is_debug)
+    if is_debug then
+        return { "mvn", "-q", "test", "-Dmaven.surefire.debug", "-Dtest=" .. test_name }
+    end
     return { "mvn", "-q", "test", "-Dtest=" .. test_name }
 end
 
@@ -225,19 +229,19 @@ local function get_verify_runner()
     return { "mvn", "-q", "verify", "-DskipAssembly", "-DskipInstall", "-DskipTests=false" }
 end
 
-M.run_java_test_method = function()
+M.run_java_test_method = function(is_debug)
     local method_name = java_ts_util.get_full_method("#")
     if method_name then
-        run_mvn_test_cmd(get_test_runner(method_name))
+        run_mvn_test_cmd(get_test_runner(method_name, is_debug))
     else
         vim.notify("❌ Could not determine current method name", vim.log.levels.WARN)
     end
 end
 
-M.run_java_test_class = function()
+M.run_java_test_class = function(is_debug)
     local class_name = java_ts_util.get_class_name()
     if class_name then
-        run_mvn_test_cmd(get_test_runner(class_name))
+        run_mvn_test_cmd(get_test_runner(class_name, is_debug))
     else
         vim.notify("❌ Could not determine current class name", vim.log.levels.WARN)
     end

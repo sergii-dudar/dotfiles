@@ -75,6 +75,8 @@ vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap
 local maven_tests_v2 = require("utils.java.maven-tests-v2")
 vim.keymap.set("n", "<leader><F6>", maven_tests_v2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
 vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { noremap = true, silent = true, desc = "Maven Run Current Test Class" })
+vim.keymap.set("n", "<leader>d<F6>", function() maven_tests_v2.run_java_test_method(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Method" })
+vim.keymap.set("n", "<leader>d<F7>", function() maven_tests_v2.run_java_test_class(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Class" })
 vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
 vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
 

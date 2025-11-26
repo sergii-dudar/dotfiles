@@ -24,6 +24,8 @@ ranger/.config/ranger/colorschemes
 alacritty/.config/alacritty/themes
 nvim/.config/nvim.bak/plugin
 temp
+!**/.dev.env
+
 
 # Generated classes
 **/main/generated/

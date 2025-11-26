@@ -69,13 +69,17 @@ case "$build_system_path" in
         ;;
 esac
 
-
 if [ -f "$env_file" ]; then
     # echo "env file: $env_file"
     . "$env_file"
 fi
 
-run_cmd="$java_bin_path -classpath $app_classpath $class_main"
-# echo "$run_cmd"
+if [ "$ENABLE_DAP_DEBUG" = "true" ]; then
+    echo "NVIM DAP IS ENABLED"
+    run_cmd="$java_bin_path -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 -classpath $app_classpath $class_main"
+else
+    run_cmd="$java_bin_path -classpath $app_classpath $class_main"
+fi
 
+# echo "$run_cmd"
 bash -c "$run_cmd"
