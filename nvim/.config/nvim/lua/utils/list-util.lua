@@ -1,13 +1,30 @@
 local M = {}
 
-M.find = function(tbl, finder)
+--- Find first by filter function
+---@param tbl [table]
+---@param predicate function(table)
+---@return table|nil
+M.findFirst = function(tbl, predicate)
     for _, v in ipairs(tbl) do
-        if finder(v) then
+        if predicate(v) then
             return v
         end
     end
-
     return nil
+end
+
+--- Find all by filter function
+---@param tbl [table]
+---@param predicate function(table)
+---@return [table]
+M.findAll = function(tbl, predicate)
+    local result = {}
+    for _, v in ipairs(tbl) do
+        if predicate(v) then
+            table.insert(result, v)
+        end
+    end
+    return result
 end
 
 M.any_match = function(target_string, match_table)

@@ -5,13 +5,13 @@ local M = {}
 local list_util = require("utils.list-util")
 local util = require("utils.common-util")
 local lsp_util = require("utils.lsp-util")
+local string_util = require("utils.string-util")
 
-M.jdt_open_class = function(class_name, line_number)
-    if not class_name or class_name == "" then
-        vim.notify("Please provide a class name.", vim.log.levels.WARN)
-        return
-    end
-    line_number = line_number or 0
+---@param class_names [string]
+---@param handler function([table])
+M.jdt_load_unique_class_list = function(class_names, handler)
+    local all_items = {}
+    local pending = #class_names
 
     -- Request LSP to find the symbol
     local jdtls_client = lsp_util.get_client_by_name("jdtls")
@@ -21,54 +21,84 @@ M.jdt_open_class = function(class_name, line_number)
         return
     end
 
-    -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
-    jdtls_client:request("workspace/symbol", { query = class_name }, function(err, result, ctx)
-        if err then
-            vim.notify("Error: " .. tostring(err), vim.log.levels.WARN)
-            return
-        end
-        if not result or vim.tbl_isempty(result) then
-            vim.notify("Class not found: " .. class_name, vim.log.levels.WARN)
+    -- vim.notify("✅ Jdtls items to load " .. pending)
+
+    for _, class_name in ipairs(class_names) do
+        if not class_name or class_name == "" then
+            vim.notify("Please provide a class name.", vim.log.levels.WARN)
             return
         end
 
-        -- dd(result)
-        -- Filter for exact matches or the best candidate (usually the first Class/Interface)
-        -- Note: might add filtering if we get too many results
+        -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
+        jdtls_client:request("workspace/symbol", { query = class_name }, function(err, result, ctx)
+            pending = pending - 1
 
-        -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
-        local target = nil
-        -- dd(result)
-        if #result > 1 then
-            local single_result = list_util.find_by(result, "containerName", class_name)
-            if single_result then
-                target = single_result
-            else
-                vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
-                target = result[1]
+            if err then
+                vim.notify("Error: " .. tostring(err), vim.log.levels.WARN)
+                return
+            end
+            if not result or vim.tbl_isempty(result) then
+                vim.notify("Class not found: " .. class_name, vim.log.levels.WARN)
+                return
             end
 
-            -- vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
             -- dd(result)
-            -- for _, symbol in ipairs(result) do
-            --     if symbol.kind == 5 or symbol.kind == 11 then
-            --         target = symbol
-            --         break
-            --     end
-            -- end
+            -- Filter for exact matches or the best candidate (usually the first Class/Interface)
+            -- Note: might add filtering if we get too many results
 
-            -- Snacks.picker.lsp_workspace_symbols({
-            --     search = "HashMap",
-            --     on_close = function(picker)
-            --         dd(picker:selected())
-            --     end,
-            -- })
-        else
-            target = result[1]
-        end
+            -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
+            local target = nil
+            -- dd(result)
+            if #result > 1 then
+                local class_package, simple_class_name = string_util.split_by_last_dot(class_name)
 
+                local single_result = list_util.findFirst(result, function(item)
+                    return string_util.starts_with(item.containerName, class_package) and item.name == simple_class_name
+                end)
+
+                if single_result then
+                    target = single_result
+                else
+                    vim.notify(
+                        "⚠️ Found more than one lsp symbols, and not found unique by qualifier, first will be picked"
+                    )
+                    target = result[1]
+                end
+            else
+                target = result[1]
+            end
+            target.name = class_name
+
+            -- table.insert(all_items, target)
+            all_items[class_name] = target
+
+            if pending == 0 then
+                -- vim.notify("✅ Jdtls items successfully loaded " .. #all_items)
+                handler(all_items)
+            end
+        end)
+    end
+end
+
+---@param class_name string
+---@param handler function(table)
+M.jdt_load_unique_class = function(class_name, handler)
+    M.jdt_load_unique_class_list({ class_name }, function(responseList)
+        handler(responseList[class_name])
+    end)
+end
+
+M.jdt_open_class = function(class_name, line_number)
+    if not class_name or class_name == "" then
+        vim.notify("Please provide a class name.", vim.log.levels.WARN)
+        return
+    end
+    line_number = line_number or 0
+
+    -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
+    M.jdt_load_unique_class(class_name, function(result)
         -- Open the file and jump to the position
-        vim.lsp.util.show_document(target.location, "utf-8", { focus = true })
+        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
 
         -- Open the file (JDTLS handles the jdt:// URI automatically)
         -- local uri = target.location.uri or target.uri
@@ -84,6 +114,85 @@ M.jdt_open_class = function(class_name, line_number)
         end
     end)
 end
+
+-- M.jdt_open_class = function(class_name, line_number)
+--     if not class_name or class_name == "" then
+--         vim.notify("Please provide a class name.", vim.log.levels.WARN)
+--         return
+--     end
+--     line_number = line_number or 0
+--
+--     -- Request LSP to find the symbol
+--     local jdtls_client = lsp_util.get_client_by_name("jdtls")
+--
+--     if not jdtls_client then
+--         vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+--         return
+--     end
+--
+--     -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
+--     jdtls_client:request("workspace/symbol", { query = class_name }, function(err, result, ctx)
+--         if err then
+--             vim.notify("Error: " .. tostring(err), vim.log.levels.WARN)
+--             return
+--         end
+--         if not result or vim.tbl_isempty(result) then
+--             vim.notify("Class not found: " .. class_name, vim.log.levels.WARN)
+--             return
+--         end
+--
+--         -- dd(result)
+--         -- Filter for exact matches or the best candidate (usually the first Class/Interface)
+--         -- Note: might add filtering if we get too many results
+--
+--         -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
+--         local target = nil
+--         -- dd(result)
+--         if #result > 1 then
+--             local single_result = list_util.find_by(result, "containerName", class_name)
+--             if single_result then
+--                 target = single_result
+--             else
+--                 vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
+--                 target = result[1]
+--             end
+--
+--             -- vim.notify("⚠️ Found more than one lsp symbols, first will be picked")
+--             -- dd(result)
+--             -- for _, symbol in ipairs(result) do
+--             --     if symbol.kind == 5 or symbol.kind == 11 then
+--             --         target = symbol
+--             --         break
+--             --     end
+--             -- end
+--
+--             -- Snacks.picker.lsp_workspace_symbols({
+--             --     search = "HashMap",
+--             --     on_close = function(picker)
+--             --         dd(picker:selected())
+--             --     end,
+--             -- })
+--         else
+--             target = result[1]
+--         end
+--
+--         -- Open the file and jump to the position
+--         vim.lsp.util.show_document(target.location, "utf-8", { focus = true })
+--
+--         -- Open the file (JDTLS handles the jdt:// URI automatically)
+--         -- local uri = target.location.uri or target.uri
+--         -- require("jdtls").open_classfile(uri)
+--
+--         -- Jump to line number if provided
+--         if line_number and line_number ~= "" then
+--             local line = tonumber(line_number)
+--             vim.defer_fn(function()
+--                 pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+--                 vim.cmd("normal! zz") -- Center the screen
+--             end, 10)
+--         end
+--     end)
+-- end
 
 --- Find word under curser in lsp dynamic_workspace_symbols
 M.connect_jdtls_and_search_symbol_under_cursor = function()

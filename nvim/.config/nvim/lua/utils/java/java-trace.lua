@@ -42,38 +42,76 @@ M.highlight_java_test_trace_current_buf = function()
     M.highlight_java_test_trace(vim.api.nvim_get_current_buf())
 end
 
-M.parse_java_stack_trace = function(trace)
-    local items = {}
+local parse_java_stack_trace = function(trace, result_callback)
+    local loc_result_items_map = {}
+    local jdt_classes = {}
 
     -- for i, parsed in ipairs(java_util.parse_java_mvn_run_class_text(trace)) do
     local parsed_trace = java_util.parse_java_mvn_run_class_text(trace)
-    local trace_number = 1
-    for i = #parsed_trace, 1, -1 do
-        local parsed = parsed_trace[i]
+    for _, parsed in ipairs(parsed_trace) do
         local file_path = java_util.java_class_to_proj_path(parsed.class_path)
-        --LazyVim.info("path: " .. file_path .. " file: " .. file)
         if file_path then
-            table.insert(items, {
+            loc_result_items_map[parsed.class_path] = {
                 filename = file_path,
                 lnum = parsed.class_line_number,
+                end_lnum = parsed.class_line_number,
                 col = 1, -- Default to column 1
                 --text = file .. " error location from stack trace"
-                text = string.format("( %s ) %s", trace_number, parsed.method),
-            })
-            trace_number = trace_number + 1
+                -- text = string.format("( %s ) %s", trace_number, parsed.method),
+            }
         else
-            -- TODO:
+            table.insert(jdt_classes, parsed.class_path)
         end
     end
 
-    return items
+    if vim.tbl_isempty(jdt_classes) then
+        local loc_result_items = {}
+        local trace_number = 1
+        for i = #parsed_trace, 1, -1 do
+            local parsed = parsed_trace[i]
+            local loc_item = loc_result_items_map[parsed.class_path]
+            loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
+            -- loc_item.kind = "Class"
+            table.insert(loc_result_items, loc_item)
+            trace_number = trace_number + 1
+        end
+        -- dd(loc_result_items)
+        result_callback(loc_result_items)
+    else
+        jdtls_util.jdt_load_unique_class_list(jdt_classes, function(jdt_results_items_map)
+            local trace_number = 1
+            local all_result_items = {}
+            for i = #parsed_trace, 1, -1 do
+                local parsed = parsed_trace[i]
+                local loc_item = loc_result_items_map[parsed.class_path]
+                local jdt_sym_loc_item = jdt_results_items_map[parsed.class_path]
+                if loc_item then
+                    loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
+                    table.insert(all_result_items, loc_item)
+                elseif jdt_sym_loc_item then
+                    local jdt_item = vim.lsp.util.symbols_to_items({ jdt_sym_loc_item }, 0)[1]
+                    jdt_item.text = string.format("( %s ) %s.%s", trace_number, parsed.class_path, parsed.method)
+                    jdt_item.lnum = parsed.class_line_number
+                    jdt_item.end_lnum = parsed.class_line_number
+                    -- dd(jdt_item)
+                    table.insert(all_result_items, jdt_item)
+                else
+                    vim.notify(string.format("⚠️ class %s was not found", parsed.class_path))
+                end
+                trace_number = trace_number + 1
+            end
+            -- dd(all_result_items)
+            result_callback(all_result_items)
+        end)
+    end
 end
 
 M.show_stack_trace_qflist = function(stack_trace)
-    local trace_items = M.parse_java_stack_trace(stack_trace)
-    dd(trace_items)
-    vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
-    vim.cmd("Trouble qflist toggle")
+    parse_java_stack_trace(stack_trace, function(trace_items)
+        -- dd(trace_items)
+        vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
+        vim.cmd("Trouble qflist toggle")
+    end)
 end
 
 M.parse_selected_trace_to_qflist = function()
