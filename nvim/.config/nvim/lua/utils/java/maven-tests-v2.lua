@@ -151,10 +151,9 @@ M.publish_maven_diagnostics = function(clean_text)
         vim.diagnostic.set(java_test_namespace, bufnr, list, {})
     end
 
-    -- Future planning
+    -- Future planning:
     -- TODO: print number of failed tests
     -- TODO: virtual marks on opened buffers with failed tests
-    -- TODO: test debugging
 
     -- vim.notify("❌😬 Test Finished with Fails", vim.log.levels.WARN)
     vim.cmd("Trouble diagnostics open")

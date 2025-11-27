@@ -2,7 +2,12 @@
 return {
     "Fildo7525/pretty_hover",
     event = "LspAttach",
-    config = function()
+    opts = {},
+}
+
+-- custom filtering
+--[[
+
         local cfg = require("pretty_hover.config")
         local h_util = require("pretty_hover.core.util")
         local local_hover_request = require("pretty_hover.local_request").local_hover_request
@@ -50,5 +55,4 @@ return {
         require("pretty_hover").setup({})
         -- vim.keymap.set("n", "<leader>k", require("pretty_hover").hover, { buffer = true, desc = "Pretty hover" })
         vim.keymap.set("n", "<leader>k", extended_hover, { desc = "Pretty hover" })
-    end,
-}
+    ]]

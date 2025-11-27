@@ -1,24 +1,9 @@
+local java_util = require("utils.java.java-common")
 local home = os.getenv("HOME")
-local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-local workspace_dir = vim.env.HOME .. "/jdtls-workspace/" .. project_name
-
--- sdk list java
--- sdk install java 25xxx-amzn
--- sdk list maven
--- sdk install maven 3.9.xxx
-local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
-local java_bin = java_dir .. "/bin/java"
---local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
---local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
-
--- https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
-local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+-- local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+-- local workspace_dir = vim.env.HOME .. "/jdtls-workspace/" .. project_name
 
 local M = {}
-
-M.java_dir = java_dir
-M.java_bin = java_bin
-M.java_google_style_file = java_google_style_file
 
 -- ============================================================================
 -- JDTLS FULL SETTINGS CONFIGURATION
@@ -33,7 +18,7 @@ M.jdtls_settings = {
         -- GENERAL JAVA SETTINGS
         -- ====================================================================
         -- Specify Java home directory
-        home = java_dir,
+        home = java_util.java_dir,
         -- JDK detection and configuration
         jdt = {
             ls = {
@@ -95,7 +80,7 @@ M.jdtls_settings = {
                 -- },
                 {
                     name = "JavaSE-25",
-                    path = java_dir,
+                    path = java_util.java_dir,
                 },
             },
             -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
@@ -208,7 +193,7 @@ M.jdtls_settings = {
             enabled = true,
             -- Use the Google Style guide for code formattingh
             settings = {
-                url = java_google_style_file,
+                url = java_util.java_google_style_file,
                 -- Optional formatter profile name from the Eclipse formatter settings.
                 profile = "GoogleStyle",
             },

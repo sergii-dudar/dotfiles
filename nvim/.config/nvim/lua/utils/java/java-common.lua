@@ -1,7 +1,25 @@
 local M = {}
 
 local maven_util = require("utils.java.maven-util")
-local util = require("utils.common-util")
+-- local util = require("utils.common-util")
+local home = os.getenv("HOME")
+
+-- sdk list java
+-- sdk install java 25xxx-amzn
+-- sdk list maven
+-- sdk install maven 3.9.xxx
+local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
+local java_bin = java_dir .. "/bin/java"
+--local java_google_style_file = home .. "/dotfiles/work/formatter/intellij-java-google-style.xml"
+--local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
+
+-- https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
+local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+
+M.java_dir = java_dir
+M.java_bin = java_bin
+M.java_google_style_file = java_google_style_file
+
 -- local trace_class_pattern = "(.-)([^/]-)%.([^%.]+)%((.-):(%d+)%)"
 -- cp_path, method, file, line in string.gmatch(trace, "([%w%.%/%_-]*)%.([%w_-]+)%(([%w%.%/%_-]+%.java):(%d+)") do
 local java_mvn_class_pattern = "at%s+([^%s]-)([^/^%s]-)%.([^%.]+)%((.-)%.java:(%d+)%)"

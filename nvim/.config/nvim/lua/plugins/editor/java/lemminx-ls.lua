@@ -1,4 +1,4 @@
-local jdtls_util = require("utils.java.jdtls-config-util")
+local jdtls_util = require("utils.java.java-common")
 local lemminx_jars = {}
 for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/nvim-extensions/lemminx/lemminx-ls/*.jar"), "\n")) do
     table.insert(lemminx_jars, bundle)

@@ -1,13 +1,17 @@
-local java_util = require("utils.java.jdtls-config-util")
+local java_util = require("utils.java.java-common")
 
 return {
     "CRAG666/code_runner.nvim",
+    -- stylua: ignore
     keys = {
         { "<leader>r", desc = "Run ..." },
         { "<leader>rr", ":RunCode<CR>", desc = "Run Code", noremap = true, silent = false },
         { "<leader>rf", ":RunFile<CR>", desc = "Run File", noremap = true, silent = false },
         { "<leader>rp", ":RunProject<CR>", desc = "Run Project", noremap = true, silent = false },
         { "<leader>rc", ":RunClose<CR>", desc = "Run Close", noremap = true, silent = false },
+        -- TODO: make debug cross languages (should be resolved by switching to overseer.nvim)
+        { "<leader>rD", function() require("utils.java.jdtls-config-dap-util").run_current_main_class() end, desc = "Run Java Code Debug", noremap = true, silent = false },
+        { "<leader>rR", function() require("utils.java.jdtls-config-dap-util").rerun_last() end, desc = "ReRun Java Last Code Debug", noremap = true, silent = false },
     },
     config = function()
         require("code_runner").setup({

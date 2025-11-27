@@ -191,6 +191,7 @@ return {
                         bundles = bundles,
                     },
                     settings = opts.settings,
+                    filetypes = { "java" }, -- need to plugins like pretty-hover
                     -- enable CMP capabilities
                     capabilities = LazyVim.has("blink.cmp") and require("blink.cmp").get_lsp_capabilities()
                         or LazyVim.has("cmp-nvim-lsp") and require("cmp_nvim_lsp").default_capabilities()

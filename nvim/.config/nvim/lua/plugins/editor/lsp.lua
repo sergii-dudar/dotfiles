@@ -10,6 +10,27 @@ vim.diagnostic.config({
     float = { border = "rounded" },
 })
 
+local original_handler = vim.lsp.buf_request_all
+---@diagnostic disable-next-line: duplicate-set-field
+vim.lsp.buf_request_all = function(bufnr, method, params, handler)
+    if method ~= "textDocument/hover" then
+        original_handler(bufnr, method, params, handler)
+        return
+    end
+
+    -- INFO: extension with filtering empty hover results to not show them in pretty-hover plugin
+    original_handler(bufnr, method, params, function(results, ctx)
+        local non_empty_result = {}
+        for client_id, resp in pairs(results) do
+            local is_doc_empty = resp and resp.result and resp.result.contents and vim.tbl_isempty(resp.result.contents)
+            if not is_doc_empty then
+                non_empty_result[client_id] = resp
+            end
+        end
+        handler(non_empty_result, ctx)
+    end)
+end
+
 return {
     -- A Neovim plugin for displaying inline diagnostic messages with customizable styles and icons.
     {
@@ -92,6 +113,7 @@ return {
                     keys = {
                         { "K", false },
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
+                        { "<leader>k", function() require("pretty_hover").hover() end, desc = "Pretty hover" },
                         -- override default preveiw mapping
                         { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                         -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },

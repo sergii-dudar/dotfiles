@@ -49,6 +49,34 @@ return {
         },
     },
     {
+        "MeanderingProgrammer/render-markdown.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" }, -- if you use the mini.nvim suite
+        opts = {
+            heading = {
+                -- Highlight for the heading icon and extends through the entire line.
+                -- Output is evaluated by `clamp(value, context.level)`.
+                backgrounds = {
+                    --"RenderMarkdownH1Bg",
+                    "RenderMarkdownH2Bg",
+                    "RenderMarkdownH3Bg",
+                    "RenderMarkdownH4Bg",
+                    "RenderMarkdownH5Bg",
+                    "RenderMarkdownH6Bg",
+                },
+                -- Highlight for the heading and sign icons.
+                -- Output is evaluated using the same logic as 'backgrounds'.
+                foregrounds = {
+                    --"RenderMarkdownH1",
+                    "RenderMarkdownH2",
+                    "RenderMarkdownH3",
+                    "RenderMarkdownH4",
+                    "RenderMarkdownH5",
+                    "RenderMarkdownH6",
+                },
+            },
+        },
+    },
+    {
         "phelipetls/jsonpath.nvim",
         ft = { "json", "jsonc" },
         keys = {
