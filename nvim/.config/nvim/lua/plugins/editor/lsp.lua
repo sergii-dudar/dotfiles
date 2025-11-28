@@ -22,9 +22,14 @@ vim.lsp.buf_request_all = function(bufnr, method, params, handler)
     original_handler(bufnr, method, params, function(results, ctx)
         local non_empty_result = {}
         for client_id, resp in pairs(results) do
-            local is_doc_empty = resp and resp.result and resp.result.contents and vim.tbl_isempty(resp.result.contents)
-            if not is_doc_empty then
-                non_empty_result[client_id] = resp
+            local contents = resp and resp.result and resp.result.contents
+            if contents then
+                local cont_type = type(contents)
+                if cont_type == "string" and contents ~= "" then
+                    non_empty_result[client_id] = resp
+                elseif cont_type == "table" and not vim.tbl_isempty(contents) then
+                    non_empty_result[client_id] = resp
+                end
             end
         end
         handler(non_empty_result, ctx)

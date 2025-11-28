@@ -116,6 +116,43 @@ M.jdt_open_class = function(class_name, line_number)
     end)
 end
 
+local function extract_jdt_target(link)
+    -- 1. Find the encoded tail: %3Cjava.lang%28Object.class#268
+    local encoded = link:match("%/%%3C[^%s)]+")
+    print(encoded)
+    if not encoded then
+        return nil, nil
+    end
+
+    -- 2. Decode URL encoding
+    local decoded = encoded:gsub("%%(%x%x)", function(hex)
+        return string.char(tonumber(hex, 16))
+    end)
+    decoded = decoded:gsub("%(", ".")
+    -- decoded now looks like: <java.lang(Object.class#268
+
+    -- local class_full, line = decoded:match("<([%w%._]+[^#]+)#(%d+)")
+    local class_full, line = decoded:match("<([^#]+)#(%d+)")
+    class_full = class_full:gsub(".class", "")
+
+    return { class_name = class_full, line_number = tonumber(line) }
+end
+
+M.extrace_and_open_jdt_link = function(line)
+    local extracted = extract_jdt_target(line)
+    if not extracted then
+        vim.notify(string.format("⚠️ Can't extreace class name with line from %s", line))
+        return
+    end
+    vim.cmd("wincmd k | l")
+    M.jdt_open_class(extracted.class_name, extracted.line_number)
+end
+
+M.extrace_and_open_current_line_jdt_link = function()
+    local current_line = util.get_line_under_cursor()
+    M.extrace_and_open_jdt_link(current_line)
+end
+
 -- M.jdt_open_class = function(class_name, line_number)
 --     if not class_name or class_name == "" then
 --         vim.notify("Please provide a class name.", vim.log.levels.WARN)
