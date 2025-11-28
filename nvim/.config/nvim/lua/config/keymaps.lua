@@ -128,9 +128,10 @@ map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current
 map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
 map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Parse current line trace and open in buffer" })
 
-map("n", "gjl", function() require("utils.java.jdtls-util").extrace_and_open_current_line_jdt_link() end, { desc = "[G]o to [J]dt [L]ink" })
-
-vim.opt.path:append("**")
+-- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
+map("n", "gj", function() require("utils.java.jdtls-util").extrace_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
+map("n", "<leader>jda", function() require("utils.java.jdtls-util").extrace_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
+map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extrace_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
 -- stylua: ignore end
 
 -- -- debug purposes

@@ -116,16 +116,13 @@ M.jdt_open_class = function(class_name, line_number)
     end)
 end
 
-local function extract_jdt_target(link)
-    -- 1. Find the encoded tail: %3Cjava.lang%28Object.class#268
-    local encoded = link:match("%/%%3C[^%s)]+")
-    print(encoded)
-    if not encoded then
+M.parse_jdt_link = function(encoded_jdt_link)
+    if not encoded_jdt_link then
         return nil, nil
     end
 
     -- 2. Decode URL encoding
-    local decoded = encoded:gsub("%%(%x%x)", function(hex)
+    local decoded = encoded_jdt_link:gsub("%%(%x%x)", function(hex)
         return string.char(tonumber(hex, 16))
     end)
     decoded = decoded:gsub("%(", ".")
@@ -138,19 +135,59 @@ local function extract_jdt_target(link)
     return { class_name = class_full, line_number = tonumber(line) }
 end
 
-M.extrace_and_open_jdt_link = function(line)
-    local extracted = extract_jdt_target(line)
+local jdt_endoced_pattern = "%/%%3C[^%s)]+"
+local extract_jdt_first_link = function(jdt_link_text)
+    -- 1. Find the encoded tail: %3Cjava.lang%28Object.class#268
+    local encoded = jdt_link_text:match(jdt_endoced_pattern)
+    return M.parse_jdt_link(encoded)
+end
+
+local extract_jdt_all_links = function(jdt_link_text)
+    local results = {}
+    for encoded in jdt_link_text:gmatch(jdt_endoced_pattern) do
+        local result = M.parse_jdt_link(encoded)
+        if result then
+            table.insert(results, result)
+        end
+    end
+    return results
+end
+
+M.extrace_and_open_first_jdt_link = function(line)
+    local extracted = extract_jdt_first_link(line)
     if not extracted then
-        vim.notify(string.format("⚠️ Can't extreace class name with line from %s", line))
+        vim.notify(string.format("⚠️ Can't extract class name with line from %s", line))
         return
     end
     vim.cmd("wincmd k | l")
     M.jdt_open_class(extracted.class_name, extracted.line_number)
 end
 
-M.extrace_and_open_current_line_jdt_link = function()
+M.extrace_and_open_all_jdt_link = function(line)
+    local extracted = extract_jdt_all_links(line)
+    if not extracted or vim.tbl_isempty(extracted) then
+        vim.notify(string.format("⚠️ Can't extrct any class name with line from %s", line))
+        return
+    end
+    vim.cmd("wincmd k | l")
+    for _, value in ipairs(extracted) do
+        M.jdt_open_class(value.class_name, value.line_number)
+    end
+end
+
+M.extrace_and_open_current_line_first_jdt_link = function()
     local current_line = util.get_line_under_cursor()
-    M.extrace_and_open_jdt_link(current_line)
+    M.extrace_and_open_first_jdt_link(current_line)
+end
+
+M.extrace_and_open_current_line_all_jdt_link = function()
+    local current_line = util.get_line_under_cursor()
+    M.extrace_and_open_all_jdt_link(current_line)
+end
+
+M.extrace_and_open_cursor_position_jdt_link = function()
+    local cursor_token = util.get_token_under_cursor()
+    M.extrace_and_open_first_jdt_link(cursor_token)
 end
 
 -- M.jdt_open_class = function(class_name, line_number)

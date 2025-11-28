@@ -4,6 +4,29 @@ M.get_line_under_cursor = function()
     return vim.api.nvim_get_current_line()
 end
 
+--- Get text token uner cursor between spaces
+M.get_token_under_cursor = function()
+    local _, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local line = vim.api.nvim_get_current_line()
+
+    -- Cursor index in Lua string (1-based)
+    col = col + 1
+
+    -- Expand left
+    local start_col = col
+    while start_col > 1 and not line:sub(start_col - 1, start_col - 1):match("%s") do
+        start_col = start_col - 1
+    end
+
+    -- Expand right
+    local end_col = col
+    while end_col <= #line and not line:sub(end_col, end_col):match("%s") do
+        end_col = end_col + 1
+    end
+
+    return line:sub(start_col, end_col - 1)
+end
+
 M.get_visual_selection = function()
     vim.cmd('noau normal! "vy"')
     local text = vim.fn.getreg("v")
