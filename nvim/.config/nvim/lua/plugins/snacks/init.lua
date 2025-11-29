@@ -37,11 +37,21 @@ return {
                     -- doc = { enabled = true, inline = true, float = false },
                 },
                 scroll = { enabled = false },
-                -- bigfile = { enabled = true },
+                bigfile = { enabled = true },
                 dashboard = dashboards.default,
-                -- indent = { enabled = true },
-                -- input = { enabled = true },
-                -- notifier = { enabled = true },
+                indent = { enabled = true },
+                input = { enabled = true },
+                styles = {
+                    input = {
+                        position = "float", -- "float"|"bottom"|"top"|"left"|"right"|"current"
+                        width = 40,
+                        -- position near to renamed item
+                        relative = "cursor", -- 'cursor'|'editor'|'laststatus'|'mouse'|'tabline'|'win'
+                        row = -3, -- Row of the window. Use <1 for relative row. (default: center)
+                        col = 0, -- Column of the window. Use <1 for relative column. (default: center)
+                    },
+                },
+                notifier = { enabled = true },
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
