@@ -56,6 +56,7 @@ return {
                 event = "neo_tree_buffer_enter",
                 handler = function()
                     vim.opt_local.relativenumber = true
+                    vim.opt_local.number = true
                 end,
             },
             -- automatically toggle file preview, not working if neotree opened, need manually toggle, but works great
