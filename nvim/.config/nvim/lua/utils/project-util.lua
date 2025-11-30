@@ -12,6 +12,7 @@ M.is_multifile_proj = function()
         "personal",
         "serhii.home",
         "myforks/my%-dwm",
+        "tools",
     }
     -- vim.notify("result: " .. tostring(list_util.any_match(current_file, open_if_dir_contains)), vim.log.levels.INFO)
 
