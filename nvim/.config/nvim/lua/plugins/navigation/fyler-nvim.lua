@@ -2,6 +2,11 @@ return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
+    -- stylua: ignore
+    keys = {
+        { "<leader>i", function() require("fyler").toggle() end, desc = "Toggle Fyler View" },
+        { "<leader>-", function() require("fyler").toggle() end, desc = "Toggle Fyler View" }
+    },
     opts = {
         integrations = {
             icon = "nvim_web_devicons",
@@ -67,10 +72,5 @@ return {
                 },
             },
         },
-    },
-    -- stylua: ignore
-    keys = {
-        { "<leader>i", function() require("fyler").toggle() end, desc = "Toggle Fyler View" },
-        { "<leader>-", function() require("fyler").toggle() end, desc = "Toggle Fyler View" }
     },
 }
