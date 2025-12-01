@@ -3,6 +3,7 @@ local M = {}
 local util = require("utils.common-util")
 local string_util = require("utils.string-util")
 local spinner = require("utils.ui.spinner")
+local home = os.getenv("HOME")
 
 local current_term_win = nil
 local function run_cmd(cmd_args)
@@ -147,34 +148,35 @@ local package_roots = { main_dir, test_dir, main_resource_dir, test_resource_dir
 --local test_path = "."
 local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem"
 
-M.fix_java_proj_after_change = function(src, destination)
-    local is_dir = util.is_dir(destination)
-    local is_file = util.is_file(destination)
+local build_fix_java_proj_after_change_cmds = function(src, dst)
+    local result_cmds = {}
+    local is_dir = util.is_dir(dst)
+    local is_file = util.is_file(dst)
     for _, root in ipairs(package_roots) do
-        if string_util.contains(src, root) and string_util.contains(destination, root) then
+        if string_util.contains(src, root) and string_util.contains(dst, root) then
             -- com/example/EmployeeManagementSystem/service/ServiceEmployee
             local package_src_path = vim.split(src, root)[2]:gsub("%.java", "")
-            local package_destination_path = vim.split(destination, root)[2]:gsub("%.java", "")
+            local package_dst_path = vim.split(dst, root)[2]:gsub("%.java", "")
 
             -- com.example.EmployeeManagementSystem.service.ServiceEmployee
             local package_src_classpath = package_src_path:gsub("/", ".")
-            local package_destination_classpath = package_destination_path:gsub("/", ".")
+            local package_dst_classpath = package_dst_path:gsub("/", ".")
 
             -- com\.example\.EmployeeManagementSystem\.service\.ServiceEmployee
             local package_src_classpath_escaped = package_src_classpath:gsub("%.", "\\.")
 
             -- com\/example\/EmployeeManagementSystem\/service\/ServiceEmployee
             local package_src_path_escaped = package_src_path:gsub("/", "\\/")
-            local package_destination_path_escaped = package_destination_path:gsub("/", "\\/")
+            local package_dst_path_escaped = package_dst_path:gsub("/", "\\/")
 
             -- ServiceEmployee
             local old_type_name = package_src_path:match("([^/]+)$")
-            local new_type_name = package_destination_path:match("([^/]+)$")
+            local new_type_name = package_dst_path:match("([^/]+)$")
 
             if is_file then
                 -- com.example.EmployeeManagementSystem.service
                 local package_declaration_src = package_src_classpath:match("(.+)%.%w+$")
-                local package_declaration_destination = package_destination_classpath:match("(.+)%.%w+$")
+                local package_declaration_dst = package_dst_classpath:match("(.+)%.%w+$")
 
                 -- com\.example\.EmployeeManagementSystem\.service
                 local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
@@ -187,9 +189,10 @@ M.fix_java_proj_after_change = function(src, destination)
                     "sed -i -E 's/(class|interface|enum|record) %s\\s/\\1 %s /g' %s",
                     old_type_name,
                     new_type_name,
-                    destination
+                    dst
                 )
-                run_cmd(fix_type_declaration_cmd)
+                -- vim.notify(fix_type_declaration_cmd)
+                table.insert(result_cmds, fix_type_declaration_cmd)
 
                 -- ==========================================================================
                 -- ==========================================================================
@@ -203,7 +206,7 @@ M.fix_java_proj_after_change = function(src, destination)
                     new_type_name
                 )
                 -- vim.notify(fix_type_symbols_where_imported)
-                run_cmd(fix_type_symbols_where_imported)
+                table.insert(result_cmds, fix_type_symbols_where_imported)
 
                 -- ==========================================================================
                 -- ==========================================================================
@@ -213,10 +216,10 @@ M.fix_java_proj_after_change = function(src, destination)
                     -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
                     package_src_classpath_escaped,
                     package_src_classpath_escaped,
-                    package_destination_classpath
+                    package_dst_classpath
                 )
                 -- vim.notify(fix_type_symbols_where_imported)
-                run_cmd(fix_type_full_qualified_names)
+                table.insert(result_cmds, fix_type_full_qualified_names)
 
                 -- ==========================================================================
                 -- ==========================================================================
@@ -224,29 +227,28 @@ M.fix_java_proj_after_change = function(src, destination)
                 local fix_package_declaration = string.format(
                     "sed -i -E 's/package\\s+%s;/package %s;/g' %s",
                     package_declaration_src_escaped,
-                    package_declaration_destination,
-                    destination
+                    package_declaration_dst,
+                    dst
                 )
                 -- vim.notify(fix_package_declaration)
-                run_cmd(fix_package_declaration)
+                table.insert(result_cmds, fix_package_declaration)
 
-                -- TODO:
                 -- ==========================================================================
                 -- ==========================================================================
                 -- 5. add import declarations of the new class name to the classes of the old folder
-                -- local all_package_import_of_old_package = string.format(
-                --     'sed -i "${3}i new line text" %s',
-                --     package_declaration_src_escaped,
-                --     package_declaration_src,
-                --     destination
-                -- )
-                -- vim.notify(fix_package_declaration)
-                -- run_cmd(fix_package_declaration)
-                --
-                --
-                -- sed -i "${N}i new line text" filepath
-                --
-                -- fd . "src/main/java/com/example/EmployeeManagementSystem/service" --max-depth 1 -e java
+                -- OLD_DIR="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service"
+                -- OLD_PACKAGE="com.example.EmployeeManagementSystem.service"
+                -- NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
+
+                local fix_old_file_imports = string.format(
+                    '%s/dotfiles/work/java/remane/fix-old-imports.sh "%s" "%s" "%s"',
+                    home,
+                    src:match("(.+)/[^/]+$"),
+                    package_declaration_src,
+                    dst
+                )
+                -- vim.notify(fix_old_file_imports)
+                table.insert(result_cmds, fix_old_file_imports)
                 -- ==========================================================================
                 -- ==========================================================================
                 -- 6. fix file path/resources path
@@ -255,35 +257,29 @@ M.fix_java_proj_after_change = function(src, destination)
                     "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g'",
                     package_src_path_escaped,
                     package_src_path_escaped,
-                    package_destination_path_escaped
+                    package_dst_path_escaped
                 )
-                vim.notify(fix_file_paht_declaration)
-                run_cmd(fix_file_paht_declaration)
+                -- vim.notify(fix_file_paht_declaration)
+                table.insert(result_cmds, fix_file_paht_declaration)
             elseif is_dir then
             end
         end
     end
+    return result_cmds
+end
 
-    -- local src_parts = vim.split(src, "/")
-    -- local destination_parts = vim.split(destination, "/")
-    -- local is_leaf_changed = src_parts[#src_parts] ~= destination_parts[#destination_parts]
-    --
-    -- print(util.is_dir(src))
-    -- print(util.is_file(src))
-    -- local is_leaf_dir_changed = (util.is_dir(src) or util.is_dir(destination)) and is_leaf_changed
-    -- local is_leaf_file_changed = (util.is_file(src) or util.is_file(destination)) and is_leaf_changed
-    --
-    -- if is_leaf_dir_changed then
-    --     M.fix_java_proj_after_path_rename(src, destination)
-    --     return
-    -- end
-    --
-    -- if is_leaf_file_changed then
-    --     M.fix_java_proj_after_path_rename(src, destination)
-    --     return
-    -- end
-    --
-    -- vim.notify(string.format("Skipped leaf change: %s -> %s", src, destination))
+M.fix_java_proj_after_change = function(src, dst)
+    if not src:match("src/.*/java/") then
+        return
+    end
+    if not dst:match("src/.*/java/") then
+        return
+    end
+    local cmds = build_fix_java_proj_after_change_cmds(src, dst)
+    local cmd_to_run = table.concat(cmds, " && ")
+
+    -- vim.notify(cmd_to_run)
+    run_cmd(cmd_to_run)
 end
 
 M.fix_java_proj_after_change(
