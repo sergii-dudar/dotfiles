@@ -80,6 +80,14 @@ M.is_file_exists = function(filepath)
     return vim.fn.filereadable(filepath) == 1
 end
 
+M.is_dir = function(path)
+    return vim.fn.isdirectory(path) == 1
+end
+
+M.is_file = function(path)
+    return vim.fn.filereadable(path) == 1
+end
+
 M.close_window_if_exists = function(win_id)
     if win_id and vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)

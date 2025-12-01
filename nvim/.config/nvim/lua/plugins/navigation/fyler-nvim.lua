@@ -13,11 +13,11 @@ return {
         },
         hooks = {
             on_delete = function(path)
-                print("DELETED: " .. path) -- You can do anything whenever an item deleted
+                vim.notify("DELETED: " .. path, vim.log.levels.INFO) -- You can do anything whenever an item deleted
             end,
             on_rename = function(src, dst)
                 -- Snacks.rename.on_rename_file(src, dst) -- LSP-integrated file renaming (for lsp supported it) - DEFAULT
-                print("RENAMED: " .. src .. " > " .. dst) -- You can do anything whenever an item Renamed
+                vim.notify("RENAMED: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
             end,
         },
         views = {

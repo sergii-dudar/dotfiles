@@ -1,6 +1,7 @@
 local M = {}
 
 local maven_util = require("utils.java.maven-util")
+local util = require("utils.common-util")
 -- local util = require("utils.common-util")
 local home = os.getenv("HOME")
 
@@ -132,6 +133,24 @@ M.java_class_to_proj_path = function(classname)
     end
     -- then it's dependency lib
     return nil ]]
+end
+
+local java_root_files = {
+    "pom.xml",
+    "build.gradle",
+    "build.gradle.kts",
+    "settings.gradle",
+    "settings.gradle.kts",
+}
+
+M.is_java_project = function()
+    local root = vim.fn.getcwd()
+    for _, f in ipairs(java_root_files) do
+        if util.is_file_exists(root .. "/" .. f) then
+            return true
+        end
+    end
+    return false
 end
 
 return M
