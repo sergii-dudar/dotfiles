@@ -233,8 +233,7 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- TODO:
                 -- ==========================================================================
                 -- ==========================================================================
-                -- add import declarations of the new class name to the classes of the old folder
-                -- 5. add package import of old package
+                -- 5. add import declarations of the new class name to the classes of the old folder
                 -- local all_package_import_of_old_package = string.format(
                 --     'sed -i "${3}i new line text" %s',
                 --     package_declaration_src_escaped,
@@ -244,9 +243,10 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- vim.notify(fix_package_declaration)
                 -- run_cmd(fix_package_declaration)
                 --
+                --
                 -- sed -i "${N}i new line text" filepath
                 --
-                --
+                -- fd . "src/main/java/com/example/EmployeeManagementSystem/service" --max-depth 1 -e java
                 -- ==========================================================================
                 -- ==========================================================================
                 -- 6. fix file path/resources path
