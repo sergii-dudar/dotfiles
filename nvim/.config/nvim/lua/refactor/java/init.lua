@@ -152,18 +152,32 @@ M.fix_java_proj_after_change = function(src, destination)
     local is_file = util.is_file(destination)
     for _, root in ipairs(package_roots) do
         if string_util.contains(src, root) and string_util.contains(destination, root) then
+            -- com/example/EmployeeManagementSystem/service/ServiceEmployee
             local package_src_path = vim.split(src, root)[2]:gsub("%.java", "")
             local package_destination_path = vim.split(destination, root)[2]:gsub("%.java", "")
 
+            -- com.example.EmployeeManagementSystem.service.ServiceEmployee
             local package_src_classpath = package_src_path:gsub("/", ".")
             local package_destination_classpath = package_destination_path:gsub("/", ".")
 
+            -- com\.example\.EmployeeManagementSystem\.service\.ServiceEmployee
+            local package_src_classpath_escaped = package_src_classpath:gsub("%.", "\\.")
+
+            -- com\/example\/EmployeeManagementSystem\/service\/ServiceEmployee
+            local package_src_path_escaped = package_src_path:gsub("/", "\\/")
+            local package_destination_path_escaped = package_destination_path:gsub("/", "\\/")
+
+            -- ServiceEmployee
             local old_type_name = package_src_path:match("([^/]+)$")
             local new_type_name = package_destination_path:match("([^/]+)$")
 
             if is_file then
+                -- com.example.EmployeeManagementSystem.service
                 local package_declaration_src = package_src_classpath:match("(.+)%.%w+$")
                 local package_declaration_destination = package_destination_classpath:match("(.+)%.%w+$")
+
+                -- com\.example\.EmployeeManagementSystem\.service
+                local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
 
                 -- java file rename fixes (priority is very important):
                 -- ==========================================================================
@@ -180,7 +194,6 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- ==========================================================================
                 -- ==========================================================================
                 -- 2. fix type symbols (simple java name) where type is imported.
-                local package_src_classpath_escaped = package_src_classpath:gsub("%.", "\\.")
                 local fix_type_symbols_where_imported = string.format(
                     "rg --color=never -l 'import\\s+%s' "
                         .. test_path
@@ -196,7 +209,7 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- ==========================================================================
                 -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
                 local fix_type_full_qualified_names = string.format(
-                    "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.]|$)/%s\\1/g'",
+                    "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g'",
                     -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
                     package_src_classpath_escaped,
                     package_src_classpath_escaped,
@@ -208,14 +221,13 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- ==========================================================================
                 -- ==========================================================================
                 -- 4. fix packaged decration in changed file.
-                local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
                 local fix_package_declaration = string.format(
                     "sed -i -E 's/package\\s+%s;/package %s;/g' %s",
                     package_declaration_src_escaped,
                     package_declaration_destination,
                     destination
                 )
-                vim.notify(fix_package_declaration)
+                -- vim.notify(fix_package_declaration)
                 run_cmd(fix_package_declaration)
 
                 -- TODO:
@@ -233,8 +245,20 @@ M.fix_java_proj_after_change = function(src, destination)
                 -- run_cmd(fix_package_declaration)
                 --
                 -- sed -i "${N}i new line text" filepath
-                -- 6. fix file path
-                -- 7. fix resources path
+                --
+                --
+                -- ==========================================================================
+                -- ==========================================================================
+                -- 6. fix file path/resources path
+
+                local fix_file_paht_declaration = string.format(
+                    "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g'",
+                    package_src_path_escaped,
+                    package_src_path_escaped,
+                    package_destination_path_escaped
+                )
+                vim.notify(fix_file_paht_declaration)
+                run_cmd(fix_file_paht_declaration)
             elseif is_dir then
             end
         end
