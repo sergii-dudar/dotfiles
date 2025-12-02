@@ -70,6 +70,7 @@ return {
             },
         },
     },
+    -- teswt
     -- Show diagnostics and lsp info inside a custom window
     -- {
     --     "soulis-1256/eagle.nvim",
