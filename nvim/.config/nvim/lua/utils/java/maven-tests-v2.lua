@@ -162,6 +162,7 @@ end
 -- Main runner
 local function run_mvn_test_cmd(cmd_args)
     vim.notify("🚀 " .. table.concat(cmd_args, " "), vim.log.levels.INFO)
+    vim.notify("cwd: " .. vim.fn.getcwd(), vim.log.levels.INFO)
     spinner.start("🚀 " .. table.concat(cmd_args, " "))
 
     vim.cmd("botright split")
@@ -175,6 +176,7 @@ local function run_mvn_test_cmd(cmd_args)
     last_runned_test_cmd_args = cmd_args
     local output = {}
     local job_id = vim.fn.jobstart(cmd_args, {
+        cwd = vim.fn.getcwd(),
         term = true, -- the modern replacement for termopen()
         stdout_buffered = false,
         stderr_buffered = false,
@@ -201,7 +203,7 @@ local function run_mvn_test_cmd(cmd_args)
             M.publish_maven_diagnostics(all)
 
             ------------------------------------
-            java_trace.highlight_java_test_trace(term_buf)
+            -- java_trace.highlight_java_test_trace(term_buf)
             ------------------------------------
 
             if code == 0 then

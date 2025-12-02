@@ -44,7 +44,7 @@ local function run_maven_compile(cmd_args)
     -- vim.notify("🚀 mvn " .. table.concat(cmd_args, " "), vim.log.levels.INFO)
     spinner.start("🚀 mvn " .. table.concat(cmd_args, " "))
 
-    vim.system({ "mvn", unpack(cmd_args) }, { text = true }, function(res)
+    vim.system({ "mvn", unpack(cmd_args) }, { text = true, cwd = vim.fn.getcwd() }, function(res)
         local combined = vim.split(res.stdout .. res.stderr, "\n")
         local parsed = parse_maven_output_diagnostics(combined)
 

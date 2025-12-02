@@ -19,27 +19,46 @@ vim.api.nvim_set_hl(0, "TraceNonProjectClassHl", {
     bold = true,
 })
 
+M.highlight_java_test_trace_lines = function(lines)
+    for i, line in ipairs(lines) do
+        local trace = java_util.parse_java_mvn_run_class_line(line)
+        if trace then
+            local line_ix = i - 1
+            local file_path = java_util.java_class_to_proj_path(trace.class_path)
+            local hl_group = file_path and "TraceProjectClassHl" or "TraceNonProjectClassHl"
+            vim.api.nvim_buf_set_extmark(buffer, stacktrace_ns, line_ix, trace.line_start_position, {
+                end_line = line_ix, -- only current line
+                end_col = trace.line_end_position,
+                hl_group = hl_group,
+            })
+        end
+    end
+end
+
+---@param text string
+M.highlight_java_test_trace_text = function(text)
+    local lines = {}
+    for line in text:gmatch("[^\n]+") do
+        table.insert(lines, line)
+    end
+
+    M.highlight_java_test_trace_lines(lines)
+end
+
 M.highlight_java_test_trace = function(buffer)
     if vim.api.nvim_buf_is_valid(buffer) then
         local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
-        for i, line in ipairs(lines) do
-            local trace = java_util.parse_java_mvn_run_class_line(line)
-            if trace then
-                local line_ix = i - 1
-                local file_path = java_util.java_class_to_proj_path(trace.class_path)
-                local hl_group = file_path and "TraceProjectClassHl" or "TraceNonProjectClassHl"
-                vim.api.nvim_buf_set_extmark(buffer, stacktrace_ns, line_ix, trace.line_start_position, {
-                    end_line = line_ix, -- only current line
-                    end_col = trace.line_end_position,
-                    hl_group = hl_group,
-                })
-            end
-        end
+        M.highlight_java_test_trace_lines(lines)
     end
 end
 
 M.highlight_java_test_trace_current_buf = function()
     M.highlight_java_test_trace(vim.api.nvim_get_current_buf())
+end
+
+M.highlight_java_trace_selected = function()
+    local stack_trace = common.get_visual_selection()
+    M.highlight_java_test_trace_text(stack_trace)
 end
 
 local parse_java_stack_trace = function(trace, result_callback)

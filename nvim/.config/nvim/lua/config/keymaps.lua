@@ -126,7 +126,8 @@ map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selecte
 map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "Parse current line trace to quick fix list" })
 map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
-map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Parse current line trace and open in buffer" })
+map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
+map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
 -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
 map("n", "gj", function() require("utils.java.jdtls-util").extrace_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })

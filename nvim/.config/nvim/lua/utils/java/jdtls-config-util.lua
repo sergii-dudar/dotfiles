@@ -43,7 +43,7 @@ M.jdtls_settings = {
         -- ====================================================================
         -- Automatic build settings
         autobuild = {
-            enabled = true, -- Auto-compile on save
+            enabled = false, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
         },
         -- Max number of concurrent builds
         maxConcurrentBuilds = 1,
@@ -170,10 +170,18 @@ M.jdtls_settings = {
                 "java", -- java.*
                 "javax", -- javax.*
                 "jakarta", -- jakarta.*
-                "org",
-                "com",
                 "#", -- Import static all other imports
             },
+
+            -- "com",
+            -- "lombok",
+            -- "org",
+            -- "ua",
+            -- "java", -- java.*
+            -- "javax", -- javax.*
+            -- "jakarta", -- jakarta.*
+            -- "", -- Import all other imports
+            -- "#", -- Import static all other imports
             chain = {
                 enabled = false,
             },

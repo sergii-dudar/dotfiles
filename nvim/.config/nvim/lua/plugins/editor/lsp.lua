@@ -42,6 +42,10 @@ return {
         "rachartier/tiny-inline-diagnostic.nvim",
         event = "VeryLazy",
         priority = 1000,
+        -- stylua: ignore
+        keys = {
+            { "<leader>xdt", "<cmd>TinyInlineDiag toggle<cr>", { desc = "[D]iagnostics [T]oggle" } }
+        },
         opts = {
             preset = "modern", -- Available: "modern", "classic", "minimal", "powerline", "ghost", "simple", "nonerdfont", "amongus"
             transparent_bg = false,
