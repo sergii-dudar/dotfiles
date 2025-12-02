@@ -31,7 +31,10 @@ M.jdt_load_unique_class_list = function(class_names, handler)
         end
 
         -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
-        jdtls_client:request("workspace/symbol", { query = class_name }, function(err, result, ctx)
+
+        local class_name_query = vim.split(class_name, "%$")[1] -- we need only top level class, to position we have linenumber
+        vim.notify("requesting " .. class_name_query)
+        jdtls_client:request("workspace/symbol", { query = class_name_query }, function(err, result, ctx)
             pending = pending - 1
 
             if err then
