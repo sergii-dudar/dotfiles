@@ -1,3 +1,5 @@
+local java_util = require("utils.java.java-common")
+local java_refactor_util = require("utils.java.java-refactor-util")
 return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -16,8 +18,13 @@ return {
                 vim.notify("DELETED: " .. path, vim.log.levels.INFO) -- You can do anything whenever an item deleted
             end,
             on_rename = function(src, dst)
-                -- Snacks.rename.on_rename_file(src, dst) -- LSP-integrated file renaming (for lsp supported it) - DEFAULT
-                vim.notify("RENAMED: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
+                if java_util.is_java_project then
+                    java_refactor_util.fix_java_proj_after_change(src, dst)
+                    -- vim.notify("SUCCESS: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
+                else
+                    Snacks.rename.on_rename_file(src, dst) -- LSP-integrated file renaming (for lsp supported it) - DEFAULT
+                end
+                -- vim.notify("RENAMED: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
             end,
         },
         views = {

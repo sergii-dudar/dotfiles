@@ -41,8 +41,9 @@ local test_dir = "src/test/java/"
 local main_resource_dir = "src/main/resources/"
 local test_resource_dir = "src/test/resources/"
 local package_roots = { main_dir, test_dir, main_resource_dir, test_resource_dir }
---local test_path = "."
+-- local test_path = "."
 local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem" -- TODO: change to . after finish
+-- local test_path = vim.fn.getcwd()
 
 local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, dst)
     -- com/example/EmployeeManagementSystem/service/ServiceEmployee
@@ -223,6 +224,7 @@ M.fix_java_proj_after_change = function(src, dst)
         return
     end
     local cmds = build_fix_java_proj_after_change_cmds(src, dst)
+    dd(cmds)
     local cmd_to_run = table.concat(cmds, " && ")
 
     -- vim.notify(cmd_to_run)
