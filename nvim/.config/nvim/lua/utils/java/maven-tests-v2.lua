@@ -46,8 +46,7 @@ local function push_current(diagnostics_table, current_error)
     end
 end
 
-M.parse_maven_output = function(text)
-    local diagnostics = {}
+M.parse_maven_output = function(diagnostics, text)
     local current = nil
     local current_num = 1
 
@@ -127,9 +126,8 @@ M.parse_maven_output = function(text)
     return diagnostics
 end
 
-M.publish_maven_diagnostics = function(clean_text)
-    local diags = M.parse_maven_output(clean_text)
-    if vim.tbl_isempty(diags) then
+M.publish_maven_diagnostics = function(diagnostics)
+    if vim.tbl_isempty(diagnostics) then
         vim.diagnostic.reset()
         return
     end
@@ -137,7 +135,7 @@ M.publish_maven_diagnostics = function(clean_text)
     -- group by filename because vim.diagnostic.set needs per-buffer
     local grouped = {}
 
-    for _, d in ipairs(diags) do
+    for _, d in ipairs(diagnostics) do
         grouped[d.filename] = grouped[d.filename] or {}
         table.insert(grouped[d.filename], d)
     end
@@ -159,6 +157,20 @@ M.publish_maven_diagnostics = function(clean_text)
     vim.cmd("Trouble diagnostics open")
 end
 
+local function process_test_cmd_output(diagnostics)
+    return function(_, data)
+        local batch_lines = {}
+        for _, line in ipairs(data) do
+            if line ~= "" then
+                table.insert(batch_lines, line)
+            end
+        end
+        local all = table.concat(batch_lines, "\n")
+        all = util.strip_ansi(all)
+        M.parse_maven_output(diagnostics, all)
+    end
+end
+
 -- Main runner
 local function run_mvn_test_cmd(cmd_args)
     vim.notify("🚀 " .. table.concat(cmd_args, " "), vim.log.levels.INFO)
@@ -173,34 +185,23 @@ local function run_mvn_test_cmd(cmd_args)
     local term_buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_win_set_buf(current_term_win, term_buf)
 
+    local diagnostics = {}
+
     last_runned_test_cmd_args = cmd_args
-    local output = {}
     local job_id = vim.fn.jobstart(cmd_args, {
         cwd = vim.fn.getcwd(),
         term = true, -- the modern replacement for termopen()
         stdout_buffered = false,
         stderr_buffered = false,
-
-        on_stdout = function(_, data)
-            for _, l in ipairs(data) do
-                if l ~= "" then
-                    table.insert(output, l)
-                end
-            end
-        end,
-        on_stderr = function(_, data)
-            for _, l in ipairs(data) do
-                if l ~= "" then
-                    table.insert(output, l)
-                end
-            end
-        end,
+        on_stdout = process_test_cmd_output(diagnostics),
+        on_stderr = process_test_cmd_output(diagnostics),
         on_exit = function(_, code)
             spinner.stop(code == 0, "Maven tests")
-            local all = table.concat(output, "\n")
-            all = util.strip_ansi(all)
+            -- local all = table.concat(output, "\n")
+            -- all = util.strip_ansi(all)
             -- vim.notify(all, vim.log.levels.INFO)
-            M.publish_maven_diagnostics(all)
+
+            M.publish_maven_diagnostics(diagnostics)
 
             ------------------------------------
             -- java_trace.highlight_java_test_trace(term_buf)

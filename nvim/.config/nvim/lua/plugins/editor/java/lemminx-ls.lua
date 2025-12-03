@@ -32,7 +32,9 @@ return {
                 single_file_support = true,
                 settings = {
                     xml = {
-                        -- Format#  insertSpaces  https://github.com/eclipse-lemminx/lemminx/blob/main/docs/Configuration.md#all-formatting-options
+                        -- Format:
+                        -- https://github.com/eclipse-lemminx/lemminx/blob/main/docs/Configuration.md#all-formatting-options
+                        -- https://github.com/redhat-developer/vscode-xml/blob/main/docs/Formatting.md#xmlformatxsischemalocationsplit
                         format = {
                             enabled = true, -- Enable/disable XML formatting
                             insertSpaces = true, -- indent using spaces
@@ -42,8 +44,9 @@ return {
                             preserveAttributeLineBreaks = true, -- Preserve line breaks before and after attributes
                             preserveEmptyContent = true, -- Preserve empty whitespace content (Legacy formatter only)
                             preservedNewlines = 2, -- Number of blank lines to leave between tags
-                            splitAttributes = "preserve", -- Split node attributes onto multiple lines: preserve/splitNewLine/alignWithFirstAttr
-                            -- splitAttributesIndentSize = 2, -- Indentation level for attributes when split
+                            splitAttributes = "alignWithFirstAttr", -- Split node attributes onto multiple lines: preserve/splitNewLine/alignWithFirstAttr
+                            splitAttributesIndentSize = 3, -- Indentation level for attributes when split
+                            trimTrailingWhitespace = true,
                             -- closingBracketNewLine = false, -- Put closing bracket on a new line for tags with multiple attributes
                             -- emptyElements = "ignore", -- Handling of empty elements: ignore/collapse/expand
                             -- xsiSchemaLocationSplit = "onPair", -- How to format xsi:schemaLocation content

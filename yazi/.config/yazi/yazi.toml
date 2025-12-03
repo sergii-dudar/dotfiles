@@ -38,6 +38,9 @@ edit = [
     { run = 'code -w %*', block = true, desc = "code (block)", for = "windows" },
     { run = 'nvim -d "$@"', desc = "Merge [selected file]", block = true, for = "unix" },
 ]
+decompiler = [
+    { run = '~/dotfiles/bin/java/decompile_previewer.sh "$@"', desc = "View decompile java class", block = true, for = "unix" },
+]
 folder = [
     #{ run = '${EDITOR:=vi} "$@"', desc = "NeoVim", block = true, for = "unix" },
     { run = 'cd "$1" && ${EDITOR:=vi}', desc = "NeoVim . [PWD]", block = true, for = "unix" },
@@ -99,6 +102,7 @@ rules = [
     # Custom
     { name = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
     { name = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
+    { name = "{*.class}", use = [ "decompiler" ] },
     # Text
     { mime = "text/*", use = [ "edit", "reveal" ] },
     # Image
@@ -155,6 +159,8 @@ preloaders = [
 	{ mime = "image/{avif,hei?,jxl}", run = "magick" },
 	{ mime = "image/svg+xml", run = "svg" },
 	{ mime = "image/*", run = "image" },
+    # Java classes
+    { name = "*.class", run = "java-class-previwer" },
     # Video
     # disabled, as slow to big files, and quite anoying
     # { mime = "video/*", run = "video" },
@@ -171,6 +177,8 @@ previewers = [
 	{ mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
     # JSON
     { mime = "application/{json,ndjson}", run = "json" },
+    # Java classes
+    { name = "*.class", run = "java-class-previwer" },
     # Image
 	{ mime = "image/{avif,hei?,jxl}", run = "magick" },
 	{ mime = "image/svg+xml", run = "svg" },

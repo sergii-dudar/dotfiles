@@ -38,7 +38,7 @@ return {
                     ".project",
                     ".factorypath",
                     "target",
-                    "bin",
+                    -- "bin",
                     -- ".rgignore"
                 },
                 hide_by_pattern = { -- uses glob style patterns
