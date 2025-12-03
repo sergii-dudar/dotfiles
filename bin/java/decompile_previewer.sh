@@ -2,7 +2,8 @@
 
 CLASSFILE="$1"
 # OUTDIR="$(mktemp -d)"
-OUTDIR="${TMPDIR:-/tmp}"
+# OUTDIR="${TMPDIR:-/tmp}"
+OUTDIR="${TMPDIR:-/tmp/}"
 
 JAVA_FILE_NAME="$(basename "${CLASSFILE%.class}.java")"
 DECOMPILED_JAVA="${OUTDIR}${JAVA_FILE_NAME}"
