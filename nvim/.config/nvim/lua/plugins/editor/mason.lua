@@ -51,7 +51,7 @@ return {
             -- some issue with lua_ls 3.16.0, use 3.15.0 for now
             -- MasonInstall lua-language-server@3.15.0
             -- "lua-language-server",
-            "lua-language-server@3.15.0",
+            "lua-language-server",
         },
     },
 }
