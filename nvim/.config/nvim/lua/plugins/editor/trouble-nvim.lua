@@ -1,3 +1,4 @@
+local constants = require("utils.constants")
 return {
     "folke/trouble.nvim",
     opts = {
@@ -41,6 +42,15 @@ return {
                 },
                 -- sort = { "severity", "filename", "pos", "message" },
                 sort = { { by = "none" } },
+            },
+            maven_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        -- return item.severity == vim.diagnostic.severity.ERROR
+                        return item.item.source == constants.java.maven_diagnostics_test_source
+                    end, items)
+                end,
             },
         },
         auto_close = true, -- auto close when there are no items

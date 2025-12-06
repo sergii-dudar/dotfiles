@@ -6,6 +6,7 @@ local util = require("utils.common-util")
 local java_util = require("utils.java.java-common")
 local spinner = require("utils.ui.spinner")
 local java_trace = require("utils.java.java-trace")
+local constants = require("utils.constants")
 local last_runned_test_cmd_args = nil
 local current_term_win = nil
 
@@ -16,7 +17,7 @@ local function push_frame(diagnostics_table, classname, method, msg, number, fra
         -- message = string.format("[%s.%s] %s", classname, method, msg),
         message = string.format("(%s-%s): %s", number, frame_number, msg),
         -- "Bold text in nvim term\e[0m\n"
-        source = "maven-test",
+        source = constants.java.maven_diagnostics_test_source,
         filename = file,
         severity = vim.diagnostic.severity.ERROR,
         class_name = classname,
@@ -154,7 +155,11 @@ M.publish_maven_diagnostics = function(diagnostics)
     -- TODO: virtual marks on opened buffers with failed tests
 
     -- vim.notify("❌😬 Test Finished with Fails", vim.log.levels.WARN)
-    vim.cmd("Trouble diagnostics open")
+
+    -- ### https://github.com/folke/trouble.nvim/blob/main/docs/filter.md#item-attributes
+    -- Trouble diagnostics filter.severity=vim.diagnostic.severity.ERROR
+    --vim.cmd("Trouble diagnostics open")
+    vim.cmd("Trouble maven_test_diagnostics open")
 end
 
 local function process_test_cmd_output(diagnostics)
