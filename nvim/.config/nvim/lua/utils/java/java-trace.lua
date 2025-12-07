@@ -19,14 +19,17 @@ vim.api.nvim_set_hl(0, "TraceNonProjectClassHl", {
     bold = true,
 })
 
-M.highlight_java_test_trace_lines = function(lines)
+M.highlight_java_test_trace_lines = function(lines, trace_selected_line)
+    trace_selected_line = (trace_selected_line and trace_selected_line - 1) or 0
+    -- vim.notify("selected_line: " .. trace_selected_line)
     for i, line in ipairs(lines) do
         local trace = java_util.parse_java_mvn_run_class_line(line)
         if trace then
-            local line_ix = i - 1
+            local line_ix = i - 1 + trace_selected_line
             local file_path = java_util.java_class_to_proj_path(trace.class_path)
             local hl_group = file_path and "TraceProjectClassHl" or "TraceNonProjectClassHl"
-            vim.api.nvim_buf_set_extmark(buffer, stacktrace_ns, line_ix, trace.line_start_position, {
+            -- local buffer = vim.api.nvim_get_current_buf()
+            vim.api.nvim_buf_set_extmark(0, stacktrace_ns, line_ix, trace.line_start_position, {
                 end_line = line_ix, -- only current line
                 end_col = trace.line_end_position,
                 hl_group = hl_group,
@@ -36,13 +39,13 @@ M.highlight_java_test_trace_lines = function(lines)
 end
 
 ---@param text string
-M.highlight_java_test_trace_text = function(text)
+M.highlight_java_test_trace_text = function(text, selected_line)
     local lines = {}
     for line in text:gmatch("[^\n]+") do
         table.insert(lines, line)
     end
 
-    M.highlight_java_test_trace_lines(lines)
+    M.highlight_java_test_trace_lines(lines, selected_line)
 end
 
 M.highlight_java_test_trace = function(buffer)
@@ -58,7 +61,7 @@ end
 
 M.highlight_java_trace_selected = function()
     local stack_trace = common.get_visual_selection()
-    M.highlight_java_test_trace_text(stack_trace)
+    M.highlight_java_test_trace_text(stack_trace, vim.fn.getpos("v")[2])
 end
 
 local parse_java_stack_trace = function(trace, result_callback)
@@ -148,7 +151,7 @@ M.parse_current_line_trace_to_qflist = function()
     M.show_stack_trace_qflist(stack_trace)
 end
 
-M.parse_trace_and_open_in_buffer = function()
+M.parse_trace_under_cursor_and_open_in_buffer = function()
     local trace_line = common.get_line_under_cursor()
     local parsed = java_util.parse_java_mvn_run_class_line(trace_line)
     if not parsed then

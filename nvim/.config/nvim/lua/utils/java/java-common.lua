@@ -29,6 +29,7 @@ local java_mvn_class_pattern = "at%s+([^%s]-)([^/^%s]-)%.([^%.]+)%((.-)%.java:(%
 local java_compile_java_pattern = "%[([A-Z]+)%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)"
 
 ---@return { class_path: string,
+---class_path_root: string,
 ---class_line_number: integer,
 ---line_start_position: integer,
 ---line_end_position: integer,
@@ -39,6 +40,7 @@ M.parse_java_mvn_run_class_line = function(line)
     if class_path then
         return {
             class_path = class_path,
+            class_path_root = vim.split(class_path, "%$")[1],
             class_line_number = (tonumber(line_num) or 1),
             line_start_position = string.find(line, prefix .. class_path) - 1,
             line_end_position = #line,
@@ -87,7 +89,6 @@ end
 --         at ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT.shouldRetrieveBadRequestErrorWhenHeaderRequestIdIsInvalid(CardTransferInitiationIT.java:317)
 -- ]]))
 
-
 ---@return { file: string,
 ---lnum: integer,
 ---col: integer,
@@ -113,6 +114,7 @@ M.parse_mvn_compile_java_line = function(line)
 end
 
 ---@return [{ class_path: string,
+---class_path_root: string,
 ---class_line_number: integer,
 ---line_start_position: integer,
 ---line_end_position: integer,

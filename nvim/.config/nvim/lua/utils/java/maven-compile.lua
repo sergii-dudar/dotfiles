@@ -3,6 +3,7 @@ local M = {}
 local maven_util = require("utils.java.maven-util")
 local spinner = require("utils.ui.spinner")
 local java_util = require("utils.java.java-common")
+local constants = require("utils.constants")
 
 local java_namespace = vim.api.nvim_create_namespace("java.compile.namespace")
 local compile_autocmds = {}
@@ -26,13 +27,13 @@ local function parse_maven_output_diagnostics(lines)
             grouped[parsed.file] = grouped[parsed.file] or {}
             local col = (tonumber(parsed.col) or 1) - 1
             table.insert(grouped[parsed.file], {
-                lnum = (tonumber(parsed.lnum) or 1) - 1,
+                lnum = (tonumber(parsed.lnum) or 1), -- - 1,
                 col = col,
                 end_col = col + 20,
                 message = parsed.message,
                 -- severity = vim.diagnostic.severity.ERROR,
                 severity = parsed.severity,
-                source = "Maven",
+                source = constants.java.maven_diagnostics_compile_source,
             })
         end
     end
@@ -57,10 +58,12 @@ local function run_maven_compile(cmd_args)
                 -- vim.cmd("Trouble diagnostics close")
                 -- vim.cmd("Trouble qflist close")
                 vim.cmd("JdtUpdateConfig") -- tell jdts about fix
-                vim.diagnostic.reset(java_namespace)
+                -- vim.diagnostic.reset(java_namespace)
+                vim.diagnostic.reset()
             else
                 -- vim.notify("❌ Maven NOT OK", vim.log.levels.WARN)
 
+                vim.diagnostic.reset()
                 for file, diags in pairs(parsed) do
                     -- load all buffers in hidden mode
                     local bufnr = vim.fn.bufadd(file)
@@ -72,7 +75,8 @@ local function run_maven_compile(cmd_args)
 
                 -- vim.fn.setqflist(qf)
                 -- vim.cmd("Trouble qflist toggle")
-                vim.cmd("Trouble diagnostics open")
+                -- vim.cmd("Trouble diagnostics open")
+                vim.cmd("Trouble maven_compile_diagnostics open")
             end
         end)
     end)

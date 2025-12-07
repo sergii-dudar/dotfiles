@@ -52,6 +52,14 @@ return {
                     end, items)
                 end,
             },
+            maven_compile_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.java.maven_diagnostics_compile_source
+                    end, items)
+                end,
+            },
         },
         auto_close = true, -- auto close when there are no items
         auto_open = false, -- auto open when there are items
