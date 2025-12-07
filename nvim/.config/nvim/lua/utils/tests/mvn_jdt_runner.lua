@@ -42,11 +42,35 @@ local java_util = require("utils.java.java-common")
 --[[
 ]]
 
-local trace = [[
-        at ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.controller.CardTransferController$$SpringCGLIB$$0.initiateCardTransfer(<generated>.java:317)
+-- local trace = [[
+--         at ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.controller.CardTransferController$$SpringCGLIB$$0.initiateCardTransfer(<generated>.java:317)
+-- ]]
+--
+-- local parsed_trace = java_util.parse_java_mvn_run_class_text(trace)
+-- for _, parsed in ipairs(parsed_trace) do
+--     print(parsed.class_path_root .. " - " .. parsed.method)
+-- end
+
+-- "manoelcampos/xml2lua"
+local xml_parser = require("neotest.lib.xml")
+
+local xml = [[
+<people>
+  <person type="natural">
+    <name>Manoel</name>
+    <city>Palmas-TO</city>
+  </person>
+  <person type="legal">
+    <name>University of Brasília</name>
+    <city>Brasília-DF</city>
+  </person>
+</people>
 ]]
 
-local parsed_trace = java_util.parse_java_mvn_run_class_text(trace)
-for _, parsed in ipairs(parsed_trace) do
-    print(parsed.class_path_root .. " - " .. parsed.method)
-end
+local xml2 = table.concat(
+    vim.fn.readfile("/home/serhii/serhii.home/git/tests/serhii-application/test-report/TEST-junit-jupiter.xml"),
+    "\n"
+)
+
+--Instantiates the XML parser
+print(xml_parser.parse(xml2).testsuite.testcase)

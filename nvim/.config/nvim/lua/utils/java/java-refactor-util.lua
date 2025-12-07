@@ -226,6 +226,7 @@ M.fix_java_proj_after_change = function(src, dst)
     local cmds = build_fix_java_proj_after_change_cmds(src, dst)
     dd(cmds)
     local cmd_to_run = table.concat(cmds, " && ")
+    -- dd(cmd_to_run)
 
     -- vim.notify(cmd_to_run)
     run_cmd(cmd_to_run)

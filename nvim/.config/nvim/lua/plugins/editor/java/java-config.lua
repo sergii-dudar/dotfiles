@@ -56,7 +56,7 @@ return {
             --     vim.notify("jdtls bundles extende ", vim.log.levels.INFO)
             -- end,
             settings = jdtlsc_util.jdtls_settings,
-            -- test = false, -- issue with java-test in latest mason module, using from vscode build instead
+            test = false, -- issue with java-test in latest mason module, using from vscode build instead
         },
     },
     -- vs spring-boot tools ls to integrate in jdtls
