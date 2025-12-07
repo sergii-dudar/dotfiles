@@ -43,6 +43,19 @@ TimeZone.getTimeZone("GMT"))
 
 ```
 
+### cdo
+
+```vim
+# by matches:
+:cdo s/foo/bar/g | update
+:cdo s/foo/bar/gc | up
+
+or:
+
+# by whole files once a file
+:cfdo %s/foo/bar/g | up
+```
+
 ```text
 additional navigation:
 
