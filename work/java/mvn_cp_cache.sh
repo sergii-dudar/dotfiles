@@ -13,6 +13,13 @@ if [ ! -f "$CACHE_FILE_NAME" ] || [ "$POM_FILE" -nt "$CACHE_FILE_NAME" ]; then
     fi
     # cache file to app root (where pom.xml file), mvn work from any child sub dir of project
     mvn -q dependency:build-classpath -Dmdep.outputFile="$CACHE_FILE_NAME" -DincludeScope="$EXEC_SCOPE"
+
+    # refresh compiled sources
+    # if [ "$EXEC_SCOPE" == "test" ]; then
+    #     bash -c "mvn -q compile test-compile"
+    # else
+    #     bash -c "mvn -q compile"
+    # fi
 fi
 
 cache_file_dir="$EXEC_DIR"
@@ -29,9 +36,9 @@ classpath=$(bat -pp "$cache_file_dir"/"$CACHE_FILE_NAME")
 
 # build sources
 if [ "$EXEC_SCOPE" == "test" ]; then
-    bash -c "mvn -q compile test-compile"
+    # bash -c "mvn -q compile test-compile"
     echo "$classpath:$cache_file_dir/target/classes:$cache_file_dir/target/test-classes:$cache_file_dir/target/generated-sources:$cache_file_dir/target/generated-test-sources"
 else
-    bash -c "mvn -q compile"
+    # bash -c "mvn -q compile"
     echo "$classpath:$cache_file_dir/target/classes:$cache_file_dir/target/generated-sources"
 fi

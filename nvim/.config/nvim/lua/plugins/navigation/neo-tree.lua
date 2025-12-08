@@ -43,7 +43,6 @@ return {
                 },
                 hide_by_pattern = { -- uses glob style patterns
                     ".classpath*",
-                    "settings.*",
                 },
             },
             follow_current_file = {
