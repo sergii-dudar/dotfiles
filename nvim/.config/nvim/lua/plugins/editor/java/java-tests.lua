@@ -41,6 +41,7 @@ return {
                 enabled = true,
                 open_on_run = false,
             },
+            consumers = {},
             -- output_panel = {
             --     enabled = true,
             --     open = "botright split | resize 15",
