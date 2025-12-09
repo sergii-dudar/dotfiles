@@ -43,7 +43,7 @@ M.jdtls_settings = {
         -- ====================================================================
         -- Automatic build settings
         autobuild = {
-            enabled = false, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
+            enabled = true, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
         },
         -- Max number of concurrent builds
         maxConcurrentBuilds = 1,
@@ -108,6 +108,7 @@ M.jdtls_settings = {
                 offline = {
                     enabled = false,
                 },
+                -- disableTestClasspathFlag: false
                 -- executable = home .. "/.sdkman/candidates/maven/current/bin/mvn",
             },
             gradle = {
