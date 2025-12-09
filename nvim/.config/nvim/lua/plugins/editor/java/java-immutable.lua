@@ -131,11 +131,10 @@ return {
                 dap = { hotcodereplace = "auto", config_overrides = {} },
                 -- Can set this to false to disable main class scan, which is a performance killer for large project
                 dap_main = {},
-                test = true,
-
                 --#########################################
                 --###### Custom Jdtls Config START ########
                 --#########################################
+                test = false, -- disabled jdtls test in favor of neotest-java
                 settings = require("utils.java.jdtls-config-util").jdtls_settings,
                 --#####################################
                 --################ END ################
@@ -172,8 +171,25 @@ return {
             -- local home = os.getenv("HOME")
             -- local tests_modules = home .. "/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar"
             -- vim.list_extend(bundles, vim.fn.glob(tests_modules, false, true))
+            opts.is_config_updated = false
             opts.on_attach = function(args)
-                vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
+                if not opts.is_config_updated then
+                    vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
+                    -- Delay is important: JDTLS needs to finish startup first
+
+                    --[[ local timer = vim.uv.new_timer()
+                    timer:start(
+                        5000,
+                        0,
+                        vim.schedule_wrap(function()
+                            -- need to regenerate generated source codes like [mapscruct etc], until not find better way
+                            vim.notify("🏄 Jdt updating started...")
+                            vim.cmd("JdtUpdateConfig")
+                            opts.is_config_updated = true
+                            timer:close()
+                        end)
+                    ) ]]
+                end
             end
 
             --#####################################

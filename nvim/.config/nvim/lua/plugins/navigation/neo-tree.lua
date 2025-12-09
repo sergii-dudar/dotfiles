@@ -42,7 +42,7 @@ return {
                     -- ".rgignore"
                 },
                 hide_by_pattern = { -- uses glob style patterns
-                    ".classpath*",
+                    ".classpath.*",
                 },
             },
             follow_current_file = {

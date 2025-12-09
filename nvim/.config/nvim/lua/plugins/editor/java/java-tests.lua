@@ -1,6 +1,7 @@
 return {
     {
-        "rcasia/neotest-java",
+        -- "rcasia/neotest-java",
+        "sergii-dudar/neotest-java",
         ft = "java",
         dependencies = {
             "mfussenegger/nvim-jdtls",
@@ -17,7 +18,36 @@ return {
             "antoinemadec/FixCursorHold.nvim",
             "nvim-treesitter/nvim-treesitter",
         },
-        config = function()
+        opts = {
+            adapters = {
+                ["neotest-java"] = {},
+            },
+            -- default:
+            -- quickfix = {
+            --     enabled = true,
+            --     open = false,
+            -- },
+
+            quickfix = {
+                enabled = true,
+                open = false, -- need to override folke qflist open that in resuld opening two qfilist and diagnostics
+            },
+            floating = {
+                max_height = 0.7,
+                max_width = 0.7,
+                border = "rounded",
+            },
+            output = {
+                enabled = true,
+                open_on_run = false,
+            },
+            -- output_panel = {
+            --     enabled = true,
+            --     open = "botright split | resize 15",
+            -- },
+        },
+        --[[ config = function()
+            vim.notify("In my te test")
             require("neotest").setup({
                 adapters = {
                     require("neotest-java")({
@@ -25,7 +55,7 @@ return {
                     }),
                 },
             })
-        end,
+        end, ]]
     },
 }
 

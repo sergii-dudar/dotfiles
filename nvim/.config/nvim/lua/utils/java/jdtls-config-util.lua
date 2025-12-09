@@ -10,6 +10,7 @@ local M = {}
 -- urls:
 -- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
 -- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/blob/main/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
+-- - https://github.com/neovim/nvim-lspconfig/blob/master/lsp/jdtls.lua
 -- ============================================================================
 
 M.jdtls_settings = {
@@ -51,20 +52,21 @@ M.jdtls_settings = {
         compile = {
             -- Null analysis annotations
             nullAnalysis = {
-                mode = "automatic", -- "disabled", "interactive", or "automatic"
+                -- NOTE: disabled, as nullAnalysis conflicting with lombok, expecially issues with apply project lombok.config
+                mode = "disabled", -- "disabled", "interactive", or "automatic"
                 nullable = {
-                    "javax.annotation.Nullable",
                     "jakarta.annotation.Nullable",
+                    --[[ "javax.annotation.Nullable",
                     "org.eclipse.jdt.annotation.Nullable",
                     "org.springframework.lang.Nullable",
-                    "org.jetbrains.annotations.Nullable",
+                    "org.jetbrains.annotations.Nullable", ]]
                 },
                 nonnull = {
-                    "javax.annotation.Nonnull",
                     "jakarta.annotation.Nonnull",
+                    --[[ "javax.annotation.Nonnull",
                     "org.eclipse.jdt.annotation.NonNull",
                     "org.springframework.lang.NonNull",
-                    "org.jetbrains.annotations.NotNull",
+                    "org.jetbrains.annotations.NotNull", ]]
                 },
             },
         },

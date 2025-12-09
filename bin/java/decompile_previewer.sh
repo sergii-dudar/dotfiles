@@ -12,7 +12,8 @@ java -jar "$HOME/tools/java-extensions/decompiler/fernflower.jar" "$CLASSFILE" "
 # echo "$DECOMPILED_JAVA"
 
 if [[ -f "$DECOMPILED_JAVA" ]]; then
-    bat --plain "$DECOMPILED_JAVA" && rm "$DECOMPILED_JAVA"
+    #  bat --plain "$DECOMPILED_JAVA" && rm "$DECOMPILED_JAVA"
+    bat -pp "$DECOMPILED_JAVA" && rm "$DECOMPILED_JAVA"
 else
     echo "Decompilation failed."
 fi
