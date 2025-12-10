@@ -78,11 +78,13 @@ M.jdt_load_unique_class_list = function(class_names, handler)
 
             if pending == 0 then
                 -- vim.notify("✅ Jdtls items successfully loaded " .. #all_items)
+                dd(all_items)
                 handler(all_items)
             end
         end)
     end
 end
+-- require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
 
 ---@param class_name string
 ---@param handler function(table)

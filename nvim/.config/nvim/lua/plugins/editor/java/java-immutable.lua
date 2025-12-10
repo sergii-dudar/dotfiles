@@ -135,6 +135,14 @@ return {
                 --###### Custom Jdtls Config START ########
                 --#########################################
                 test = false, -- disabled jdtls test in favor of neotest-java
+                --[[ test = {
+                    config_overrides = {
+                        vmArgs = string.format(
+                            "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
+                            os.getenv("HOME")
+                        ),
+                    },
+                }, ]]
                 settings = require("utils.java.jdtls-config-util").jdtls_settings,
                 --#####################################
                 --################ END ################
@@ -174,10 +182,10 @@ return {
             opts.is_config_updated = false
             opts.on_attach = function(args)
                 if not opts.is_config_updated then
-                    vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
+                    -- vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
                     -- Delay is important: JDTLS needs to finish startup first
 
-                    --[[ local timer = vim.uv.new_timer()
+                    local timer = vim.uv.new_timer()
                     timer:start(
                         5000,
                         0,
@@ -185,10 +193,11 @@ return {
                             -- need to regenerate generated source codes like [mapscruct etc], until not find better way
                             vim.notify("🏄 Jdt updating started...")
                             vim.cmd("JdtUpdateConfig")
+                            -- vim.cmd("JdtCompile full")
                             opts.is_config_updated = true
                             timer:close()
                         end)
-                    ) ]]
+                    )
                 end
             end
 
@@ -305,6 +314,7 @@ return {
                                             {
                                                 "<leader>tr",
                                                 function()
+                                                    dd(opts.test)
                                                     require("jdtls.dap").test_nearest_method({
                                                         config_overrides = type(opts.test) ~= "boolean"
                                                                 and opts.test.config_overrides

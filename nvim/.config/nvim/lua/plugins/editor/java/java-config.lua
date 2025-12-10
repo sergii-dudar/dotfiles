@@ -3,17 +3,6 @@ local jdtlsc_util = require("utils.java.jdtls-config-util")
 local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
--- add to ~/.vscode/settings.json
---[[ 
-{
-    "java.test.config": {
-        "vmargs": [
-            "-javaagent:~/tools/java-extensions/jmockit/jmockit.jar"
-        ]
-    }
-} 
-]]
-
 return {
     -- Nice dependency tree viewers for Maven \ Gradle
     -- {
