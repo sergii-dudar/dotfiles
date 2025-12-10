@@ -1,6 +1,7 @@
 return {
     "stevearc/overseer.nvim",
     event = "VeryLazy",
+    enabled = false,
     opts = {
         task_list = {
             min_height = 16,
