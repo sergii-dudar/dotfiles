@@ -185,19 +185,19 @@ return {
                     -- vim.cmd("JdtUpdateConfig") -- push jdtls to update config to fix ghost diagnostics after up
                     -- Delay is important: JDTLS needs to finish startup first
 
-                    local timer = vim.uv.new_timer()
-                    timer:start(
-                        5000,
-                        0,
-                        vim.schedule_wrap(function()
-                            -- need to regenerate generated source codes like [mapscruct etc], until not find better way
-                            vim.notify("🏄 Jdt updating started...")
-                            vim.cmd("JdtUpdateConfig")
-                            -- vim.cmd("JdtCompile full")
-                            opts.is_config_updated = true
-                            timer:close()
-                        end)
-                    )
+                    -- local timer = vim.uv.new_timer()
+                    -- timer:start(
+                    --     5000,
+                    --     0,
+                    --     vim.schedule_wrap(function()
+                    --         -- need to regenerate (repick) generated source codes like [mapscruct etc]
+                    --         vim.notify("🏄 Jdt updating started...")
+                    --         vim.cmd("JdtUpdateConfig")
+                    --         -- vim.cmd("JdtCompile full")
+                    --         opts.is_config_updated = true
+                    --         timer:close()
+                    --     end)
+                    -- )
                 end
             end
 

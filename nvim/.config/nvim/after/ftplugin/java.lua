@@ -88,6 +88,36 @@ vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = t
 
 -- stylua: ignore end
 
+local is_config_updated = false
+local old_handler = vim.lsp.handlers["$/progress"]
+vim.lsp.handlers["$/progress"] = function(_, result, ctx)
+    -- Forward to any existing UI plugins (like fidget.nvim)
+    --[[ if old_handler then
+        old_handler(_, result, ctx)
+    end ]]
+
+    -- Check for the specific "Service Ready" or end of background work
+    local val = result.value
+
+    --[[ if val.kind == "report" then
+        return
+    end
+    dd(val) ]]
+
+    -- "Clean workspace..."
+    -- "Synchronizing projects"
+    -- "Send Classpath Notifications"
+    -- "Register Watchers"
+    if not is_config_updated and val and val.kind == "end" and val.message == "Register Watchers" then
+        vim.notify("🏄 JDTLS updating workspace started...")
+        is_config_updated = true
+
+        -- need to regenerate (repick) generated source codes like [mapscruct etc] after startup cleanup project workspace,
+        -- very important to call update after cleanup and initialize completed
+        vim.cmd("JdtUpdateConfig")
+    end
+end
+
 --------------------------------------------------------------------
 -- Format
 --------------------------------------------------------------------

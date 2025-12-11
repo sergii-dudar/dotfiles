@@ -38,6 +38,10 @@ M.jdtls_settings = {
         -- ====================================================================
         project = {
             importHint = true,
+            --[[ sourcePaths = {
+                "src/main/java",
+                "target/generated-sources/annotations",
+            }, ]]
         },
         -- ====================================================================
         -- BUILD CONFIGURATION

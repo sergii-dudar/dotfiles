@@ -7,6 +7,33 @@ local util = require("utils.common-util")
 local lsp_util = require("utils.lsp-util")
 local string_util = require("utils.string-util")
 
+local function last_segment(str)
+    return str:match("([^.]+)$")
+end
+
+local function is_class_segment(seg)
+    return seg and seg:match("^[A-Z]") ~= nil
+end
+
+local function build_fqn(symbol)
+    local name = symbol.name
+    local container = symbol.containerName or ""
+
+    if container == "" then
+        return name -- no info → fallback
+    end
+
+    local last = last_segment(container)
+
+    if is_class_segment(last) then
+        -- container is class → inner class
+        return container .. "$" .. name
+    else
+        -- container is package → top-level class
+        return container .. "." .. name
+    end
+end
+
 ---@param class_names [string]
 ---@param handler function([table])
 M.jdt_load_unique_class_list = function(class_names, handler)
@@ -72,6 +99,7 @@ M.jdt_load_unique_class_list = function(class_names, handler)
                 target = result[1]
             end
             target.name = class_name
+            -- dd({ formater = build_fqn(target) })
 
             -- table.insert(all_items, target)
             all_items[class_name] = target
@@ -84,7 +112,9 @@ M.jdt_load_unique_class_list = function(class_names, handler)
         end)
     end
 end
--- require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
+-- lua require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
+-- lua require("utils.java.jdtls-util").jdt_open_class("TestInitiationParams")
+-- lua require("utils.java.jdtls-util").jdt_open_class("TestTransferDirection")
 
 ---@param class_name string
 ---@param handler function(table)
