@@ -6,6 +6,7 @@ local list_util = require("utils.list-util")
 local util = require("utils.common-util")
 local lsp_util = require("utils.lsp-util")
 local string_util = require("utils.string-util")
+local cache_util = require("utils.cache-util")
 
 local function last_segment(str)
     return str:match("([^.]+)$")
@@ -15,7 +16,7 @@ local function is_class_segment(seg)
     return seg and seg:match("^[A-Z]") ~= nil
 end
 
-M.build_fqn = function(symbol)
+local build_fqn = function(symbol)
     local name = symbol.name
     local container = symbol.containerName or ""
 
@@ -33,6 +34,95 @@ M.build_fqn = function(symbol)
         return container .. "." .. name
     end
 end
+
+-- response example:
+--[[ { {
+    containerName = "ua.raiffeisen.payments.cardtransferinitiation.core.model.enumeration",
+    kind = 10,
+    location = {
+      range = {
+        ["end"] = {
+          character = 29,
+          line = 15
+        },
+        start = {
+          character = 12,
+          line = 15
+        }
+      },
+      uri = "file:///Users/iuada144/serhii.home/work/git.work/ua-payments-payment-card-transfer-initiation/src/main/java/ua/raiffeisen/payments/cardtransferinitiation/core/model/enumeration/OperationCodeType.java"
+    },
+    name = "OperationCodeType"
+  } } ]]
+
+---@param symbol string
+---@return { fqn: string } | nil
+local jdt_load_workspace_symbol_sync_inner = function(symbol)
+    -- Request LSP to find the symbol
+    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+        return
+    end
+    local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+    if not response then
+        vim.notify("⚠️ Error: no response from workspace/symbol by query = " .. symbol, vim.log.levels.WARN)
+        return
+    elseif response.err then
+        vim.notify("⚠️ Error: " .. tostring(response.err), vim.log.levels.WARN)
+        return
+    end
+    local result = response.result
+    if not result or vim.tbl_isempty(result) then
+        vim.notify("⚠️ Class not found: " .. symbol, vim.log.levels.WARN)
+        return
+    end
+
+    -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
+    local target = nil
+    --[[ if #result > 1 then
+		local single_result = list_util.findFirst(result, function(item)
+			return string_util.starts_with(item.containerName, class_package) and item.name == simple_class_name
+		end)
+
+		if single_result then
+			target = single_result
+		else
+			vim.notify(
+				"⚠️ Found more than one lsp symbols, and not found unique by qualifier, first will be picked"
+			)
+			target = result[1]
+		end
+	else
+		target = result[1]
+	end ]]
+    -- TODO: need filtering more smart project specific
+    if #result > 1 then
+        vim.notify("⚠️ Found more than one lsp symbols, and not found unique by qualifier, first will be picked")
+    end
+    target = result[1]
+    return {
+        fqn = build_fqn(target),
+    }
+end
+
+---@param symbol string
+---@return { fqn: string } | nil
+M.jdt_load_workspace_symbol_sync = function(symbol)
+    local result = cache_util.java.jdt_load_workspace_symbol_map[symbol]
+    if result then
+        return result
+    end
+    result = jdt_load_workspace_symbol_sync_inner(symbol)
+    cache_util.java.jdt_load_workspace_symbol_map[symbol] = result
+    return result
+end
+
+-- lua require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
+-- lua require("utils.java.jdtls-util").jdt_open_class("TestInitiationParams")
+-- lua require("utils.java.jdtls-util").jdt_open_class("TestTransferDirection")
+-- lua require("utils.java.jdtls-util").jdt_open_class("AccountBalancesArrayResponse")
 
 ---@param class_names [string]
 ---@param handler function([table])
@@ -111,60 +201,6 @@ M.jdt_load_unique_class_list = function(class_names, handler)
             end
         end)
     end
-end
--- lua require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
--- lua require("utils.java.jdtls-util").jdt_open_class("TestInitiationParams")
--- lua require("utils.java.jdtls-util").jdt_open_class("TestTransferDirection")
--- lua require("utils.java.jdtls-util").jdt_open_class("AccountBalancesArrayResponse")
-
----@param symbol string
-M.jdt_load_workspace_symbol_sync = function(symbol)
-    -- Request LSP to find the symbol
-    local jdtls_client = lsp_util.get_client_by_name("jdtls")
-
-    if not jdtls_client then
-        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
-        return
-    end
-    local err, result, ctx = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
-
-    if err then
-        vim.notify("⚠️ Error: " .. tostring(err), vim.log.levels.WARN)
-        return
-    end
-    if not result or vim.tbl_isempty(result) then
-        vim.notify("⚠️ Class not found: " .. symbol, vim.log.levels.WARN)
-        return
-    end
-
-    -- dd(result)
-    -- Filter for exact matches or the best candidate (usually the first Class/Interface)
-    -- Note: might add filtering if we get too many results
-
-    -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
-    local target = nil
-    -- dd(result)
-    if #result > 1 then
-        local class_package, simple_class_name = string_util.split_by_last_dot(class_name)
-
-        local single_result = list_util.findFirst(result, function(item)
-            return string_util.starts_with(item.containerName, class_package) and item.name == simple_class_name
-        end)
-
-        if single_result then
-            target = single_result
-        else
-            vim.notify(
-                "⚠️ Found more than one lsp symbols, and not found unique by qualifier, first will be picked"
-            )
-            target = result[1]
-        end
-    else
-        target = result[1]
-    end
-    target.name = class_name
-    -- dd({ formater = build_fqn(target) })
-    dd(target)
 end
 
 ---@param class_name string
