@@ -15,7 +15,7 @@ local function is_class_segment(seg)
     return seg and seg:match("^[A-Z]") ~= nil
 end
 
-local function build_fqn(symbol)
+M.build_fqn = function(symbol)
     local name = symbol.name
     local container = symbol.containerName or ""
 
@@ -115,6 +115,57 @@ end
 -- lua require("utils.java.jdtls-util").jdt_open_class("OperationCodeType")
 -- lua require("utils.java.jdtls-util").jdt_open_class("TestInitiationParams")
 -- lua require("utils.java.jdtls-util").jdt_open_class("TestTransferDirection")
+-- lua require("utils.java.jdtls-util").jdt_open_class("AccountBalancesArrayResponse")
+
+---@param symbol string
+M.jdt_load_workspace_symbol_sync = function(symbol)
+    -- Request LSP to find the symbol
+    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+        return
+    end
+    local err, result, ctx = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+
+    if err then
+        vim.notify("⚠️ Error: " .. tostring(err), vim.log.levels.WARN)
+        return
+    end
+    if not result or vim.tbl_isempty(result) then
+        vim.notify("⚠️ Class not found: " .. symbol, vim.log.levels.WARN)
+        return
+    end
+
+    -- dd(result)
+    -- Filter for exact matches or the best candidate (usually the first Class/Interface)
+    -- Note: might add filtering if we get too many results
+
+    -- If multiple results, try to find the one that is a Class (Kind 5) or Interface (Kind 11)
+    local target = nil
+    -- dd(result)
+    if #result > 1 then
+        local class_package, simple_class_name = string_util.split_by_last_dot(class_name)
+
+        local single_result = list_util.findFirst(result, function(item)
+            return string_util.starts_with(item.containerName, class_package) and item.name == simple_class_name
+        end)
+
+        if single_result then
+            target = single_result
+        else
+            vim.notify(
+                "⚠️ Found more than one lsp symbols, and not found unique by qualifier, first will be picked"
+            )
+            target = result[1]
+        end
+    else
+        target = result[1]
+    end
+    target.name = class_name
+    -- dd({ formater = build_fqn(target) })
+    dd(target)
+end
 
 ---@param class_name string
 ---@param handler function(table)
