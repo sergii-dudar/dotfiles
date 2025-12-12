@@ -57,20 +57,9 @@ end
   } } ]]
 
 ---@param symbol string
+---@param response { err: any, result: any } | nil
 ---@return { fqn: string } | nil
-local jdt_load_workspace_symbol_sync_inner_nio = function(symbol)
-    -- Request LSP to find the symbol
-    -- local jdtls_client = lsp_util.get_client_by_name("jdtls")
-    local jdtls_client = nio.lsp.get_clients({ name = "jdtls" })[1]
-
-    if not jdtls_client then
-        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
-        return
-    end
-    -- local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
-
-    local err, result = jdtls_client.request.workspace_symbol({ query = symbol })
-    local response = { err = err, result = result }
+local handle_jdt_load_workspace_symbol_response = function(symbol, response)
     -- dd(response)
 
     if not response then
@@ -116,12 +105,42 @@ end
 
 ---@param symbol string
 ---@return { fqn: string } | nil
+local jdt_load_workspace_symbol_inner_sync = function(symbol)
+    -- Request LSP to find the symbol
+    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+        return
+    end
+    local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+    return handle_jdt_load_workspace_symbol_response(symbol, response)
+end
+
+---@param symbol string
+---@return { fqn: string } | nil
+local jdt_load_workspace_symbol_inner_nio = function(symbol)
+    -- Request LSP to find the symbol
+    -- local jdtls_client = lsp_util.get_client_by_name("jdtls")
+    local jdtls_client = nio.lsp.get_clients({ name = "jdtls" })[1]
+
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
+        return
+    end
+    -- local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+
+    local err, result = jdtls_client.request.workspace_symbol({ query = symbol })
+    return handle_jdt_load_workspace_symbol_response(symbol, { err = err, result = result })
+end
+
+---@param symbol string
+---@return { fqn: string } | nil
 M.jdt_load_workspace_symbol_sync_nio = function(symbol)
     local result = cache_util.java.jdt_load_workspace_symbol_map[symbol]
     if result then
         return result
     end
-    result = jdt_load_workspace_symbol_sync_inner_nio(symbol)
+    result = jdt_load_workspace_symbol_inner_nio(symbol)
     cache_util.java.jdt_load_workspace_symbol_map[symbol] = result
     return result
 end
@@ -203,7 +222,6 @@ M.jdt_load_unique_class_list = function(class_names, handler)
 
             if pending == 0 then
                 -- vim.notify("✅ Jdtls items successfully loaded " .. #all_items)
-                dd(all_items)
                 handler(all_items)
             end
         end)

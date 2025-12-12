@@ -134,15 +134,15 @@ return {
                 --#########################################
                 --###### Custom Jdtls Config START ########
                 --#########################################
-                test = false, -- disabled jdtls test in favor of neotest-java
-                --[[ test = {
+                -- test = false, -- disabled jdtls test in favor of neotest-java
+                test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
                     config_overrides = {
                         vmArgs = string.format(
                             "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
                             os.getenv("HOME")
                         ),
                     },
-                }, ]]
+                },
                 settings = require("utils.java.jdtls-config-util").jdtls_settings,
                 --#####################################
                 --################ END ################
@@ -301,7 +301,7 @@ return {
                                             buffer = args.buf,
                                             { "<leader>t", group = "test" },
                                             {
-                                                "<leader>tt",
+                                                "<leader>tD", -- "<leader>tt",
                                                 function()
                                                     require("jdtls.dap").test_class({
                                                         config_overrides = type(opts.test) ~= "boolean"
@@ -309,21 +309,24 @@ return {
                                                             or nil,
                                                     })
                                                 end,
-                                                desc = "Run All Test",
+                                                desc = "Debug All Test (Jdtls)", -- "Run All Test",
                                             },
                                             {
-                                                "<leader>tr",
+                                                "<leader>td", -- "<leader>tr",
                                                 function()
-                                                    dd(opts.test)
                                                     require("jdtls.dap").test_nearest_method({
                                                         config_overrides = type(opts.test) ~= "boolean"
                                                                 and opts.test.config_overrides
                                                             or nil,
                                                     })
                                                 end,
-                                                desc = "Run Nearest Test",
+                                                desc = "Debug Nearest Test (Jdtls)", -- "Run Nearest Test",
                                             },
-                                            { "<leader>tT", require("jdtls.dap").pick_test, desc = "Run Test" },
+                                            {
+                                                "<leader>tP", -- "<leader>tT",
+                                                require("jdtls.dap").pick_test,
+                                                desc = "Debug Pick Test (Jdtls)", -- "Run Test",
+                                            },
                                         },
                                     })
                                 end
