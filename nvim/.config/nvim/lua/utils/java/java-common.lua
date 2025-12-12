@@ -5,6 +5,7 @@ local maven_util = require("utils.java.maven-util")
 local util = require("utils.common-util")
 -- local util = require("utils.common-util")
 local home = os.getenv("HOME")
+local cwd = vim.fn.getcwd()
 
 -- sdk list java
 -- sdk install java 25xxx-amzn
@@ -138,6 +139,23 @@ M.java_class_to_proj_path = function(classname)
     -- then it's dependency lib
     return nil ]]
 end
+
+--[[ M.edit_java_resourse_file = function(resource_package_url)
+    resource_package_url = resource_package_url or util.get_token_under_cursor('%"')
+    local main_resource = string.format("%s/src/main/resources/%s", cwd, resource_package_url)
+    local test_resource = string.format("%s/src/test/resources/%s", cwd, resource_package_url)
+    local valid_url
+    if util.is_file_exists(main_resource) then
+        valid_url = main_resource
+    elseif util.is_file_exists(test_resource) then
+        valid_url = test_resource
+    end
+    if valid_url then
+        util.edit_file("file:" .. valid_url)
+    else
+        vim.notify(string.format("⚠️ No such file %s exists", resource_package_url), vim.log.levels.INFO)
+    end
+end ]]
 
 local java_root_files = {
     "pom.xml",

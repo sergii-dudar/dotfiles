@@ -73,7 +73,7 @@ vim.g.trouble_lualine = false
 local augroup = vim.api.nvim_create_augroup
 local myCustomGroup = augroup("myCustomStartupGroup", {})
 
--- gf, gF, gx
+-- gf, gF (to file and line), gx
 vim.opt.path:append("**")
 
 -- disable snack annimations

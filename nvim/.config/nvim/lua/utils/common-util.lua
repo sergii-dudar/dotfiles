@@ -5,7 +5,8 @@ M.get_line_under_cursor = function()
 end
 
 --- Get text token uner cursor between spaces
-M.get_token_under_cursor = function()
+M.get_token_under_cursor = function(edges_separator_pattern)
+    edges_separator_pattern = edges_separator_pattern or "%s" -- space by defaule
     local _, col = unpack(vim.api.nvim_win_get_cursor(0))
     local line = vim.api.nvim_get_current_line()
 
@@ -14,13 +15,13 @@ M.get_token_under_cursor = function()
 
     -- Expand left
     local start_col = col
-    while start_col > 1 and not line:sub(start_col - 1, start_col - 1):match("%s") do
+    while start_col > 1 and not line:sub(start_col - 1, start_col - 1):match(edges_separator_pattern) do
         start_col = start_col - 1
     end
 
     -- Expand right
     local end_col = col
-    while end_col <= #line and not line:sub(end_col, end_col):match("%s") do
+    while end_col <= #line and not line:sub(end_col, end_col):match(edges_separator_pattern) do
         end_col = end_col + 1
     end
 
@@ -92,6 +93,26 @@ M.close_window_if_exists = function(win_id)
     if win_id and vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)
     end
+end
+
+M.load_optional_module = function(path)
+    local chunk, err = loadfile(path)
+    if not chunk then
+        return {}
+    end
+
+    local ok, mod = pcall(chunk)
+    if not ok then
+        -- Runtime error inside the module
+        return {}
+    end
+
+    return mod or {}
+end
+
+M.edit_file = function(url)
+    local path = vim.uri_to_fname(url)
+    vim.cmd.edit(vim.fn.fnameescape(path))
 end
 
 -- M.table_to_string = function(tbl, indent)
