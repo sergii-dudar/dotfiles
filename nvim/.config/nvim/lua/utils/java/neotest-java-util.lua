@@ -19,14 +19,15 @@ local current_proj_mappings = static_mappings[current_proj_name]
 
 ---@param type_symbol string
 ---return string
-M.resolve_jdt_type_symbol = function(type_symbol)
+local resolve_jdt_type_symbol_nio = function(type_symbol)
     -- if current_proj_mappings and current_proj_mappings[type_symbol] then
     --     return current_proj_mappings[type_symbol]
     -- end
-    vim.notify(type_symbol .. " loading started ...")
-    local result = jdtls_util.jdt_load_workspace_symbol_sync(type_symbol)
-    vim.notify(type_symbol .. " loaded: " .. result.fqn)
-    dd(result)
+    -- vim.notify(type_symbol .. " loading started ...")
+    local result = jdtls_util.jdt_load_workspace_symbol_sync_nio(type_symbol)
+    -- vim.notify(type_symbol .. " loaded: " .. result.fqn)
+    -- dd(result)
+
     if not result then
         vim.notify(
             string.format(
@@ -41,14 +42,51 @@ M.resolve_jdt_type_symbol = function(type_symbol)
     return result.fqn
 end
 
---[[ nio.run(function()
-		-- Open the file in write mode
-		local file = assert(io.open(filepath, "w"))
+--[[ {
+  method_name = "ua.serhii.application.Something1Test#someMonths_scv(jdtls:{{TestEnum}}||default:{{ua.serhii.application.TestEnum}})",
+  qualified_name = "ua.serhii.application.Something1Test#someMonths_scv(jdtls:{{TestEnum}}||default:{{ua.serhii.application.TestEnum}})",
+  type = "test"
+} ]]
+--[[ local sig =
+    "ua.serhii.application.Something1Test#someMonths_scv(jdtls:{{TestEnum}}||default:{{ua.serhii.application.TestEnum}}, String, Object, jdtls:{{TestEnum}}||default:{{ua.serhii.application.TestEnum}})" ]]
 
-		file:write(data)
+local function get_params(sig)
+    -- get everything inside the parentheses
+    local inside = sig:match("%((.*)%)")
+    if not inside or inside == "" then
+        return {}
+    end
 
-		-- Close the file
-		file:close()
-	end) ]]
+    local params = {}
+
+    for p in inside:gmatch("[^,]+") do
+        -- trim spaces
+        p = p:match("^%s*(.-)%s*$")
+        table.insert(params, p)
+    end
+
+    return params
+end
+
+---@param qualified_name string
+---return string
+M.parse_and_resolve_method_params_nio = function(qualified_name)
+    local params = get_params(qualified_name)
+    -- print(params)
+    for _, value in ipairs(params) do
+        if value:find("^jdtls:") then
+            local jdtls_val = value:match("jdtls:%s*{{(.-)}}")
+            local default_val = value:match("default:%s*{{(.-)}}")
+            local resolved_symbol = resolve_jdt_type_symbol_nio(jdtls_val)
+            resolved_symbol = resolved_symbol or default_val
+            qualified_name = qualified_name:gsub(value, resolved_symbol)
+            -- print({
+            -- 	jdtls = jdtls_val,
+            -- 	default = default_val,
+            -- })
+        end
+    end
+    return qualified_name
+end
 
 return M

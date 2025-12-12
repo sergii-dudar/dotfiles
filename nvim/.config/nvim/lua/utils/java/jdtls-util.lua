@@ -7,6 +7,7 @@ local util = require("utils.common-util")
 local lsp_util = require("utils.lsp-util")
 local string_util = require("utils.string-util")
 local cache_util = require("utils.cache-util")
+local nio = require("nio")
 
 local function last_segment(str)
     return str:match("([^.]+)$")
@@ -57,15 +58,21 @@ end
 
 ---@param symbol string
 ---@return { fqn: string } | nil
-local jdt_load_workspace_symbol_sync_inner = function(symbol)
+local jdt_load_workspace_symbol_sync_inner_nio = function(symbol)
     -- Request LSP to find the symbol
-    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+    -- local jdtls_client = lsp_util.get_client_by_name("jdtls")
+    local jdtls_client = nio.lsp.get_clients({ name = "jdtls" })[1]
 
     if not jdtls_client then
         vim.notify("⚠️ JDTLS is not connected to current buffer to resolve symbol request")
         return
     end
-    local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+    -- local response = jdtls_client:request_sync("workspace/symbol", { query = symbol }, 3000)
+
+    local err, result = jdtls_client.request.workspace_symbol({ query = symbol })
+    local response = { err = err, result = result }
+    -- dd(response)
+
     if not response then
         vim.notify("⚠️ Error: no response from workspace/symbol by query = " .. symbol, vim.log.levels.WARN)
         return
@@ -109,12 +116,12 @@ end
 
 ---@param symbol string
 ---@return { fqn: string } | nil
-M.jdt_load_workspace_symbol_sync = function(symbol)
+M.jdt_load_workspace_symbol_sync_nio = function(symbol)
     local result = cache_util.java.jdt_load_workspace_symbol_map[symbol]
     if result then
         return result
     end
-    result = jdt_load_workspace_symbol_sync_inner(symbol)
+    result = jdt_load_workspace_symbol_sync_inner_nio(symbol)
     cache_util.java.jdt_load_workspace_symbol_map[symbol] = result
     return result
 end
