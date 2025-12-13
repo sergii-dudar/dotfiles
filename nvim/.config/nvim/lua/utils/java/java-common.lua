@@ -5,7 +5,6 @@ local maven_util = require("utils.java.maven-util")
 local util = require("utils.common-util")
 -- local util = require("utils.common-util")
 local home = os.getenv("HOME")
-local cwd = vim.fn.getcwd()
 
 -- sdk list java
 -- sdk install java 25xxx-amzn
@@ -20,7 +19,7 @@ local java_bin = java_dir .. "/bin/java"
 -- https://github.com/redhat-developer/vscode-java/blob/main/formatters/eclipse-formatter.xml
 -- local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
 local java_intellij_default_style_file =
-    vim.fs.joinpath(vim.fn.getcwd(), "work/formatter/eclipse-java-intellij-style.xml")
+    vim.fs.joinpath(home, "dotfiles", "work/formatter/eclipse-java-intellij-style-original.xml")
 
 M.java_dir = java_dir
 M.java_bin = java_bin
