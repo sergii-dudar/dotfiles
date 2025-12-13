@@ -46,16 +46,6 @@ return {
             output = {
                 enabled = true,
                 open_on_run = false,
-                open_win = function()
-                    -- Create a bottom split (horizontal) taking ~40% of the screen height
-                    vim.cmd("botright 12split") -- '12' is approximate lines; adjust as needed (e.g., 'botright 20split')
-                    require("neotest").run.attach({
-                        enter = true,
-                        open_win = function()
-                            vim.cmd("botright 12split")
-                        end,
-                    })
-                end,
             },
             consumers = {},
             -- output_panel = {

@@ -208,9 +208,9 @@ M.jdtls_settings = {
             enabled = true,
             -- Use the Google Style guide for code formattingh
             settings = {
-                url = java_util.java_google_style_file,
+                url = java_util.java_formatter.file_url,
                 -- Optional formatter profile name from the Eclipse formatter settings.
-                profile = "GoogleStyle",
+                profile = java_util.java_formatter.profile_name,
             },
             -- Format on type
             onType = {

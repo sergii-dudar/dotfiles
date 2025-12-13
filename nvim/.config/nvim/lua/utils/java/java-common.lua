@@ -17,11 +17,18 @@ local java_bin = java_dir .. "/bin/java"
 --local java_google_style_file = home .. "/dotfiles/work/formatter/default_intellij_eclipse.xml"
 
 -- https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
-local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+-- local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
+local java_intellij_default_style_file =
+    vim.fs.joinpath(vim.fn.getcwd(), "work/formatter/eclipse-java-intellij-style.xml")
 
 M.java_dir = java_dir
 M.java_bin = java_bin
-M.java_google_style_file = java_google_style_file
+M.java_formatter = {
+    -- file_url = java_google_style_file,
+    -- profile_name = "GoogleStyle"
+    file_url = java_intellij_default_style_file,
+    profile_name = "Default",
+}
 
 -- local trace_class_pattern = "(.-)([^/]-)%.([^%.]+)%((.-):(%d+)%)"
 -- cp_path, method, file, line in string.gmatch(trace, "([%w%.%/%_-]*)%.([%w_-]+)%(([%w%.%/%_-]+%.java):(%d+)") do
