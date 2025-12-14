@@ -67,6 +67,9 @@ vim.opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line
 vim.opt.splitright = true -- split vertical window to the right
 vim.opt.splitbelow = true -- split horizontal window to the bottom
 
+-- Set borders for all floating windows
+vim.o.winborder = "rounded"
+
 --LazyVim
 vim.g.trouble_lualine = false
 
