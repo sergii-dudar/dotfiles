@@ -18,8 +18,7 @@ local java_bin = java_dir .. "/bin/java"
 -- https://github.com/google/styleguide/blob/gh-pages/eclipse-java-google-style.xml
 -- https://github.com/redhat-developer/vscode-java/blob/main/formatters/eclipse-formatter.xml
 -- local java_google_style_file = home .. "/dotfiles/work/formatter/eclipse-java-google-style.xml"
-local java_intellij_default_style_file =
-    vim.fs.joinpath(home, "dotfiles", "work/formatter/eclipse-java-intellij-style.xml")
+local java_intellij_default_style_file = global.dotfiles_path("work/formatter/eclipse-java-intellij-style.xml")
 
 M.java_dir = java_dir
 M.java_bin = java_bin

@@ -79,4 +79,4 @@ mpv/.config/mpv/watch_later
 
 cron/cron.logs.txt
 
-other/private
+other/private/jdtls_static_symbol_mappings.lua

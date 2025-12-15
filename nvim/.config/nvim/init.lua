@@ -8,6 +8,7 @@ _G.bt = function()
     Snacks.debug.backtrace()
 end
 vim.print = _G.dd
+require("utils.global-util")
 
 -- bootstrap lazy.nvim, LazyVim and your plugins
 require("config.lazy")
