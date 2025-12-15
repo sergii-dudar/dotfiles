@@ -1,4 +1,5 @@
 # Set up fzf key bindings and fuzzy completion
+# https://github.com/junegunn/fzf/blob/master/ADVANCED.md
 
 if [ "$(command -v fzf)" ]; then
     # Set up fzf key bindings and fuzzy completion
@@ -165,6 +166,10 @@ function findt_in() {
 
 function findt_in_r() {
     rg -l -i -N -g "$2" -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | xargs -n 1 sed -i "s/$1/$3/g"
+}
+
+function wallpapers() {
+    cd ~/wallpapers/ && fzf --preview 'fzf-preview.sh {}'
 }
 
 # ============================
