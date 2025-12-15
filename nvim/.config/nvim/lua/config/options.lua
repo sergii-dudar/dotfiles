@@ -57,7 +57,6 @@ vim.opt.termguicolors = true
 vim.opt.background = "dark"
 
 vim.opt.cursorline = true
-vim.opt.cursorline = true
 
 -- Enable mouse mode, useful for resizing splits, debugging etc
 vim.opt.mouse = "a"
