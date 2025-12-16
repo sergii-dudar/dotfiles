@@ -44,6 +44,9 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 --vim.opt.clipboard = 'unnamedplus'
 --vim.opt.clipboard = ''
 
+-- Preview substitutions
+-- vim.opt.inccommand = "split"
+
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
 vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
@@ -68,6 +71,9 @@ vim.opt.splitbelow = true -- split horizontal window to the bottom
 
 -- Set borders for all floating windows
 vim.o.winborder = "rounded"
+
+-- Save undo history
+vim.opt.undofile = true
 
 --LazyVim
 vim.g.trouble_lualine = false
