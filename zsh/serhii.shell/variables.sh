@@ -15,8 +15,9 @@ if isMacOs; then
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 
     alias setwalls="~/dotfiles/bin/macos/set_wallpapers.sh"
-    alias enable_kanata="$HOME/dotfiles/keyboard/kanata/macos/enable-service.sh"
-    alias kanata_run="sudo $(which kanata) --cfg $HOME/.config/kanata/kanata.kbd > /dev/null 2>&1 &"
+    function kanata_run() {
+        sudo "$(which kanata)" --cfg "$HOME"/.config/kanata/kanata.kbd > /dev/null 2>&1 &
+    }
 
     # iterm:
     # sudo ln -s /Users/serhii/dotfiles/work/bash/iterm.sh /usr/local/bin/iterm
