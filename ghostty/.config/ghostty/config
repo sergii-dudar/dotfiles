@@ -29,7 +29,7 @@ keybind = ctrl+v=paste_from_clipboard
 #keybind = ctrl+shift+c=unbind
 
 quick-terminal-position = center
-quick-terminal-size = 70%,70%
+quick-terminal-size = 85%,85%
 quick-terminal-animation-duration = 0
 quick-terminal-space-behavior = remain
-keybind = global:cmd+grave_accent=toggle_quick_terminal
+keybind = global:super+\=toggle_quick_terminal
