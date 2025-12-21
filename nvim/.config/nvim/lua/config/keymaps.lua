@@ -27,7 +27,8 @@ map("n", "<leader><tab>r", function()
 end, { desc = "Rename Current Tab" }) ]]
 
 -- Select all
-vim.keymap.set("n", "<C-a>", "gg<S-v>G")
+-- vim.keymap.set("n", "<C-a>", "gg<S-v>G")
+vim.keymap.set("n", "<leader>A", "gg<S-v>G")
 
 vim.keymap.set("n", "<leader>qq", "<cmd>q<cr>", { desc = "Quit" })
 vim.keymap.set("n", "<leader>qQ", "<cmd>qa<cr>", { desc = "Quit All" })

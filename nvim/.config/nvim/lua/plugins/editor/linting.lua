@@ -8,6 +8,7 @@ return {
                 kotlin = { "ktlint" },
                 --sh = { "shellcheck" },
                 python = { "ruff" },
+                markdown = {},
                 --lua = { "luacheck" },
                 -- Use the "*" filetype to run linters on all filetypes.
                 -- ['*'] = { 'global linter' },
