@@ -39,6 +39,11 @@ vim.opt.relativenumber = true
 vim.opt.numberwidth = 2 -- set width of line number column
 vim.opt.backup = false
 
+-- buffer
+-- vim.opt.hidden = true
+-- vim.opt.autowrite = true
+-- vim.opt.autowriteall = true
+
 -- clipboard
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default register
 --vim.opt.clipboard = 'unnamedplus'

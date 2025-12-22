@@ -137,3 +137,15 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
     end,
     group = vim.api.nvim_create_augroup("WinBar", {}),
 })
+
+-------------------------------------------------------
+------------ auto save on buff switch\leave -----------
+
+vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
+    pattern = "*",
+    callback = function()
+        if vim.bo.modified and vim.fn.expand("%") ~= "" then
+            vim.cmd("silent! write")
+        end
+    end,
+})
