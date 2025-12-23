@@ -407,18 +407,22 @@
 
 ## ============================== File Operations ==============================
 
-| Command        | Description           |
-| -------------- | --------------------- |
-| `:w`           | Save file             |
-| `:w filename`  | Save as               |
-| `:q`           | Quit                  |
-| `:q!`          | Force quit            |
-| `:wq`          | Save and quit         |
-| `:x`           | Save and quit         |
-| `:e filename`  | Open file             |
-| `:r filename`  | Insert file contents  |
-| `:sp filename` | Horizontal split open |
-| `:vs filename` | Vertical split open   |
+| Command        | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
+| `:w`           | Save file                                                            |
+| `:w filename`  | Save as                                                              |
+| `:q`           | Quit                                                                 |
+| `:q!`          | Force quit                                                           |
+| `:wq`          | Save and quit                                                        |
+| `:x`           | Save and quit                                                        |
+| `:e filename`  | Open file                                                            |
+| `:r filename`  | Insert file contents                                                 |
+| `:sp filename` | Horizontal split open                                                |
+| `:vs filename` | Vertical split open                                                  |
+| ``             |                                                                      |
+| `gf`           | Open file under cursor (absolute or relative - check `vim.opt.path`) |
+| `gx`           | Open link under curson                                               |
+| ``             |                                                                      |
 
 ## ============================== Shell Commands ==============================
 
@@ -501,6 +505,21 @@
 
 ## ============================== Folding ==============================
 
+### Fold Levels
+
+| Command           | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| `zo / zO`         | Open                                             |
+| `zc / zC`         | Close                                            |
+| `za / zA`         | Toggle                                           |
+| `zv`              | Open folds for this line                         |
+| `zm / zM`         | Close one level (foldlevel += 1) / Close all     |
+| `zr / zR`         | Open one level (foldlevel -= 1) / Open all folds |
+| `zx`              | Update folds                                     |
+| ``                |                                                  |
+| `:set fdm=indent` | Fold on indent                                   |
+| ``                |                                                  |
+
 ### Create & Toggle
 
 | Command | Description |
@@ -510,16 +529,6 @@
 | `zo`    | Open fold   |
 | `zc`    | Close fold  |
 | `zd`    | Delete fold |
-
-### Fold Levels
-
-| Command           | Description     |
-| ----------------- | --------------- |
-| `zR`              | Open all folds  |
-| `zM`              | Close all folds |
-| `zr`              | Open one level  |
-| `zm`              | Close one level |
-| `:set fdm=indent` | Fold on indent  |
 
 ## ============================== Buffers ==============================
 
@@ -601,6 +610,20 @@
 | `:set nu`     | Show line numbers   |
 | `:help [cmd]` | Get help            |
 
+## ============================== Vimdiff ==============================
+
+`vimdiff file1 file2 [file3]`
+`vim -d file1 file2 [file3]`
+
+| Command         | Description             |
+| --------------- | ----------------------- |
+| `do / :diffget` | Obtain (get) difference |
+| `dp / :diffput` | Put difference          |
+| `:dif`          | Re-scan differences     |
+| `:diffo`        | Switch off diff mode    |
+| `ZQ`            | Quit without changes    |
+| ``              |                         |
+
 ## ============================== Emergency ==============================
 
 | Command  | Description           |
@@ -611,7 +634,7 @@
 | `u`      | Undo mistake          |
 | `:help`  | Get help              |
 
-### Increase\Decrease
+### Increase \ Decrease
 
 | Command    | Description                                          |
 | ---------- | ---------------------------------------------------- |
