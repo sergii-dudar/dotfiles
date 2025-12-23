@@ -17,46 +17,86 @@
 
 ### Entering Insert Mode from Normal Mode
 
-| Command | Description             |
-| ------- | ----------------------- |
-| `i`     | Insert mode             |
-| `I`     | Insert at line start    |
-| `a`     | Append after cursor     |
-| `A`     | Append at line end      |
-| `o`     | New line below          |
-| `O`     | New line above          |
-| `s`     | Delete char and insert  |
-| `S`     | Delete line and insert  |
-| `gi`    | Insert at last position |
+| Command | Description                    |
+| ------- | ------------------------------ |
+| `i`     | Insert mode                    |
+| `I`     | Insert at line start           |
+| `a`     | Append after cursor            |
+| `A`     | Append at line end             |
+| `o`     | New line below                 |
+| `O`     | New line above                 |
+| `s`     | Delete char and insert         |
+| `S`     | Delete line and insert         |
+| `gi`    | Insert at last insert position |
+
+### Insert Mode Operations
+
+| Command  | Description                                                                |
+| -------- | -------------------------------------------------------------------------- |
+| `Ctrl+h` | Delete the character before the cursor during insert mode                  |
+| `Ctrl+w` | Delete word before the cursor during insert mode                           |
+| `Ctrl+j` | Add a line break at the cursor position during insert mode                 |
+| `Ctrl+t` | Indent (move right) line one shiftwidth during insert mode                 |
+| `Ctrl+d` | De-indent (move left) line one shiftwidth during insert mode               |
+| `Ctrl+n` | Insert (auto-complete) next match before the cursor during insert mode     |
+| `Ctrl+p` | Insert (auto-complete) previous match before the cursor during insert mode |
+| `Ctrl+o` | Temporarily enter normal mode to issue one normal-mode command             |
+| ``       |                                                                            |
+| ``       |                                                                            |
+
+### Other Editing
+
+| Command      | Description                              |
+| ------------ | ---------------------------------------- |
+| `g~`         | switch case up to motion or selected     |
+| `gu`         | change to lowercase up to motion         |
+| `gU`         | change to uppercase up to motion         |
+| `cc`         | change (replace) entire line             |
+| `c$` or `C`  | change (replace) to the end of the line  |
+| `cw` or `ce` | change (replace) to the end of the word  |
+| `xp`         | transpose two letters (delete and paste) |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+| ``           |                                          |
+
+---
 
 ## Navigation
 
-### Basic Movement
+### Basic Cursor Movement
 
 | Command   | Description           |
 | --------- | --------------------- |
 | `h j k l` | Left, down, up, right |
 
-### Word Movement
+### Word Cursor Movement
 
-| Command | Description   |
-| ------- | ------------- |
-| `w`     | Word forward  |
-| `b`     | Word backward |
-| `e`     | End of word   |
-| `W`     | WORD forward  |
-| `B`     | WORD backward |
-| `E`     | End of WORD   |
+| Command | Description                                                         |
+| ------- | ------------------------------------------------------------------- |
+| `w`     | Word forward                                                        |
+| `b`     | Word backward                                                       |
+| `e`     | End of word                                                         |
+| `W`     | WORD forward (words can contain punctuation)                        |
+| `B`     | WORD backward (words can contain punctuation)                       |
+| `E`     | End of WORD (words can contain punctuation)                         |
+| `ge`    | Jump backwards to the end of a word                                 |
+| `gE`    | Jump backwards to the end of a word (words can contain punctuation) |
 
-### Line Movement
+### Line Cursor Movement
 
 | Command | Description          |
 | ------- | -------------------- |
 | `0`     | Line start           |
 | `^`     | First non-blank char |
 | `$`     | Line end             |
+| `g_`    | Last non-blank char  |
 
-### Screen Movement
+### Screen Cursor Movement
 
 | Command | Description      |
 | ------- | ---------------- |
@@ -64,17 +104,43 @@
 | `M`     | Middle of screen |
 | `L`     | Bottom of screen |
 
+### Other Cursor Movements
+
+| Command   | Description                                                       |
+| --------- | ----------------------------------------------------------------- |
+| `}`       | Jump to next paragraph (or function/block, when editing code)     |
+| `}`       | Jump to previous paragraph (or function/block, when editing code) |
+| `%`       | Nearest/matching {[()]}                                           |
+| `[(` `[{` | Previous ( or {                                                   |
+| `])` `]{` | Next ) or }                                                       |
+| ``        |                                                                   |
+| ``        |                                                                   |
+| ``        |                                                                   |
+
 ### File Navigation
 
 | Command  | Description       |
 | -------- | ----------------- |
 | `gg`     | Go to top         |
 | `G`      | Go to bottom      |
+| `[N]gg`  | Go to line number |
+| `[N]G`   | Go to line number |
 | `:N`     | Go to line number |
 | `Ctrl+f` | Page down         |
 | `Ctrl+b` | Page up           |
 | `Ctrl+d` | Half page down    |
 | `Ctrl+u` | Half page up      |
+
+### Screen position from Cursor
+
+| Command | Description                             |
+| ------- | --------------------------------------- |
+| `zz`    | center cursor on screen                 |
+| `zt`    | position cursor on top of the screen    |
+| `zb`    | position cursor on bottom of the screen |
+| ``      |                                         |
+| ``      |                                         |
+| ``      |                                         |
 
 ### Jump Navigation
 
@@ -133,6 +199,20 @@
 | `U`      | Undo line changes |
 
 ## Text Objects
+
+| Command | Description           |
+| ------- | --------------------- |
+| `p`     | Paragraph             |
+| `w`     | Word                  |
+| `W`     | WORD                  |
+| `s`     | Sentence              |
+| `[({<`  | A [], (), or {} block |
+| `])}>`  | A [], (), or {} block |
+| `'"``   | A quoted string       |
+| `b`     | A block [(            |
+| `B`     | A block in [{         |
+| `t`     | A HTML tag block      |
+| ``      |                       |
 
 ### Word & Paragraph
 
@@ -200,7 +280,7 @@
 | `*`        | Search word under cursor        |
 | `#`        | Search word under cursor (back) |
 
-### Replacing
+### Replacing / Substitute
 
 | Command          | Description              |
 | ---------------- | ------------------------ |
@@ -208,6 +288,46 @@
 | `:s/old/new/g`   | Replace all on line      |
 | `:%s/old/new/g`  | Replace all in file      |
 | `:%s/old/new/gc` | Replace all with confirm |
+
+### Replacing / Substitute expression
+
+| Command   | Description                    |
+| --------- | ------------------------------ |
+| `&` `\0`  | Replace with the whole matched |
+| `\1...\9` | Replace with the group 0-9     |
+| `\u`      | Uppercase next letter          |
+| `\U`      | Uppercase following characters |
+| `\l`      | Lowercase next letter          |
+| `\L`      | Lowercase following characters |
+| `\e`      | End of \u, \U, \l and \L       |
+| `\E`      | End of \u, \U, \l and \L       |
+| ``        |                                |
+
+#### Flags:
+
+- `g` - Replace all occurrences
+- `i` - Ignore case
+- `I` - Don't ignore case
+- `c` - Confirm each substitution
+
+#### Examples:
+
+- `:s/a\|b/xxx\0xxx/g` --- ( Modifies "a b" to "xxxaxxx xxxbxxx" )
+- `:s/test/\U& file/` --- ( Modifies "test" to "TEST FILE" )
+- `:s/\(test\)/\U\1\e file/` --- ( Modifies "test" to "TEST file" )
+- `:s/\v([abc])([efg])/\2\1/g` --- ( Modifies "af fa bg" to "fa fa gb" )
+- `:s/\v\w+/\u\0/g` --- ( Modifies "bla bla" to "Bla Bla" )
+- `:s/\v([ab])|([cd])/\1x/g` --- ( Modifies "a b c d" to "ax bx x x" )
+- `:%s/.*/\L&/` --- ( Modifies "HTML" to "html" )
+- `:s/\v<(.)(\w*)/\u\1\L\2/g` --- ( Make every first letter of a word uppercase )
+- `:%s/^\(.*\)\n\1/\1/` --- ( Remove duplicate lines )
+- `:%s/<\/\=\(\w\+\)\>/\U&/g` --- ( Convert HTML-Tags to uppercase )
+- `:g/^pattern/s/$/mytext` --- ( Find and append text to the end )
+- `:g/pattern/norm! @i` --- ( Run a macro on matching lines )
+- `/^\(.*\)\(\r\?\n\1\)\+$` --- ( View the duplicates lines )
+- `/\v^(.*)(\r?\n\1)+$` --- ( View the duplicates lines (very magic) )
+- `:v/./,/./-j` --- ( Compress blank lines into a blank line )
+- `:g/<p1>/,/<p2>/d` --- ( Delete inclusively from <p1> to <p2> )
 
 ## Global Commands
 
@@ -257,12 +377,17 @@
 
 ### Common Examples
 
-| Command   | Description |
-| --------- | ----------- |
-| `:r!date` | Insert date |
-| `:%!sort` | Sort lines  |
-| `:%!jq .` | Format JSON |
-| `:!wc %`  | Word count  |
+| Command              | Description            |
+| -------------------- | ---------------------- |
+| `:r!date`            | Insert date            |
+| `:%!sort`            | Sort lines             |
+| `:%!jq .`            | Format JSON            |
+| `:!wc %`             | Word count             |
+| `:sort \| %!uniq -u` | Remove duplicate lines |
+| ``                   |                        |
+| ``                   |                        |
+| ``                   |                        |
+| ``                   |                        |
 
 ## Visual Mode
 
@@ -274,7 +399,18 @@
 | `V`      | Line-wise selection      |
 | `Ctrl+v` | Block-wise selection     |
 | `o`      | Go to other end          |
+| `O`      | Go to other corner       |
 | `gv`     | Reselect last selection  |
+| `vi"`    | Select inner quotes      |
+| `va"`    | Select around quotes     |
+| `vi[`    | Select inner brackets    |
+| `va[`    | Select around brackets   |
+| `viw`    | Select inner word        |
+| `vip`    | Select inner paragraph   |
+| `vipip`  | Select more paragraph    |
+| ``       |                          |
+| ``       |                          |
+| ``       |                          |
 
 ### Operations on Selection
 
@@ -285,9 +421,27 @@
 | `c`     | Change selection |
 | `U`     | Uppercase        |
 | `u`     | Lowercase        |
+| `~`     | Change Case      |
 | `>`     | Indent right     |
 | `<`     | Indent left      |
 | `=`     | Auto-indent      |
+
+### Other on Selection
+
+| Command    | Description          |
+| ---------- | -------------------- |
+| `vU`       | Uppercase character  |
+| `vu`       | Lowercase character  |
+| `viw U`    | Uppercase word       |
+| `viw u`    | Lowercase word       |
+| `viw ~`    | Toggle case word     |
+| `VU / gUU` | Uppercase line       |
+| `Vu / guu` | Lowercase line       |
+| `V~ / g~~` | Toggle case line     |
+| `gggUG`    | Uppercase all text   |
+| `ggguG`    | Lowercase all text   |
+| `ggg~G`    | Toggle case all text |
+| ``         |                      |
 
 ## Folding
 
@@ -365,23 +519,25 @@
 
 ### Marks
 
-| Command       | Description             |
-| ------------- | ----------------------- |
-| `m[a-z]`      | Set local mark          |
-| `m[A-Z]`      | Set global mark         |
-| `'[mark]`     | Go to line of mark      |
-| `` `[mark] `` | Go to exact position    |
-| `''`          | Go to previous position |
-| `'.`          | Go to last edit         |
+| Command       | Description                                  |
+| ------------- | -------------------------------------------- |
+| `m[a-z]`      | Set local mark                               |
+| `m[A-Z]`      | Set global mark                              |
+| `'[mark]`     | Go to line of mark                           |
+| `` `[mark] `` | Go to exact position                         |
+| `` `. ``      | Go to last change in current buffer          |
+| `` `^ ``      | Go to last position of cursor in insert mode |
 
 ### Macros
 
-| Command  | Description       |
-| -------- | ----------------- |
-| `q[a-z]` | Record macro      |
-| `q`      | Stop recording    |
-| `@[a-z]` | Execute macro     |
-| `@@`     | Repeat last macro |
+| Command                 | Description                |
+| ----------------------- | -------------------------- |
+| `q[a-z]`                | Record macro               |
+| `q`                     | Stop recording             |
+| `@[a-z]`                | Execute macro              |
+| `7@[a-z]`               | Execute macro 7 times      |
+| `g/pattern/norm @[a-z]` | Execute macro on selection |
+| `@@`                    | Repeat last macro          |
 
 ### Repeat & Help
 
@@ -401,4 +557,38 @@
 | `u`      | Undo mistake          |
 | `:help`  | Get help              |
 
+### Increase\Decrease
+
+| Command    | Description                                          |
+| ---------- | ---------------------------------------------------- |
+| `Ctrl+a`   | Increase number                                      |
+| `Ctrl+x`   | Decrease number                                      |
+| `g Ctrl+a` | Step increase visualy selected column numbers number |
+| `g Ctrl+x` | Step decrease visualy selected column numbers number |
+| ``         |                                                      |
+| ``         |                                                      |
+| ``         |                                                      |
+
+### Tabs
+
+| Command | Description        |
+| ------- | ------------------ |
+| `gt`    | Go to next tab     |
+| `gT`    | Go to previous tab |
+| `2gt`   | Go to tab number 2 |
+| ``      |                    |
+| ``      |                    |
+| ``      |                    |
+
 ---
+
+### Template
+
+| Command | Description |
+| ------- | ----------- |
+| ``      |             |
+| ``      |             |
+| ``      |             |
+| ``      |             |
+| ``      |             |
+| ``      |             |
