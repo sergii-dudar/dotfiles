@@ -4,7 +4,7 @@
 - Practice the most common operations: navigation, insertion, deletion, and saving
 - Use **:help** extensively - Vim's built-in documentation is excellent
 
-## Modes
+## ============================== Modes ==============================
 
 ### Mode Switching
 
@@ -66,7 +66,7 @@
 
 ---
 
-## Navigation
+## ============================== Navigation ==============================
 
 ### Basic Cursor Movement
 
@@ -109,7 +109,7 @@
 | Command   | Description                                                       |
 | --------- | ----------------------------------------------------------------- |
 | `}`       | Jump to next paragraph (or function/block, when editing code)     |
-| `}`       | Jump to previous paragraph (or function/block, when editing code) |
+| `{`       | Jump to previous paragraph (or function/block, when editing code) |
 | `%`       | Nearest/matching {[()]}                                           |
 | `[(` `[{` | Previous ( or {                                                   |
 | `])` `]{` | Next ) or }                                                       |
@@ -144,12 +144,14 @@
 
 ### Jump Navigation
 
-| Command  | Description     |
-| -------- | --------------- |
-| `Ctrl+o` | Jump back       |
-| `Ctrl+i` | Jump forward    |
-| `g;`     | Previous change |
-| `g,`     | Next change     |
+| Command  | Description                                  |
+| -------- | -------------------------------------------- |
+| `Ctrl+o` | Jump back                                    |
+| `Ctrl+i` | Jump forward                                 |
+| `g;`     | Go to previous change position               |
+| `g,`     | Go to next change position                   |
+| `` `. `` | Go to last change in current buffer          |
+| `` `^ `` | Go to last position of cursor in insert mode |
 
 ### Character Motions
 
@@ -162,22 +164,22 @@
 | `;`       | Repeat character motion  |
 | `,`       | Reverse character motion |
 
-## Editing
+## ============================== Editing ==============================
 
 ### Delete & Change
 
-| Command | Description               |
-| ------- | ------------------------- |
-| `x`     | Delete character          |
-| `X`     | Delete char before cursor |
-| `dd`    | Delete line               |
-| `dw`    | Delete word               |
-| `d$`    | Delete to end of line     |
-| `d0`    | Delete to start of line   |
-| `D`     | Delete to end of line     |
-| `cw`    | Change word               |
-| `cc`    | Change line               |
-| `r`     | Replace character         |
+| Command     | Description               |
+| ----------- | ------------------------- |
+| `x`         | Delete character          |
+| `X`         | Delete char before cursor |
+| `dd`        | Delete line               |
+| `dw`        | Delete word               |
+| `d$`        | Delete to end of line     |
+| `d0`        | Delete to start of line   |
+| `D`         | Delete to end of line     |
+| `cw`        | Change word               |
+| `cc` or `S` | Change line               |
+| `r`         | Replace character         |
 
 ### Copy & Paste
 
@@ -190,6 +192,17 @@
 | `p`     | Paste after           |
 | `P`     | Paste before          |
 
+### Other Change Combinations
+
+| Command   | Description                |
+| --------- | -------------------------- |
+| `d/hello` | Delete until hello         |
+| `>j`      | Indent 2 lines             |
+| `ggdG`    | Delete a complete document |
+| `gg=G`    | Indent a complete document |
+| `ggyG`    | Copy a whole document      |
+| ``        |                            |
+
 ### Undo & Redo
 
 | Command  | Description       |
@@ -198,7 +211,7 @@
 | `Ctrl+r` | Redo              |
 | `U`      | Undo line changes |
 
-## Text Objects
+## ============================== Text Objects ==============================
 
 | Command | Description           |
 | ------- | --------------------- |
@@ -238,15 +251,28 @@
 
 ### Useful Combinations
 
-| Command | Description          |
-| ------- | -------------------- |
-| `ciw`   | Change inner word    |
-| `di"`   | Delete inside quotes |
-| `ya(`   | Yank around block    |
-| `>ip`   | Indent paragraph     |
-| `=G`    | Auto-indent to end   |
+| Command | Description              |
+| ------- | ------------------------ |
+| `ciw`   | Change inner word        |
+| `ci"`   | Change inner quotes      |
+| `cit`   | Change inner tags (HTML) |
+| `cip`   | Change inner paragraph   |
+| `yip`   | Yank inner paragraph     |
+| `yap`   | Yank around paragraph    |
+| `di"`   | Delete inside quotes     |
+| `ya(`   | Yank around block        |
+| `>ip`   | Indent paragraph         |
+| `=G`    | Auto-indent to end       |
+| `diw`   | Delete inner word        |
+| `dis`   | Delete inner sentence    |
+| `di"`   | Delete in quotes         |
+| `da"`   | Delete around quotes     |
+| `dip`   | Delete a paragraph       |
+| ``      |                          |
+| ``      |                          |
+| ``      |                          |
 
-## Registers
+## ============================== Registers ==============================
 
 ### Named Registers
 
@@ -280,14 +306,24 @@
 | `*`        | Search word under cursor        |
 | `#`        | Search word under cursor (back) |
 
-### Replacing / Substitute
+### Replacing / Substitute :[range]s/{pattern}/{str}/[flags] | :[range]s/{pattern}/{str}/[flags]
 
-| Command          | Description              |
-| ---------------- | ------------------------ |
-| `:s/old/new/`    | Replace first on line    |
-| `:s/old/new/g`   | Replace all on line      |
-| `:%s/old/new/g`  | Replace all in file      |
-| `:%s/old/new/gc` | Replace all with confirm |
+| Command           | Description                       |
+| ----------------- | --------------------------------- |
+| `:s/old/new/`     | Replace first on line             |
+| `s/old/new/i`     | Ignore case replace first on line |
+| `:s/old/new/g`    | Replace all on line               |
+| `:s/old/new/gc`   | Replace all on line (Configm)     |
+| `:s/\vold/new/g`  | Replace all with regex            |
+| `:2,6s/old/new/g` | Replace between lines 2-6         |
+| ``                |                                   |
+| `:%s/old/new`     | Replace first in file             |
+| `:%s/old/new/g`   | Replace all in file               |
+| `:%s/old/new/gc`  | Replace all in file (Confirm)     |
+| `:%s/old/new/gi`  | Replace all (ignore case)         |
+| `:%s/\vold/new/g` | Replace all with regex            |
+| ``                |                                   |
+| ``                |                                   |
 
 ### Replacing / Substitute expression
 
@@ -329,7 +365,22 @@
 - `:v/./,/./-j` --- ( Compress blank lines into a blank line )
 - `:g/<p1>/,/<p2>/d` --- ( Delete inclusively from <p1> to <p2> )
 
-## Global Commands
+### Ranges
+
+| Command | Description       |
+| ------- | ----------------- |
+| `%`     | Entire file       |
+| `'<,'>` | Current selection |
+| `5`     | Line 5            |
+| `5,10`  | Lines 5 to 10     |
+| `$`     | Last line         |
+| `2,$`   | Lines 2 to Last   |
+| `.`     | Current line      |
+| `,3`    | Next 3 lines      |
+| `-3,`   | Forward 3 lines   |
+| ``      |                   |
+
+## ============================== Global Commands ==============================
 
 ### Pattern Matching
 
@@ -340,31 +391,36 @@
 
 ### Common Examples
 
-| Command         | Description                     |
-| --------------- | ------------------------------- |
-| `:g/pattern/d`  | Delete lines containing pattern |
-| `:g/^$/d`       | Delete empty lines              |
-| `:g/pattern/t$` | Copy matching lines to end      |
-| `:g/pattern/m$` | Move matching lines to end      |
-| `:g/pattern/p`  | Print matching lines            |
-| `:g/pattern/#`  | Print with line numbers         |
+| Command               | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| `:g/pattern/d`        | Delete lines containing pattern                     |
+| `:g!/pattern/d`       | Delete lines NOT containing pattern                 |
+| `:g/^$/d`             | Delete empty lines                                  |
+| `:g/^\s*$/d`          | Delete blank lines                                  |
+| `:g/pattern/t$`       | Copy matching lines to end                          |
+| `:g/pattern/m$`       | Move matching lines to end                          |
+| `:g/pattern/p`        | Print matching lines                                |
+| `:g/pattern/#`        | Print with line numbers                             |
+| `:g/pattern/norm ...` | Exucute normal mode command                         |
+| ``                    |                                                     |
+| `:v/foo/d`            | Delete lines not containing foo (also: `:g!/foo/d`) |
 
-## File Operations
+## ============================== File Operations ==============================
 
-| Command         | Description           |
-| --------------- | --------------------- |
-| `:w`            | Save file             |
-| `:w filename`   | Save as               |
-| `:q`            | Quit                  |
-| `:q!`           | Force quit            |
-| `:wq`           | Save and quit         |
-| `:x`            | Save and quit         |
-| `:e filename`   | Open file             |
-| `:r filename`   | Insert file contents  |
-| `:sp filename`  | Horizontal split open |
-| `:vsp filename` | Vertical split open   |
+| Command        | Description           |
+| -------------- | --------------------- |
+| `:w`           | Save file             |
+| `:w filename`  | Save as               |
+| `:q`           | Quit                  |
+| `:q!`          | Force quit            |
+| `:wq`          | Save and quit         |
+| `:x`           | Save and quit         |
+| `:e filename`  | Open file             |
+| `:r filename`  | Insert file contents  |
+| `:sp filename` | Horizontal split open |
+| `:vs filename` | Vertical split open   |
 
-## Shell Commands
+## ============================== Shell Commands ==============================
 
 ### Execute Commands
 
@@ -389,7 +445,7 @@
 | ``                   |                        |
 | ``                   |                        |
 
-## Visual Mode
+## ============================== Visual Mode ==============================
 
 ### Visual Selection
 
@@ -443,7 +499,7 @@
 | `ggg~G`    | Toggle case all text |
 | ``         |                      |
 
-## Folding
+## ============================== Folding ==============================
 
 ### Create & Toggle
 
@@ -465,7 +521,7 @@
 | `zm`              | Close one level |
 | `:set fdm=indent` | Fold on indent  |
 
-## Buffers
+## ============================== Buffers ==============================
 
 | Command | Description      |
 | ------- | ---------------- |
@@ -475,7 +531,7 @@
 | `:bp`   | Previous buffer  |
 | `:bd`   | Delete buffer    |
 
-## Windows
+## ============================== Windows ==============================
 
 ### Window Splits
 
@@ -515,18 +571,16 @@
 | `Ctrl+w p` | Go to prev window     |
 | `Ctrl+w x` | Swap window with next |
 
-## Advanced
+## ============================== Advanced ==============================
 
 ### Marks
 
-| Command       | Description                                  |
-| ------------- | -------------------------------------------- |
-| `m[a-z]`      | Set local mark                               |
-| `m[A-Z]`      | Set global mark                              |
-| `'[mark]`     | Go to line of mark                           |
-| `` `[mark] `` | Go to exact position                         |
-| `` `. ``      | Go to last change in current buffer          |
-| `` `^ ``      | Go to last position of cursor in insert mode |
+| Command       | Description          |
+| ------------- | -------------------- |
+| `m[a-z]`      | Set local mark       |
+| `m[A-Z]`      | Set global mark      |
+| `'[mark]`     | Go to line of mark   |
+| `` `[mark] `` | Go to exact position |
 
 ### Macros
 
@@ -547,7 +601,7 @@
 | `:set nu`     | Show line numbers   |
 | `:help [cmd]` | Get help            |
 
-## Emergency
+## ============================== Emergency ==============================
 
 | Command  | Description           |
 | -------- | --------------------- |
@@ -571,14 +625,25 @@
 
 ### Tabs
 
-| Command | Description        |
-| ------- | ------------------ |
-| `gt`    | Go to next tab     |
-| `gT`    | Go to previous tab |
-| `2gt`   | Go to tab number 2 |
-| ``      |                    |
-| ``      |                    |
-| ``      |                    |
+| Command        | Description               |
+| -------------- | ------------------------- |
+| `gt`           | Go to next tab            |
+| `gT`           | Go to previous tab        |
+| `2gt`          | Go to tab number 2        |
+| ``             |                           |
+| ``             |                           |
+| `:tab ba`      | Edit all buffers as tabs  |
+| `:tabe [file]` | Edit file in a new tab    |
+| `:tabf [file]` | Open if exists in new tab |
+| `:tabc`        | Close current tab         |
+| `:tabo`        | Close other tabs          |
+| `:tabr`        | Go to first tab           |
+| `:tabl`        | Go to last tab            |
+| `:tabm 0`      | Move to position 0        |
+| `:tabn`        | Go to next tab            |
+| `:tabp`        | Go to previous tab        |
+| ``             |                           |
+| ``             |                           |
 
 ---
 
