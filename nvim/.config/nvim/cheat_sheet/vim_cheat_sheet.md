@@ -106,16 +106,16 @@
 
 ### Other Cursor Movements
 
-| Command   | Description                                                       |
-| --------- | ----------------------------------------------------------------- |
-| `}`       | Jump to next paragraph (or function/block, when editing code)     |
-| `{`       | Jump to previous paragraph (or function/block, when editing code) |
-| `%`       | Nearest/matching {[()]}                                           |
-| `[(` `[{` | Previous ( or {                                                   |
-| `])` `]{` | Next ) or }                                                       |
-| ``        |                                                                   |
-| ``        |                                                                   |
-| ``        |                                                                   |
+| Command        | Description                                                       |
+| -------------- | ----------------------------------------------------------------- |
+| `}`            | Jump to next paragraph (or function/block, when editing code)     |
+| `{`            | Jump to previous paragraph (or function/block, when editing code) |
+| `%`            | Nearest/matching {[()]}                                           |
+| `[(` `[{` `[<` | Previous ( or {                                                   |
+| `])` `]{` `]>` | Next ) or }                                                       |
+| ``             |                                                                   |
+| ``             |                                                                   |
+| ``             |                                                                   |
 
 ### File Navigation
 
@@ -213,19 +213,19 @@
 
 ## ============================== Text Objects ==============================
 
-| Command | Description           |
-| ------- | --------------------- |
-| `p`     | Paragraph             |
-| `w`     | Word                  |
-| `W`     | WORD                  |
-| `s`     | Sentence              |
-| `[({<`  | A [], (), or {} block |
-| `])}>`  | A [], (), or {} block |
-| `'"``   | A quoted string       |
-| `b`     | A block [(            |
-| `B`     | A block in [{         |
-| `t`     | A HTML tag block      |
-| ``      |                       |
+| Command   | Description           |
+| --------- | --------------------- |
+| `p`       | Paragraph             |
+| `w`       | Word                  |
+| `W`       | WORD                  |
+| `s`       | Sentence              |
+| `[({<`    | A [], (), or {} block |
+| `])}>`    | A [], (), or {} block |
+| `` '"` `` | A quoted string       |
+| `b`       | A block [(            |
+| `B`       | A block in [{         |
+| `t`       | A HTML tag block      |
+| ``        |                       |
 
 ### Word & Paragraph
 
@@ -437,17 +437,17 @@
 
 ### Common Examples
 
-| Command              | Description            |
-| -------------------- | ---------------------- |
-| `:r!date`            | Insert date            |
-| `:%!sort`            | Sort lines             |
-| `:%!jq .`            | Format JSON            |
-| `:!wc %`             | Word count             |
-| `:sort \| %!uniq -u` | Remove duplicate lines |
-| ``                   |                        |
-| ``                   |                        |
-| ``                   |                        |
-| ``                   |                        |
+| Command                | Description            |
+| ---------------------- | ---------------------- |
+| `:r!date`              | Insert date            |
+| `:%!sort`              | Sort lines             |
+| `:%!jq .`              | Format JSON            |
+| `:!wc %`               | Word count             |
+| `:sort \| %!uniq -u`   | Remove duplicate lines |
+| ``                     |                        |
+| `:%w !pbcopy  `        | Mac OS X               |
+| `:%w !xclip -i -sel c` | GNU/Linux              |
+| ``                     |                        |
 
 ## ============================== Visual Mode ==============================
 
@@ -584,12 +584,22 @@
 
 ### Marks
 
-| Command       | Description          |
-| ------------- | -------------------- |
-| `m[a-z]`      | Set local mark       |
-| `m[A-Z]`      | Set global mark      |
-| `'[mark]`     | Go to line of mark   |
-| `` `[mark] `` | Go to exact position |
+| Command       | Description                    |
+| ------------- | ------------------------------ |
+| `m[a-z]`      | Set local mark                 |
+| `m[A-Z]`      | Set global mark                |
+| `'[mark]`     | Go to line of mark             |
+| `` `[mark] `` | Go to exact position           |
+| ``            |                                |
+| `ma`          | Mark this cursor position as a |
+| `` `a ``      | Jump to the cursor position a  |
+| ``            |                                |
+| `:marks`      | List all current marks         |
+| `:delm a`     | Delete mark a                  |
+| `:delm a-d`   | Delete marks a, b, c, d        |
+| `:delm abc`   | Delete marks a, b, c           |
+| ``            |                                |
+| ``            |                                |
 
 ### Macros
 
