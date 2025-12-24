@@ -87,6 +87,11 @@ vim.api.nvim_set_keymap("n", "<leader>|", ":split | wincmd j<CR>", { noremap = t
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 
+map("n", "<leader>H", function()
+    local path = vim.fn.glob("$HOME/.config/nvim/cheat_sheet/vim_cheat_sheet.md")
+    vim.cmd("sp " .. path)
+end, { desc = "Personal Vim Cheat Sheet" })
+
 -- map("n", "<S-h>", "^", { desc = "Prev Buffer" })
 -- map("n", "<S-l>", "$", { desc = "Next Buffer" })
 

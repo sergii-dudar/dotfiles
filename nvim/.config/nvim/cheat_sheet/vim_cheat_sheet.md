@@ -42,7 +42,6 @@
 | `Ctrl+p` | Insert (auto-complete) previous match before the cursor during insert mode |
 | `Ctrl+o` | Temporarily enter normal mode to issue one normal-mode command             |
 | ``       |                                                                            |
-| ``       |                                                                            |
 
 ### Other Editing
 
@@ -55,13 +54,6 @@
 | `c$` or `C`  | change (replace) to the end of the line  |
 | `cw` or `ce` | change (replace) to the end of the word  |
 | `xp`         | transpose two letters (delete and paste) |
-| ``           |                                          |
-| ``           |                                          |
-| ``           |                                          |
-| ``           |                                          |
-| ``           |                                          |
-| ``           |                                          |
-| ``           |                                          |
 | ``           |                                          |
 
 ---
@@ -114,8 +106,6 @@
 | `[(` `[{` `[<` | Previous ( or {                                                   |
 | `])` `]{` `]>` | Next ) or }                                                       |
 | ``             |                                                                   |
-| ``             |                                                                   |
-| ``             |                                                                   |
 
 ### File Navigation
 
@@ -138,8 +128,6 @@
 | `zz`    | center cursor on screen                 |
 | `zt`    | position cursor on top of the screen    |
 | `zb`    | position cursor on bottom of the screen |
-| ``      |                                         |
-| ``      |                                         |
 | ``      |                                         |
 
 ### Jump Navigation
@@ -286,8 +274,6 @@
 | `da"`   | Delete around quotes     |
 | `dip`   | Delete a paragraph       |
 | ``      |                          |
-| ``      |                          |
-| ``      |                          |
 
 ## ============================== Registers ==============================
 
@@ -339,7 +325,6 @@
 | `:%s/old/new/gc`  | Replace all in file (Confirm)     |
 | `:%s/old/new/gi`  | Replace all (ignore case)         |
 | `:%s/\vold/new/g` | Replace all with regex            |
-| ``                |                                   |
 | ``                |                                   |
 
 ### Replacing / Substitute expression
@@ -494,8 +479,6 @@
 | `vip`    | Select inner paragraph   |
 | `vipip`  | Select more paragraph    |
 | ``       |                          |
-| ``       |                          |
-| ``       |                          |
 
 ### Operations on Selection
 
@@ -621,7 +604,6 @@
 | `:delm a-d`   | Delete marks a, b, c, d        |
 | `:delm abc`   | Delete marks a, b, c           |
 | ``            |                                |
-| ``            |                                |
 
 ### Macros
 
@@ -676,8 +658,6 @@
 | `g Ctrl+a` | Step increase visualy selected column numbers number |
 | `g Ctrl+x` | Step decrease visualy selected column numbers number |
 | ``         |                                                      |
-| ``         |                                                      |
-| ``         |                                                      |
 
 ### Tabs
 
@@ -686,7 +666,6 @@
 | `gt`           | Go to next tab            |
 | `gT`           | Go to previous tab        |
 | `2gt`          | Go to tab number 2        |
-| ``             |                           |
 | ``             |                           |
 | `:tab ba`      | Edit all buffers as tabs  |
 | `:tabe [file]` | Edit file in a new tab    |
@@ -698,7 +677,6 @@
 | `:tabm 0`      | Move to position 0        |
 | `:tabn`        | Go to next tab            |
 | `:tabp`        | Go to previous tab        |
-| ``             |                           |
 | ``             |                           |
 
 ---
