@@ -211,6 +211,23 @@
 | `Ctrl+r` | Redo              |
 | `U`      | Undo line changes |
 
+## ============================== Indent ==============================
+
+| Command | Description                                       |
+| ------- | ------------------------------------------------- |
+| `>>`    | indent (move right) line one shiftwidth           |
+| `<<`    | de-indent (move left) line one shiftwidth         |
+| `>%`    | indent a block with () or {} (cursor on brace)    |
+| `<%`    | de-indent a block with () or {} (cursor on brace) |
+| `>ib`   | indent inner block with ()                        |
+| `>at`   | indent a block with <> tags                       |
+| `3==`   | re-indent 3 lines                                 |
+| `=%`    | re-indent a block with () or {} (cursor on brace) |
+| `=iB`   | re-indent inner block with {}                     |
+| `gg=G`  | re-indent entire buffer                           |
+| `]p`    | paste and adjust indent to current line           |
+| ``      |                                                   |
+
 ## ============================== Text Objects ==============================
 
 | Command   | Description           |
@@ -449,6 +466,14 @@
 | `:%w !xclip -i -sel c` | GNU/Linux              |
 | ``                     |                        |
 
+### Suspend & Resume
+
+| Command      | Description                                                                          |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `Ctrl+Z`     | Suspend Neovim to send it to the background, returning you to your shell             |
+| `[shell] fg` | In the shell, type fg (foreground) and press Enter to bring Neovim back to the front |
+| ``           |                                                                                      |
+
 ## ============================== Visual Mode ==============================
 
 ### Visual Selection
@@ -525,9 +550,6 @@
 | Command | Description |
 | ------- | ----------- |
 | `zf`    | Create fold |
-| `za`    | Toggle fold |
-| `zo`    | Open fold   |
-| `zc`    | Close fold  |
 | `zd`    | Delete fold |
 
 ## ============================== Buffers ==============================
@@ -625,14 +647,15 @@
 `vimdiff file1 file2 [file3]`
 `vim -d file1 file2 [file3]`
 
-| Command         | Description             |
-| --------------- | ----------------------- |
-| `do / :diffget` | Obtain (get) difference |
-| `dp / :diffput` | Put difference          |
-| `:dif`          | Re-scan differences     |
-| `:diffo`        | Switch off diff mode    |
-| `ZQ`            | Quit without changes    |
-| ``              |                         |
+| Command         | Description                      |
+| --------------- | -------------------------------- |
+| `do / :diffget` | Obtain (get) difference          |
+| `dp / :diffput` | Put difference                   |
+| `:diffthis`     | make current window part of diff |
+| `:dif`          | Re-scan differences              |
+| `:diffo`        | Switch off diff mode             |
+| `ZQ`            | Quit without changes             |
+| ``              |                                  |
 
 ## ============================== Emergency ==============================
 
@@ -679,6 +702,8 @@
 | ``             |                           |
 
 ---
+
+## ============================== Template ==============================
 
 ### Template
 
