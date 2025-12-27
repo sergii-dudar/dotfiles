@@ -1,9 +1,11 @@
+-- :lua print(vim.fn.stdpath("log"))
+-- :lua print(vim.fn.stdpath("data"))
 return {
     {
-        -- "rcasia/neotest-java",
-        "sergii-dudar/neotest-java",
+        "rcasia/neotest-java",
+        --[[ "sergii-dudar/neotest-java",
         branch = "main",
-        commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", -- fix stable, as last rcasia/neotest-java is broken
+        commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", ]]
         ft = "java",
         dependencies = {
             "mfussenegger/nvim-jdtls",
@@ -23,7 +25,8 @@ return {
         opts = {
             adapters = {
                 ["neotest-java"] = {
-                    junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
+                    log_level = vim.log.levels.DEBUG,
+                    -- junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
                     -- incremental_build = true,
                 },
             },
