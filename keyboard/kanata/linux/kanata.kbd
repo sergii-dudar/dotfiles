@@ -262,7 +262,8 @@
    _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
    _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
+;;   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
+   _     _     _     _     _     _     _     _     _     _                 _    _            _            ;;Z
    _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
 )
 

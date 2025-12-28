@@ -12,7 +12,7 @@ return {
         },
         opts = {
             keymap = {
-                -- https://cmp.saghen.dev/configuration/keymap.html#default
+                -- https://cmp.saghen.dev/configuration/keymap.html#presets
                 preset = "enter",
                 -- ["<Tab>"] = {
                 --     LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
@@ -22,6 +22,14 @@ return {
                 ["<C-j>"] = { "select_next", "fallback" },
                 -- ["<Space>"] = { "select_and_accept", "fallback" },
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
+
+                -- show with a list of providers
+                ["<C-space>"] = {
+                    function(cmp)
+                        cmp.show({ providers = { "snippets" } })
+                    end,
+                },
+                -- control whether the next command will be run when using a function
             },
             fuzzy = {
                 implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua

@@ -4,16 +4,18 @@
 - Practice the most common operations: navigation, insertion, deletion, and saving
 - Use **:help** extensively - Vim's built-in documentation is excellent
 
+`h Ex-commands`
+
 ## ============================== Modes ==============================
 
 ### Mode Switching
 
-| Command  | Description       |
-| -------- | ----------------- |
-| `Esc`    | Normal mode       |
-| `v`      | Visual mode       |
-| `V`      | Visual line mode  |
-| `Ctrl+v` | Visual block mode |
+| Command              | Description       |
+| -------------------- | ----------------- |
+| `Esc`                | Normal mode       |
+| `v`                  | Visual mode       |
+| `V`                  | Visual line mode  |
+| `Ctrl+v` or `Ctrl+q` | Visual block mode |
 
 ### Entering Insert Mode from Normal Mode
 
@@ -382,7 +384,7 @@
 | `-3,`   | Forward 3 lines   |
 | ``      |                   |
 
-## ============================== Global Commands ==============================
+## ============================== Global Commands (or it also calling - `G command`) ==============================
 
 ### Pattern Matching
 
@@ -414,8 +416,8 @@
 | `:w`           | Save file                                                            |
 | `:w filename`  | Save as                                                              |
 | `:q`           | Quit                                                                 |
-| `:q!`          | Force quit                                                           |
-| `:wq`          | Save and quit                                                        |
+| `:q!` or `ZQ`  | Force quit (wihtout saving)                                          |
+| `:wq` or `ZZ`  | Save and quit                                                        |
 | `:x`           | Save and quit                                                        |
 | `:e filename`  | Open file                                                            |
 | `:r filename`  | Insert file contents                                                 |
@@ -444,6 +446,7 @@
 | `:r!date`              | Insert date            |
 | `:%!sort`              | Sort lines             |
 | `:%!jq .`              | Format JSON            |
+| `:'<,'>!jq .`          | Format selected JSON   |
 | `:!wc %`               | Word count             |
 | `:sort \| %!uniq -u`   | Remove duplicate lines |
 | ``                     |                        |
@@ -463,22 +466,22 @@
 
 ### Visual Selection
 
-| Command  | Description              |
-| -------- | ------------------------ |
-| `v`      | Character-wise selection |
-| `V`      | Line-wise selection      |
-| `Ctrl+v` | Block-wise selection     |
-| `o`      | Go to other end          |
-| `O`      | Go to other corner       |
-| `gv`     | Reselect last selection  |
-| `vi"`    | Select inner quotes      |
-| `va"`    | Select around quotes     |
-| `vi[`    | Select inner brackets    |
-| `va[`    | Select around brackets   |
-| `viw`    | Select inner word        |
-| `vip`    | Select inner paragraph   |
-| `vipip`  | Select more paragraph    |
-| ``       |                          |
+| Command  | Description                                                        |
+| -------- | ------------------------------------------------------------------ |
+| `v`      | Character-wise selection                                           |
+| `V`      | Line-wise selection                                                |
+| `Ctrl+v` | Block-wise selection                                               |
+| `o`      | Go to other end (for example to chanche start of visual selection) |
+| `O`      | Go to other corner                                                 |
+| `gv`     | Reselect last selection                                            |
+| `vi"`    | Select inner quotes                                                |
+| `va"`    | Select around quotes                                               |
+| `vi[`    | Select inner brackets                                              |
+| `va[`    | Select around brackets                                             |
+| `viw`    | Select inner word                                                  |
+| `vip`    | Select inner paragraph                                             |
+| `vipip`  | Select more paragraph                                              |
+| ``       |                                                                    |
 
 ### Operations on Selection
 
@@ -510,6 +513,18 @@
 | `ggguG`    | Lowercase all text   |
 | `ggg~G`    | Toggle case all text |
 | ``         |                      |
+
+## ============================== Visual block mode ==============================
+
+- append to end of all (even diff sizes): after block select - `$A you test!<Esc>`
+
+## ============================== Norm Command Examples ==============================
+
+- `'<,'>norm 0wi*`
+- `'<,'>norm ea*`
+- `'<,'>norm! 0wi*^[ea*`
+  `^[` it's esc combination Ctrl+[, to get it in command mode, need to press `Ctrl+v+[` or in my case `Ctrl+q+[`
+  as ctrl+v is using for pasting in my terminals and can't be used (see `:help c_CTRL-V`)
 
 ## ============================== Folding ==============================
 
@@ -693,3 +708,9 @@
 | ``      |             |
 | ``      |             |
 | ``      |             |
+
+## ################## Another Interesting Notes
+
+## ============================== Messages History ==============================
+
+since I'm using `folke/noice.nvim`, `messages` command is useless for me, use `NoiceHistory`
