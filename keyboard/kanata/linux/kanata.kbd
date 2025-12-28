@@ -122,18 +122,19 @@
   ;; mcaps (multi f24 (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation)))
   ;; mz (multi f24 (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys))
   ;; m/ (multi f24 (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys))
-  mspc (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols))
+  ;; msys (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols_and_systems))
   mcaps (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation))
 
-  mz (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_system) $left-hand-keys)
-  m/ (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_system) $right-hand-keys)
+  mt (tap-hold-release-keys $tap-time $hold-pinky t (layer-while-held l_tmux) $left-hand-keys)
+  mz (tap-hold-release-keys $tap-time $hold-pinky z (layer-while-held l_symbols_and_systems) $left-hand-keys)
+  m/ (tap-hold-release-keys $tap-time $hold-pinky / (layer-while-held l_symbols_and_systems) $right-hand-keys)
   
   ;; marsos
   rarrow (macro - S-.)
 
   ;; Tmux
   ;; - sessions
-  tmuxsvi (macro C-f $tmux-delay t) ;; tmux prev session
+  ;; tmuxsvi (macro C-f $tmux-delay t) ;; tmux sessions manager
   tmuxsnt (macro C-f $tmux-delay S-0) ;; tmux next session
   tmuxslt (macro C-f $tmux-delay l) ;; tmux prev session
   tmuxs (tap-hold $tap-time $hold-time @tmuxslt @tmuxsnt)
@@ -156,10 +157,10 @@
 (deflayer base
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     prnt slck pause
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-      tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  pgdn
+      tab    q    w    e    r   @mt   y    u    i    o    p    [    ]    \       del  end  pgdn
      @mcaps  @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-      @mlctl   lmet lalt           @mspc                      @mralt  rmet rctl     ◀    ▼    ▶
+      @mlctl   lmet lalt           spc                      @mralt  rmet rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -192,14 +193,14 @@
 ;; | a | `  ~  +  =  &        ^  (  )  $  X  ' (apostrof on UK)
 ;; | z | X  \  _  -  %        ◀  ▼  ▲  ▶  X
 
-(deflayer l_symbols
+(deflayer l_symbols_and_systems
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX  ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX    XX    XX    XX  ;;NUM
-   XX    S-1   S-2   S-3   S-8   S-\   0  @rarrow  S-[   S-]   XX    XX    XX    XX    XX    XX    XX  ;;Q
-   XX    `     S-`   S-=   =     S-7   S-6   S-9   S-0   S-4   XX    S-A-p       XX                    ;;A
-   XX    XX    \     S--   -     S-5   ◀     ▼     ▲     ▶     XX                XX          XX        ;;Z
-   XX    XX    XX                            XX                      XX    XX    XX    XX    XX     XX ;;MOD
+   XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX       ;;F1
+   lrld  XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX    @vd   @vt   @vu      ;;NUM
+   XX    S-1   S-2   S-3   S-8   S-\   0  @rarrow  S-[   S-]   XX    XX    XX    XX    @mpdp @mpdt @mpdn    ;;Q
+   XX    `     S-`   S-=   =     S-7   S-6   S-9   S-0   S-4   XX    S-A-p       XX                         ;;A
+   XX    XX    \     S--   -     S-5   ◀     ▼     ▲     ▶     XX                XX          XX             ;;Z
+   XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn      ;;MOD
 )
 
 (defalias
@@ -215,11 +216,11 @@
     mpdp (cmd bash -c "mpc prev")
 )
 
-(deflayer l_system
+(deflayer l_tmux
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu    ;;NUM
-   XX    XX    XX    XX  lrld @tmuxsvi XX    XX    XX @tmuxptb @tmuxptp XX XX    XX    @mpdp @mpdt @mpdn  ;;Q
+   XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxptb @tmuxptp XX XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn    ;;MOD
@@ -258,11 +259,11 @@
 (deflayer l_ctl
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @vd   @vt   @vu    ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     @mpdp @mpdt @mpdn  ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
    _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
-   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+   _     _     _                             _                       _     _     _     @pb   @pp   @pn    ;;MOD
 )
 
 ;; (deflayer l_alt
