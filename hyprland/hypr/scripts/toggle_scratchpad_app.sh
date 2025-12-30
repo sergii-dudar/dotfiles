@@ -66,6 +66,8 @@ function set_scratch_app_roles() {
         dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
         dispatch setprop address:$addr bordersize 5 ;\
         dispatch setprop address:$addr alpha 0.95 ;\
+        dispatch setprop address:$addr dim_around on ;\
+        dispatch setprop address:$addr opacity 0.97 ;\
         dispatch setprop address:$addr animationstyle 0"
 }
 
