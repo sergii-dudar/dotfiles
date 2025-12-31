@@ -18,7 +18,9 @@ if [ -n "${FLOAT_TERM}" ]; then
   if [ "$(tmux display-message -p -F "#{session_name}")" = "$SESSION_POPUP_NAME" ]; then
     tmux detach-client
   else
-    tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME"
+    # tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME"
+    tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E \
+        "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME \; set -t $SESSION_POPUP_NAME status off"
   fi
 else
   if [ "${PANE_COUNT}" = 1 ]; then
