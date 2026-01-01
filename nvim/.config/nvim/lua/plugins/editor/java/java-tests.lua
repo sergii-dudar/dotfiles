@@ -4,6 +4,7 @@ return {
     {
         -- "rcasia/neotest-java",
         "sergii-dudar/neotest-java",
+        -- commit = "8fefa6d853c2f37126f3a7406c76e46824859b65",
         --[[ branch = "main",
         commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", ]]
         ft = "java",
