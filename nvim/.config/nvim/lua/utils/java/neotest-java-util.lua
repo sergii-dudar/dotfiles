@@ -69,7 +69,11 @@ local function get_params(sig)
     return params
 end
 
----@param qualified_name string
+M.build_method_test_param_qualified_name = function(simple_name, default_qualified_name)
+    return string.format("jdtls:{{%s}}||default:{{%s}}", simple_name, default_qualified_name)
+end
+
+---@param qualified_name string - build_method_test_param_qualified_name based name to handle
 ---return string
 M.parse_and_resolve_method_params_nio = function(qualified_name)
     local params = get_params(qualified_name)
@@ -91,3 +95,63 @@ M.parse_and_resolve_method_params_nio = function(qualified_name)
 end
 
 return M
+
+--[[
+local neotest_java_util = require("utils.java.neotest-java-util")
+
+lua/neotest-java/core/positions_discoverer.lua
+```
+        ...
+		elseif package_name and package_name ~= "" then
+			qualified = neotest_java_util.build_method_test_param_qualified_name(t, package_name .. "." .. t)
+		else
+			qualified = neotest_java_util.build_method_test_param_qualified_name(t, t)
+		end
+        ...
+```
+
+lua/neotest-java/command/junit_command_builder.lua
+```
+    local jdtls_client = require("nio").lsp.get_clients({ name = "jdtls" })[1]
+    dd(jdtls_client)
+    local err, result = jdtls_client.request.workspace_symbol({ query = "TestMonth" })
+    dd({ err = err, result = result })
+
+    ...
+	local selectors = {}
+	for _, v in ipairs(self._test_references) do
+		if v.type == "test" then
+			v.qualified_name = neotest_java_util.parse_and_resolve_method_params_nio(v.qualified_name)
+			local class_name = v.qualified_name:match("^(.-)#") or v.qualified_name
+			table.insert(selectors, "--select-class='" .. class_name .. "'")
+			if v.method_name then
+				v.method_name = neotest_java_util.parse_and_resolve_method_params_nio(v.method_name)
+				table.insert(selectors, "--select-method='" .. v.method_name .. "'")
+			end
+		end
+	end
+    ...
+
+    ...
+	local junit_command = {
+		command = java(),
+		args = vim.iter({
+			jvm_args,
+			"-jar",
+			self._junit_jar.to_string(),
+			"execute",
+			"--classpath=" .. self._classpath_file_arg,
+			"--reports-dir=" .. self._reports_dir.to_string(),
+			"--fail-if-no-tests",
+			"--disable-banner",
+			"--details=testfeed",
+			-- "--include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$",
+			-- '--include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$"',
+			"--config=junit.platform.output.capture.stdout=true",
+		})
+			:flatten()
+			:totable(),
+	}
+    ...
+```
+]]

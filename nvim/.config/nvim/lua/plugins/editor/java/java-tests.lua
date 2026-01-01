@@ -2,12 +2,9 @@
 -- :lua print(vim.fn.stdpath("data"))
 return {
     {
-        "rcasia/neotest-java",
-        -- branch = "main",
-        -- commit = "7fcfdadd9332243630f0797a7560cae17017f342",
-        -- commit = "f2a1aeb1e5a95d68c3059753d344532c1df05cea",
-        --[[ "sergii-dudar/neotest-java",
-        branch = "main",
+        -- "rcasia/neotest-java",
+        "sergii-dudar/neotest-java",
+        --[[ branch = "main",
         commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", ]]
         ft = "java",
         dependencies = {
@@ -25,11 +22,38 @@ return {
             "antoinemadec/FixCursorHold.nvim",
             "nvim-treesitter/nvim-treesitter",
         },
+        keys = {
+            -- {"<leader>t", "", desc = "+test"},
+            -- { "<leader>ta", function() require("neotest").run.attach() end, desc = "Attach to Test (Neotest)" },
+            -- { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run File (Neotest)" },
+            -- { "<leader>tT", function() require("neotest").run.run(vim.uv.cwd()) end, desc = "Run All Test Files (Neotest)" },
+            -- { "<leader>tr", function() require("neotest").run.run() end, desc = "Run Nearest (Neotest)" },
+            -- { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run Last (Neotest)" },
+            {
+                "<leader>ts",
+                function()
+                    local before = vim.api.nvim_get_current_win()
+                    require("neotest").summary.toggle()
+                    local after = vim.api.nvim_get_current_win()
+                    if before == after then
+                        vim.cmd("wincmd w")
+                    end
+                end,
+                desc = "Toggle Summary (Neotest)",
+            },
+            -- { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Output (Neotest)" },
+            -- { "<leader>tO", function() require("neotest").output_panel.toggle() end, desc = "Toggle Output Panel (Neotest)" },
+            -- { "<leader>tS", function() require("neotest").run.stop() end, desc = "Stop (Neotest)" },
+            -- { "<leader>tw", function() require("neotest").watch.toggle(vim.fn.expand("%")) end, desc = "Toggle Watch (Neotest)" },
+        },
         opts = {
             adapters = {
                 ["neotest-java"] = {
                     log_level = vim.log.levels.DEBUG,
-                    -- junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
+                    junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
+                    jvm_args = {
+                        string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", os.getenv("HOME")),
+                    },
                     -- incremental_build = true,
                 },
             },
