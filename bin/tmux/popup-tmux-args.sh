@@ -15,19 +15,20 @@ PANE_ZOOMED="$(echo "${LIST_PANES}" | grep Z)"
 PANE_COUNT="$(echo "${LIST_PANES}" | wc -l | bc)"
 
 if [ -n "${FLOAT_TERM}" ]; then
-  if [ "$(tmux display-message -p -F "#{session_name}")" = "$SESSION_POPUP_NAME" ]; then
-    tmux detach-client
-  else
-    # tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME"
-    tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E \
-        "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME \; set -t $SESSION_POPUP_NAME status off"
-  fi
+    if [ "$(tmux display-message -p -F "#{session_name}")" = "$SESSION_POPUP_NAME" ]; then
+        tmux detach-client
+    else
+        # --- https://man.openbsd.org/OpenBSD-current/man1/tmux.1#display-popup ---
+        # tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME"
+        tmux popup -d '#{pane_current_path}' -xC -yC -w90% -h80% -E -T "$SESSION_POPUP_NAME" \
+            "tmux attach -t $SESSION_POPUP_NAME || tmux new -s $SESSION_POPUP_NAME \; set -t $SESSION_POPUP_NAME status off"
+    fi
 else
-  if [ "${PANE_COUNT}" = 1 ]; then
-    tmux split-window -c "#{pane_current_path}"
-  elif [ -n "${PANE_ZOOMED}" ]; then
-    tmux select-pane -t:.-
-  else
-    tmux resize-pane -Z -t1
-  fi
+    if [ "${PANE_COUNT}" = 1 ]; then
+        tmux split-window -c "#{pane_current_path}"
+    elif [ -n "${PANE_ZOOMED}" ]; then
+        tmux select-pane -t:.-
+    else
+        tmux resize-pane -Z -t1
+    fi
 fi
