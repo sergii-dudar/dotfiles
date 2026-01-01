@@ -55,20 +55,25 @@ develop = [
     { run = 'code "$1"', orphan = true, desc = "vscode" },
 ]
 open = [
-    { run = 'xdg-open "$1"',               desc = "Open",              for = "linux" },
+    { run = "xdg-open %s1",    desc = "Open", for = "linux" },
     #{ run = 'nautilus . "$1"',              desc = "Open in Nautilus",  for = "linux" },
-    { run = 'open "$@"',                    desc = "Open",              for = "macos" },
-    { run = 'start "" "%1"', orphan = true, desc = "Open",              for = "windows" },
+	{ run = "open %s",         desc = "Open", for = "macos" },
+	{ run = 'start "" %s1',    desc = "Open", for = "windows", orphan = true },
+	{ run = "termux-open %s1", desc = "Open", for = "android" },
 ]
 reveal = [
-    { run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
-    { run = 'open -R "$1"',                         desc = "Reveal", for = "macos" },
-    { run = 'explorer /select,"%1"', orphan = true, desc = "Reveal", for = "windows" },
-    { run = '''exiftool "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show EXIF", for = "unix" },
+	{ run = "xdg-open %d1",         desc = "Reveal", for = "linux" },
+	{ run = "open -R %s1",          desc = "Reveal", for = "macos" },
+	{ run = "explorer /select,%s1", desc = "Reveal", for = "windows", orphan = true },
+	{ run = "termux-open %d1",      desc = "Reveal", for = "android" },
+	{ run = "clear; exiftool %s1; echo 'Press enter to exit'; read _", desc = "Show EXIF", for = "unix", block = true },
 ]
 extract = [
-    { run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
-    { run = 'ya pub extract --list %*',   desc = "Extract here", for = "windows" },
+	{ run = "ya pub extract --list %s", desc = "Extract here" },
+]
+download = [
+	{ run = "ya emit download --open %S", desc = "Download and open" },
+	{ run = "ya emit download %S",        desc = "Download" },
 ]
 play = [
     #{ run = 'vlc "$@"', orphan = true, desc = "vlc", for = "unix" },
@@ -79,7 +84,13 @@ play = [
 play_audio = [
     { run = 'mpv --no-video "$@"', block = true, for = "unix" },
     { run = 'mpv --no-video %*', block = true, for = "windows" },
-    { run = '''mediainfo "$1"; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
+    { run = "xdg-open %s1",                desc = "Play", for = "linux" },
+	{ run = "open %s",                     desc = "Play", for = "macos" },
+	{ run = 'start "" %s1', orphan = true, desc = "Play", for = "windows" },
+	{ run = "termux-open %s1",             desc = "Play", for = "android" },
+	{ run = "mediainfo %s1; echo 'Press enter to exit'; read _", block = true, desc = "Show media info", for = "unix" },
+	{ run = "mediainfo %s1 & pause", block = true, desc = "Show media info", for = "windows" },
+
 ]
 image = [
     { run = 'eog "$1"', orphan = true, desc = "eog viewer", for = "linux" },
@@ -94,27 +105,28 @@ run_sh = [
 
 [open]
 rules = [
-    # Folder
-    { name = "*/", use = [ "edit", "open", "reveal" ] },
+	# Folder
+	{ url = "*/", use = [ "edit", "open", "reveal" ] },
     # Custom
-    { name = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
-    { name = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
-    # Text
-    { mime = "text/*", use = [ "edit", "reveal" ] },
-    # Image
-    { mime = "image/*", use = [ "open", "reveal" ] },
-    # Media
-    { mime = "{video}/*", use = [ "play", "reveal" ] },
-    { mime = "{audio}/*", use = [ "play_audio", "reveal" ] },
-    # Archive
-    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
-    # JSON
-    { mime = "application/{json,ndjson}", use = [ "edit", "reveal" ] },
-    { mime = "*/javascript", use = [ "edit", "reveal" ] },
-    # Empty file
-    { mime = "inode/empty", use = [ "edit", "reveal" ] },
-    # Fallback
-    { name = "*", use = [ "open", "reveal" ] },
+    { url = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
+    { url = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
+	# Text
+	{ mime = "text/*", use = [ "edit", "reveal" ] },
+	# Image
+	{ mime = "image/*", use = [ "open", "reveal" ] },
+	# Media
+	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
+	# Archive
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
+	# JSON
+	{ mime = "application/{json,ndjson}", use = [ "edit", "reveal" ] },
+	{ mime = "*/javascript", use = [ "edit", "reveal" ] },
+	# Empty file
+	{ mime = "inode/empty", use = [ "edit", "reveal" ] },
+	# Virtual file system
+	{ mime = "vfs/{absent,stale}", use = "download" },
+	# Fallback
+	{ url = "*", use = [ "open", "reveal" ] },
 ]
 
 [tasks]
@@ -122,33 +134,40 @@ micro_workers    = 10
 macro_workers    = 10
 bizarre_retry    = 3
 image_alloc      = 536870912  # 512MB
-image_bound      = [ 5000, 5000 ]
+image_bound      = [ 10000, 10000 ]
 suppress_preload = false
 
 [plugin]
 
-prepend_fetchers = [
-    { id = "git", name = "*", run = "git" },
-    { id = "git", name = "*/", run = "git" },
-]
+# plugin not updated to latest, temp disabled
+# prepend_fetchers = [
+#     { id = "git", name = "*", run = "git" },
+#     { id = "git", name = "*/", run = "git" },
+# ]
 
 fetchers = [
-    # Mimetype
-    { id = "mime", name = "*", run = "mime", if = "!mime", prio = "high" },
+	# Mimetype
+	{ id = "mime", url = "*/",         run = "mime.dir", prio = "high" },
+	{ id = "mime", url = "local://*",  run = "mime.local", prio = "high" },
+	{ id = "mime", url = "remote://*", run = "mime.remote", prio = "high" },
 ]
 spotters = [
-    { name = "*/", run = "folder" },
-    # Code
-    { mime = "text/*", run = "code" },
-    { mime = "*/{xml,javascript,wine-extension-ini}", run = "code" },
-    # Image
+	{ url = "*/", run = "folder" },
+	# Code
+	{ mime = "text/*", run = "code" },
+	{ mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
+	# Image
 	{ mime = "image/{avif,hei?,jxl}", run = "magick" },
 	{ mime = "image/svg+xml", run = "svg" },
 	{ mime = "image/*", run = "image" },
-    # Video
-    { mime = "video/*", run = "video" },
-    # Fallback
-    { name = "*", run = "file" },
+	# Video
+	{ mime = "video/*", run = "video" },
+	# Virtual file system
+	{ mime = "vfs/*", run = "vfs" },
+	# Error
+	{ mime = "null/*", run = "null" },
+	# Fallback
+	{ url = "*", run = "file" },
 ]
 preloaders = [
     # Image
@@ -165,36 +184,40 @@ preloaders = [
     { mime = "application/ms-opentype", run = "font" },
 ]
 previewers = [
-	{ name = "*/", run = "folder" },
-    # Code
-    { mime = "text/*", run = "code" },
+	{ url = "*/", run = "folder" },
+	# Code
+	{ mime = "text/*", run = "code" },
 	{ mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
-    # JSON
-    { mime = "application/{json,ndjson}", run = "json" },
-    # Image
+	# JSON
+	{ mime = "application/{json,ndjson}", run = "json" },
+	# Image
 	{ mime = "image/{avif,hei?,jxl}", run = "magick" },
 	{ mime = "image/svg+xml", run = "svg" },
 	{ mime = "image/*", run = "image" },
-    # Video
+	# Video
     # disabled, as slow to big files, and quite anoying
     # { mime = "video/*", run = "video" },
-    # PDF
-    { mime = "application/pdf", run = "pdf" },
-    # Archive
-    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" },
-    { mime = "application/{debian*-package,redhat-package-manager,rpm,android.package-archive}", run = "archive" },
-    { name = "*.{AppImage,appimage}", run = "archive" },
-    # Virtual Disk / Disk Image
-    { mime = "application/{iso9660-image,qemu-disk,ms-wim,apple-diskimage}", run = "archive" },
-    { mime = "application/virtualbox-{vhd,vhdx}", run = "archive" },
-    { name = "*.{img,fat,ext,ext2,ext3,ext4,squashfs,ntfs,hfs,hfsx}", run = "archive" },
-    # Font
-    { mime = "font/*", run = "font" },
-    { mime = "application/ms-opentype", run = "font" },
-    # Empty file
-    { mime = "inode/empty", run = "empty" },
-    # Fallback
-    { name = "*", run = "file" },
+	# PDF
+	{ mime = "application/pdf", run = "pdf" },
+	# Archive
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" },
+	{ mime = "application/{debian*-package,redhat-package-manager,rpm,android.package-archive}", run = "archive" },
+	{ url = "*.{AppImage,appimage}", run = "archive" },
+	# Virtual Disk / Disk Image
+	{ mime = "application/{iso9660-image,qemu-disk,ms-wim,apple-diskimage}", run = "archive" },
+	{ mime = "application/virtualbox-{vhd,vhdx}", run = "archive" },
+	{ url = "*.{img,fat,ext,ext2,ext3,ext4,squashfs,ntfs,hfs,hfsx}", run = "archive" },
+	# Font
+	{ mime = "font/*", run = "font" },
+	{ mime = "application/ms-opentype", run = "font" },
+	# Empty file
+	{ mime = "inode/empty", run = "empty" },
+	# Virtual file system
+	{ mime = "vfs/*", run = "vfs" },
+	# Error
+	{ mime = "null/*", run = "null" },
+	# Fallback
+	{ url = "*", run = "file" },
 ]
 
 [input]
@@ -247,16 +270,16 @@ delete_origin	= "center"
 delete_offset	= [ 0, 0, 70, 20 ]
 
 # overwrite
-overwrite_title   = "Overwrite file?"
-overwrite_content = "Will overwrite the following file:"
-overwrite_origin  = "center"
-overwrite_offset  = [ 0, 0, 50, 15 ]
+overwrite_title  = "Overwrite file?"
+overwrite_body   = "Will overwrite the following file:"
+overwrite_origin = "center"
+overwrite_offset = [ 0, 0, 50, 15 ]
 
 # quit
-quit_title   = "Quit?"
-quit_content = "The following task is still running, are you sure you want to quit?"
-quit_origin  = "center"
-quit_offset  = [ 0, 0, 50, 15 ]
+quit_title  = "Quit?"
+quit_body   = "The following tasks are still running, are you sure you want to quit?"
+quit_origin = "center"
+quit_offset = [ 0, 0, 50, 15 ]
 
 [pick]
 open_title  = "Open with:"
