@@ -16,6 +16,7 @@ prepend_keymap = [
     { on = "7", run = "plugin relative-motions 7", desc = "Move in relative steps" },
     { on = "8", run = "plugin relative-motions 8", desc = "Move in relative steps" },
     { on = "9", run = "plugin relative-motions 9", desc = "Move in relative steps" },
+    # { on = "m", run = "plugin relative-motions", desc = "Trigger a new relative motion" },
 
     # max preview
     { on = "i", run  = "plugin toggle-pane max-preview", desc = "Maximize or restore the preview pane" },

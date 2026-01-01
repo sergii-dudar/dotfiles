@@ -4,7 +4,7 @@ require("full-border"):setup({
 })
 
 -- https://github.com/dedukun/relative-motions.yazi
-require("relative-motions"):setup({ show_numbers = "relative", show_motion = true })
+require("relative-motions"):setup({ show_numbers = "relative_absolute", show_motion = true, enter_mode = "first" })
 
 -- https://github.com/Rolv-Apneseth/starship.yazi
 require("starship"):setup(
