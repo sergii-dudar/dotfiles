@@ -62,4 +62,19 @@ M.to_unique_list = function(tbl)
     return unique
 end
 
+--- Return iterator that during interation will use exactly same order that was used when items in table was inserted.
+M.sorted_iter = function(list)
+    local i = {}
+    for k in next, list do
+        table.insert(i, k)
+    end
+    table.sort(i)
+    return function()
+        local k = table.remove(i)
+        if k ~= nil then
+            return k, list[k]
+        end
+    end
+end
+
 return M

@@ -171,14 +171,24 @@ local java_root_files = {
     "settings.gradle.kts",
 }
 
+local is_java_project_loc = nil
 M.is_java_project = function()
+    if is_java_project_loc ~= nil then
+        return is_java_project_loc
+    end
+
     local root = vim.fn.getcwd()
     for _, f in ipairs(java_root_files) do
+        -- vim.notify(root .. "/" .. f)
         if util.is_file_exists(root .. "/" .. f) then
-            return true
+            -- vim.notify("it's java proj")
+            is_java_project_loc = true
+            return is_java_project_loc
         end
     end
-    return false
+    -- vim.notify("it's NOT java proj")
+    is_java_project_loc = false
+    return is_java_project_loc
 end
 
 local get_root_src_package_inner = function(src_dir)

@@ -18,8 +18,8 @@ return {
                 vim.notify("DELETED: " .. path, vim.log.levels.INFO) -- You can do anything whenever an item deleted
             end,
             on_rename = function(src, dst)
-                if java_util.is_java_project then
-                    java_refactor_util.fix_java_proj_after_change(src, dst)
+                if java_util.is_java_project() then
+                    java_refactor_util.register_change(src, dst)
                     -- vim.notify("SUCCESS: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
                 else
                     Snacks.rename.on_rename_file(src, dst) -- LSP-integrated file renaming (for lsp supported it) - DEFAULT

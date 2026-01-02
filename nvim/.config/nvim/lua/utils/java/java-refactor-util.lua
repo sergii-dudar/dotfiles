@@ -4,6 +4,7 @@ local M = {}
 local util = require("utils.common-util")
 local string_util = require("utils.string-util")
 local spinner = require("utils.ui.spinner")
+local list_util = require("utils.list-util")
 local home = os.getenv("HOME")
 
 local current_term_win = nil
@@ -231,6 +232,36 @@ M.fix_java_proj_after_change = function(src, dst)
 
     -- vim.notify(cmd_to_run)
     run_cmd(cmd_to_run)
+end
+
+local all_registered_changes = {}
+M.register_change = function(src, dst)
+    table.insert(all_registered_changes, {
+        src = src,
+        dst = dst,
+    })
+end
+
+-- local list = {}
+-- table.insert(list, "test 1")
+-- table.insert(list, "name 2")
+-- table.insert(list, "issua 3")
+-- table.insert(list, "astral 4")
+-- table.insert(list, "an 5")
+--
+-- --local list_util = require("utils.list-util")
+-- for i, value in list_util.sorted_iter(list) do
+--     print(string.format("%d, %s, %s", i, value, list[i]))
+-- end
+
+M.process_registerd_changes = function()
+    if vim.tbl_isempty(all_registered_changes) then
+        dd(all_registered_changes)
+        for _, value in list_util.sorted_iter(all_registered_changes) do
+            M.fix_java_proj_after_change(value.src, value.dst)
+        end
+    end
+    all_registered_changes = {}
 end
 
 -- M.fix_java_proj_after_change(

@@ -2,9 +2,10 @@
 -- Default autocmds that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
 -- Add any additional autocmds here
 
+local java_util = require("utils.java.java-common")
 local augroup = vim.api.nvim_create_augroup
 local customBuffer = augroup("custom_buffer", { clear = true })
-local myCustomGroup = augroup("myCustomGroup", {})
+local general_group = augroup("myCustomGroup", { clear = true })
 local yank_group = augroup("HighlightYank", {})
 
 local autocmd = vim.api.nvim_create_autocmd
@@ -47,23 +48,6 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.api.nvim_buf_set_keymap(0, "n", "q", "<cmd>close!<CR>", { noremap = true, silent = true })
     end,
 })
-
-local original_termopen = vim.fn.termopen
-vim.fn.termopen = function(cmd, opts)
-    opts = opts or {}
-    local user_callback = opts.on_exit
-    opts.on_exit = function(job_id, exit_code, event_type)
-        local is_java = (type(cmd) == "table" and cmd[1] or cmd):match(".*(java).*")
-        if is_java then
-            -- TODO:
-        end
-
-        if user_callback then
-            user_callback(job_id, exit_code, event_type)
-        end
-    end
-    return original_termopen(cmd, opts)
-end
 
 -------------------------------------------
 ------------ folke/trouble.nvim -----------
@@ -137,6 +121,28 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
     end,
     group = vim.api.nvim_create_augroup("WinBar", {}),
 })
+
+-------------------------------------------------------
+--------------- project roots commands ----------------
+
+if java_util.is_java_project() then
+    local java_refactor_util = require("utils.java.java-refactor-util")
+    vim.api.nvim_create_autocmd({ "FileType" }, {
+        group = general_group,
+        pattern = "fyler",
+        callback = function(ev)
+            -- BufLeave, BufHidden, BufUnload, WinLeave, BufWinLeave, BufDelete
+            vim.api.nvim_create_autocmd({ "BufLeave" }, {
+                group = general_group,
+                buffer = ev.buf,
+                callback = function()
+                    vim.notify("Fyler is closed!")
+                    -- java_refactor_util.fix_java_proj_after_change(src, dst)
+                end,
+            })
+        end,
+    })
+end
 
 -------------------------------------------------------
 ------------ auto save on buff switch\leave -----------
