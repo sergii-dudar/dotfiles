@@ -116,11 +116,11 @@
   ;; mralt (tap-hold-release 200 200 (multi M-spc) (layer-switch l_numbers))
 
   ;; --- FN (Layers) Hold Keys ---
-  mspc (tap-hold-release $tap-time $hold-thumb spc (layer-while-held l_symbols))
   mcaps (tap-hold-release $tap-time $hold-pinky esc (layer-while-held l_navigation))
 
-  mz (tap-hold-release-keys $tap-time $hold-pinky (multi z @tap) (layer-while-held l_system) $left-hand-keys)
-  m/ (tap-hold-release-keys $tap-time $hold-pinky (multi / @tap) (layer-while-held l_system) $right-hand-keys)
+  mt (tap-hold-release-keys $tap-time $hold-pinky t (layer-while-held l_tmux) $left-hand-keys)
+  mz (tap-hold-release-keys $tap-time $hold-pinky (multi z @tap) (layer-while-held l_symbols_and_systems) $left-hand-keys)
+  m/ (tap-hold-release-keys $tap-time $hold-pinky (multi / @tap) (layer-while-held l_symbols_and_systems) $right-hand-keys)
 
   ;; marsos
   rarrow (macro - S-.)
@@ -156,10 +156,10 @@
 (deflayer base
       esc    f1   f2   f3   f4      f5   f6   f7   f8     f9   f10  f11  f12     f13  slck @mpscrn
       ˜      1    2    3    4    5    6    7    8    9    0    -    =    bspc    ins  home pgup
-      tab    q    w    e    r    t    y    u    i    o    p    [    ]    \       del  end  @mralt
+      tab    q    w    e    r   @mt   y    u    i    o    p    [    ]    \       del  end  @mralt
      @mcaps  @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-      lctl   lalt lmet           @mspc                    @mralt  rmet   rctl     ◀    ▼    ▶
+     @mlctl  lalt lmet             spc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -192,10 +192,10 @@
 ;; | a | `  ~  +  =  &        ^  (  )  $  X  ' (apostrof on UK)
 ;; | z | X  \  _  -  %        ◀  ▼  ▲  ▶  X
 
-(deflayer l_symbols
+(deflayer l_symbols_and_systems
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX   ;;F1
-   XX    XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX @mpdvd @mpds @mpdvi ;;NUM
+   lrld  XX    XX    XX    XX    XX    XX    XX    [     ]     XX    XX    XX    XX @mpdvd @mpds @mpdvi ;;NUM
    XX    S-1   S-2   S-3   S-8   S-\   0  @rarrow  S-[   S-]   XX    XX    XX    XX @mpdp  @mpdt @mpdn  ;;Q
    XX    `     S-`   S-=   =     S-7   S-6   S-9   S-0   S-4   XX    S-A-p       XX                     ;;A
    XX    XX    \     S--   -     S-5   ◀     ▼     ▲     ▶     XX                XX          XX         ;;Z
@@ -218,11 +218,11 @@
     mpdvi (cmd sudo -u iuada144 bash -lc "/opt/homebrew/bin/mpc volume +5 ; /opt/homebrew/bin/sketchybar --trigger now_playing_update")
 )
 
-(deflayer l_system
+(deflayer l_tmux
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX  lrld @tmuxsvi XX    XX    XX @tmuxptb @tmuxptp XX XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    XX    XX    XX @tmuxsvi XX @tmuxptb @tmuxptp XX XX    XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
@@ -251,11 +251,12 @@
 (deflayer l_ctl
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _   @mpdvd @mpds @mpdvi  ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _   @mpdp  @mpdt @mpdn   ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
-   _     _     _                             _                       _     _     _     _     _     _      ;;MOD
+;;   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
+   _     _     _     _     _     _     _     _     _     _                 _    _            _            ;;Z
+   _     _     _                             _                       _     _     _    (unmod ◀◀)   (unmod ▶⏸)    (unmod ▶▶)     ;;MOD
 )
 
 ;; (deflayer l_alt

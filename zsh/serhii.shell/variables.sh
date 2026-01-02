@@ -16,7 +16,7 @@ if isMacOs; then
 
     alias setwalls="~/dotfiles/bin/macos/set_wallpapers.sh"
     function kanata_run() {
-        sudo bash -c "$(which kanata) --cfg $HOME/.config/kanata/kanata.kbd > /dev/null 2>&1 &"
+        sudo bash -c "$(which kanata) --cfg $HOME/.config/kanata/kanata.kbd >> /var/log/kanata.log 2>&1 &"
     }
 
     # iterm:

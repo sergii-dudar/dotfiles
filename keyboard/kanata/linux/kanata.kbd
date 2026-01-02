@@ -134,7 +134,7 @@
 
   ;; Tmux
   ;; - sessions
-  ;; tmuxsvi (macro C-f $tmux-delay t) ;; tmux sessions manager
+  tmuxsvi (macro C-f $tmux-delay t) ;; tmux sessions manager
   tmuxsnt (macro C-f $tmux-delay S-0) ;; tmux next session
   tmuxslt (macro C-f $tmux-delay l) ;; tmux prev session
   tmuxs (tap-hold $tap-time $hold-time @tmuxslt @tmuxsnt)
@@ -220,7 +220,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    @vd   @vt   @vu    ;;NUM
-   XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxptb @tmuxptp XX XX    XX    @mpdp @mpdt @mpdn  ;;Q
+   XX    XX    XX    XX    XX    XX    XX @tmuxsvi XX @tmuxptb @tmuxptp XX XX    XX    @mpdp @mpdt @mpdn  ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    @pb   @pp   @pn    ;;MOD
