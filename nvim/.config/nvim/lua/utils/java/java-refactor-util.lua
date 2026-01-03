@@ -1,4 +1,8 @@
--- INFO: this module is not finished yet
+-- INFO: this module is not finished yet, and in very early draft version.
+-- TODO:
+-- 󰄱 Separate processing between `src/main/java` and `src/test/java`.
+-- 󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
+-- 󰄱 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
 local M = {}
 
 local util = require("utils.common-util")
@@ -282,7 +286,7 @@ M.process_registerd_changes = function()
         local global_cmd_run = table.concat(global_cmds_table, " && ")
         -- vim.notify(global_cmd_run)
         vim.notify(table.concat(global_cmds_table, "\n# "))
-        -- run_cmd(global_cmds_table)
+        run_cmd(global_cmd_run)
     end
     all_registered_changes = {}
 end

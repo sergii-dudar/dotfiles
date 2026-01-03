@@ -2,15 +2,12 @@
 
 # OLD_DIR="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service"
 # OLD_PACKAGE="com.example.EmployeeManagementSystem.service"
-# NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
-
-# OLD_DIR="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service"
-# OLD_PACKAGE="com.example.EmployeeManagementSystem.service"
-# NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/MarkerInterface.java"
-
-# OLD_TYPE_NAME="MarkerInterface"
-# NEW_TYPE_NAME="MarkerInterface"
 # NEW_PACKAGE="com.example.EmployeeManagementSystem.service.impl"
+#
+# NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
+#
+# OLD_TYPE_NAME="MarkerInterface"
+# NEW_TYPE_NAME="MarkerInterfaceUser"
 
 OLD_DIR=$1
 OLD_PACKAGE=$2
