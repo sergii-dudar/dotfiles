@@ -44,8 +44,8 @@ local main_resource_dir = "src/main/resources/"
 local test_resource_dir = "src/test/resources/"
 local package_roots = { main_dir, test_dir, main_resource_dir, test_resource_dir }
 -- local test_path = "."
-local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem" -- TODO: change to . after finish
--- local test_path = vim.fn.getcwd()
+-- local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem" -- TODO: change to . after finish
+local project_root_path = vim.fn.getcwd()
 
 local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, dst)
     -- com/example/EmployeeManagementSystem/service/ServiceEmployee
@@ -92,7 +92,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- 2. fix type symbols (simple java name) where type is imported.
     local fix_type_symbols_where_imported = string.format(
         "rg --color=never -l 'import\\s+%s' "
-            .. test_path
+            .. project_root_path
             .. " | xargs sed -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
         package_src_classpath_escaped,
         old_type_name,
@@ -105,7 +105,9 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- ==========================================================================
     -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' "
+            .. project_root_path
+            .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
         package_src_classpath_escaped,
@@ -150,7 +152,9 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- 6. fix file path/resources path
 
     local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' "
+            .. project_root_path
+            .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
         package_src_path_escaped,
         package_dst_path_escaped
@@ -180,7 +184,9 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, src
     -- ==========================================================================
     -- 1. fix package full qualified names (acroll all files - java,yaml,properties etc)
     local fix_package_full_qualified_names = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' "
+            .. project_root_path
+            .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
         package_src_classpath_escaped,
         package_dst_classpath
@@ -192,7 +198,9 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, src
     -- ==========================================================================
     -- 2. fix package path/resources path
     local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' "
+            .. project_root_path
+            .. " | xargs sed -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
         package_src_path_escaped,
         package_dst_path_escaped
@@ -230,7 +238,7 @@ local build_fix_java_proj_after_change_cmd = function(src, dst)
         return nil
     end
     local cmds = build_fix_java_proj_after_change_cmds(src, dst)
-    dd(cmds)
+    -- dd(cmds)
     local cmd_to_run = table.concat(cmds, " && ")
     -- dd(cmd_to_run)
 
@@ -273,7 +281,8 @@ M.process_registerd_changes = function()
         end
         local global_cmd_run = table.concat(global_cmds_table, " && ")
         -- vim.notify(global_cmd_run)
-        run_cmd(global_cmd_run)
+        vim.notify(table.concat(global_cmds_table, "\n# "))
+        -- run_cmd(global_cmds_table)
     end
     all_registered_changes = {}
 end
