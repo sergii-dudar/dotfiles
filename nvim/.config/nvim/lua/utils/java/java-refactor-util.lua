@@ -105,7 +105,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- ==========================================================================
     -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g'",
+        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
         package_src_classpath_escaped,
@@ -180,7 +180,7 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, src
     -- ==========================================================================
     -- 1. fix package full qualified names (acroll all files - java,yaml,properties etc)
     local fix_package_full_qualified_names = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g'",
+        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
         package_src_classpath_escaped,
         package_dst_classpath
@@ -192,7 +192,7 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, src
     -- ==========================================================================
     -- 2. fix package path/resources path
     local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"\\/]|$)/%s\\1/g'",
+        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
         package_src_path_escaped,
         package_dst_path_escaped
@@ -221,19 +221,21 @@ end
 --- Fix java project after remaning java file, or package name
 ---@param src string [old java file/dir path]
 ---@param dst string [new  java file/dir path]
-M.fix_java_proj_after_change = function(src, dst)
+---@return string|nil
+local build_fix_java_proj_after_change_cmd = function(src, dst)
     if not src:match("src/.*/java/") then
-        return
+        return nil
     end
     if not dst:match("src/.*/java/") then
-        return
+        return nil
     end
     local cmds = build_fix_java_proj_after_change_cmds(src, dst)
     dd(cmds)
     local cmd_to_run = table.concat(cmds, " && ")
     -- dd(cmd_to_run)
 
-    vim.notify(cmd_to_run)
+    -- vim.notify(cmd_to_run)
+    return cmd_to_run
     -- run_cmd(cmd_to_run)
 end
 
@@ -262,9 +264,16 @@ M.process_registerd_changes = function()
         vim.notify("No any registered changes")
     else
         dd(all_registered_changes)
+        local global_cmds_table = {}
         for _, value in list_util.sorted_iter(all_registered_changes) do
-            M.fix_java_proj_after_change(value.src, value.dst)
+            local change_cmd = build_fix_java_proj_after_change_cmd(value.src, value.dst)
+            if change_cmd then
+                table.insert(global_cmds_table, change_cmd)
+            end
         end
+        local global_cmd_run = table.concat(global_cmds_table, " && ")
+        -- vim.notify(global_cmd_run)
+        run_cmd(global_cmd_run)
     end
     all_registered_changes = {}
 end
