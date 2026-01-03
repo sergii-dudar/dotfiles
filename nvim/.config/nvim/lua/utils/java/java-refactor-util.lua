@@ -93,7 +93,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     local fix_type_symbols_where_imported = string.format(
         "rg --color=never -l 'import\\s+%s' "
             .. test_path
-            .. " | xargs sed -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g'",
+            .. " | xargs sed -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
         package_src_classpath_escaped,
         old_type_name,
         new_type_name
@@ -134,11 +134,14 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
 
     local fix_old_file_imports = string.format(
-        '%s/dotfiles/work/java/remane/fix-old-imports.sh "%s" "%s" "%s"',
-        home,
-        src:match("(.+)/[^/]+$"),
-        package_declaration_src,
-        dst
+        '"%s" "%s" "%s" "%s" "%s" "%s" "%s"',
+        global.dotfiles_path("work/java/remane/fix-old-imports.sh"),
+        src:match("(.+)/[^/]+$"), -- OLD_DIR
+        package_declaration_src, -- OLD_PACKAGE
+        package_declaration_dst, -- NEW_PACKAGE
+        dst, -- NEW_FILE_PATH
+        old_type_name, -- OLD_TYPE_NAME
+        new_type_name -- NEW_TYPE_NAME
     )
     -- vim.notify(fix_old_file_imports)
     table.insert(result_cmds, fix_old_file_imports)
@@ -147,7 +150,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     -- 6. fix file path/resources path
 
     local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g'",
+        "rg --color=never -l '%s' " .. test_path .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
         package_src_path_escaped,
         package_dst_path_escaped
@@ -230,8 +233,8 @@ M.fix_java_proj_after_change = function(src, dst)
     local cmd_to_run = table.concat(cmds, " && ")
     -- dd(cmd_to_run)
 
-    -- vim.notify(cmd_to_run)
-    run_cmd(cmd_to_run)
+    vim.notify(cmd_to_run)
+    -- run_cmd(cmd_to_run)
 end
 
 local all_registered_changes = {}
@@ -256,6 +259,8 @@ end
 
 M.process_registerd_changes = function()
     if vim.tbl_isempty(all_registered_changes) then
+        vim.notify("No any registered changes")
+    else
         dd(all_registered_changes)
         for _, value in list_util.sorted_iter(all_registered_changes) do
             M.fix_java_proj_after_change(value.src, value.dst)

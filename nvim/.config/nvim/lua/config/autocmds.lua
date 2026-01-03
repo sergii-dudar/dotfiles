@@ -132,12 +132,13 @@ if java_util.is_java_project() then
         pattern = "fyler",
         callback = function(ev)
             -- BufLeave, BufHidden, BufUnload, WinLeave, BufWinLeave, BufDelete
-            vim.api.nvim_create_autocmd({ "BufLeave" }, {
+            vim.api.nvim_create_autocmd({ "BufUnload" }, {
                 group = general_group,
                 buffer = ev.buf,
                 callback = function()
-                    vim.notify("Fyler is closed!")
-                    -- java_refactor_util.fix_java_proj_after_change(src, dst)
+                    vim.notify("Fyler: fixing after move is running...")
+                    java_refactor_util.process_registerd_changes()
+                    vim.notify("Fyler: fixing after move was finished!")
                 end,
             })
         end,
