@@ -1,8 +1,13 @@
--- INFO: this module is not finished yet, and in very early draft version.
+-- INFO:: Module to batch fixing moved java file/files with external plugins, like: [ neo-tree, nvim-tree, oil.nvim, Snacks.rename ], for batch - [ fyler.nvim ]
+--  currently module developed mostly for batch processing by `fyler.nvim`, for signle file change per action use method - process_single_file_change.
+--  THIS MODULE IS NOT FINISHED YET, AND IN VERY EARLY DRAFT VERSION, BUT I'M USING IT HAVILY IN DAILY WORK AS JAVA DEV!
+
 -- TODO:
---  󰄱 Separate processing between `src/main/java` and `src/test/java`.
 --  󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
---  󰄱 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
+--  󰱒 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
+
+-- NOTE: - Dependencies: ripgrep, fd, sed, work/java/remane/fix-java-sibling-usage.sh, work/java/remane/fix-old-imports.sh
+
 local M = {}
 
 local util = require("utils.common-util")
@@ -321,6 +326,9 @@ local build_fix_java_proj_after_change_cmd = function(context)
 end
 
 local all_registered_changes = {}
+
+---@param src string
+---@param dst string
 M.register_change = function(src, dst)
     table.insert(all_registered_changes, {
         src = src,
@@ -364,6 +372,13 @@ M.process_registerd_changes = function()
         run_cmd(global_cmd_run)
     end
     all_registered_changes = {}
+end
+
+---@param src string
+---@param dst string
+M.process_single_file_change = function(src, dst)
+    M.register_change(src, dst)
+    M.process_registerd_changes()
 end
 
 -- M.fix_java_proj_after_change(
