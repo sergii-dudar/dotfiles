@@ -349,7 +349,7 @@ M.process_registerd_changes = function()
     if vim.tbl_isempty(all_registered_changes) then
         vim.notify("No any registered changes")
     else
-        dd(all_registered_changes)
+        -- dd(all_registered_changes)
         local global_cmds_table = {}
         for _, value in list_util.sorted_iter(all_registered_changes) do
             value.siblings = get_all_src_siblings(value, all_registered_changes)
@@ -360,7 +360,7 @@ M.process_registerd_changes = function()
         end
         local global_cmd_run = table.concat(global_cmds_table, " && ")
         -- vim.notify(global_cmd_run)
-        vim.notify(table.concat(global_cmds_table, "\n# "))
+        -- vim.notify(table.concat(global_cmds_table, "\n# "))
         run_cmd(global_cmd_run)
     end
     all_registered_changes = {}
