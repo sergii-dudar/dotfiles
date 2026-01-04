@@ -381,22 +381,4 @@ M.process_single_file_change = function(src, dst)
     M.process_registerd_changes()
 end
 
--- M.fix_java_proj_after_change(
---     "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/ServiceEmployee.java",
---     "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
--- )
-
---[[ M.fix_java_proj_after_change(
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service",
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/tld/example/EmployeeManagementSystem/service"
-)
-M.fix_java_proj_after_change(
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example",
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/tld/example"
-)
-M.fix_java_proj_after_change(
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/tld/example/EmployeeManagementSystem/service/ServiceEmployee.java",
-    "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/tld/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
-) ]]
-
 return M
