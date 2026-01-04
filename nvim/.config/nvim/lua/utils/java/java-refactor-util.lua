@@ -281,7 +281,16 @@ local build_fix_java_proj_after_change_cmds = function(context)
                 end
                 build_fix_java_file_after_change_cmds(result_cmds, root, context)
                 if src_buffer_id then
-                    vim.cmd.edit(context.dst)
+                    --[[ vim.cmd.edit(context.dst)
+                    -- reload new place of opened buffers and push filety detect to reattach lsp, trisitter etc.
+                    local dst_buffer_id = buffer_util.find_buf_by_path(context.dst)
+                    if dst_buffer_id then
+                        vim.api.nvim_buf_call(dst_buffer_id, function()
+                            vim.cmd("filetype detect")
+                        end)
+                    end ]]
+
+                    vim.cmd("edit " .. vim.fn.fnameescape(context.dst) .. " | filetype detect")
                 end
             elseif is_dir then
                 build_fix_java_package_after_change_cmds(result_cmds, root, context)

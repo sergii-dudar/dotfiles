@@ -125,12 +125,14 @@ vim.api.nvim_create_autocmd("UiEnter", {
             100,
             0,
             vim.schedule_wrap(function()
-                if pcall(vim.cmd, "wincmd l") then
-                    vim.schedule(function()
-                        pcall(vim.cmd, "e")
-                        -- pcall(vim.cmd, "bufdo e") -- reload all opened tabs (buffers) after startup
-                    end)
-                end
+                -- if pcall(vim.cmd, "wincmd l") then
+                --     vim.schedule(function()
+                --         -- pcall(vim.cmd, "e")
+                --         pcall(vim.cmd, "filetype detect")
+                --         -- pcall(vim.cmd, "bufdo e") -- reload all opened tabs (buffers) after startup
+                --     end)
+                -- end
+                pcall(vim.cmd, "wincmd l | filetype detect")
                 timer:close()
             end)
         )

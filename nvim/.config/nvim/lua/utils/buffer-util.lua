@@ -24,6 +24,7 @@ M.get_active_ls_buffers = function()
     return active_buffers
 end
 
+---@return integer|nil
 M.find_buf_by_path = function(path)
     path = vim.fn.fnamemodify(path, ":p")
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
