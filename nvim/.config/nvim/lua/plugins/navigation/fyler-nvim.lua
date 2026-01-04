@@ -1,13 +1,17 @@
 local java_util = require("utils.java.java-common")
 local java_refactor_util = require("utils.java.java-refactor-util")
+function toggle_fyler()
+    vim.cmd("Neotree close") -- close neotree, as in case moving files and opened neotree getting errors.
+    require("fyler").toggle()
+end
 return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
     -- stylua: ignore
     keys = {
-        { "<leader>i", function() require("fyler").toggle() end, desc = "Toggle Fyler View" },
-        { "<leader>-", function() require("fyler").toggle() end, desc = "Toggle Fyler View" }
+        { "<leader>i", toggle_fyler, desc = "Toggle Fyler View" },
+        { "<leader>-", toggle_fyler, desc = "Toggle Fyler View" }
     },
     opts = {
         integrations = {

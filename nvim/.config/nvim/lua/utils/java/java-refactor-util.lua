@@ -1,8 +1,8 @@
 -- INFO: this module is not finished yet, and in very early draft version.
 -- TODO:
--- 󰄱 Separate processing between `src/main/java` and `src/test/java`.
--- 󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
--- 󰄱 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
+--  󰄱 Separate processing between `src/main/java` and `src/test/java`.
+--  󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
+--  󰄱 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
 local M = {}
 
 local util = require("utils.common-util")
@@ -11,7 +11,13 @@ local spinner = require("utils.ui.spinner")
 local list_util = require("utils.list-util")
 local home = os.getenv("HOME")
 
+---@class java.rejactor.FileMove
+---@field src string
+---@field dst string
+---@field siblings? java.rejactor.FileMove[]
+
 local current_term_win = nil
+---@param cmd_args string
 local function run_cmd(cmd_args)
     -- vim.notify("🚀 Java Refactoring Started", vim.log.levels.INFO)
     spinner.start("🚀 " .. "Java Refactoring...")
@@ -51,7 +57,15 @@ local package_roots = { main_dir, test_dir, main_resource_dir, test_resource_dir
 -- local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem" -- TODO: change to . after finish
 local project_root_path = vim.fn.getcwd()
 
-local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, dst)
+---@param result_cmds table
+---@param root string
+---@param context java.rejactor.FileMove
+local build_fix_java_file_after_change_cmds = function(result_cmds, root, context)
+    -- TODO: use `local process_root_path = vim.fs.joinpath(project_root_path, [empty or package sub path in case multimodule, or sub module], root)`
+
+    local src = context.src
+    local dst = context.dst
+
     -- com/example/EmployeeManagementSystem/service/ServiceEmployee
     local package_src_path = vim.split(src, root)[2]:gsub("%.java", "")
     local package_dst_path = vim.split(dst, root)[2]:gsub("%.java", "")
@@ -104,6 +118,38 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     )
     -- vim.notify(fix_type_symbols_where_imported)
     table.insert(result_cmds, fix_type_symbols_where_imported)
+
+    -- ==========================================================================
+    -- ==========================================================================
+    -- 2.1. fix imports of siblings java files (in case moved to other packages)
+    if context.siblings and not vim.tbl_isempty(context.siblings) then
+        for _, sibling in ipairs(context.siblings) do
+            -- com/example/EmployeeManagementSystem/service/ServiceEmployee
+            local sibling_package_src_path = vim.split(sibling.src, root)[2]:gsub("%.java", "")
+            local sibling_package_dst_path = vim.split(sibling.dst, root)[2]:gsub("%.java", "")
+
+            -- com.example.EmployeeManagementSystem.service.ServiceEmployee
+            local sibling_package_dst_classpath = sibling_package_dst_path:gsub("/", ".")
+
+            -- ServiceEmployee
+            local sibling_old_type_name = sibling_package_src_path:match("([^/]+)$")
+            local sibling_new_type_name = sibling_package_dst_path:match("([^/]+)$")
+
+            -- com.example.EmployeeManagementSystem.service
+            local sibling_package_declaration_dst = sibling_package_dst_classpath:match("(.+)%.%w+$")
+
+            local fix_type_sibling_where_using = string.format(
+                '"%s" "%s" "%s" "%s" "%s"',
+                global.dotfiles_path("work/java/remane/fix-java-sibling-usage.sh"),
+                dst, -- FILE_PATH_TO_APPLY_FIX
+                sibling_package_declaration_dst, -- NEW_PACKAGE
+                sibling_old_type_name, -- OLD_TYPE_NAME
+                sibling_new_type_name -- NEW_TYPE_NAME
+            )
+            -- vim.notify(fix_type_sibling_where_using)
+            table.insert(result_cmds, fix_type_sibling_where_using)
+        end
+    end
 
     -- ==========================================================================
     -- ==========================================================================
@@ -167,7 +213,13 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, src, d
     table.insert(result_cmds, fix_file_paht_declaration)
 end
 
-local build_fix_java_package_after_change_cmds = function(result_cmds, root, src, dst)
+---@param result_cmds table
+---@param root string
+---@param context java.rejactor.FileMove
+local build_fix_java_package_after_change_cmds = function(result_cmds, root, context)
+    local src = context.src
+    local dst = context.dst
+
     -- com/example/EmployeeManagementSystem/service
     local package_src_path = vim.split(src, root)[2]
     local package_dst_path = vim.split(dst, root)[2]
@@ -213,17 +265,19 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, src
     table.insert(result_cmds, fix_file_paht_declaration)
 end
 
-local build_fix_java_proj_after_change_cmds = function(src, dst)
+---@param context java.rejactor.FileMove
+---@return table
+local build_fix_java_proj_after_change_cmds = function(context)
     local result_cmds = {}
-    local is_dir = util.is_dir(dst)
-    local is_file = util.is_file(dst)
+    local is_dir = util.is_dir(context.dst)
+    local is_file = util.is_file(context.dst)
     for _, root in ipairs(package_roots) do
         -- TODO: after applying on relative path, rg search need apply ". root" to take in account test, main, resourses
-        if string_util.contains(src, root) and string_util.contains(dst, root) then
+        if string_util.contains(context.src, root) and string_util.contains(context.dst, root) then
             if is_file then
-                build_fix_java_file_after_change_cmds(result_cmds, root, src, dst)
+                build_fix_java_file_after_change_cmds(result_cmds, root, context)
             elseif is_dir then
-                build_fix_java_package_after_change_cmds(result_cmds, root, src, dst)
+                build_fix_java_package_after_change_cmds(result_cmds, root, context)
             end
         end
     end
@@ -231,17 +285,16 @@ local build_fix_java_proj_after_change_cmds = function(src, dst)
 end
 
 --- Fix java project after remaning java file, or package name
----@param src string [old java file/dir path]
----@param dst string [new  java file/dir path]
+---@param context java.rejactor.FileMove
 ---@return string|nil
-local build_fix_java_proj_after_change_cmd = function(src, dst)
-    if not src:match("src/.*/java/") then
+local build_fix_java_proj_after_change_cmd = function(context)
+    if not context.src:match("src/.*/java/") then
         return nil
     end
-    if not dst:match("src/.*/java/") then
+    if not context.dst:match("src/.*/java/") then
         return nil
     end
-    local cmds = build_fix_java_proj_after_change_cmds(src, dst)
+    local cmds = build_fix_java_proj_after_change_cmds(context) --  -- src, dst
     -- dd(cmds)
     local cmd_to_run = table.concat(cmds, " && ")
     -- dd(cmd_to_run)
@@ -259,17 +312,22 @@ M.register_change = function(src, dst)
     })
 end
 
--- local list = {}
--- table.insert(list, "test 1")
--- table.insert(list, "name 2")
--- table.insert(list, "issua 3")
--- table.insert(list, "astral 4")
--- table.insert(list, "an 5")
---
--- --local list_util = require("utils.list-util")
--- for i, value in list_util.sorted_iter(list) do
---     print(string.format("%d, %s, %s", i, value, list[i]))
--- end
+---@param context java.rejactor.FileMove
+---@param all_changes java.rejactor.FileMove[]
+---@return java.rejactor.FileMove[]
+local get_all_src_siblings = function(context, all_changes)
+    local context_src_dir = context.src:match("(.+)/[^/]+$")
+    -- print(context_src_dir)
+    local context_src_siblings = {}
+    for _, value in ipairs(all_changes) do
+        local current_src_dir = value.src:match("(.+)/[^/]+$")
+        if context_src_dir == current_src_dir and context.dst ~= value.dst then
+            -- print(current_src_dir)
+            table.insert(context_src_siblings, value)
+        end
+    end
+    return context_src_siblings
+end
 
 M.process_registerd_changes = function()
     if vim.tbl_isempty(all_registered_changes) then
@@ -278,7 +336,8 @@ M.process_registerd_changes = function()
         dd(all_registered_changes)
         local global_cmds_table = {}
         for _, value in list_util.sorted_iter(all_registered_changes) do
-            local change_cmd = build_fix_java_proj_after_change_cmd(value.src, value.dst)
+            value.siblings = get_all_src_siblings(value, all_registered_changes)
+            local change_cmd = build_fix_java_proj_after_change_cmd(value)
             if change_cmd then
                 table.insert(global_cmds_table, change_cmd)
             end

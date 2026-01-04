@@ -12,7 +12,7 @@
 OLD_DIR=$1
 OLD_PACKAGE=$2
 NEW_PACKAGE=$3
-NEW_FILE_PATH=$4 #$3
+NEW_FILE_PATH=$4
 OLD_TYPE_NAME=$5
 NEW_TYPE_NAME=$6
 
@@ -34,14 +34,15 @@ done
 # import moved java file to java files in old package in case using
 fd --color=never -e java --max-depth 1 . "$OLD_DIR" | while read -r filename; do
     # echo "$filename"
-    if rg -q "(^|[[:space:],;(}<])${OLD_TYPE_NAME}($|[[:space:],;(}\\.>])" "$filename"; then
-        last_imported_num=$(rg -n '^import ' "$filename" | tail -n 1 | cut -d: -f1)
-        last_imported_num=2
-        # echo "$filename"
-        # echo "$last_imported_num"
-        ((last_imported_num++))
-        import_line="import ${NEW_PACKAGE}.${NEW_TYPE_NAME};"
-        sed -i "${last_imported_num}i\\${import_line}" "$filename"
-        sed -i -E "s/([[:space:],;(}<])${OLD_TYPE_NAME}([[:space:],;(}\.>])/\1${NEW_TYPE_NAME}\2/g" "$filename"
-    fi
+    # if rg -q "(^|[[:space:],;(}<])${OLD_TYPE_NAME}($|[[:space:],;(}\\.>])" "$filename"; then
+    #     last_imported_num=$(rg -n '^import ' "$filename" | tail -n 1 | cut -d: -f1)
+    #     last_imported_num=2
+    #     # echo "$filename"
+    #     # echo "$last_imported_num"
+    #     ((last_imported_num++))
+    #     import_line="import ${NEW_PACKAGE}.${NEW_TYPE_NAME};"
+    #     sed -i "${last_imported_num}i\\${import_line}" "$filename"
+    #     sed -i -E "s/([[:space:],;(}<])${OLD_TYPE_NAME}([[:space:],;(}\.>])/\1${NEW_TYPE_NAME}\2/g" "$filename"
+    # fi
+    "$HOME"/dotfiles/work/java/remane/fix-java-sibling-usage.sh "$filename" "$NEW_PACKAGE" "$OLD_TYPE_NAME" "$NEW_TYPE_NAME"
 done
