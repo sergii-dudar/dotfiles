@@ -38,9 +38,12 @@ return {
                 default_explorer = false,
                 delete_to_trash = false,
                 icon = {
-                    directory_collapsed = "",
-                    directory_empty = "",
-                    directory_expanded = "",
+                    -- directory_collapsed = "",
+                    -- directory_empty = "",
+                    -- directory_expanded = "",
+                    directory_collapsed = "󰉋",
+                    directory_empty = "",
+                    directory_expanded = "󰝰",
                 },
                 mappings = {
                     ["\\"] = "SelectVSplit",
