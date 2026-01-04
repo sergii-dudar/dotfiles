@@ -9,7 +9,7 @@ local util = require("utils.common-util")
 local string_util = require("utils.string-util")
 local spinner = require("utils.ui.spinner")
 local list_util = require("utils.list-util")
-local home = os.getenv("HOME")
+local buffer_util = require("utils.buffer-util")
 
 ---@class java.rejactor.FileMove
 ---@field src string
@@ -275,7 +275,14 @@ local build_fix_java_proj_after_change_cmds = function(context)
         -- TODO: after applying on relative path, rg search need apply ". root" to take in account test, main, resourses
         if string_util.contains(context.src, root) and string_util.contains(context.dst, root) then
             if is_file then
+                local src_buffer_id = buffer_util.find_buf_by_path(context.src)
+                if src_buffer_id then
+                    vim.api.nvim_buf_delete(src_buffer_id, { force = false })
+                end
                 build_fix_java_file_after_change_cmds(result_cmds, root, context)
+                if src_buffer_id then
+                    vim.cmd.edit(context.dst)
+                end
             elseif is_dir then
                 build_fix_java_package_after_change_cmds(result_cmds, root, context)
             end

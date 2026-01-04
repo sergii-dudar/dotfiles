@@ -24,4 +24,31 @@ M.get_active_ls_buffers = function()
     return active_buffers
 end
 
+M.find_buf_by_path = function(path)
+    path = vim.fn.fnamemodify(path, ":p")
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+            local name = vim.api.nvim_buf_get_name(buf)
+            if name ~= "" and vim.fn.fnamemodify(name, ":p") == path then
+                return buf
+            end
+        end
+    end
+
+    return nil
+end
+
+M.close_buffer_by_path = function(path)
+    local buf = M.find_buf_by_path(path)
+    if buf then
+        vim.api.nvim_buf_delete(buf, { force = false })
+        return true
+    end
+    return false
+end
+
+M.open_buffer_by_path = function(path)
+    vim.cmd.edit(path)
+end
+
 return M

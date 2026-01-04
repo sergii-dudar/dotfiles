@@ -155,6 +155,10 @@ return {
         dependencies = { "folke/which-key.nvim", "rmagatti/logger.nvim" },
         config = function()
             require("goto-preview").setup({
+                width = 120, -- Width of the floating window
+                height = 25, -- Height of the floating window
+                -- border = { "↖", "─", "┐", "│", "┘", "─", "└", "│" },
+                border = { "↖", "─", "╮", "│", "╯", "─", "╰", "│" },
                 default_mappings = false,
                 preview_window_title = { enable = false },
                 references = { -- Configure the telescope UI for slowing the references cycling window.
