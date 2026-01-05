@@ -13,6 +13,12 @@ M.picker = {
     layout = layouts.custom_default,
     hidden = true, -- Include hidden files in grep
     ignored = true, -- Exclude git-ignored files
+    exclude = {
+        "target",
+        "bin",
+        ".git",
+        ".idea",
+    },
     formatters = {
         file = {
             filename_first = true, -- display filename before the file path

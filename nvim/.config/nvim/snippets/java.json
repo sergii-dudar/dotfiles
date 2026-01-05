@@ -1,6 +1,41 @@
 {
+    "Lombok Field Defaults Final": {
+        "prefix": [
+            "lfdf"
+        ],
+        "body": [
+            "import lombok.AccessLevel;",
+            "import lombok.experimental.FieldDefaults;",
+            "",
+            "@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)"
+        ]
+    },
+    "Lombok Field Defaults Non Final": {
+        "prefix": [
+            "lfdn"
+        ],
+        "body": [
+            "import lombok.AccessLevel;",
+            "import lombok.experimental.FieldDefaults;",
+            "",
+            "@FieldDefaults(level = AccessLevel.PRIVATE)"
+        ]
+    },
+    "Lombok Field Defaults Protected": {
+        "prefix": [
+            "lfdp"
+        ],
+        "body": [
+            "import lombok.AccessLevel;",
+            "import lombok.experimental.FieldDefaults;",
+            "",
+            "@FieldDefaults(level = AccessLevel.PROTECTED)"
+        ]
+    },
     "Create Mapstruct Mapping": {
-        "prefix": ["mapclass"],
+        "prefix": [
+            "mapclass"
+        ],
         "body": [
             "vim.api.nvim_create_autocmd(\"${1:event}\", {",
             "  group = vim.api.nvim_create_augroup(\"${2:group}\", { clear = true }),",
@@ -11,7 +46,9 @@
         ]
     },
     "Mapstruct Mapping": {
-        "prefix": ["mapmap"],
+        "prefix": [
+            "mapmap"
+        ],
         "body": [
             "@Mapping(source = \"${1:source}\", target = \"${2:target}\")"
         ]

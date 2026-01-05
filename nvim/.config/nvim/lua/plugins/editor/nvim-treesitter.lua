@@ -1,3 +1,8 @@
+-- some times during updates and compiling ts, it can crash nvim.
+-- to fix, need madually remove all languages, and restart nvim
+-- vim.cmd("TSUninstall all")
+-- optionally run vim.cmd("TSUpdate"), after all
+-- in vim.cmd, as calling input also can crash as using ts
 return {
     "nvim-treesitter/nvim-treesitter",
     opts = {
