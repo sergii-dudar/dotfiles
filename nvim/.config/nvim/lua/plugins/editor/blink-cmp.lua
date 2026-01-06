@@ -158,8 +158,13 @@ return {
                             get_bufnrs = buffer_util.get_active_ls_buffers,
                         },
                     },
+                    --[[ mapstruct = {
+                        name = "mapstruct",
+                        module = "utils.blink.mapstruct-source", -- blink.cmp will call `require('your-source').new(...)`
+                        opts = { some_option = "some value" }, -- passed to `source.new(opts)`
+                    }, ]]
                 },
-                -- default = { "lsp", "path", "snippets", "buffer" },
+                -- default = { "lsp", "path", "snippets", "buffer", "mapstruct" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },
             snippets = { preset = "luasnip" },
