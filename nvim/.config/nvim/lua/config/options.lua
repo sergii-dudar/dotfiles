@@ -50,7 +50,7 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 --vim.opt.clipboard = ''
 
 -- Preview substitutions
--- vim.opt.inccommand = "split"
+vim.opt.inccommand = "split"
 
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
