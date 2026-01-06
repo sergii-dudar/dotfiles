@@ -42,7 +42,7 @@ function source:get_completions(ctx, callback)
             -- Label of the item in the UI
             label = "foo",
             -- (Optional) Item kind, where `Function` and `Method` will receive
-            -- auto brackets automatically
+            -- auto brackets automaticall
             kind = require("blink.cmp.types").CompletionItemKind.Text,
 
             -- (Optional) Text to fuzzy match against

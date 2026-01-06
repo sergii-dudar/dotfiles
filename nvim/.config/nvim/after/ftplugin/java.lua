@@ -115,7 +115,7 @@ vim.lsp.handlers["$/progress"] = function(_, result, ctx)
         -- need to regenerate (repick) generated source codes like [mapscruct etc] after startup cleanup project workspace,
         -- very important to call update after cleanup and initialize completed
         vim.schedule(function()
-            vim.cmd("JdtUpdateConfig")
+            pcall(vim.cmd, "JdtUpdateConfig")
         end)
     end
 end

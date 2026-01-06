@@ -77,13 +77,28 @@ java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 \
     --select-method "ua.raiffeisen.payments.cardtransferinitiation.core.usecase.initiation.helper.OperationalCodeEvaluatorTest#shouldReceiveErrorWhenWrongDebtorBalanceGroup" \
     --include-engine junit-jupiter --disable-banner
 
-
 # run parametrized test all methods
 java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
-    --select-method "ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT#shouldRetrieveInvalidDebtorWhenAccountStatusIsClosed(ua.raiffeisen.payments.cardtransferinitiation.test.model.TestTransferDirection,java.lang.String,java.lang.String,java.lang.String)" \
+    --select-method "ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT#shouldRetrieveInvalidDebtorWhenAccountStatusIsClosed(ua.raiffeisen.payments.cardtransferinitiation.test.model.TestTransferDirection, java.lang.String, java.lang.String, java.lang.String)" \
     --include-engine junit-jupiter --disable-banner
+
+# javap -cp target/test-classes ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT
+# Compiled from "CardTransferInitiationIT.java"
+# class ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT extends ua.raiffeisen.payments.cardtransferinitiation.AbstractIT {
+#   static {};
+#   ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT();
+#   void shouldSuccessfullyHandleInitiationRequestWhenValidRequest(ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT$TestInitiationParams);
+#   void shouldSuccessfullyHandleInitiationRequestWhenValidRequestWithNoCharges(ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT$TestInitiationParams);
+#   void shouldRetrieveBadRequestErrorWhenInvalidUetrWasUsed();
+#   void shouldRetrieveBadRequestErrorWhenHeaderSignatureMissing();
+#   void shouldRetrieveBadRequestErrorWhenHeaderRequestIdIsInvalid();
+#   void shouldRetrieveBadRequestErrorWhenUnsupportedChannel();
+#   void shouldRetrieveInvalidDebtorWhenAccountStatusIsClosed(ua.raiffeisen.payments.cardtransferinitiation.test.model.TestTransferDirection, java.lang.String, java.lang.String, java.lang.String);
+#   void shouldRetrieveUnprocessableWhenExternalAndNoCreditorHolderAndHighAmount();
+#   void shouldRetrieveUnprocessableErrorWhenRequiredFieldMissing(ua.raiffeisen.payments.cardtransferinitiation.test.model.TestTransferDirection, java.lang.String, java.lang.String, java.lang.String);
+# }
 
 java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
