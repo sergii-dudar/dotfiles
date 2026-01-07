@@ -84,6 +84,13 @@ java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     --select-method "ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT#shouldRetrieveInvalidDebtorWhenAccountStatusIsClosed(ua.raiffeisen.payments.cardtransferinitiation.test.model.TestTransferDirection, java.lang.String, java.lang.String, java.lang.String)" \
     --include-engine junit-jupiter --disable-banner
 
+
+java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
+    --select-method "ua.serhii.application.Something1Test#someMonths_scv(int, java.lang.String, java.lang.Integer, ua.serhii.application.model.TestArgs\$Role)" \
+    --include-engine junit-jupiter --disable-banner
+
 # javap -cp target/test-classes ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT
 # Compiled from "CardTransferInitiationIT.java"
 # class ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT extends ua.raiffeisen.payments.cardtransferinitiation.AbstractIT {

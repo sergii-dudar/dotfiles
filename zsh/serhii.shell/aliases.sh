@@ -8,8 +8,8 @@ alias dots="cd ~/dotfiles && nvim"
 alias l="eza -a --icons --color=always --group-directories-first"
 alias ls='eza -al --icons --color=always --group-directories-first'
 alias lt2="eza -lTg --level=2 --icons=always --group-directories-first"
-# alias lt3="eza -lTg --level=3 --icons=always --group-directories-first"
-# alias lt4="eza -lTg --level=4 --icons=always --group-directories-first"
+alias lt3="eza -lTg --level=3 --icons=always --group-directories-first"
+alias lt4="eza -lTg --level=4 --icons=always --group-directories-first"
 alias lt="eza -lTg --icons=always --group-directories-first"
 
 #alias ls2='eza -al --tree --icons --level=2 --color=always --group-directories-first'

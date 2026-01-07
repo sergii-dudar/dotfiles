@@ -50,7 +50,7 @@ return {
         opts = {
             adapters = {
                 ["neotest-java"] = {
-                    log_level = vim.log.levels.DEBUG,
+                    -- log_level = vim.log.levels.DEBUG,
                     junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
                     jvm_args = {
                         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", os.getenv("HOME")),

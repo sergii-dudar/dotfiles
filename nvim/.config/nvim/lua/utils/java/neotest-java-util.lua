@@ -2,6 +2,8 @@ local M = {}
 
 local jdtls_util = require("utils.java.jdtls-util")
 local util = require("utils.common-util")
+local cache_util = require("utils.cache-util")
+local nio = require("nio")
 
 -- There possible special cases where more than one type have declared in project, and resolution in such case can be tricky
 -- (not very elegant  ) for now, just add hardcoded dictionaty to resolve such cases (but it's rare cases)
@@ -94,9 +96,90 @@ M.parse_and_resolve_method_params_nio = function(qualified_name)
     return qualified_name
 end
 
+local exec_javap_cached = function(class_name)
+    local result = cache_util.java.javap_results_map[class_name]
+    if result then
+        return result
+    end
+
+    result = nio.process
+        .run({
+            cmd = "bash",
+            -- args = { "-c", "echo 'hello' | rg 'hello'" },
+            args = {
+                "-c",
+                -- "javap -cp /home/serhii/serhii.home/git/tests/serhii-application/target/classes:/home/serhii/serhii.home/git/tests/serhii-application/target/test-classes ua.serhii.application.Something1Test | rg --color=never someMonths_scv",
+                string.format(
+                    -- "javap -cp /home/serhii/serhii.home/git/tests/serhii-application/target/classes:/home/serhii/serhii.home/git/tests/serhii-application/target/test-classes %s",
+                    "javap -cp target/classes:target/test-classes %s",
+                    class_name
+                ),
+            },
+        }).stdout
+        .read()
+
+    if result == "" then
+        return nil
+    end
+
+    cache_util.java.javap_results_map[class_name] = result
+    return result
+end
+
+local resolve_test_method_params = function(class_name, method_name)
+    local class_details = exec_javap_cached(class_name)
+    if not class_details then
+        return nil
+    end
+    local lines = vim.split(class_details, "\n", { trimempty = true })
+
+    local method_line = vim.iter(lines)
+        :filter(function(l)
+            return l:find(method_name, 1, true)
+        end)
+        :next()
+    local method_params = method_line:match("(%([^)]*%))")
+    return method_params
+end
+
+M.resolve_parametrized_method_signature = function(qualified_name)
+    local class_name, method_name, method_parameters = qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
+    if not method_parameters or method_parameters == "()" then
+        return qualified_name
+    end
+
+    local resolved_method_parameters = resolve_test_method_params(class_name, method_name)
+    if resolved_method_parameters then
+        local final_qualifier = class_name .. "#" .. method_name .. resolved_method_parameters
+        -- print(final_qualifier)
+        return final_qualifier
+    end
+    vim.notify("Default qualitied name will be used " .. qualified_name, vim.log.levels.WARN)
+    return qualified_name
+end
+nio.run(function()
+    print(
+        -- M.resolve_parametrized_method_signature(
+        --     "ua.serhii.application.Something1Test#someMonths_enum(ua.serhii.application.TestMonth)"
+        -- )
+        -- M.resolve_parametrized_method_signature("ua.serhii.application.Something1Test#someMonths_enum")
+        -- M.resolve_parametrized_method_signature("ua.serhii.application.Something1Test")
+    )
+end)
+
 return M
 
 --[[
+--
+
+lua/neotest-java/command/junit_command_builder.lua
+...
+if v.method_name then
+    table.insert(selectors, "--select-method='" .. require("utils.java.neotest-java-util").resolve_parametrized_method_signature(v.method_name) .. "'")
+else
+...
+
+
 local neotest_java_util = require("utils.java.neotest-java-util")
 
 lua/neotest-java/core/positions_discoverer.lua
