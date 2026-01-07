@@ -30,6 +30,18 @@ M.picker = {
     --     smartcase = false, -- use smartcase
     --     -- ignorecase = true, -- use ignorecase
     -- },
+    win = {
+        input = {
+            keys = {
+                ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
+            },
+        },
+        list = {
+            keys = {
+                ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
+            },
+        },
+    },
     sources = {
         explorer = {
             -- layout = layouts.custom_explorer,
