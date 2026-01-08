@@ -96,7 +96,7 @@ M.parse_and_resolve_method_params_nio = function(qualified_name)
     return qualified_name
 end
 
-local exec_javap_cached = function(class_name)
+local exec_javap_cached_nio = function(class_name)
     local result = cache_util.java.javap_results_map[class_name]
     if result then
         return result
@@ -126,8 +126,8 @@ local exec_javap_cached = function(class_name)
     return result
 end
 
-local resolve_test_method_params = function(class_name, method_name)
-    local class_details = exec_javap_cached(class_name)
+local resolve_test_method_params_nio = function(class_name, method_name)
+    local class_details = exec_javap_cached_nio(class_name)
     if not class_details then
         return nil
     end
@@ -142,13 +142,13 @@ local resolve_test_method_params = function(class_name, method_name)
     return method_params
 end
 
-M.resolve_parametrized_method_signature = function(qualified_name)
+M.resolve_parametrized_method_signature_nio = function(qualified_name)
     local class_name, method_name, method_parameters = qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
         return qualified_name
     end
 
-    local resolved_method_parameters = resolve_test_method_params(class_name, method_name)
+    local resolved_method_parameters = resolve_test_method_params_nio(class_name, method_name)
     if resolved_method_parameters then
         local final_qualifier = class_name .. "#" .. method_name .. resolved_method_parameters
         -- print(final_qualifier)
@@ -157,15 +157,15 @@ M.resolve_parametrized_method_signature = function(qualified_name)
     vim.notify("Default qualitied name will be used " .. qualified_name, vim.log.levels.WARN)
     return qualified_name
 end
-nio.run(function()
+--[[ nio.run(function()
     print(
-        -- M.resolve_parametrized_method_signature(
-        --     "ua.serhii.application.Something1Test#someMonths_enum(ua.serhii.application.TestMonth)"
-        -- )
+        M.resolve_parametrized_method_signature(
+            "ua.serhii.application.Something1Test#someMonths_enum(ua.serhii.application.TestMonth)"
+        )
         -- M.resolve_parametrized_method_signature("ua.serhii.application.Something1Test#someMonths_enum")
         -- M.resolve_parametrized_method_signature("ua.serhii.application.Something1Test")
     )
-end)
+end) ]]
 
 return M
 
