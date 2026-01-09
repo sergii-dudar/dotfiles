@@ -96,6 +96,7 @@ M.parse_and_resolve_method_params_nio = function(qualified_name)
     return qualified_name
 end
 
+---@return table|nil
 local exec_javap_cached_nio = function(class_name, classpath)
     local result = cache_util.java.javap_results_map[class_name]
     if result then
@@ -118,28 +119,57 @@ local exec_javap_cached_nio = function(class_name, classpath)
         }).stdout
         .read()
 
-    if result == "" then
+    --[[ 
+    Compiled from "Something1Test.java"
+    public class ua.serhii.application.Something1Test {
+        public ua.serhii.application.Something1Test();
+        void testSomething();
+        void testSomething1();
+        void someMonths_scv(int, java.lang.String, java.lang.Integer, ua.serhii.application.model.TestArgs$Role);
+        void someMonths_enum(ua.serhii.application.Something1Test$TestMonth);
+        void testPersonFromCsv(ua.serhii.application.model.Person);
+        void testPersonAge(ua.serhii.application.model.Person);
+        static java.util.stream.Stream<ua.serhii.application.model.Person> personProvider();
+    }
+    ]]
+    if not result or result == "" then
         return nil
     end
+    -- filter with no args
+    local filtered_result = vim.iter(vim.split(result, "\n", { trimempty = true }))
+        :filter(function(l)
+            return not l:match("%(%s*%)")
+        end)
+        :totable()
 
-    cache_util.java.javap_results_map[class_name] = result
-    return result
+    cache_util.java.javap_results_map[class_name] = nil
+    return filtered_result
 end
 
 local resolve_test_method_params_nio = function(class_name, method_name, classpath)
-    local class_details = exec_javap_cached_nio(class_name, classpath)
-    if not class_details then
-        return nil
-    end
-    local lines = vim.split(class_details, "\n", { trimempty = true })
+    local atempts = 0
+    while atempts < 2 do
+        local class_details = exec_javap_cached_nio(class_name, classpath)
+        if not class_details then
+            return nil
+        end
 
-    local method_line = vim.iter(lines)
-        :filter(function(l)
-            return l:find(method_name, 1, true)
-        end)
-        :next()
-    local method_params = method_line:match("(%([^)]*%))")
-    return method_params
+        local method_line = vim.iter(class_details)
+            :filter(function(l)
+                return l:find(method_name, 1, true)
+            end)
+            :next()
+
+        if method_line then
+            return method_line:match("(%([^)]*%))")
+        end
+
+        -- possible only after caching and new or rename method, clean and rerun
+        cache_util.java.javap_results_map[class_name] = {}
+        atempts = atempts + 1
+        vim.notify(atempts)
+    end
+    return nil
 end
 
 ---@param context { qualified_name:string, classpath:string }
