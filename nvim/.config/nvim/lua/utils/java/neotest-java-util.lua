@@ -142,21 +142,22 @@ local resolve_test_method_params_nio = function(class_name, method_name, classpa
     return method_params
 end
 
-M.resolve_parametrized_method_signature_nio = function(qualified_name, classpath)
-    -- vim.notify(qualified_name)
-    local class_name, method_name, method_parameters = qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
+---@param context { qualified_name:string, classpath:string }
+---@return string
+M.resolve_parametrized_method_signature_nio = function(context)
+    local class_name, method_name, method_parameters = context.qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
-        return qualified_name
+        return context.qualified_name
     end
 
-    local resolved_method_parameters = resolve_test_method_params_nio(class_name, method_name, classpath)
+    local resolved_method_parameters = resolve_test_method_params_nio(class_name, method_name, context.classpath)
     if resolved_method_parameters then
         local final_qualifier = class_name .. "#" .. method_name .. resolved_method_parameters
         -- print(final_qualifier)
         return final_qualifier
     end
-    vim.notify("Default qualitied name will be used " .. qualified_name, vim.log.levels.WARN)
-    return qualified_name
+    vim.notify("Default qualitied name will be used " .. context.qualified_name, vim.log.levels.WARN)
+    return context.qualified_name
 end
 
 --[[ nio.run(function()
