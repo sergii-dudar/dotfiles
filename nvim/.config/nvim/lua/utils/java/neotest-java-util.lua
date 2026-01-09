@@ -143,7 +143,7 @@ local resolve_test_method_params_nio = function(class_name, method_name, classpa
 end
 
 M.resolve_parametrized_method_signature_nio = function(qualified_name, classpath)
-    vim.notify(qualified_name)
+    -- vim.notify(qualified_name)
     local class_name, method_name, method_parameters = qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
         return qualified_name
