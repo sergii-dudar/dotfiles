@@ -142,7 +142,7 @@ local exec_javap_cached_nio = function(class_name, classpath)
         end)
         :totable()
 
-    cache_util.java.javap_results_map[class_name] = nil
+    cache_util.java.javap_results_map[class_name] = filtered_result
     return filtered_result
 end
 
@@ -165,7 +165,7 @@ local resolve_test_method_params_nio = function(class_name, method_name, classpa
         end
 
         -- possible only after caching and new or rename method, clean and rerun
-        cache_util.java.javap_results_map[class_name] = {}
+        cache_util.java.javap_results_map[class_name] = nil
         atempts = atempts + 1
         -- vim.notify(atempts)
     end
