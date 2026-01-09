@@ -68,7 +68,7 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.lang.rust" },
         -- { import = "lazyvim.plugins.extras.lang.haskell" },
         { import = "lazyvim.plugins.extras.lang.clangd" },
-        { import = "lazyvim.plugins.extras.lang.cmake" },
+        -- { import = "lazyvim.plugins.extras.lang.cmake" },
 
         -- ========= langs that using not very often: =========
         --{ import = "lazyvim.plugins.extras.lang.go" },

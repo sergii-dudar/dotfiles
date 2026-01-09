@@ -28,11 +28,15 @@ return {
         },
     },
     {
+        "unblevable/quick-scope",
+    },
+    {
         "folke/flash.nvim",
         event = "VeryLazy",
         opts = {
             modes = {
                 char = {
+                    enabled = false, -- disable in favor of `quick-scope`
                     -- jump_labels = true, # f,F,t,T...
                     -- jump = {
                     --     autojump = true,

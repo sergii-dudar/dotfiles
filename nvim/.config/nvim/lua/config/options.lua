@@ -92,6 +92,9 @@ vim.opt.path:append("**")
 -- disable snack annimations
 vim.g.snacks_animate = false
 
+-- unblevable/quick-scope
+vim.g.qs_highlight_on_keys = { "f", "F", "t", "T" }
+
 function open_tree_on_start()
     if require("utils.project-util").is_multifile_proj() then
         -- restore current proj session

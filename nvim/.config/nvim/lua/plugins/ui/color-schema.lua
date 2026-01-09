@@ -60,6 +60,10 @@ return {
             -- vim.api.nvim_set_hl(0, 'CursorLineNr', { fg = '#FF0000', bg = 'NONE', bold = true })
             vim.cmd.colorscheme("gruvbox-material")
             vim.api.nvim_set_hl(0, "CursorLineNr", { link = "GreenBold" })
+
+            -- unblevable/quick-scope
+            vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
+            vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
         end,
     },
     -- {

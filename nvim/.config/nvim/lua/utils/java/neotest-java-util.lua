@@ -96,7 +96,7 @@ M.parse_and_resolve_method_params_nio = function(qualified_name)
     return qualified_name
 end
 
-local exec_javap_cached_nio = function(class_name)
+local exec_javap_cached_nio = function(class_name, classpath)
     local result = cache_util.java.javap_results_map[class_name]
     if result then
         return result
@@ -105,13 +105,13 @@ local exec_javap_cached_nio = function(class_name)
     result = nio.process
         .run({
             cmd = "bash",
-            -- args = { "-c", "echo 'hello' | rg 'hello'" },
             args = {
                 "-c",
-                -- "javap -cp /home/serhii/serhii.home/git/tests/serhii-application/target/classes:/home/serhii/serhii.home/git/tests/serhii-application/target/test-classes ua.serhii.application.Something1Test | rg --color=never someMonths_scv",
                 string.format(
                     -- "javap -cp /home/serhii/serhii.home/git/tests/serhii-application/target/classes:/home/serhii/serhii.home/git/tests/serhii-application/target/test-classes %s",
-                    "javap -cp target/classes:target/test-classes %s",
+                    -- "javap -cp target/classes:target/test-classes %s",
+                    "javap -cp %s %s",
+                    classpath,
                     class_name
                 ),
             },
@@ -126,8 +126,8 @@ local exec_javap_cached_nio = function(class_name)
     return result
 end
 
-local resolve_test_method_params_nio = function(class_name, method_name)
-    local class_details = exec_javap_cached_nio(class_name)
+local resolve_test_method_params_nio = function(class_name, method_name, classpath)
+    local class_details = exec_javap_cached_nio(class_name, classpath)
     if not class_details then
         return nil
     end
@@ -142,13 +142,14 @@ local resolve_test_method_params_nio = function(class_name, method_name)
     return method_params
 end
 
-M.resolve_parametrized_method_signature_nio = function(qualified_name)
+M.resolve_parametrized_method_signature_nio = function(qualified_name, classpath)
+    vim.notify(qualified_name)
     local class_name, method_name, method_parameters = qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
         return qualified_name
     end
 
-    local resolved_method_parameters = resolve_test_method_params_nio(class_name, method_name)
+    local resolved_method_parameters = resolve_test_method_params_nio(class_name, method_name, classpath)
     if resolved_method_parameters then
         local final_qualifier = class_name .. "#" .. method_name .. resolved_method_parameters
         -- print(final_qualifier)
@@ -157,6 +158,7 @@ M.resolve_parametrized_method_signature_nio = function(qualified_name)
     vim.notify("Default qualitied name will be used " .. qualified_name, vim.log.levels.WARN)
     return qualified_name
 end
+
 --[[ nio.run(function()
     print(
         M.resolve_parametrized_method_signature(
@@ -167,6 +169,31 @@ end
     )
 end) ]]
 
+--[[ local jdtlsutil = require("jdtls.util")
+local options = vim.fn.json_encode({ scope = "test" })
+local cmd = {
+    command = "java.project.getClasspaths",
+    arguments = { vim.uri_from_bufnr(0), options },
+}
+jdtlsutil.execute_command(cmd, function(err1, resp)
+    dd({ table.concat(resp.classpaths, ":") })
+end, 0) ]]
+
+--[[ local util = require("jdtls.util")
+local options = vim.fn.json_encode({ scope = "test" })
+local cmd = {
+    command = "java.project.getClasspaths",
+    arguments = { vim.uri_from_bufnr(0), options },
+}
+util.execute_command(cmd, function(err1, resp)
+    if err1 then
+        local msg =
+            string.format("%s bufnr=%d fname=%s", err1.message, context.bufnr, api.nvim_buf_get_name(context.bufnr))
+        error(msg)
+    end
+    dd({ table.concat(resp.classpaths, ":") })
+end, 0) ]]
+
 return M
 
 --[[
@@ -175,7 +202,7 @@ return M
 lua/neotest-java/command/junit_command_builder.lua
 ...
 if v.method_name then
-    table.insert(selectors, "--select-method='" .. require("utils.java.neotest-java-util").resolve_parametrized_method_signature(v.method_name) .. "'")
+	table.insert(selectors, "--select-method='" .. require("utils.java.neotest-java-util").resolve_parametrized_method_signature_nio(v.method_name, self._classpath_file_arg) .. "'")
 else
 ...
 
