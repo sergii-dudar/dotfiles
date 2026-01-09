@@ -4,6 +4,10 @@
 - Practice the most common operations: navigation, insertion, deletion, and saving
 - Use **:help** extensively - Vim's built-in documentation is excellent
 
+usefull links:
+
+- [good basic motions advises](https://github.com/unblevable/quick-scope?tab=readme-ov-file#other-motions)
+
 `h Ex-commands`
 
 ## ============================== Modes ==============================
