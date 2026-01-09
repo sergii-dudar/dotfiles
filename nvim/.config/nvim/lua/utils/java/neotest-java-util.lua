@@ -167,7 +167,7 @@ local resolve_test_method_params_nio = function(class_name, method_name, classpa
         -- possible only after caching and new or rename method, clean and rerun
         cache_util.java.javap_results_map[class_name] = {}
         atempts = atempts + 1
-        vim.notify(atempts)
+        -- vim.notify(atempts)
     end
     return nil
 end
