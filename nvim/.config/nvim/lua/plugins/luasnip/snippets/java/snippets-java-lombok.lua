@@ -87,6 +87,39 @@ function M.snippets()
             i(0),
             t({ "", "}" }),
         }),
+        s("util", {
+            f(snip_utils.current_java_package),
+            t({
+                "",
+                "",
+                "import lombok.experimental.UtilityClass;",
+                "",
+                "",
+            }),
+            t({
+                "@UtilityClass",
+            }),
+            t({ "", "" }),
+            t({ "public class " }),
+            f(snip_utils.current_java_file_name),
+            t({ " {", "", "\t" }),
+            t("public static "),
+            i(1),
+            t(" "),
+            i(2),
+            t("("),
+            i(3),
+            t({
+                ") {",
+                "\t\t",
+            }),
+            i(0),
+            t({ "", "\t" }),
+            t({
+                "}",
+                "}",
+            }),
+        }),
     }
 end
 
