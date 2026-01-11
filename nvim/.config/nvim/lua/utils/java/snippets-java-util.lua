@@ -30,9 +30,15 @@ M.current_java_file_name = function()
     return name .. " "
 end
 
-local imports_uniq_index = {}
 M.add_imports = function(imports)
+    local skip_on_first = 0
     return function()
+        if skip_on_first == 0 then
+            -- to skip import on firts init and preview, to get rid of doulbe import at first call
+            skip_on_first = skip_on_first + 1
+            return ""
+        end
+
         -- local imports = { "org.slf4j.LoggerFactory", "ua.serhii.application.model.User", "ua.serhii.application.mapper.data.UserMapper" }
         local first_line = vim.api.nvim_buf_get_lines(0, 0, 1, false)[1]
         if not first_line then

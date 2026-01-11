@@ -24,7 +24,35 @@ function M.snippets()
     -- local conds_expand = require("luasnip.extras.conditions.expand")
 
     -- TODO:
-    return {}
+    return {
+        s("assertEq", {
+            f(snip_utils.add_imports({
+                "org.assertj.core.api.Assertions",
+            })),
+            t("Assertions.assertThat("),
+            i(1),
+            t(").isEqualTo("),
+            i(2),
+            t({ ");", "" }),
+            i(0),
+        }),
+        s("@test", {
+            f(snip_utils.add_imports({
+                "org.junit.jupiter.api.Test",
+                "org.junit.jupiter.params.ParameterizedTest",
+                "org.junit.jupiter.params.provider.CsvSource",
+                "org.junit.jupiter.params.provider.EnumSource",
+                "org.junit.jupiter.params.provider.MethodSource",
+                "org.junit.jupiter.params.provider.ValueSource",
+            })),
+            t("Assertions.assertThat("),
+            i(1),
+            t(").isEqualTo("),
+            i(2),
+            t({ ");", "" }),
+            i(0),
+        }),
+    }
 end
 
 return M

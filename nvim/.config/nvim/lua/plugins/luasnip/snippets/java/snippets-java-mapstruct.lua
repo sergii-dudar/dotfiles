@@ -25,14 +25,10 @@ function M.snippets()
 
     return {
         s("@mapper", {
-            t({
-                "import org.mapstruct.Mapper;",
-                "import org.mapstruct.Mapping;",
-                "import org.mapstruct.ValueMappings;",
-                "import org.mapstruct.ReportingPolicy;",
-                "",
-                "",
-            }),
+            f(snip_utils.add_imports({
+                "org.mapstruct.Mapper",
+                "org.mapstruct.ReportingPolicy",
+            })),
             c(1, {
                 t("@Mapper(unmappedTargetPolicy = ReportingPolicy.ERROR)"),
                 t("@Mapper(unmappedTargetPolicy = ReportingPolicy.WARN)"),
@@ -44,10 +40,7 @@ function M.snippets()
                 "",
                 "",
                 "import org.mapstruct.Mapper;",
-                "import org.mapstruct.Mapping;",
-                "import org.mapstruct.ValueMappings;",
                 "import org.mapstruct.ReportingPolicy;",
-                "import org.mapstruct.MappingConstants;",
                 "",
                 "",
             }),
@@ -66,6 +59,9 @@ function M.snippets()
             t({ "", "}" }),
         }),
         s("@mapping", {
+            f(snip_utils.add_imports({
+                "org.mapstruct.Mapping",
+            })),
             c(1, {
                 sn(nil, {
                     t('@Mapping(target = "'),
@@ -89,6 +85,10 @@ function M.snippets()
             }),
         }),
         s("@vmapping", {
+            f(snip_utils.add_imports({
+                "org.mapstruct.ValueMappings",
+                "org.mapstruct.MappingConstants",
+            })),
             c(1, {
                 sn(nil, {
                     t('@ValueMapping(target = "'),
