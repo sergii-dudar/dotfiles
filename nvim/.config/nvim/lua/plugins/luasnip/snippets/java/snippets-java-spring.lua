@@ -28,7 +28,7 @@ function M.snippets()
     -- @RequiredArgsConstructor
     -- @AllArgsConstructor
     return {
-        s("sproperties", {
+        s("properties", {
             f(snip_utils.current_java_package),
             t({
                 "",
@@ -49,7 +49,7 @@ function M.snippets()
             i(0),
             t({ ") {", "", "}" }),
         }),
-        s("scontroller", {
+        s("controller", {
             f(snip_utils.current_java_package),
             t({
                 "",
@@ -75,7 +75,7 @@ function M.snippets()
             i(0),
             t({ "", "}" }),
         }),
-        s("scomponent", {
+        s("component", {
             f(snip_utils.current_java_package),
             t({
                 "",
@@ -85,6 +85,7 @@ function M.snippets()
                 "import lombok.AccessLevel;",
                 "import lombok.experimental.FieldDefaults;",
                 "import org.springframework.stereotype.Component;",
+                "import org.springframework.context.annotation.Configuration;",
                 "import org.springframework.stereotype.Repository;",
                 "import org.springframework.stereotype.Service;",
                 "",
@@ -93,6 +94,7 @@ function M.snippets()
             t({ "@Slf4j", "" }),
             c(1, {
                 t({ "@Component" }),
+                t({ "@Configuration" }),
                 t({ "@Service" }),
                 t({ "@Repository" }),
             }),
@@ -108,7 +110,7 @@ function M.snippets()
             i(0),
             t({ "", "}" }),
         }),
-        s("susecase", {
+        s("usecase", {
             f(snip_utils.current_java_package),
             t({
                 "",
@@ -164,6 +166,70 @@ function M.snippets()
             t({
                 "}",
                 "}",
+            }),
+        }),
+        s("@properties", {
+            f(snip_utils.add_imports({
+                "org.springframework.boot.context.properties.ConfigurationProperties",
+                "org.springframework.validation.annotation.Validated",
+            })),
+            t({
+                "@Validated",
+                "@ConfigurationProperties",
+            }),
+        }),
+        s("@controller", {
+            f(snip_utils.add_imports({
+                "lombok.RequiredArgsConstructor",
+                "lombok.extern.slf4j.Slf4j",
+                "lombok.AccessLevel",
+                "lombok.experimental.FieldDefaults",
+                "org.springframework.web.bind.annotation.RestController",
+            })),
+            t({
+                "@Slf4j",
+                "@RestController",
+                "@RequiredArgsConstructor",
+                "@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)",
+            }),
+        }),
+        s("@component", {
+            f(snip_utils.add_imports({
+                "lombok.RequiredArgsConstructor",
+                "lombok.extern.slf4j.Slf4j",
+                "lombok.AccessLevel",
+                "lombok.experimental.FieldDefaults",
+                "org.springframework.stereotype.Component",
+                "org.springframework.context.annotation.Configuration",
+                "org.springframework.stereotype.Repository",
+                "org.springframework.stereotype.Service",
+            })),
+            t({ "@Slf4j", "" }),
+            c(1, {
+                t({ "@Component" }),
+                t({ "@Configuration" }),
+                t({ "@Service" }),
+                t({ "@Repository" }),
+            }),
+            t({
+                "",
+                "@RequiredArgsConstructor",
+                "@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)",
+            }),
+        }),
+        s("@usecase", {
+            f(snip_utils.add_imports({
+                "lombok.RequiredArgsConstructor",
+                "lombok.extern.slf4j.Slf4j",
+                "lombok.AccessLevel",
+                "lombok.experimental.FieldDefaults",
+                "org.springframework.stereotype.Component",
+            })),
+            t({
+                "@Slf4j",
+                "@Component",
+                "@RequiredArgsConstructor",
+                "@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)",
             }),
         }),
     }

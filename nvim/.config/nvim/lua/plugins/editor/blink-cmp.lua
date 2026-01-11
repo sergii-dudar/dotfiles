@@ -24,11 +24,11 @@ return {
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
 
                 -- show with a list of providers
-                ["<C-space>"] = {
-                    function(cmp)
-                        cmp.show({ providers = { "snippets" } })
-                    end,
-                },
+                -- ["<C-space>"] = {
+                --     function(cmp)
+                --         cmp.show({ providers = { "snippets" } })
+                --     end,
+                -- },
                 -- control whether the next command will be run when using a function
             },
             fuzzy = {
@@ -101,7 +101,6 @@ return {
                         },
                     },
                 },
-
                 documentation = {
                     auto_show = true,
                     window = {
@@ -137,27 +136,28 @@ return {
             },
             sources = {
                 providers = {
+                    lsp = { fallbacks = {} },
                     path = {
                         opts = {
                             show_hidden_files_by_default = true,
                         },
                     },
                     -- Buffer completion from all open buffers
-                    buffer = {
-                        opts = {
-                            -- get all buffers, even ones like neo-tree
-                            -- get_bufnrs = vim.api.nvim_list_bufs,
-
-                            -- or (recommended) filter to only "normal" buffers
-                            -- get_bufnrs = function()
-                            --     return vim.tbl_filter(function(bufnr)
-                            --         return vim.bo[bufnr].buftype == ""
-                            --     end, vim.api.nvim_list_bufs())
-                            -- end,
-
-                            get_bufnrs = buffer_util.get_active_ls_buffers,
-                        },
-                    },
+                    -- buffer = {
+                    --     opts = {
+                    --         -- get all buffers, even ones like neo-tree
+                    --         -- get_bufnrs = vim.api.nvim_list_bufs,
+                    --
+                    --         -- or (recommended) filter to only "normal" buffers
+                    --         -- get_bufnrs = function()
+                    --         --     return vim.tbl_filter(function(bufnr)
+                    --         --         return vim.bo[bufnr].buftype == ""
+                    --         --     end, vim.api.nvim_list_bufs())
+                    --         -- end,
+                    --
+                    --         get_bufnrs = buffer_util.get_active_ls_buffers,
+                    --     },
+                    -- },
                     --[[ mapstruct = {
                         name = "mapstruct",
                         module = "utils.blink.mapstruct-source", -- blink.cmp will call `require('your-source').new(...)`
@@ -165,6 +165,7 @@ return {
                     }, ]]
                 },
                 -- default = { "lsp", "path", "snippets", "buffer", "mapstruct" },
+                default = { "lsp", "path" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },
             snippets = { preset = "luasnip" },

@@ -25,12 +25,10 @@ function M.snippets()
 
     return {
         s("@fieldd", {
-            t({
-                "import lombok.AccessLevel;",
-                "import lombok.experimental.FieldDefaults;",
-                "",
-                "",
-            }),
+            f(snip_utils.add_imports({
+                "lombok.AccessLevel",
+                "lombok.experimental.FieldDefaults",
+            })),
             c(1, {
                 sn(nil, {
                     t("@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)"),
