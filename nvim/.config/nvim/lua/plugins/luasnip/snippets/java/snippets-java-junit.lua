@@ -77,7 +77,9 @@ function M.snippets()
                         "() {",
                         "\t",
                     }),
+                    t("return Stream.of("),
                     i(8),
+                    t(");"),
                     t({
                         "",
                         "}",

@@ -154,9 +154,11 @@ function M.snippets()
                 "\t",
             }),
             t("public "),
-            i(2),
+            i(2, "Output"),
             t(" execute("),
-            i(3),
+            i(3, "Input"),
+            t(" "),
+            i(3, "input"),
             t({
                 ") {",
                 "\t\t",
