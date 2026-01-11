@@ -43,5 +43,11 @@ return {
                 ls.change_choice(1)
             end
         end, { silent = true })
+
+        vim.keymap.set({ "i", "s" }, "<C-R>", function()
+            if ls.choice_active() then
+                require("luasnip.extras.select_choice")()
+            end
+        end, { silent = true })
     end,
 }
