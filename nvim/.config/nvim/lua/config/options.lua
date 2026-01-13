@@ -75,7 +75,7 @@ vim.opt.splitright = true -- split vertical window to the right
 vim.opt.splitbelow = true -- split horizontal window to the bottom
 
 -- Set borders for all floating windows
-vim.o.winborder = "rounded"
+-- vim.o.winborder = "rounded"
 
 -- Save undo history
 vim.opt.undofile = true

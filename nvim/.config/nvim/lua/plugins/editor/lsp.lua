@@ -122,6 +122,7 @@ return {
                     -- stylua: ignore
                     keys = {
                         { "K", false },
+                        { "<C-k>", false, mode = "i" }, -- disable if favor of blink.cmp
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>k", function() require("pretty_hover").hover() end, desc = "Pretty hover" },
                         -- override default preveiw mapping

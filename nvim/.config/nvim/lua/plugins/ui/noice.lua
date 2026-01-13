@@ -21,6 +21,11 @@ return {
                 hover = {
                     silent = true, -- set to true to not show a message if hover is not available
                 },
+                signature = {
+                    auto_open = {
+                        enabled = false, -- in favor of blink.cmp
+                    },
+                },
             },
             -- notify = {
             --     enabled = false,

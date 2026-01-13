@@ -20,6 +20,12 @@ return {
                 -- },
                 ["<C-k>"] = { "select_prev", "fallback" },
                 ["<C-j>"] = { "select_next", "fallback" },
+                -- ["<C-h>"] = {
+                --     function()
+                --         require("pretty_hover").close()
+                --     end,
+                -- },
+
                 -- ["<Space>"] = { "select_and_accept", "fallback" },
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
 
@@ -113,13 +119,13 @@ return {
                 },
             },
             -- Experimental signature help support
-            -- signature = { -- disabled as using lsp doc
-            --     enabled = true,
-            --     window = {
-            --         border = "rounded",
-            --         show_documentation = true, -- to only show the signature, and not the documentation.
-            --     },
-            -- },
+            signature = { -- disabled as using lsp doc
+                enabled = true,
+                window = {
+                    border = "rounded",
+                    show_documentation = true, -- to only show the signature, and not the documentation.
+                },
+            },
             cmdline = {
                 keymap = {
                     -- recommended, as the default keymap will only show and select the next item
@@ -128,6 +134,7 @@ return {
                     -- ["<CR>"] = { "accept_and_enter", "fallback" },
                     ["<C-k>"] = { "select_prev", "fallback" },
                     ["<C-j>"] = { "select_next", "fallback" },
+                    -- ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
                     -- ["C-<Space>"] = { "accept", "fallback" },
                 },
                 enabled = true,
