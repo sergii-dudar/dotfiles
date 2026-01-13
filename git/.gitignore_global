@@ -1,4 +1,3 @@
-**/logback.xml
 DevAppRunner.java
 TestDevAppRunner.java
 **/dev.application.properties.evn
@@ -8,6 +7,8 @@ application-work.yaml
 .project
 .classpath
 .classpath.cache
+.classpath.runtime.cache
+.classpath.test.cache
 .factorypath
 .trouble.trace
 .idea
