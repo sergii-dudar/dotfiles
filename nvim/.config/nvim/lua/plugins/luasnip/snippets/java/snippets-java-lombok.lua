@@ -35,6 +35,10 @@ function M.snippets()
                     i(1),
                 }),
                 sn(nil, {
+                    t("@FieldDefaults(level = AccessLevel.PRIVATE)"),
+                    i(1),
+                }),
+                sn(nil, {
                     t("@FieldDefaults(level = AccessLevel.PROTECTED)"),
                     i(1),
                 }),
