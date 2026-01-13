@@ -1,5 +1,9 @@
 -- local buffer_util = require("utils.buffer-util")
 
+-- local json_string = '{"name": "Neovim", "version": 0.10, "is_editor": true, "plugins": ["telescope", "lsp"]}'
+-- local data_table = vim.json.decode(json_string)
+-- dd(data_table)
+
 return {
     {
         "saghen/blink.cmp",

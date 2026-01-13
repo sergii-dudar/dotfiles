@@ -455,6 +455,24 @@ nmap <leader><leader>p <Action>(SelectInProjectView)
 " ------------------------------------------------------------------------------------------------------
 
 "======================================================================================================================"
+"================================================ AlexGirardDev/HarpoonIJ ============================================="
+
+nmap <leader>H1 :action SetHarpoon1<cr>
+nmap <leader>H2 :action SetHarpoon2<cr>
+nmap <leader>H3 :action SetHarpoon3<cr>
+nmap <leader>H4 :action SetHarpoon4<cr>
+nmap <leader>H5 :action SetHarpoon5<cr>
+
+nmap <leader>1 :action GotoHarpoon1<cr>
+nmap <leader>2 :action GotoHarpoon2<cr>
+nmap <leader>3 :action GotoHarpoon3<cr>
+nmap <leader>4 :action GotoHarpoon4<cr>
+nmap <leader>5 :action GotoHarpoon5<cr>
+
+nmap <leader>h :action ShowHarpoon<cr>
+" nmap <leader>H :action AddToHarpoon<cr>
+
+"======================================================================================================================"
 "================================================ 🄴🅇🄲🄷🄰🄽🄶🄴 🄿🄻🅄🄶🄸🄽 ============================================"
 
 " https://github.com/tommcdo/vim-exchange/blob/master/doc/exchange.txt
@@ -737,13 +755,13 @@ nmap <leader>I <Action>(GotoPreviousError)
 
 "============================================ 🄷🄸🄴🅁🄰🅁🄲🄷🅈 \ 🄷🄸🄳🄴: <leader>h ===================================="
 
-nmap <leader>hc <Action>(CallHierarchy)
-nmap <leader>hm <Action>(MethodHierarchy)
-nmap <leader>ht <Action>(TypeHierarchy)
+" nmap <leader>hc <Action>(CallHierarchy)
+" nmap <leader>hm <Action>(MethodHierarchy)
+" nmap <leader>ht <Action>(TypeHierarchy)
 
 "=== Hide
-nmap <leader>ha <Action>(HideAllWindows)
-nmap <leader>hh <Action>(HideActiveWindow)
+" nmap <leader>ha <Action>(HideAllWindows)
+" nmap <leader>hh <Action>(HideActiveWindow)
 
 "============================================== 🅅🄸🄴🅆 🄼🄾🄳🄴: <leader>v ============================================="
 
@@ -823,6 +841,7 @@ nmap gS <Action>(GotoSuperMethod)
 "nmap <leader>fdo <Action>(GotoDatabaseObject)
 "nmap <leader>j <Action>(ShowNavBar)
 "====================================================== 🅃🄰🄱🅂 ======================================================="
+
 
 nmap <Tab>     <Action>(NextTab)
 nmap <S-Tab>   <Action>(PreviousTab)

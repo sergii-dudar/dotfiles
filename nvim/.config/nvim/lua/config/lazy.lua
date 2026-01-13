@@ -37,7 +37,7 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.editor.snacks_picker" },
         -- { import = "lazyvim.plugins.extras.editor.snacks_explorer" },
 
-        { import = "lazyvim.plugins.extras.editor.harpoon2" },
+        -- { import = "lazyvim.plugins.extras.editor.harpoon2" }, -- own config using
         { import = "lazyvim.plugins.extras.editor.illuminate" },
         { import = "lazyvim.plugins.extras.editor.mini-move" },
         -- { import = "lazyvim.plugins.extras.editor.inc-rename" }, -- issues with `spring-boot ls` disabled for now

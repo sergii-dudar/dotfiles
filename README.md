@@ -28,12 +28,9 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 ## My current tool preferences
 
 - Terminal: [ghostty](ghostty/.config/ghostty), [kitty](kitty/.config/kitty), [wezterm](wezterm/.config/wezterm)
-- Multiplexer: [tmux](tmux) + [tmux-powerline](tmux-powerline/.config/tmux-powerline), [sesh](https://github.com/joshmedeski/sesh) (
-  as sessions manager + own customizations based on it and tmux api)
-- SHELL: [zsh](zsh) + [ohmyz](https://ohmyz.sh/) + [starship](starship/.config/starship.toml) + [fastfetch](fastfetch/.config/fastfetch)
-  and so on
-- Code: [nvim](nvim/.config/nvim), [intellij](idea/.ideavimrc) (only for working tasks, driven
-  by [.ideavimrc](idea/.ideavimrc))
+- Multiplexer: [tmux](tmux) + [tmux-powerline](tmux-powerline/.config/tmux-powerline), [sesh](https://github.com/joshmedeski/sesh) (as sessions manager + own customizations based on it and tmux api)
+- SHELL: [zsh](zsh) + [ohmyz](https://ohmyz.sh/) + [starship](starship/.config/starship.toml) + [fastfetch](fastfetch/.config/fastfetch) and so on
+- Code: [nvim](nvim/.config/nvim), [intellij](idea/.ideavimrc) (only for specific working tasks, mostly because of existing some useful plugins, where I have not found decent alternative in neovim, driven by [.ideavimrc](idea/.ideavimrc))
 - Nerd-Fonts: [CascadiaCode](https://www.programmingfonts.org/#cascadia-code), [hack](https://www.programmingfonts.org/#hack), [FiraCode](https://www.programmingfonts.org/#firacode), [JetBrainsMono](https://www.programmingfonts.org/#jetbrainsmono)
 - File Manager: [yazi](yazi/.config/yazi), (used ofter [ranger](ranger/.config/ranger) in past)
 - OS: linux (arch, ubuntu), macos
@@ -42,21 +39,14 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 - Tiling WM: linux (
   X11) - [xmonad](xmonad/.config/xmonad) + [xmobar](xmobar/.config/xmobar), [awesome](awesome/.config/awesome), [qtile](qtile/.config/qtile), [bspwm](bspwm/.config/bspwm) + [polybar](polybar/.config/polybar), [i3](i3/.config/i3) + [polybar](polybar/.config/polybar), [DWM](https://github.com/sergii-dudar/my-dwm) + [dwmblocks-async](suckless/dwmblocks-async)
 - X11 compositor: [picom](picom/.config/picom)
-- Tiling WM:
-  macos - [aerospace](aerospace/.config/aerospace) + [sketchybar](sketchybar/.config/sketchybar) + [janky-borders](janky-borders/.config/borders)
-- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim), theme - `everforest`, bd -
-  `hard` (the most eyes comfortable theme I ever used!), also I'm big fan of `gruvbox-material` and `catppuccin-mocha` (but my eyes not)
-  very like it to work 24/7 (too much blue) 😺
-- Keyboard OS level tools: macos - [karabiner](karabiner/.config/karabiner),
-  linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
-- HotKeys launchers daemon: macos - using [aerospace](aerospace/.config/aerospace) support,
-  X11 - [sxhkd](sxhkd/.config/sxhkd)
-- Launchers (Wayland, X11): [rofi](rofi/.config/rofi) by
-  using [fork with wayland support](https://github.com/in0ni/rofi-wayland)
-- Notifications: X11 - [dunst](dunst/.config/dunst), Wayland - [swaync](swaync/.config/swaync), macos -
-  builtin & [terminal-notifier](https://github.com/julienXX/terminal-notifier)
-- Screen color temperature: X11 - [redshift](redshift/.config/redshift), sway -[gammastep](gammastep/.config/gammastep),
-  hyprland - [hyprsunset](hyprland/hypr/scripts/hyprsunset.runner)
+- Tiling WM: macos - [aerospace](aerospace/.config/aerospace) + [sketchybar](sketchybar/.config/sketchybar) + [janky-borders](janky-borders/.config/borders)
+- Neovim: [LazyVim](https://www.lazyvim.org/) based [configuration](nvim/.config/nvim). It's my main editor as Software Engineer, and it's oriented to many languages I'm using professionally (java, c#, js, bash, python... but mostly as backend dev), or as hobby (lua, c/c++, rust, haskell...).
+- Neotim Theme - customized `gruvbox-material` or `everforest`, bd - `hard` (the most eyes comfortable themes I ever used!), also I'm big fan of and `catppuccin-mocha` (but my eyes not) very like it to work 24/7 (too much blue) 😺
+- Keyboard OS level tools: kanata [linux](keyboard/kanata/linux) and [macos](/keyboard/kanata/macos) configs (in previous: macos - [karabiner](karabiner/.config/karabiner), linux - [keyd](nonhome/keyd) / [kmonad](nonhome/kmonad)
+- HotKeys launchers daemon: macos - using [aerospace](aerospace/.config/aerospace) support, X11 - [sxhkd](sxhkd/.config/sxhkd)
+- Launchers (Wayland, X11): [rofi](rofi/.config/rofi) by using [fork with wayland support](https://github.com/in0ni/rofi-wayland)
+- Notifications: X11 - [dunst](dunst/.config/dunst), Wayland - [swaync](swaync/.config/swaync), macos - builtin & [terminal-notifier](https://github.com/julienXX/terminal-notifier)
+- Screen color temperature: X11 - [redshift](redshift/.config/redshift), sway -[gammastep](gammastep/.config/gammastep), hyprland - [hyprsunset](hyprland/hypr/scripts/hyprsunset.runner)
 - Cron tasks: [cronie](cron)
 - Music &
   Players: [rmpc](mpd-config/rmpc), [mpd-linux](mpd-config/mpd), [mpd-macos](mpd-config/mpd-osx), [mpv](mpv/.config/mpv), [ncmpcpp](mpd-config/ncmpcpp), [cmus](cmus/.config/cmus)
