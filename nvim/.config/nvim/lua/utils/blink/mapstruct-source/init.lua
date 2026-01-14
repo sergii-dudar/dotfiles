@@ -1,146 +1,266 @@
--- TODO: just exploring blink custom source capabilities for now
+-- MapStruct Completion Source for blink.cmp
+-- Provides path completion for MapStruct @Mapping annotations
 
---- @module 'blink.cmp'
+local server = require("utils.blink.mapstruct-source.server")
+local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
+local context = require("utils.blink.mapstruct-source.context")
+
 --- @class blink.cmp.Source
 local source = {}
 
--- `opts` table comes from `sources.providers.your_provider.opts`
--- You may also accept a second argument `config`, to get the full
--- `sources.providers.your_provider` table
+-- Initialize the source
 function source.new(opts)
-    vim.validate("your-source.opts.some_option", opts.some_option, { "string" })
-    vim.validate("your-source.opts.optional_option", opts.optional_option, { "string" }, true)
-
     local self = setmetatable({}, { __index = source })
-    self.opts = opts
+    self.opts = opts or {}
+
+    -- Validate options
+    if not self.opts.jar_path then
+        vim.notify("[MapStruct] jar_path is required in blink.cmp config", vim.log.levels.ERROR)
+        return self
+    end
+
+    -- Ensure jar exists
+    local jar_path = vim.fn.expand(self.opts.jar_path)
+    if vim.fn.filereadable(jar_path) ~= 1 then
+        vim.notify("[MapStruct] jar_path not found: " .. jar_path, vim.log.levels.ERROR)
+        return self
+    end
+
+    self.jar_path = jar_path
+    self.use_jdtls_classpath = self.opts.use_jdtls_classpath ~= false -- default true
+    self.java_cmd = self.opts.java_cmd or "java"
+    self.server_started = false
+
+    -- Setup auto-cleanup on VimLeavePre
+    vim.api.nvim_create_autocmd("VimLeavePre", {
+        callback = function()
+            server.stop()
+        end,
+    })
+
     return self
 end
 
--- (Optional) Enable the source in specific contexts only
+-- Enable the source only for Java files with *Mapper.java naming pattern
 function source:enabled()
-    return vim.bo.filetype == "lua"
+    local filetype = vim.bo.filetype
+    if filetype ~= "java" then
+        return false
+    end
+
+    -- Check if filename ends with Mapper.java
+    local filename = vim.fn.expand("%:t")
+    return filename:match("Mapper%.java$") ~= nil
 end
 
--- (Optional) Non-alphanumeric characters that trigger the source
+-- Trigger on dot character
 function source:get_trigger_characters()
     return { "." }
 end
 
-function source:get_completions(ctx, callback)
-    -- ctx (context) contains the current keyword, cursor position, bufnr, etc.
-
-    -- You should never filter items based on the keyword, since blink.cmp will
-    -- do this for you
-
-    -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem
-    --- @type lsp.CompletionItem[]
-    local items = {}
-
-    for i = 1, 10 do
-        --- @type lsp.CompletionItem
-        local item = {
-            -- Label of the item in the UI
-            label = "foo",
-            -- (Optional) Item kind, where `Function` and `Method` will receive
-            -- auto brackets automaticall
-            kind = require("blink.cmp.types").CompletionItemKind.Text,
-
-            -- (Optional) Text to fuzzy match against
-            filterText = "bar",
-            -- (Optional) Text to use for sorting. You may use a layout like
-            -- 'aaaa', 'aaab', 'aaac', ... to control the order of the items
-            sortText = "baz",
-
-            -- Text to be inserted when accepting the item using ONE of:
-            --
-            -- (Recommended) Control the exact range of text that will be replaced
-            textEdit = {
-                newText = "item " .. i,
-                range = {
-                    -- 0-indexed line and character, end-exclusive
-                    start = { line = 0, character = 0 },
-                    ["end"] = { line = 0, character = 0 },
-                },
-            },
-            -- Or get blink.cmp to guess the range to replace for you. Use this only
-            -- when inserting *exclusively* alphanumeric characters. Any symbols will
-            -- trigger complicated guessing logic in blink.cmp that may not give the
-            -- result you're expecting
-            -- Note that blink.cmp will use `label` when omitting both `insertText` and `textEdit`
-            insertText = "foo",
-            -- May be Snippet or PlainText. Works with both `textEdit` and `insertText`
-            -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax
-            insertTextFormat = vim.lsp.protocol.InsertTextFormat.PlainText,
-
-            -- There are some other fields you may want to explore which are blink.cmp
-            -- specific, such as `score_offset` (blink.cmp.CompletionItem)
-        }
-        table.insert(items, item)
+-- Ensure server is running
+function source:ensure_server_running(callback)
+    if server.is_running() and ipc_client.is_connected() then
+        callback(true)
+        return
     end
 
-    -- The callback _MUST_ be called at least once. The first time it's called,
-    -- blink.cmp will show the results in the completion menu. Subsequent calls
-    -- will append the results to the menu to support streaming results.
-    --
-    -- NOTE: blink.cmp will mutate the items you return, so you must vim.deepcopy them
-    -- before returning if you want to re-use them in the future (such as for caching)
-    callback({
-        items = items,
-        -- Whether blink.cmp should request items when deleting characters
-        -- from the keyword (i.e. "foo|" -> "fo|")
-        -- Note that any non-alphanumeric characters will always request
-        -- new items (excluding `-` and `_`)
-        is_incomplete_backward = false,
-        -- Whether blink.cmp should request items when adding characters
-        -- to the keyword (i.e. "fo|" -> "foo|")
-        -- Note that any non-alphanumeric characters will always request
-        -- new items (excluding `-` and `_`)
-        is_incomplete_forward = false,
-    })
+    if self.server_started then
+        -- Server is starting, wait a bit
+        vim.defer_fn(function()
+            callback(server.is_running() and ipc_client.is_connected())
+        end, 500)
+        return
+    end
 
-    -- (Optional) Return a function which cancels the request
-    -- If you have long running requests, it's essential you support cancellation
-    return function() end
+    self.server_started = true
+
+    server.start(self.jar_path, {
+        java_cmd = self.java_cmd,
+        use_jdtls_classpath = self.use_jdtls_classpath,
+        classpath = self.opts.classpath,
+    }, function(success, err)
+        if not success then
+            vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
+            callback(false)
+        else
+            callback(true)
+        end
+    end)
 end
 
--- (Optional) Before accepting the item or showing documentation, blink.cmp will call this function
--- so you may avoid calculating expensive fields (i.e. documentation) for only when they're actually needed
--- Note only some fields may be resolved lazily. You may check the LSP capabilities for a complete list:
--- `textDocument.completion.completionItem.resolveSupport`
--- At the time of writing: 'documentation', 'detail', 'additionalTextEdits', 'command', 'data'
+-- Get completions
+function source:get_completions(ctx, callback)
+    -- Extract completion context using Treesitter
+    -- ctx.line is 1-indexed, ctx.character is 0-indexed (LSP style)
+    local completion_ctx = context.get_completion_context(
+        ctx.bufnr,
+        ctx.cursor[1] - 1, -- Convert to 0-indexed for Treesitter
+        ctx.cursor[2]
+    )
+
+    if not completion_ctx then
+        -- Not in a valid MapStruct context
+        callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+        return function() end
+    end
+
+    -- Ensure server is running
+    self:ensure_server_running(function(running)
+        if not running then
+            callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+            return
+        end
+
+        -- Request path exploration from server
+        ipc_client.request("explore_path", {
+            className = completion_ctx.class_name,
+            pathExpression = completion_ctx.path_expression,
+        }, function(result, err)
+            if err then
+                vim.notify("[MapStruct] Request failed: " .. err, vim.log.levels.WARN)
+                callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+                return
+            end
+
+            if not result or not result.completions then
+                callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+                return
+            end
+
+            -- Helper function to simplify type names
+            local function simplify_type(type_name)
+                if not type_name then
+                    return "Unknown"
+                end
+                -- Extract simple name from fully qualified name
+                -- e.g., "java.lang.String" -> "String"
+                local simple = type_name:match("%.([^%.]+)$") or type_name
+                return simple
+            end
+
+            -- Helper function to get full type with package
+            local function format_type_with_package(type_name)
+                if not type_name then
+                    return "Unknown"
+                end
+                -- If it's a java.lang type, just show simple name
+                if type_name:match("^java%.lang%.") then
+                    return simplify_type(type_name)
+                end
+                return type_name
+            end
+
+            -- Convert to blink.cmp items
+            local items = {}
+            local completions = result.completions or {}
+
+            for _, field_info in ipairs(completions) do
+                -- Always use Field kind for MapStruct completions
+                -- MapStruct uses property-style notation (e.g., "person.firstName")
+                -- even when accessing via getters, so we never want parentheses
+                local kind = require("blink.cmp.types").CompletionItemKind.Field
+
+                local simple_type = simplify_type(field_info.type)
+                local full_type = format_type_with_package(field_info.type)
+
+                local item = {
+                    label = field_info.name,
+                    -- Show type in label_description column
+                    labelDetails = {
+                        description = simple_type,
+                    },
+                    kind = kind,
+                    insertTextFormat = vim.lsp.protocol.InsertTextFormat.PlainText,
+                    insertText = field_info.name,
+                    -- Detailed documentation
+                    documentation = {
+                        kind = "markdown",
+                        value = string.format(
+                            "**%s** %s\n\n**Type:** `%s`\n\n**Kind:** %s\n\n**Source Class:** `%s`\n\n**Package:** `%s`\n\n**Path:** `%s%s`",
+                            field_info.kind == "GETTER" and "Getter Method" or "Field",
+                            field_info.name,
+                            full_type,
+                            field_info.kind,
+                            result.simpleName or completion_ctx.class_name,
+                            result.packageName or "",
+                            completion_ctx.path_expression,
+                            field_info.name
+                        ),
+                    },
+                    -- Store additional data for potential future use
+                    data = {
+                        mapstruct_field_type = field_info.type,
+                        mapstruct_field_kind = field_info.kind,
+                        mapstruct_class_name = result.className,
+                        mapstruct_package = result.packageName,
+                    },
+                }
+                table.insert(items, item)
+            end
+
+            callback({
+                items = items,
+                is_incomplete_forward = false,
+                is_incomplete_backward = false,
+            })
+        end)
+    end)
+
+    -- Return cancel function
+    return function()
+        -- TODO: Implement request cancellation if needed
+    end
+end
+
+-- Resolve additional details for an item
 function source:resolve(item, callback)
-    item = vim.deepcopy(item)
-
-    -- Shown in the documentation window (<C-space> when menu open by default)
-    item.documentation = {
-        kind = "markdown",
-        value = "# Foo\n\nBar",
-    }
-
-    -- Additional edits to make to the document, such as for auto-imports
-    item.additionalTextEdits = {
-        {
-            newText = "foo",
-            range = {
-                start = { line = 0, character = 0 },
-                ["end"] = { line = 0, character = 0 },
-            },
-        },
-    }
-
+    -- For now, we provide all information upfront
+    -- In the future, we could fetch detailed type information here
     callback(item)
 end
 
--- (Optional) Called immediately after applying the item's textEdit/insertText
--- Only useful when you want to customize how items are accepted,
--- beyond what's possible with `textEdit` and `additionalTextEdits`
-function source:execute(ctx, item, callback, default_implementation)
-    -- When you provide an `execute` function, your source must handle the execution
-    -- of the item itself, but you may use the default implementation at any time
-    default_implementation()
+-- Setup user commands for debugging and control
+vim.api.nvim_create_user_command("MapStructStatus", function()
+    local status = server.get_status()
+    print("MapStruct Server Status:")
+    print("  Running: " .. tostring(status.running))
+    print("  Starting: " .. tostring(status.starting))
+    print("  Socket: " .. (status.socket_path or "N/A"))
+    print("  Jar: " .. (status.jar_path or "N/A"))
+    print("  Connected: " .. tostring(status.ipc_status.connected))
+    print("  Pending Requests: " .. (status.ipc_status.pending_requests or 0))
+end, { desc = "Show MapStruct server status" })
 
-    -- The callback _MUST_ be called once
-    callback()
-end
+vim.api.nvim_create_user_command("MapStructRestart", function()
+    server.restart(function(success)
+        if success then
+            vim.notify("[MapStruct] Server restarted successfully", vim.log.levels.INFO)
+        else
+            vim.notify("[MapStruct] Failed to restart server", vim.log.levels.ERROR)
+        end
+    end)
+end, { desc = "Restart MapStruct server" })
+
+vim.api.nvim_create_user_command("MapStructStop", function()
+    server.stop(function()
+        vim.notify("[MapStruct] Server stopped", vim.log.levels.INFO)
+    end)
+end, { desc = "Stop MapStruct server" })
+
+vim.api.nvim_create_user_command("MapStructPing", function()
+    if not ipc_client.is_connected() then
+        vim.notify("[MapStruct] Not connected to server", vim.log.levels.WARN)
+        return
+    end
+
+    ipc_client.request("ping", {}, function(result, err)
+        if err then
+            vim.notify("[MapStruct] Ping failed: " .. err, vim.log.levels.ERROR)
+        else
+            vim.notify("[MapStruct] Pong: " .. vim.inspect(result), vim.log.levels.INFO)
+        end
+    end)
+end, { desc = "Ping MapStruct server" })
 
 return source

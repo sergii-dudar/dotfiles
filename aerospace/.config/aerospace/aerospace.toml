@@ -1,7 +1,7 @@
 config-version = 2
 
 # In i3, all workspaces are phantom
-persistent-workspaces = []
+# persistent-workspaces = []
 
 # It's not necessary to copy all keys to your config.
 # If the key is missing in your config, "default-config.toml" will serve as a fallback

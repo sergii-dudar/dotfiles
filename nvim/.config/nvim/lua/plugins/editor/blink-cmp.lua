@@ -85,6 +85,11 @@ return {
                                         if dev_icon then
                                             icon = dev_icon
                                         end
+                                    elseif ctx.source_name == "mapstruct" then
+                                        -- Use appropriate icon for MapStruct fields/methods
+                                        icon = require("lspkind").symbolic(ctx.kind, {
+                                            mode = "symbol",
+                                        })
                                     else
                                         icon = require("lspkind").symbolic(ctx.kind, {
                                             mode = "symbol",
@@ -106,6 +111,14 @@ return {
                                         end
                                     end
                                     return hl
+                                end,
+                            },
+                            source_name = {
+                                text = function(ctx)
+                                    if ctx.source_name == "mapstruct" then
+                                        return "[MS]" -- Short display for MapStruct
+                                    end
+                                    return ctx.source_name
                                 end,
                             },
                         },
@@ -169,13 +182,27 @@ return {
                     --         get_bufnrs = buffer_util.get_active_ls_buffers,
                     --     },
                     -- },
-                    --[[ mapstruct = {
+                    mapstruct = {
                         name = "mapstruct",
-                        module = "utils.blink.mapstruct-source", -- blink.cmp will call `require('your-source').new(...)`
-                        opts = { some_option = "some value" }, -- passed to `source.new(opts)`
-                    }, ]]
+                        module = "utils.blink.mapstruct-source",
+                        opts = {
+                            -- Required: path to mapstruct-path-explorer.jar
+                            jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+
+                            -- Optional: use jdtls classpath (default: true)
+                            use_jdtls_classpath = true,
+
+                            -- Optional: manual classpath (fallback if jdtls fails)
+                            -- classpath = nil,
+
+                            -- Optional: custom Java command
+                            -- java_cmd = "java",
+                        },
+                    },
                 },
-                -- default = { "lsp", "path", "snippets", "buffer", "mapstruct" },
+                default = { "lsp", "mapstruct", "path", "snippets", "buffer" },
+                -- default = { "mapstruct" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },
             snippets = { preset = "luasnip" },
