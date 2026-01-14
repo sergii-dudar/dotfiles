@@ -106,7 +106,7 @@ local function find_annotation_element(node, element_name)
         return nil, nil
     end
 
-    -- Check if it's a @Mapping annotation
+    -- Check if it's a @Mapping or @ValueMapping annotation
     local name_node = annotation:field("name")[1]
     if not name_node then
         return nil, nil
@@ -116,6 +116,9 @@ local function find_annotation_element(node, element_name)
     if not annotation_name or not annotation_name:match("Mapping") then
         return nil, nil
     end
+
+    -- Determine annotation type (Mapping or ValueMapping)
+    local is_value_mapping = annotation_name:match("ValueMapping") ~= nil
 
     -- Find the arguments node
     local arguments = annotation:field("arguments")[1]
@@ -135,7 +138,7 @@ local function find_annotation_element(node, element_name)
                     local value_node = child:field("value")[1]
                     -- Only return if the node is actually a descendant of this value
                     if value_node and is_descendant_of(node, value_node) then
-                        return value_node, annotation
+                        return value_node, annotation, is_value_mapping
                     end
                 end
             end
@@ -282,26 +285,58 @@ local function get_jdtls_classpath(bufnr)
 
         vim.notify("[MapStruct Context] Querying jdtls for classpath...", vim.log.levels.DEBUG)
 
-        local result, err = client.request_sync(
+        -- Try to get both runtime and test classpaths
+        local all_classpaths = {}
+
+        -- Query with 'test' scope to get test dependencies
+        local result_test, err = client.request_sync(
             "workspace/executeCommand",
             {
                 command = "java.project.getClasspaths",
-                arguments = { uri, { scope = "runtime" } }
+                arguments = { uri, { scope = "test" } }
             },
             5000,
             bufnr
         )
 
-        if err then
-            vim.notify("[MapStruct Context] jdtls request error: " .. vim.inspect(err), vim.log.levels.DEBUG)
+        if result_test and result_test.result then
+            local classpaths = result_test.result.classpaths or result_test.result
+            if type(classpaths) == "table" and #classpaths > 0 then
+                vim.notify("[MapStruct Context] Got " .. #classpaths .. " test classpath entries from jdtls", vim.log.levels.INFO)
+                for _, cp in ipairs(classpaths) do
+                    table.insert(all_classpaths, cp)
+                end
+            end
+        else
+            -- Try runtime scope as fallback
+            local result_runtime, err = client.request_sync(
+                "workspace/executeCommand",
+                {
+                    command = "java.project.getClasspaths",
+                    arguments = { uri, { scope = "runtime" } }
+                },
+                5000,
+                bufnr
+            )
+
+            if result_runtime and result_runtime.result then
+                local classpaths = result_runtime.result.classpaths or result_runtime.result
+                if type(classpaths) == "table" and #classpaths > 0 then
+                    vim.notify("[MapStruct Context] Got " .. #classpaths .. " runtime classpath entries from jdtls", vim.log.levels.INFO)
+                    for _, cp in ipairs(classpaths) do
+                        table.insert(all_classpaths, cp)
+                    end
+                end
+            end
         end
 
-        if result and result.result then
-            local classpaths = result.result.classpaths or result.result
-            if type(classpaths) == "table" and #classpaths > 0 then
-                vim.notify("[MapStruct Context] Got " .. #classpaths .. " classpath entries from jdtls", vim.log.levels.INFO)
-                return table.concat(classpaths, ":")
-            end
+        if #all_classpaths > 0 then
+            vim.notify("[MapStruct Context] Total jdtls classpath entries: " .. #all_classpaths, vim.log.levels.INFO)
+            return table.concat(all_classpaths, ":")
+        end
+
+        if err then
+            vim.notify("[MapStruct Context] jdtls request error: " .. vim.inspect(err), vim.log.levels.DEBUG)
         end
     else
         vim.notify("[MapStruct Context] No jdtls client found", vim.log.levels.DEBUG)
@@ -482,14 +517,27 @@ local function get_target_class_from_method(method_node, bufnr)
         if line:match("%s+" .. method_name .. "%s*%(") then
             vim.notify("[MapStruct Context] Found method line: " .. line, vim.log.levels.DEBUG)
 
-            -- Extract return type: everything between last space before method name and the method name
-            -- Pattern: captures the fully qualified return type before the method name
-            local return_type = line:match("([%w%.%$<>,]+)%s+" .. method_name .. "%s*%(")
+            -- Extract return type: capture the type name immediately before the method name
+            -- Split by spaces and find the type before method name
+            local parts = {}
+            for part in line:gmatch("%S+") do
+                table.insert(parts, part)
+            end
 
-            if return_type then
-                -- Remove modifiers like 'public', 'abstract', etc.
-                -- Keep only the last part which is the return type
-                return_type = return_type:match("([%w%.%$<>,]+)$") or return_type
+            -- Find method name position
+            local method_pos = nil
+            for i, part in ipairs(parts) do
+                if part:match("^" .. method_name .. "%(") or part == method_name then
+                    method_pos = i
+                    break
+                end
+            end
+
+            -- Return type is the part before the method name
+            if method_pos and method_pos > 1 then
+                local return_type = parts[method_pos - 1]
+                -- Remove any trailing semicolons or parentheses
+                return_type = return_type:gsub("[;%(].*$", "")
 
                 vim.notify("[MapStruct Context] ✓ Extracted return type: " .. return_type, vim.log.levels.INFO)
                 return return_type
@@ -533,25 +581,32 @@ function M.get_completion_context(bufnr, row, col)
     end
 
     -- Find if this string is part of source or target attribute
-    local value_node, annotation_node = find_annotation_element(string_node, "source")
+    local value_node, annotation_node, is_value_mapping = find_annotation_element(string_node, "source")
     local attribute_type = "source"
 
     if not value_node then
-        value_node, annotation_node = find_annotation_element(string_node, "target")
+        value_node, annotation_node, is_value_mapping = find_annotation_element(string_node, "target")
         attribute_type = "target"
     end
 
     if not value_node or not annotation_node then
-        vim.notify("[MapStruct Context] Not in @Mapping source/target", vim.log.levels.DEBUG)
+        vim.notify("[MapStruct Context] Not in @Mapping/@ValueMapping source/target", vim.log.levels.DEBUG)
         return nil
     end
 
-    vim.notify("[MapStruct Context] Detected attribute type: " .. attribute_type, vim.log.levels.INFO)
+    local mapping_type = is_value_mapping and "ValueMapping" or "Mapping"
+    vim.notify("[MapStruct Context] Detected annotation: @" .. mapping_type .. ", attribute: " .. attribute_type, vim.log.levels.INFO)
 
     -- Extract the path expression being typed
     local path_expr = extract_path_from_string(string_node, bufnr, col)
     if path_expr == nil then
         vim.notify("[MapStruct Context] Could not extract path", vim.log.levels.DEBUG)
+        return nil
+    end
+
+    -- For ValueMapping, only empty path is valid (enum constants, no nested paths)
+    if is_value_mapping and path_expr ~= "" then
+        vim.notify("[MapStruct Context] ValueMapping does not support nested paths", vim.log.levels.DEBUG)
         return nil
     end
 
@@ -591,6 +646,7 @@ function M.get_completion_context(bufnr, row, col)
         class_name = resolved_class,
         path_expression = path_expr,
         attribute_type = attribute_type, -- "source" or "target"
+        is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
         line = row,
         col = col,
     }

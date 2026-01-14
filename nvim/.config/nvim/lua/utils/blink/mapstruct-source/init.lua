@@ -116,6 +116,7 @@ function source:get_completions(ctx, callback)
         ipc_client.request("explore_path", {
             className = completion_ctx.class_name,
             pathExpression = completion_ctx.path_expression,
+            isEnum = completion_ctx.is_enum or false,
         }, function(result, err)
             if err then
                 vim.notify("[MapStruct] Request failed: " .. err, vim.log.levels.WARN)

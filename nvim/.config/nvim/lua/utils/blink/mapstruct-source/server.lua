@@ -96,56 +96,58 @@ local function get_jdtls_classpath()
 
             vim.notify("[MapStruct Server] Querying jdtls for classpath...", vim.log.levels.DEBUG)
 
-            -- Try to get classpath from jdtls
-            local result, err = client.request_sync(
+            -- Try to get both runtime and test classpaths
+            local all_classpaths = {}
+
+            -- Query with 'test' scope to get test dependencies
+            local result_test, err = client.request_sync(
                 "workspace/executeCommand",
                 {
                     command = "java.project.getClasspaths",
-                    arguments = { uri, { scope = "runtime" } }
+                    arguments = { uri, { scope = "test" } }
                 },
                 10000,
                 bufnr
             )
+
+            if result_test and result_test.result then
+                local classpaths = result_test.result.classpaths or result_test.result
+                if type(classpaths) == "table" and #classpaths > 0 then
+                    vim.notify("[MapStruct Server] Got " .. #classpaths .. " test classpath entries from jdtls", vim.log.levels.INFO)
+                    for _, cp in ipairs(classpaths) do
+                        table.insert(all_classpaths, cp)
+                    end
+                end
+            else
+                -- Try runtime scope as fallback
+                local result_runtime, err = client.request_sync(
+                    "workspace/executeCommand",
+                    {
+                        command = "java.project.getClasspaths",
+                        arguments = { uri, { scope = "runtime" } }
+                    },
+                    10000,
+                    bufnr
+                )
+
+                if result_runtime and result_runtime.result then
+                    local classpaths = result_runtime.result.classpaths or result_runtime.result
+                    if type(classpaths) == "table" and #classpaths > 0 then
+                        vim.notify("[MapStruct Server] Got " .. #classpaths .. " runtime classpath entries from jdtls", vim.log.levels.INFO)
+                        for _, cp in ipairs(classpaths) do
+                            table.insert(all_classpaths, cp)
+                        end
+                    end
+                end
+            end
+
+            if #all_classpaths > 0 then
+                vim.notify("[MapStruct Server] Total jdtls classpath entries: " .. #all_classpaths, vim.log.levels.INFO)
+                return table.concat(all_classpaths, ":")
+            end
 
             if err then
                 vim.notify("[MapStruct Server] jdtls request error: " .. vim.inspect(err), vim.log.levels.DEBUG)
-            end
-
-            if result and result.result then
-                local classpaths = result.result.classpaths or result.result
-                if type(classpaths) == "table" and #classpaths > 0 then
-                    vim.notify("[MapStruct Server] Got " .. #classpaths .. " classpath entries from jdtls", vim.log.levels.INFO)
-                    return table.concat(classpaths, ":")
-                end
-            end
-
-            -- Fallback: try getting all projects
-            result, err = client.request_sync(
-                "workspace/executeCommand",
-                {
-                    command = "java.project.getAll",
-                    arguments = {}
-                },
-                10000,
-                bufnr
-            )
-
-            if result and result.result then
-                local projects = result.result
-                if type(projects) == "table" then
-                    local all_classpaths = {}
-                    for _, project in ipairs(projects) do
-                        if project.classpaths then
-                            for _, cp in ipairs(project.classpaths) do
-                                table.insert(all_classpaths, cp)
-                            end
-                        end
-                    end
-                    if #all_classpaths > 0 then
-                        vim.notify("[MapStruct Server] Got " .. #all_classpaths .. " classpath entries from jdtls.getAll", vim.log.levels.INFO)
-                        return table.concat(all_classpaths, ":")
-                    end
-                end
             end
         else
             vim.notify("[MapStruct Server] No jdtls client found", vim.log.levels.DEBUG)
