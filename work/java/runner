@@ -37,8 +37,8 @@ build_system_path=$("$HOME/dotfiles/work/java/detect_build_system_path")
 case "$build_system_path" in
     *pom.xml*)
         build_system_dir="${build_system_path%/*}"
-        echo "build_system: maven"
-        echo "build_system_dir: $build_system_dir"
+        # echo "build_system: maven"
+        # echo "build_system_dir: $build_system_dir"
         app_classpath=$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$build_system_dir" "$run_scope")
         env_file="$build_system_dir/.dev.env"
         ;;
