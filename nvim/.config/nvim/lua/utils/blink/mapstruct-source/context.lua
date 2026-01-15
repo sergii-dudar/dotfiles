@@ -221,9 +221,11 @@ local function find_project_root(bufnr)
 
     -- Look for pom.xml or build.gradle
     while dir ~= "/" and dir ~= "." do
-        if vim.fn.filereadable(dir .. "/pom.xml") == 1 or
-           vim.fn.filereadable(dir .. "/build.gradle") == 1 or
-           vim.fn.filereadable(dir .. "/build.gradle.kts") == 1 then
+        if
+            vim.fn.filereadable(dir .. "/pom.xml") == 1
+            or vim.fn.filereadable(dir .. "/build.gradle") == 1
+            or vim.fn.filereadable(dir .. "/build.gradle.kts") == 1
+        then
             return dir
         end
         dir = vim.fn.fnamemodify(dir, ":h")
@@ -289,40 +291,36 @@ local function get_jdtls_classpath(bufnr)
         local all_classpaths = {}
 
         -- Query with 'test' scope to get test dependencies
-        local result_test, err = client.request_sync(
-            "workspace/executeCommand",
-            {
-                command = "java.project.getClasspaths",
-                arguments = { uri, { scope = "test" } }
-            },
-            5000,
-            bufnr
-        )
+        local result_test, err = client:request_sync("workspace/executeCommand", {
+            command = "java.project.getClasspaths",
+            arguments = { uri, vim.json.encode({ scope = "test" }) },
+        }, 5000, bufnr)
 
         if result_test and result_test.result then
             local classpaths = result_test.result.classpaths or result_test.result
             if type(classpaths) == "table" and #classpaths > 0 then
-                vim.notify("[MapStruct Context] Got " .. #classpaths .. " test classpath entries from jdtls", vim.log.levels.INFO)
+                vim.notify(
+                    "[MapStruct Context] Got " .. #classpaths .. " test classpath entries from jdtls",
+                    vim.log.levels.INFO
+                )
                 for _, cp in ipairs(classpaths) do
                     table.insert(all_classpaths, cp)
                 end
             end
         else
             -- Try runtime scope as fallback
-            local result_runtime, err = client.request_sync(
-                "workspace/executeCommand",
-                {
-                    command = "java.project.getClasspaths",
-                    arguments = { uri, { scope = "runtime" } }
-                },
-                5000,
-                bufnr
-            )
+            local result_runtime, err = client:request_sync("workspace/executeCommand", {
+                command = "java.project.getClasspaths",
+                arguments = { uri, vim.json.encode({ scope = "runtime" }) },
+            }, 5000, bufnr)
 
             if result_runtime and result_runtime.result then
                 local classpaths = result_runtime.result.classpaths or result_runtime.result
                 if type(classpaths) == "table" and #classpaths > 0 then
-                    vim.notify("[MapStruct Context] Got " .. #classpaths .. " runtime classpath entries from jdtls", vim.log.levels.INFO)
+                    vim.notify(
+                        "[MapStruct Context] Got " .. #classpaths .. " runtime classpath entries from jdtls",
+                        vim.log.levels.INFO
+                    )
                     for _, cp in ipairs(classpaths) do
                         table.insert(all_classpaths, cp)
                     end
@@ -595,7 +593,10 @@ function M.get_completion_context(bufnr, row, col)
     end
 
     local mapping_type = is_value_mapping and "ValueMapping" or "Mapping"
-    vim.notify("[MapStruct Context] Detected annotation: @" .. mapping_type .. ", attribute: " .. attribute_type, vim.log.levels.INFO)
+    vim.notify(
+        "[MapStruct Context] Detected annotation: @" .. mapping_type .. ", attribute: " .. attribute_type,
+        vim.log.levels.INFO
+    )
 
     -- Extract the path expression being typed
     local path_expr = extract_path_from_string(string_node, bufnr, col)

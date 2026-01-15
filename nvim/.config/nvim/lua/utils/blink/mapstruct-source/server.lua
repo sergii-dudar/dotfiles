@@ -15,7 +15,9 @@ local state = {
 
 -- Generate unique socket path for this Neovim instance
 local function generate_socket_path()
-    local tmpdir = vim.fn.getenv("TMPDIR") or "/tmp"
+    -- local tmpdir = vim.fn.getenv("TMPDIR") or "/tmp"
+    local tmpdir = "/tmp"
+    print(tmpdir)
     local nvim_pid = vim.fn.getpid()
     return string.format("%s/mapstruct-ipc-%d.sock", tmpdir, nvim_pid)
 end
@@ -27,9 +29,11 @@ local function find_project_root(bufnr)
 
     -- Look for pom.xml or build.gradle
     while dir ~= "/" and dir ~= "." do
-        if vim.fn.filereadable(dir .. "/pom.xml") == 1 or
-           vim.fn.filereadable(dir .. "/build.gradle") == 1 or
-           vim.fn.filereadable(dir .. "/build.gradle.kts") == 1 then
+        if
+            vim.fn.filereadable(dir .. "/pom.xml") == 1
+            or vim.fn.filereadable(dir .. "/build.gradle") == 1
+            or vim.fn.filereadable(dir .. "/build.gradle.kts") == 1
+        then
             return dir
         end
         dir = vim.fn.fnamemodify(dir, ":h")
@@ -86,7 +90,7 @@ local function get_jdtls_classpath()
     local bufnr = vim.api.nvim_get_current_buf()
 
     -- Try jdtls first
-    local ok, jdtls = pcall(require, 'jdtls')
+    local ok, jdtls = pcall(require, "jdtls")
     if ok then
         -- Find jdtls client
         local clients = vim.lsp.get_clients({ name = "jdtls" })
@@ -100,40 +104,36 @@ local function get_jdtls_classpath()
             local all_classpaths = {}
 
             -- Query with 'test' scope to get test dependencies
-            local result_test, err = client.request_sync(
-                "workspace/executeCommand",
-                {
-                    command = "java.project.getClasspaths",
-                    arguments = { uri, { scope = "test" } }
-                },
-                10000,
-                bufnr
-            )
+            local result_test, err = client:request_sync("workspace/executeCommand", {
+                command = "java.project.getClasspaths",
+                arguments = { uri, vim.json.encode({ scope = "test" }) },
+            }, 10000, bufnr)
 
             if result_test and result_test.result then
                 local classpaths = result_test.result.classpaths or result_test.result
                 if type(classpaths) == "table" and #classpaths > 0 then
-                    vim.notify("[MapStruct Server] Got " .. #classpaths .. " test classpath entries from jdtls", vim.log.levels.INFO)
+                    vim.notify(
+                        "[MapStruct Server] Got " .. #classpaths .. " test classpath entries from jdtls",
+                        vim.log.levels.INFO
+                    )
                     for _, cp in ipairs(classpaths) do
                         table.insert(all_classpaths, cp)
                     end
                 end
             else
                 -- Try runtime scope as fallback
-                local result_runtime, err = client.request_sync(
-                    "workspace/executeCommand",
-                    {
-                        command = "java.project.getClasspaths",
-                        arguments = { uri, { scope = "runtime" } }
-                    },
-                    10000,
-                    bufnr
-                )
+                local result_runtime, err = client:request_sync("workspace/executeCommand", {
+                    command = "java.project.getClasspaths",
+                    arguments = { uri, vim.json.encode({ scope = "runtime" }) },
+                }, 10000, bufnr)
 
                 if result_runtime and result_runtime.result then
                     local classpaths = result_runtime.result.classpaths or result_runtime.result
                     if type(classpaths) == "table" and #classpaths > 0 then
-                        vim.notify("[MapStruct Server] Got " .. #classpaths .. " runtime classpath entries from jdtls", vim.log.levels.INFO)
+                        vim.notify(
+                            "[MapStruct Server] Got " .. #classpaths .. " runtime classpath entries from jdtls",
+                            vim.log.levels.INFO
+                        )
                         for _, cp in ipairs(classpaths) do
                             table.insert(all_classpaths, cp)
                         end
@@ -202,7 +202,7 @@ function M.start(jar_path, opts, callback)
         "-cp",
         classpath,
         "com.dsm.mapstruct.IpcServer",
-        state.socket_path
+        state.socket_path,
     }
 
     vim.notify("[MapStruct] Starting server on " .. state.socket_path, vim.log.levels.INFO)

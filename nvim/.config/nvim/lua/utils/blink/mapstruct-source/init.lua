@@ -178,7 +178,7 @@ function source:get_completions(ctx, callback)
                     documentation = {
                         kind = "markdown",
                         value = string.format(
-                            "**%s** %s\n\n**Type:** `%s`\n\n**Kind:** %s\n\n**Source Class:** `%s`\n\n**Package:** `%s`\n\n**Path:** `%s%s`",
+                            "**%s** %s\n**Type:** `%s`\n**Kind:** %s\n**Source Class:** `%s`\n**Package:** `%s`\n**Path:** `%s%s`",
                             field_info.kind == "GETTER" and "Getter Method" or "Field",
                             field_info.name,
                             full_type,

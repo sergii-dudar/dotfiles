@@ -116,7 +116,8 @@ return {
                             source_name = {
                                 text = function(ctx)
                                     if ctx.source_name == "mapstruct" then
-                                        return "[MS]" -- Short display for MapStruct
+                                        -- return "[MS]" -- Short display for MapStruct
+                                        return "MapStruct"
                                     end
                                     return ctx.source_name
                                 end,
@@ -187,7 +188,8 @@ return {
                         module = "utils.blink.mapstruct-source",
                         opts = {
                             -- Required: path to mapstruct-path-explorer.jar
-                            jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            jar_path = "~/serhii.home/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
                             -- Optional: use jdtls classpath (default: true)

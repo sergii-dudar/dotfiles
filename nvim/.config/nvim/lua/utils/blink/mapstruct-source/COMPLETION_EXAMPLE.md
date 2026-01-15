@@ -19,10 +19,10 @@ The completion menu will show:
 
 ```
 ┌─────────────────────────────────────────────┐
-│  street      String      Field      [MS]  │
-│  city        String      Field      [MS]  │
-│  zipCode     Integer     Field      [MS]  │
-│ 󰊕 getCountry  String      Method     [MS]  │
+│  street       String      Field      [MS]   │
+│  city         String      Field      [MS]   │
+│  zipCode      Integer     Field      [MS]   │
+│ 󰊕 getCountry  String      Method     [MS]   │
 └─────────────────────────────────────────────┘
 ```
 
@@ -41,12 +41,12 @@ Completion menu:
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ 󰜢 street       String       Field       [MS]    │
-│ 󰜢 city         String       Field       [MS]    │
-│ 󰜢 state        String       Field       [MS]    │
-│ 󰜢 zipCode      String       Field       [MS]    │
-│ 󰜢 country      Country      Field       [MS]    │
-│ 󰊕 getFullAddr  String       Method      [MS]    │
+│ 󰜢 street       String       Field       [MS]     │
+│ 󰜢 city         String       Field       [MS]     │
+│ 󰜢 state        String       Field       [MS]     │
+│ 󰜢 zipCode      String       Field       [MS]     │
+│ 󰜢 country      Country      Field       [MS]     │
+│ 󰊕 getFullAddr  String       Method      [MS]     │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -65,12 +65,12 @@ Completion menu showing nested type information:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│ 󰜢 id           Long            Field       [MS]     │
-│ 󰜢 name         String          Field       [MS]     │
-│ 󰜢 description  String          Field       [MS]     │
-│ 󰜢 parent       Category        Field       [MS]     │
-│ 󰜢 children     List<Category>  Field       [MS]     │
-│ 󰊕 getLevel     Integer         Method      [MS]     │
+│ 󰜢 id           Long            Field       [MS]      │
+│ 󰜢 name         String          Field       [MS]      │
+│ 󰜢 description  String          Field       [MS]      │
+│ 󰜢 parent       Category        Field       [MS]      │
+│ 󰜢 children     List<Category>  Field       [MS]      │
+│ 󰊕 getLevel     Integer         Method      [MS]      │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -81,26 +81,21 @@ When you hover over a completion item (or press `<C-space>` in the menu), you'll
 ```
 ┌─────────────────────────────────────────────────┐
 │ Field street                                    │
-│                                                 │
-│ Type: java.lang.String                         │
-│                                                 │
+│ Type: java.lang.String                          │
 │ Kind: FIELD                                     │
-│                                                 │
-│ Source Class: Address                          │
-│                                                 │
-│ Package: com.example.model                     │
-│                                                 │
-│ Path: user.address.street                      │
+│ Source Class: Address                           │
+│ Package: com.example.model                      │
+│ Path: user.address.street                       │
 └─────────────────────────────────────────────────┘
 ```
 
 ## Icon Legend
 
-| Icon | Type         | Description                                    |
-|------|--------------|------------------------------------------------|
-| 󰜢    | Field        | Direct field access                            |
-| 󰊕    | Method       | Getter method (e.g., `getStreet()`)           |
-|     | Property     | Generic property (fallback)                    |
+| Icon | Type     | Description                         |
+| ---- | -------- | ----------------------------------- |
+| 󰜢    | Field    | Direct field access                 |
+| 󰊕    | Method   | Getter method (e.g., `getStreet()`) |
+|      | Property | Generic property (fallback)         |
 
 ## Column Breakdown
 
@@ -115,12 +110,12 @@ The completion menu is organized into columns:
 
 Types are intelligently simplified for readability:
 
-| Full Type                      | Displayed As |
-|--------------------------------|--------------|
-| `java.lang.String`            | `String`     |
-| `java.lang.Integer`           | `Integer`    |
-| `com.example.model.Address`   | `Address`*   |
-| `java.util.List<String>`      | `List<String>`* |
+| Full Type                   | Displayed As     |
+| --------------------------- | ---------------- |
+| `java.lang.String`          | `String`         |
+| `java.lang.Integer`         | `Integer`        |
+| `com.example.model.Address` | `Address`\*      |
+| `java.util.List<String>`    | `List<String>`\* |
 
 \* Non-java.lang types show the full package in hover documentation
 
@@ -129,13 +124,13 @@ Types are intelligently simplified for readability:
 The system distinguishes between:
 
 - **Fields**: Direct field access (e.g., `public String street;`)
-  - Shows as "Field" in the Kind column
-  - Uses field icon (󰜢)
+    - Shows as "Field" in the Kind column
+    - Uses field icon (󰜢)
 
 - **Getter Methods**: Accessed via getter (e.g., `public String getStreet()`)
-  - Shows as "Method" in the Kind column
-  - Uses method icon (󰊕)
-  - MapStruct automatically handles the getter-to-field mapping
+    - Shows as "Method" in the Kind column
+    - Uses method icon (󰊕)
+    - MapStruct automatically handles the getter-to-field mapping
 
 Both will work correctly in your `@Mapping` annotations!
 
@@ -172,6 +167,7 @@ public interface UserMapper {
 ```
 
 Each of these completion points will show:
+
 - All available fields and methods
 - Their types (String, Profile, Address, etc.)
 - Whether they're fields or getters
@@ -179,7 +175,7 @@ Each of these completion points will show:
 
 ## Performance
 
-- **Fast**: Completions appear instantly via IPC communication
+- **Fast**: Completions appear instantly via IPC communication and server implementation extremely lightweight and fast
 - **Cached**: Results are cached per class/path for optimal performance
 - **Reliable**: Heartbeat monitoring ensures clean server lifecycle
 - **Automatic**: Server starts on first completion request

@@ -4,7 +4,7 @@ A custom completion source for [blink.cmp](https://github.com/saghen/blink.cmp) 
 
 ## Features
 
-- **Intelligent Path Completion**: Auto-completes field paths in `@Mapping(source = "...")` and `@Mapping(target = "...")`
+- **Intelligent Path Completion**: Auto-completes field paths in `@Mapping(source = "...")` and `@Mapping(target = "...")` and `@ValueMapping`
 - **Rich Type Information**: Shows field types, kind (field/getter), class name, and package in completion menu
 - **Visual Distinction**: Different icons for fields vs getter methods
 - **Treesitter-based Context Detection**: Uses Neovim's Treesitter to accurately parse Java code and detect MapStruct annotations
@@ -67,7 +67,7 @@ Hover over any completion item to see detailed documentation including:
 
 ```bash
 cd /path/to/mapstruct-path-explorer
-mvn clean package
+mvn clean package -U
 # Creates: target/mapstruct-path-explorer.jar
 ```
 
@@ -219,14 +219,8 @@ Enable debug logging in `server.lua` by changing `vim.log.levels.DEBUG` to `vim.
 
 ## Requirements
 
-- Neovim 0.9+
+- Neovim 0.11+
 - Java 17+ (for Unix domain socket support)
 - `mfussenegger/nvim-jdtls` (for automatic classpath resolution)
 - `saghen/blink.cmp`
 - Maven or Gradle project with MapStruct
-
-## Future Enhancements
-
-- [ ] Cache completions for better performance
-- [ ] Support for `@Mappings` and other MapStruct annotations
-- [ ] Support for expression completion
