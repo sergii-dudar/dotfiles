@@ -248,7 +248,7 @@ end
 -- Strategy:
 --   1. Parameter types: from javap (fully qualified class names)
 --   2. Parameter names: from Treesitter (source code) - javap doesn't reliably return them
---   3. @MappingTarget: from javap -v (RuntimeVisibleParameterAnnotations)
+--   3. @MappingTarget: from javap -v (RuntimeVisibleParameterAnnotations or RuntimeInvisibleParameterAnnotations)
 -- Returns: array of {name=string, type=string, is_mapping_target=boolean}
 local function get_all_method_parameters(bufnr, method_name, method_node)
     -- Get mapper class info
@@ -374,7 +374,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
                     local method_indent_len = #method_indent
                     log.info("Method indentation level: " .. method_indent_len .. " spaces")
 
-                    -- Look ahead in the lines for RuntimeVisibleParameterAnnotations
+                    -- Look ahead in the lines for RuntimeParameterAnnotations (Visible or Invisible)
                     for i = line_idx + 1, math.min(line_idx + 300, #lines) do
                         local next_line = lines[i]
 
@@ -399,9 +399,9 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
                             end
                         end
 
-                        if next_line:match("RuntimeVisibleParameterAnnotations:") then
+                        if next_line:match("Runtime.*ParameterAnnotations:") then
                             in_annotations = true
-                            log.info("Found RuntimeVisibleParameterAnnotations for this method")
+                            log.info("Found RuntimeParameterAnnotations for this method")
                         elseif in_annotations then
                             local param_idx = next_line:match("^%s+parameter%s+(%d+):")
                             if param_idx then
@@ -416,7 +416,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
                     end
 
                     if not in_annotations then
-                        log.warn("No RuntimeVisibleParameterAnnotations found for this method (might not have parameter annotations)")
+                        log.warn("No RuntimeParameterAnnotations found for this method (might not have parameter annotations)")
                     end
 
                     break
