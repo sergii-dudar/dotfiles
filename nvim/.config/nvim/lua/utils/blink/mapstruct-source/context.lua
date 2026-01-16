@@ -218,7 +218,283 @@ local function get_mapper_class_info(bufnr)
 end
 
 
+-- Extract parameter names from source code using Treesitter
+-- Returns: array of parameter names in order
+local function get_parameter_names_from_source(method_node, bufnr)
+    if not method_node then
+        return {}
+    end
+
+    local params = method_node:field("parameters")[1]
+    if not params then
+        return {}
+    end
+
+    local param_names = {}
+    for child in params:iter_children() do
+        if child:type() == "formal_parameter" then
+            local name_node = child:field("name")[1]
+            if name_node then
+                local param_name = get_node_text(name_node, bufnr)
+                table.insert(param_names, param_name)
+            end
+        end
+    end
+
+    return param_names
+end
+
+-- Get all method parameters with types and detect @MappingTarget annotations
+-- Strategy:
+--   1. Parameter types: from javap (fully qualified class names)
+--   2. Parameter names: from Treesitter (source code) - javap doesn't reliably return them
+--   3. @MappingTarget: from javap -v (RuntimeVisibleParameterAnnotations)
+-- Returns: array of {name=string, type=string, is_mapping_target=boolean}
+local function get_all_method_parameters(bufnr, method_name, method_node)
+    -- Get mapper class info
+    local package_name, class_name = get_mapper_class_info(bufnr)
+    if not package_name or not class_name then
+        log.debug("Could not determine mapper class")
+        return nil
+    end
+
+    local fqcn = package_name .. "." .. class_name
+    log.debug("Mapper FQCN:", fqcn)
+
+    -- Get classpath from jdtls
+    local classpath = classpath_util.get_classpath({ bufnr = bufnr })
+    if not classpath then
+        log.error("Could not get classpath")
+        vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
+        return nil
+    end
+
+    -- Run javap with verbose flag to get parameter types and annotations
+    local cmd = string.format("javap -v -cp '%s' '%s'", classpath, fqcn)
+    log.debug("Running: javap -v -cp <classpath>", fqcn)
+
+    local handle = io.popen(cmd)
+    if not handle then
+        log.error("Failed to run javap")
+        vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
+        return nil
+    end
+
+    local output = handle:read("*a")
+    handle:close()
+
+    if not output or output == "" then
+        log.warn("javap returned empty output")
+        vim.notify("[MapStruct Context] javap returned empty output", vim.log.levels.WARN)
+        return nil
+    end
+
+    log.debug("javap verbose output received")
+
+    -- First, get expected parameter count from source code to match correct overload
+    local source_names = get_parameter_names_from_source(method_node, bufnr)
+    local expected_param_count = #source_names
+    log.info("Expected parameter count from source: " .. expected_param_count)
+
+    -- Parse javap output to find method signature and parameter annotations
+    -- Step 1: Find method signature line and extract parameter types
+    local method_found = false
+    local param_types = {}
+    local param_names = {}
+    local param_annotations = {} -- param_index -> {has_mapping_target=bool}
+
+    -- Convert output to array of lines for indexed access
+    local lines = {}
+    for line in output:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+
+    for line_idx, line in ipairs(lines) do
+        if line:match("%s+" .. method_name .. "%s*%(") then
+            log.info("Found method signature candidate:", line)
+
+            -- Extract parameters from signature: methodName(Type1,Type2,Type3);
+            -- Pattern captures content within parentheses
+            local params_str = line:match(method_name .. "%s*%(([^%)]*)")
+            log.info("Extracted params string:", params_str or "nil")
+
+            if params_str and params_str ~= "" then
+                -- Split by comma to get individual parameter types
+                -- Handle generic types with commas inside <>
+                local candidate_param_types = {}
+                local depth = 0
+                local current_param = ""
+
+                for i = 1, #params_str do
+                    local char = params_str:sub(i, i)
+                    if char == "<" then
+                        depth = depth + 1
+                        current_param = current_param .. char
+                    elseif char == ">" then
+                        depth = depth - 1
+                        current_param = current_param .. char
+                    elseif char == "," and depth == 0 then
+                        -- End of parameter
+                        local param_type = current_param:match("^%s*(.-)%s*$") -- trim
+                        -- Remove parameter name if present (space-separated)
+                        local type_only = param_type:match("^([%w%.%$<>,]+)")
+                        if type_only then
+                            table.insert(candidate_param_types, type_only)
+                        end
+                        current_param = ""
+                    else
+                        current_param = current_param .. char
+                    end
+                end
+
+                -- Don't forget the last parameter
+                if current_param ~= "" then
+                    local param_type = current_param:match("^%s*(.-)%s*$")
+                    local type_only = param_type:match("^([%w%.%$<>,]+)")
+                    if type_only then
+                        table.insert(candidate_param_types, type_only)
+                    end
+                end
+
+                -- Check if parameter count matches expected count
+                log.info("Candidate has " .. #candidate_param_types .. " parameters")
+                if #candidate_param_types == expected_param_count then
+                    -- This is the right method!
+                    param_types = candidate_param_types
+                    method_found = true
+                    log.info("Parameter count matches! Using this method.")
+
+                    -- Now parse annotations for THIS method (continue from current line)
+                    log.info("Searching for @MappingTarget annotations for this method...")
+                    local in_annotations = false
+                    local current_param_index = nil
+
+                    -- Get the indentation level of the original method signature
+                    local method_indent = line:match("^(%s*)")
+                    local method_indent_len = #method_indent
+                    log.info("Method indentation level: " .. method_indent_len .. " spaces")
+
+                    -- Look ahead in the lines for RuntimeVisibleParameterAnnotations
+                    for i = line_idx + 1, math.min(line_idx + 300, #lines) do
+                        local next_line = lines[i]
+
+                        -- Get indentation of current line
+                        local line_indent = next_line:match("^(%s*)")
+                        local line_indent_len = #line_indent
+
+                        -- Stop if we hit another method signature at the SAME indentation level
+                        -- More specific pattern: look for method signature starting with access modifier and ending with (
+                        -- Format: "  public/private/protected [static] [abstract] [final] Type methodName("
+                        if line_indent_len == method_indent_len then
+                            -- Check if this is a method signature (must have return type and methodName)
+                            -- Pattern: starts at line beginning (after indent), has modifier, then type, then name with (
+                            local trimmed = next_line:match("^%s*(.*)$")
+                            if trimmed and (
+                                trimmed:match("^public%s+.*%s+%w+%s*%(") or
+                                trimmed:match("^private%s+.*%s+%w+%s*%(") or
+                                trimmed:match("^protected%s+.*%s+%w+%s*%(")
+                            ) then
+                                log.info("Reached next method signature at same indentation, stopping annotation search")
+                                break
+                            end
+                        end
+
+                        if next_line:match("RuntimeVisibleParameterAnnotations:") then
+                            in_annotations = true
+                            log.info("Found RuntimeVisibleParameterAnnotations for this method")
+                        elseif in_annotations then
+                            local param_idx = next_line:match("^%s+parameter%s+(%d+):")
+                            if param_idx then
+                                current_param_index = tonumber(param_idx)
+                                param_annotations[current_param_index] = { has_mapping_target = false }
+                                log.info("Found parameter " .. param_idx .. " in annotations")
+                            elseif current_param_index and next_line:match("MappingTarget") then
+                                param_annotations[current_param_index].has_mapping_target = true
+                                log.info(">>> Found @MappingTarget on parameter " .. current_param_index)
+                            end
+                        end
+                    end
+
+                    if not in_annotations then
+                        log.warn("No RuntimeVisibleParameterAnnotations found for this method (might not have parameter annotations)")
+                    end
+
+                    break
+                else
+                    log.info("Parameter count mismatch, continuing search...")
+                end
+            elseif params_str == "" and expected_param_count == 0 then
+                -- No parameters expected and none found
+                method_found = true
+                break
+            end
+        end
+    end
+
+    log.info("Parsed " .. #param_types .. " parameter types from javap")
+    for i, ptype in ipairs(param_types) do
+        log.info(string.format("  Type %d: %s", i, ptype))
+    end
+
+    if not method_found or #param_types == 0 then
+        log.warn("Could not find matching method overload")
+        return {}
+    end
+
+    -- Step 2: Use parameter names from source code (already extracted)
+    -- We should have matching counts since we matched the method by count
+    log.info("Using " .. #source_names .. " parameter names from source")
+    for i, pname in ipairs(source_names) do
+        log.info(string.format("  Name %d: %s", i, pname))
+    end
+
+    if #source_names == #param_types then
+        param_names = source_names
+        log.info("Parameter names matched!")
+    else
+        -- This shouldn't happen since we matched by count, but just in case...
+        log.error(
+            string.format(
+                "UNEXPECTED: Parameter count mismatch after matching: types=%d, names=%d",
+                #param_types,
+                #source_names
+            )
+        )
+        for i = 1, #param_types do
+            table.insert(param_names, "param" .. (i - 1))
+        end
+    end
+
+    -- Step 3: Build result array (annotations already parsed in step 1)
+    local parameters = {}
+    log.info("Building final parameter list...")
+    for i = 1, #param_types do
+        local param_index = i - 1 -- Java uses 0-based indexing
+        local is_mapping_target = param_annotations[param_index] and param_annotations[param_index].has_mapping_target or false
+
+        table.insert(parameters, {
+            name = param_names[i],
+            type = param_types[i],
+            is_mapping_target = is_mapping_target,
+        })
+
+        log.info(
+            string.format(
+                "Parameter %d: name=%s, type=%s, @MappingTarget=%s",
+                i,
+                param_names[i],
+                param_types[i],
+                tostring(is_mapping_target)
+            )
+        )
+    end
+
+    log.info("Total parameters extracted: " .. #parameters)
+    return parameters
+end
+
 -- Use javap to get method signature with fully qualified class names
+-- DEPRECATED: Use get_all_method_parameters() instead
 local function resolve_class_from_javap(bufnr, method_name, param_name)
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
@@ -498,38 +774,85 @@ function M.get_completion_context(bufnr, row, col)
         return nil
     end
 
-    -- Get the appropriate class based on attribute type
-    local resolved_class = nil
+    -- Get method name for parameter extraction
+    local method_name_node = method_node:field("name")[1]
+    if not method_name_node then
+        log.debug("Could not get method name")
+        return nil
+    end
+    local method_name = get_node_text(method_name_node, bufnr)
+
     if attribute_type == "source" then
-        -- For source attribute, extract parameter type
-        resolved_class = get_source_class_from_method(method_node, bufnr)
-        if not resolved_class then
-            log.debug("Could not resolve source class")
+        -- For source attribute, get ALL method parameters (excluding @MappingTarget)
+        local all_params = get_all_method_parameters(bufnr, method_name, method_node)
+        if not all_params or #all_params == 0 then
+            log.debug("Could not extract method parameters")
             return nil
         end
+
+        -- Filter out @MappingTarget parameters (they are targets, not sources)
+        local sources = {}
+        for _, param in ipairs(all_params) do
+            log.debug(
+                string.format(
+                    "Checking parameter: name=%s, type=%s, is_mapping_target=%s",
+                    param.name,
+                    param.type,
+                    tostring(param.is_mapping_target)
+                )
+            )
+            if not param.is_mapping_target then
+                table.insert(sources, {
+                    name = param.name,
+                    type = param.type,
+                })
+                log.info("Added source parameter:", param.name, param.type)
+            else
+                log.info("Skipped @MappingTarget parameter:", param.name)
+            end
+        end
+
+        if #sources == 0 then
+            log.warn("No source parameters found (all are @MappingTarget?)")
+            return nil
+        end
+
+        log.info(string.format("Built sources array with %d parameter(s)", #sources))
+
+        return {
+            sources = sources, -- Array of {name, type}
+            path_expression = path_expr,
+            attribute_type = attribute_type, -- "source"
+            is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
+            line = row,
+            col = col,
+        }
+
     elseif attribute_type == "target" then
-        -- For target attribute, extract return type
-        resolved_class = get_target_class_from_method(method_node, bufnr)
-        if not resolved_class then
+        -- For target attribute, navigate directly into return type fields
+        -- NO parameter names - just return the class to navigate
+        local return_type = get_target_class_from_method(method_node, bufnr)
+        if not return_type then
             log.debug("Could not resolve target class")
             return nil
         end
+
+        log.info("Target return type:", return_type)
+
+        return {
+            class_name = return_type, -- Direct class name for backward compatibility
+            path_expression = path_expr,
+            attribute_type = attribute_type, -- "target"
+            is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
+            line = row,
+            col = col,
+        }
+
     else
         log.error("Unknown attribute type:", attribute_type)
         vim.notify("[MapStruct Context] Unknown attribute type: " .. attribute_type, vim.log.levels.ERROR)
         return nil
     end
-
-    log.info("Resolved " .. attribute_type .. " class:", resolved_class)
-
-    return {
-        class_name = resolved_class,
-        path_expression = path_expr,
-        attribute_type = attribute_type, -- "source" or "target"
-        is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
-        line = row,
-        col = col,
-    }
 end
 
 -- Get all @Mapping annotations in the current method

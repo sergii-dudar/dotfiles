@@ -59,6 +59,13 @@ function handle_response(json_str)
         return
     end
 
+    -- Log response only
+    if response.error then
+        log.info("<<< RESPONSE ERROR: " .. response.error)
+    elseif response.result then
+        log.info("<<< RESPONSE: " .. vim.inspect(response.result))
+    end
+
     local request_id = response.id
     if request_id and state.pending_requests[request_id] then
         local callback = state.pending_requests[request_id]
@@ -218,6 +225,9 @@ function M.request(method, params, callback)
     }
 
     local json_str = vim.json.encode(request) .. "\n"
+
+    -- Log request params only
+    log.info(">>> REQUEST: " .. vim.inspect(params))
 
     -- Store callback for this request
     if callback then

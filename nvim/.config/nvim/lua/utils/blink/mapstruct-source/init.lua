@@ -113,12 +113,26 @@ function source:get_completions(ctx, callback)
             return
         end
 
+        -- Build request based on attribute type
+        local request_params
+        if completion_ctx.attribute_type == "target" then
+            -- Target: use old protocol with class_name (navigate directly into return type)
+            request_params = {
+                sources = { { name = "target", type = completion_ctx.class_name } },
+                pathExpression = completion_ctx.path_expression,
+                isEnum = completion_ctx.is_enum or false,
+            }
+        else
+            -- Source: use new protocol with sources array
+            request_params = {
+                sources = completion_ctx.sources, -- Array of {name, type}
+                pathExpression = completion_ctx.path_expression,
+                isEnum = completion_ctx.is_enum or false,
+            }
+        end
+
         -- Request path exploration from server
-        ipc_client.request("explore_path", {
-            className = completion_ctx.class_name,
-            pathExpression = completion_ctx.path_expression,
-            isEnum = completion_ctx.is_enum or false,
-        }, function(result, err)
+        ipc_client.request("explore_path", request_params, function(result, err)
             if err then
                 log.warn("Request failed:", err)
                 callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
@@ -158,10 +172,23 @@ function source:get_completions(ctx, callback)
             local completions = result.completions or {}
 
             for _, field_info in ipairs(completions) do
-                -- Always use Field kind for MapStruct completions
-                -- MapStruct uses property-style notation (e.g., "person.firstName")
-                -- even when accessing via getters, so we never want parentheses
-                local kind = require("blink.cmp.types").CompletionItemKind.Field
+                -- Use appropriate kind based on field kind
+                local kind
+                local kind_label
+
+                if field_info.kind == "PARAMETER" then
+                    -- Method parameter - show as Variable
+                    kind = require("blink.cmp.types").CompletionItemKind.Variable
+                    kind_label = "Parameter"
+                elseif field_info.kind == "GETTER" then
+                    -- Getter method - show as Field (MapStruct uses property notation)
+                    kind = require("blink.cmp.types").CompletionItemKind.Field
+                    kind_label = "Getter Method"
+                else
+                    -- FIELD or unknown - show as Field
+                    kind = require("blink.cmp.types").CompletionItemKind.Field
+                    kind_label = "Field"
+                end
 
                 local simple_type = simplify_type(field_info.type)
                 local full_type = format_type_with_package(field_info.type)
@@ -179,13 +206,13 @@ function source:get_completions(ctx, callback)
                     documentation = {
                         kind = "markdown",
                         value = string.format(
-                            "**%s** %s\n**Type:** `%s`\n**Kind:** %s\n**Source Class:** `%s`\n**Package:** `%s`\n**Path:** `%s%s`",
-                            field_info.kind == "GETTER" and "Getter Method" or "Field",
+                            "**%s** %s\n**Type:** `%s`\n**Kind:** %s%s%s\n**Path:** `%s%s`",
+                            kind_label,
                             field_info.name,
                             full_type,
                             field_info.kind,
-                            result.simpleName or completion_ctx.class_name,
-                            result.packageName or "",
+                            result.simpleName and ("\n**Source Class:** `" .. result.simpleName .. "`") or "",
+                            result.packageName and ("\n**Package:** `" .. result.packageName .. "`") or "",
                             completion_ctx.path_expression,
                             field_info.name
                         ),

@@ -185,9 +185,9 @@ return {
 
                         opts = {
                             -- Required: path to mapstruct-path-explorer.jar
-                            -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
                             -- jar_path = "~/serhii.home/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-                            jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+                            -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
