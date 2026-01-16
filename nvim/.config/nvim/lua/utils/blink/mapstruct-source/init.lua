@@ -116,9 +116,10 @@ function source:get_completions(ctx, callback)
         -- Build request based on attribute type
         local request_params
         if completion_ctx.attribute_type == "target" then
-            -- Target: use old protocol with class_name (navigate directly into return type)
+            -- Target: navigate directly into the target class fields
+            -- Send single source with synthetic name - server will navigate directly into the type
             request_params = {
-                sources = { { name = "target", type = completion_ctx.class_name } },
+                sources = { { name = "$target", type = completion_ctx.class_name } },
                 pathExpression = completion_ctx.path_expression,
                 isEnum = completion_ctx.is_enum or false,
             }
@@ -184,6 +185,10 @@ function source:get_completions(ctx, callback)
                     -- Getter method - show as Field (MapStruct uses property notation)
                     kind = require("blink.cmp.types").CompletionItemKind.Field
                     kind_label = "Getter Method"
+                elseif field_info.kind == "SETTER" then
+                    -- Setter method - show as Property (target mappings)
+                    kind = require("blink.cmp.types").CompletionItemKind.Property
+                    kind_label = "Setter Method"
                 else
                     -- FIELD or unknown - show as Field
                     kind = require("blink.cmp.types").CompletionItemKind.Field
@@ -206,7 +211,7 @@ function source:get_completions(ctx, callback)
                     documentation = {
                         kind = "markdown",
                         value = string.format(
-                            "**%s** %s\n**Type:** `%s`\n**Kind:** %s%s%s\n**Path:** `%s%s`",
+                            "**%s**: %s\n**Type:** `%s`\n**Kind:** %s%s%s\n**Path:** `%s%s`",
                             kind_label,
                             field_info.name,
                             full_type,

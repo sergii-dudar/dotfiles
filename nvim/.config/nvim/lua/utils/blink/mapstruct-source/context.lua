@@ -829,18 +829,44 @@ function M.get_completion_context(bufnr, row, col)
         }
 
     elseif attribute_type == "target" then
-        -- For target attribute, navigate directly into return type fields
-        -- NO parameter names - just return the class to navigate
-        local return_type = get_target_class_from_method(method_node, bufnr)
-        if not return_type then
-            log.debug("Could not resolve target class")
+        -- For target attribute, we need to determine the target type:
+        -- 1. If method has @MappingTarget parameter, use that parameter's type
+        -- 2. Otherwise, use the return type
+
+        -- Get all parameters to check for @MappingTarget
+        local all_params = get_all_method_parameters(bufnr, method_name, method_node)
+        local target_type = nil
+
+        if all_params and #all_params > 0 then
+            -- Look for @MappingTarget parameter
+            for _, param in ipairs(all_params) do
+                if param.is_mapping_target then
+                    target_type = param.type
+                    log.info("Found @MappingTarget parameter, using type:", target_type)
+                    break
+                end
+            end
+        end
+
+        -- If no @MappingTarget found, fall back to return type
+        if not target_type then
+            target_type = get_target_class_from_method(method_node, bufnr)
+            if not target_type then
+                log.debug("Could not resolve target class")
+                return nil
+            end
+            log.info("Using return type as target:", target_type)
+        end
+
+        -- Check if target type is void (invalid)
+        if target_type == "void" then
+            log.error("Target type is void, cannot navigate fields")
+            vim.notify("[MapStruct Context] Method has void return type and no @MappingTarget parameter", vim.log.levels.ERROR)
             return nil
         end
 
-        log.info("Target return type:", return_type)
-
         return {
-            class_name = return_type, -- Direct class name for backward compatibility
+            class_name = target_type, -- Direct class name for backward compatibility
             path_expression = path_expr,
             attribute_type = attribute_type, -- "target"
             is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
