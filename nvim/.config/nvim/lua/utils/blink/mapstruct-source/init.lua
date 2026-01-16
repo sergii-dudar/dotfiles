@@ -4,6 +4,7 @@
 local server = require("utils.blink.mapstruct-source.server")
 local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
 local context = require("utils.blink.mapstruct-source.context")
+local log = require("utils.logging-util").new({ name = "MapStruct", filename = "mapstruct-source.log" })
 
 --- @class blink.cmp.Source
 local source = {}
@@ -119,7 +120,7 @@ function source:get_completions(ctx, callback)
             isEnum = completion_ctx.is_enum or false,
         }, function(result, err)
             if err then
-                vim.notify("[MapStruct] Request failed: " .. err, vim.log.levels.WARN)
+                log.warn("Request failed:", err)
                 callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
                 return
             end
@@ -236,6 +237,7 @@ end, { desc = "Show MapStruct server status" })
 vim.api.nvim_create_user_command("MapStructRestart", function()
     server.restart(function(success)
         if success then
+            log.info("Server restarted successfully")
             vim.notify("[MapStruct] Server restarted successfully", vim.log.levels.INFO)
         else
             vim.notify("[MapStruct] Failed to restart server", vim.log.levels.ERROR)
@@ -245,12 +247,14 @@ end, { desc = "Restart MapStruct server" })
 
 vim.api.nvim_create_user_command("MapStructStop", function()
     server.stop(function()
+        log.info("Server stopped")
         vim.notify("[MapStruct] Server stopped", vim.log.levels.INFO)
     end)
 end, { desc = "Stop MapStruct server" })
 
 vim.api.nvim_create_user_command("MapStructPing", function()
     if not ipc_client.is_connected() then
+        log.warn("Not connected to server")
         vim.notify("[MapStruct] Not connected to server", vim.log.levels.WARN)
         return
     end
@@ -259,6 +263,7 @@ vim.api.nvim_create_user_command("MapStructPing", function()
         if err then
             vim.notify("[MapStruct] Ping failed: " .. err, vim.log.levels.ERROR)
         else
+            log.info("Pong:", result)
             vim.notify("[MapStruct] Pong: " .. vim.inspect(result), vim.log.levels.INFO)
         end
     end)

@@ -1,6 +1,8 @@
 -- IPC Client for MapStruct Path Explorer
 -- Handles Unix domain socket communication with the Java server
 
+local log = require("utils.logging-util").new({ name = "MapStruct.IPC", filename = "mapstruct-source.log" })
+
 local M = {}
 
 -- State
@@ -52,6 +54,7 @@ end
 function handle_response(json_str)
     local ok, response = pcall(vim.json.decode, json_str)
     if not ok then
+        log.error("Failed to decode JSON:", json_str)
         vim.notify("[MapStruct] Failed to decode JSON: " .. json_str, vim.log.levels.ERROR)
         return
     end
@@ -77,6 +80,7 @@ local function send_heartbeat()
 
     M.request("heartbeat", {}, function(result, err)
         if err and err ~= "timeout" then
+            log.warn("Heartbeat failed, reconnecting...")
             vim.notify("[MapStruct] Heartbeat failed, reconnecting...", vim.log.levels.WARN)
         end
     end)
@@ -144,6 +148,7 @@ function M.connect(socket_path, callback)
     state.socket_fd:connect(socket_path, function(err)
         if err then
             vim.schedule(function()
+                log.error("Failed to connect:", err)
                 vim.notify("[MapStruct] Failed to connect: " .. err, vim.log.levels.ERROR)
                 state.connected = false
                 if callback then
@@ -154,6 +159,7 @@ function M.connect(socket_path, callback)
         end
 
         vim.schedule(function()
+            log.info("Connected to IPC server")
             vim.notify("[MapStruct] Connected to IPC server", vim.log.levels.INFO)
         end)
 
@@ -163,6 +169,7 @@ function M.connect(socket_path, callback)
         state.socket_fd:read_start(function(read_err, data)
             if read_err then
                 vim.schedule(function()
+                    log.error("Socket read error:", read_err)
                     vim.notify("[MapStruct] Socket read error: " .. read_err, vim.log.levels.ERROR)
                     M.disconnect()
                 end)
@@ -174,6 +181,7 @@ function M.connect(socket_path, callback)
             else
                 -- Connection closed
                 vim.schedule(function()
+                    log.warn("Server disconnected")
                     vim.notify("[MapStruct] Server disconnected", vim.log.levels.WARN)
                     M.disconnect()
                 end)

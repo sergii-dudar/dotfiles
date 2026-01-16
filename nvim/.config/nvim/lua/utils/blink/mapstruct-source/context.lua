@@ -1,6 +1,8 @@
 -- Context Parser for MapStruct Completion using Treesitter
 -- Extracts class name and path expression from the current buffer
 
+local log = require("utils.logging-util").new({ name = "MapStruct.Context", filename = "mapstruct-source.log" })
+
 local M = {}
 
 -- Get the Treesitter node at cursor position
@@ -238,11 +240,11 @@ end
 local function get_classpath_from_project(bufnr)
     local project_root = find_project_root(bufnr)
     if not project_root then
-        vim.notify("[MapStruct Context] Could not find project root", vim.log.levels.DEBUG)
+        log.debug("Could not find project root")
         return nil
     end
 
-    vim.notify("[MapStruct Context] Project root: " .. project_root, vim.log.levels.DEBUG)
+    log.debug("Project root:", project_root)
 
     -- Build classpath from standard Maven/Gradle locations
     local classpaths = {}
@@ -266,7 +268,7 @@ local function get_classpath_from_project(bufnr)
     for _, path in ipairs(paths_to_check) do
         if vim.fn.isdirectory(path) == 1 then
             table.insert(classpaths, path)
-            vim.notify("[MapStruct Context] Found classpath: " .. path, vim.log.levels.DEBUG)
+            log.debug("Found classpath:", path)
         end
     end
 
@@ -285,7 +287,7 @@ local function get_jdtls_classpath(bufnr)
         local client = clients[1]
         local uri = vim.uri_from_bufnr(bufnr)
 
-        vim.notify("[MapStruct Context] Querying jdtls for classpath...", vim.log.levels.DEBUG)
+        log.debug("Querying jdtls for classpath...")
 
         -- Try to get both runtime and test classpaths
         local all_classpaths = {}
@@ -299,10 +301,7 @@ local function get_jdtls_classpath(bufnr)
         if result_test and result_test.result then
             local classpaths = result_test.result.classpaths or result_test.result
             if type(classpaths) == "table" and #classpaths > 0 then
-                vim.notify(
-                    "[MapStruct Context] Got " .. #classpaths .. " test classpath entries from jdtls",
-                    vim.log.levels.INFO
-                )
+                log.info("Got", #classpaths, "test classpath entries from jdtls")
                 for _, cp in ipairs(classpaths) do
                     table.insert(all_classpaths, cp)
                 end
@@ -317,10 +316,7 @@ local function get_jdtls_classpath(bufnr)
             if result_runtime and result_runtime.result then
                 local classpaths = result_runtime.result.classpaths or result_runtime.result
                 if type(classpaths) == "table" and #classpaths > 0 then
-                    vim.notify(
-                        "[MapStruct Context] Got " .. #classpaths .. " runtime classpath entries from jdtls",
-                        vim.log.levels.INFO
-                    )
+                    log.info("Got", #classpaths, "runtime classpath entries from jdtls")
                     for _, cp in ipairs(classpaths) do
                         table.insert(all_classpaths, cp)
                     end
@@ -329,19 +325,19 @@ local function get_jdtls_classpath(bufnr)
         end
 
         if #all_classpaths > 0 then
-            vim.notify("[MapStruct Context] Total jdtls classpath entries: " .. #all_classpaths, vim.log.levels.INFO)
+            log.info("Total jdtls classpath entries:", #all_classpaths)
             return table.concat(all_classpaths, ":")
         end
 
         if err then
-            vim.notify("[MapStruct Context] jdtls request error: " .. vim.inspect(err), vim.log.levels.DEBUG)
+            log.debug("jdtls request error:", err)
         end
     else
-        vim.notify("[MapStruct Context] No jdtls client found", vim.log.levels.DEBUG)
+        log.debug("No jdtls client found")
     end
 
     -- Fallback to project structure
-    vim.notify("[MapStruct Context] Falling back to project structure classpath", vim.log.levels.INFO)
+    log.info("Falling back to project structure classpath")
     return get_classpath_from_project(bufnr)
 end
 
@@ -350,26 +346,28 @@ local function resolve_class_from_javap(bufnr, method_name, param_name)
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
     if not package_name or not class_name then
-        vim.notify("[MapStruct Context] Could not determine mapper class", vim.log.levels.DEBUG)
+        log.debug("Could not determine mapper class")
         return nil
     end
 
     local fqcn = package_name .. "." .. class_name
-    vim.notify("[MapStruct Context] Mapper FQCN: " .. fqcn, vim.log.levels.DEBUG)
+    log.debug("Mapper FQCN:", fqcn)
 
     -- Get classpath from jdtls (with fallback)
     local classpath = get_jdtls_classpath(bufnr)
     if not classpath then
+        log.error("Could not get classpath")
         vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
         return nil
     end
 
     -- Run javap
     local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
-    vim.notify("[MapStruct Context] Running: javap -cp <classpath> " .. fqcn, vim.log.levels.DEBUG)
+    log.debug("Running: javap -cp <classpath>", fqcn)
 
     local handle = io.popen(cmd)
     if not handle then
+        log.error("Failed to run javap")
         vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
         return nil
     end
@@ -378,18 +376,19 @@ local function resolve_class_from_javap(bufnr, method_name, param_name)
     handle:close()
 
     if not output or output == "" then
+        log.warn("javap returned empty output")
         vim.notify("[MapStruct Context] javap returned empty output", vim.log.levels.WARN)
         return nil
     end
 
-    vim.notify("[MapStruct Context] javap output received", vim.log.levels.DEBUG)
+    log.debug("javap output received")
 
     -- Parse javap output to find the method signature
     -- javap format: public abstract ReturnType methodName(FullyQualifiedClassName);
     -- Example: public abstract ComplexNestedDTO mapComplexNested(com.dsm.mapstruct.testdata.TestClasses$Person);
     for line in output:gmatch("[^\r\n]+") do
         if line:match("%s+" .. method_name .. "%s*%(") then
-            vim.notify("[MapStruct Context] Found method line: " .. line, vim.log.levels.DEBUG)
+            log.debug("Found method line:", line)
 
             -- Extract parameter type from: methodName(Type);
             -- Pattern: captures fully qualified class name inside parentheses
@@ -400,12 +399,13 @@ local function resolve_class_from_javap(bufnr, method_name, param_name)
                 -- javap might include or exclude parameter names depending on debug info
                 param_type = param_type:match("^([%w%.%$<>,]+)") or param_type
 
-                vim.notify("[MapStruct Context] ✓ Extracted parameter type: " .. param_type, vim.log.levels.INFO)
+                log.info("Extracted parameter type:", param_type)
                 return param_type
             end
         end
     end
 
+    log.warn("Could not find method signature in javap output")
     vim.notify("[MapStruct Context] Could not find method signature in javap output", vim.log.levels.WARN)
     return nil
 end
@@ -444,11 +444,11 @@ local function get_source_class_from_method(method_node, bufnr)
     end
 
     if not param_name then
-        vim.notify("[MapStruct Context] Could not extract parameter name", vim.log.levels.DEBUG)
+        log.debug("Could not extract parameter name")
         return nil
     end
 
-    vim.notify("[MapStruct Context] Method: " .. method_name .. ", Param: " .. param_name, vim.log.levels.DEBUG)
+    log.debug("Method:", method_name, ", Param:", param_name)
 
     -- Use javap to resolve the fully qualified class name
     return resolve_class_from_javap(bufnr, method_name, param_name)
@@ -469,31 +469,33 @@ local function get_target_class_from_method(method_node, bufnr)
     end
     local method_name = get_node_text(method_name_node, bufnr)
 
-    vim.notify("[MapStruct Context] Getting return type for method: " .. method_name, vim.log.levels.DEBUG)
+    log.debug("Getting return type for method:", method_name)
 
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
     if not package_name or not class_name then
-        vim.notify("[MapStruct Context] Could not determine mapper class", vim.log.levels.DEBUG)
+        log.debug("Could not determine mapper class")
         return nil
     end
 
     local fqcn = package_name .. "." .. class_name
-    vim.notify("[MapStruct Context] Mapper FQCN: " .. fqcn, vim.log.levels.DEBUG)
+    log.debug("Mapper FQCN:", fqcn)
 
     -- Get classpath from jdtls (with fallback)
     local classpath = get_jdtls_classpath(bufnr)
     if not classpath then
+        log.error("Could not get classpath")
         vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
         return nil
     end
 
     -- Run javap
     local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
-    vim.notify("[MapStruct Context] Running: javap -cp <classpath> " .. fqcn, vim.log.levels.DEBUG)
+    log.debug("Running: javap -cp <classpath>", fqcn)
 
     local handle = io.popen(cmd)
     if not handle then
+        log.error("Failed to run javap")
         vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
         return nil
     end
@@ -502,18 +504,19 @@ local function get_target_class_from_method(method_node, bufnr)
     handle:close()
 
     if not output or output == "" then
+        log.warn("javap returned empty output")
         vim.notify("[MapStruct Context] javap returned empty output", vim.log.levels.WARN)
         return nil
     end
 
-    vim.notify("[MapStruct Context] javap output received", vim.log.levels.DEBUG)
+    log.debug("javap output received")
 
     -- Parse javap output to find the method and extract return type
     -- javap format: public abstract ReturnType methodName(ParamType);
     -- Example: public abstract com.example.OrderComplexDTO mapOrderComplex(com.example.Order);
     for line in output:gmatch("[^\r\n]+") do
         if line:match("%s+" .. method_name .. "%s*%(") then
-            vim.notify("[MapStruct Context] Found method line: " .. line, vim.log.levels.DEBUG)
+            log.debug("Found method line:", line)
 
             -- Extract return type: capture the type name immediately before the method name
             -- Split by spaces and find the type before method name
@@ -537,12 +540,13 @@ local function get_target_class_from_method(method_node, bufnr)
                 -- Remove any trailing semicolons or parentheses
                 return_type = return_type:gsub("[;%(].*$", "")
 
-                vim.notify("[MapStruct Context] ✓ Extracted return type: " .. return_type, vim.log.levels.INFO)
+                log.info("Extracted return type:", return_type)
                 return return_type
             end
         end
     end
 
+    log.warn("Could not find return type in javap output")
     vim.notify("[MapStruct Context] Could not find return type in javap output", vim.log.levels.WARN)
     return nil
 end
@@ -554,18 +558,18 @@ function M.get_completion_context(bufnr, row, col)
     -- Check if we're in a Java file
     local filetype = vim.bo[bufnr].filetype
     if filetype ~= "java" then
-        vim.notify("[MapStruct Context] Not a Java file: " .. filetype, vim.log.levels.DEBUG)
+        log.debug("Not a Java file:", filetype)
         return nil
     end
 
     -- Get the node at cursor
     local node = get_node_at_cursor(bufnr, row, col)
     if not node then
-        vim.notify("[MapStruct Context] No node at cursor", vim.log.levels.DEBUG)
+        log.debug("No node at cursor")
         return nil
     end
 
-    vim.notify("[MapStruct Context] Node type at cursor: " .. node:type(), vim.log.levels.DEBUG)
+    log.debug("Node type at cursor:", node:type())
 
     -- Check if we're in a string literal (source or target value)
     local string_node = node
@@ -574,7 +578,7 @@ function M.get_completion_context(bufnr, row, col)
     end
 
     if not string_node then
-        vim.notify("[MapStruct Context] Not in string literal", vim.log.levels.DEBUG)
+        log.debug("Not in string literal")
         return nil
     end
 
@@ -588,35 +592,32 @@ function M.get_completion_context(bufnr, row, col)
     end
 
     if not value_node or not annotation_node then
-        vim.notify("[MapStruct Context] Not in @Mapping/@ValueMapping source/target", vim.log.levels.DEBUG)
+        log.debug("Not in @Mapping/@ValueMapping source/target")
         return nil
     end
 
     local mapping_type = is_value_mapping and "ValueMapping" or "Mapping"
-    vim.notify(
-        "[MapStruct Context] Detected annotation: @" .. mapping_type .. ", attribute: " .. attribute_type,
-        vim.log.levels.INFO
-    )
+    log.info("Detected annotation: @" .. mapping_type .. ", attribute:", attribute_type)
 
     -- Extract the path expression being typed
     local path_expr = extract_path_from_string(string_node, bufnr, col)
     if path_expr == nil then
-        vim.notify("[MapStruct Context] Could not extract path", vim.log.levels.DEBUG)
+        log.debug("Could not extract path")
         return nil
     end
 
     -- For ValueMapping, only empty path is valid (enum constants, no nested paths)
     if is_value_mapping and path_expr ~= "" then
-        vim.notify("[MapStruct Context] ValueMapping does not support nested paths", vim.log.levels.DEBUG)
+        log.debug("ValueMapping does not support nested paths")
         return nil
     end
 
-    vim.notify("[MapStruct Context] Path expression: '" .. path_expr .. "'", vim.log.levels.DEBUG)
+    log.debug("Path expression: '" .. path_expr .. "'")
 
     -- Find the method declaration
     local method_node = find_method_declaration(annotation_node)
     if not method_node then
-        vim.notify("[MapStruct Context] No method declaration found", vim.log.levels.DEBUG)
+        log.debug("No method declaration found")
         return nil
     end
 
@@ -626,22 +627,23 @@ function M.get_completion_context(bufnr, row, col)
         -- For source attribute, extract parameter type
         resolved_class = get_source_class_from_method(method_node, bufnr)
         if not resolved_class then
-            vim.notify("[MapStruct Context] Could not resolve source class", vim.log.levels.DEBUG)
+            log.debug("Could not resolve source class")
             return nil
         end
     elseif attribute_type == "target" then
         -- For target attribute, extract return type
         resolved_class = get_target_class_from_method(method_node, bufnr)
         if not resolved_class then
-            vim.notify("[MapStruct Context] Could not resolve target class", vim.log.levels.DEBUG)
+            log.debug("Could not resolve target class")
             return nil
         end
     else
+        log.error("Unknown attribute type:", attribute_type)
         vim.notify("[MapStruct Context] Unknown attribute type: " .. attribute_type, vim.log.levels.ERROR)
         return nil
     end
 
-    vim.notify("[MapStruct Context] Resolved " .. attribute_type .. " class: " .. resolved_class, vim.log.levels.INFO)
+    log.info("Resolved " .. attribute_type .. " class:", resolved_class)
 
     return {
         class_name = resolved_class,

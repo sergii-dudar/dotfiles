@@ -2,6 +2,7 @@
 -- Handles starting, stopping, and monitoring the Java server
 
 local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
+local log = require("utils.logging-util").new({ name = "MapStruct.Server", filename = "mapstruct-source.log" })
 
 local M = {}
 
@@ -46,11 +47,11 @@ end
 local function get_classpath_from_project(bufnr)
     local project_root = find_project_root(bufnr)
     if not project_root then
-        vim.notify("[MapStruct Server] Could not find project root", vim.log.levels.DEBUG)
+        log.debug("Could not find project root")
         return nil
     end
 
-    vim.notify("[MapStruct Server] Project root: " .. project_root, vim.log.levels.DEBUG)
+    log.debug("Project root:", project_root)
 
     -- Build classpath from standard Maven/Gradle locations
     local classpaths = {}
@@ -74,7 +75,7 @@ local function get_classpath_from_project(bufnr)
     for _, path in ipairs(paths_to_check) do
         if vim.fn.isdirectory(path) == 1 then
             table.insert(classpaths, path)
-            vim.notify("[MapStruct Server] Found classpath: " .. path, vim.log.levels.DEBUG)
+            log.debug("Found classpath:", path)
         end
     end
 
@@ -98,7 +99,7 @@ local function get_jdtls_classpath()
             local client = clients[1]
             local uri = vim.uri_from_bufnr(bufnr)
 
-            vim.notify("[MapStruct Server] Querying jdtls for classpath...", vim.log.levels.DEBUG)
+            log.debug("Querying jdtls for classpath...")
 
             -- Try to get both runtime and test classpaths
             local all_classpaths = {}
@@ -112,10 +113,7 @@ local function get_jdtls_classpath()
             if result_test and result_test.result then
                 local classpaths = result_test.result.classpaths or result_test.result
                 if type(classpaths) == "table" and #classpaths > 0 then
-                    vim.notify(
-                        "[MapStruct Server] Got " .. #classpaths .. " test classpath entries from jdtls",
-                        vim.log.levels.INFO
-                    )
+                    log.info("Got", #classpaths, "test classpath entries from jdtls")
                     for _, cp in ipairs(classpaths) do
                         table.insert(all_classpaths, cp)
                     end
@@ -130,10 +128,7 @@ local function get_jdtls_classpath()
                 if result_runtime and result_runtime.result then
                     local classpaths = result_runtime.result.classpaths or result_runtime.result
                     if type(classpaths) == "table" and #classpaths > 0 then
-                        vim.notify(
-                            "[MapStruct Server] Got " .. #classpaths .. " runtime classpath entries from jdtls",
-                            vim.log.levels.INFO
-                        )
+                        log.info("Got", #classpaths, "runtime classpath entries from jdtls")
                         for _, cp in ipairs(classpaths) do
                             table.insert(all_classpaths, cp)
                         end
@@ -142,20 +137,20 @@ local function get_jdtls_classpath()
             end
 
             if #all_classpaths > 0 then
-                vim.notify("[MapStruct Server] Total jdtls classpath entries: " .. #all_classpaths, vim.log.levels.INFO)
+                log.info("Total jdtls classpath entries:", #all_classpaths)
                 return table.concat(all_classpaths, ":")
             end
 
             if err then
-                vim.notify("[MapStruct Server] jdtls request error: " .. vim.inspect(err), vim.log.levels.DEBUG)
+                log.debug("jdtls request error:", err)
             end
         else
-            vim.notify("[MapStruct Server] No jdtls client found", vim.log.levels.DEBUG)
+            log.debug("No jdtls client found")
         end
     end
 
     -- Fallback to project structure
-    vim.notify("[MapStruct Server] Falling back to project structure classpath", vim.log.levels.INFO)
+    log.info("Falling back to project structure classpath")
     return get_classpath_from_project(bufnr)
 end
 
@@ -164,6 +159,7 @@ function M.start(jar_path, opts, callback)
     opts = opts or {}
 
     if state.server_job_id then
+        log.warn("Server already running")
         vim.notify("[MapStruct] Server already running", vim.log.levels.WARN)
         if callback then
             callback(true, state.socket_path)
@@ -172,6 +168,7 @@ function M.start(jar_path, opts, callback)
     end
 
     if state.is_starting then
+        log.warn("Server is already starting")
         vim.notify("[MapStruct] Server is already starting", vim.log.levels.WARN)
         return
     end
@@ -188,7 +185,7 @@ function M.start(jar_path, opts, callback)
         local jdtls_cp = get_jdtls_classpath()
         if jdtls_cp then
             classpath = classpath .. ":" .. jdtls_cp
-            vim.notify("[MapStruct] Using jdtls classpath", vim.log.levels.INFO)
+            log.info("Using jdtls classpath")
         elseif opts.classpath then
             classpath = classpath .. ":" .. opts.classpath
         end
@@ -205,6 +202,7 @@ function M.start(jar_path, opts, callback)
         state.socket_path,
     }
 
+    log.info("Starting server on", state.socket_path)
     vim.notify("[MapStruct] Starting server on " .. state.socket_path, vim.log.levels.INFO)
 
     -- Start server as background job
@@ -213,7 +211,7 @@ function M.start(jar_path, opts, callback)
             if data and #data > 0 then
                 for _, line in ipairs(data) do
                     if line ~= "" then
-                        vim.notify("[MapStruct Server] " .. line, vim.log.levels.DEBUG)
+                        log.debug("Server stdout:", line)
                     end
                 end
             end
@@ -222,18 +220,21 @@ function M.start(jar_path, opts, callback)
             if data and #data > 0 then
                 for _, line in ipairs(data) do
                     if line ~= "" then
+                        log.error("Server error:", line)
                         vim.notify("[MapStruct Server Error] " .. line, vim.log.levels.ERROR)
                     end
                 end
             end
         end,
         on_exit = function(_, exit_code, _)
+            log.warn("Server exited with code", exit_code)
             vim.notify("[MapStruct] Server exited with code " .. exit_code, vim.log.levels.WARN)
             M.cleanup()
         end,
     })
 
     if state.server_job_id <= 0 then
+        log.error("Failed to start server")
         vim.notify("[MapStruct] Failed to start server", vim.log.levels.ERROR)
         state.server_job_id = nil
         state.is_starting = false
@@ -290,6 +291,7 @@ end
 
 -- Restart the server
 function M.restart(callback)
+    log.info("Restarting server...")
     vim.notify("[MapStruct] Restarting server...", vim.log.levels.INFO)
     M.stop(function()
         vim.defer_fn(function()
