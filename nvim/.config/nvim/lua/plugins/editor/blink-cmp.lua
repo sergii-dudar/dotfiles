@@ -87,16 +87,12 @@ return {
                                         end
                                     elseif ctx.source_name == "mapstruct" then
                                         -- Use appropriate icon for MapStruct fields/methods
-                                        icon = require("lspkind").symbolic(ctx.kind, {
-                                            mode = "symbol",
-                                        })
+                                        icon = require("lspkind").symbol_map[ctx.kind] or "󰜢"
                                     else
-                                        icon = require("lspkind").symbolic(ctx.kind, {
-                                            mode = "symbol",
-                                        })
+                                        icon = require("lspkind").symbol_map[ctx.kind]
                                     end
 
-                                    return icon .. ctx.icon_gap
+                                    return (icon or "󰦗") .. ctx.icon_gap
                                 end,
 
                                 -- Optionally, use the highlight groups from nvim-web-devicons
@@ -186,10 +182,13 @@ return {
                     mapstruct = {
                         name = "mapstruct",
                         module = "utils.blink.mapstruct-source",
+
                         opts = {
                             -- Required: path to mapstruct-path-explorer.jar
                             -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-                            jar_path = "~/serhii.home/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            -- jar_path = "~/serhii.home/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
                             -- Optional: use jdtls classpath (default: true)
