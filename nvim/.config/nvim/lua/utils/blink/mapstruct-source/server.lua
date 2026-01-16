@@ -2,6 +2,7 @@
 -- Handles starting, stopping, and monitoring the Java server
 
 local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
+local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
 local log = require("utils.logging-util").new({ name = "MapStruct.Server", filename = "mapstruct-source.log" })
 
 local M = {}
@@ -16,142 +17,9 @@ local state = {
 
 -- Generate unique socket path for this Neovim instance
 local function generate_socket_path()
-    -- local tmpdir = vim.fn.getenv("TMPDIR") or "/tmp"
     local tmpdir = "/tmp"
-    print(tmpdir)
     local nvim_pid = vim.fn.getpid()
     return string.format("%s/mapstruct-ipc-%d.sock", tmpdir, nvim_pid)
-end
-
--- Find project root directory
-local function find_project_root(bufnr)
-    local file_path = vim.api.nvim_buf_get_name(bufnr)
-    local dir = vim.fn.fnamemodify(file_path, ":p:h")
-
-    -- Look for pom.xml or build.gradle
-    while dir ~= "/" and dir ~= "." do
-        if
-            vim.fn.filereadable(dir .. "/pom.xml") == 1
-            or vim.fn.filereadable(dir .. "/build.gradle") == 1
-            or vim.fn.filereadable(dir .. "/build.gradle.kts") == 1
-        then
-            return dir
-        end
-        dir = vim.fn.fnamemodify(dir, ":h")
-    end
-
-    return nil
-end
-
--- Get classpath from project structure (fallback)
-local function get_classpath_from_project(bufnr)
-    local project_root = find_project_root(bufnr)
-    if not project_root then
-        log.debug("Could not find project root")
-        return nil
-    end
-
-    log.debug("Project root:", project_root)
-
-    -- Build classpath from standard Maven/Gradle locations
-    local classpaths = {}
-
-    -- Maven structure
-    local maven_paths = {
-        project_root .. "/target/classes",
-        project_root .. "/target/test-classes",
-    }
-
-    -- Gradle structure
-    local gradle_paths = {
-        project_root .. "/build/classes/java/main",
-        project_root .. "/build/classes/java/test",
-    }
-
-    -- Check which build tool
-    local use_maven = vim.fn.filereadable(project_root .. "/pom.xml") == 1
-    local paths_to_check = use_maven and maven_paths or gradle_paths
-
-    for _, path in ipairs(paths_to_check) do
-        if vim.fn.isdirectory(path) == 1 then
-            table.insert(classpaths, path)
-            log.debug("Found classpath:", path)
-        end
-    end
-
-    if #classpaths > 0 then
-        return table.concat(classpaths, ":")
-    end
-
-    return nil
-end
-
--- Get classpath from nvim-jdtls with fallback
-local function get_jdtls_classpath()
-    local bufnr = vim.api.nvim_get_current_buf()
-
-    -- Try jdtls first
-    local ok, jdtls = pcall(require, "jdtls")
-    if ok then
-        -- Find jdtls client
-        local clients = vim.lsp.get_clients({ name = "jdtls" })
-        if clients and #clients > 0 then
-            local client = clients[1]
-            local uri = vim.uri_from_bufnr(bufnr)
-
-            log.debug("Querying jdtls for classpath...")
-
-            -- Try to get both runtime and test classpaths
-            local all_classpaths = {}
-
-            -- Query with 'test' scope to get test dependencies
-            local result_test, err = client:request_sync("workspace/executeCommand", {
-                command = "java.project.getClasspaths",
-                arguments = { uri, vim.json.encode({ scope = "test" }) },
-            }, 10000, bufnr)
-
-            if result_test and result_test.result then
-                local classpaths = result_test.result.classpaths or result_test.result
-                if type(classpaths) == "table" and #classpaths > 0 then
-                    log.info("Got", #classpaths, "test classpath entries from jdtls")
-                    for _, cp in ipairs(classpaths) do
-                        table.insert(all_classpaths, cp)
-                    end
-                end
-            else
-                -- Try runtime scope as fallback
-                local result_runtime, err = client:request_sync("workspace/executeCommand", {
-                    command = "java.project.getClasspaths",
-                    arguments = { uri, vim.json.encode({ scope = "runtime" }) },
-                }, 10000, bufnr)
-
-                if result_runtime and result_runtime.result then
-                    local classpaths = result_runtime.result.classpaths or result_runtime.result
-                    if type(classpaths) == "table" and #classpaths > 0 then
-                        log.info("Got", #classpaths, "runtime classpath entries from jdtls")
-                        for _, cp in ipairs(classpaths) do
-                            table.insert(all_classpaths, cp)
-                        end
-                    end
-                end
-            end
-
-            if #all_classpaths > 0 then
-                log.info("Total jdtls classpath entries:", #all_classpaths)
-                return table.concat(all_classpaths, ":")
-            end
-
-            if err then
-                log.debug("jdtls request error:", err)
-            end
-        else
-            log.debug("No jdtls client found")
-        end
-    end
-
-    -- Fallback to project structure
-    log.info("Falling back to project structure classpath")
-    return get_classpath_from_project(bufnr)
 end
 
 -- Start the Java IPC server
@@ -182,10 +50,10 @@ function M.start(jar_path, opts, callback)
 
     -- Try to get classpath from jdtls if enabled (default: true)
     if opts.use_jdtls_classpath ~= false then
-        local jdtls_cp = get_jdtls_classpath()
+        local jdtls_cp = classpath_util.get_classpath({ bufnr = vim.api.nvim_get_current_buf() })
         if jdtls_cp then
             classpath = classpath .. ":" .. jdtls_cp
-            log.info("Using jdtls classpath")
+            log.info("Using classpath from classpath-util")
         elseif opts.classpath then
             classpath = classpath .. ":" .. opts.classpath
         end
