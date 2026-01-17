@@ -15,6 +15,10 @@ local string_util = require("utils.string-util")
 local spinner = require("utils.ui.spinner")
 local list_util = require("utils.list-util")
 local buffer_util = require("utils.buffer-util")
+local logging = require("utils.logging-util")
+
+-- Create logger for java refactoring
+local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })
 
 ---@class java.rejactor.FileMove
 ---@field src string
@@ -24,6 +28,8 @@ local buffer_util = require("utils.buffer-util")
 local current_term_win = nil
 ---@param cmd_args string
 local function run_cmd(cmd_args)
+    log.info("Starting Java refactoring command execution")
+    log.debug("Command:", cmd_args)
     -- vim.notify("🚀 Java Refactoring Started", vim.log.levels.INFO)
     spinner.start("🚀 " .. "Java Refactoring...")
 
@@ -40,6 +46,11 @@ local function run_cmd(cmd_args)
         stdout_buffered = false,
         stderr_buffered = false,
         on_exit = function(_, code)
+            if code == 0 then
+                log.info("Java refactoring completed successfully")
+            else
+                log.error("Java refactoring failed with exit code:", code)
+            end
             spinner.stop(code == 0, "Java refactoring")
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
@@ -49,7 +60,10 @@ local function run_cmd(cmd_args)
 
     vim.cmd("startinsert")
     if job_id <= 0 then
+        log.error("Failed to start command via jobstart()")
         vim.notify("Failed to start cmd via jobstart()", vim.log.levels.ERROR)
+    else
+        log.debug("Command started with job_id:", job_id)
     end
 end
 
@@ -62,10 +76,16 @@ local package_roots = { main_dir, test_dir, main_resource_dir, test_resource_dir
 -- local test_path = "/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem" -- TODO: change to . after finish
 local project_root_path = vim.fn.getcwd()
 
+-- Detect OS and set appropriate sed -i flag
+-- macOS (BSD sed) requires -i '' while Linux (GNU sed) uses -i
+local sed_inplace_flag = vim.loop.os_uname().sysname == "Darwin" and "-i ''" or "-i"
+log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed flag:", sed_inplace_flag)
+
 ---@param result_cmds table
 ---@param root string
 ---@param context java.rejactor.FileMove
 local build_fix_java_file_after_change_cmds = function(result_cmds, root, context)
+    log.debug("Building fix commands for file move:", context.src, "->", context.dst)
     -- TODO: use `local process_root_path = vim.fs.joinpath(project_root_path, [empty or package sub path in case multimodule, or sub module], root)`
 
     local src = context.src
@@ -90,9 +110,13 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local old_type_name = package_src_path:match("([^/]+)$")
     local new_type_name = package_dst_path:match("([^/]+)$")
 
+    log.debug("Type rename:", old_type_name, "->", new_type_name)
+
     -- com.example.EmployeeManagementSystem.service
     local package_declaration_src = package_src_classpath:match("(.+)%.%w+$")
     local package_declaration_dst = package_dst_classpath:match("(.+)%.%w+$")
+
+    log.debug("Package change:", package_declaration_src, "->", package_declaration_dst)
 
     -- com\.example\.EmployeeManagementSystem\.service
     local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
@@ -102,7 +126,8 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 1. fix type decration in changed file.
     local fix_type_declaration_cmd = string.format(
-        "sed -i -E 's/(class|interface|enum|record) %s\\s/\\1 %s /g' %s",
+        "sed %s -E 's/(class|interface|enum|record) %s[[:space:]]/\\1 %s /g' %s",
+        sed_inplace_flag,
         old_type_name,
         new_type_name,
         dst
@@ -116,8 +141,9 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_type_symbols_where_imported = string.format(
         "rg --color=never -l 'import\\s+%s' "
             .. project_root_path
-            .. " | xargs sed -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+            .. " | xargs sed %s -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
         package_src_classpath_escaped,
+        sed_inplace_flag,
         old_type_name,
         new_type_name
     )
@@ -128,6 +154,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 2.1. fix imports of siblings java files (in case moved to other packages)
     if context.siblings and not vim.tbl_isempty(context.siblings) then
+        log.debug("Processing", #context.siblings, "sibling files")
         for _, sibling in ipairs(context.siblings) do
             -- com/example/EmployeeManagementSystem/service/ServiceEmployee
             local sibling_package_src_path = vim.split(sibling.src, root)[2]:gsub("%.java", "")
@@ -162,9 +189,10 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_type_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
             .. project_root_path
-            .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
-        -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
+            .. " | xargs sed %s -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+        -- sed %s -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
+        sed_inplace_flag,
         package_src_classpath_escaped,
         package_dst_classpath
     )
@@ -175,7 +203,8 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 4. fix packaged decration in changed file.
     local fix_package_declaration = string.format(
-        "sed -i -E 's/package\\s+%s;/package %s;/g' %s",
+        "sed %s -E 's/package[[:space:]]+%s;/package %s;/g' %s",
+        sed_inplace_flag,
         package_declaration_src_escaped,
         package_declaration_dst,
         dst
@@ -209,8 +238,9 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_file_paht_declaration = string.format(
         "rg --color=never -l '%s' "
             .. project_root_path
-            .. " | xargs sed -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs sed %s -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
+        sed_inplace_flag,
         package_src_path_escaped,
         package_dst_path_escaped
     )
@@ -222,6 +252,7 @@ end
 ---@param root string
 ---@param context java.rejactor.FileMove
 local build_fix_java_package_after_change_cmds = function(result_cmds, root, context)
+    log.debug("Building fix commands for package move:", context.src, "->", context.dst)
     local src = context.src
     local dst = context.dst
 
@@ -247,8 +278,9 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     local fix_package_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
             .. project_root_path
-            .. " | xargs sed -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs sed %s -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
+        sed_inplace_flag,
         package_src_classpath_escaped,
         package_dst_classpath
     )
@@ -261,8 +293,9 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     local fix_file_paht_declaration = string.format(
         "rg --color=never -l '%s' "
             .. project_root_path
-            .. " | xargs sed -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs sed %s -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
+        sed_inplace_flag,
         package_src_path_escaped,
         package_dst_path_escaped
     )
@@ -330,6 +363,7 @@ local all_registered_changes = {}
 ---@param src string
 ---@param dst string
 M.register_change = function(src, dst)
+    log.debug("Registering change:", src, "->", dst)
     table.insert(all_registered_changes, {
         src = src,
         dst = dst,
@@ -355,28 +389,39 @@ end
 
 M.process_registerd_changes = function()
     if vim.tbl_isempty(all_registered_changes) then
+        log.warn("No registered changes to process")
         vim.notify("No any registered changes")
     else
+        log.info("Starting processing of", #all_registered_changes, "registered changes")
+        log.debug("All registered changes:", all_registered_changes)
         -- dd(all_registered_changes)
         local global_cmds_table = {}
         for _, value in list_util.sorted_iter(all_registered_changes) do
             value.siblings = get_all_src_siblings(value, all_registered_changes)
+            if value.siblings and #value.siblings > 0 then
+                log.debug("Found", #value.siblings, "siblings for", value.src)
+            end
             local change_cmd = build_fix_java_proj_after_change_cmd(value)
             if change_cmd then
+                log.debug("Adding command for:", value.dst)
                 table.insert(global_cmds_table, change_cmd)
             end
         end
+        log.info("Total commands to execute:", #global_cmds_table)
         local global_cmd_run = table.concat(global_cmds_table, " && ")
+        log.debug("Full command chain length:", #global_cmd_run, "characters")
         -- vim.notify(global_cmd_run)
         -- vim.notify(table.concat(global_cmds_table, "\n# "))
         run_cmd(global_cmd_run)
     end
+    log.info("Clearing registered changes")
     all_registered_changes = {}
 end
 
 ---@param src string
 ---@param dst string
 M.process_single_file_change = function(src, dst)
+    log.info("Processing single file change:", src, "->", dst)
     M.register_change(src, dst)
     M.process_registerd_changes()
 end
