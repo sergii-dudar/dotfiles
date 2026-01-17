@@ -7,6 +7,8 @@ end
 return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
+    commit = "5ef9d97b9292cee169ef0cfb865996f15ee9577a",
+    branch = "main",
     lazy = false,
     -- stylua: ignore
     keys = {
