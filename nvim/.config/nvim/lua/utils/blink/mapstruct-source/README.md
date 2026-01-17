@@ -4,9 +4,13 @@ A custom completion source for [blink.cmp](https://github.com/saghen/blink.cmp) 
 
 ## Features
 
-- **Intelligent Path Completion**: Auto-completes field paths in `@Mapping(source = "...")` and `@Mapping(target = "...")` and `@ValueMapping`
-- **Rich Type Information**: Shows field types, kind (field/getter), class name, and package in completion menu
-- **Visual Distinction**: Different icons for fields vs getter methods
+- **Intelligent Path Completion**: Auto-completes field paths in `@Mapping(source = "...")`, `@Mapping(target = "...")`, and `@ValueMapping`
+- **Rich Type Information**: Shows field types, kind (FIELD/GETTER/SETTER/PARAMETER), class name, and package in completion menu
+- **Smart Context Detection**: Automatically detects source vs target context and shows appropriate completions (getters for source, setters for target)
+- **Multi-parameter Mapper Support**: Suggests parameter names for mappers with multiple source parameters
+- **@MappingTarget Support**: Handles void return type mappers with `@MappingTarget` parameters
+- **Setter Detection**: Recognizes JavaBean-style setters, builder patterns, and fluent setters
+- **Visual Distinction**: Different icons for fields, getters, setters, and parameters
 - **Treesitter-based Context Detection**: Uses Neovim's Treesitter to accurately parse Java code and detect MapStruct annotations
 - **Automatic jdtls Integration**: Automatically uses classpath from `nvim-jdtls`, including all project modules and dependencies
 - **IPC Communication**: Fast Unix domain socket communication with Java backend
@@ -17,16 +21,30 @@ A custom completion source for [blink.cmp](https://github.com/saghen/blink.cmp) 
 
 The completion menu shows comprehensive information about each field:
 
+**Source Completions** (showing getters):
 ```
- street      String      Field      [MS]
- city        String      Method     [MS]
-󰜢 zipCode    Integer     Field      [MS]
+ firstName   String      Getter     [MS]
+ address     Address     Getter     [MS]
+󰜢 age        int         Field      [MS]
 ```
 
-- **Icon**: Different icons for fields (󰜢) vs methods ()
-- **Label**: Field/method name
+**Target Completions** (showing setters):
+```
+ setName     String      Setter     [MS]
+ setAge      int         Setter     [MS]
+ title       String      Setter     [MS]  (builder-style)
+```
+
+**Multi-parameter Mapper** (showing parameters):
+```
+ person      Person      Parameter  [MS]
+ order       Order       Parameter  [MS]
+```
+
+- **Icon**: Different icons for fields (󰜢), getters (), setters (), and parameters ()
+- **Label**: Field/method/parameter name
 - **Type**: Simplified type name (e.g., "String" instead of "java.lang.String")
-- **Kind**: "Field" or "Method" indicating the member type
+- **Kind**: "Field", "Getter", "Setter", or "Parameter" indicating the member type
 - **Source**: `[MS]` badge indicating MapStruct completion source
 
 Hover over any completion item to see detailed documentation including:
@@ -34,7 +52,7 @@ Hover over any completion item to see detailed documentation including:
 - Full type with package
 - Source class and package
 - Complete path expression
-- Whether it's a field or getter method
+- Member kind (field, getter, setter, or parameter)
 
 ## Architecture
 
@@ -100,15 +118,48 @@ mapstruct = {
 
 ## Usage
 
-### Basic Example
+### Basic Examples
 
+**Source Mapping** - Shows getters and fields:
 ```java
 @Mapper
 public interface UserMapper {
-    // Type "user." and see field suggestions
+    // Type "user." and see getter/field suggestions
     @Mapping(source = "user.address.street", target = "streetName")
     @Mapping(source = "user.address.city", target = "cityName")
     UserDTO toDto(User user);
+}
+```
+
+**Target Mapping** - Shows setters and fields:
+```java
+@Mapper
+public interface UserMapper {
+    // Type in target and see setter suggestions (converted from getters)
+    @Mapping(source = "street", target = "user.address.street")
+    User fromDto(UserDTO dto);
+}
+```
+
+**Multi-parameter Mapper** - Shows parameter names first:
+```java
+@Mapper
+public interface PersonMapper {
+    // Empty path shows: "person", "order", "customName"
+    // Type "person." to navigate into Person fields
+    @Mapping(source = "person.firstName", target = "name")
+    @Mapping(source = "order.orderId", target = "orderReference")
+    CompletePersonDTO map(Person person, Order order, String customName);
+}
+```
+
+**@MappingTarget Support** - Handles void methods:
+```java
+@Mapper
+public interface UserMapper {
+    // Target completions use PersonDTO type from @MappingTarget parameter
+    @Mapping(source = "firstName", target = "name")
+    void updateDto(@MappingTarget PersonDTO dto, Person person);
 }
 ```
 
@@ -133,13 +184,23 @@ vim.keymap.set('n', '<leader>mp', ':MapStructPing<CR>', { desc = 'MapStruct: Pin
 
 ## How It Works
 
-1. **Trigger**: When you type a dot (`.`) in a Java file
-2. **Context Detection**: Treesitter parses the Java AST to check if you're in a `@Mapping` annotation
-3. **Class Resolution**: Extracts the source/target class from the method signature and resolves its fully qualified name
-4. **Path Extraction**: Determines what path you've typed so far (e.g., `user.address.`)
-5. **Server Request**: Sends request to Java server with class name and path
-6. **Response**: Server uses reflection to explore available fields and returns suggestions
-7. **Display**: Converts to blink.cmp format and displays in completion menu
+1. **Trigger**: When you type a dot (`.`) or any letter in a Java file within a MapStruct annotation
+2. **Context Detection**: Treesitter parses the Java AST to check if you're in a `@Mapping` or `@ValueMapping` annotation
+3. **Attribute Type Detection**: Determines if you're in `source`, `target`, or enum value context
+4. **Parameter Resolution**:
+   - For source mappings: Extracts all method parameters (excluding `@MappingTarget`)
+   - For target mappings: Uses method return type or `@MappingTarget` parameter type for void methods
+   - For multi-parameter mappers: Collects all source parameter names and types
+5. **Path Extraction**: Determines what path you've typed so far (e.g., `person.address.`)
+6. **Server Request**: Sends IPC request with:
+   - Source parameters with names and fully qualified types
+   - Path expression
+   - Whether it's an enum value mapping
+7. **Response**: Server uses reflection to:
+   - Navigate through the object graph following the path
+   - Return appropriate members: getters for source, setters for target, parameters for empty multi-param paths
+   - Apply automatic GETTER→SETTER conversion for target context
+8. **Display**: Converts to blink.cmp format with appropriate icons and kind labels
 
 ## Configuration Options
 
@@ -173,7 +234,7 @@ opts = {
 
 ### Server fails to start
 
-1. Check Java is installed: `java -version` (requires Java 17+)
+1. Check Java is installed: `java -version` (requires Java 25+)
 2. Verify jar file exists and is readable
 3. Check Neovim messages: `:messages`
 4. Try manual start to see errors:
@@ -220,7 +281,7 @@ Enable debug logging in `server.lua` by changing `vim.log.levels.DEBUG` to `vim.
 ## Requirements
 
 - Neovim 0.11+
-- Java 17+ (for Unix domain socket support)
+- Java 25+ (for Unix domain socket support and SequencedCollection support)
 - `mfussenegger/nvim-jdtls` (for automatic classpath resolution)
 - `saghen/blink.cmp`
 - Maven or Gradle project with MapStruct
