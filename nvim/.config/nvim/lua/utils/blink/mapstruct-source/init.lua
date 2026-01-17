@@ -54,9 +54,121 @@ function source:enabled()
     return filename:match("Mapper%.java$") ~= nil
 end
 
--- Trigger on dot character
+-- Trigger on dot character and letters (for typing inside annotation strings)
 function source:get_trigger_characters()
-    return { "." }
+    local chars = { "." }
+
+    -- Add a-z and A-Z to trigger completion when typing inside annotation strings
+    -- for i = string.byte("a"), string.byte("z") do
+    --     table.insert(chars, string.char(i))
+    -- end
+    -- for i = string.byte("A"), string.byte("Z") do
+    --     table.insert(chars, string.char(i))
+    -- end
+
+    return chars
+end
+
+-- Process completion results into blink.cmp items
+function source:process_completions(result, callback, completion_ctx)
+    if not result or not result.completions then
+        callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+        return
+    end
+
+    -- Helper function to simplify type names
+    local function simplify_type(type_name)
+        if not type_name then
+            return "Unknown"
+        end
+        -- Extract simple name from fully qualified name
+        -- e.g., "java.lang.String" -> "String"
+        local simple = type_name:match("%.([^%.]+)$") or type_name
+        return simple
+    end
+
+    -- Helper function to get full type with package
+    local function format_type_with_package(type_name)
+        if not type_name then
+            return "Unknown"
+        end
+        -- If it's a java.lang type, just show simple name
+        if type_name:match("^java%.lang%.") then
+            return simplify_type(type_name)
+        end
+        return type_name
+    end
+
+    -- Convert to blink.cmp items
+    local items = {}
+    local completions = result.completions or {}
+
+    for _, field_info in ipairs(completions) do
+        -- Use appropriate kind based on field kind
+        local kind
+        local kind_label
+
+        if field_info.kind == "PARAMETER" then
+            -- Method parameter - show as Variable
+            kind = require("blink.cmp.types").CompletionItemKind.Variable
+            kind_label = "Parameter"
+        elseif field_info.kind == "GETTER" then
+            -- Getter method - show as Field (MapStruct uses property notation)
+            kind = require("blink.cmp.types").CompletionItemKind.Field
+            kind_label = "Getter Method"
+        elseif field_info.kind == "SETTER" then
+            -- Setter method - show as Property (target mappings)
+            kind = require("blink.cmp.types").CompletionItemKind.Property
+            kind_label = "Setter Method"
+        else
+            -- FIELD or unknown - show as Field
+            kind = require("blink.cmp.types").CompletionItemKind.Field
+            kind_label = "Field"
+        end
+
+        local simple_type = simplify_type(field_info.type)
+        local full_type = format_type_with_package(field_info.type)
+
+        local item = {
+            label = field_info.name,
+            -- Show type in label_description column
+            labelDetails = {
+                description = simple_type,
+            },
+            kind = kind,
+            insertTextFormat = vim.lsp.protocol.InsertTextFormat.PlainText,
+            insertText = field_info.name,
+            -- Detailed documentation
+            documentation = {
+                kind = "markdown",
+                value = string.format(
+                    "**%s**: %s\n**Type:** `%s`\n**Kind:** %s%s%s\n**Path:** `%s%s`",
+                    kind_label,
+                    field_info.name,
+                    full_type,
+                    field_info.kind,
+                    result.simpleName and ("\n**Source Class:** `" .. result.simpleName .. "`") or "",
+                    result.packageName and ("\n**Package:** `" .. result.packageName .. "`") or "",
+                    completion_ctx and completion_ctx.path_expression or "",
+                    field_info.name
+                ),
+            },
+            -- Store additional data for potential future use
+            data = {
+                mapstruct_field_type = field_info.type,
+                mapstruct_field_kind = field_info.kind,
+                mapstruct_class_name = result.className,
+                mapstruct_package = result.packageName,
+            },
+        }
+        table.insert(items, item)
+    end
+
+    callback({
+        items = items,
+        is_incomplete_forward = false,
+        is_incomplete_backward = false,
+    })
 end
 
 -- Ensure server is running
@@ -136,108 +248,53 @@ function source:get_completions(ctx, callback)
         ipc_client.request("explore_path", request_params, function(result, err)
             if err then
                 log.warn("Request failed:", err)
+
+                -- If request failed, try to reconnect and retry once
+                if err == "Not connected" or err == "timeout" then
+                    log.info("Connection lost, attempting to restart server...")
+                    self.server_started = false
+                    server.cleanup()
+
+                    self:ensure_server_running(function(running)
+                        if running then
+                            log.info("Server restarted, retrying request...")
+                            ipc_client.request("explore_path", request_params, function(retry_result, retry_err)
+                                if retry_err then
+                                    log.error("Retry failed:", retry_err)
+                                    callback({
+                                        items = {},
+                                        is_incomplete_forward = false,
+                                        is_incomplete_backward = false,
+                                    })
+                                    return
+                                end
+
+                                if not retry_result or not retry_result.completions then
+                                    callback({
+                                        items = {},
+                                        is_incomplete_forward = false,
+                                        is_incomplete_backward = false,
+                                    })
+                                    return
+                                end
+
+                                -- Process successful retry
+                                self:process_completions(retry_result, callback, completion_ctx)
+                            end)
+                        else
+                            log.error("Failed to restart server")
+                            callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
+                        end
+                    end)
+                    return
+                end
+
                 callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
                 return
             end
 
-            if not result or not result.completions then
-                callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
-                return
-            end
-
-            -- Helper function to simplify type names
-            local function simplify_type(type_name)
-                if not type_name then
-                    return "Unknown"
-                end
-                -- Extract simple name from fully qualified name
-                -- e.g., "java.lang.String" -> "String"
-                local simple = type_name:match("%.([^%.]+)$") or type_name
-                return simple
-            end
-
-            -- Helper function to get full type with package
-            local function format_type_with_package(type_name)
-                if not type_name then
-                    return "Unknown"
-                end
-                -- If it's a java.lang type, just show simple name
-                if type_name:match("^java%.lang%.") then
-                    return simplify_type(type_name)
-                end
-                return type_name
-            end
-
-            -- Convert to blink.cmp items
-            local items = {}
-            local completions = result.completions or {}
-
-            for _, field_info in ipairs(completions) do
-                -- Use appropriate kind based on field kind
-                local kind
-                local kind_label
-
-                if field_info.kind == "PARAMETER" then
-                    -- Method parameter - show as Variable
-                    kind = require("blink.cmp.types").CompletionItemKind.Variable
-                    kind_label = "Parameter"
-                elseif field_info.kind == "GETTER" then
-                    -- Getter method - show as Field (MapStruct uses property notation)
-                    kind = require("blink.cmp.types").CompletionItemKind.Field
-                    kind_label = "Getter Method"
-                elseif field_info.kind == "SETTER" then
-                    -- Setter method - show as Property (target mappings)
-                    kind = require("blink.cmp.types").CompletionItemKind.Property
-                    kind_label = "Setter Method"
-                else
-                    -- FIELD or unknown - show as Field
-                    kind = require("blink.cmp.types").CompletionItemKind.Field
-                    kind_label = "Field"
-                end
-
-                local simple_type = simplify_type(field_info.type)
-                local full_type = format_type_with_package(field_info.type)
-
-                local item = {
-                    label = field_info.name,
-                    -- Show type in label_description column
-                    labelDetails = {
-                        description = simple_type,
-                    },
-                    kind = kind,
-                    insertTextFormat = vim.lsp.protocol.InsertTextFormat.PlainText,
-                    insertText = field_info.name,
-                    -- Detailed documentation
-                    documentation = {
-                        kind = "markdown",
-                        value = string.format(
-                            "**%s**: %s\n**Type:** `%s`\n**Kind:** %s%s%s\n**Path:** `%s%s`",
-                            kind_label,
-                            field_info.name,
-                            full_type,
-                            field_info.kind,
-                            result.simpleName and ("\n**Source Class:** `" .. result.simpleName .. "`") or "",
-                            result.packageName and ("\n**Package:** `" .. result.packageName .. "`") or "",
-                            completion_ctx.path_expression,
-                            field_info.name
-                        ),
-                    },
-                    -- Store additional data for potential future use
-                    data = {
-                        mapstruct_field_type = field_info.type,
-                        mapstruct_field_kind = field_info.kind,
-                        mapstruct_class_name = result.className,
-                        mapstruct_package = result.packageName,
-                    },
-                }
-                table.insert(items, item)
-            end
-
-            callback({
-                items = items,
-                is_incomplete_forward = false,
-                is_incomplete_backward = false,
-            })
+            -- Process completions and return items
+            self:process_completions(result, callback, completion_ctx)
         end)
     end)
 

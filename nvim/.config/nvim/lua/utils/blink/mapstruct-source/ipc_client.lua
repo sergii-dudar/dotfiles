@@ -86,9 +86,13 @@ local function send_heartbeat()
     end
 
     M.request("heartbeat", {}, function(result, err)
-        if err and err ~= "timeout" then
-            log.warn("Heartbeat failed, reconnecting...")
-            vim.notify("[MapStruct] Heartbeat failed, reconnecting...", vim.log.levels.WARN)
+        if err then
+            log.warn("Heartbeat failed:", err)
+            -- Disconnect so the next request will trigger reconnection
+            M.disconnect()
+            vim.schedule(function()
+                vim.notify("[MapStruct] Connection lost - will reconnect on next request", vim.log.levels.WARN)
+            end)
         end
     end)
 end
