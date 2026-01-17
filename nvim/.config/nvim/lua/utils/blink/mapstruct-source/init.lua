@@ -178,14 +178,56 @@ function source:ensure_server_running(callback)
         return
     end
 
+    -- If server_started is true but server is not actually running, it means it crashed
+    -- Reset the flag so we can restart
+    if self.server_started and not server.is_running() then
+        log.warn("Server was marked as started but is not running - resetting flag")
+        self.server_started = false
+    end
+
     if self.server_started then
         -- Server is starting, wait a bit
         vim.defer_fn(function()
-            callback(server.is_running() and ipc_client.is_connected())
+            local is_running = server.is_running() and ipc_client.is_connected()
+            if not is_running then
+                log.warn("Server failed to start within timeout")
+                self.server_started = false -- Reset flag if startup failed
+            end
+            callback(is_running)
         end, 500)
         return
     end
 
+    -- If using jdtls classpath, wait for jdtls to be ready first
+    if self.use_jdtls_classpath then
+        local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+        if not classpath_util.is_jdtls_ready() then
+            log.warn("jdtls is not ready yet - cannot start server without complete classpath")
+
+            -- Don't start server with incomplete classpath
+            -- Just return false and user can try again after jdtls is ready
+            callback(false)
+
+            -- Show notification only once per session
+            if not self._jdtls_warning_shown then
+                self._jdtls_warning_shown = true
+                vim.notify(
+                    "[MapStruct] Waiting for jdtls to initialize. Please try completion again in a moment.",
+                    vim.log.levels.WARN
+                )
+            end
+            return
+        end
+
+        -- Reset warning flag when jdtls is ready
+        self._jdtls_warning_shown = false
+    end
+
+    self:start_server_internal(callback)
+end
+
+-- Internal method to actually start the server (after jdtls check)
+function source:start_server_internal(callback)
     self.server_started = true
 
     server.start(self.jar_path, {
@@ -194,9 +236,12 @@ function source:ensure_server_running(callback)
         classpath = self.opts.classpath,
     }, function(success, err)
         if not success then
+            log.error("Failed to start server:", err)
             vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
+            self.server_started = false -- Reset flag on failure
             callback(false)
         else
+            log.info("Server started successfully")
             callback(true)
         end
     end)
@@ -221,6 +266,7 @@ function source:get_completions(ctx, callback)
     -- Ensure server is running
     self:ensure_server_running(function(running)
         if not running then
+            log.error("Server is not running - cannot provide completions")
             callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
             return
         end
@@ -252,8 +298,17 @@ function source:get_completions(ctx, callback)
                 -- If request failed, try to reconnect and retry once
                 if err == "Not connected" or err == "timeout" then
                     log.info("Connection lost, attempting to restart server...")
+
+                    -- Reset state
                     self.server_started = false
                     server.cleanup()
+
+                    -- Clear classpath cache to get fresh classpath on restart
+                    if self.use_jdtls_classpath then
+                        local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+                        classpath_util.clear_cache()
+                        log.info("Cleared classpath cache for server restart")
+                    end
 
                     self:ensure_server_running(function(running)
                         if running then
@@ -314,13 +369,22 @@ end
 -- Setup user commands for debugging and control
 vim.api.nvim_create_user_command("MapStructStatus", function()
     local status = server.get_status()
+    local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+    local jdtls_ready = classpath_util.is_jdtls_ready()
+
     print("MapStruct Server Status:")
-    print("  Running: " .. tostring(status.running))
-    print("  Starting: " .. tostring(status.starting))
+    print("  Server Running: " .. tostring(status.running))
+    print("  Server Starting: " .. tostring(status.starting))
     print("  Socket: " .. (status.socket_path or "N/A"))
     print("  Jar: " .. (status.jar_path or "N/A"))
-    print("  Connected: " .. tostring(status.ipc_status.connected))
+    print("  IPC Connected: " .. tostring(status.ipc_status.connected))
     print("  Pending Requests: " .. (status.ipc_status.pending_requests or 0))
+    print("")
+    print("jdtls Status:")
+    print("  Ready: " .. tostring(jdtls_ready))
+    if not jdtls_ready then
+        print("  Note: Server will not start until jdtls is ready")
+    end
 end, { desc = "Show MapStruct server status" })
 
 vim.api.nvim_create_user_command("MapStructRestart", function()

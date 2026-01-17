@@ -12,6 +12,46 @@ local classpath_cache = {
 }
 local CACHE_TTL_MS = 60000 -- 1 minute cache
 
+-- Check if jdtls is ready and can provide classpath
+function M.is_jdtls_ready(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+    -- Check if jdtls client is attached
+    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
+    if not clients or #clients == 0 then
+        log.debug("jdtls not attached")
+        return false
+    end
+
+    local client = clients[1]
+
+    -- Check if client is initialized
+    if not client.initialized then
+        log.debug("jdtls not initialized")
+        return false
+    end
+
+    -- Try a quick test to see if we can get projects
+    local projects_result, projects_err = client:request_sync("workspace/executeCommand", {
+        command = "java.project.getAll",
+        arguments = {},
+    }, 2000, bufnr)
+
+    if projects_err or not projects_result or not projects_result.result then
+        log.debug("jdtls not ready - cannot get projects")
+        return false
+    end
+
+    local project_uris = projects_result.result
+    if type(project_uris) ~= "table" or #project_uris == 0 then
+        log.debug("jdtls ready but no projects loaded yet")
+        return false
+    end
+
+    log.debug("jdtls is ready with", #project_uris, "projects")
+    return true
+end
+
 -- Deduplicate classpath entries (remove duplicates while preserving order)
 local function deduplicate_classpaths(classpaths)
     local seen = {}
