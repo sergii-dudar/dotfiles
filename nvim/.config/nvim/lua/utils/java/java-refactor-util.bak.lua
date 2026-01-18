@@ -359,7 +359,9 @@ M.process_registerd_changes = function()
     else
         -- dd(all_registered_changes)
         local global_cmds_table = {}
-        for _, value in list_util.sorted_iter(all_registered_changes) do
+        -- for _, value in ipairs(all_registered_changes) do
+        for i = #all_registered_changes, 1, -1 do
+            local value = all_registered_changes[i]
             value.siblings = get_all_src_siblings(value, all_registered_changes)
             local change_cmd = build_fix_java_proj_after_change_cmd(value)
             if change_cmd then

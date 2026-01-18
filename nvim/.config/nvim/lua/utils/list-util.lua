@@ -62,19 +62,27 @@ M.to_unique_list = function(tbl)
     return unique
 end
 
---- Return iterator that during interation will use exactly same order that was used when items in table was inserted.
-M.sorted_iter = function(list)
-    local i = {}
-    for k in next, list do
-        table.insert(i, k)
-    end
-    table.sort(i)
-    return function()
-        local k = table.remove(i)
-        if k ~= nil then
-            return k, list[k]
-        end
-    end
+--[[ local logging = require("utils.logging-util")
+local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })
+
+local tab = {}
+table.insert(tab, "1")
+table.insert(tab, "2")
+table.insert(tab, "3")
+table.insert(tab, "4")
+table.insert(tab, "5")
+
+for _, value in ipairs(tab) do
+    print(_)
+    log.debug(_)
 end
+
+log.debug("---")
+for i = #tab, 1, -1 do
+    local value = tab[i]
+    print(i)
+    log.debug(i)
+end
+log.debug("++++") ]]
 
 return M

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# OLD_DIR="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service"
-# OLD_PACKAGE="com.example.EmployeeManagementSystem.service"
-# NEW_PACKAGE="com.example.EmployeeManagementSystem.service.impl"
+# OLD_DIR="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/dsm/corp/EmployeeManagementSystem/service"
+# OLD_PACKAGE="ua.dsm.corp.EmployeeManagementSystem.service"
+# NEW_PACKAGE="ua.dsm.corp.EmployeeManagementSystem.service.impl"
 #
-# NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
+# NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/ua/dsm/corp/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
 #
 # OLD_TYPE_NAME="MarkerInterface"
 # NEW_TYPE_NAME="MarkerInterfaceUser"

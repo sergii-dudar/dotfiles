@@ -6,3 +6,5 @@ M.dotfiles_path = function(relative_path)
 end
 
 _G.global = M
+
+return M
