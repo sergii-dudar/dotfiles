@@ -20,6 +20,9 @@ local logging = require("utils.logging-util")
 -- Create logger for java refactoring
 local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })
 
+-- Test mode: when true, executes commands directly without UI
+M.test_mode = false
+
 ---@class java.rejactor.FileMove
 ---@field src string
 ---@field dst string
@@ -171,12 +174,13 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
             local sibling_package_declaration_dst = sibling_package_dst_classpath:match("(.+)%.%w+$")
 
             local fix_type_sibling_where_using = string.format(
-                '"%s" "%s" "%s" "%s" "%s"',
+                '"%s" "%s" "%s" "%s" "%s" "%s"',
                 global.dotfiles_path("work/java/remane/fix-java-sibling-usage.sh"),
                 dst, -- FILE_PATH_TO_APPLY_FIX
-                sibling_package_declaration_dst, -- NEW_PACKAGE
+                sibling_package_declaration_dst, -- NEW_PACKAGE (sibling's destination)
                 sibling_old_type_name, -- OLD_TYPE_NAME
-                sibling_new_type_name -- NEW_TYPE_NAME
+                sibling_new_type_name, -- NEW_TYPE_NAME
+                package_declaration_dst -- FILE_DST_PACKAGE (current file's destination)
             )
             -- vim.notify(fix_type_sibling_where_using)
             table.insert(result_cmds, fix_type_sibling_where_using)
@@ -211,6 +215,18 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     )
     -- vim.notify(fix_package_declaration)
     table.insert(result_cmds, fix_package_declaration)
+
+    -- ==========================================================================
+    -- ==========================================================================
+    -- 4.1. Remove imports from the same package (they're unnecessary)
+    local package_declaration_dst_escaped = package_declaration_dst:gsub("%.", "\\.")
+    local remove_same_package_imports = string.format(
+        "sed %s '/^import %s\\./d' %s",
+        sed_inplace_flag,
+        package_declaration_dst_escaped,
+        dst
+    )
+    table.insert(result_cmds, remove_same_package_imports)
 
     -- ==========================================================================
     -- ==========================================================================
@@ -390,32 +406,48 @@ end
 M.process_registerd_changes = function()
     if vim.tbl_isempty(all_registered_changes) then
         log.warn("No registered changes to process")
-        vim.notify("No any registered changes")
-    else
-        log.info("Starting processing of", #all_registered_changes, "registered changes")
-        log.debug("All registered changes:", all_registered_changes)
-        -- dd(all_registered_changes)
-        local global_cmds_table = {}
-        for _, value in list_util.sorted_iter(all_registered_changes) do
-            value.siblings = get_all_src_siblings(value, all_registered_changes)
-            if value.siblings and #value.siblings > 0 then
-                log.debug("Found", #value.siblings, "siblings for", value.src)
-            end
-            local change_cmd = build_fix_java_proj_after_change_cmd(value)
-            if change_cmd then
-                log.debug("Adding command for:", value.dst)
-                table.insert(global_cmds_table, change_cmd)
-            end
+        if not M.test_mode then
+            vim.notify("No any registered changes")
         end
-        log.info("Total commands to execute:", #global_cmds_table)
-        local global_cmd_run = table.concat(global_cmds_table, " && ")
-        log.debug("Full command chain length:", #global_cmd_run, "characters")
-        -- vim.notify(global_cmd_run)
-        -- vim.notify(table.concat(global_cmds_table, "\n# "))
-        run_cmd(global_cmd_run)
+        return nil
     end
+
+    log.info("Starting processing of", #all_registered_changes, "registered changes")
+    log.debug("All registered changes:", all_registered_changes)
+    -- dd(all_registered_changes)
+    local global_cmds_table = {}
+    for _, value in list_util.sorted_iter(all_registered_changes) do
+        value.siblings = get_all_src_siblings(value, all_registered_changes)
+        if value.siblings and #value.siblings > 0 then
+            log.debug("Found", #value.siblings, "siblings for", value.src)
+        end
+        local change_cmd = build_fix_java_proj_after_change_cmd(value)
+        if change_cmd then
+            log.debug("Adding command for:", value.dst)
+            table.insert(global_cmds_table, change_cmd)
+        end
+    end
+    log.info("Total commands to execute:", #global_cmds_table)
+    local global_cmd_run = table.concat(global_cmds_table, " && ")
+    log.debug("Full command chain length:", #global_cmd_run, "characters")
+
+    -- In test mode, execute directly and return result
+    if M.test_mode then
+        log.info("Test mode: executing commands directly")
+        log.debug("Command:", global_cmd_run)
+        local exit_code = os.execute(global_cmd_run)
+        log.info("Command execution completed with exit code:", exit_code)
+        all_registered_changes = {}
+        return exit_code == 0 or exit_code == true
+    end
+
+    -- Normal mode: use UI
+    -- vim.notify(global_cmd_run)
+    -- vim.notify(table.concat(global_cmds_table, "\n# "))
+    run_cmd(global_cmd_run)
     log.info("Clearing registered changes")
     all_registered_changes = {}
+    return true
 end
 
 ---@param src string

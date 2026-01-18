@@ -45,16 +45,30 @@ if [[ -d "$OLD_DIR" ]]; then
     LAST_IMPORT_LINE=$(rg -n '^import ' "$NEW_FILE_PATH" | tail -n 1 | cut -d: -f1)
     LAST_IMPORT_LINE=${LAST_IMPORT_LINE:-2}
 
-    fd --color=never -e java --max-depth 1 . "$OLD_DIR" \
-        -x basename {} .java | while read -r filename; do
+    # Get the package of the file being fixed
+    file_package=$(rg -m1 '^package ' "$NEW_FILE_PATH" | sed 's/package \(.*\);/\1/' | xargs)
+
+    # Note: We append all imports at the same line number (after last import)
+    # Each append automatically shifts subsequent lines, so they stack correctly
+    while read -r filename; do
         # echo "$filename"
         if rg -q "(^|[[:space:],;(}<])${filename}($|[[:space:],;(}\\.>])" "$NEW_FILE_PATH"; then
-            # echo "$filename"
-            ((LAST_IMPORT_LINE++))
-            import_line="import ${OLD_PACKAGE}.${filename};"
-            $SED_INPLACE "${LAST_IMPORT_LINE}i\\${import_line}" "$NEW_FILE_PATH"
+            # Only add import if not in the same package
+            if [[ "$file_package" != "$OLD_PACKAGE" ]]; then
+                import_line="import ${OLD_PACKAGE}.${filename};"
+                # Use append command with proper syntax for each OS
+                if [[ "$(uname)" == "Darwin" ]]; then
+                    # BSD sed requires literal newline in the command
+                    sed -i '' "${LAST_IMPORT_LINE}a\\
+${import_line}
+" "$NEW_FILE_PATH"
+                else
+                    # GNU sed can use escape sequence
+                    sed -i "${LAST_IMPORT_LINE}a\\${import_line}" "$NEW_FILE_PATH"
+                fi
+            fi
         fi
-    done
+    done < <(fd --color=never -e java --max-depth 1 . "$OLD_DIR" -x basename {} .java)
 
     # import moved java file to java files in old package in case using
     fd --color=never -e java --max-depth 1 . "$OLD_DIR" | while read -r filename; do
