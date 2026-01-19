@@ -6,7 +6,7 @@
 --  󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
 --  󰱒 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
 
--- NOTE: - Dependencies: ripgrep, fd, sed, work/java/remane/fix-java-sibling-usage.sh, work/java/remane/fix-old-imports.sh
+-- NOTE: - Dependencies: ripgrep, fd, sed (gsed in case macos (gnu-sed))
 
 local M = {}
 
@@ -17,6 +17,8 @@ local list_util = require("utils.list-util")
 local buffer_util = require("utils.buffer-util")
 local logging = require("utils.logging-util")
 local global = require("utils.global-util")
+local import_fixer = require("utils.java.refactor.import-fixer")
+local sibling_usage_fixer = require("utils.java.refactor.sibling-usage-fixer")
 
 -- Create logger for java refactoring
 local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })
@@ -90,10 +92,17 @@ local function get_project_root()
     return vim.fn.getcwd()
 end
 
--- Detect OS and set appropriate sed -i flag
--- macOS (BSD sed) requires -i '' while Linux (GNU sed) uses -i
-local sed_inplace_flag = vim.loop.os_uname().sysname == "Darwin" and "-i ''" or "-i"
-log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed flag:", sed_inplace_flag)
+-- Use GNU sed on both platforms for consistent behavior
+-- macOS: gsed (installed via brew install gnu-sed)
+-- Linux: sed (already GNU sed)
+local sed = vim.loop.os_uname().sysname == "Darwin" and "gsed" or "sed"
+log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed command:", sed)
+
+---@class RefactorOperation
+---@field type "shell"|"lua"
+---@field command? string Shell command to execute
+---@field fn? function Lua function to call
+---@field description string Description for logging
 
 ---@param result_cmds table
 ---@param root string
@@ -149,14 +158,18 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 1. fix type decration in changed file.
     local fix_type_declaration_cmd = string.format(
-        "sed %s -E 's/(class|interface|enum|record) %s[[:space:]]/\\1 %s /g' %s",
-        sed_inplace_flag,
+        "%s -i -E 's/(class|interface|enum|record) %s[[:space:]]/\\1 %s /g' %s",
+        sed,
         old_type_name,
         new_type_name,
         dst
     )
     -- vim.notify(fix_type_declaration_cmd)
-    table.insert(result_cmds, fix_type_declaration_cmd)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_type_declaration_cmd,
+        description = "Fix type declaration: " .. old_type_name .. " -> " .. new_type_name,
+    })
 
     -- ==========================================================================
     -- ==========================================================================
@@ -164,14 +177,18 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_type_symbols_where_imported = string.format(
         "rg --color=never -l 'import\\s+%s' "
             .. get_project_root()
-            .. " | xargs sed %s -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+            .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
         package_src_classpath_escaped,
-        sed_inplace_flag,
+        sed,
         old_type_name,
         new_type_name
     )
     -- vim.notify(fix_type_symbols_where_imported)
-    table.insert(result_cmds, fix_type_symbols_where_imported)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_type_symbols_where_imported,
+        description = "Fix type symbols where imported",
+    })
 
     -- ==========================================================================
     -- ==========================================================================
@@ -193,17 +210,20 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
             -- com.example.EmployeeManagementSystem.service
             local sibling_package_declaration_dst = sibling_package_dst_classpath:match("(.+)%.%w+$")
 
-            local fix_type_sibling_where_using = string.format(
-                '"%s" "%s" "%s" "%s" "%s" "%s"',
-                global.dotfiles_path("work/java/remane/fix-java-sibling-usage.sh"),
-                dst, -- FILE_PATH_TO_APPLY_FIX
-                sibling_package_declaration_dst, -- NEW_PACKAGE (sibling's destination)
-                sibling_old_type_name, -- OLD_TYPE_NAME
-                sibling_new_type_name, -- NEW_TYPE_NAME
-                package_declaration_dst -- FILE_DST_PACKAGE (current file's destination)
-            )
-            -- vim.notify(fix_type_sibling_where_using)
-            table.insert(result_cmds, fix_type_sibling_where_using)
+            -- Call Lua function directly!
+            table.insert(result_cmds, {
+                type = "lua",
+                description = "Fix sibling usage: " .. sibling_old_type_name,
+                fn = function()
+                    return sibling_usage_fixer.fix_sibling_usage({
+                        file_path = dst,
+                        new_package = sibling_package_declaration_dst,
+                        old_type_name = sibling_old_type_name,
+                        new_type_name = sibling_new_type_name,
+                        file_dst_package = package_declaration_dst,
+                    })
+                end,
+            })
         end
     end
 
@@ -213,36 +233,48 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_type_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
             .. get_project_root()
-            .. " | xargs sed %s -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
-        -- sed %s -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
+            .. " | xargs %s -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+        -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
-        sed_inplace_flag,
+        sed,
         package_src_classpath_escaped,
         package_dst_classpath
     )
     -- vim.notify(fix_type_symbols_where_imported)
-    table.insert(result_cmds, fix_type_full_qualified_names)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_type_full_qualified_names,
+        description = "Fix type full qualified names",
+    })
 
     -- ==========================================================================
     -- ==========================================================================
     -- 4. fix packaged decration in changed file.
     local fix_package_declaration = string.format(
-        "sed %s -E 's/package[[:space:]]+%s;/package %s;/g' %s",
-        sed_inplace_flag,
+        "%s -i -E 's/package[[:space:]]+%s;/package %s;/g' %s",
+        sed,
         package_declaration_src_escaped,
         package_declaration_dst,
         dst
     )
     -- vim.notify(fix_package_declaration)
-    table.insert(result_cmds, fix_package_declaration)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_package_declaration,
+        description = "Fix package declaration",
+    })
 
     -- ==========================================================================
     -- ==========================================================================
     -- 4.1. Remove imports from the same package (they're unnecessary)
     local package_declaration_dst_escaped = package_declaration_dst:gsub("%.", "\\.")
     local remove_same_package_imports =
-        string.format("sed %s '/^import %s\\./d' %s", sed_inplace_flag, package_declaration_dst_escaped, dst)
-    table.insert(result_cmds, remove_same_package_imports)
+        string.format("%s -i '/^import %s\\./d' %s", sed, package_declaration_dst_escaped, dst)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = remove_same_package_imports,
+        description = "Remove same-package imports",
+    })
 
     -- ==========================================================================
     -- ==========================================================================
@@ -262,22 +294,23 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
             end
         end
     end
-    local sibling_types_str = table.concat(sibling_types, ",")
 
-    local fix_old_file_imports = string.format(
-        '"%s" "%s" "%s" "%s" "%s" "%s" "%s" "%s"',
-        global.dotfiles_path("work/java/remane/fix-old-imports.sh"),
-        src:match("(.+)/[^/]+$"), -- OLD_DIR
-        package_declaration_src, -- OLD_PACKAGE
-        package_declaration_dst, -- NEW_PACKAGE
-        dst, -- NEW_FILE_PATH
-        old_type_name, -- OLD_TYPE_NAME
-        new_type_name, -- NEW_TYPE_NAME
-        sibling_types_str -- SIBLING_TYPES (comma-separated)
-    )
-    log.debug("Import fix command with siblings:", sibling_types_str)
-    -- vim.notify(fix_old_file_imports)
-    table.insert(result_cmds, fix_old_file_imports)
+    -- Call Lua function directly!
+    table.insert(result_cmds, {
+        type = "lua",
+        description = "Fix old package imports for: " .. old_type_name,
+        fn = function()
+            return import_fixer.fix_old_package_imports({
+                old_dir = src:match("(.+)/[^/]+$"),
+                old_package = package_declaration_src,
+                new_package = package_declaration_dst,
+                new_file_path = dst,
+                old_type_name = old_type_name,
+                new_type_name = new_type_name,
+                siblings = sibling_types,
+            })
+        end,
+    })
     -- ==========================================================================
     -- ==========================================================================
     -- 6. fix file path/resources path
@@ -285,14 +318,18 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     local fix_file_paht_declaration = string.format(
         "rg --color=never -l '%s' "
             .. get_project_root()
-            .. " | xargs sed %s -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
-        sed_inplace_flag,
+        sed,
         package_src_path_escaped,
         package_dst_path_escaped
     )
     -- vim.notify(fix_file_paht_declaration)
-    table.insert(result_cmds, fix_file_paht_declaration)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_file_paht_declaration,
+        description = "Fix file path/resources path",
+    })
 end
 
 ---@param result_cmds table
@@ -324,7 +361,12 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- Minimum package depth check - avoid overly broad replacements
     local src_depth = select(2, package_src_classpath:gsub("%.", "")) + 1
     if src_depth < 2 then
-        log.warn("Skipping overly broad package replacement:", package_src_classpath, "-> only affects depth", src_depth)
+        log.warn(
+            "Skipping overly broad package replacement:",
+            package_src_classpath,
+            "-> only affects depth",
+            src_depth
+        )
         log.warn("This would be too dangerous. Please move more specific subdirectories instead.")
         return
     end
@@ -340,17 +382,30 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- ==========================================================================
     -- ==========================================================================
     -- 1. fix package full qualified names (across all files - java,yaml,properties etc)
+    -- IMPORTANT: Pattern must match:
+    --   - com.example.service; (package declaration)
+    --   - com.example.service.ClassName (import with class name - dot + uppercase)
+    --   - com.example.service"  (string literal)
+    -- But NOT match:
+    --   - com.example.service.impl (subpackage - dot + lowercase)
+    -- Solution: Match ([;$"[:space:]]|\.[A-Z]|$)
+    --   - The \.[A-Z] captures dot + uppercase letter (class name start)
+    --   - The \1 in replacement preserves whatever was captured
     local fix_package_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
             .. get_project_root()
-            .. " | xargs sed %s -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs %s -i -E 's/%s([;$\"[:space:]]|\\.[A-Z]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
-        sed_inplace_flag,
+        sed,
         package_src_classpath_escaped,
         package_dst_classpath
     )
     log.debug("Package replacement command:", fix_package_full_qualified_names)
-    table.insert(result_cmds, fix_package_full_qualified_names)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_package_full_qualified_names,
+        description = "Fix package full qualified names: " .. package_src_classpath .. " -> " .. package_dst_classpath,
+    })
 
     -- ==========================================================================
     -- ==========================================================================
@@ -358,13 +413,17 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     local fix_file_paht_declaration = string.format(
         "rg --color=never -l '%s' "
             .. get_project_root()
-            .. " | xargs sed %s -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs %s -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
-        sed_inplace_flag,
+        sed,
         package_src_path_escaped,
         package_dst_path_escaped
     )
-    table.insert(result_cmds, fix_file_paht_declaration)
+    table.insert(result_cmds, {
+        type = "shell",
+        command = fix_file_paht_declaration,
+        description = "Fix package path/resources path",
+    })
 end
 
 ---@param context java.rejactor.FileMove
@@ -390,7 +449,7 @@ end
 
 --- Fix java project after remaning java file, or package name
 ---@param context java.rejactor.FileMove
----@return string|nil
+---@return RefactorOperation[]|nil
 local build_fix_java_proj_after_change_cmd = function(context)
     if not context.src:match("src/.*/java/") then
         return nil
@@ -398,14 +457,8 @@ local build_fix_java_proj_after_change_cmd = function(context)
     if not context.dst:match("src/.*/java/") then
         return nil
     end
-    local cmds = build_fix_java_proj_after_change_cmds(context) --  -- src, dst
-    -- dd(cmds)
-    local cmd_to_run = table.concat(cmds, " && ")
-    -- dd(cmd_to_run)
-
-    -- vim.notify(cmd_to_run)
-    return cmd_to_run
-    -- run_cmd(cmd_to_run)
+    local operations = build_fix_java_proj_after_change_cmds(context)
+    return operations
 end
 
 local all_registered_changes = {}
@@ -446,14 +499,14 @@ M.process_registerd_changes = function()
         return nil
     end
 
-    log.debug(">>>>>+++++++++++++++++++++++++++++++++")
+    --[[ log.debug(">>>>>+++++++++++++++++++++++++++++++++")
     log.debug("first: " .. all_registered_changes[1].src)
     log.debug("last: " .. all_registered_changes[#all_registered_changes].src)
     log.debug("all: ")
     for _, value in ipairs(all_registered_changes) do
         log.debug(value.src)
     end
-    log.debug("<<<<<+++++++++++++++++++++++++++++++++")
+    log.debug("<<<<<+++++++++++++++++++++++++++++++++") ]]
 
     log.info("Starting processing of", #all_registered_changes, "registered changes")
     log.debug("All registered changes:", all_registered_changes)
@@ -482,7 +535,7 @@ M.process_registerd_changes = function()
                         table.insert(opened_buffers_to_reopen, {
                             old_path = file_path,
                             new_path = new_path,
-                            buf_id = buf_id
+                            buf_id = buf_id,
                         })
                         log.info("Will reopen buffer:", file_path, "->", new_path)
                     else
@@ -500,7 +553,7 @@ M.process_registerd_changes = function()
                 table.insert(opened_buffers_to_reopen, {
                     old_path = change.src,
                     new_path = change.dst,
-                    buf_id = buf_id
+                    buf_id = buf_id,
                 })
                 log.info("Will reopen buffer:", change.src, "->", change.dst)
             else
@@ -552,7 +605,7 @@ M.process_registerd_changes = function()
                             table.insert(opened_buffers_to_reopen, {
                                 old_path = file_path,
                                 new_path = new_path,
-                                buf_id = buf_id
+                                buf_id = buf_id,
                             })
                             log.info("Will reopen test buffer:", file_path, "->", new_path)
                         end
@@ -566,7 +619,7 @@ M.process_registerd_changes = function()
                     table.insert(opened_buffers_to_reopen, {
                         old_path = mirror.src,
                         new_path = mirror.dst,
-                        buf_id = buf_id
+                        buf_id = buf_id,
                     })
                     log.info("Will reopen test buffer:", mirror.src, "->", mirror.dst)
                 end
@@ -672,7 +725,7 @@ M.process_registerd_changes = function()
                 table.insert(package_moves, {
                     change = change,
                     depth = package_depth,
-                    package_path = package_path
+                    package_path = package_path,
                 })
                 log.debug("Found package move:", package_path, "depth:", package_depth)
             end
@@ -682,150 +735,10 @@ M.process_registerd_changes = function()
     -- ENHANCEMENT: Infer directory moves from file moves
     -- This is needed when using file managers like fyler.nvim that only register file moves
     -- Strategy: Find the common ancestor package directory for all file moves
+    -- IMPORTANT: Only infer package moves when multiple files are being moved together
+    -- Single file moves should be processed as file-level moves, not package moves
     if #package_moves == 0 then
-        log.info("No explicit directory moves found, attempting to infer from file moves")
-
-        -- Extract package paths for all file moves
-        local src_packages = {}
-        local dst_packages = {}
-        local file_count = 0
-
-        for _, change in ipairs(all_registered_changes) do
-            if change.src:match("%.java$") then
-                -- Find which package root this file belongs to
-                local root_match = nil
-                for _, root in ipairs(package_roots) do
-                    if string_util.contains(change.src, root) then
-                        root_match = root
-                        break
-                    end
-                end
-
-                if root_match then
-                    -- Extract package path after the root
-                    -- e.g., "ua/example/service/ServiceA.java" -> "ua/example/service"
-                    local src_relative = vim.split(change.src, root_match)[2]
-                    local dst_relative = vim.split(change.dst, root_match)[2]
-
-                    -- Remove filename to get directory
-                    local src_dir = src_relative:match("(.+)/[^/]+$")
-                    local dst_dir = dst_relative:match("(.+)/[^/]+$")
-
-                    if src_dir and dst_dir then
-                        src_packages[src_dir] = true
-                        dst_packages[dst_dir] = true
-                        file_count = file_count + 1
-                    end
-                end
-            end
-        end
-
-        if file_count > 0 then
-            -- Find the common prefix for all source packages
-            local src_list = {}
-            for pkg, _ in pairs(src_packages) do
-                table.insert(src_list, pkg)
-            end
-            table.sort(src_list)
-
-            -- Find common prefix of all source packages
-            local common_src = src_list[1]
-            for i = 2, #src_list do
-                local pkg = src_list[i]
-                -- Find common prefix between common_src and pkg
-                local min_len = math.min(#common_src, #pkg)
-                local common_len = 0
-                for j = 1, min_len do
-                    if common_src:sub(j, j) == pkg:sub(j, j) then
-                        common_len = j
-                    else
-                        break
-                    end
-                end
-                -- Truncate to last complete directory (not partial)
-                -- If we stopped mid-directory, find the last slash before that point
-                common_src = common_src:sub(1, common_len)
-                -- Only strip back if we ended mid-directory (not on a slash)
-                if common_len > 0 and common_src:sub(common_len, common_len) ~= "/" then
-                    local last_slash = common_src:match("^.*()/")
-                    if last_slash and last_slash > 1 then
-                        common_src = common_src:sub(1, last_slash - 1)
-                    end
-                else
-                    -- Remove trailing slash if present
-                    common_src = common_src:gsub("/$", "")
-                end
-            end
-
-            -- Find common prefix for all destination packages
-            local dst_list = {}
-            for pkg, _ in pairs(dst_packages) do
-                table.insert(dst_list, pkg)
-            end
-            table.sort(dst_list)
-
-            local common_dst = dst_list[1]
-            for i = 2, #dst_list do
-                local pkg = dst_list[i]
-                local min_len = math.min(#common_dst, #pkg)
-                local common_len = 0
-                for j = 1, min_len do
-                    if common_dst:sub(j, j) == pkg:sub(j, j) then
-                        common_len = j
-                    else
-                        break
-                    end
-                end
-                -- Truncate to last complete directory (not partial)
-                common_dst = common_dst:sub(1, common_len)
-                -- Only strip back if we ended mid-directory (not on a slash)
-                if common_len > 0 and common_dst:sub(common_len, common_len) ~= "/" then
-                    local last_slash = common_dst:match("^.*()/")
-                    if last_slash and last_slash > 1 then
-                        common_dst = common_dst:sub(1, last_slash - 1)
-                    end
-                else
-                    -- Remove trailing slash if present
-                    common_dst = common_dst:gsub("/$", "")
-                end
-            end
-
-            if common_src and common_dst and common_src ~= common_dst then
-                log.info(
-                    "Inferred common package move from",
-                    file_count,
-                    "files:",
-                    common_src,
-                    "->",
-                    common_dst
-                )
-
-                -- Calculate depth and create package move
-                local slash_count = select(2, common_src:gsub("/", ""))
-                local package_depth = slash_count + 1
-
-                -- Find the root to construct full paths
-                local root_match = nil
-                for _, root in ipairs(package_roots) do
-                    if string_util.contains(all_registered_changes[1].src, root) then
-                        root_match = root
-                        break
-                    end
-                end
-
-                if root_match then
-                    local full_src = root_match:gsub("/$", "") .. "/" .. common_src
-                    local full_dst = root_match:gsub("/$", "") .. "/" .. common_dst
-
-                    table.insert(package_moves, {
-                        change = { src = full_src, dst = full_dst },
-                        depth = package_depth,
-                        package_path = common_src
-                    })
-                    log.info("Inferred package move:", common_src, "depth:", package_depth)
-                end
-            end
-        end
+        log.info("No explicit directory moves found, will process files individually")
     end
 
     -- OPTIMIZATION: Find the most efficient package move
@@ -880,18 +793,12 @@ M.process_registerd_changes = function()
                 if file_package_path and string_util.contains(file_package_path, candidate.package_path) then
                     covered_file_count = covered_file_count + 1
                 elseif file_package_path then
-                    print(
-                        "[DEBUG] Package move",
-                        candidate.package_path,
-                        "does NOT cover",
-                        file_package_path
-                    )
+                    print("[DEBUG] Package move", candidate.package_path, "does NOT cover", file_package_path)
                     log.debug("Package move", candidate.package_path, "does not cover", file_package_path)
                     covers_all_files = false
                 end
             end
         end
-
 
         -- If no file moves were registered, we can't verify coverage, so just use the candidate
         local has_file_moves = false
@@ -1001,7 +908,7 @@ M.process_registerd_changes = function()
     end
 
     -- If no valid package move found, process all file changes
-    local global_cmds_table = {}
+    local global_operations = {}
     if target_change then
         -- Process the selected package-level change
         log.info("Processing package-level refactoring")
@@ -1009,11 +916,13 @@ M.process_registerd_changes = function()
         if target_change.siblings and #target_change.siblings > 0 then
             log.debug("Found", #target_change.siblings, "siblings for", target_change.src)
         end
-        local change_cmd = build_fix_java_proj_after_change_cmd(target_change)
-        if change_cmd then
-            log.debug("Adding command for:", target_change.dst)
-            table.insert(global_cmds_table, change_cmd)
-        else
+        local operations = build_fix_java_proj_after_change_cmd(target_change)
+        if operations then
+            log.debug("Adding", #operations, "operations for:", target_change.dst)
+            -- Flatten operations into global list
+            for _, op in ipairs(operations) do
+                table.insert(global_operations, op)
+            end
         end
     else
         -- Process all file changes individually
@@ -1024,26 +933,67 @@ M.process_registerd_changes = function()
                 if value.siblings and #value.siblings > 0 then
                     log.debug("Found", #value.siblings, "siblings for", value.src)
                 end
-                local change_cmd = build_fix_java_proj_after_change_cmd(value)
-                if change_cmd then
-                    log.debug("Adding command for:", value.dst)
-                    table.insert(global_cmds_table, change_cmd)
+                local operations = build_fix_java_proj_after_change_cmd(value)
+                if operations then
+                    log.debug("Adding", #operations, "operations for:", value.dst)
+                    -- Flatten operations into global list
+                    for _, op in ipairs(operations) do
+                        table.insert(global_operations, op)
+                    end
                 end
             end
         end
     end
-    log.info("Total commands to execute:", #global_cmds_table)
-    local global_cmd_run = table.concat(global_cmds_table, " && ")
-    log.debug("Full command chain length:", #global_cmd_run, "characters")
+    log.info("Total operations to execute:", #global_operations)
+
+    -- Separate shell commands from Lua operations
+    local shell_cmds = {}
+    local lua_operations = {}
+    for _, op in ipairs(global_operations) do
+        if op.type == "shell" then
+            table.insert(shell_cmds, op.command)
+        elseif op.type == "lua" then
+            table.insert(lua_operations, op)
+        end
+    end
+
+    log.info("Shell commands:", #shell_cmds, "| Lua operations:", #lua_operations)
+    local global_cmd_run = table.concat(shell_cmds, " && ")
+    log.debug("Full shell command chain length:", #global_cmd_run, "characters")
 
     -- In test mode, execute directly and return result
     if M.test_mode then
-        log.info("Test mode: executing commands directly")
-        log.debug("Command:", global_cmd_run)
-        local exit_code = os.execute(global_cmd_run)
-        log.info("Command execution completed with exit code:", exit_code)
+        log.info("Test mode: executing operations directly")
+
+        -- Execute shell commands first
+        if #shell_cmds > 0 then
+            log.debug("Executing shell commands:", global_cmd_run)
+            local exit_code = os.execute(global_cmd_run)
+            if not (exit_code == 0 or exit_code == true) then
+                log.error("Shell command execution failed with exit code:", exit_code)
+                all_registered_changes = {}
+                return false
+            end
+            log.info("Shell commands completed successfully")
+        end
+
+        -- Execute Lua operations
+        if #lua_operations > 0 then
+            log.info("Executing", #lua_operations, "Lua operations")
+            for _, op in ipairs(lua_operations) do
+                log.info("Executing:", op.description)
+                local success = op.fn()
+                if not success then
+                    log.error("Lua operation failed:", op.description)
+                    all_registered_changes = {}
+                    return false
+                end
+            end
+            log.info("All Lua operations completed successfully")
+        end
+
         all_registered_changes = {}
-        return exit_code == 0 or exit_code == true
+        return true
     end
 
     -- ENHANCEMENT: Delete old buffers BEFORE applying changes
@@ -1072,14 +1022,26 @@ M.process_registerd_changes = function()
     end
 
     -- Normal mode: use UI to apply refactoring changes
-    -- vim.notify(global_cmd_run)
-    -- vim.notify(table.concat(global_cmds_table, "\n# "))
 
-    -- ENHANCEMENT: Reopen buffers from new locations AFTER refactoring completes
-    -- Pass callback to run_cmd to execute after successful completion
-    local reopen_buffers_callback = nil
-    if #opened_buffers_to_reopen > 0 then
-        reopen_buffers_callback = function()
+    -- ENHANCEMENT: Create composite callback that executes Lua operations then reopens buffers
+    -- This ensures proper execution order: shell commands -> Lua operations -> reopen buffers
+    local composite_callback = function()
+        -- Execute Lua operations after shell commands complete
+        if #lua_operations > 0 then
+            log.info("Executing", #lua_operations, "Lua operations after shell commands")
+            for _, op in ipairs(lua_operations) do
+                log.info("Executing:", op.description)
+                local success = op.fn()
+                if not success then
+                    log.error("Lua operation failed:", op.description)
+                    -- Continue with other operations even if one fails
+                end
+            end
+            log.info("All Lua operations completed")
+        end
+
+        -- Reopen buffers from new locations
+        if #opened_buffers_to_reopen > 0 then
             log.info("Reopening", #opened_buffers_to_reopen, "buffers from new locations...")
 
             for i, buf_info in ipairs(opened_buffers_to_reopen) do
@@ -1109,7 +1071,16 @@ M.process_registerd_changes = function()
         end
     end
 
-    run_cmd(global_cmd_run, reopen_buffers_callback)
+    -- Execute shell commands via terminal, then run composite callback
+    if #shell_cmds > 0 then
+        run_cmd(global_cmd_run, composite_callback)
+    else
+        -- No shell commands, just execute Lua operations and reopen buffers
+        log.info("No shell commands to execute, running Lua operations directly")
+        vim.schedule(function()
+            composite_callback()
+        end)
+    end
 
     log.info("Clearing registered changes")
     all_registered_changes = {}

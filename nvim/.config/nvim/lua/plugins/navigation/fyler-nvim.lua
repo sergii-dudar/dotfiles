@@ -1,5 +1,5 @@
 local java_util = require("utils.java.java-common")
-local java_refactor_util = require("utils.java.java-refactor-util")
+local java_refactor_util = require("utils.java.refactor.java-refactor-util")
 function toggle_fyler()
     vim.cmd("Neotree close") -- close neotree, as in case moving files and opened neotree getting errors.
     require("fyler").toggle()

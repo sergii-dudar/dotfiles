@@ -126,7 +126,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 --------------- project roots commands ----------------
 
 if java_util.is_java_project() then
-    local java_refactor_util = require("utils.java.java-refactor-util")
+    local java_refactor_util = require("utils.java.refactor.java-refactor-util")
     vim.api.nvim_create_autocmd({ "FileType" }, {
         group = general_group,
         pattern = "fyler",
