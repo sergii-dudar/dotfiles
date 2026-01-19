@@ -70,7 +70,7 @@ local function run_cmd(cmd_args, on_success_callback)
         end,
     })
 
-    vim.cmd("startinsert")
+    -- vim.cmd("startinsert")
     if job_id <= 0 then
         log.error("Failed to start command via jobstart()")
         vim.notify("Failed to start cmd via jobstart()", vim.log.levels.ERROR)
@@ -382,19 +382,20 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- ==========================================================================
     -- ==========================================================================
     -- 1. fix package full qualified names (across all files - java,yaml,properties etc)
-    -- IMPORTANT: Pattern must match:
-    --   - com.example.service; (package declaration)
-    --   - com.example.service.ClassName (import with class name - dot + uppercase)
-    --   - com.example.service"  (string literal)
-    -- But NOT match:
-    --   - com.example.service.impl (subpackage - dot + lowercase)
-    -- Solution: Match ([;$"[:space:]]|\.[A-Z]|$)
-    --   - The \.[A-Z] captures dot + uppercase letter (class name start)
+    -- IMPORTANT: For directory/package moves, we need to match ALL occurrences including subpackages
+    -- Pattern must match:
+    --   - package ua.raiffeisen.paymentinitiation.adapter; (package declaration)
+    --   - package ua.raiffeisen.paymentinitiation.adapter.cisaod.listener; (subpackage)
+    --   - import ua.raiffeisen.paymentinitiation.adapter.ClassName; (import)
+    --   - import ua.raiffeisen.paymentinitiation.adapter.cisaod.ClassName; (import from subpackage)
+    --   - "ua.raiffeisen.paymentinitiation.adapter" (string literal)
+    -- Solution: Match ([;$"[:space:].]|$) - includes dot for subpackages
+    --   - The dot allows matching subpackages during directory moves
     --   - The \1 in replacement preserves whatever was captured
     local fix_package_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
             .. get_project_root()
-            .. " | xargs %s -i -E 's/%s([;$\"[:space:]]|\\.[A-Z]|$)/%s\\1/g' || echo 'skipped'",
+            .. " | xargs %s -i -E 's/%s([;$\"[:space:].]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
         sed,
         package_src_classpath_escaped,
