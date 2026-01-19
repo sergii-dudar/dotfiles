@@ -573,6 +573,95 @@ M.process_registerd_changes = function()
     -- When main package is moved, automatically move corresponding test package
     -- This includes PHYSICALLY MOVING the test files/directories
     local test_mirrors = {}
+    local test_mirror_dirs = {} -- Track unique test directories to mirror
+
+    -- First, detect if we're doing a structural refactoring (e.g., adapter/* -> adapter/code/*)
+    -- In this case, we need to move ALL test subdirectories, not just matching ones
+    local structural_refactorings = {} -- { src_parent -> dst_parent }
+
+    -- Detect structural patterns: multiple directories moving from X/* to X/Y/*
+    local dir_moves = {}
+    for _, change in ipairs(all_registered_changes) do
+        if string_util.contains(change.src, "src/main/java/") and not change.src:match("%.java$") then
+            -- Extract parent and subdirectory
+            local src_parent = change.src:match("(.+)/[^/]+$")
+            local dst_parent = change.dst:match("(.+)/[^/]+$")
+
+            if src_parent and dst_parent and src_parent ~= dst_parent then
+                if not dir_moves[src_parent] then
+                    dir_moves[src_parent] = {}
+                end
+                table.insert(dir_moves[src_parent], { src_parent = src_parent, dst_parent = dst_parent })
+            end
+        end
+    end
+
+    -- If we have multiple directories moving from the same parent, it's a structural refactoring
+    for src_parent, moves in pairs(dir_moves) do
+        if #moves >= 2 then
+            -- Check if all moves have the same destination parent
+            local common_dst_parent = moves[1].dst_parent
+            local all_same = true
+            for _, move in ipairs(moves) do
+                if move.dst_parent ~= common_dst_parent then
+                    all_same = false
+                    break
+                end
+            end
+
+            if all_same then
+                structural_refactorings[src_parent] = common_dst_parent
+                log.info("Detected structural refactoring:", src_parent, "->", common_dst_parent)
+            end
+        end
+    end
+
+    -- For structural refactorings, find ALL test subdirectories and mirror them
+    for src_parent, dst_parent in pairs(structural_refactorings) do
+        local test_src_parent = src_parent:gsub("src/main/java/", "src/test/java/")
+        local test_dst_parent = dst_parent:gsub("src/main/java/", "src/test/java/")
+
+        log.debug("Checking for test subdirectories in:", test_src_parent)
+        if vim.fn.isdirectory(test_src_parent) == 1 then
+            -- Find ALL subdirectories in the test parent
+            local fd_cmd = "fd --max-depth 1 --type d . '" .. test_src_parent .. "'"
+            log.debug("Running fd command:", fd_cmd)
+            local handle = io.popen(fd_cmd)
+            if handle then
+                local found_count = 0
+                for test_subdir in handle:lines() do
+                    -- Remove trailing slash if present
+                    test_subdir = test_subdir:gsub("/$", "")
+                    local subdir_name = test_subdir:match(".+/([^/]+)$")
+                    log.debug("Found test subdirectory:", test_subdir, "name:", subdir_name)
+
+                    -- Skip the destination directory itself (e.g., adapter/code)
+                    if subdir_name and not test_subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$") then
+                        local test_dst_subdir = test_dst_parent .. "/" .. subdir_name
+
+                        if not test_mirror_dirs[test_subdir] then
+                            test_mirror_dirs[test_subdir] = test_dst_subdir
+                            table.insert(test_mirrors, { src = test_subdir, dst = test_dst_subdir })
+                            log.info("Auto-mirroring test subdirectory (structural):", test_subdir, "->", test_dst_subdir)
+                            found_count = found_count + 1
+                        else
+                            log.debug("Test subdirectory already in mirror list, skipping:", test_subdir)
+                        end
+                    else
+                        log.debug("Skipping destination directory:", test_subdir)
+                    end
+                end
+                handle:close()
+                log.info("Found", found_count, "test subdirectories for structural refactoring")
+            else
+                log.error("Failed to execute fd command")
+            end
+        else
+            log.info("Test source parent does not exist:", test_src_parent)
+        end
+    end
+
+    -- Also handle individual directory/file moves (existing logic)
     for _, change in ipairs(all_registered_changes) do
         -- Check if this is a main/java move
         if string_util.contains(change.src, "src/main/java/") then
@@ -580,10 +669,30 @@ M.process_registerd_changes = function()
             local test_src = change.src:gsub("src/main/java/", "src/test/java/")
             local test_dst = change.dst:gsub("src/main/java/", "src/test/java/")
 
-            -- Only add if test path actually exists
-            if vim.fn.isdirectory(test_src) == 1 or vim.fn.filereadable(test_src) == 1 then
-                table.insert(test_mirrors, { src = test_src, dst = test_dst })
-                log.info("Auto-mirroring test package:", test_src, "->", test_dst)
+            -- For directory moves: mirror the directory directly (if not already handled by structural refactoring)
+            if vim.fn.isdirectory(test_src) == 1 then
+                if not test_mirror_dirs[test_src] then
+                    test_mirror_dirs[test_src] = test_dst
+                    table.insert(test_mirrors, { src = test_src, dst = test_dst })
+                    log.info("Auto-mirroring test directory:", test_src, "->", test_dst)
+                end
+            -- For file moves: infer directory-level mirror
+            elseif change.src:match("%.java$") then
+                -- Extract source and destination directories
+                local src_dir = change.src:match("(.+)/[^/]+$")
+                local dst_dir = change.dst:match("(.+)/[^/]+$")
+
+                if src_dir and dst_dir then
+                    local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
+                    local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
+
+                    -- Only add if test directory exists and not already mirrored
+                    if vim.fn.isdirectory(test_src_dir) == 1 and not test_mirror_dirs[test_src_dir] then
+                        test_mirror_dirs[test_src_dir] = test_dst_dir
+                        table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
+                        log.info("Auto-mirroring test directory (inferred from file move):", test_src_dir, "->", test_dst_dir)
+                    end
+                end
             end
         end
     end
@@ -760,174 +869,36 @@ M.process_registerd_changes = function()
         log.info("No valid package moves found (all had depth < 2)")
     end
 
-    -- Sort by depth (SHALLOWEST first) - this is the key optimization!
-    -- Shallowest = broadest valid change = processes more files at once = more efficient
+    -- Sort by depth (shallowest first) for better readability in logs
     table.sort(valid_moves, function(a, b)
         return a.depth < b.depth
     end)
 
-    -- Verify that the shallowest move actually covers the file moves
-    local target_change = nil
-    if #valid_moves > 0 then
-        local candidate = valid_moves[1]
 
-        -- Check if this move's package path is a prefix of all file move paths
-        local covers_all_files = true
-        local covered_file_count = 0
-
-        for _, change in ipairs(all_registered_changes) do
-            if change.src:match("%.java$") then
-                -- Extract package path from file
-                local file_package_path = nil
-                for _, root in ipairs(package_roots) do
-                    if string_util.contains(change.src, root) then
-                        local relative = vim.split(change.src, root)[2]
-                        local dir = relative:match("(.+)/[^/]+$")
-                        if dir then
-                            file_package_path = dir
-                            break
-                        end
-                    end
-                end
-
-                -- Check if candidate covers this file
-                if file_package_path and string_util.contains(file_package_path, candidate.package_path) then
-                    covered_file_count = covered_file_count + 1
-                elseif file_package_path then
-                    print("[DEBUG] Package move", candidate.package_path, "does NOT cover", file_package_path)
-                    log.debug("Package move", candidate.package_path, "does not cover", file_package_path)
-                    covers_all_files = false
-                end
-            end
-        end
-
-        -- If no file moves were registered, we can't verify coverage, so just use the candidate
-        local has_file_moves = false
-        for _, change in ipairs(all_registered_changes) do
-            if change.src:match("%.java$") then
-                has_file_moves = true
-                break
-            end
-        end
-
-        if not has_file_moves then
-            target_change = candidate.change
-            -- Still need to find the correct change by package path
-            for _, change in ipairs(all_registered_changes) do
-                if not change.src:match("%.java$") then
-                    for _, root in ipairs(package_roots) do
-                        if string_util.contains(change.src, root) then
-                            local pkg_path = vim.split(change.src, root)[2]:gsub("/$", "")
-                            if pkg_path == candidate.package_path then
-                                target_change = change
-                                break
-                            end
-                        end
-                    end
-                    if target_change ~= candidate.change then
-                        break
-                    end
-                end
-            end
-        elseif covers_all_files and covered_file_count > 0 then
-            -- Find the actual change that matches this package path
-            -- Need to match the exact package path, not just any change
-            for _, change in ipairs(all_registered_changes) do
-                if not change.src:match("%.java$") then
-                    -- Check if this directory change matches the selected package path
-                    for _, root in ipairs(package_roots) do
-                        if string_util.contains(change.src, root) then
-                            local pkg_path = vim.split(change.src, root)[2]:gsub("/$", "")
-                            if pkg_path == candidate.package_path then
-                                target_change = change
-                                break
-                            end
-                        end
-                    end
-                    if target_change then
-                        break
-                    end
-                end
-            end
-
-            if not target_change then
-                log.error("Failed to find matching change for package path:", candidate.package_path)
-                target_change = candidate.change -- fallback
-            end
-
-            log.info(
-                "Selected SHALLOWEST valid package move at depth",
-                candidate.depth,
-                ":",
-                candidate.package_path,
-                "(covers",
-                covered_file_count,
-                "files)"
-            )
-        else
-            -- Files don't fully match - still use shallowest valid move
-            -- This handles cases where some files might be at different depths
-            log.warn(
-                "Shallowest move doesn't fully cover files (covers_all="
-                    .. tostring(covers_all_files)
-                    .. ", count="
-                    .. covered_file_count
-                    .. "), but still using shallowest valid depth"
-            )
-
-            -- Find the correct change by package path
-            for _, change in ipairs(all_registered_changes) do
-                if not change.src:match("%.java$") then
-                    for _, root in ipairs(package_roots) do
-                        if string_util.contains(change.src, root) then
-                            local pkg_path = vim.split(change.src, root)[2]:gsub("/$", "")
-                            if pkg_path == candidate.package_path then
-                                target_change = change
-                                break
-                            end
-                        end
-                    end
-                    if target_change then
-                        break
-                    end
-                end
-            end
-
-            if not target_change then
-                log.error("Failed to find change for shallowest package:", candidate.package_path)
-                target_change = candidate.change
-            end
-
-            log.info(
-                "Selected SHALLOWEST valid package move at depth",
-                candidate.depth,
-                ":",
-                candidate.package_path,
-                "(best available option)"
-            )
-        end
-    end
-
-    -- If no valid package move found, process all file changes
+    -- Process all valid package moves or file changes
     local global_operations = {}
-    if target_change then
-        -- Process the selected package-level change
-        log.info("Processing package-level refactoring")
-        target_change.siblings = get_all_src_siblings(target_change, all_registered_changes)
-        if target_change.siblings and #target_change.siblings > 0 then
-            log.debug("Found", #target_change.siblings, "siblings for", target_change.src)
-        end
-        local operations = build_fix_java_proj_after_change_cmd(target_change)
-        if operations then
-            log.debug("Adding", #operations, "operations for:", target_change.dst)
-            -- Flatten operations into global list
-            for _, op in ipairs(operations) do
-                table.insert(global_operations, op)
+    if #valid_moves > 0 then
+        -- Process ALL package-level changes, not just the shallowest one
+        -- This is important when moving multiple sibling directories (e.g., adapter/x, adapter/y, adapter/z -> adapter/code/x, adapter/code/y, adapter/code/z)
+        log.info("Processing", #valid_moves, "package-level refactorings")
+
+        for _, move in ipairs(valid_moves) do
+            move.change.siblings = get_all_src_siblings(move.change, all_registered_changes)
+            if move.change.siblings and #move.change.siblings > 0 then
+                log.debug("Found", #move.change.siblings, "siblings for", move.change.src)
+            end
+            local operations = build_fix_java_proj_after_change_cmd(move.change)
+            if operations then
+                log.debug("Adding", #operations, "operations for:", move.change.dst)
+                -- Flatten operations into global list
+                for _, op in ipairs(operations) do
+                    table.insert(global_operations, op)
+                end
             end
         end
     else
         -- Process all file changes individually
-        log.info("No valid package move found, processing files individually")
+        log.info("No valid package moves found, processing files individually")
         for _, value in ipairs(all_registered_changes) do
             if value.src:match("%.java$") then
                 value.siblings = get_all_src_siblings(value, all_registered_changes)
