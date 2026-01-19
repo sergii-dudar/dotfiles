@@ -6,7 +6,7 @@
 --  󰱒 Batch move processing of java files from dir A to dir B with proper types usage resolving.
 --  󰱒 Batch move processing of java files from dir A to dir B,C,D... with proper types usage resolving.
 
--- NOTE: - Dependencies: ripgrep, fd, sed (gsed in case macos (gnu-sed))
+-- NOTE: - Dependencies: ripgrep, fd (rust-based find), sed (gsed in case macos (gnu-sed))
 
 local M = {}
 
@@ -522,7 +522,7 @@ M.process_registerd_changes = function()
         if vim.fn.isdirectory(change.src) == 1 then
             -- Find all Java files in this directory
             log.debug("Scanning directory for open buffers:", change.src)
-            local handle = io.popen("find '" .. change.src .. "' -name '*.java' 2>/dev/null")
+            local handle = io.popen("fd -e java . '" .. change.src .. "'")
             if handle then
                 local file_count = 0
                 for file_path in handle:lines() do
@@ -595,7 +595,7 @@ M.process_registerd_changes = function()
         for _, mirror in ipairs(test_mirrors) do
             if vim.fn.isdirectory(mirror.src) == 1 then
                 -- Find all Java files in this test directory
-                local handle = io.popen("find '" .. mirror.src .. "' -name '*.java' 2>/dev/null")
+                local handle = io.popen("fd -e java . '" .. mirror.src .. "'")
                 if handle then
                     for file_path in handle:lines() do
                         local buf_id = buffer_util.find_buf_by_path(file_path)
@@ -663,7 +663,7 @@ M.process_registerd_changes = function()
             while src_parent and src_parent:match("src/test/java/") do
                 if vim.fn.isdirectory(src_parent) == 1 then
                     -- Check if directory is empty
-                    local handle = io.popen("find '" .. src_parent .. "' -mindepth 1 -maxdepth 1 | wc -l")
+                    local handle = io.popen("fd --max-depth 1 . '" .. src_parent .. "' | wc -l")
                     local count = tonumber(handle:read("*all"))
                     handle:close()
 

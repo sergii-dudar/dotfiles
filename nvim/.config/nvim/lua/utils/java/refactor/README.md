@@ -33,16 +33,17 @@ This tool provides automatic refactoring capabilities for Java projects in Neovi
 
 ### Dependencies
 
-- **Neovim** >= 0.9.0 (for Lua APIs)
-- **ripgrep** (`rg`) - Fast text searching
+- **Neovim** >= 0.11.5 (for Lua APIs)
+- **ripgrep** (`rg`) - Fast text searching (Rust-based alternative to `grep`)
+- **fd** - Fast file finder (Rust-based alternative to `find`)
 - **GNU sed** - Text stream editing
-  - macOS: Install via `brew install gnu-sed` (provides `gsed`)
-  - Linux: Already available as `sed`
-- **find** - File system searching (standard Unix utility)
+    - macOS: Install via `brew install gnu-sed` (provides `gsed`)
+    - Linux: Already available as `sed`
 
 ### File Manager Integration
 
 While not required, this tool is designed to integrate with file managers:
+
 - **[fyler.nvim](https://github.com/dmtrKovalenko/fyler.nvim)** - Recommended for batch operations
 - Can also work with manual file operations via `process_single_file_change()`
 
@@ -52,13 +53,19 @@ While not required, this tool is designed to integrate with file managers:
 
 ```bash
 # macOS
-brew install ripgrep gnu-sed
+brew install ripgrep fd gnu-sed
 
 # Linux (Debian/Ubuntu)
-apt-get install ripgrep sed
+apt-get install ripgrep fd-find
 
 # Linux (Arch)
-pacman -S ripgrep sed
+pacman -S ripgrep fd
+```
+
+**Note for Ubuntu/Debian:** The `fd` binary is named `fdfind` to avoid conflicts. Create a symlink:
+
+```bash
+ln -s $(which fdfind) ~/.local/bin/fd
 ```
 
 ### Neovim Setup
@@ -116,17 +123,20 @@ return {
 The refactoring system consists of three main modules:
 
 #### 1. **java-refactor-util.lua** (Orchestration)
+
 - Registers file/directory move operations
 - Determines operation type (file move vs directory move)
 - Builds and executes refactoring commands
 - Manages buffer reloading and cleanup
 
 #### 2. **import-fixer.lua** (Import Management)
+
 - Adds imports to files in the old package that reference moved types
 - Handles multiple sibling files being moved together
 - Ensures import statements are correctly placed after package declarations
 
 #### 3. **sibling-usage-fixer.lua** (Sibling Reference Handling)
+
 - Updates references when multiple files are moved together
 - Adds necessary imports for sibling file usage
 - Replaces type names with correct references
@@ -160,41 +170,41 @@ Complete
 When processing **individual file moves**, the tool:
 
 1. **Updates the moved file:**
-   - Changes type declaration (class/interface/enum name)
-   - Updates package declaration
-   - Fixes package declaration in the file
+    - Changes type declaration (class/interface/enum name)
+    - Updates package declaration
+    - Fixes package declaration in the file
 
 2. **Updates files that import the moved type:**
-   - Finds files with `import old.package.TypeName`
-   - Updates type references (where imported)
-   - Updates import statements to new package
+    - Finds files with `import old.package.TypeName`
+    - Updates type references (where imported)
+    - Updates import statements to new package
 
 3. **Updates fully qualified references:**
-   - Finds all `old.package.TypeName` references
-   - Updates to `new.package.TypeName`
-   - Handles code, config files (YAML, properties), etc.
+    - Finds all `old.package.TypeName` references
+    - Updates to `new.package.TypeName`
+    - Handles code, config files (YAML, properties), etc.
 
 4. **Handles sibling files:**
-   - If multiple files moved from same directory
-   - Updates imports for sibling type references
-   - Replaces sibling type names correctly
+    - If multiple files moved from same directory
+    - Updates imports for sibling type references
+    - Replaces sibling type names correctly
 
 5. **Manages old package imports:**
-   - Adds imports to files in old package that use the moved type
-   - Removes same-package imports (no longer needed)
+    - Adds imports to files in old package that use the moved type
+    - Removes same-package imports (no longer needed)
 
 ### Directory Move Processing
 
 When moving **entire directories/packages**, the tool:
 
 1. **Performs project-wide replacement:**
-   - Uses `rg` to find all references to the old package
-   - Uses `sed` to replace package names across all files
-   - Handles package declarations, imports, and fully qualified names
+    - Uses `rg` to find all references to the old package
+    - Uses `sed` to replace package names across all files
+    - Handles package declarations, imports, and fully qualified names
 
 2. **Updates file paths:**
-   - Replaces resource paths and file system paths
-   - Ensures consistency across configuration files
+    - Replaces resource paths and file system paths
+    - Ensures consistency across configuration files
 
 ### Smart Detection
 
@@ -261,6 +271,7 @@ java_refactor.process_registerd_changes()
 ```
 
 **What happens:**
+
 - ✅ Package declaration updated in `UserService.java`
 - ✅ Import `com.example.service.UserService` → `com.example.service.impl.UserService` in other files
 - ✅ Type references updated in files that import it
@@ -283,6 +294,7 @@ java_refactor.process_registerd_changes()
 ```
 
 **What happens:**
+
 - ✅ Each file processed individually
 - ✅ Both files recognized as siblings (moved from same directory)
 - ✅ If `UserService` uses `ProductService`, imports handled correctly
@@ -300,6 +312,7 @@ java_refactor.process_registerd_changes()
 ```
 
 **What happens:**
+
 - ✅ Project-wide replacement: `com.example.service` → `com.example.usecase.service`
 - ✅ All files in the moved directory updated
 - ✅ All imports across the entire project updated
@@ -317,6 +330,7 @@ java_refactor.process_registerd_changes()
 ```
 
 **What happens:**
+
 - ✅ Class declaration: `class User` → `class UserEntity`
 - ✅ Import updates: `com.example.model.User` → `com.example.model.UserEntity`
 - ✅ Type references: `User user = ...` → `UserEntity user = ...` (in files that import it)
@@ -327,6 +341,7 @@ java_refactor.process_registerd_changes()
 ### Package Roots
 
 The tool automatically detects standard Java package roots:
+
 - `src/main/java/`
 - `src/test/java/`
 
@@ -371,6 +386,7 @@ java_refactor.test_mode = true
 The tool uses carefully crafted regex patterns to avoid false positives:
 
 **Package boundary pattern:**
+
 ```lua
 -- Matches:
 --   com.example.service; (package declaration)
@@ -397,6 +413,7 @@ This ensures consistent behavior across operating systems.
 ### Buffer Management
 
 Open buffers are handled intelligently:
+
 - Before refactoring: All affected file paths are tracked
 - After refactoring: Changed buffers are reloaded
 - Deleted files: Buffers are closed and deleted
@@ -422,6 +439,7 @@ Open buffers are handled intelligently:
 ### Issue: Imports not updating
 
 **Solution:** Check that:
+
 1. Files are under a recognized package root (`src/main/java/`)
 2. Ripgrep is installed and in PATH
 3. Check logs: `~/.cache/nvim/java-refactor.log`
@@ -433,6 +451,7 @@ Open buffers are handled intelligently:
 ### Issue: sed command not found (macOS)
 
 **Solution:** Install GNU sed:
+
 ```bash
 brew install gnu-sed
 ```
@@ -440,11 +459,13 @@ brew install gnu-sed
 ### Issue: Some references not updated
 
 **Solution:** The tool handles:
+
 - Standard imports
 - Fully qualified class names
 - Type references in code
 
 It may not handle:
+
 - Reflection strings (`Class.forName("com.example.OldClass")`)
 - Comments with class names
 - Non-standard references
@@ -459,12 +480,11 @@ It may not handle:
 - [ ] Dry-run mode (preview changes)
 - [ ] Integration with more file managers (neo-tree, oil.nvim, etc.)
 - [ ] Refactoring within single file (extract method, etc.)
-- [ ] Support for Kotlin files
-- [ ] LSP integration for enhanced accuracy
 
 ### Standalone Plugin
 
 This functionality is planned to be extracted into a standalone plugin:
+
 - Separate git repository
 - Proper plugin structure
 - Installation via plugin managers (lazy.nvim, packer, etc.)
@@ -475,19 +495,6 @@ This functionality is planned to be extracted into a standalone plugin:
 
 Currently, this is part of a personal dotfiles configuration. Once extracted to a standalone plugin, contributions will be welcome!
 
-### Development
-
-To work on this tool:
-
-1. Clone the dotfiles repository
-2. Modify files in `nvim/.config/nvim/lua/utils/java/refactor/`
-3. Test with your Java projects
-4. Check logs in `~/.cache/nvim/java-refactor.log`
-
-## License
-
-To be determined when extracted as standalone plugin.
-
 ## Acknowledgments
 
 - Inspired by IDE refactoring tools (IntelliJ IDEA, Eclipse)
@@ -497,5 +504,3 @@ To be determined when extracted as standalone plugin.
 ---
 
 **Status:** 🚧 Active Development - Used daily in production Java development
-
-**Feedback:** Please test and report issues! This tool is being refined through real-world usage.
