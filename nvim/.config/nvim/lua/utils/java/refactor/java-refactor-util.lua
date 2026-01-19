@@ -148,7 +148,14 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         return {}
     end
 
-    log.debug("Package change:", package_declaration_src, "->", package_declaration_dst)
+    -- Detect if this is a simple file rename (same package) or a package move
+    local is_same_package_rename = (package_declaration_src == package_declaration_dst)
+
+    if is_same_package_rename then
+        log.info("Detected same-package file rename:", old_type_name, "->", new_type_name)
+    else
+        log.debug("Package change:", package_declaration_src, "->", package_declaration_dst)
+    end
 
     -- com\.example\.EmployeeManagementSystem\.service
     local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
@@ -173,22 +180,58 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
     -- ==========================================================================
     -- ==========================================================================
-    -- 2. fix type symbols (simple java name) where type is imported.
-    local fix_type_symbols_where_imported = string.format(
-        "rg --color=never -l 'import\\s+%s' "
-            .. get_project_root()
-            .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
-        package_src_classpath_escaped,
-        sed,
-        old_type_name,
-        new_type_name
-    )
-    -- vim.notify(fix_type_symbols_where_imported)
-    table.insert(result_cmds, {
-        type = "shell",
-        command = fix_type_symbols_where_imported,
-        description = "Fix type symbols where imported",
-    })
+    -- 2. fix type symbols (simple java name) where type is imported or accessible
+    -- This needs to handle:
+    -- 1. Explicit imports: import package.ClassName;
+    -- 2. Wildcard imports: import package.*;
+    -- 3. Same-package usage: files in the same package don't need imports
+
+    if is_same_package_rename then
+        -- For same-package renames, update all files in the same package
+        -- and files that import this package (explicitly or with wildcard)
+        local package_dir = dst:match("(.+)/[^/]+$") -- Get directory of the file
+
+        -- Also include corresponding test directory if this is a main file
+        local test_package_dir = package_dir:gsub("src/main/java", "src/test/java")
+        local test_dir_clause = ""
+        if test_package_dir ~= package_dir and vim.fn.isdirectory(test_package_dir) == 1 then
+            test_dir_clause = string.format("; fd -e java . '%s'", test_package_dir)
+            log.debug("Including test directory for same-package rename:", test_package_dir)
+        end
+
+        local fix_type_symbols_same_package = string.format(
+            "(rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
+                .. get_project_root()
+                .. " || true; fd -e java . '%s'%s) | sort -u | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+            package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
+            package_dir, -- Include all files in same directory (main)
+            test_dir_clause, -- Also include test directory if it exists
+            sed,
+            old_type_name,
+            new_type_name
+        )
+        table.insert(result_cmds, {
+            type = "shell",
+            command = fix_type_symbols_same_package,
+            description = "Fix type symbols in same package and imported files",
+        })
+    else
+        -- For package moves, search for explicit imports only
+        local fix_type_symbols_where_imported = string.format(
+            "rg --color=never -l 'import\\s+%s' "
+                .. get_project_root()
+                .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+            package_src_classpath_escaped,
+            sed,
+            old_type_name,
+            new_type_name
+        )
+        table.insert(result_cmds, {
+            type = "shell",
+            command = fix_type_symbols_where_imported,
+            description = "Fix type symbols where imported",
+        })
+    end
 
     -- ==========================================================================
     -- ==========================================================================
@@ -249,32 +292,38 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
     -- ==========================================================================
     -- ==========================================================================
-    -- 4. fix packaged decration in changed file.
-    local fix_package_declaration = string.format(
-        "%s -i -E 's/package[[:space:]]+%s;/package %s;/g' %s",
-        sed,
-        package_declaration_src_escaped,
-        package_declaration_dst,
-        dst
-    )
-    -- vim.notify(fix_package_declaration)
-    table.insert(result_cmds, {
-        type = "shell",
-        command = fix_package_declaration,
-        description = "Fix package declaration",
-    })
+    -- PACKAGE-LEVEL OPERATIONS: Only execute these if the package actually changed
+    -- For same-package file renames, skip these operations
+    if not is_same_package_rename then
+        -- 4. fix packaged decration in changed file.
+        local fix_package_declaration = string.format(
+            "%s -i -E 's/package[[:space:]]+%s;/package %s;/g' %s",
+            sed,
+            package_declaration_src_escaped,
+            package_declaration_dst,
+            dst
+        )
+        -- vim.notify(fix_package_declaration)
+        table.insert(result_cmds, {
+            type = "shell",
+            command = fix_package_declaration,
+            description = "Fix package declaration",
+        })
 
-    -- ==========================================================================
-    -- ==========================================================================
-    -- 4.1. Remove imports from the same package (they're unnecessary)
-    local package_declaration_dst_escaped = package_declaration_dst:gsub("%.", "\\.")
-    local remove_same_package_imports =
-        string.format("%s -i '/^import %s\\./d' %s", sed, package_declaration_dst_escaped, dst)
-    table.insert(result_cmds, {
-        type = "shell",
-        command = remove_same_package_imports,
-        description = "Remove same-package imports",
-    })
+        -- ==========================================================================
+        -- ==========================================================================
+        -- 4.1. Remove imports from the same package (they're unnecessary)
+        local package_declaration_dst_escaped = package_declaration_dst:gsub("%.", "\\.")
+        local remove_same_package_imports =
+            string.format("%s -i '/^import %s\\./d' %s", sed, package_declaration_dst_escaped, dst)
+        table.insert(result_cmds, {
+            type = "shell",
+            command = remove_same_package_imports,
+            description = "Remove same-package imports",
+        })
+    else
+        log.debug("Skipping package declaration updates (same package)")
+    end
 
     -- ==========================================================================
     -- ==========================================================================
@@ -283,53 +332,58 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- OLD_PACKAGE="com.example.EmployeeManagementSystem.service"
     -- NEW_FILE_PATH="/home/serhii/tools/java-test-projs/Employee-Management-Sys/EmployeeManagementSystem/src/main/java/com/example/EmployeeManagementSystem/service/impl/ServiceEmployeeUser.java"
 
-    -- Build list of sibling type names (files being moved from same directory)
-    local sibling_types = {}
-    if context.siblings and not vim.tbl_isempty(context.siblings) then
-        for _, sibling in ipairs(context.siblings) do
-            local sibling_type = sibling.src:match("([^/]+)%.java$")
-            if sibling_type then
-                table.insert(sibling_types, sibling_type)
-                log.debug("Sibling type being moved:", sibling_type)
+    -- Only execute package-move specific operations if package actually changed
+    if not is_same_package_rename then
+        -- Build list of sibling type names (files being moved from same directory)
+        local sibling_types = {}
+        if context.siblings and not vim.tbl_isempty(context.siblings) then
+            for _, sibling in ipairs(context.siblings) do
+                local sibling_type = sibling.src:match("([^/]+)%.java$")
+                if sibling_type then
+                    table.insert(sibling_types, sibling_type)
+                    log.debug("Sibling type being moved:", sibling_type)
+                end
             end
         end
+
+        -- Call Lua function directly!
+        table.insert(result_cmds, {
+            type = "lua",
+            description = "Fix old package imports for: " .. old_type_name,
+            fn = function()
+                return import_fixer.fix_old_package_imports({
+                    old_dir = src:match("(.+)/[^/]+$"),
+                    old_package = package_declaration_src,
+                    new_package = package_declaration_dst,
+                    new_file_path = dst,
+                    old_type_name = old_type_name,
+                    new_type_name = new_type_name,
+                    siblings = sibling_types,
+                })
+            end,
+        })
+        -- ==========================================================================
+        -- ==========================================================================
+        -- 6. fix file path/resources path
+
+        local fix_file_paht_declaration = string.format(
+            "rg --color=never -l '%s' "
+                .. get_project_root()
+                .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+            package_src_path_escaped,
+            sed,
+            package_src_path_escaped,
+            package_dst_path_escaped
+        )
+        -- vim.notify(fix_file_paht_declaration)
+        table.insert(result_cmds, {
+            type = "shell",
+            command = fix_file_paht_declaration,
+            description = "Fix file path/resources path",
+        })
+    else
+        log.debug("Skipping old package import fixes (same package)")
     end
-
-    -- Call Lua function directly!
-    table.insert(result_cmds, {
-        type = "lua",
-        description = "Fix old package imports for: " .. old_type_name,
-        fn = function()
-            return import_fixer.fix_old_package_imports({
-                old_dir = src:match("(.+)/[^/]+$"),
-                old_package = package_declaration_src,
-                new_package = package_declaration_dst,
-                new_file_path = dst,
-                old_type_name = old_type_name,
-                new_type_name = new_type_name,
-                siblings = sibling_types,
-            })
-        end,
-    })
-    -- ==========================================================================
-    -- ==========================================================================
-    -- 6. fix file path/resources path
-
-    local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' "
-            .. get_project_root()
-            .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
-        package_src_path_escaped,
-        sed,
-        package_src_path_escaped,
-        package_dst_path_escaped
-    )
-    -- vim.notify(fix_file_paht_declaration)
-    table.insert(result_cmds, {
-        type = "shell",
-        command = fix_file_paht_declaration,
-        description = "Fix file path/resources path",
-    })
 end
 
 ---@param result_cmds table
@@ -682,7 +736,8 @@ M.process_registerd_changes = function()
                 local src_dir = change.src:match("(.+)/[^/]+$")
                 local dst_dir = change.dst:match("(.+)/[^/]+$")
 
-                if src_dir and dst_dir then
+                -- Only mirror if directories actually differ (not a same-directory file rename)
+                if src_dir and dst_dir and src_dir ~= dst_dir then
                     local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
                     local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
 
@@ -692,6 +747,8 @@ M.process_registerd_changes = function()
                         table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
                         log.info("Auto-mirroring test directory (inferred from file move):", test_src_dir, "->", test_dst_dir)
                     end
+                else
+                    log.debug("Skipping test mirror for same-directory file rename")
                 end
             end
         end
@@ -816,28 +873,33 @@ M.process_registerd_changes = function()
     for _, change in ipairs(all_registered_changes) do
         if not change.src:match("%.java$") then
             -- This is a directory move
-            -- Calculate package depth
-            local root_match = nil
-            for _, root in ipairs(package_roots) do
-                if string_util.contains(change.src, root) then
-                    root_match = root
-                    break
+            -- Skip if src == dst (no actual move, e.g., test mirror with same directory)
+            if change.src == change.dst then
+                log.debug("Skipping no-op directory move (src == dst):", change.src)
+            else
+                -- Calculate package depth
+                local root_match = nil
+                for _, root in ipairs(package_roots) do
+                    if string_util.contains(change.src, root) then
+                        root_match = root
+                        break
+                    end
                 end
-            end
 
-            if root_match then
-                local package_path = vim.split(change.src, root_match)[2]
-                -- Remove trailing slash if present
-                package_path = package_path:gsub("/$", "")
-                -- Calculate depth: com/example = 2 levels (1 slash + 1)
-                local slash_count = select(2, package_path:gsub("/", ""))
-                local package_depth = slash_count + 1
-                table.insert(package_moves, {
-                    change = change,
-                    depth = package_depth,
-                    package_path = package_path,
-                })
-                log.debug("Found package move:", package_path, "depth:", package_depth)
+                if root_match then
+                    local package_path = vim.split(change.src, root_match)[2]
+                    -- Remove trailing slash if present
+                    package_path = package_path:gsub("/$", "")
+                    -- Calculate depth: com/example = 2 levels (1 slash + 1)
+                    local slash_count = select(2, package_path:gsub("/", ""))
+                    local package_depth = slash_count + 1
+                    table.insert(package_moves, {
+                        change = change,
+                        depth = package_depth,
+                        package_path = package_path,
+                    })
+                    log.debug("Found package move:", package_path, "depth:", package_depth)
+                end
             end
         end
     end
