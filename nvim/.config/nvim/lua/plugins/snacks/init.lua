@@ -72,8 +72,9 @@ return {
             { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
             { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
-            { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
+            -- { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
+            { "<leader><space>", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
