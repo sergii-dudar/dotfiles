@@ -44,21 +44,47 @@ end
 
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
-    -- GNU sed (both macOS gsed and Linux sed)
+    -- First check if import already exists to avoid duplicates
+    local check_cmd = string.format("rg -q '^%s$' '%s' 2>/dev/null",
+        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
+        file_path
+    )
+    local already_exists = os.execute(check_cmd)
+
+    if already_exists == 0 or already_exists == true then
+        log.debug("Import already exists, skipping:", import_line)
+        return true
+    end
+
+    -- Use a more reliable approach with -e flag
+    -- This avoids issues with quoting in the append command
     local sed_cmd = string.format(
-        "%s -i '%da\\%s' '%s'",
+        "%s -i -e '%da\\' -e '%s' '%s'",
         sed,
         line_num,
         import_line,
         file_path
     )
 
+    log.debug("Sed command:", sed_cmd)
     local result = os.execute(sed_cmd)
-    if not (result == 0 or result == true) then
+    log.debug("Sed result:", result)
+
+    -- Check if the import was actually added (verify the command worked)
+    -- On macOS, os.execute can return different values even on success
+    local verify_cmd = string.format("rg -q '%s' '%s' 2>/dev/null",
+        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
+        file_path
+    )
+    local verify_result = os.execute(verify_cmd)
+
+    if verify_result == 0 or verify_result == true then
+        log.debug("Import successfully added (verified)")
+        return true
+    else
         log.warn("Failed to add import:", import_line, "to", file_path)
         return false
     end
-    return true
 end
 
 ---Fix imports in files that reference types from the old package
@@ -194,18 +220,31 @@ function M.fix_old_package_imports(opts)
 
         if test_files_handle then
             local test_fixes = 0
+            local test_files_found = 0
             for test_file in test_files_handle:lines() do
-                -- Check if this test file uses the moved type
-                local uses_moved_type = os.execute(
+                test_files_found = test_files_found + 1
+                log.debug("Found test file:", test_file)
+
+                -- Check if this test file uses the moved type (old OR new name)
+                local uses_old_name = os.execute(
                     string.format(
                         "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}<\\.>])' '%s' 2>/dev/null",
                         opts.old_type_name,
                         test_file
                     )
                 )
+                local uses_new_name = os.execute(
+                    string.format(
+                        "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}<\\.>])' '%s' 2>/dev/null",
+                        opts.new_type_name,
+                        test_file
+                    )
+                )
+                log.debug("Test file uses old name:", uses_old_name)
+                log.debug("Test file uses new name:", uses_new_name)
 
-                if uses_moved_type == 0 or uses_moved_type == true then
-                    log.debug("Test file uses moved type:", test_file)
+                if (uses_old_name == 0 or uses_old_name == true) or (uses_new_name == 0 or uses_new_name == true) then
+                    log.debug("Test file uses the type (old or new name):", test_file)
 
                     -- Find last import line in this file
                     local last_import_output = exec_and_read(
@@ -228,11 +267,18 @@ function M.fix_old_package_imports(opts)
                         test_fixes = test_fixes + 1
                         log.info("Fixed test file with same-package usage:", test_file)
                     end
+                else
+                    log.debug("Test file doesn't use the type")
                 end
             end
             test_files_handle:close()
+            log.info("Found", test_files_found, "test files in old test directory")
             log.info("Fixed", test_fixes, "test files in old directory")
+        else
+            log.error("Failed to open test files handle")
         end
+    else
+        log.debug("Test old directory does not exist:", test_old_dir)
     end
 
     -- Also fix files with wildcard imports that use the moved type
@@ -260,18 +306,25 @@ function M.fix_old_package_imports(opts)
             files_found = files_found + 1
             log.debug("Found file with wildcard import:", wildcard_file)
 
-            -- Check if this file uses the moved type
-            local check_cmd = string.format(
-                "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}<\\.>])' '%s' 2>/dev/null",
-                opts.old_type_name,
-                wildcard_file
+            -- Note: We check for BOTH old and new names because this runs after shell commands
+            -- which may have already renamed usages
+            local uses_old_name = os.execute(
+                string.format(
+                    "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}<\\.>])' '%s' 2>/dev/null",
+                    opts.old_type_name,
+                    wildcard_file
+                )
             )
-            log.debug("Checking if file uses moved type with command:", check_cmd)
-            local uses_moved_type = os.execute(check_cmd)
-            log.debug("Uses moved type result:", uses_moved_type)
+            local uses_new_name = os.execute(
+                string.format(
+                    "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}<\\.>])' '%s' 2>/dev/null",
+                    opts.new_type_name,
+                    wildcard_file
+                )
+            )
 
-            if uses_moved_type == 0 or uses_moved_type == true then
-                log.debug("File with wildcard import uses moved type:", wildcard_file)
+            if (uses_old_name == 0 or uses_old_name == true) or (uses_new_name == 0 or uses_new_name == true) then
+                log.debug("File with wildcard import uses the type (old or new name):", wildcard_file)
 
                 -- Find last import line in this file
                 local last_import_output = exec_and_read(
@@ -285,6 +338,8 @@ function M.fix_old_package_imports(opts)
                     wildcard_fixes = wildcard_fixes + 1
                     log.info("Added explicit import to file with wildcard:", wildcard_file)
                 end
+            else
+                log.debug("File with wildcard import doesn't use the type")
             end
         end
         wildcard_files_handle:close()
