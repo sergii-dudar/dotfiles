@@ -216,12 +216,12 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
             description = "Fix type symbols in same package and imported files",
         })
     else
-        -- For package moves, search for explicit imports only
+        -- For package moves, search for explicit imports AND wildcard imports
         local fix_type_symbols_where_imported = string.format(
-            "rg --color=never -l 'import\\s+%s' "
+            "rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
                 .. get_project_root()
                 .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
-            package_src_classpath_escaped,
+            package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
             sed,
             old_type_name,
             new_type_name
@@ -229,7 +229,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         table.insert(result_cmds, {
             type = "shell",
             command = fix_type_symbols_where_imported,
-            description = "Fix type symbols where imported",
+            description = "Fix type symbols where imported (explicit or wildcard)",
         })
     end
 
@@ -737,15 +737,24 @@ M.process_registerd_changes = function()
                 local dst_dir = change.dst:match("(.+)/[^/]+$")
 
                 -- Only mirror if directories actually differ (not a same-directory file rename)
+                -- AND not a parent/child relationship (subdirectory move)
                 if src_dir and dst_dir and src_dir ~= dst_dir then
-                    local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
-                    local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
+                    -- Check if dst is a subdirectory of src or vice versa
+                    local is_subdirectory_move = dst_dir:find("^" .. vim.pesc(src_dir) .. "/") or
+                                                 src_dir:find("^" .. vim.pesc(dst_dir) .. "/")
 
-                    -- Only add if test directory exists and not already mirrored
-                    if vim.fn.isdirectory(test_src_dir) == 1 and not test_mirror_dirs[test_src_dir] then
-                        test_mirror_dirs[test_src_dir] = test_dst_dir
-                        table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
-                        log.info("Auto-mirroring test directory (inferred from file move):", test_src_dir, "->", test_dst_dir)
+                    if is_subdirectory_move then
+                        log.debug("Skipping test mirror for subdirectory move (will process files individually):", src_dir, "->", dst_dir)
+                    else
+                        local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
+                        local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
+
+                        -- Only add if test directory exists and not already mirrored
+                        if vim.fn.isdirectory(test_src_dir) == 1 and not test_mirror_dirs[test_src_dir] then
+                            test_mirror_dirs[test_src_dir] = test_dst_dir
+                            table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
+                            log.info("Auto-mirroring test directory (inferred from file move):", test_src_dir, "->", test_dst_dir)
+                        end
                     end
                 else
                     log.debug("Skipping test mirror for same-directory file rename")
