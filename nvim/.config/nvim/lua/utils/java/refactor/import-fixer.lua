@@ -56,10 +56,10 @@ local function add_import_line(file_path, line_num, import_line)
         return true
     end
 
-    -- Use a more reliable approach with -e flag
-    -- This avoids issues with quoting in the append command
+    -- Use GNU sed append command with literal newline
+    -- The key is \\\n which creates backslash + newline in the shell command
     local sed_cmd = string.format(
-        "%s -i -e '%da\\' -e '%s' '%s'",
+        "%s -i '%da\\\n%s' '%s'",
         sed,
         line_num,
         import_line,
@@ -254,18 +254,22 @@ function M.fix_old_package_imports(opts)
 
                     -- Add explicit import for the moved type
                     local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
-                    if add_import_line(test_file, last_import, import_line) then
-                        -- Also update the usage
-                        local update_cmd = string.format(
-                            "%s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}<\\.>])/\\1%s\\2/g' '%s'",
-                            sed,
-                            opts.old_type_name,
-                            opts.new_type_name,
-                            test_file
-                        )
-                        os.execute(update_cmd)
+                    add_import_line(test_file, last_import, import_line)
+                    
+                    -- Always update the usage (even if import was already there)
+                    local update_cmd = string.format(
+                        "%s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}<\\.>])/\\1%s\\2/g' '%s'",
+                        sed,
+                        opts.old_type_name,
+                        opts.new_type_name,
+                        test_file
+                    )
+                    local update_result = os.execute(update_cmd)
+                    if update_result == 0 or update_result == true then
                         test_fixes = test_fixes + 1
                         log.info("Fixed test file with same-package usage:", test_file)
+                    else
+                        log.warn("Failed to update usages in test file:", test_file)
                     end
                 else
                     log.debug("Test file doesn't use the type")

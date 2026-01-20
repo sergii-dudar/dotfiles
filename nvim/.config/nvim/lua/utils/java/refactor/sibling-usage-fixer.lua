@@ -29,9 +29,10 @@ end
 
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
-    -- GNU sed (both macOS gsed and Linux sed)
+    -- Use GNU sed append command with literal newline
+    -- The key is \\\n which creates backslash + newline in the shell command
     local sed_cmd = string.format(
-        "%s -i '%da\\%s' '%s'",
+        "%s -i '%da\\\n%s' '%s'",
         sed,
         line_num,
         import_line,
