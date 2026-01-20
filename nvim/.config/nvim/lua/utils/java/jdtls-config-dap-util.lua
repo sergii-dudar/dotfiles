@@ -19,11 +19,12 @@ local run_main_class_config = function(dap_config)
 end
 
 M.rerun_last = function()
-    if not last_runned_dap_config then
+    --[[ if not last_runned_dap_config then
         vim.notify("❌ There no any previous DAP config to run", vim.log.levels.WARN)
         return
     end
-    run_main_class_config(last_runned_dap_config)
+    run_main_class_config(last_runned_dap_config) ]]
+    require("dap").run_last()
 end
 
 M.run_current_main_class = function()

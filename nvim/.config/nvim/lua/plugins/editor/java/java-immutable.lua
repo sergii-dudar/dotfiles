@@ -171,14 +171,19 @@ return {
             ---
             -- Include spring boot ls bundle if present
             ---
-            vim.list_extend(bundles, require("spring_boot").java_extensions())
             -- vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-decompiler/bundles/*.jar", false, true))
-            vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true))
+            local vscode_java_dependency = vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true)
+            -- local vscode_java_debug = vim.fn.glob("$HOME/.vscode/extensions/vscjava.vscode-java-debug-0.58.2025112507/server/*.jar", false, true)
+            -- local vscode_java_test = vim.fn.glob("$HOME/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar", false, true)
+            -- print(vscode_java_dependency)
+            -- print(vscode_java_debug)
+            -- print(vscode_java_test)
 
-            -- vscode java tests
-            -- local home = os.getenv("HOME")
-            -- local tests_modules = home .. "/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar"
-            -- vim.list_extend(bundles, vim.fn.glob(tests_modules, false, true))
+            vim.list_extend(bundles, vscode_java_dependency)
+            -- vim.list_extend(bundles, vscode_java_debug)
+            -- vim.list_extend(bundles, vscode_java_test)
+
+            vim.list_extend(bundles, require("spring_boot").java_extensions())
             opts.is_config_updated = false
             opts.on_attach = function(args)
                 if not opts.is_config_updated then
@@ -327,6 +332,12 @@ return {
                                                 require("jdtls.dap").pick_test,
                                                 desc = "Debug Pick Test (Jdtls)", -- "Run Test",
                                             },
+                                            -- TODO: need wait better junit 6 support
+                                            --[[ {
+                                                "<leader>tR",
+                                                -- require("jdtls.dap").pick_test,
+                                                desc = "Debug Re-Run Last Test (Jdtls)",
+                                            }, ]]
                                         },
                                     })
                                 end
