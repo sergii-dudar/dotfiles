@@ -5,6 +5,11 @@ local log = require("utils.logging-util").new({ name = "MapStruct.IPC", filename
 
 local M = {}
 
+-- Set log level for this module
+function M.set_log_level(level)
+    log.set_level(level)
+end
+
 -- State
 local state = {
     socket_fd = nil,

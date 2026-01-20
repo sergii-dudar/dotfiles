@@ -7,6 +7,11 @@ local log = require("utils.logging-util").new({ name = "MapStruct.Server", filen
 
 local M = {}
 
+-- Set log level for this module
+function M.set_log_level(level)
+    log.set_level(level)
+end
+
 -- State
 local state = {
     server_job_id = nil,

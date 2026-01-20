@@ -6,6 +6,11 @@ local log = require("utils.logging-util").new({ name = "MapStruct.Context", file
 
 local M = {}
 
+-- Set log level for this module
+function M.set_log_level(level)
+    log.set_level(level)
+end
+
 -- Get the Treesitter node at cursor position
 local function get_node_at_cursor(bufnr, row, col)
     local parser = vim.treesitter.get_parser(bufnr, "java")

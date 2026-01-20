@@ -5,6 +5,11 @@ local log = require("utils.logging-util").new({ name = "MapStruct.Classpath", fi
 
 local M = {}
 
+-- Set log level for this module
+function M.set_log_level(level)
+    log.set_level(level)
+end
+
 -- Cache for classpath results to avoid expensive LSP queries
 local classpath_cache = {
     classpath = nil,
