@@ -10,34 +10,25 @@ local log = logging_util.new({ name = "MapStruct", filename = "mapstruct-source.
 --- @class blink.cmp.Source
 local source = {}
 
--- Convert string log level to numeric level
-local function parse_log_level(level_str)
-    if not level_str then
-        return logging_util.levels.INFO -- default
-    end
-    
-    local upper = string.upper(level_str)
-    return logging_util.levels[upper] or logging_util.levels.INFO
-end
-
 -- Initialize the source
 function source.new(opts)
     local self = setmetatable({}, { __index = source })
     self.opts = opts or {}
-    
+
     -- Set log level for all mapstruct modules if specified
     if self.opts.log_level then
-        local numeric_level = parse_log_level(self.opts.log_level)
+        local numeric_level = logging_util.level_to_number(self.opts.log_level)
+
         log.set_level(numeric_level)
-        log.info("Setting Lua log level to:", self.opts.log_level, "(numeric:", numeric_level, ")")
-        
+        log.info("Setting Lua log level to:", logging_util.level_to_string(numeric_level))
+
         -- Update log levels for all mapstruct modules
         require("utils.blink.mapstruct-source.server").set_log_level(numeric_level)
         require("utils.blink.mapstruct-source.ipc_client").set_log_level(numeric_level)
         require("utils.blink.mapstruct-source.context").set_log_level(numeric_level)
         require("utils.blink.mapstruct-source.classpath-util").set_log_level(numeric_level)
     end
-    
+
     -- Debug: log received options
     log.info("MapStruct source initialized with opts:", vim.inspect(self.opts))
 

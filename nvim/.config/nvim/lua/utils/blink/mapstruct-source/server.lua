@@ -3,7 +3,8 @@
 
 local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
 local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
-local log = require("utils.logging-util").new({ name = "MapStruct.Server", filename = "mapstruct-source.log" })
+local logging_util = require("utils.logging-util")
+local log = logging_util.new({ name = "MapStruct.Server", filename = "mapstruct-source.log" })
 
 local M = {}
 
@@ -75,8 +76,9 @@ function M.start(jar_path, opts, callback)
 
     -- Add log level system property if specified
     if opts.log_level then
-        table.insert(cmd, "-Dmapstruct.log.level=" .. opts.log_level)
-        log.info("Setting log level:", opts.log_level)
+        local level_str = logging_util.level_to_string(opts.log_level)
+        table.insert(cmd, "-Dmapstruct.log.level=" .. level_str)
+        log.info("Setting Java log level:", level_str)
     end
 
     -- Add classpath and main class

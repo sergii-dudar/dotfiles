@@ -1,20 +1,48 @@
 -- Logging utility inspired by tj's vlog.nvim
 -- Provides file-based logging with configurable log levels
 
+--  Available levels:
+--  - TRACE (0) - Most verbose
+--  - DEBUG (1) - Detailed debugging
+--  - INFO (2) - General info (default)
+--  - WARN (3) - Warnings only
+--  - ERROR (4) - Errors only
+--  - OFF (5) - No logging
+
 local M = {}
 
--- Log levels
-M.levels = {
-    TRACE = 0,
-    DEBUG = 1,
-    INFO = 2,
-    WARN = 3,
-    ERROR = 4,
-}
+-- Use Neovim's built-in log levels
+M.levels = vim.log.levels
+
+-- Convert log level (number or string) to string name
+function M.level_to_string(level)
+    if type(level) == "string" then
+        return string.upper(level)
+    elseif type(level) == "number" then
+        -- Convert vim.log.levels numeric value to string
+        for name, value in pairs(vim.log.levels) do
+            if value == level then
+                return name
+            end
+        end
+    end
+    return "INFO" -- fallback
+end
+
+-- Convert log level (string or number) to numeric vim.log.levels value
+function M.level_to_number(level)
+    if type(level) == "number" then
+        return level
+    elseif type(level) == "string" then
+        local upper = string.upper(level)
+        return vim.log.levels[upper] or vim.log.levels.INFO
+    end
+    return vim.log.levels.INFO -- fallback
+end
 
 -- Default configuration
 local config = {
-    level = M.levels.DEBUG,
+    level = vim.log.levels.INFO,
     use_console = false,
     use_file = true,
 }

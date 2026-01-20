@@ -188,7 +188,6 @@ return {
                             jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
                             -- jar_path = "~/serhii.home/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
-
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
                             -- Optional: use jdtls classpath (default: true)
@@ -200,8 +199,9 @@ return {
                             -- Optional: custom Java command
                             -- java_cmd = "java",
 
-                            -- Optional: log level (TRACE, DEBUG, INFO, WARN, ERROR) (default: INFO)
-                            log_level = "DEBUG",
+                            -- Optional: log level (default: vim.log.levels.INFO)
+                            -- Controls both Java and Lua parts logging
+                            log_level = vim.log.levels.WARN,
                         },
                     },
                 },
@@ -213,4 +213,3 @@ return {
         },
     },
 }
-
