@@ -199,6 +199,9 @@ return {
 
                             -- Optional: custom Java command
                             -- java_cmd = "java",
+
+                            -- Optional: log level (TRACE, DEBUG, INFO, WARN, ERROR) (default: INFO)
+                            log_level = "DEBUG",
                         },
                     },
                 },

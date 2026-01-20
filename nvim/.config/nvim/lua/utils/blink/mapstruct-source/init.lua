@@ -13,6 +13,9 @@ local source = {}
 function source.new(opts)
     local self = setmetatable({}, { __index = source })
     self.opts = opts or {}
+    
+    -- Debug: log received options
+    log.info("MapStruct source initialized with opts:", vim.inspect(self.opts))
 
     -- Validate options
     if not self.opts.jar_path then
@@ -234,6 +237,7 @@ function source:start_server_internal(callback)
         java_cmd = self.java_cmd,
         use_jdtls_classpath = self.use_jdtls_classpath,
         classpath = self.opts.classpath,
+        log_level = self.opts.log_level,
     }, function(success, err)
         if not success then
             log.error("Failed to start server:", err)

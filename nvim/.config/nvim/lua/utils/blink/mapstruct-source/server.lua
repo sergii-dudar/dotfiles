@@ -13,6 +13,7 @@ local state = {
     socket_path = nil,
     jar_path = nil,
     is_starting = false,
+    opts = nil, -- Store original options for restart
 }
 
 -- Generate unique socket path for this Neovim instance
@@ -44,6 +45,7 @@ function M.start(jar_path, opts, callback)
     state.is_starting = true
     state.jar_path = jar_path
     state.socket_path = generate_socket_path()
+    state.opts = opts -- Store options for restart
 
     -- Build classpath
     local classpath = jar_path
@@ -64,13 +66,25 @@ function M.start(jar_path, opts, callback)
     -- Build command
     local cmd = {
         opts.java_cmd or "java",
-        "-cp",
-        classpath,
-        "com.dsm.mapstruct.IpcServer",
-        state.socket_path,
     }
 
+    -- Add log level system property if specified
+    if opts.log_level then
+        table.insert(cmd, "-Dmapstruct.log.level=" .. opts.log_level)
+        log.info("Setting log level:", opts.log_level)
+    end
+
+    -- Add classpath and main class
+    table.insert(cmd, "-cp")
+    table.insert(cmd, classpath)
+    table.insert(cmd, "com.dsm.mapstruct.IpcServer")
+    table.insert(cmd, state.socket_path)
+
     log.info("Starting server on", state.socket_path)
+    log.info("Java command:", opts.java_cmd or "java")
+    log.info("Use jdtls classpath:", opts.use_jdtls_classpath)
+    log.info("Log level from opts:", opts.log_level or "not set")
+    log.debug("Full command:", vim.inspect(cmd))
     vim.notify("[MapStruct] Starting server on " .. state.socket_path, vim.log.levels.INFO)
 
     -- Start server as background job
@@ -96,6 +110,8 @@ function M.start(jar_path, opts, callback)
         end,
         on_exit = function(_, exit_code, _)
             log.warn("Server exited with code", exit_code)
+            log.warn("Server job_id was:", state.server_job_id)
+            log.warn("Socket path was:", state.socket_path)
             vim.notify("[MapStruct] Server exited with code " .. exit_code, vim.log.levels.WARN)
             M.cleanup()
         end,
@@ -129,27 +145,38 @@ end
 
 -- Stop the server
 function M.stop(callback)
+    log.info("Stop requested - server_job_id:", state.server_job_id)
+
     if not state.server_job_id then
+        log.info("Server not running, nothing to stop")
         if callback then
             callback(true)
         end
         return
     end
 
+    log.info("Sending shutdown request to server")
+
     -- Send shutdown request
     if ipc_client.is_connected() then
+        log.debug("IPC client is connected, sending shutdown request")
         ipc_client.request("shutdown", {}, function()
+            log.debug("Shutdown response received from server")
             -- Server will shut down
         end)
+    else
+        log.warn("IPC client not connected, cannot send graceful shutdown")
     end
 
     -- Give server time to shut down gracefully
     vim.defer_fn(function()
         if state.server_job_id then
+            log.info("Forcefully stopping job:", state.server_job_id)
             vim.fn.jobstop(state.server_job_id)
         end
 
         M.cleanup()
+        log.info("Server stopped and cleaned up")
 
         if callback then
             callback(true)
@@ -160,11 +187,24 @@ end
 -- Restart the server
 function M.restart(callback)
     log.info("Restarting server...")
+    log.info("Current state - jar_path:", state.jar_path)
+    log.info("Current state - socket_path:", state.socket_path)
+    log.info("Current state - server_job_id:", state.server_job_id)
+    log.info("Stored opts:", vim.inspect(state.opts))
+
     vim.notify("[MapStruct] Restarting server...", vim.log.levels.INFO)
     M.stop(function()
+        log.info("Server stopped, waiting before restart")
         vim.defer_fn(function()
             if state.jar_path then
-                M.start(state.jar_path, {}, callback)
+                log.info("Starting server with stored opts")
+                -- Reuse stored options instead of empty table
+                M.start(state.jar_path, state.opts or {}, callback)
+            else
+                log.error("Cannot restart - jar_path is nil")
+                if callback then
+                    callback(false, "jar_path is nil")
+                end
             end
         end, 500)
     end)
@@ -172,18 +212,23 @@ end
 
 -- Cleanup server resources
 function M.cleanup()
+    log.info("Cleanup called")
+    log.debug("Disconnecting IPC client")
     ipc_client.disconnect()
 
     if state.server_job_id then
+        log.debug("Clearing server_job_id:", state.server_job_id)
         state.server_job_id = nil
     end
 
     -- Clean up socket file
     if state.socket_path and vim.fn.filereadable(state.socket_path) == 1 then
+        log.debug("Deleting socket file:", state.socket_path)
         vim.fn.delete(state.socket_path)
     end
 
     state.is_starting = false
+    log.info("Cleanup completed")
 end
 
 -- Check if server is running
