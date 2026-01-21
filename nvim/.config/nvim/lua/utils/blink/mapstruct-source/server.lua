@@ -81,6 +81,13 @@ function M.start(jar_path, opts, callback)
         log.info("Setting Java log level:", level_str)
     end
 
+    -- Add log file path system property if specified
+    if opts.log_file then
+        local log_path = vim.fn.expand(opts.log_file)
+        table.insert(cmd, "-Dmapstruct.log.file=" .. log_path)
+        log.info("Setting Java log file:", log_path)
+    end
+
     -- Add classpath and main class
     table.insert(cmd, "-cp")
     table.insert(cmd, classpath)

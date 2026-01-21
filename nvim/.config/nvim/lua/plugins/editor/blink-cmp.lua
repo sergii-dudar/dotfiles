@@ -200,8 +200,12 @@ return {
                             -- java_cmd = "java",
 
                             -- Optional: log level (default: vim.log.levels.INFO)
-                            -- Controls both Java and Lua parts logging
+                            -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
+                            -- Controls both Java and Lua logging
                             log_level = vim.log.levels.WARN,
+
+                            -- Optional: Java server log file (default: ~/.local/state/nvim/mapstruct-source-server.log)
+                            -- log_file = "~/.local/state/nvim/mapstruct-source-server.log",
                         },
                     },
                 },

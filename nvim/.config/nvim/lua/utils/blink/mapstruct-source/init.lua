@@ -253,6 +253,7 @@ function source:start_server_internal(callback)
         use_jdtls_classpath = self.use_jdtls_classpath,
         classpath = self.opts.classpath,
         log_level = self.opts.log_level,
+        log_file = self.opts.log_file,
     }, function(success, err)
         if not success then
             log.error("Failed to start server:", err)
