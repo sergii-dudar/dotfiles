@@ -99,30 +99,32 @@ end
 ---@return string|nil
 local function detect_module_path(file_path)
     log.debug("Detecting module path for:", file_path)
-    
+
     -- First, try to find the module by looking for build files
     local current_dir = file_path:match("(.+)/[^/]+$") -- Start from file's parent directory
-    
+
     while current_dir and current_dir ~= "/" do
         -- Check for Maven/Gradle build files
-        if vim.fn.filereadable(current_dir .. "/pom.xml") == 1 or
-           vim.fn.filereadable(current_dir .. "/build.gradle") == 1 or
-           vim.fn.filereadable(current_dir .. "/build.gradle.kts") == 1 then
+        if
+            vim.fn.filereadable(current_dir .. "/pom.xml") == 1
+            or vim.fn.filereadable(current_dir .. "/build.gradle") == 1
+            or vim.fn.filereadable(current_dir .. "/build.gradle.kts") == 1
+        then
             log.info("Detected module path via build file:", current_dir)
             return current_dir
         end
-        
+
         -- Move up one directory
         current_dir = current_dir:match("(.+)/[^/]+$")
     end
-    
+
     -- Fallback: use path up to /src/*/java
     local module_path = file_path:match("(.+)/src/[^/]+/java/")
     if module_path then
         log.info("Detected module path via src directory:", module_path)
         return module_path
     end
-    
+
     log.warn("Could not detect module path for:", file_path)
     return nil
 end
@@ -149,7 +151,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
     local src = context.src
     local dst = context.dst
-    
+
     -- Determine the search root: module path if available, otherwise project root
     local search_root = module_path or get_project_root()
 
@@ -315,9 +317,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = string.format(
-        "rg --color=never -l '%s' "
-            .. "'%s'"
-            .. " | xargs %s -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
         search_root, -- Use module path instead of project root
@@ -410,9 +410,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- 6. fix file path/resources path
 
         local fix_file_paht_declaration = string.format(
-            "rg --color=never -l '%s' "
-                .. "'%s'"
-                .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+            "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
             package_src_path_escaped,
             search_root, -- Use module path instead of project root
             sed,
@@ -439,7 +437,7 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     log.debug("Module path restriction:", module_path or "none (project-wide)")
     local src = context.src
     local dst = context.dst
-    
+
     -- Determine the search root: module path if available, otherwise project root
     local search_root = module_path or get_project_root()
 
@@ -516,9 +514,7 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- ==========================================================================
     -- 2. fix package path/resources path
     local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' "
-            .. "'%s'"
-            .. " | xargs %s -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
         search_root, -- Use module path instead of project root
         sed,
@@ -616,7 +612,7 @@ M.process_registerd_changes = function()
     if all_registered_changes[1] then
         local first_change_path = all_registered_changes[1].src
         module_path = detect_module_path(first_change_path)
-        
+
         if module_path then
             log.info("==============================================")
             log.info("DETECTED MODULE SCOPE:", module_path)
@@ -751,13 +747,20 @@ M.process_registerd_changes = function()
                     log.debug("Found test subdirectory:", test_subdir, "name:", subdir_name)
 
                     -- Skip the destination directory itself (e.g., adapter/code)
-                    if subdir_name and not test_subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$") then
+                    if
+                        subdir_name and not test_subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$")
+                    then
                         local test_dst_subdir = test_dst_parent .. "/" .. subdir_name
 
                         if not test_mirror_dirs[test_subdir] then
                             test_mirror_dirs[test_subdir] = test_dst_subdir
                             table.insert(test_mirrors, { src = test_subdir, dst = test_dst_subdir })
-                            log.info("Auto-mirroring test subdirectory (structural):", test_subdir, "->", test_dst_subdir)
+                            log.info(
+                                "Auto-mirroring test subdirectory (structural):",
+                                test_subdir,
+                                "->",
+                                test_dst_subdir
+                            )
                             found_count = found_count + 1
                         else
                             log.debug("Test subdirectory already in mirror list, skipping:", test_subdir)
@@ -801,11 +804,16 @@ M.process_registerd_changes = function()
                 -- AND not a parent/child relationship (subdirectory move)
                 if src_dir and dst_dir and src_dir ~= dst_dir then
                     -- Check if dst is a subdirectory of src or vice versa
-                    local is_subdirectory_move = dst_dir:find("^" .. vim.pesc(src_dir) .. "/") or
-                                                 src_dir:find("^" .. vim.pesc(dst_dir) .. "/")
+                    local is_subdirectory_move = dst_dir:find("^" .. vim.pesc(src_dir) .. "/")
+                        or src_dir:find("^" .. vim.pesc(dst_dir) .. "/")
 
                     if is_subdirectory_move then
-                        log.debug("Skipping test mirror for subdirectory move (will process files individually):", src_dir, "->", dst_dir)
+                        log.debug(
+                            "Skipping test mirror for subdirectory move (will process files individually):",
+                            src_dir,
+                            "->",
+                            dst_dir
+                        )
                     else
                         local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
                         local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
@@ -814,7 +822,12 @@ M.process_registerd_changes = function()
                         if vim.fn.isdirectory(test_src_dir) == 1 and not test_mirror_dirs[test_src_dir] then
                             test_mirror_dirs[test_src_dir] = test_dst_dir
                             table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
-                            log.info("Auto-mirroring test directory (inferred from file move):", test_src_dir, "->", test_dst_dir)
+                            log.info(
+                                "Auto-mirroring test directory (inferred from file move):",
+                                test_src_dir,
+                                "->",
+                                test_dst_dir
+                            )
                         end
                     end
                 else
@@ -1005,7 +1018,6 @@ M.process_registerd_changes = function()
     table.sort(valid_moves, function(a, b)
         return a.depth < b.depth
     end)
-
 
     -- Process all valid package moves or file changes
     local global_operations = {}

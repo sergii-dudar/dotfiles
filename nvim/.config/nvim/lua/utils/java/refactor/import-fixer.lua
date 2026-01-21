@@ -46,7 +46,8 @@ end
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
     -- First check if import already exists to avoid duplicates
-    local check_cmd = string.format("rg -q '^%s$' '%s' 2>/dev/null",
+    local check_cmd = string.format(
+        "rg -q '^%s$' '%s' 2>/dev/null",
         import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
         file_path
     )
@@ -59,13 +60,7 @@ local function add_import_line(file_path, line_num, import_line)
 
     -- Use GNU sed append command with literal newline
     -- The key is \\\n which creates backslash + newline in the shell command
-    local sed_cmd = string.format(
-        "%s -i '%da\\\n%s' '%s'",
-        sed,
-        line_num,
-        import_line,
-        file_path
-    )
+    local sed_cmd = string.format("%s -i '%da\\\n%s' '%s'", sed, line_num, import_line, file_path)
 
     log.debug("Sed command:", sed_cmd)
     local result = os.execute(sed_cmd)
@@ -73,7 +68,8 @@ local function add_import_line(file_path, line_num, import_line)
 
     -- Check if the import was actually added (verify the command worked)
     -- On macOS, os.execute can return different values even on success
-    local verify_cmd = string.format("rg -q '%s' '%s' 2>/dev/null",
+    local verify_cmd = string.format(
+        "rg -q '%s' '%s' 2>/dev/null",
         import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
         file_path
     )
@@ -99,12 +95,14 @@ function M.fix_old_package_imports(opts)
     log.debug("New package:", opts.new_package)
     log.debug("Siblings:", opts.siblings and table.concat(opts.siblings, ",") or "none")
     log.debug("Module path restriction:", opts.module_path or "none (project-wide)")
-    
+
     -- Determine search root: module path if available, otherwise extract from old_dir
     local search_root = opts.module_path
     if not search_root then
         -- Fallback: Extract project root from old_dir (go up to src/main/java or src/test/java parent)
-        search_root = opts.old_dir:match("(.+)/src/main/java/") or opts.old_dir:match("(.+)/src/test/java/") or opts.old_dir
+        search_root = opts.old_dir:match("(.+)/src/main/java/")
+            or opts.old_dir:match("(.+)/src/test/java/")
+            or opts.old_dir
     end
     log.debug("Search root for wildcard search:", search_root)
 
@@ -122,9 +120,8 @@ function M.fix_old_package_imports(opts)
     end
 
     -- Find last import line using rg
-    local last_import_output = exec_and_read(
-        string.format("rg -n '^import ' '%s' 2>/dev/null | tail -n 1 | cut -d: -f1", opts.new_file_path)
-    )
+    local last_import_output =
+        exec_and_read(string.format("rg -n '^import ' '%s' 2>/dev/null | tail -n 1 | cut -d: -f1", opts.new_file_path))
     local last_import_line = tonumber(last_import_output) or 2
     log.debug("Last import line:", last_import_line)
 
@@ -196,9 +193,8 @@ function M.fix_old_package_imports(opts)
     local sibling_usage_fixer = require("utils.java.refactor.sibling-usage-fixer")
 
     -- Process main directory
-    local old_dir_files_handle = io.popen(
-        string.format("fd --color=never -e java --max-depth 1 . '%s' 2>/dev/null", opts.old_dir)
-    )
+    local old_dir_files_handle =
+        io.popen(string.format("fd --color=never -e java --max-depth 1 . '%s' 2>/dev/null", opts.old_dir))
 
     if old_dir_files_handle then
         local fixes_applied = 0
@@ -209,7 +205,7 @@ function M.fix_old_package_imports(opts)
                 file_path = old_file,
                 new_package = opts.new_package,
                 old_type_name = opts.old_type_name,
-                new_type_name = opts.new_type_name
+                new_type_name = opts.new_type_name,
             })
 
             if success then
@@ -224,9 +220,7 @@ function M.fix_old_package_imports(opts)
     local test_old_dir = opts.old_dir:gsub("src/main/java/", "src/test/java/")
     if test_old_dir ~= opts.old_dir and vim.fn.isdirectory(test_old_dir) == 1 then
         log.debug("Fixing test files in old test directory:", test_old_dir)
-        local test_files_handle = io.popen(
-            string.format("fd --color=never -e java . '%s' 2>/dev/null", test_old_dir)
-        )
+        local test_files_handle = io.popen(string.format("fd --color=never -e java . '%s' 2>/dev/null", test_old_dir))
 
         if test_files_handle then
             local test_fixes = 0
@@ -265,7 +259,7 @@ function M.fix_old_package_imports(opts)
                     -- Add explicit import for the moved type
                     local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
                     add_import_line(test_file, last_import, import_line)
-                    
+
                     -- Always update the usage (even if import was already there)
                     local update_cmd = string.format(
                         "%s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}<\\.>])/\\1%s\\2/g' '%s'",
@@ -300,11 +294,8 @@ function M.fix_old_package_imports(opts)
     local wildcard_import_pattern = opts.old_package:gsub("%.", "\\.") .. "\\.\\*"
     log.debug("Wildcard import pattern:", wildcard_import_pattern)
 
-    local wildcard_search_cmd = string.format(
-        "rg --color=never -l 'import\\s+%s;' '%s' 2>/dev/null",
-        wildcard_import_pattern,
-        search_root
-    )
+    local wildcard_search_cmd =
+        string.format("rg --color=never -l 'import\\s+%s;' '%s' 2>/dev/null", wildcard_import_pattern, search_root)
     log.debug("Wildcard search command:", wildcard_search_cmd)
 
     local wildcard_files_handle = io.popen(wildcard_search_cmd)

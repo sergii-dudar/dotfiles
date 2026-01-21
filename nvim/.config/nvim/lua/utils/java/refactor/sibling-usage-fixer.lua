@@ -31,13 +31,7 @@ end
 local function add_import_line(file_path, line_num, import_line)
     -- Use GNU sed append command with literal newline
     -- The key is \\\n which creates backslash + newline in the shell command
-    local sed_cmd = string.format(
-        "%s -i '%da\\\n%s' '%s'",
-        sed,
-        line_num,
-        import_line,
-        file_path
-    )
+    local sed_cmd = string.format("%s -i '%da\\\n%s' '%s'", sed, line_num, import_line, file_path)
 
     local result = os.execute(sed_cmd)
     if not (result == 0 or result == true) then
@@ -102,9 +96,8 @@ function M.fix_sibling_usage(opts)
         log.debug("Different package, adding import")
 
         -- Find last import line
-        local last_import_output = exec_and_read(
-            string.format("rg -n '^import ' '%s' 2>/dev/null | tail -n 1 | cut -d: -f1", opts.file_path)
-        )
+        local last_import_output =
+            exec_and_read(string.format("rg -n '^import ' '%s' 2>/dev/null | tail -n 1 | cut -d: -f1", opts.file_path))
         local last_import_line = tonumber(last_import_output) or 2
         log.debug("Last import line:", last_import_line)
 

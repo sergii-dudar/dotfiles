@@ -222,7 +222,6 @@ local function get_mapper_class_info(bufnr)
     return package_name, class_name
 end
 
-
 -- Extract parameter names from source code using Treesitter
 -- Returns: array of parameter names in order
 local function get_parameter_names_from_source(method_node, bufnr)
@@ -387,14 +386,15 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
                     break
                 end
             end
-
         elseif state == "seeking_annotations" then
             lines_since_method = lines_since_method + 1
 
             -- Stop after 300 lines
             if lines_since_method > 300 then
                 if not in_annotations then
-                    log.warn("No RuntimeParameterAnnotations found within 300 lines (might not have parameter annotations)")
+                    log.warn(
+                        "No RuntimeParameterAnnotations found within 300 lines (might not have parameter annotations)"
+                    )
                 end
                 break
             end
@@ -406,11 +406,14 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
             -- Stop if we hit another method signature at the SAME indentation level
             if line_indent_len == method_indent_len then
                 local trimmed = line:match("^%s*(.*)$")
-                if trimmed and (
-                    trimmed:match("^public%s+.*%s+%w+%s*%(") or
-                    trimmed:match("^private%s+.*%s+%w+%s*%(") or
-                    trimmed:match("^protected%s+.*%s+%w+%s*%(")
-                ) then
+                if
+                    trimmed
+                    and (
+                        trimmed:match("^public%s+.*%s+%w+%s*%(")
+                        or trimmed:match("^private%s+.*%s+%w+%s*%(")
+                        or trimmed:match("^protected%s+.*%s+%w+%s*%(")
+                    )
+                then
                     log.info("Reached next method signature at same indentation, stopping annotation search")
                     break
                 end
@@ -473,7 +476,8 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     log.info("Building final parameter list...")
     for i = 1, #param_types do
         local param_index = i - 1 -- Java uses 0-based indexing
-        local is_mapping_target = param_annotations[param_index] and param_annotations[param_index].has_mapping_target or false
+        local is_mapping_target = param_annotations[param_index] and param_annotations[param_index].has_mapping_target
+            or false
 
         table.insert(parameters, {
             name = param_names[i],
@@ -836,7 +840,6 @@ function M.get_completion_context(bufnr, row, col)
             line = row,
             col = col,
         }
-
     elseif attribute_type == "target" then
         -- For target attribute, we need to determine the target type:
         -- 1. If method has @MappingTarget parameter, use that parameter's type
@@ -870,7 +873,10 @@ function M.get_completion_context(bufnr, row, col)
         -- Check if target type is void (invalid)
         if target_type == "void" then
             log.error("Target type is void, cannot navigate fields")
-            vim.notify("[MapStruct Context] Method has void return type and no @MappingTarget parameter", vim.log.levels.ERROR)
+            vim.notify(
+                "[MapStruct Context] Method has void return type and no @MappingTarget parameter",
+                vim.log.levels.ERROR
+            )
             return nil
         end
 
@@ -882,7 +888,6 @@ function M.get_completion_context(bufnr, row, col)
             line = row,
             col = col,
         }
-
     else
         log.error("Unknown attribute type:", attribute_type)
         vim.notify("[MapStruct Context] Unknown attribute type: " .. attribute_type, vim.log.levels.ERROR)

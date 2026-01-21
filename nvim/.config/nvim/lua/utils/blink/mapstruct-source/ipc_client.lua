@@ -230,7 +230,7 @@ function M.request(method, params, callback)
     local request = {
         id = request_id,
         method = method,
-        params = params or {}
+        params = params or {},
     }
 
     local json_str = vim.json.encode(request) .. "\n"
