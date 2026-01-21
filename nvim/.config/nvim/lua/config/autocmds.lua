@@ -174,3 +174,21 @@ vim.api.nvim_create_user_command("DisableBinary", function()
     vim.opt.fixeol = true
     vim.cmd("update")
 end, {})
+
+-- tests
+vim.api.nvim_create_user_command("RunMainClass", function()
+    require("jdtls.dap").fetch_main_configs({
+        config_overrides = {
+            noDebug = false, -- This runs without debugging
+        },
+    }, function(configs)
+        if #configs > 0 then
+            dd(configs)
+            require("dap").run(configs[1])
+        end
+    end)
+end, {})
+
+vim.api.nvim_create_user_command("LastRun", function()
+    require("dap").run_last()
+end, {})

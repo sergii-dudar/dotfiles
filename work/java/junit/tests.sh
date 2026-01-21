@@ -77,6 +77,13 @@ java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 \
     --select-method "ua.raiffeisen.payments.cardtransferinitiation.core.usecase.initiation.helper.OperationalCodeEvaluatorTest#shouldReceiveErrorWhenWrongDebtorBalanceGroup" \
     --include-engine junit-jupiter --disable-banner
 
+java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 \
+    -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
+    --select-method "com.dsm.mapstruct.PathNavigatorTest#testNavigateToRootClass" \
+    --include-engine junit-jupiter --disable-banner
+
 # run parametrized test all methods
 java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \

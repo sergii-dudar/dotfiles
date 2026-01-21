@@ -9,5 +9,5 @@ if [ -f "$jar_path" ]; then
 fi
 
 mkdir -p "$install_dir" && cd "$install_dir"
-wget -O "$jar_name" "https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/6.0.1/junit-platform-console-standalone-6.0.1.jar"
+wget -O "$jar_name" "https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/6.0.2/junit-platform-console-standalone-6.0.2.jar"
 echo "$jar_name successfully downloaded to $jar_path"

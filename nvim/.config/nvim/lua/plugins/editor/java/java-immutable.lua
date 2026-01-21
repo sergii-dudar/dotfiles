@@ -134,15 +134,15 @@ return {
                 --#########################################
                 --###### Custom Jdtls Config START ########
                 --#########################################
-                -- test = false, -- disabled jdtls test in favor of neotest-java
-                test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
-                    config_overrides = {
-                        vmArgs = string.format(
-                            "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
-                            os.getenv("HOME")
-                        ),
-                    },
-                },
+                test = false, -- disabled jdtls test in favor of neotest-java
+                -- test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
+                --     config_overrides = {
+                --         vmArgs = string.format(
+                --             "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
+                --             os.getenv("HOME")
+                --         ),
+                --     },
+                -- },
                 settings = require("utils.java.jdtls-config-util").jdtls_settings,
                 --#####################################
                 --################ END ################

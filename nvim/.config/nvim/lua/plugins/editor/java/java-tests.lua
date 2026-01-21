@@ -1,9 +1,11 @@
 -- :lua print(vim.fn.stdpath("log"))
 -- :lua print(vim.fn.stdpath("data"))
+
+-- https://github.com/rcasia/neotest-java/pull/153#issuecomment-2395210490
 return {
     {
-        -- "rcasia/neotest-java",
-        "sergii-dudar/neotest-java",
+        "rcasia/neotest-java",
+        -- "sergii-dudar/neotest-java",
         -- commit = "8fefa6d853c2f37126f3a7406c76e46824859b65",
         --[[ branch = "main",
         commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", ]]
@@ -50,7 +52,7 @@ return {
         opts = {
             adapters = {
                 ["neotest-java"] = {
-                    -- log_level = vim.log.levels.DEBUG,
+                    log_level = vim.log.levels.DEBUG,
                     junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
                     jvm_args = {
                         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", os.getenv("HOME")),
