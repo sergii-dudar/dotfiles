@@ -95,17 +95,6 @@ vim.g.snacks_animate = false
 -- unblevable/quick-scope
 vim.g.qs_highlight_on_keys = { "f", "F", "t", "T" }
 
-function open_tree_on_start()
-    if require("utils.project-util").is_multifile_proj() then
-        -- restore current proj session
-        require("persistence").load()
-
-        -- vim.notify("opening neo tree...", vim.log.levels.INFO)
-        vim.cmd("Neotree filesystem reveal left")
-        -- Snacks.picker.explorer()
-    end
-end
-
 -- Improve diff experience
 -- vim.opt.diffopt:append("algorithm:patience")
 -- vim.opt.diffopt:append("indent-heuristic")
@@ -116,6 +105,17 @@ if vim.o.diff then
     vim.b.completion = false
     -- vim.notify("Started in diff mode!", vim.log.levels.INFO)
     return
+end
+
+function open_tree_on_start()
+    if require("utils.project-util").is_multifile_proj() then
+        -- restore current proj session
+        require("persistence").load()
+
+        -- vim.notify("opening neo tree...", vim.log.levels.INFO)
+        vim.cmd("Neotree filesystem reveal left")
+        -- Snacks.picker.explorer()
+    end
 end
 
 vim.api.nvim_create_autocmd("UiEnter", {

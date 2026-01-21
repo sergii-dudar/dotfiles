@@ -28,15 +28,13 @@ end, { desc = "Rename Current Tab" }) ]]
 
 -- Select all
 -- vim.keymap.set("n", "<C-a>", "gg<S-v>G")
-vim.keymap.set("n", "<leader>A", "gg<S-v>G")
+-- vim.keymap.set("n", "<leader>A", "gg<S-v>G")
+vim.keymap.set("n", "<C-A>", "gg<S-v>G")
 
 vim.keymap.set("n", "<leader>qq", "<cmd>q<cr>", { desc = "Quit" })
 vim.keymap.set("n", "<leader>qQ", "<cmd>qa<cr>", { desc = "Quit All" })
 --vim.keymap.set("n", "<leader>qW", "<cmd>wa<cr>", { desc = "Save All" })
 --vim.keymap.set("n", "<leader>qW", "<cmd>wqa<cr>", { desc = "Save all Quit" })
-
--- vim.api.nvim_set_keymap("n", "", "<C-o>", { noremap = true, silent = true, desc = "Go To Previour Position" })
--- vim.api.nvim_set_keymap("n", "", "<C-i>", { noremap = true, silent = true, desc = "Go To Next Position" })
 
 --[[if vim.fn.has("mac") == 1 then
     -- Move Lines (default lazyvim is alt <A-...> for linux\windows)
@@ -127,30 +125,22 @@ map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selec
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
 
--- java parse trace
-map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "Parse current line trace to quick fix list" })
-map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
-map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
-map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
+if require("utils.java.java-common").is_java_project() then
+    -- java parse trace
+    map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
+    map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
+    map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "Parse current line trace to quick fix list" })
+    map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
+    map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
+    map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
--- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
-map("n", "gj", function() require("utils.java.jdtls-util").extrace_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
-map("n", "<leader>jda", function() require("utils.java.jdtls-util").extrace_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
-map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extrace_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
---[[ if require("utils.java.java-common").is_java_project() then
-    map("n", "gf", function() require("utils.java.java-common").edit_java_resourse_file() end, { desc = "[J]ava [G]o to [F]ile Link Under Cursor" })
-end ]]
+    -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
+    map("n", "gj", function() require("utils.java.jdtls-util").extrace_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
+    map("n", "<leader>jda", function() require("utils.java.jdtls-util").extrace_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
+    map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extrace_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
+    --[[ if require("utils.java.java-common").is_java_project() then
+        map("n", "gf", function() require("utils.java.java-common").edit_java_resourse_file() end, { desc = "[J]ava [G]o to [F]ile Link Under Cursor" })
+    end ]]
+end
 
 -- stylua: ignore end
-
--- -- debug purposes
--- _G.log_table = function(table)
---     require("utils.common-util").log_table(table)
--- end
-
---local buff_utils = require("utils.buffer-util")
---_G.get_goto_preview_buffers = function()
---    log_table(buff_utils.get_active_ls_buffers())
---end
