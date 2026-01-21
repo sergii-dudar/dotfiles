@@ -92,6 +92,41 @@ local function get_project_root()
     return vim.fn.getcwd()
 end
 
+-- Detect module path from a file path
+-- Returns the module root directory (where pom.xml/build.gradle/build.gradle.kts exists)
+-- or the path up to /src/*/java if no build file is found
+---@param file_path string
+---@return string|nil
+local function detect_module_path(file_path)
+    log.debug("Detecting module path for:", file_path)
+    
+    -- First, try to find the module by looking for build files
+    local current_dir = file_path:match("(.+)/[^/]+$") -- Start from file's parent directory
+    
+    while current_dir and current_dir ~= "/" do
+        -- Check for Maven/Gradle build files
+        if vim.fn.filereadable(current_dir .. "/pom.xml") == 1 or
+           vim.fn.filereadable(current_dir .. "/build.gradle") == 1 or
+           vim.fn.filereadable(current_dir .. "/build.gradle.kts") == 1 then
+            log.info("Detected module path via build file:", current_dir)
+            return current_dir
+        end
+        
+        -- Move up one directory
+        current_dir = current_dir:match("(.+)/[^/]+$")
+    end
+    
+    -- Fallback: use path up to /src/*/java
+    local module_path = file_path:match("(.+)/src/[^/]+/java/")
+    if module_path then
+        log.info("Detected module path via src directory:", module_path)
+        return module_path
+    end
+    
+    log.warn("Could not detect module path for:", file_path)
+    return nil
+end
+
 -- Use GNU sed on both platforms for consistent behavior
 -- macOS: gsed (installed via brew install gnu-sed)
 -- Linux: sed (already GNU sed)
@@ -107,12 +142,16 @@ log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed command:", s
 ---@param result_cmds table
 ---@param root string
 ---@param context java.rejactor.FileMove
-local build_fix_java_file_after_change_cmds = function(result_cmds, root, context)
+---@param module_path string|nil The module path to limit operations to
+local build_fix_java_file_after_change_cmds = function(result_cmds, root, context, module_path)
     log.debug("Building fix commands for file move:", context.src, "->", context.dst)
-    -- TODO: use `local process_root_path = vim.fs.joinpath(get_project_root(), [empty or package sub path in case multimodule, or sub module], root)`
+    log.debug("Module path restriction:", module_path or "none (project-wide)")
 
     local src = context.src
     local dst = context.dst
+    
+    -- Determine the search root: module path if available, otherwise project root
+    local search_root = module_path or get_project_root()
 
     -- com/example/EmployeeManagementSystem/service/ServiceEmployee
     local package_src_path = vim.split(src, root)[2]:gsub("%.java", "")
@@ -201,9 +240,10 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
         local fix_type_symbols_same_package = string.format(
             "(rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
-                .. get_project_root()
+                .. "'%s'"
                 .. " || true; fd -e java . '%s'%s) | sort -u | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
             package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
+            search_root, -- Use module path instead of project root
             package_dir, -- Include all files in same directory (main)
             test_dir_clause, -- Also include test directory if it exists
             sed,
@@ -219,9 +259,10 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- For package moves, search for explicit imports AND wildcard imports
         local fix_type_symbols_where_imported = string.format(
             "rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
-                .. get_project_root()
+                .. "'%s'"
                 .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
             package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
+            search_root, -- Use module path instead of project root
             sed,
             old_type_name,
             new_type_name
@@ -275,10 +316,11 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
-            .. get_project_root()
+            .. "'%s'"
             .. " | xargs %s -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
         -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
         package_src_classpath_escaped,
+        search_root, -- Use module path instead of project root
         sed,
         package_src_classpath_escaped,
         package_dst_classpath
@@ -359,6 +401,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
                     old_type_name = old_type_name,
                     new_type_name = new_type_name,
                     siblings = sibling_types,
+                    module_path = module_path,
                 })
             end,
         })
@@ -368,9 +411,10 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
         local fix_file_paht_declaration = string.format(
             "rg --color=never -l '%s' "
-                .. get_project_root()
+                .. "'%s'"
                 .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
             package_src_path_escaped,
+            search_root, -- Use module path instead of project root
             sed,
             package_src_path_escaped,
             package_dst_path_escaped
@@ -389,10 +433,15 @@ end
 ---@param result_cmds table
 ---@param root string
 ---@param context java.rejactor.FileMove
-local build_fix_java_package_after_change_cmds = function(result_cmds, root, context)
+---@param module_path string|nil The module path to limit operations to
+local build_fix_java_package_after_change_cmds = function(result_cmds, root, context, module_path)
     log.debug("Building fix commands for package move:", context.src, "->", context.dst)
+    log.debug("Module path restriction:", module_path or "none (project-wide)")
     local src = context.src
     local dst = context.dst
+    
+    -- Determine the search root: module path if available, otherwise project root
+    local search_root = module_path or get_project_root()
 
     -- com/example/EmployeeManagementSystem/service
     local package_src_path = vim.split(src, root)[2]
@@ -448,9 +497,10 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     --   - The \1 in replacement preserves whatever was captured
     local fix_package_full_qualified_names = string.format(
         "rg --color=never -l '%s' "
-            .. get_project_root()
+            .. "'%s'"
             .. " | xargs %s -i -E 's/%s([;$\"[:space:].]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
+        search_root, -- Use module path instead of project root
         sed,
         package_src_classpath_escaped,
         package_dst_classpath
@@ -467,9 +517,10 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- 2. fix package path/resources path
     local fix_file_paht_declaration = string.format(
         "rg --color=never -l '%s' "
-            .. get_project_root()
+            .. "'%s'"
             .. " | xargs %s -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
+        search_root, -- Use module path instead of project root
         sed,
         package_src_path_escaped,
         package_dst_path_escaped
@@ -482,8 +533,9 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
 end
 
 ---@param context java.rejactor.FileMove
+---@param module_path string|nil The module path to limit operations to
 ---@return table
-local build_fix_java_proj_after_change_cmds = function(context)
+local build_fix_java_proj_after_change_cmds = function(context, module_path)
     local result_cmds = {}
     local is_dir = util.is_dir(context.dst)
     local is_file = util.is_file(context.dst)
@@ -493,9 +545,9 @@ local build_fix_java_proj_after_change_cmds = function(context)
             if is_file then
                 -- Buffer management is now handled at batch level in process_registerd_changes()
                 -- See lines 454-499 (tracking) and 1032-1087 (delete/reopen)
-                build_fix_java_file_after_change_cmds(result_cmds, root, context)
+                build_fix_java_file_after_change_cmds(result_cmds, root, context, module_path)
             elseif is_dir then
-                build_fix_java_package_after_change_cmds(result_cmds, root, context)
+                build_fix_java_package_after_change_cmds(result_cmds, root, context, module_path)
             end
         end
     end
@@ -504,15 +556,16 @@ end
 
 --- Fix java project after remaning java file, or package name
 ---@param context java.rejactor.FileMove
+---@param module_path string|nil The module path to limit operations to
 ---@return RefactorOperation[]|nil
-local build_fix_java_proj_after_change_cmd = function(context)
+local build_fix_java_proj_after_change_cmd = function(context, module_path)
     if not context.src:match("src/.*/java/") then
         return nil
     end
     if not context.dst:match("src/.*/java/") then
         return nil
     end
-    local operations = build_fix_java_proj_after_change_cmds(context)
+    local operations = build_fix_java_proj_after_change_cmds(context, module_path)
     return operations
 end
 
@@ -554,17 +607,25 @@ M.process_registerd_changes = function()
         return nil
     end
 
-    --[[ log.debug(">>>>>+++++++++++++++++++++++++++++++++")
-    log.debug("first: " .. all_registered_changes[1].src)
-    log.debug("last: " .. all_registered_changes[#all_registered_changes].src)
-    log.debug("all: ")
-    for _, value in ipairs(all_registered_changes) do
-        log.debug(value.src)
-    end
-    log.debug("<<<<<+++++++++++++++++++++++++++++++++") ]]
-
     log.info("Starting processing of", #all_registered_changes, "registered changes")
     log.debug("All registered changes:", all_registered_changes)
+
+    -- CRITICAL: Detect module path from the first registered change
+    -- This ensures all refactoring operations are limited to this module only
+    local module_path = nil
+    if all_registered_changes[1] then
+        local first_change_path = all_registered_changes[1].src
+        module_path = detect_module_path(first_change_path)
+        
+        if module_path then
+            log.info("==============================================")
+            log.info("DETECTED MODULE SCOPE:", module_path)
+            log.info("All refactoring operations will be limited to this module only")
+            log.info("==============================================")
+        else
+            log.warn("Could not detect module path, operations will be project-wide")
+        end
+    end
 
     -- ENHANCEMENT: Track opened buffers before changes
     -- Save list of currently opened Java file buffers that will be moved
@@ -958,7 +1019,7 @@ M.process_registerd_changes = function()
             if move.change.siblings and #move.change.siblings > 0 then
                 log.debug("Found", #move.change.siblings, "siblings for", move.change.src)
             end
-            local operations = build_fix_java_proj_after_change_cmd(move.change)
+            local operations = build_fix_java_proj_after_change_cmd(move.change, module_path)
             if operations then
                 log.debug("Adding", #operations, "operations for:", move.change.dst)
                 -- Flatten operations into global list
@@ -976,7 +1037,7 @@ M.process_registerd_changes = function()
                 if value.siblings and #value.siblings > 0 then
                     log.debug("Found", #value.siblings, "siblings for", value.src)
                 end
-                local operations = build_fix_java_proj_after_change_cmd(value)
+                local operations = build_fix_java_proj_after_change_cmd(value, module_path)
                 if operations then
                     log.debug("Adding", #operations, "operations for:", value.dst)
                     -- Flatten operations into global list

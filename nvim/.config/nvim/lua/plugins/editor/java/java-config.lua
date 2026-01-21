@@ -1,6 +1,7 @@
 local home = os.getenv("HOME")
-local jdtlsc_util = require("utils.java.jdtls-config-util")
-local notify_title = { title = "Spring Boot Tools LS" }
+-- local jdtlsc_util = require("utils.java.jdtls-config-util")
+local java_util = require("utils.java.java-common")
+-- local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
 return {
@@ -65,6 +66,7 @@ return {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
         ft = { "java", "yaml", "properties", "yml" },
+        cond = java_util.is_java_project(),
         dependencies = {
             "mfussenegger/nvim-jdtls",
         },

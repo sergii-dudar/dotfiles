@@ -148,6 +148,7 @@ M.jdtls_settings = {
                 -- "org.junit.jupiter.api.Assumptions.*",
                 -- "org.junit.jupiter.api.DynamicContainer.*",
                 -- "org.junit.jupiter.api.DynamicTest.*",
+                "org.assertj.core.api.Assertions",
                 "org.assertj.core.api.Assertions.*",
                 "org.assertj.core.api.Assertions.assertThat",
                 "org.assertj.core.api.Assertions.assertThatThrownBy",

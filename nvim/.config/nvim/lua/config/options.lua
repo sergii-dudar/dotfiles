@@ -111,6 +111,9 @@ end
 -- vim.opt.diffopt:append("indent-heuristic")
 
 if vim.o.diff then
+    vim.b.autoformat = false
+    vim.diagnostic.enable(false)
+    vim.b.completion = false
     -- vim.notify("Started in diff mode!", vim.log.levels.INFO)
     return
 end

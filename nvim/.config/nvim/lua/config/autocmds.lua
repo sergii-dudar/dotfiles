@@ -156,3 +156,21 @@ vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
         end
     end,
 })
+
+-----------------------------------------------------------
+------------- enable\disable newline defaults -------------
+--- useful by working with sensitive files
+
+vim.api.nvim_create_user_command("EnableBinary", function()
+    vim.bo.binary = true
+    vim.bo.eol = false
+    vim.opt.fixeol = false
+    vim.cmd("update")
+end, {})
+
+vim.api.nvim_create_user_command("DisableBinary", function()
+    vim.bo.binary = false
+    vim.bo.eol = true -- restore eol to default (true)
+    vim.opt.fixeol = true
+    vim.cmd("update")
+end, {})

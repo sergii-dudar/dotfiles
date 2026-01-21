@@ -6,6 +6,7 @@
 ---@field old_type_name string
 ---@field new_type_name string
 ---@field siblings? string[]
+---@field module_path? string The module path to limit operations to
 
 local M = {}
 
@@ -97,6 +98,15 @@ function M.fix_old_package_imports(opts)
     log.debug("Old package:", opts.old_package)
     log.debug("New package:", opts.new_package)
     log.debug("Siblings:", opts.siblings and table.concat(opts.siblings, ",") or "none")
+    log.debug("Module path restriction:", opts.module_path or "none (project-wide)")
+    
+    -- Determine search root: module path if available, otherwise extract from old_dir
+    local search_root = opts.module_path
+    if not search_root then
+        -- Fallback: Extract project root from old_dir (go up to src/main/java or src/test/java parent)
+        search_root = opts.old_dir:match("(.+)/src/main/java/") or opts.old_dir:match("(.+)/src/test/java/") or opts.old_dir
+    end
+    log.debug("Search root for wildcard search:", search_root)
 
     -- Check if file exists
     if vim.fn.filereadable(opts.new_file_path) == 0 then
@@ -288,16 +298,12 @@ function M.fix_old_package_imports(opts)
     -- Also fix files with wildcard imports that use the moved type
     log.debug("Fixing files with wildcard imports of old package")
     local wildcard_import_pattern = opts.old_package:gsub("%.", "\\.") .. "\\.\\*"
-
-    -- Extract project root from old_dir (go up to src/main/java or src/test/java parent)
-    local project_root = opts.old_dir:match("(.+)/src/main/java/") or opts.old_dir:match("(.+)/src/test/java/") or opts.old_dir
-    log.debug("Project root for wildcard search:", project_root)
     log.debug("Wildcard import pattern:", wildcard_import_pattern)
 
     local wildcard_search_cmd = string.format(
         "rg --color=never -l 'import\\s+%s;' '%s' 2>/dev/null",
         wildcard_import_pattern,
-        project_root
+        search_root
     )
     log.debug("Wildcard search command:", wildcard_search_cmd)
 
