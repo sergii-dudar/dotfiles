@@ -1,12 +1,12 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
-rev = "398796d"
+rev = "de33976"
 hash = "3996fc74044bc44144b323686f887e1"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "398796d"
-hash = "b4a897f4cc84585fca2c526e122b7f7f"
+rev = "de33976"
+hash = "36a484acf6a0a0219c543ccb4cee218f"
 
 [[plugin.deps]]
 use = "dedukun/relative-motions"
@@ -35,22 +35,22 @@ hash = "9f82a544335a53d79e87ea315746caaa"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
-rev = "398796d"
+rev = "de33976"
 hash = "407d19bc4fb46eff5fa8ff8337644847"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
-rev = "398796d"
+rev = "de33976"
 hash = "e2d4bfccf31e5ab05f46fee4797c5215"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:toggle-pane"
-rev = "398796d"
+rev = "de33976"
 hash = "8a7c58225816a163a6e8730c0adafbc8"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-enter"
-rev = "398796d"
+rev = "de33976"
 hash = "56fdabc96fc1f4d53c96eb884b02a5be"
 
 [[plugin.deps]]

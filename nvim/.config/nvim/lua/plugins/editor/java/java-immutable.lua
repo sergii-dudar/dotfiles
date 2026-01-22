@@ -90,6 +90,8 @@ return {
                 local lombok_jar = vim.fn.expand("$MASON/share/jdtls/lombok.jar")
                 table.insert(cmd, string.format("--jvm-arg=-javaagent:%s", lombok_jar))
             end
+            -- table.insert(cmd, "--jvm-arg=-Xms8g")
+            -- table.insert(cmd, "--jvm-arg=-Xmx16g")
             return {
                 root_dir = function(path)
                     return vim.fs.root(path, vim.lsp.config.jdtls.root_markers)
@@ -134,15 +136,15 @@ return {
                 --#########################################
                 --###### Custom Jdtls Config START ########
                 --#########################################
-                test = false, -- disabled jdtls test in favor of neotest-java
-                -- test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
-                --     config_overrides = {
-                --         vmArgs = string.format(
-                --             "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
-                --             os.getenv("HOME")
-                --         ),
-                --     },
-                -- },
+                -- test = false, -- disabled jdtls test in favor of neotest-java
+                test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
+                    config_overrides = {
+                        vmArgs = string.format(
+                            "-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar",
+                            os.getenv("HOME")
+                        ),
+                    },
+                },
                 settings = require("utils.java.jdtls-config-util").jdtls_settings,
                 --#####################################
                 --################ END ################
@@ -172,18 +174,25 @@ return {
             -- Include spring boot ls bundle if present
             ---
             -- vim.list_extend(bundles, vim.fn.glob("$MASON/share/vscode-java-decompiler/bundles/*.jar", false, true))
-            local vscode_java_dependency = vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true)
+
             -- local vscode_java_debug = vim.fn.glob("$HOME/.vscode/extensions/vscjava.vscode-java-debug-0.58.2025112507/server/*.jar", false, true)
             -- local vscode_java_test = vim.fn.glob("$HOME/.vscode/extensions/vscjava.vscode-java-test-*/server/*.jar", false, true)
-            -- print(vscode_java_dependency)
             -- print(vscode_java_debug)
             -- print(vscode_java_test)
 
-            vim.list_extend(bundles, vscode_java_dependency)
             -- vim.list_extend(bundles, vscode_java_debug)
             -- vim.list_extend(bundles, vscode_java_test)
 
-            vim.list_extend(bundles, require("spring_boot").java_extensions())
+            if LazyVim.has("java-deps.nvim") then
+                local vscode_java_dependency = vim.fn.glob("$MASON/share/vscode-java-dependency/*.jar", false, true)
+                -- print(vscode_java_dependency)
+                vim.list_extend(bundles, vscode_java_dependency)
+            end
+
+            if LazyVim.has("spring-boot.nvim") then
+                vim.list_extend(bundles, require("spring_boot").java_extensions())
+            end
+
             opts.is_config_updated = false
             opts.on_attach = function(args)
                 if not opts.is_config_updated then
@@ -305,7 +314,7 @@ return {
                                             mode = "n",
                                             buffer = args.buf,
                                             { "<leader>t", group = "test" },
-                                            {
+                                            --[[ {
                                                 "<leader>tD", -- "<leader>tt",
                                                 function()
                                                     require("jdtls.dap").test_class({
@@ -315,7 +324,7 @@ return {
                                                     })
                                                 end,
                                                 desc = "Debug All Test (Jdtls)", -- "Run All Test",
-                                            },
+                                            }, ]]
                                             {
                                                 "<leader>td", -- "<leader>tr",
                                                 function()
@@ -327,17 +336,16 @@ return {
                                                 end,
                                                 desc = "Debug Nearest Test (Jdtls)", -- "Run Nearest Test",
                                             },
-                                            {
+                                            --[[ {
                                                 "<leader>tP", -- "<leader>tT",
                                                 require("jdtls.dap").pick_test,
                                                 desc = "Debug Pick Test (Jdtls)", -- "Run Test",
-                                            },
-                                            -- TODO: need wait better junit 6 support
-                                            --[[ {
-                                                "<leader>tR",
-                                                -- require("jdtls.dap").pick_test,
-                                                desc = "Debug Re-Run Last Test (Jdtls)",
                                             }, ]]
+                                            {
+                                                "<leader>tD",
+                                                require("dap").run_last,
+                                                desc = "Debug Re-Run Last (Jdtls)",
+                                            },
                                         },
                                     })
                                 end
