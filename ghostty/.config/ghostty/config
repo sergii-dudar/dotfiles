@@ -15,7 +15,7 @@ gtk-titlebar = false
 # custom-shader = /home/chris/bloom.glsl
 #custom-shader = /home/chris/crt.glsl
 mouse-hide-while-typing = true
-# window-decoration = false
+window-decoration = none
 macos-titlebar-style = hidden
 # keybind = global:cmd+/=toggle_quick_terminal
 macos-option-as-alt = true

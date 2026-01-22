@@ -14,6 +14,7 @@ if [ ! -f "$CACHE_FILE_NAME" ] || [ "$POM_FILE" -nt "$CACHE_FILE_NAME" ]; then
     # cache file to app root (where pom.xml file), mvn work from any child sub dir of project
     mvn -q dependency:build-classpath -Dmdep.outputFile="$CACHE_FILE_NAME" -DincludeScope="$EXEC_SCOPE"
 
+    # TODO:: this part need to be enabled in case jdtls incremental build disabled, and don't want to run manually
     # refresh compiled sources
     # if [ "$EXEC_SCOPE" == "test" ]; then
     #     bash -c "mvn -q compile test-compile"

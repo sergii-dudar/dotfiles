@@ -15,6 +15,14 @@ return {
             { "<F10>", function() require("dap").run_to_cursor() end, desc = "Run to Cursor", },
             { "<F12>", function() require("dap").terminate() require("dapui").toggle({}) end, desc = "Terminate", },
         },
+        opts = {
+            -- defaults = {
+            --     fallback = {
+            --         terminal_win_cmd = "tabnew",
+            --         focus_terminal = true,
+            --     },
+            -- },
+        },
     },
     {
         "theHamsta/nvim-dap-virtual-text",
