@@ -4,8 +4,8 @@ install_dir="$HOME/tools/java-extensions/jmockit"
 jmockit_jar_name="jmockit.jar"
 jmockit_jar_path="$install_dir/$jmockit_jar_name"
 if [ -f "$jmockit_jar_path" ]; then
-    echo "$jmockit_jar_path already exists"
-    exit 0
+    echo "$jmockit_jar_path already exists, reinstalling"
+    rm "$jmockit_jar_path"
 fi
 
 mkdir -p "$install_dir" && cd "$install_dir"

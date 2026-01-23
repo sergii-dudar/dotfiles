@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 
-lemminx_dir="$HOME/tools/nvim-extensions/lemminx/"
+lemminx_dir="$HOME/tools/java-extensions/lemminx/"
 lemminx_maven_dir="$lemminx_dir/lemminx-maven"
+lemminx_maven_repo="$lemminx_dir/lemminx-maven-repo"
 if [ -d "$lemminx_maven_dir" ]; then
-    echo "$lemminx_maven_dir already exists"
-    exit 0
+    echo "$lemminx_maven_dir already exists, undating..."
+    rm "$lemminx_maven_dir"/*
+    cd "$lemminx_maven_repo" && git pull
+else
+    mkdir -p "$lemminx_dir" && cd "$lemminx_dir"
+    git clone https://github.com/eclipse-lemminx/lemminx-maven.git "$lemminx_maven_repo"
 fi
 
-mkdir -p "$lemminx_dir" && cd "$lemminx_dir"
-git clone https://github.com/eclipse-lemminx/lemminx-maven.git lemminx-maven-repo
-cd "lemminx-maven-repo" \
+cd "$lemminx_maven_repo" \
     && ./mvnw -DskipTests package \
     && cd ./lemminx-maven/target \
-    && unzip lemminx-maven-*-with-dependencies.zip -d lemminx-maven/ \
-    && mv lemminx-maven "$lemminx_maven_dir"
+    && unzip lemminx-maven-*-with-dependencies.zip -d "$lemminx_maven_dir"
 
 echo "Lemminx Maven Extension successfully installed to $lemminx_maven_dir"
 

@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 
-lemminx_dir="$HOME/tools/nvim-extensions/lemminx/"
+lemminx_dir="$HOME/tools/java-extensions/lemminx/"
 lemminx_ls_dir="$lemminx_dir/lemminx-ls"
+lemminx_ls_repo="$lemminx_dir/lemminx-ls-repo"
+
 if [ -d "$lemminx_ls_dir" ]; then
-    echo "$lemminx_ls_dir already exists"
-    exit 0
+    echo "$lemminx_ls_dir already exists, updatings..."
+    rm "$lemminx_ls_dir"/*
+    cd "$lemminx_ls_repo" && git pull
+else
+    mkdir -p "$lemminx_dir" && cd "$lemminx_dir"
+    git clone https://github.com/eclipse-lemminx/lemminx.git "$lemminx_ls_repo"
 fi
 
-mkdir -p "$lemminx_dir" && cd "$lemminx_dir"
-git clone https://github.com/eclipse-lemminx/lemminx.git lemminx-ls-repo
-
-cd "lemminx-ls-repo" \
+cd "$lemminx_ls_repo" \
     && ./mvnw -DskipTests package \
     && cd ./org.eclipse.lemminx/target \
     && mkdir -p "$lemminx_ls_dir" \

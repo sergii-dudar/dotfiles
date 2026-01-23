@@ -4,8 +4,8 @@ install_dir="$HOME/tools/java-extensions/junit"
 jar_name="junit-platform-console-standalone.jar"
 jar_path="$install_dir/$jar_name"
 if [ -f "$jar_path" ]; then
-    echo "$jar_path already exists"
-    exit 0
+    echo "$jar_path already exists, reinstalling"
+    rm "$jar_path"
 fi
 
 mkdir -p "$install_dir" && cd "$install_dir"

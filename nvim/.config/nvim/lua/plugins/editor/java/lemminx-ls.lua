@@ -1,10 +1,10 @@
 local jdtls_util = require("utils.java.java-common")
 -- local java_util = require("utils.java.java-common")
 local lemminx_jars = {}
-for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/nvim-extensions/lemminx/lemminx-ls/*.jar"), "\n")) do
+for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/java-extensions/lemminx/lemminx-ls/*.jar"), "\n")) do
     table.insert(lemminx_jars, bundle)
 end
-for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/nvim-extensions/lemminx/lemminx-maven/*.jar"), "\n")) do
+for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/java-extensions/lemminx/lemminx-maven/*.jar"), "\n")) do
     table.insert(lemminx_jars, bundle)
 end
 -- NOTE: install lemminx with maven extension by run - ~/dotfiles/bin/install/nvim/ls/lemminx-maven/load_and_build_all.sh
