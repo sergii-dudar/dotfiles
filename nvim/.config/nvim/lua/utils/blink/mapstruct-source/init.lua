@@ -14,14 +14,11 @@ function source.new(opts)
     local self = setmetatable({}, { __index = source })
     self.opts = opts or {}
 
-    -- Initialize the underlying MapStruct module
+    -- Initialize the underlying MapStruct module (commands are set up automatically)
     local success = mapstruct.setup(opts)
     if not success then
         return self
     end
-
-    -- Setup user commands (delegated to isolated module)
-    mapstruct.setup_commands()
 
     -- Set log level for the blink source wrapper
     if self.opts.log_level then

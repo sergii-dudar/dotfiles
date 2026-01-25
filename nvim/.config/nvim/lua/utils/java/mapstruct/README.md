@@ -28,16 +28,23 @@ utils/java/mapstruct/
 ```lua
 local mapstruct = require("utils.java.mapstruct")
 
--- Initialize the module
-mapstruct.setup({
-    jar_path = "~/path/to/mapstruct-path-explorer.jar",
-    use_jdtls_classpath = true,  -- default: true
-    java_cmd = "java",           -- default: "java"
-    log_level = "INFO",          -- optional
-})
+-- Option 1: Use with defaults (auto-initializes on first use)
+mapstruct.get_completions({}, function(result, err)
+    if err then
+        print("Error:", err)
+        return
+    end
+    
+    for _, field in ipairs(result.completions or {}) do
+        print(field.name, field.type, field.kind)
+    end
+end)
 
--- Optionally setup user commands
-mapstruct.setup_commands()  -- Creates :MapStructStatus, :MapStructRestart, etc.
+-- Option 2: Initialize with custom options
+mapstruct.setup({
+    jar_path = "~/custom/path/to/jar",
+    log_level = "DEBUG",
+})
 
 -- Check if cursor is in a valid MapStruct context
 local is_valid = mapstruct.is_in_mapping_context({

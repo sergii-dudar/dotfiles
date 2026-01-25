@@ -10,38 +10,56 @@ local mapstruct = require("utils.java.mapstruct")
 
 ## Initialization
 
+### Default Options
+
+The module comes with sensible defaults and will auto-initialize on first use if `setup()` is not called manually.
+
+```lua
+DEFAULT_OPTS = {
+    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+    use_jdtls_classpath = true,
+    classpath = nil,
+    java_cmd = "java",
+    log_level = vim.log.levels.WARN,
+    log_file = "~/.local/state/nvim/mapstruct-source-server.log",
+}
+```
+
 ### `setup(opts)`
 
-Initialize the module (required before use).
+Initialize the module (optional - auto-initializes with defaults on first use).
 
 ```lua
 mapstruct.setup({
-    jar_path = "~/path/to/mapstruct-path-explorer.jar",  -- Required
+    jar_path = "~/path/to/mapstruct-path-explorer.jar",  -- Optional if default exists
     use_jdtls_classpath = true,                          -- Default: true
     java_cmd = "java",                                   -- Default: "java"
     classpath = "/custom/path",                          -- Optional: fallback classpath
-    log_level = "INFO",                                  -- Optional: DEBUG|INFO|WARN|ERROR
+    log_level = "INFO",                                  -- Default: vim.log.levels.WARN
     log_file = "~/.local/share/nvim/mapstruct.log",     -- Optional: Java log file
 })
 ```
 
+**Options are merged with defaults** - you only need to specify what you want to override.
+
 **Returns:** `boolean` - success status
 
-### `setup_commands()`
+### Auto-Initialization
 
-Setup user commands for debugging and control. This is optional and can be called manually if you want the commands available.
+If you don't call `setup()`, the module will **automatically initialize with default options** on the first call to `get_completions()`. This means you can use the module without any configuration if the default jar path exists.
 
 ```lua
-mapstruct.setup_commands()
+local mapstruct = require("utils.java.mapstruct")
+
+-- No setup needed! Auto-initializes on first use
+mapstruct.get_completions({}, function(result, err)
+    -- Handle completions
+end)
 ```
 
-**Creates the following commands:**
-- `:MapStructStatus` - Show server and jdtls status
-- `:MapStructRestart` - Restart the Java server
-- `:MapStructStop` - Stop the Java server
-- `:MapStructPing` - Ping the server to check connectivity
+### User Commands
 
-**Note:** The blink.cmp wrapper automatically calls this function during initialization.
+User commands (`:MapStructStatus`, `:MapStructRestart`, `:MapStructStop`, `:MapStructPing`) are **automatically created** when `setup()` is called (either manually or via auto-initialization).
 
 ## Core Functions
 
