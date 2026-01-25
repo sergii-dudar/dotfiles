@@ -1,7 +1,7 @@
 -- Server Lifecycle Manager for MapStruct IPC
 -- Handles starting, stopping, and monitoring the Java server
 
-local ipc_client = require("utils.blink.mapstruct-source.ipc_client")
+local ipc_client = require("utils.java.mapstruct.ipc_client")
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStruct.Server", filename = "mapstruct-source.log" })
