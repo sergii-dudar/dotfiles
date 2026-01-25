@@ -83,6 +83,13 @@ vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = t
 -- map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 -- map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 
+
+local filename = vim.fn.expand("%:t")
+if filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil then
+    -- TODO:
+    vim.keymap.set("n", "gp", function() end, { noremap = true, silent = true, desc = "GoTo Property [MapStruct]" })
+end
+
 ----------------------------- Testing cmds start
 ----------------------------- Testing cmds end
 

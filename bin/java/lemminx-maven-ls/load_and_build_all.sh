@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-./load-and-build-latest-lemminx-maven.sh
-./load-and-build-latest-lemminx.sh
+"$HOME"/dotfiles/bin/java/lemminx-maven-ls/load-and-build-latest-lemminx-maven.sh
+"$HOME"/dotfiles/bin/java/lemminx-maven-ls/load-and-build-latest-lemminx.sh

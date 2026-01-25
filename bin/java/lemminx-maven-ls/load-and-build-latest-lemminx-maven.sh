@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-lemminx_dir="$HOME/tools/java-extensions/lemminx/"
+lemminx_dir="$HOME/tools/java-extensions/lemminx"
 lemminx_maven_dir="$lemminx_dir/lemminx-maven"
 lemminx_maven_repo="$lemminx_dir/lemminx-maven-repo"
 if [ -d "$lemminx_maven_dir" ]; then

@@ -69,7 +69,7 @@ function source:enabled()
 
     -- Check if filename ends with Mapper.java
     local filename = vim.fn.expand("%:t")
-    return filename:match("Mapper%.java$") ~= nil
+    return filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil
 end
 
 -- Trigger on dot character and letters (for typing inside annotation strings)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-lemminx_dir="$HOME/tools/java-extensions/lemminx/"
+lemminx_dir="$HOME/tools/java-extensions/lemminx"
 lemminx_ls_dir="$lemminx_dir/lemminx-ls"
 lemminx_ls_repo="$lemminx_dir/lemminx-ls-repo"
 
