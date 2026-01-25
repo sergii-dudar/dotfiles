@@ -1,7 +1,7 @@
 -- Context Parser for MapStruct Completion using Treesitter
 -- Extracts class name and path expression from the current buffer
 
-local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+local classpath_util = require("utils.java.jdtls-classpath-util")
 local log = require("utils.logging-util").new({ name = "MapStruct.Context", filename = "mapstruct-source.log" })
 
 local M = {}

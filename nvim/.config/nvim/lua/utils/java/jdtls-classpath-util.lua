@@ -1,7 +1,8 @@
--- Classpath Utility for MapStruct
+-- JDTLS Classpath Utility
 -- Handles classpath resolution from jdtls and project structure
+-- Can be used by any plugin that needs Java classpath information
 
-local log = require("utils.logging-util").new({ name = "MapStruct.Classpath", filename = "mapstruct-source.log" })
+local log = require("utils.logging-util").new({ name = "Java.Classpath", filename = "java-classpath.log" })
 
 local M = {}
 
@@ -198,20 +199,20 @@ local function get_jdtls_classpath_internal(bufnr)
 
     if projects_err then
         log.warn("jdtls java.project.getAll error:", projects_err)
-        vim.notify("[MapStruct] Failed to get projects from jdtls: " .. tostring(projects_err), vim.log.levels.WARN)
+        vim.notify("[Java Classpath] Failed to get projects from jdtls: " .. tostring(projects_err), vim.log.levels.WARN)
         return nil
     end
 
     if not projects_result or not projects_result.result then
         log.warn("jdtls java.project.getAll returned empty result")
-        vim.notify("[MapStruct] No projects found from jdtls", vim.log.levels.WARN)
+        vim.notify("[Java Classpath] No projects found from jdtls", vim.log.levels.WARN)
         return nil
     end
 
     local project_uris = projects_result.result
     if type(project_uris) ~= "table" or #project_uris == 0 then
         log.warn("No projects found from jdtls")
-        vim.notify("[MapStruct] No projects found from jdtls", vim.log.levels.WARN)
+        vim.notify("[Java Classpath] No projects found from jdtls", vim.log.levels.WARN)
         return nil
     end
 
@@ -259,7 +260,7 @@ local function get_jdtls_classpath_internal(bufnr)
 
     if #all_classpaths == 0 then
         log.warn("No classpath entries found from any module")
-        vim.notify("[MapStruct] Could not load classpath from jdtls", vim.log.levels.WARN)
+        vim.notify("[Java Classpath] Could not load classpath from jdtls", vim.log.levels.WARN)
         return nil
     end
 
@@ -307,7 +308,7 @@ function M.get_classpath(opts)
 
         if not classpath then
             log.error("Failed to get classpath from both jdtls and project structure")
-            vim.notify("[MapStruct] Failed to load classpath - completion may not work", vim.log.levels.WARN)
+            vim.notify("[Java Classpath] Failed to load classpath", vim.log.levels.WARN)
         end
     end
 

@@ -26,7 +26,7 @@ function source.new(opts)
         require("utils.blink.mapstruct-source.server").set_log_level(numeric_level)
         require("utils.blink.mapstruct-source.ipc_client").set_log_level(numeric_level)
         require("utils.blink.mapstruct-source.context").set_log_level(numeric_level)
-        require("utils.blink.mapstruct-source.classpath-util").set_log_level(numeric_level)
+        require("utils.java.jdtls-classpath-util").set_log_level(numeric_level)
     end
 
     -- Debug: log received options
@@ -218,7 +218,7 @@ function source:ensure_server_running(callback)
 
     -- If using jdtls classpath, wait for jdtls to be ready first
     if self.use_jdtls_classpath then
-        local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+        local classpath_util = require("utils.java.jdtls-classpath-util")
         if not classpath_util.is_jdtls_ready() then
             log.warn("jdtls is not ready yet - cannot start server without complete classpath")
 
@@ -325,7 +325,7 @@ function source:get_completions(ctx, callback)
 
                     -- Clear classpath cache to get fresh classpath on restart
                     if self.use_jdtls_classpath then
-                        local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+                        local classpath_util = require("utils.java.jdtls-classpath-util")
                         classpath_util.clear_cache()
                         log.info("Cleared classpath cache for server restart")
                     end
@@ -389,7 +389,7 @@ end
 -- Setup user commands for debugging and control
 vim.api.nvim_create_user_command("MapStructStatus", function()
     local status = server.get_status()
-    local classpath_util = require("utils.blink.mapstruct-source.classpath-util")
+    local classpath_util = require("utils.java.jdtls-classpath-util")
     local jdtls_ready = classpath_util.is_jdtls_ready()
 
     print("MapStruct Server Status:")
