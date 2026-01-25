@@ -4,39 +4,11 @@ M.get_line_under_cursor = function()
     return vim.api.nvim_get_current_line()
 end
 
-M.get_token_under_cursor_test = function()
-    local full = M.get_token_under_cursor('"')
-    local member = M.get_token_under_cursor('[%."]')
-    local member_with_right = M.get_token_under_cursor_sides('[%."]', '"')
-
-    if full and full:find("=") then
-        return {}
-    end
-
-    if full == "" or member == "" then
-        return {}
-    end
-
-    if (not full or full == "") and member and #member > 0 then
-        return { member = member }
-    end
-
-    if full == member then
-        return { member = member }
-    end
-
-    local path = full:sub(1, -#member_with_right - 2)
-    if path == "" then
-        return { member = member }
-    end
-
-    return { path = path, member = member }
-end
-
 --- Get text token uner cursor between spaces
 M.get_token_under_cursor = function(edges_separator_pattern)
     return M.get_token_under_cursor_sides(edges_separator_pattern, edges_separator_pattern)
 end
+
 M.get_token_under_cursor_sides = function(left_edges_separator_pattern, right_edges_separator_pattern)
     edges_separator_pattern = edges_separator_pattern or "%s" -- space by defaule
     local _, col = unpack(vim.api.nvim_win_get_cursor(0))

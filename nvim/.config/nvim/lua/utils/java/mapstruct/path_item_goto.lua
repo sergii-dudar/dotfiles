@@ -1,3 +1,9 @@
+local util = require("utils.common-util")
+local mapstruct = require("utils.java.mapstruct")
+local jdtls_util = require("utils.java.jdtls-util")
+
+local M = {}
+
 -- Find the line number of a field or method (getter/setter/builder) in a Java class
 -- @param bufnr buffer number (0 for current buffer)
 -- @param class_name the name of the class (can be inner class)
@@ -80,73 +86,61 @@ local function find_field_position(bufnr, class_name, field_name)
     return nil, nil
 end
 
--- Get the MapStruct mapping path and member under cursor
--- Extracts the path (everything before the last dot) and member name (after the last dot)
--- from a MapStruct mapping expression like "orders.first.items.first.product.name"
--- @param bufnr buffer number (0 for current buffer)
--- @param line_num line number (1-indexed)
--- @param col column position (0-indexed)
--- @return table with {path = "...", member = "..."} or nil if not found
-local function get_mapping_path_under_cursor(bufnr, line_num, col)
-    bufnr = bufnr or 0
-    local line = vim.api.nvim_buf_get_lines(bufnr, line_num - 1, line_num, false)[1]
+local function get_mapping_path_under_cursor()
+    local full = util.get_token_under_cursor('"')
+    local member = util.get_token_under_cursor('[%."]')
+    local member_with_right = util.get_token_under_cursor_sides('[%."]', '"')
 
-    if not line then
-        return nil
+    if full and full:find("=") then
+        return {}
     end
 
-    -- Find all quoted strings in the line (both single and double quotes)
-    local quotes = { '"', "'" }
+    if full == "" or member == "" then
+        return {}
+    end
 
-    for _, quote in ipairs(quotes) do
-        local start_pos = 1
-        while true do
-            local quote_start = line:find(quote, start_pos, true)
-            if not quote_start then
-                break
-            end
+    if (not full or full == "") and member and #member > 0 then
+        return { member = member }
+    end
 
-            local quote_end = line:find(quote, quote_start + 1, true)
-            if not quote_end then
-                break
-            end
+    if full == member then
+        return { member = member }
+    end
 
-            -- Check if cursor is within this quoted string (convert col to 1-indexed)
-            if col + 1 >= quote_start and col + 1 <= quote_end then
-                -- Extract the full path from the quoted string
-                local full_path = line:sub(quote_start + 1, quote_end - 1)
+    local path = full:sub(1, -#member_with_right - 2)
+    if path == "" then
+        return { member = member }
+    end
 
-                -- Find the last dot to separate path and member
-                local last_dot = full_path:match("^.*()%.")
+    return { path = path, member = member }
+end
 
-                if last_dot then
-                    -- There's at least one dot
-                    local path = full_path:sub(1, last_dot - 1)
-                    local member = full_path:sub(last_dot + 1)
-                    return { path = path, member = member }
-                else
-                    -- No dots, it's just a member name
-                    return { path = "", member = full_path }
-                end
-            end
+function M.goto_path_item_definitions()
+    local current_path = get_mapping_path_under_cursor()
 
-            start_pos = quote_end + 1
+    -- TODO: fix this call:
+    -- mapstruct.get_completions(params, callback)
+    -- 1. we should send in request current_path.path
+    -- or empty if not present to get fqn of java class that contains our member (filed, getter, setter, builder setter)
+    -- 2. after we will get class full qualifier name, in case fqn have inner class in path, remove it (just remove all after first $ inclusive, we need just root class fqn)
+    -- 3. call put to jdtls_util.jdt_load_unique_class our result class_fqn
+    -- 4. make nvim command to testing
+
+    jdtls_util.jdt_load_unique_class(class_fqn, function(result)
+        -- Open the file and jump to the position
+        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
+
+        -- Open the file (JDTLS handles the jdt:// URI automatically)
+
+        -- vim.cmd.edit("src/test/java/com/dsm/mapstruct/integration/dto/ProductDTO.java")
+        local line_num, col = find_field_position(0, "ProductDTOInnerInner", "name")
+        if line_num then
+            vim.defer_fn(function()
+                vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
+                vim.cmd("normal! zz") -- Center the screen
+            end, 10)
         end
-    end
-
-    return nil
+    end)
 end
 
--- Test the function
-local result = get_mapping_path_under_cursor()
-if result then
-    print(string.format('path = "%s", member = "%s"', result.path, result.member))
-else
-    print("No mapping path found under cursor")
-end
-
-vim.cmd.edit("src/test/java/com/dsm/mapstruct/integration/dto/ProductDTO.java")
-local line_num, col = find_field_position(0, "ProductDTOInnerInner", "name")
-if line_num then
-    vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
-end
+return M
