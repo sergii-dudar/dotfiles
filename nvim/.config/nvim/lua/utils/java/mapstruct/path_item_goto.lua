@@ -181,8 +181,9 @@ function M.goto_path_item_definitions()
             -- Open the file
             vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
 
-            -- Wait a bit for the file to open, then search for the field
-            vim.defer_fn(function()
+            -- Wait briefly for the file to open, then search for the field
+            -- Using schedule instead of defer_fn for faster execution in the event loop
+            vim.schedule(function()
                 local line_num, col = find_field_position(0, simple_name, current_path.member)
                 if line_num then
                     vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
@@ -197,7 +198,11 @@ function M.goto_path_item_definitions()
                         vim.log.levels.WARN
                     )
                 end
-            end, 100)
+            end)
+            -- - vim.lsp.util.show_document() is asynchronous
+            -- - vim.schedule() waits for the current event loop to complete
+            -- - This ensures the document is loaded before searching
+            -- - But executes immediately in the next cycle (< 1ms)
         end)
     end)
 end
