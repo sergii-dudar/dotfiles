@@ -186,6 +186,11 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
     end,
 })
 
+-- Setup user command for testing
+vim.api.nvim_create_user_command("MapStructGotoDefinition", function()
+    require("utils.java.mapstruct").goto_path_definition()
+end, { desc = "Go to MapStruct path item definition" })
+
 -- Highlight pattern in terminal output
 -- vim.api.nvim_create_autocmd("TermOpen", {
 --     group = java_group,

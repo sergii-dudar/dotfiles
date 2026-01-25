@@ -118,28 +118,87 @@ end
 function M.goto_path_item_definitions()
     local current_path = get_mapping_path_under_cursor()
 
-    -- TODO: fix this call:
-    -- mapstruct.get_completions(params, callback)
-    -- 1. we should send in request current_path.path
-    -- or empty if not present to get fqn of java class that contains our member (filed, getter, setter, builder setter)
-    -- 2. after we will get class full qualifier name, in case fqn have inner class in path, remove it (just remove all after first $ inclusive, we need just root class fqn)
-    -- 3. call put to jdtls_util.jdt_load_unique_class our result class_fqn
-    -- 4. make nvim command to testing
+    if not current_path.member then
+        vim.notify("[MapStruct] No path member found under cursor", vim.log.levels.WARN)
+        return
+    end
 
-    jdtls_util.jdt_load_unique_class(class_fqn, function(result)
-        -- Open the file and jump to the position
-        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
+    -- Get the MapStruct context to determine which class to search
+    local ctx = mapstruct.get_context({})
 
-        -- Open the file (JDTLS handles the jdt:// URI automatically)
+    if not ctx then
+        vim.notify("[MapStruct] Not in a valid @Mapping annotation", vim.log.levels.WARN)
+        return
+    end
 
-        -- vim.cmd.edit("src/test/java/com/dsm/mapstruct/integration/dto/ProductDTO.java")
-        local line_num, col = find_field_position(0, "ProductDTOInnerInner", "name")
-        if line_num then
-            vim.defer_fn(function()
-                vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
-                vim.cmd("normal! zz") -- Center the screen
-            end, 10)
+    -- Build the path expression to send to server
+    -- If we have a path like "person.address", send it
+    -- If we only have "person" (no path), send empty string
+    -- local path_expression = current_path.path or ""
+
+    -- Prepare request params based on context type
+    -- local request_params
+    -- if ctx.attribute_type == "target" then
+    --     request_params = {
+    --         sources = { { name = "$target", type = ctx.class_name } },
+    --         pathExpression = path_expression,
+    --         isEnum = ctx.is_enum or false,
+    --     }
+    -- else
+    --     request_params = {
+    --         sources = ctx.sources,
+    --         pathExpression = path_expression,
+    --         isEnum = ctx.is_enum or false,
+    --     }
+    -- end
+
+    -- Get completions to find the class FQN that contains our member
+    mapstruct.get_completions({}, function(result, err)
+        if err then
+            vim.notify("[MapStruct] Failed to get completions: " .. err, vim.log.levels.ERROR)
+            return
         end
+
+        if not result or not result.className then
+            vim.notify("[MapStruct] No class information found", vim.log.levels.WARN)
+            return
+        end
+
+        -- Extract the class FQN
+        -- Remove inner class notation if present (e.g., "com.Foo$Inner" -> "com.Foo")
+        local class_fqn = result.className:gsub("%$.*$", "")
+
+        -- Get simple class name for field search (might be inner class)
+        local simple_name = result.simpleName or result.className:match("[^%.]+$")
+
+        -- Load the class file using jdtls
+        jdtls_util.jdt_load_unique_class(class_fqn, function(class_result)
+            if not class_result or not class_result.location then
+                vim.notify("[MapStruct] Could not load class: " .. class_fqn, vim.log.levels.ERROR)
+                return
+            end
+
+            -- Open the file
+            vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
+
+            -- Wait a bit for the file to open, then search for the field
+            vim.defer_fn(function()
+                local line_num, col = find_field_position(0, simple_name, current_path.member)
+                if line_num then
+                    vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
+                    vim.cmd("normal! zz") -- Center the screen
+                else
+                    vim.notify(
+                        string.format(
+                            "[MapStruct] Field '%s' not found in class '%s'",
+                            current_path.member,
+                            simple_name
+                        ),
+                        vim.log.levels.WARN
+                    )
+                end
+            end, 100)
+        end)
     end)
 end
 
