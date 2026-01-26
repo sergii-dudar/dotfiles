@@ -192,7 +192,7 @@ vim.api.nvim_create_user_command("MapStructGotoDefinition", function()
 end, { desc = "Go to MapStruct path item definition" })
 -- TODO: temp mapping, need make it as additional resolved of lsp's global resolver
 vim.keymap.set("n", "gj", function()
-    require("utils.java.mapstruct").goto_path_definition()
+    require("utils.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true })
     -- if require("utils.java.mapstruct").is_in_mapping_context({}) then
     --     require("utils.java.mapstruct").goto_path_definition()
     -- else

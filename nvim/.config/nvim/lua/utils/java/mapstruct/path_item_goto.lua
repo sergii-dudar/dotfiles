@@ -169,7 +169,11 @@ local function get_mapping_path_under_cursor()
     return { path = path, member = member }
 end
 
-function M.goto_path_item_definitions()
+---@class GoToMapStructOptions
+---@field is_open_as_floating_win (boolean|nil) widget to apply icon, default - false
+---@param opts GoToMapStructOptions|nil of options
+function M.goto_path_item_definitions(opts)
+    opts = opts or {}
     local current_path = get_mapping_path_under_cursor()
 
     if not current_path.member then
@@ -203,12 +207,12 @@ function M.goto_path_item_definitions()
         -- Get simple class name for field search (might be inner class)
         local simple_name = result.simpleName or result.className:match("[^%.]+$")
 
-        --[[ 
         -- Try to find the file directly in the project first (fast path)
-        local project_file = find_project_file(class_fqn)
+        --[[ local project_file = find_project_file(class_fqn)
         if project_file then
             -- Fast path: Open project file directly
             vim.cmd.edit(project_file)
+            -- require("goto-preview.lib").open_floating_win("file:///" .. project_file, { 1, 0 })
             navigate_to_field(simple_name, current_path.member)
             -- vim.notify("local search")
         else ]]
@@ -219,10 +223,18 @@ function M.goto_path_item_definitions()
                 return
             end
 
-            -- Open the file
-            vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
+            if opts.is_open_as_floating_win then
+                local uri = class_result.location.uri or class_result.location.targetUri
+                local bufnr = vim.uri_to_bufnr(uri)
+                vim.fn.bufload(bufnr)
+                -- require("goto-preview.lib").open_floating_win(class_result.location, { 1, 0 })
+                require("goto-preview.lib").open_floating_win(bufnr, { 1, 0 })
+            else
+                -- Open the file
+                vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
+            end
+
             navigate_to_field(simple_name, current_path.member)
-            -- vim.notify("jstls search")
         end)
         -- end
     end)

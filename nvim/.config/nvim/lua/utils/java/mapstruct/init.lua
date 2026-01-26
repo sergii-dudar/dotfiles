@@ -410,9 +410,10 @@ end
 
 -- Go to definition of a field/method in MapStruct path
 -- Requires cursor to be on a path item in @Mapping annotation (e.g., "person.address.city")
-function M.goto_path_definition()
+---@param opts GoToMapStructOptions|nil of options
+function M.goto_path_definition(opts)
     local path_goto = require("utils.java.mapstruct.path_item_goto")
-    path_goto.goto_path_item_definitions()
+    path_goto.goto_path_item_definitions(opts)
 end
 
 return M
