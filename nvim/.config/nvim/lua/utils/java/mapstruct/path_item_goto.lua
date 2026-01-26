@@ -5,8 +5,8 @@ local jdtls_util = require("utils.java.jdtls-util")
 local M = {}
 
 -- Cache project root (git root or cwd) - this won't change during session
-local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
-local project_root = (git_root and git_root ~= "") and git_root or vim.fn.getcwd()
+-- local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+-- local project_root = (git_root and git_root ~= "") and git_root or vim.fn.getcwd()
 
 -- Try to find a Java file directly in the project by FQN
 -- This is much faster than using jdtls for project files
@@ -203,34 +203,29 @@ function M.goto_path_item_definitions()
         -- Get simple class name for field search (might be inner class)
         local simple_name = result.simpleName or result.className:match("[^%.]+$")
 
+        --[[ 
         -- Try to find the file directly in the project first (fast path)
         local project_file = find_project_file(class_fqn)
-
         if project_file then
             -- Fast path: Open project file directly
             vim.cmd.edit(project_file)
             navigate_to_field(simple_name, current_path.member)
             -- vim.notify("local search")
-        else
-            -- Slow path: Use jdtls to load the class (JAR dependencies, external libs)
-            jdtls_util.jdt_load_unique_class(class_fqn, function(class_result)
-                if not class_result or not class_result.location then
-                    vim.notify("[MapStruct] Could not load class: " .. class_fqn, vim.log.levels.ERROR)
-                    return
-                end
+        else ]]
+        -- Slow path: Use jdtls to load the class (JAR dependencies, external libs)
+        jdtls_util.jdt_load_unique_class(class_fqn, function(class_result)
+            if not class_result or not class_result.location then
+                vim.notify("[MapStruct] Could not load class: " .. class_fqn, vim.log.levels.ERROR)
+                return
+            end
 
-                -- Open the file
-                vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
-                navigate_to_field(simple_name, current_path.member)
-                -- vim.notify("jstls search")
-            end)
-        end
+            -- Open the file
+            vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
+            navigate_to_field(simple_name, current_path.member)
+            -- vim.notify("jstls search")
+        end)
+        -- end
     end)
 end
-
--- Setup user command for testing
-vim.api.nvim_create_user_command("MapStructGotoDefinition", function()
-    M.goto_path_item_definitions()
-end, { desc = "Go to MapStruct path item definition" })
 
 return M
