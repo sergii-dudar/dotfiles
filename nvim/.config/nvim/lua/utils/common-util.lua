@@ -119,6 +119,17 @@ M.edit_file = function(url)
     vim.cmd.edit(vim.fn.fnameescape(path))
 end
 
+function M.timewatch(callback, msg_pref)
+    local start_handling = vim.fn.reltime()
+
+    local result = callback()
+
+    local elapsed_handling = vim.fn.reltimefloat(vim.fn.reltime(start_handling))
+    vim.notify(string.format((msg_pref or "") .. " Took %.6f s", elapsed_handling))
+
+    return result
+end
+
 -- M.table_to_string = function(tbl, indent)
 --     indent = indent or 0
 --     local to_log = string.rep(" ", indent) .. "{\n"

@@ -7,6 +7,7 @@ local ipc_client = require("utils.java.mapstruct.ipc_client")
 local context = require("utils.java.mapstruct.context")
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
+local common_util = require("utils.common-util")
 local log = logging_util.new({ name = "MapStruct", filename = "mapstruct-source.log" })
 
 local M = {}
@@ -242,8 +243,13 @@ function M.get_completions(params, callback)
     local row = params.row or (vim.api.nvim_win_get_cursor(0)[1] - 1) -- 0-indexed
     local col = params.col or vim.api.nvim_win_get_cursor(0)[2] -- 0-indexed
 
+    local start = vim.fn.reltime()
+
     -- Extract completion context using Treesitter
     local completion_ctx = context.get_completion_context(bufnr, row, col)
+
+    local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
+    vim.notify(string.format("Context Took %.6f s", elapsed))
 
     if not completion_ctx then
         -- Not in a valid MapStruct context
@@ -277,6 +283,7 @@ function M.get_completions(params, callback)
             }
         end
 
+        local start_req = vim.fn.reltime()
         -- Request path exploration from server
         ipc_client.request("explore_path", request_params, function(result, err)
             if err then
@@ -320,8 +327,16 @@ function M.get_completions(params, callback)
                 return
             end
 
+            local elapsed_req = vim.fn.reltimefloat(vim.fn.reltime(start_req))
+            vim.notify(string.format("Request Took %.6f s", elapsed_req))
+
+            local start_handling = vim.fn.reltime()
+
             -- Return completions
             callback(result, nil)
+
+            local elapsed_handling = vim.fn.reltimefloat(vim.fn.reltime(start_handling))
+            vim.notify(string.format("Request Handling Took %.6f s", elapsed_handling))
         end)
     end)
 end

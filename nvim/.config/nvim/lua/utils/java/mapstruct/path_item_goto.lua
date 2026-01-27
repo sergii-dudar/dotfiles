@@ -61,6 +61,7 @@ local function find_field_position(bufnr, class_name, field_name)
 
     -- Pre-compile patterns for better performance
     local field_pattern = field_name .. "%s*[;=]"
+    local record_field_pattern = field_name .. "%s*[,)]" -- matches record parameters
     local getter_capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
     local getter_pattern = "get" .. getter_capitalized .. "%s*%("
     local setter_pattern = "set" .. getter_capitalized .. "%s*%("
@@ -89,8 +90,8 @@ local function find_field_position(bufnr, class_name, field_name)
         end
 
         -- Track brace depth (count all at once)
-        local open_count = select(2, line:gsub("{", ""))
-        local close_count = select(2, line:gsub("}", ""))
+        local open_count = select(2, line:gsub("[{(]", ""))
+        local close_count = select(2, line:gsub("[})]", ""))
         brace_depth = brace_depth + open_count - close_count
 
         -- If we're in the target class, search for the field/method
@@ -100,9 +101,17 @@ local function find_field_position(bufnr, class_name, field_name)
                 or line:find(getter_pattern)
                 or line:find(method_pattern)
                 or line:find(setter_pattern)
+                or line:find(record_field_pattern)
 
             if col then
                 return line_num, col - 1
+            end
+
+            -- Record field pattern needs special handling to find field name position
+            col = line:find(record_field_pattern)
+            if col then
+                local name_start = line:find(field_name, col)
+                return line_num, name_start - 1
             end
 
             -- Builder pattern needs special handling for column
