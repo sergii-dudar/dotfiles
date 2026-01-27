@@ -15,7 +15,8 @@ local M = {}
 -- Default options
 local DEFAULT_OPTS = {
     -- Required: path to mapstruct-path-explorer.jar
-    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+    jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+    -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
     -- Optional: use jdtls classpath (default: true)
     use_jdtls_classpath = true,
@@ -225,6 +226,78 @@ local function ensure_server_running(callback)
     end)
 end
 
+-- Base request logic to ensure server is running and handle retries
+-- method: string - the IPC method to call
+-- request_params: table - the request parameters
+-- callback: function(result, error)
+local function make_ipc_request(method, request_params, callback)
+    -- Ensure server is running
+    ensure_server_running(function(running)
+        if not running then
+            log.error("Server is not running - cannot make request")
+            callback(nil, "Server is not running")
+            return
+        end
+
+        local start_req = vim.fn.reltime()
+
+        -- Request from server
+        ipc_client.request(method, request_params, function(result, err)
+            if err then
+                log.warn("Request failed:", err)
+
+                -- If request failed, try to reconnect and retry once
+                if err == "Not connected" or err == "timeout" then
+                    log.info("Connection lost, attempting to restart server...")
+
+                    -- Reset state
+                    state.server_started = false
+                    server.cleanup()
+
+                    -- Clear classpath cache to get fresh classpath on restart
+                    if state.use_jdtls_classpath then
+                        classpath_util.clear_cache()
+                        log.info("Cleared classpath cache for server restart")
+                    end
+
+                    ensure_server_running(function(retry_running)
+                        if retry_running then
+                            log.info("Server restarted, retrying request...")
+                            ipc_client.request(method, request_params, function(retry_result, retry_err)
+                                if retry_err then
+                                    log.error("Retry failed:", retry_err)
+                                    callback(nil, retry_err)
+                                    return
+                                end
+
+                                callback(retry_result, nil)
+                            end)
+                        else
+                            log.error("Failed to restart server")
+                            callback(nil, "Failed to restart server")
+                        end
+                    end)
+                    return
+                end
+
+                callback(nil, err)
+                return
+            end
+
+            local elapsed_req = vim.fn.reltimefloat(vim.fn.reltime(start_req))
+            vim.notify(string.format("Request Took %.6f s", elapsed_req))
+
+            local start_handling = vim.fn.reltime()
+
+            -- Return result
+            callback(result, nil)
+
+            local elapsed_handling = vim.fn.reltimefloat(vim.fn.reltime(start_handling))
+            vim.notify(string.format("Request Handling Took %.6f s", elapsed_handling))
+        end)
+    end)
+end
+
 -- Get completions for MapStruct @Mapping annotations
 -- params: { bufnr, row, col }
 -- callback: function(completions, error)
@@ -257,88 +330,54 @@ function M.get_completions(params, callback)
         return
     end
 
-    -- Ensure server is running
-    ensure_server_running(function(running)
-        if not running then
-            log.error("Server is not running - cannot provide completions")
-            callback(nil, "Server is not running")
-            return
-        end
+    -- Build request based on attribute type
+    local request_params
+    if completion_ctx.attribute_type == "target" then
+        -- Target: navigate directly into the target class fields
+        request_params = {
+            sources = { { name = "$target", type = completion_ctx.class_name } },
+            pathExpression = completion_ctx.path_expression,
+            isEnum = completion_ctx.is_enum or false,
+        }
+    else
+        -- Source: use new protocol with sources array
+        request_params = {
+            sources = completion_ctx.sources,
+            pathExpression = completion_ctx.path_expression,
+            isEnum = completion_ctx.is_enum or false,
+        }
+    end
 
-        -- Build request based on attribute type
-        local request_params
-        if completion_ctx.attribute_type == "target" then
-            -- Target: navigate directly into the target class fields
-            request_params = {
-                sources = { { name = "$target", type = completion_ctx.class_name } },
-                pathExpression = completion_ctx.path_expression,
-                isEnum = completion_ctx.is_enum or false,
-            }
-        else
-            -- Source: use new protocol with sources array
-            request_params = {
-                sources = completion_ctx.sources,
-                pathExpression = completion_ctx.path_expression,
-                isEnum = completion_ctx.is_enum or false,
-            }
-        end
+    -- Make request using base request logic
+    make_ipc_request("explore_path", request_params, callback)
+end
 
-        local start_req = vim.fn.reltime()
-        -- Request path exploration from server
-        ipc_client.request("explore_path", request_params, function(result, err)
-            if err then
-                log.warn("Request failed:", err)
+-- Explore type source location
+-- params: { typeName: string }
+-- callback: function(result, error)
+function M.explore_type_source(params, callback)
+    ensure_initialized()
 
-                -- If request failed, try to reconnect and retry once
-                if err == "Not connected" or err == "timeout" then
-                    log.info("Connection lost, attempting to restart server...")
+    if not state.initialized then
+        callback(nil, "MapStruct module failed to initialize")
+        return
+    end
 
-                    -- Reset state
-                    state.server_started = false
-                    server.cleanup()
+    params = params or {}
+    local typeName = params.typeName
 
-                    -- Clear classpath cache to get fresh classpath on restart
-                    if state.use_jdtls_classpath then
-                        classpath_util.clear_cache()
-                        log.info("Cleared classpath cache for server restart")
-                    end
+    if not typeName then
+        callback(nil, "Missing required parameter: typeName")
+        return
+    end
 
-                    ensure_server_running(function(retry_running)
-                        if retry_running then
-                            log.info("Server restarted, retrying request...")
-                            ipc_client.request("explore_path", request_params, function(retry_result, retry_err)
-                                if retry_err then
-                                    log.error("Retry failed:", retry_err)
-                                    callback(nil, retry_err)
-                                    return
-                                end
+    -- Build request
+    local request_params = {
+        typeName = typeName,
+    }
 
-                                callback(retry_result, nil)
-                            end)
-                        else
-                            log.error("Failed to restart server")
-                            callback(nil, "Failed to restart server")
-                        end
-                    end)
-                    return
-                end
-
-                callback(nil, err)
-                return
-            end
-
-            local elapsed_req = vim.fn.reltimefloat(vim.fn.reltime(start_req))
-            vim.notify(string.format("Request Took %.6f s", elapsed_req))
-
-            local start_handling = vim.fn.reltime()
-
-            -- Return completions
-            callback(result, nil)
-
-            local elapsed_handling = vim.fn.reltimefloat(vim.fn.reltime(start_handling))
-            vim.notify(string.format("Request Handling Took %.6f s", elapsed_handling))
-        end)
-    end)
+    -- Make request using base request logic
+    make_ipc_request("explore_type_source", request_params, callback)
 end
 
 -- Get context information at cursor position
