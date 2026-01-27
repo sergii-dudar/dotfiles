@@ -190,15 +190,12 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 vim.api.nvim_create_user_command("MapStructGotoDefinition", function()
     require("utils.java.mapstruct").goto_path_definition()
 end, { desc = "Go to MapStruct path item definition" })
--- TODO: temp mapping, need make it as additional resolved of lsp's global resolver
 vim.keymap.set("n", "gj", function()
     require("utils.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true })
-    -- if require("utils.java.mapstruct").is_in_mapping_context({}) then
-    --     require("utils.java.mapstruct").goto_path_definition()
-    -- else
-    --     vim.lsp.buf.definition() -- Fallback to LSP
-    -- end
-end, { desc = "Go to definition (MapStruct-aware)" })
+end, { desc = "Go to definition (MapStruct) Float" })
+vim.keymap.set("n", "gJ", function()
+    require("utils.java.mapstruct").goto_path_definition()
+end, { desc = "Go to definition (MapStruct)" })
 
 -- Highlight pattern in terminal output
 -- vim.api.nvim_create_autocmd("TermOpen", {
