@@ -338,14 +338,18 @@ local function get_mapping_target_params(method_node, bufnr)
     local mapping_target_params = {}
     
     if not method_node then
+        log.warn("get_mapping_target_params: method_node is nil")
         return mapping_target_params
     end
 
     local params = method_node:field("parameters")[1]
     if not params then
+        log.debug("get_mapping_target_params: no parameters field")
         return mapping_target_params
     end
 
+    log.debug("get_mapping_target_params: checking parameters...")
+    
     -- Check each parameter for @MappingTarget annotation
     for child in params:iter_children() do
         if child:type() == "formal_parameter" then
@@ -353,20 +357,34 @@ local function get_mapping_target_params(method_node, bufnr)
             local name_node = child:field("name")[1]
             if name_node then
                 local param_name = get_node_text(name_node, bufnr)
+                log.debug(string.format("  Checking param: %s", param_name))
                 
-                -- Check for @MappingTarget in modifiers
-                local modifiers = child:field("modifiers")[1]
-                if modifiers then
-                    local param_text = get_node_text(modifiers, bufnr)
-                    if param_text and param_text:match("@MappingTarget") then
-                        mapping_target_params[param_name] = true
-                        log.debug("Found @MappingTarget on parameter:", param_name)
+                local has_mapping_target = false
+                
+                -- Check all children - the annotation is in a child of type "modifiers"
+                for param_child in child:iter_children() do
+                    if param_child:type() == "modifiers" then
+                        local modifiers_text = get_node_text(param_child, bufnr)
+                        log.debug(string.format("    Found modifiers: '%s'", modifiers_text or "nil"))
+                        if modifiers_text and modifiers_text:match("@MappingTarget") then
+                            has_mapping_target = true
+                            break
+                        end
                     end
+                end
+                
+                if has_mapping_target then
+                    mapping_target_params[param_name] = true
+                    log.info("✓ Found @MappingTarget on parameter:", param_name)
+                else
+                    log.debug("    No @MappingTarget found")
                 end
             end
         end
     end
 
+    log.info(string.format("get_mapping_target_params: found %d @MappingTarget params", vim.tbl_count(mapping_target_params)))
+    
     return mapping_target_params
 end
 
