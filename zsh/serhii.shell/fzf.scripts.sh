@@ -85,24 +85,25 @@ function fzf_preview() {
     while IFS= read -r line; do
         echo "$line"
     done | fzf --ansi \
-          --exact \
-          --color "hl:-1:underline,hl+:-1:underline:reverse" \
-          --delimiter : \
-          --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
-          --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
-          --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
+        --exact \
+        --color "hl:-1:underline,hl+:-1:underline:reverse" \
+        --delimiter : \
+        --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+        --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
+        --bind "enter:become(nvim --clean {1})"
+    # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
 }
 
 function fzf_preview_no_select() {
     while IFS= read -r line; do
         echo "$line"
     done | fzf --ansi \
-          --exact \
-          --color "hl:-1:underline,hl+:-1:underline:reverse" \
-          --delimiter : \
-          --preview 'bat --style=numbers --color=always {1}' \
-          --preview-window 'up,85%,border-bottom' \
-          --bind "enter:become(bat --color=always {1})"
+        --exact \
+        --color "hl:-1:underline,hl+:-1:underline:reverse" \
+        --delimiter : \
+        --preview 'bat --style=numbers --color=always {1}' \
+        --preview-window 'up,85%,border-bottom' \
+        --bind "enter:become(bat --color=always {1})"
 }
 
 function findf() {
@@ -157,7 +158,7 @@ function findt() {
 }
 
 function findtc() {
-   rg -I -i -N -c -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | awk '{sum += $1} END {print sum}'
+    rg -I -i -N -c -g '!node_modules*' -g '!target*' -g '!bin*' "$1" . | awk '{sum += $1} END {print sum}'
 }
 
 function findt_in() {
@@ -177,9 +178,9 @@ function wallpapers() {
 
 # fkill - kill process
 killp() {
-  # with ability to updating the list of processes by pressing CTRL-R
+    # with ability to updating the list of processes by pressing CTRL-R
 
-  (date; command ps -ef) |
+    (date; command ps -ef) |
     fzf --exact --bind='ctrl-r:reload(date; ps -ef)' \
         --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
         --preview='echo {}' --preview-window=down,5,wrap \
@@ -189,11 +190,11 @@ killp() {
 # ffind() {
 #     fd --type file |
 #       fzf --exact --prompt 'Files> ' \
-#           --header 'CTRL-T: Switch between Files/Directories' \
-#           --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Files ]] &&
+    #           --header 'CTRL-T: Switch between Files/Directories' \
+    #           --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Files ]] &&
 #                   echo "change-prompt(Files> )+reload(fd --type file)" ||
 #                   echo "change-prompt(Directories> )+reload(fd --type directory)"' \
-#           --preview '[[ $FZF_PROMPT =~ Files ]] && bat --color=always {} || tree -C -L 1 {}'
+    #           --preview '[[ $FZF_PROMPT =~ Files ]] && bat --color=always {} || tree -C -L 1 {}'
 # }
 
 # ==============================================
@@ -208,24 +209,24 @@ killp() {
 #
 # function fzc() {
 #      result=$( ( \
-#         fd . --type f --color=always --hidden --exclude .git \
-#             $HOME/ \
-#             $HOME/.local/bin \
-#              --max-depth 1 \
-#         ; \
-#         fd . --type f --color=always --hidden --exclude .git \
-#             $HOME/.config/ranger \
-#             $HOME/.config/rofi \
-#             $HOME/.config/qtile \
-#             $HOME/.config/nvim \
-#             $HOME/.config/nitrogen \
-#             $HOME/.config/awesome \
-#             $HOME/.config/alacritty \
-#             /etc/keyd \
-#              --max-depth 2 \
-#         ; \
-#         fd . --type d --color=always --hidden --exclude .git $HOME/serhii.home/work/git.work \
-#             --max-depth 1 ) | ( fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}' ) )
+    #         fd . --type f --color=always --hidden --exclude .git \
+    #             $HOME/ \
+    #             $HOME/.local/bin \
+    #              --max-depth 1 \
+    #         ; \
+    #         fd . --type f --color=always --hidden --exclude .git \
+    #             $HOME/.config/ranger \
+    #             $HOME/.config/rofi \
+    #             $HOME/.config/qtile \
+    #             $HOME/.config/nvim \
+    #             $HOME/.config/nitrogen \
+    #             $HOME/.config/awesome \
+    #             $HOME/.config/alacritty \
+    #             /etc/keyd \
+    #              --max-depth 2 \
+    #         ; \
+    #         fd . --type d --color=always --hidden --exclude .git $HOME/serhii.home/work/git.work \
+    #             --max-depth 1 ) | ( fzf --exact --ansi --info=inline --height 80% --layout reverse --border --preview='bat --color=always --style=numbers --line-range=:500 {}' ) )
 #
 #         if [ -n "$result" ]; then
 #             $EDITOR $result
