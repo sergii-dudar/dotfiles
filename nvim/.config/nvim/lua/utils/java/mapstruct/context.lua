@@ -336,7 +336,7 @@ end
 -- Returns a map: param_name -> true for parameters with @MappingTarget
 local function get_mapping_target_params(method_node, bufnr)
     local mapping_target_params = {}
-    
+
     if not method_node then
         log.warn("get_mapping_target_params: method_node is nil")
         return mapping_target_params
@@ -349,7 +349,7 @@ local function get_mapping_target_params(method_node, bufnr)
     end
 
     log.debug("get_mapping_target_params: checking parameters...")
-    
+
     -- Check each parameter for @MappingTarget annotation
     for child in params:iter_children() do
         if child:type() == "formal_parameter" then
@@ -358,9 +358,9 @@ local function get_mapping_target_params(method_node, bufnr)
             if name_node then
                 local param_name = get_node_text(name_node, bufnr)
                 log.debug(string.format("  Checking param: %s", param_name))
-                
+
                 local has_mapping_target = false
-                
+
                 -- Check all children - the annotation is in a child of type "modifiers"
                 for param_child in child:iter_children() do
                     if param_child:type() == "modifiers" then
@@ -372,7 +372,7 @@ local function get_mapping_target_params(method_node, bufnr)
                         end
                     end
                 end
-                
+
                 if has_mapping_target then
                     mapping_target_params[param_name] = true
                     log.info("✓ Found @MappingTarget on parameter:", param_name)
@@ -383,8 +383,10 @@ local function get_mapping_target_params(method_node, bufnr)
         end
     end
 
-    log.info(string.format("get_mapping_target_params: found %d @MappingTarget params", vim.tbl_count(mapping_target_params)))
-    
+    log.info(
+        string.format("get_mapping_target_params: found %d @MappingTarget params", vim.tbl_count(mapping_target_params))
+    )
+
     return mapping_target_params
 end
 
@@ -411,11 +413,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     log.debug("Mapper FQCN:", fqcn)
 
     -- Get class source path using optimized IPC call
-    local startSource = vim.fn.reltime()
     local classpath = get_class_source_path(fqcn)
-    local elapsedSource = vim.fn.reltimefloat(vim.fn.reltime(startSource))
-    log.debug(string.format("GetSourcePaht context Took %.6f s" .. classpath, elapsedSource))
-
     if not classpath then
         log.error("Could not get class source path for:", fqcn)
         vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
@@ -429,7 +427,6 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
     log.debug(string.format("Running: javap -cp <classpath> %s", fqcn))
 
-    local startJavap = vim.fn.reltime()
     local handle = io.popen(cmd)
     if not handle then
         log.error("Failed to run javap")
@@ -439,9 +436,6 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
 
     local output = handle:read("*a")
     handle:close()
-    local elapsedJavap = vim.fn.reltimefloat(vim.fn.reltime(startJavap))
-    vim.notify(string.format("Javap execution Took %.6f s", elapsedJavap), vim.log.levels.WARN)
-    log.debug(string.format("Javap execution Took %.6f s", elapsedJavap))
 
     if not output or output == "" then
         log.warn("javap returned empty output")
@@ -458,7 +452,6 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
 
     -- Parse javap output to find method signature
     -- Much simpler now - no annotation parsing needed!
-    local startParsing = vim.fn.reltime()
     local method_found = false
     local param_types = {}
     local param_names = {}
@@ -537,11 +530,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
         end
     end
 
-    local elapsedParsing = vim.fn.reltimefloat(vim.fn.reltime(startParsing))
-    log.debug(string.format("Javap output parsing Took %.6f s", elapsedParsing))
-
     log.info("Parsed " .. #param_types .. " parameter types from javap")
-    local startLogging = vim.fn.reltime()
     for i, ptype in ipairs(param_types) do
         log.info(string.format("  Type %d: %s", i, ptype))
     end
@@ -598,9 +587,6 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
             )
         )
     end
-
-    local elapsedLogging = vim.fn.reltimefloat(vim.fn.reltime(startLogging))
-    log.debug(string.format("Parameter logging Took %.6f s", elapsedLogging))
 
     log.info("Total parameters extracted: " .. #parameters)
     return {
@@ -698,11 +684,7 @@ function M.get_completion_context(bufnr, row, col)
         -- Use Treesitter to detect @MappingTarget (no verbose javap needed!)
         local mapping_target_params = get_mapping_target_params(method_node, bufnr)
 
-        local start = vim.fn.reltime()
         local result = get_all_method_parameters(bufnr, method_name, method_node, mapping_target_params)
-        local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-        vim.notify(string.format("Source context Took %.6f s", elapsed), vim.log.levels.WARN)
-        log.debug(string.format("Source context Took %.6f s", elapsed))
 
         if not result or not result.parameters or #result.parameters == 0 then
             log.debug("Could not extract method parameters")
@@ -753,13 +735,7 @@ function M.get_completion_context(bufnr, row, col)
 
         -- Use Treesitter to detect @MappingTarget (no verbose javap needed!)
         local mapping_target_params = get_mapping_target_params(method_node, bufnr)
-
-        local start = vim.fn.reltime()
         local result = get_all_method_parameters(bufnr, method_name, method_node, mapping_target_params)
-        local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-        vim.notify(string.format("Target context Took %.6f s", elapsed), vim.log.levels.WARN)
-        log.debug(string.format("Target context Took %.6f s", elapsed))
-
         local target_type = nil
 
         if result and result.parameters and #result.parameters > 0 then

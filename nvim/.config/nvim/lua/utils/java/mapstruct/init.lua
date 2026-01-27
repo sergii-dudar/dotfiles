@@ -239,8 +239,6 @@ local function make_ipc_request(method, request_params, callback)
             return
         end
 
-        local start_req = vim.fn.reltime()
-
         -- Request from server
         ipc_client.request(method, request_params, function(result, err)
             if err then
@@ -284,16 +282,8 @@ local function make_ipc_request(method, request_params, callback)
                 return
             end
 
-            local elapsed_req = vim.fn.reltimefloat(vim.fn.reltime(start_req))
-            vim.notify(string.format("Request Took %.6f s", elapsed_req))
-
-            local start_handling = vim.fn.reltime()
-
             -- Return result
             callback(result, nil)
-
-            local elapsed_handling = vim.fn.reltimefloat(vim.fn.reltime(start_handling))
-            vim.notify(string.format("Request Handling Took %.6f s", elapsed_handling))
         end)
     end)
 end
@@ -316,14 +306,8 @@ function M.get_completions(params, callback)
     local row = params.row or (vim.api.nvim_win_get_cursor(0)[1] - 1) -- 0-indexed
     local col = params.col or vim.api.nvim_win_get_cursor(0)[2] -- 0-indexed
 
-    local start = vim.fn.reltime()
-
     -- Extract completion context using Treesitter
     local completion_ctx = context.get_completion_context(bufnr, row, col)
-
-    local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-    vim.notify(string.format("Context Took %.6f s", elapsed))
-    log.debug(string.format("Context Resolution in general Took %.6f s", elapsed))
 
     if not completion_ctx then
         -- Not in a valid MapStruct context
