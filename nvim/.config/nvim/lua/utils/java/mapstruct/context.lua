@@ -332,15 +332,56 @@ local function get_parameter_names_from_source(method_node, bufnr)
     return param_names
 end
 
+-- Get @MappingTarget annotations from source using Treesitter (fast!)
+-- Returns a map: param_name -> true for parameters with @MappingTarget
+local function get_mapping_target_params(method_node, bufnr)
+    local mapping_target_params = {}
+    
+    if not method_node then
+        return mapping_target_params
+    end
+
+    local params = method_node:field("parameters")[1]
+    if not params then
+        return mapping_target_params
+    end
+
+    -- Check each parameter for @MappingTarget annotation
+    for child in params:iter_children() do
+        if child:type() == "formal_parameter" then
+            -- Get parameter name
+            local name_node = child:field("name")[1]
+            if name_node then
+                local param_name = get_node_text(name_node, bufnr)
+                
+                -- Check for @MappingTarget in modifiers
+                local modifiers = child:field("modifiers")[1]
+                if modifiers then
+                    local param_text = get_node_text(modifiers, bufnr)
+                    if param_text and param_text:match("@MappingTarget") then
+                        mapping_target_params[param_name] = true
+                        log.debug("Found @MappingTarget on parameter:", param_name)
+                    end
+                end
+            end
+        end
+    end
+
+    return mapping_target_params
+end
+
 -- Get all method parameters with types and detect @MappingTarget annotations
 -- Also extracts return type from the same javap call for efficiency
 -- Strategy:
---   1. Parameter types: from javap (fully qualified class names)
---   2. Parameter names: from Treesitter (source code) - javap doesn't reliably return them
---   3. @MappingTarget: from javap -v (RuntimeVisibleParameterAnnotations or RuntimeInvisibleParameterAnnotations)
+--   1. Parameter types: from javap (fully qualified class names) - NO -v flag needed!
+--   2. Parameter names: from Treesitter (source code)
+--   3. @MappingTarget: from Treesitter (source code) - passed via param_has_mapping_target map
 --   4. Return type: from javap method signature (first match)
+-- @param param_has_mapping_target table - map of param_name -> boolean (@MappingTarget detection from Treesitter)
 -- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string}
-local function get_all_method_parameters(bufnr, method_name, method_node)
+local function get_all_method_parameters(bufnr, method_name, method_node, param_has_mapping_target)
+    param_has_mapping_target = param_has_mapping_target or {}
+
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
     if not package_name or not class_name then
@@ -365,9 +406,10 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
 
     log.debug("Using optimized classpath:", classpath)
 
-    -- Run javap with verbose flag to get parameter types and annotations
-    local cmd = string.format("javap -v -cp '%s' '%s'", classpath, fqcn)
-    log.debug("Running: javap -v -cp <classpath>", fqcn)
+    -- Run javap WITHOUT verbose flag (10x faster!)
+    -- We don't need -v because @MappingTarget is detected via Treesitter
+    local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
+    log.debug(string.format("Running: javap -cp <classpath> %s", fqcn))
 
     local startJavap = vim.fn.reltime()
     local handle = io.popen(cmd)
@@ -396,149 +438,83 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     local expected_param_count = #source_names
     log.info("Expected parameter count from source: " .. expected_param_count)
 
-    -- Parse javap output to find method signature and parameter annotations
-    -- Single-pass state machine for efficient parsing
+    -- Parse javap output to find method signature
+    -- Much simpler now - no annotation parsing needed!
     local startParsing = vim.fn.reltime()
     local method_found = false
     local param_types = {}
     local param_names = {}
-    local param_annotations = {} -- param_index -> {has_mapping_target=bool}
-    local return_type = nil -- Extract return type from the same pass
-
-    -- State machine states
-    local state = "seeking_method"
-    local method_indent_len = nil
-    local lines_since_method = 0
-    local in_annotations = false
-    local current_param_index = nil
+    local return_type = nil
 
     -- Single pass through output
     for line in output:gmatch("[^\r\n]+") do
-        if state == "seeking_method" then
-            if line:match("%s+" .. method_name .. "%s*%(") then
-                log.info("Found method signature candidate:", line)
+        if line:match("%s+" .. method_name .. "%s*%(") then
+            log.info("Found method signature candidate:", line)
 
-                -- Extract return type from signature: public abstract ReturnType methodName(...)
-                -- Match pattern: <modifiers> <return_type> <method_name>(
-                local ret_type_match = line:match("^%s*%w+%s+%w*%s*([%w%.%$<>,]+)%s+" .. method_name .. "%s*%(")
-                if ret_type_match then
-                    return_type = ret_type_match
-                    log.info("Extracted return type:", return_type)
-                end
+            -- Extract return type from signature: public abstract ReturnType methodName(...)
+            -- Match pattern: <modifiers> <return_type> <method_name>(
+            local ret_type_match = line:match("^%s*%w+%s+%w*%s*([%w%.%$<>,]+)%s+" .. method_name .. "%s*%(")
+            if ret_type_match then
+                return_type = ret_type_match
+                log.info("Extracted return type:", return_type)
+            end
 
-                -- Extract parameters from signature: methodName(Type1,Type2,Type3);
-                local params_str = line:match(method_name .. "%s*%(([^%)]*)")
-                log.info("Extracted params string:", params_str or "nil")
+            -- Extract parameters from signature: methodName(Type1,Type2,Type3);
+            local params_str = line:match(method_name .. "%s*%(([^%)]*)")
+            log.info("Extracted params string:", params_str or "nil")
 
-                if params_str and params_str ~= "" then
-                    -- Split by comma to get individual parameter types
-                    -- Handle generic types with commas inside <>
-                    local candidate_param_types = {}
-                    local depth = 0
-                    local current_param = ""
+            if params_str and params_str ~= "" then
+                -- Split by comma to get individual parameter types
+                -- Handle generic types with commas inside <>
+                local candidate_param_types = {}
+                local depth = 0
+                local current_param = ""
 
-                    for i = 1, #params_str do
-                        local char = params_str:sub(i, i)
-                        if char == "<" then
-                            depth = depth + 1
-                            current_param = current_param .. char
-                        elseif char == ">" then
-                            depth = depth - 1
-                            current_param = current_param .. char
-                        elseif char == "," and depth == 0 then
-                            -- End of parameter
-                            local param_type = current_param:match("^%s*(.-)%s*$") -- trim
-                            local type_only = param_type:match("^([%w%.%$<>,]+)")
-                            if type_only then
-                                table.insert(candidate_param_types, type_only)
-                            end
-                            current_param = ""
-                        else
-                            current_param = current_param .. char
-                        end
-                    end
-
-                    -- Don't forget the last parameter
-                    if current_param ~= "" then
-                        local param_type = current_param:match("^%s*(.-)%s*$")
+                for i = 1, #params_str do
+                    local char = params_str:sub(i, i)
+                    if char == "<" then
+                        depth = depth + 1
+                        current_param = current_param .. char
+                    elseif char == ">" then
+                        depth = depth - 1
+                        current_param = current_param .. char
+                    elseif char == "," and depth == 0 then
+                        -- End of parameter
+                        local param_type = current_param:match("^%s*(.-)%s*$") -- trim
                         local type_only = param_type:match("^([%w%.%$<>,]+)")
                         if type_only then
                             table.insert(candidate_param_types, type_only)
                         end
-                    end
-
-                    -- Check if parameter count matches expected count
-                    log.info("Candidate has " .. #candidate_param_types .. " parameters")
-                    if #candidate_param_types == expected_param_count then
-                        -- This is the right method!
-                        param_types = candidate_param_types
-                        method_found = true
-                        log.info("Parameter count matches! Using this method.")
-
-                        -- Get method indentation for annotation search
-                        local method_indent = line:match("^(%s*)")
-                        method_indent_len = #method_indent
-                        log.info("Method indentation level: " .. method_indent_len .. " spaces")
-                        log.info("Searching for @MappingTarget annotations for this method...")
-
-                        -- Transition to seeking annotations
-                        state = "seeking_annotations"
+                        current_param = ""
                     else
-                        log.info("Parameter count mismatch, continuing search...")
+                        current_param = current_param .. char
                     end
-                elseif params_str == "" and expected_param_count == 0 then
-                    -- No parameters expected and none found
+                end
+
+                -- Don't forget the last parameter
+                if current_param ~= "" then
+                    local param_type = current_param:match("^%s*(.-)%s*$")
+                    local type_only = param_type:match("^([%w%.%$<>,]+)")
+                    if type_only then
+                        table.insert(candidate_param_types, type_only)
+                    end
+                end
+
+                -- Check if parameter count matches expected count
+                log.info("Candidate has " .. #candidate_param_types .. " parameters")
+                if #candidate_param_types == expected_param_count then
+                    -- This is the right method!
+                    param_types = candidate_param_types
                     method_found = true
-                    break
+                    log.info("Parameter count matches! Using this method.")
+                    break -- Found it, no need to continue
+                else
+                    log.info("Parameter count mismatch, continuing search...")
                 end
-            end
-        elseif state == "seeking_annotations" then
-            lines_since_method = lines_since_method + 1
-
-            -- Stop after 300 lines
-            if lines_since_method > 300 then
-                if not in_annotations then
-                    log.warn(
-                        "No RuntimeParameterAnnotations found within 300 lines (might not have parameter annotations)"
-                    )
-                end
+            elseif params_str == "" and expected_param_count == 0 then
+                -- No parameters expected and none found
+                method_found = true
                 break
-            end
-
-            -- Get indentation of current line
-            local line_indent = line:match("^(%s*)")
-            local line_indent_len = #line_indent
-
-            -- Stop if we hit another method signature at the SAME indentation level
-            if line_indent_len == method_indent_len then
-                local trimmed = line:match("^%s*(.*)$")
-                if
-                    trimmed
-                    and (
-                        trimmed:match("^public%s+.*%s+%w+%s*%(")
-                        or trimmed:match("^private%s+.*%s+%w+%s*%(")
-                        or trimmed:match("^protected%s+.*%s+%w+%s*%(")
-                    )
-                then
-                    log.info("Reached next method signature at same indentation, stopping annotation search")
-                    break
-                end
-            end
-
-            -- Check for RuntimeParameterAnnotations
-            if line:match("Runtime.*ParameterAnnotations:") then
-                in_annotations = true
-                log.info("Found RuntimeParameterAnnotations for this method")
-            elseif in_annotations then
-                local param_idx = line:match("^%s+parameter%s+(%d+):")
-                if param_idx then
-                    current_param_index = tonumber(param_idx)
-                    param_annotations[current_param_index] = { has_mapping_target = false }
-                    log.info("Found parameter " .. param_idx .. " in annotations")
-                elseif current_param_index and line:match("MappingTarget") then
-                    param_annotations[current_param_index].has_mapping_target = true
-                    log.info(">>> Found @MappingTarget on parameter " .. current_param_index)
-                end
             end
         end
     end
@@ -581,16 +557,15 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
         end
     end
 
-    -- Step 3: Build result array (annotations already parsed in step 1)
+    -- Step 3: Build result array using @MappingTarget info from Treesitter
     local parameters = {}
     log.info("Building final parameter list...")
     for i = 1, #param_types do
-        local param_index = i - 1 -- Java uses 0-based indexing
-        local is_mapping_target = param_annotations[param_index] and param_annotations[param_index].has_mapping_target
-            or false
+        local param_name = param_names[i]
+        local is_mapping_target = param_has_mapping_target[param_name] or false
 
         table.insert(parameters, {
-            name = param_names[i],
+            name = param_name,
             type = param_types[i],
             is_mapping_target = is_mapping_target,
         })
@@ -599,7 +574,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
             string.format(
                 "Parameter %d: name=%s, type=%s, @MappingTarget=%s",
                 i,
-                param_names[i],
+                param_name,
                 param_types[i],
                 tostring(is_mapping_target)
             )
@@ -702,9 +677,13 @@ function M.get_completion_context(bufnr, row, col)
 
     if attribute_type == "source" then
         -- For source attribute, get ALL method parameters (excluding @MappingTarget)
+        -- Use Treesitter to detect @MappingTarget (no verbose javap needed!)
+        local mapping_target_params = get_mapping_target_params(method_node, bufnr)
+
         local start = vim.fn.reltime()
-        local result = get_all_method_parameters(bufnr, method_name, method_node)
+        local result = get_all_method_parameters(bufnr, method_name, method_node, mapping_target_params)
         local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
+        vim.notify(string.format("Source context Took %.6f s", elapsed), vim.log.levels.WARN)
         log.debug(string.format("Source context Took %.6f s", elapsed))
 
         if not result or not result.parameters or #result.parameters == 0 then
@@ -754,11 +733,13 @@ function M.get_completion_context(bufnr, row, col)
         -- 1. If method has @MappingTarget parameter, use that parameter's type
         -- 2. Otherwise, use the return type (extracted from the same javap call)
 
-        -- Get all parameters to check for @MappingTarget and also get return type
+        -- Use Treesitter to detect @MappingTarget (no verbose javap needed!)
+        local mapping_target_params = get_mapping_target_params(method_node, bufnr)
 
         local start = vim.fn.reltime()
-        local result = get_all_method_parameters(bufnr, method_name, method_node)
+        local result = get_all_method_parameters(bufnr, method_name, method_node, mapping_target_params)
         local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
+        vim.notify(string.format("Target context Took %.6f s", elapsed), vim.log.levels.WARN)
         log.debug(string.format("Target context Took %.6f s", elapsed))
 
         local target_type = nil
