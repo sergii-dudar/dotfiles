@@ -15,8 +15,8 @@ local M = {}
 -- Default options
 local DEFAULT_OPTS = {
     -- Required: path to mapstruct-path-explorer.jar
-    jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-    -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+    -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
 
     -- Optional: use jdtls classpath (default: true)
     use_jdtls_classpath = true,
@@ -30,7 +30,7 @@ local DEFAULT_OPTS = {
     -- Optional: log level (default: vim.log.levels.WARN)
     -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
     -- Controls both Java and Lua logging
-    log_level = vim.log.levels.WARN,
+    log_level = vim.log.levels.DEBUG,
 
     -- Optional: Java server log file
     log_file = "~/.local/state/nvim/mapstruct-source-server.log",
@@ -323,6 +323,7 @@ function M.get_completions(params, callback)
 
     local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
     vim.notify(string.format("Context Took %.6f s", elapsed))
+    log.debug(string.format("Context Resolution in general Took %.6f s", elapsed))
 
     if not completion_ctx then
         -- Not in a valid MapStruct context

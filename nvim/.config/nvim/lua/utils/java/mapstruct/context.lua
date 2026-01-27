@@ -333,11 +333,13 @@ local function get_parameter_names_from_source(method_node, bufnr)
 end
 
 -- Get all method parameters with types and detect @MappingTarget annotations
+-- Also extracts return type from the same javap call for efficiency
 -- Strategy:
 --   1. Parameter types: from javap (fully qualified class names)
 --   2. Parameter names: from Treesitter (source code) - javap doesn't reliably return them
 --   3. @MappingTarget: from javap -v (RuntimeVisibleParameterAnnotations or RuntimeInvisibleParameterAnnotations)
--- Returns: array of {name=string, type=string, is_mapping_target=boolean}
+--   4. Return type: from javap method signature (first match)
+-- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string}
 local function get_all_method_parameters(bufnr, method_name, method_node)
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
@@ -350,7 +352,12 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     log.debug("Mapper FQCN:", fqcn)
 
     -- Get class source path using optimized IPC call
+    local startSource = vim.fn.reltime()
     local classpath = get_class_source_path(fqcn)
+    local elapsedSource = vim.fn.reltimefloat(vim.fn.reltime(startSource))
+    vim.notify(string.format("GetSourcePaht context Took %.6f s" .. classpath, elapsedSource))
+    log.debug(string.format("GetSourcePaht context Took %.6f s" .. classpath, elapsedSource))
+
     if not classpath then
         log.error("Could not get class source path for:", fqcn)
         vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
@@ -360,7 +367,11 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     log.debug("Using optimized classpath:", classpath)
 
     -- Run javap with verbose flag to get parameter types and annotations
+    local startJavap = vim.fn.reltime()
     local cmd = string.format("javap -v -cp '%s' '%s'", classpath, fqcn)
+    local elapsedJavap = vim.fn.reltimefloat(vim.fn.reltime(startJavap))
+    vim.notify(string.format("Javap context Took %.6f s", elapsedJavap))
+    log.debug(string.format("Javap context Took %.6f s", elapsedJavap))
     log.debug("Running: javap -v -cp <classpath>", fqcn)
 
     local handle = io.popen(cmd)
@@ -392,6 +403,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     local param_types = {}
     local param_names = {}
     local param_annotations = {} -- param_index -> {has_mapping_target=bool}
+    local return_type = nil -- Extract return type from the same pass
 
     -- State machine states
     local state = "seeking_method"
@@ -405,6 +417,14 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
         if state == "seeking_method" then
             if line:match("%s+" .. method_name .. "%s*%(") then
                 log.info("Found method signature candidate:", line)
+
+                -- Extract return type from signature: public abstract ReturnType methodName(...)
+                -- Match pattern: <modifiers> <return_type> <method_name>(
+                local ret_type_match = line:match("^%s*%w+%s+%w*%s*([%w%.%$<>,]+)%s+" .. method_name .. "%s*%(")
+                if ret_type_match then
+                    return_type = ret_type_match
+                    log.info("Extracted return type:", return_type)
+                end
 
                 -- Extract parameters from signature: methodName(Type1,Type2,Type3);
                 local params_str = line:match(method_name .. "%s*%(([^%)]*)")
@@ -583,234 +603,10 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     end
 
     log.info("Total parameters extracted: " .. #parameters)
-    return parameters
-end
-
--- Use javap to get method signature with fully qualified class names
--- DEPRECATED: Use get_all_method_parameters() instead
-local function resolve_class_from_javap(bufnr, method_name, param_name)
-    -- Get mapper class info
-    local package_name, class_name = get_mapper_class_info(bufnr)
-    if not package_name or not class_name then
-        log.debug("Could not determine mapper class")
-        return nil
-    end
-
-    local fqcn = package_name .. "." .. class_name
-    log.debug("Mapper FQCN:", fqcn)
-
-    -- Get class source path using optimized IPC call
-    local classpath = get_class_source_path(fqcn)
-    if not classpath then
-        log.error("Could not get class source path for:", fqcn)
-        vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
-        return nil
-    end
-
-    log.debug("Using optimized classpath:", classpath)
-
-    -- Run javap
-    local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
-    log.debug("Running: javap -cp <classpath>", fqcn)
-
-    local handle = io.popen(cmd)
-    if not handle then
-        log.error("Failed to run javap")
-        vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
-        return nil
-    end
-
-    local output = handle:read("*a")
-    handle:close()
-
-    if not output or output == "" then
-        log.warn("javap returned empty output")
-        vim.notify("[MapStruct Context] javap returned empty output", vim.log.levels.WARN)
-        return nil
-    end
-
-    log.debug("javap output received")
-
-    -- Parse javap output to find the method signature
-    -- javap format: public abstract ReturnType methodName(FullyQualifiedClassName);
-    -- Example: public abstract ComplexNestedDTO mapComplexNested(com.dsm.mapstruct.testdata.TestClasses$Person);
-    for line in output:gmatch("[^\r\n]+") do
-        if line:match("%s+" .. method_name .. "%s*%(") then
-            log.debug("Found method line:", line)
-
-            -- Extract parameter type from: methodName(Type);
-            -- Pattern: captures fully qualified class name inside parentheses
-            local param_type = line:match(method_name .. "%s*%(([%w%.%$<>,]+)%s*%)")
-
-            if param_type then
-                -- Remove parameter name if present (e.g., "Type paramName" -> "Type")
-                -- javap might include or exclude parameter names depending on debug info
-                param_type = param_type:match("^([%w%.%$<>,]+)") or param_type
-
-                log.info("Extracted parameter type:", param_type)
-                return param_type
-            end
-        end
-    end
-
-    log.warn("Could not find method signature in javap output")
-    vim.notify("[MapStruct Context] Could not find method signature in javap output", vim.log.levels.WARN)
-    return nil
-end
-
--- Extract parameter type from method declaration using javap
--- For MapStruct: TargetDTO map(SourceDTO source)
--- We want to extract the fully qualified SourceDTO
-local function get_source_class_from_method(method_node, bufnr)
-    if not method_node then
-        return nil
-    end
-
-    -- Get method name
-    local method_name_node = method_node:field("name")[1]
-    if not method_name_node then
-        return nil
-    end
-    local method_name = get_node_text(method_name_node, bufnr)
-
-    -- Get formal parameters to extract parameter name
-    local params = method_node:field("parameters")[1]
-    if not params then
-        return nil
-    end
-
-    -- Get the first parameter name
-    local param_name = nil
-    for child in params:iter_children() do
-        if child:type() == "formal_parameter" then
-            local name_node = child:field("name")[1]
-            if name_node then
-                param_name = get_node_text(name_node, bufnr)
-                break
-            end
-        end
-    end
-
-    if not param_name then
-        log.debug("Could not extract parameter name")
-        return nil
-    end
-
-    log.debug("Method:", method_name, ", Param:", param_name)
-
-    -- Use javap to resolve the fully qualified class name
-    return resolve_class_from_javap(bufnr, method_name, param_name)
-end
-
--- Extract return type from method declaration using javap
--- For MapStruct: TargetDTO map(SourceDTO source)
--- We want to extract the fully qualified TargetDTO (return type)
-local function get_target_class_from_method(method_node, bufnr)
-    if not method_node then
-        return nil
-    end
-
-    -- Get method name
-    local method_name_node = method_node:field("name")[1]
-    if not method_name_node then
-        return nil
-    end
-    local method_name = get_node_text(method_name_node, bufnr)
-
-    log.debug("Getting return type for method:", method_name)
-
-    -- Get mapper class info
-    local package_name, class_name = get_mapper_class_info(bufnr)
-    if not package_name or not class_name then
-        log.debug("Could not determine mapper class")
-        return nil
-    end
-
-    local fqcn = package_name .. "." .. class_name
-    log.debug("Mapper FQCN:", fqcn)
-
-    -- Get class source path using optimized IPC call
-
-    local start = vim.fn.reltime()
-
-    local classpath = get_class_source_path(fqcn)
-
-    local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-    vim.notify(string.format("CP Context Took %.6f s " .. classpath, elapsed))
-
-    if not classpath then
-        log.error("Could not get class source path for:", fqcn)
-        vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
-        return nil
-    end
-
-    log.debug("Using optimized classpath:", classpath)
-
-    local start_javap = vim.fn.reltime()
-
-    -- Run javap
-    local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
-    log.debug("Running: javap -cp <classpath>", fqcn)
-
-    local elapsed_javap = vim.fn.reltimefloat(vim.fn.reltime(start_javap))
-    vim.notify(string.format("JAVAP Context Took %.6f s ", elapsed_javap))
-
-    local handle = io.popen(cmd)
-    if not handle then
-        log.error("Failed to run javap")
-        vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
-        return nil
-    end
-
-    local output = handle:read("*a")
-    handle:close()
-
-    if not output or output == "" then
-        log.warn("javap returned empty output")
-        vim.notify("[MapStruct Context] javap returned empty output", vim.log.levels.WARN)
-        return nil
-    end
-
-    log.debug("javap output received")
-
-    -- Parse javap output to find the method and extract return type
-    -- javap format: public abstract ReturnType methodName(ParamType);
-    -- Example: public abstract com.example.OrderComplexDTO mapOrderComplex(com.example.Order);
-    for line in output:gmatch("[^\r\n]+") do
-        if line:match("%s+" .. method_name .. "%s*%(") then
-            log.debug("Found method line:", line)
-
-            -- Extract return type: capture the type name immediately before the method name
-            -- Split by spaces and find the type before method name
-            local parts = {}
-            for part in line:gmatch("%S+") do
-                table.insert(parts, part)
-            end
-
-            -- Find method name position
-            local method_pos = nil
-            for i, part in ipairs(parts) do
-                if part:match("^" .. method_name .. "%(") or part == method_name then
-                    method_pos = i
-                    break
-                end
-            end
-
-            -- Return type is the part before the method name
-            if method_pos and method_pos > 1 then
-                local return_type = parts[method_pos - 1]
-                -- Remove any trailing semicolons or parentheses
-                return_type = return_type:gsub("[;%(].*$", "")
-
-                log.info("Extracted return type:", return_type)
-                return return_type
-            end
-        end
-    end
-
-    log.warn("Could not find return type in javap output")
-    vim.notify("[MapStruct Context] Could not find return type in javap output", vim.log.levels.WARN)
-    return nil
+    return {
+        parameters = parameters,
+        return_type = return_type,
+    }
 end
 
 -- Extract completion context from the current cursor position using Treesitter
@@ -899,15 +695,20 @@ function M.get_completion_context(bufnr, row, col)
 
     if attribute_type == "source" then
         -- For source attribute, get ALL method parameters (excluding @MappingTarget)
-        local all_params = get_all_method_parameters(bufnr, method_name, method_node)
-        if not all_params or #all_params == 0 then
+        local start = vim.fn.reltime()
+        local result = get_all_method_parameters(bufnr, method_name, method_node)
+        local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
+        vim.notify(string.format("Source context Took %.6f s", elapsed))
+        log.debug(string.format("Source context Took %.6f s", elapsed))
+
+        if not result or not result.parameters or #result.parameters == 0 then
             log.debug("Could not extract method parameters")
             return nil
         end
 
         -- Filter out @MappingTarget parameters (they are targets, not sources)
         local sources = {}
-        for _, param in ipairs(all_params) do
+        for _, param in ipairs(result.parameters) do
             log.debug(
                 string.format(
                     "Checking parameter: name=%s, type=%s, is_mapping_target=%s",
@@ -945,15 +746,21 @@ function M.get_completion_context(bufnr, row, col)
     elseif attribute_type == "target" then
         -- For target attribute, we need to determine the target type:
         -- 1. If method has @MappingTarget parameter, use that parameter's type
-        -- 2. Otherwise, use the return type
+        -- 2. Otherwise, use the return type (extracted from the same javap call)
 
-        -- Get all parameters to check for @MappingTarget
-        local all_params = get_all_method_parameters(bufnr, method_name, method_node)
+        -- Get all parameters to check for @MappingTarget and also get return type
+
+        local start = vim.fn.reltime()
+        local result = get_all_method_parameters(bufnr, method_name, method_node)
+        local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
+        vim.notify(string.format("Target Context Took %.6f s", elapsed))
+        log.debug(string.format("Target context Took %.6f s", elapsed))
+
         local target_type = nil
 
-        if all_params and #all_params > 0 then
+        if result and result.parameters and #result.parameters > 0 then
             -- Look for @MappingTarget parameter
-            for _, param in ipairs(all_params) do
+            for _, param in ipairs(result.parameters) do
                 if param.is_mapping_target then
                     target_type = param.type
                     log.info("Found @MappingTarget parameter, using type:", target_type)
@@ -962,14 +769,15 @@ function M.get_completion_context(bufnr, row, col)
             end
         end
 
-        -- If no @MappingTarget found, fall back to return type
+        -- If no @MappingTarget found, use return type from the same javap call
         if not target_type then
-            target_type = get_target_class_from_method(method_node, bufnr)
-            if not target_type then
-                log.debug("Could not resolve target class")
+            if result and result.return_type then
+                target_type = result.return_type
+                log.info("Using return type from javap:", target_type)
+            else
+                log.debug("Could not resolve target class from javap")
                 return nil
             end
-            log.info("Using return type as target:", target_type)
         end
 
         -- Check if target type is void (invalid)

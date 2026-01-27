@@ -185,8 +185,8 @@ return {
 
                         opts = {
                             -- Required: path to mapstruct-path-explorer.jar
-                            --jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
-                            jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
+                            jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+                            -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
 
                             -- Optional: use jdtls classpath (default: true)
                             use_jdtls_classpath = true,
@@ -200,7 +200,7 @@ return {
                             -- Optional: log level (default: vim.log.levels.INFO)
                             -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
                             -- Controls both Java and Lua logging
-                            log_level = vim.log.levels.WARN,
+                            log_level = vim.log.levels.DEBUG,
 
                             -- Optional: Java server log file (default: ~/.local/state/nvim/mapstruct-source-server.log)
                             -- log_file = "~/.local/state/nvim/mapstruct-source-server.log",
