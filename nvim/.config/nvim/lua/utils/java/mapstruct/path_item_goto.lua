@@ -190,22 +190,21 @@ function M.goto_path_item_definitions(opts)
         return
     end
 
-    -- Get the MapStruct context to determine which class to search
-    local ctx = mapstruct.get_context({})
-
-    if not ctx then
-        vim.notify("[MapStruct] Not in a valid @Mapping annotation", vim.log.levels.WARN)
-        return
-    end
-
     -- Get completions to find the class FQN that contains our member
+    -- Note: get_completions internally calls get_context, so we don't need to call it separately
     mapstruct.get_completions({}, function(result, err)
         if err then
             vim.notify("[MapStruct] Failed to get completions: " .. err, vim.log.levels.ERROR)
             return
         end
 
-        if not result or not result.className then
+        -- If no result, it means we're not in a valid @Mapping annotation context
+        if not result then
+            vim.notify("[MapStruct] Not in a valid @Mapping annotation", vim.log.levels.WARN)
+            return
+        end
+
+        if not result.className then
             vim.notify("[MapStruct] No class information found", vim.log.levels.WARN)
             return
         end

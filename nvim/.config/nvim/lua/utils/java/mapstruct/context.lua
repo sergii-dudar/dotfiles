@@ -355,7 +355,6 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     local startSource = vim.fn.reltime()
     local classpath = get_class_source_path(fqcn)
     local elapsedSource = vim.fn.reltimefloat(vim.fn.reltime(startSource))
-    vim.notify(string.format("GetSourcePaht context Took %.6f s" .. classpath, elapsedSource))
     log.debug(string.format("GetSourcePaht context Took %.6f s" .. classpath, elapsedSource))
 
     if not classpath then
@@ -367,13 +366,10 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     log.debug("Using optimized classpath:", classpath)
 
     -- Run javap with verbose flag to get parameter types and annotations
-    local startJavap = vim.fn.reltime()
     local cmd = string.format("javap -v -cp '%s' '%s'", classpath, fqcn)
-    local elapsedJavap = vim.fn.reltimefloat(vim.fn.reltime(startJavap))
-    vim.notify(string.format("Javap context Took %.6f s", elapsedJavap))
-    log.debug(string.format("Javap context Took %.6f s", elapsedJavap))
     log.debug("Running: javap -v -cp <classpath>", fqcn)
 
+    local startJavap = vim.fn.reltime()
     local handle = io.popen(cmd)
     if not handle then
         log.error("Failed to run javap")
@@ -383,6 +379,9 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
 
     local output = handle:read("*a")
     handle:close()
+    local elapsedJavap = vim.fn.reltimefloat(vim.fn.reltime(startJavap))
+    vim.notify(string.format("Javap execution Took %.6f s", elapsedJavap), vim.log.levels.WARN)
+    log.debug(string.format("Javap execution Took %.6f s", elapsedJavap))
 
     if not output or output == "" then
         log.warn("javap returned empty output")
@@ -399,6 +398,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
 
     -- Parse javap output to find method signature and parameter annotations
     -- Single-pass state machine for efficient parsing
+    local startParsing = vim.fn.reltime()
     local method_found = false
     local param_types = {}
     local param_names = {}
@@ -543,7 +543,11 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
         end
     end
 
+    local elapsedParsing = vim.fn.reltimefloat(vim.fn.reltime(startParsing))
+    log.debug(string.format("Javap output parsing Took %.6f s", elapsedParsing))
+
     log.info("Parsed " .. #param_types .. " parameter types from javap")
+    local startLogging = vim.fn.reltime()
     for i, ptype in ipairs(param_types) do
         log.info(string.format("  Type %d: %s", i, ptype))
     end
@@ -601,6 +605,9 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
             )
         )
     end
+
+    local elapsedLogging = vim.fn.reltimefloat(vim.fn.reltime(startLogging))
+    log.debug(string.format("Parameter logging Took %.6f s", elapsedLogging))
 
     log.info("Total parameters extracted: " .. #parameters)
     return {
@@ -698,7 +705,6 @@ function M.get_completion_context(bufnr, row, col)
         local start = vim.fn.reltime()
         local result = get_all_method_parameters(bufnr, method_name, method_node)
         local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-        vim.notify(string.format("Source context Took %.6f s", elapsed))
         log.debug(string.format("Source context Took %.6f s", elapsed))
 
         if not result or not result.parameters or #result.parameters == 0 then
@@ -753,7 +759,6 @@ function M.get_completion_context(bufnr, row, col)
         local start = vim.fn.reltime()
         local result = get_all_method_parameters(bufnr, method_name, method_node)
         local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-        vim.notify(string.format("Target Context Took %.6f s", elapsed))
         log.debug(string.format("Target context Took %.6f s", elapsed))
 
         local target_type = nil

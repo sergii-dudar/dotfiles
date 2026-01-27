@@ -350,7 +350,13 @@ function M.get_completions(params, callback)
     end
 
     -- Make request using base request logic
-    make_ipc_request("explore_path", request_params, callback)
+    make_ipc_request("explore_path", request_params, function(result, err)
+        if result then
+            -- Attach completion context to result for consumers
+            result.completion_ctx = completion_ctx
+        end
+        callback(result, err)
+    end)
 end
 
 -- Explore type source location

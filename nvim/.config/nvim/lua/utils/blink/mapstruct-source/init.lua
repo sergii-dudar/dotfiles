@@ -138,16 +138,8 @@ function source:get_completions(ctx, callback)
         col = ctx.cursor[2], -- Already 0-indexed
     }
 
-    -- Get completion context first
-    local completion_ctx = mapstruct.get_context(params)
-
-    if not completion_ctx then
-        -- Not in a valid MapStruct context
-        callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
-        return function() end
-    end
-
     -- Get completions from MapStruct module
+    -- Note: get_completions will internally call get_completion_context
     mapstruct.get_completions(params, function(result, err)
         if err then
             log.warn("get_completions failed:", err)
@@ -155,8 +147,9 @@ function source:get_completions(ctx, callback)
             return
         end
 
+        -- result.completion_ctx contains the context if needed
         -- Process completions into blink.cmp format
-        local items = process_completions(result, completion_ctx)
+        local items = process_completions(result, result.completion_ctx)
 
         callback({
             items = items,
