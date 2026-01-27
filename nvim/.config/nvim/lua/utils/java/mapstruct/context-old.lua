@@ -1,98 +1,14 @@
 -- Context Parser for MapStruct Completion using Treesitter
 -- Extracts class name and path expression from the current buffer
 
+local classpath_util = require("utils.java.jdtls-classpath-util")
 local log = require("utils.logging-util").new({ name = "MapStruct.Context", filename = "mapstruct-source.log" })
 
 local M = {}
 
--- Cache for type source paths: typeName -> sourcePath
-local type_source_cache = {}
-
 -- Set log level for this module
 function M.set_log_level(level)
     log.set_level(level)
-end
-
--- Clear the type source cache (useful for testing or when classpath changes)
-function M.clear_type_source_cache()
-    type_source_cache = {}
-    log.info("Type source cache cleared")
-end
-
--- Get class source path using explore_type_source IPC
--- Returns the JAR or directory path where the class is located
-local function get_class_source_path(type_name)
-    -- Handle nil or empty type names
-    if not type_name or type_name == "" then
-        return nil
-    end
-
-    -- Handle primitives - they don't have source files
-    if
-        type_name:match("^void$")
-        or type_name:match("^int$")
-        or type_name:match("^boolean$")
-        or type_name:match("^byte$")
-        or type_name:match("^short$")
-        or type_name:match("^long$")
-        or type_name:match("^float$")
-        or type_name:match("^double$")
-        or type_name:match("^char$")
-    then
-        log.debug("Skipping primitive type:", type_name)
-        return nil
-    end
-
-    -- Strip array brackets (e.g., String[] -> String)
-    local base_type = type_name:gsub("%[%]$", "")
-
-    -- Strip generics (e.g., List<String> -> List)
-    base_type = base_type:gsub("<.*>", "")
-
-    -- Check cache first
-    if type_source_cache[base_type] then
-        log.debug("Cache hit for type:", base_type, "->", type_source_cache[base_type])
-        return type_source_cache[base_type]
-    end
-
-    log.debug("Cache miss for type:", base_type, "- fetching from server...")
-
-    -- Get the mapstruct module to make IPC request
-    -- Use pcall to avoid circular dependency issues
-    local ok, mapstruct = pcall(require, "utils.java.mapstruct")
-    if not ok then
-        log.error("Failed to load mapstruct module:", mapstruct)
-        return nil
-    end
-
-    -- Make synchronous request (using vim.wait)
-    local result = nil
-    local completed = false
-
-    mapstruct.explore_type_source({ typeName = base_type }, function(res, err)
-        if err then
-            log.warn("Failed to get source path for type:", base_type, "error:", err)
-        elseif res and res.sourcePath then
-            log.info("Got source path for type:", base_type, "->", res.sourcePath)
-            type_source_cache[base_type] = res.sourcePath
-            result = res.sourcePath
-        else
-            log.warn("No source path returned for type:", base_type)
-        end
-        completed = true
-    end)
-
-    -- Wait for completion (max 5 seconds)
-    local wait_result = vim.wait(5000, function()
-        return completed
-    end, 50)
-
-    if not wait_result then
-        log.error("Timeout waiting for source path for type:", base_type)
-        return nil
-    end
-
-    return result
 end
 
 -- Get the Treesitter node at cursor position
@@ -349,15 +265,13 @@ local function get_all_method_parameters(bufnr, method_name, method_node)
     local fqcn = package_name .. "." .. class_name
     log.debug("Mapper FQCN:", fqcn)
 
-    -- Get class source path using optimized IPC call
-    local classpath = get_class_source_path(fqcn)
+    -- Get classpath from jdtls
+    local classpath = classpath_util.get_classpath({ bufnr = bufnr })
     if not classpath then
-        log.error("Could not get class source path for:", fqcn)
-        vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
+        log.error("Could not get classpath")
+        vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
         return nil
     end
-
-    log.debug("Using optimized classpath:", classpath)
 
     -- Run javap with verbose flag to get parameter types and annotations
     local cmd = string.format("javap -v -cp '%s' '%s'", classpath, fqcn)
@@ -599,15 +513,13 @@ local function resolve_class_from_javap(bufnr, method_name, param_name)
     local fqcn = package_name .. "." .. class_name
     log.debug("Mapper FQCN:", fqcn)
 
-    -- Get class source path using optimized IPC call
-    local classpath = get_class_source_path(fqcn)
+    -- Get classpath from jdtls (with fallback)
+    local classpath = classpath_util.get_classpath({ bufnr = bufnr })
     if not classpath then
-        log.error("Could not get class source path for:", fqcn)
-        vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
+        log.error("Could not get classpath")
+        vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
         return nil
     end
-
-    log.debug("Using optimized classpath:", classpath)
 
     -- Run javap
     local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
@@ -729,31 +641,17 @@ local function get_target_class_from_method(method_node, bufnr)
     local fqcn = package_name .. "." .. class_name
     log.debug("Mapper FQCN:", fqcn)
 
-    -- Get class source path using optimized IPC call
-
-    local start = vim.fn.reltime()
-
-    local classpath = get_class_source_path(fqcn)
-
-    local elapsed = vim.fn.reltimefloat(vim.fn.reltime(start))
-    vim.notify(string.format("CP Context Took %.6f s " .. classpath, elapsed))
-
+    -- Get classpath from jdtls (with fallback)
+    local classpath = classpath_util.get_classpath({ bufnr = bufnr })
     if not classpath then
-        log.error("Could not get class source path for:", fqcn)
-        vim.notify("[MapStruct Context] Could not get class source path", vim.log.levels.ERROR)
+        log.error("Could not get classpath")
+        vim.notify("[MapStruct Context] Could not get classpath", vim.log.levels.ERROR)
         return nil
     end
-
-    log.debug("Using optimized classpath:", classpath)
-
-    local start_javap = vim.fn.reltime()
 
     -- Run javap
     local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
     log.debug("Running: javap -cp <classpath>", fqcn)
-
-    local elapsed_javap = vim.fn.reltimefloat(vim.fn.reltime(start_javap))
-    vim.notify(string.format("JAVAP Context Took %.6f s ", elapsed_javap))
 
     local handle = io.popen(cmd)
     if not handle then
