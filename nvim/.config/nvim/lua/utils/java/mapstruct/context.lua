@@ -5,12 +5,73 @@ local log = require("utils.logging-util").new({ name = "MapStruct.Context", file
 
 local M = {}
 
--- Cache for type source paths: typeName -> sourcePath
+-- Cache TTL (time to live) in seconds - 5 minutes
+local CACHE_TTL = 300
+
+-- Cleanup interval in milliseconds - run cleanup every 60 seconds
+local CLEANUP_INTERVAL_MS = 60000
+
+-- Cache for type source paths: typeName -> {value, last_used}
 local type_source_cache = {}
 
--- Cache for method parameters: signature_key -> {parameters, return_type}
+-- Cache for method parameters: signature_key -> {value, last_used}
 -- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
 local method_params_cache = {}
+
+-- Timer handle for cleanup scheduler
+local cleanup_timer = nil
+
+-- Clean expired cache entries (entries not used for more than CACHE_TTL seconds)
+local function cleanup_cache(cache, cache_name)
+    local current_time = os.time()
+    local removed_count = 0
+
+    for key, entry in pairs(cache) do
+        if entry.last_used and (current_time - entry.last_used) > CACHE_TTL then
+            cache[key] = nil
+            removed_count = removed_count + 1
+        end
+    end
+
+    if removed_count > 0 then
+        log.info(string.format("Cleaned %d expired entries from %s cache", removed_count, cache_name))
+        vim.notify(string.format("Cleaned %d expired entries from %s cache", removed_count, cache_name))
+    end
+    dd(cache)
+end
+
+-- Periodic cleanup for all caches
+local function cleanup_all_caches()
+    cleanup_cache(type_source_cache, "type_source")
+    cleanup_cache(method_params_cache, "method_params")
+end
+
+-- Start automatic cache cleanup timer
+local function start_cleanup_timer()
+    if cleanup_timer then
+        return -- Timer already running
+    end
+
+    cleanup_timer = vim.fn.timer_start(CLEANUP_INTERVAL_MS, function()
+        cleanup_all_caches()
+        log.debug("Automatic cache cleanup completed")
+        vim.notify("Automatic cache cleanup completed")
+    end, { ["repeat"] = -1 }) -- -1 means repeat indefinitely
+
+    log.info(string.format("Cache cleanup timer started (interval: %dms)", CLEANUP_INTERVAL_MS))
+end
+
+-- Stop automatic cache cleanup timer
+local function stop_cleanup_timer()
+    if cleanup_timer then
+        vim.fn.timer_stop(cleanup_timer)
+        cleanup_timer = nil
+        log.info("Cache cleanup timer stopped")
+    end
+end
+
+-- Initialize the module and start the cleanup timer
+start_cleanup_timer()
 
 -- Set log level for this module
 function M.set_log_level(level)
@@ -27,6 +88,29 @@ end
 function M.clear_method_params_cache()
     method_params_cache = {}
     log.info("Method parameters cache cleared")
+end
+
+-- Clear all caches
+function M.clear_all_caches()
+    type_source_cache = {}
+    method_params_cache = {}
+    log.info("All caches cleared")
+end
+
+-- Stop the automatic cleanup timer (for testing or shutdown)
+function M.stop_cleanup_timer()
+    stop_cleanup_timer()
+end
+
+-- Start/restart the automatic cleanup timer
+function M.start_cleanup_timer()
+    start_cleanup_timer()
+end
+
+-- Manually trigger cache cleanup (useful for testing)
+function M.cleanup_now()
+    cleanup_all_caches()
+    log.info("Manual cache cleanup triggered")
 end
 
 -- Get class source path using explore_type_source IPC
@@ -59,10 +143,12 @@ local function get_class_source_path(type_name)
     -- Strip generics (e.g., List<String> -> List)
     base_type = base_type:gsub("<.*>", "")
 
-    -- Check cache first
-    if type_source_cache[base_type] then
-        log.debug("Cache hit for type:", base_type, "->", type_source_cache[base_type])
-        return type_source_cache[base_type]
+    -- Check cache first and update last_used timestamp
+    local cached_entry = type_source_cache[base_type]
+    if cached_entry then
+        log.debug("Cache hit for type:", base_type, "->", cached_entry.value)
+        cached_entry.last_used = os.time()
+        return cached_entry.value
     end
 
     log.debug("Cache miss for type:", base_type, "- fetching from server...")
@@ -84,7 +170,10 @@ local function get_class_source_path(type_name)
             log.warn("Failed to get source path for type:", base_type, "error:", err)
         elseif res and res.sourcePath then
             log.info("Got source path for type:", base_type, "->", res.sourcePath)
-            type_source_cache[base_type] = res.sourcePath
+            type_source_cache[base_type] = {
+                value = res.sourcePath,
+                last_used = os.time(),
+            }
             result = res.sourcePath
         else
             log.warn("No source path returned for type:", base_type)
@@ -467,18 +556,19 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
 
     vim.notify("key: " .. cache_key)
 
-    -- Check cache first
-    if method_params_cache[cache_key] then
+    -- Check cache first and update last_used timestamp
+    local cached_entry = method_params_cache[cache_key]
+    if cached_entry then
         log.info("Cache hit for method signature:", cache_key)
-        local cached_result = method_params_cache[cache_key]
+        cached_entry.last_used = os.time()
 
         -- Update @MappingTarget flags from current param_has_mapping_target map
         -- (these might have changed without changing the signature)
-        for _, param in ipairs(cached_result.parameters) do
+        for _, param in ipairs(cached_entry.value.parameters) do
             param.is_mapping_target = param_has_mapping_target[param.name] or false
         end
 
-        return cached_result
+        return cached_entry.value
     end
 
     log.info("Cache miss for method signature:", cache_key)
@@ -678,8 +768,11 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
         return_type = return_type,
     }
 
-    -- Store in cache for future calls
-    method_params_cache[cache_key] = result
+    -- Store in cache for future calls with timestamp
+    method_params_cache[cache_key] = {
+        value = result,
+        last_used = os.time(),
+    }
     log.info("Cached result for method signature:", cache_key)
 
     return result

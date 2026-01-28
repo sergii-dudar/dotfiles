@@ -51,7 +51,7 @@ M.jdtls_settings = {
             enabled = true, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
         },
         -- Max number of concurrent builds
-        maxConcurrentBuilds = 1,
+        maxConcurrentBuilds = 4,
         -- Compilation settings
         compile = {
             -- Null analysis annotations
