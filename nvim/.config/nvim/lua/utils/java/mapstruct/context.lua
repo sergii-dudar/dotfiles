@@ -8,6 +8,10 @@ local M = {}
 -- Cache for type source paths: typeName -> sourcePath
 local type_source_cache = {}
 
+-- Cache for method parameters: signature_key -> {parameters, return_type}
+-- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
+local method_params_cache = {}
+
 -- Set log level for this module
 function M.set_log_level(level)
     log.set_level(level)
@@ -17,6 +21,12 @@ end
 function M.clear_type_source_cache()
     type_source_cache = {}
     log.info("Type source cache cleared")
+end
+
+-- Clear the method parameters cache
+function M.clear_method_params_cache()
+    method_params_cache = {}
+    log.info("Method parameters cache cleared")
 end
 
 -- Get class source path using explore_type_source IPC
@@ -390,17 +400,88 @@ local function get_mapping_target_params(method_node, bufnr)
     return mapping_target_params
 end
 
+-- Extract method signature from treesitter for cache key generation
+-- Returns: return_type, params_array where params_array = {{type, name}, ...}
+local function extract_method_signature_from_treesitter(method_node, bufnr)
+    if not method_node then
+        return nil, {}
+    end
+
+    -- Extract return type
+    local return_type = "void"
+    local type_node = method_node:field("type")[1]
+    if type_node then
+        return_type = get_node_text(type_node, bufnr)
+    end
+
+    -- Extract parameters with types and names
+    local params_array = {}
+    local params = method_node:field("parameters")[1]
+    if params then
+        for child in params:iter_children() do
+            if child:type() == "formal_parameter" then
+                local param_type_node = child:field("type")[1]
+                local param_name_node = child:field("name")[1]
+
+                if param_type_node and param_name_node then
+                    local param_type = get_node_text(param_type_node, bufnr)
+                    local param_name = get_node_text(param_name_node, bufnr)
+                    table.insert(params_array, { type = param_type, name = param_name })
+                end
+            end
+        end
+    end
+
+    return return_type, params_array
+end
+
+-- Generate cache key from method signature
+-- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
+local function generate_method_cache_key(method_name, return_type, params_array)
+    local param_parts = {}
+    for _, p in ipairs(params_array) do
+        table.insert(param_parts, p.type .. ":" .. p.name)
+    end
+    local params_str = table.concat(param_parts, ",")
+    return method_name .. "|" .. (return_type or "void") .. "|" .. params_str
+end
+
 -- Get all method parameters with types and detect @MappingTarget annotations
 -- Also extracts return type from the same javap call for efficiency
 -- Strategy:
---   1. Parameter types: from javap (fully qualified class names) - NO -v flag needed!
---   2. Parameter names: from Treesitter (source code)
---   3. @MappingTarget: from Treesitter (source code) - passed via param_has_mapping_target map
---   4. Return type: from javap method signature (first match)
+--   1. Check cache using method signature from treesitter
+--   2. If cache hit, return cached result immediately
+--   3. If cache miss, run javap:
+--      - Parameter types: from javap (fully qualified class names) - NO -v flag needed!
+--      - Parameter names: from Treesitter (source code)
+--      - @MappingTarget: from Treesitter (source code) - passed via param_has_mapping_target map
+--      - Return type: from javap method signature (first match)
 -- @param param_has_mapping_target table - map of param_name -> boolean (@MappingTarget detection from Treesitter)
 -- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string}
 local function get_all_method_parameters(bufnr, method_name, method_node, param_has_mapping_target)
     param_has_mapping_target = param_has_mapping_target or {}
+
+    -- Extract signature from treesitter for cache key
+    local return_type_from_ts, params_from_ts = extract_method_signature_from_treesitter(method_node, bufnr)
+    local cache_key = generate_method_cache_key(method_name, return_type_from_ts, params_from_ts)
+
+    vim.notify("key: " .. cache_key)
+
+    -- Check cache first
+    if method_params_cache[cache_key] then
+        log.info("Cache hit for method signature:", cache_key)
+        local cached_result = method_params_cache[cache_key]
+
+        -- Update @MappingTarget flags from current param_has_mapping_target map
+        -- (these might have changed without changing the signature)
+        for _, param in ipairs(cached_result.parameters) do
+            param.is_mapping_target = param_has_mapping_target[param.name] or false
+        end
+
+        return cached_result
+    end
+
+    log.info("Cache miss for method signature:", cache_key)
 
     -- Get mapper class info
     local package_name, class_name = get_mapper_class_info(bufnr)
@@ -421,6 +502,8 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     end
 
     log.debug("Using optimized classpath:", classpath)
+
+    vim.notify("Calling Javap")
 
     -- Run javap WITHOUT verbose flag (10x faster!)
     -- We don't need -v because @MappingTarget is detected via Treesitter
@@ -589,10 +672,17 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     end
 
     log.info("Total parameters extracted: " .. #parameters)
-    return {
+
+    local result = {
         parameters = parameters,
         return_type = return_type,
     }
+
+    -- Store in cache for future calls
+    method_params_cache[cache_key] = result
+    log.info("Cached result for method signature:", cache_key)
+
+    return result
 end
 
 -- Extract completion context from the current cursor position using Treesitter
