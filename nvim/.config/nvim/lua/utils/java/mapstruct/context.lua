@@ -18,6 +18,9 @@ local type_source_cache = {}
 -- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
 local method_params_cache = {}
 
+-- Cache for wildcard import resolution: typeName -> FQN
+local wildcard_resolution_cache = {}
+
 -- Timer handle for cleanup scheduler
 local cleanup_timer = nil
 
@@ -42,6 +45,7 @@ end
 local function cleanup_all_caches()
     cleanup_cache(type_source_cache, "type_source")
     cleanup_cache(method_params_cache, "method_params")
+    cleanup_cache(wildcard_resolution_cache, "wildcard_resolution")
 end
 
 -- Start automatic cache cleanup timer
@@ -84,10 +88,17 @@ function M.clear_method_params_cache()
     log.info("Method parameters cache cleared")
 end
 
+-- Clear the wildcard resolution cache
+function M.clear_wildcard_cache()
+    wildcard_resolution_cache = {}
+    log.info("Wildcard resolution cache cleared")
+end
+
 -- Clear all caches
 function M.clear_all_caches()
     type_source_cache = {}
     method_params_cache = {}
+    wildcard_resolution_cache = {}
     log.info("All caches cleared")
 end
 
@@ -529,7 +540,284 @@ local function generate_method_cache_key(method_name, return_type, params_array)
     return method_name .. "|" .. (return_type or "void") .. "|" .. params_str
 end
 
--- Get all method parameters with types and detect @MappingTarget annotations
+-- Get all imports from the source file
+local function get_imports_from_source(bufnr)
+    local parser = vim.treesitter.get_parser(bufnr, "java")
+    if not parser then
+        return {}, {}
+    end
+
+    local tree = parser:parse()[1]
+    if not tree then
+        return {}, {}
+    end
+
+    local root = tree:root()
+    local direct_imports = {}
+    local wildcard_imports = {}
+
+    -- Get buffer lines to check for wildcards
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+    -- Query for import statements
+    local query_str = [[
+        (import_declaration) @import_decl
+    ]]
+
+    local ok, query = pcall(vim.treesitter.query.parse, "java", query_str)
+    if not ok then
+        return {}, {}
+    end
+
+    for id, node in query:iter_captures(root, bufnr, 0, -1) do
+        if query.captures[id] == "import_decl" then
+            local start_row = node:start()
+            local import_line = lines[start_row + 1]
+
+            if import_line then
+                -- Extract import statement using pattern matching
+                local import_text = import_line:match("import%s+([^;]+);")
+
+                if import_text then
+                    if import_text:match("%*$") then
+                        -- Wildcard import: remove .*
+                        local package = import_text:gsub("%.%*$", "")
+                        table.insert(wildcard_imports, package)
+                        log.debug("Found wildcard import:", package)
+                    else
+                        -- Direct import: extract simple name and FQN
+                        local simple_name = import_text:match("([^%.]+)$")
+                        direct_imports[simple_name] = import_text
+                        log.debug("Found direct import:", simple_name, "->", import_text)
+                    end
+                end
+            end
+        end
+    end
+
+    return direct_imports, wildcard_imports
+end
+
+-- Common java.lang types mapping
+local JAVA_LANG_TYPES = {
+    String = "java.lang.String",
+    Object = "java.lang.Object",
+    Integer = "java.lang.Integer",
+    Long = "java.lang.Long",
+    Double = "java.lang.Double",
+    Float = "java.lang.Float",
+    Boolean = "java.lang.Boolean",
+    Character = "java.lang.Character",
+    Byte = "java.lang.Byte",
+    Short = "java.lang.Short",
+    StringBuilder = "java.lang.StringBuilder",
+    StringBuffer = "java.lang.StringBuffer",
+    Class = "java.lang.Class",
+    System = "java.lang.System",
+    Math = "java.lang.Math",
+    Exception = "java.lang.Exception",
+    RuntimeException = "java.lang.RuntimeException",
+    Thread = "java.lang.Thread",
+    Runnable = "java.lang.Runnable",
+    Throwable = "java.lang.Throwable",
+    Error = "java.lang.Error",
+    Enum = "java.lang.Enum",
+    Number = "java.lang.Number",
+    Comparable = "java.lang.Comparable",
+    CharSequence = "java.lang.CharSequence",
+    Iterable = "java.lang.Iterable",
+    Override = "java.lang.Override",
+    Deprecated = "java.lang.Deprecated",
+    SuppressWarnings = "java.lang.SuppressWarnings",
+}
+
+-- Resolve type FQN using imports and jdtls
+-- Returns: FQN or nil if not found
+local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, bufnr)
+    -- Handle primitives
+    if
+        type_name:match("^void$")
+        or type_name:match("^int$")
+        or type_name:match("^boolean$")
+        or type_name:match("^byte$")
+        or type_name:match("^short$")
+        or type_name:match("^long$")
+        or type_name:match("^float$")
+        or type_name:match("^double$")
+        or type_name:match("^char$")
+    then
+        return type_name
+    end
+
+    -- Extract and preserve generics and array brackets
+    local generics = type_name:match("<.*>") or ""
+    local array_brackets = type_name:match("%[%]$") or ""
+    local base_type = type_name:gsub("<.*>", ""):gsub("%[%]$", "")
+
+    -- Check if already FQN (contains dots)
+    if base_type:match("%.") then
+        return type_name
+    end
+
+    -- Check cache first
+    if wildcard_resolution_cache[base_type] then
+        log.debug("Wildcard resolution cache hit for:", base_type)
+        return wildcard_resolution_cache[base_type] .. generics .. array_brackets
+    end
+
+    -- Check direct imports
+    if direct_imports[base_type] then
+        log.debug("Found in direct imports:", base_type, "->", direct_imports[base_type])
+        wildcard_resolution_cache[base_type] = direct_imports[base_type]
+        return direct_imports[base_type] .. generics .. array_brackets
+    end
+
+    -- Check java.lang types (implicit import)
+    if JAVA_LANG_TYPES[base_type] then
+        log.debug("Found in java.lang mapping:", base_type, "->", JAVA_LANG_TYPES[base_type])
+        wildcard_resolution_cache[base_type] = JAVA_LANG_TYPES[base_type]
+        return JAVA_LANG_TYPES[base_type] .. generics .. array_brackets
+    end
+
+    -- Try wildcard imports via jdtls
+    local jdtls_client = require("utils.lsp-util").get_client_by_name("jdtls")
+
+    if jdtls_client then
+        for _, package in ipairs(wildcard_imports) do
+            local candidate_fqn = package .. "." .. base_type
+            log.debug("Trying wildcard import:", candidate_fqn)
+
+            local result = jdtls_client:request_sync("workspace/symbol", { query = candidate_fqn }, 5000, bufnr)
+            if result and result.result and #result.result > 0 then
+                -- jdtls workspace/symbol can return multiple matches (e.g., Person, PersonAnother)
+                -- We need to find the exact match for our type
+                for _, symbol in ipairs(result.result) do
+                    -- Check if this symbol exactly matches what we're looking for
+                    -- symbol.name should be the simple class name (e.g., "Person")
+                    -- symbol.containerName should be the package (e.g., "com.example" or "Outer" for inner classes)
+                    local symbol_fqn = nil
+
+                    if symbol.containerName and symbol.containerName ~= "" then
+                        symbol_fqn = symbol.containerName .. "." .. symbol.name
+                    else
+                        symbol_fqn = symbol.name
+                    end
+
+                    -- Check for exact match
+                    if symbol_fqn == candidate_fqn or symbol.name == base_type and symbol.containerName == package then
+                        log.debug("Exact match found via wildcard import:", candidate_fqn)
+                        wildcard_resolution_cache[base_type] = candidate_fqn
+                        return candidate_fqn .. generics .. array_brackets
+                    end
+                end
+                log.debug(
+                    "No exact match found for:",
+                    candidate_fqn,
+                    "- got",
+                    #result.result,
+                    "results but none matched exactly"
+                )
+            end
+        end
+    else
+        log.warn("jdtls client not available for type resolution")
+    end
+
+    -- Check in same package as current file
+    local package_name, _ = get_mapper_class_info(bufnr)
+    if package_name then
+        local same_package_fqn = package_name .. "." .. base_type
+        log.debug("Assuming same package:", same_package_fqn)
+        wildcard_resolution_cache[base_type] = same_package_fqn
+        return same_package_fqn .. generics .. array_brackets
+    end
+
+    log.warn("Could not resolve type:", base_type)
+    return nil
+end
+
+-- Get all method parameters using TreeSitter + jdtls (main approach)
+-- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string} or nil on failure
+local function get_all_method_parameters_main(bufnr, method_name, method_node, param_has_mapping_target)
+    param_has_mapping_target = param_has_mapping_target or {}
+
+    if not method_node then
+        log.debug("get_all_method_parameters_main: method_node is nil")
+        return nil
+    end
+
+    -- Extract signature from treesitter for cache key
+    local return_type_from_ts, params_from_ts = extract_method_signature_from_treesitter(method_node, bufnr)
+    local cache_key = generate_method_cache_key(method_name, return_type_from_ts, params_from_ts)
+
+    -- Check cache first
+    local cached_entry = method_params_cache[cache_key]
+    if cached_entry then
+        log.info("Cache hit for method signature (main):", cache_key)
+        cached_entry.last_used = os.time()
+
+        -- Update @MappingTarget flags
+        for _, param in ipairs(cached_entry.value.parameters) do
+            param.is_mapping_target = param_has_mapping_target[param.name] or false
+        end
+
+        return cached_entry.value
+    end
+
+    log.info("Cache miss for method signature (main):", cache_key)
+
+    -- Get imports from source
+    local direct_imports, wildcard_imports = get_imports_from_source(bufnr)
+
+    -- Resolve return type
+    local return_type_fqn = resolve_type_fqn(return_type_from_ts, direct_imports, wildcard_imports, bufnr)
+    if not return_type_fqn then
+        log.warn("Failed to resolve return type:", return_type_from_ts)
+        return nil
+    end
+
+    -- Build parameters array with resolved FQNs
+    local parameters = {}
+    for i, param_info in ipairs(params_from_ts) do
+        local param_type_fqn = resolve_type_fqn(param_info.type, direct_imports, wildcard_imports, bufnr)
+        if not param_type_fqn then
+            log.warn("Failed to resolve parameter type:", param_info.type)
+            return nil
+        end
+
+        table.insert(parameters, {
+            name = param_info.name,
+            type = param_type_fqn,
+            is_mapping_target = param_has_mapping_target[param_info.name] or false,
+        })
+
+        log.info(
+            string.format(
+                "Parameter %d: name=%s, type=%s, @MappingTarget=%s",
+                i,
+                param_info.name,
+                param_type_fqn,
+                tostring(param_has_mapping_target[param_info.name] or false)
+            )
+        )
+    end
+
+    local result = {
+        parameters = parameters,
+        return_type = return_type_fqn,
+    }
+
+    -- Store in cache
+    method_params_cache[cache_key] = {
+        value = result,
+        last_used = os.time(),
+    }
+    log.info("Cached result for method signature (main):", cache_key)
+
+    return result
+end
+
+-- Get all method parameters using javap (fallback approach)
 -- Also extracts return type from the same javap call for efficiency
 -- Strategy:
 --   1. Check cache using method signature from treesitter
@@ -541,7 +829,7 @@ end
 --      - Return type: from javap method signature (first match)
 -- @param param_has_mapping_target table - map of param_name -> boolean (@MappingTarget detection from Treesitter)
 -- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string}
-local function get_all_method_parameters(bufnr, method_name, method_node, param_has_mapping_target)
+local function get_all_method_parameters_javap(bufnr, method_name, method_node, param_has_mapping_target)
     param_has_mapping_target = param_has_mapping_target or {}
 
     -- Extract signature from treesitter for cache key
@@ -799,6 +1087,79 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     return result
 end
 
+-- Get all method parameters with automatic fallback
+-- Tries TreeSitter+jdtls first, falls back to javap if that fails
+-- @param param_has_mapping_target table - map of param_name -> boolean (@MappingTarget detection from Treesitter)
+-- Returns: {parameters=array of {name=string, type=string, is_mapping_target=boolean}, return_type=string}
+local function get_all_method_parameters(bufnr, method_name, method_node, param_has_mapping_target)
+    -- Try main approach first (TreeSitter + jdtls)
+    log.info("Attempting TreeSitter+jdtls approach for method:", method_name)
+    local result = get_all_method_parameters_main(bufnr, method_name, method_node, param_has_mapping_target)
+
+    if result then
+        log.info("Successfully resolved method parameters using TreeSitter+jdtls")
+        return result
+    end
+
+    -- Fallback to javap
+    log.warn("TreeSitter+jdtls approach failed, falling back to javap for method:", method_name)
+    result = get_all_method_parameters_javap(bufnr, method_name, method_node, param_has_mapping_target)
+
+    if result then
+        log.info("Successfully resolved method parameters using javap fallback")
+    else
+        log.error("Both TreeSitter+jdtls and javap approaches failed for method:", method_name)
+    end
+
+    return result
+end
+
+-- Convert FQN to Java's inner class notation (using $ instead of . for inner classes)
+-- For example: com.example.TestClasses.Person -> com.example.TestClasses$Person
+-- This is needed because Java's Class.forName() requires $ for inner classes
+--
+-- Strategy: If the FQN has a segment that starts with uppercase followed by another segment
+-- that also starts with uppercase, it's likely OuterClass.InnerClass pattern
+local function convert_to_java_inner_class_notation(fqn)
+    if not fqn or fqn == "" then
+        return fqn
+    end
+
+    local parts = {}
+    for part in fqn:gmatch("[^%.]+") do
+        table.insert(parts, part)
+    end
+
+    -- Find the first part that starts with uppercase (likely the outer class)
+    local first_class_idx = nil
+    for i, part in ipairs(parts) do
+        if part:match("^[A-Z]") then
+            first_class_idx = i
+            break
+        end
+    end
+
+    -- If we found a class and there are more parts after it (inner classes)
+    if first_class_idx and first_class_idx < #parts then
+        -- Join package parts with dots, then outer class, then inner classes with $
+        local package_part = table.concat(parts, ".", 1, first_class_idx - 1)
+        local class_parts = {}
+        for i = first_class_idx, #parts do
+            table.insert(class_parts, parts[i])
+        end
+        local class_part = table.concat(class_parts, "$")
+
+        if package_part ~= "" then
+            return package_part .. "." .. class_part
+        else
+            return class_part
+        end
+    end
+
+    -- No inner class detected, return as-is
+    return fqn
+end
+
 -- Extract completion context from the current cursor position using Treesitter
 -- Optimized with early exit checks to avoid expensive operations for invalid contexts
 function M.get_completion_context(bufnr, row, col)
@@ -912,7 +1273,7 @@ function M.get_completion_context(bufnr, row, col)
             if not param.is_mapping_target then
                 table.insert(sources, {
                     name = param.name,
-                    type = param.type,
+                    type = convert_to_java_inner_class_notation(param.type),
                 })
                 log.info("Added source parameter:", param.name, param.type)
             else
@@ -978,7 +1339,7 @@ function M.get_completion_context(bufnr, row, col)
         end
 
         return {
-            class_name = target_type, -- Direct class name for backward compatibility
+            class_name = convert_to_java_inner_class_notation(target_type), -- Convert to $ notation for Java
             path_expression = path_expr,
             attribute_type = attribute_type, -- "target"
             is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
