@@ -73,11 +73,10 @@ local function find_field_position(bufnr, class_name, field_name)
     local fluent_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(.*%)%s*{"
 
     -- Pre-compile class detection patterns
+    -- Use word boundary to handle cases where class name is at end of line
     local class_patterns = {
-        "class%s+" .. class_name .. "%s",
-        "record%s+" .. class_name .. "%s",
-        "class%s+" .. class_name .. "%(",
-        "record%s+" .. class_name .. "%(",
+        "class%s+" .. class_name .. "%f[^%w_]",
+        "record%s+" .. class_name .. "%f[^%w_]",
     }
 
     for line_num, line in ipairs(lines) do
@@ -131,7 +130,7 @@ local function find_field_position(bufnr, class_name, field_name)
             end
 
             -- Exit the target class when we close its braces
-            if brace_depth <= class_depth then
+            if brace_depth < class_depth then
                 in_target_class = false
             end
         end
