@@ -1262,7 +1262,19 @@ function M.get_completion_context(bufnr, row, col)
     local mapping_type = is_value_mapping and "ValueMapping" or "Mapping"
     log.info("Detected annotation: @" .. mapping_type .. ", attribute:", attribute_type)
 
-    -- EARLY EXIT 5: Extract and validate path expression (before javap)
+    -- EARLY EXIT 6: Check if JDTLS is ready before attempting any type resolution
+    -- This prevents incorrect FQN resolution when JDTLS is still initializing
+    local jdtls_client = require("utils.lsp-util").get_client_by_name("jdtls")
+    if not jdtls_client then
+        log.warn("JDTLS is not ready yet - cannot resolve types safely")
+        vim.notify(
+            "[MapStruct] JDTLS is still initializing. Please wait and try again.",
+            vim.log.levels.WARN
+        )
+        return nil
+    end
+
+    -- EARLY EXIT 7: Extract and validate path expression (before javap)
     local path_expr = extract_path_from_string(string_node, bufnr, col)
     if path_expr == nil then
         log.debug("Could not extract path")
