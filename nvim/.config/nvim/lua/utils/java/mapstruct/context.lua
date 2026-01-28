@@ -70,9 +70,6 @@ local function stop_cleanup_timer()
     end
 end
 
--- Initialize the module and start the cleanup timer
-start_cleanup_timer()
-
 -- Set log level for this module
 function M.set_log_level(level)
     log.set_level(level)
@@ -781,6 +778,9 @@ end
 -- Extract completion context from the current cursor position using Treesitter
 -- Optimized with early exit checks to avoid expensive operations for invalid contexts
 function M.get_completion_context(bufnr, row, col)
+    -- Lazy initialization: Start cleanup timer on first use
+    start_cleanup_timer()
+    
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
     -- EARLY EXIT 1: Check filetype (fastest check)
