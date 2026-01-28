@@ -8,6 +8,93 @@ Quick reference for the isolated MapStruct module API.
 local mapstruct = require("utils.java.mapstruct")
 ```
 
+## Request Flow - Start to Finish
+
+How a completion request works (optimized for speed):
+
+```
+User types in @Mapping annotation
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 1. Context Analysis (context.lua) - ~1-5ms                │
+│    • Uses Treesitter to parse Java AST                    │
+│    • Finds @Mapping/@ValueMapping annotation              │
+│    • Extracts source/target types and path expression     │
+│    • Detects @MappingTarget from source code              │
+│    • Returns nil if not valid → early exit                │
+└────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 2. Type Resolution (context.lua) - with caching           │
+│    • Type Source Cache: typeName → JAR path(5min|renew)   │
+│    • Method Params Cache: signature → types (5min|renew)  │
+│    • Uses javap only on cache miss                        │
+│    • Auto-cleanup every 60s                               │
+└────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 3. Server Startup (server.lua) - only if not running      │
+│    • Gets jdtls classpath from all project modules        │
+│    • Filters SLF4J providers (logback, log4j, etc)        │
+│    • Starts Java IPC server on Unix socket                │
+└────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 4. IPC Request (ipc_client.lua) - Unix socket             │
+│    • Sends JSON request to Java server                    │
+│    • Fast local communication (no network)                │
+└────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 5. Java Processing (IpcServer.java)                       │
+│    • Loads classes using reflection                       │
+│    • Extracts fields/getters/setters                      │
+│    • Returns completion items                             │
+└────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────┐
+│ 6. Result                                                  │
+│    • Completions: [{name, type, kind}, ...]               │
+│    • Enriched with context for consumers                  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+**context.lua** - Fast context analysis
+
+- Treesitter AST parsing (~1-5ms)
+- Type source cache (5min) - avoids IPC calls
+- Method parameters cache (5min) - avoids javap calls
+- javap integration for fully qualified types
+
+**server.lua** - Server lifecycle
+
+- JDTLS classpath integration
+- SLF4J conflict filtering
+- Unix socket IPC server
+
+**ipc_client.lua** - Communication
+
+- JSON-based protocol
+- Async callbacks
+- Request timeout handling
+
+**jdtls-classpath-util.lua** - Classpath management
+
+- Gets classpath from all project modules
+- Multi-module support
+
+### User Commands
+
+```
+:MapStructStart   - Manually start server
+:MapStructStatus  - Show server/cache status
+:MapStructRestart - Restart server
+:MapStructStop    - Stop server
+:MapStructPing    - Check connectivity
+```
+
 ## Initialization
 
 ### Default Options
@@ -77,7 +164,7 @@ mapstruct.get_completions({
         print("Error:", error)
         return
     end
-    
+
     -- result.completions = [
     --   { name = "firstName", type = "java.lang.String", kind = "GETTER" },
     --   { name = "age", type = "int", kind = "FIELD" },
@@ -86,7 +173,7 @@ mapstruct.get_completions({
     -- result.className = "com.example.Person"
     -- result.simpleName = "Person"
     -- result.packageName = "com.example"
-    
+
     for _, field in ipairs(result.completions) do
         print(field.name, field.type, field.kind)
     end
@@ -260,53 +347,31 @@ vim.keymap.set("n", "<leader>mc", function()
         vim.notify("Not in @Mapping annotation")
         return
     end
-    
+
     -- Get completions
     mapstruct.get_completions({}, function(result, err)
         if err then
             vim.notify("Error: " .. err, vim.log.levels.ERROR)
             return
         end
-        
+
         -- Show completions in quickfix
         local items = {}
         for _, field in ipairs(result.completions or {}) do
             table.insert(items, {
-                text = string.format("%s: %s (%s)", 
-                    field.name, 
-                    field.type, 
+                text = string.format("%s: %s (%s)",
+                    field.name,
+                    field.type,
                     field.kind
                 ),
             })
         end
-        
+
         vim.fn.setqflist(items)
         vim.cmd("copen")
     end)
 end, { desc = "MapStruct: Get completions" })
 
--- Create status command
-vim.api.nvim_create_user_command("MSStatus", function()
-    local status = mapstruct.get_status()
-    print(vim.inspect(status))
-end, {})
-
--- Auto-restart on jdtls attach
-vim.api.nvim_create_autocmd("LspAttach", {
-    callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client and client.name == "jdtls" then
-            -- Wait a bit for jdtls to fully initialize
-            vim.defer_fn(function()
-                mapstruct.restart(function(success)
-                    if success then
-                        vim.notify("MapStruct server restarted with jdtls classpath")
-                    end
-                end)
-            end, 2000)
-        end
-    end,
-})
 ```
 
 ## Error Handling
@@ -318,6 +383,7 @@ callback(result, error)
 ```
 
 Common errors:
+
 - `"MapStruct module not initialized"` - Call `setup()` first
 - `"Not in a valid MapStruct @Mapping context"` - Cursor not in annotation
 - `"Server is not running"` - Server failed to start or crashed
@@ -326,6 +392,4 @@ Common errors:
 
 ## See Also
 
-- [README.md](./README.md) - Full documentation with architecture details
-- [MIGRATION.md](./MIGRATION.md) - Refactoring summary
-- `utils.blink.mapstruct-source` - blink.cmp integration example
+- `utils.blink.mapstruct-source` - blink.cmp integration
