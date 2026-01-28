@@ -10,7 +10,7 @@
      map struct support - performance and speed improvements (especially javap run)
      neotest-java - investigation of issue of not working debugging for some king of prjects using spring-boot
      better dap and dap ui configuration (explore more convenient ways to debug java code)
-     integrate stevearc/overseer.nvim integration
+     investigate stevearc/overseer.nvim integration
 
 ### Screenshots
 
