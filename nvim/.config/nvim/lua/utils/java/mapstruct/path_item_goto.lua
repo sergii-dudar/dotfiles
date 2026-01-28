@@ -150,16 +150,30 @@ end
 -- Extracted to avoid code duplication
 local function navigate_to_field(simple_name, member_name)
     vim.schedule(function()
-        local line_num, col = find_field_position(0, simple_name, member_name)
-        if line_num then
-            vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
-            vim.cmd("normal! zz") -- Center the screen
-        else
-            vim.notify(
-                string.format("[MapStruct] Field '%s' not found in class '%s'", member_name, simple_name),
-                vim.log.levels.WARN
-            )
+        local atempts = 0
+        while atempts < 2 do
+            local line_num, col = find_field_position(0, simple_name, member_name)
+
+            if line_num then
+                vim.api.nvim_win_set_cursor(0, { line_num, col or 0 })
+                vim.cmd("normal! zz") -- Center the screen
+                return
+            end
+
+            -- support goto for lombok builder
+            if vim.endswith(simple_name, "Builder") then
+                simple_name = simple_name:gsub("Builder$", "")
+            else
+                break
+            end
+
+            atempts = atempts + 1
         end
+
+        vim.notify(
+            string.format("[MapStruct] Field '%s' not found in class '%s'", member_name, simple_name),
+            vim.log.levels.WARN
+        )
     end)
 end
 

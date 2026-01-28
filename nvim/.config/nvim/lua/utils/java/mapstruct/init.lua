@@ -31,7 +31,7 @@ local DEFAULT_OPTS = {
     -- Optional: log level (default: vim.log.levels.WARN)
     -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
     -- Controls both Java and Lua logging
-    log_level = vim.log.levels.DEBUG,
+    log_level = vim.log.levels.WARN,
 
     -- Optional: Java server log file
     log_file = "~/.local/state/nvim/mapstruct-source-server.log",
