@@ -654,6 +654,29 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
     local array_brackets = type_name:match("%[%]$") or ""
     local base_type = type_name:gsub("<.*>", ""):gsub("%[%]$", "")
 
+    -- Check for Lombok Builder pattern BEFORE checking if it's already an FQN
+    -- Pattern: ClassName.ClassNameBuilder (need to resolve ClassName first)
+    local parts = {}
+    for part in base_type:gmatch("[^%.]+") do
+        table.insert(parts, part)
+    end
+    
+    if #parts == 2 then
+        local first = parts[1]
+        local second = parts[2]
+        -- Check if it's ClassName.ClassNameBuilder pattern
+        if second == first .. "Builder" then
+            log.debug("Detected Lombok builder in resolve_type_fqn:", base_type)
+            -- Recursively resolve the base class
+            local base_class_fqn = resolve_type_fqn(first, direct_imports, wildcard_imports, bufnr)
+            if base_class_fqn then
+                local builder_fqn = base_class_fqn .. "." .. second
+                log.debug("Resolved Lombok builder:", base_type, "->", builder_fqn)
+                return builder_fqn .. generics .. array_brackets
+            end
+        end
+    end
+
     -- Check if already FQN (contains dots)
     if base_type:match("%.") then
         return type_name
@@ -1141,6 +1164,24 @@ local function convert_to_java_inner_class_notation(fqn)
 
     -- If we found a class and there are more parts after it (inner classes)
     if first_class_idx and first_class_idx < #parts then
+        -- Check for Lombok Builder pattern: ClassName.ClassNameBuilder
+        -- If the last part is the first part + "Builder", it's a Lombok builder
+        local last_part = parts[#parts]
+        local first_class_part = parts[first_class_idx]
+        
+        if last_part == first_class_part .. "Builder" then
+            -- This is a Lombok builder - it's a generated inner class, convert to $
+            log.debug("Detected Lombok builder pattern:", fqn, "- converting to $ notation")
+            local package_part = table.concat(parts, ".", 1, first_class_idx - 1)
+            local builder_notation = first_class_part .. "$" .. last_part
+            
+            if package_part ~= "" then
+                return package_part .. "." .. builder_notation
+            else
+                return builder_notation
+            end
+        end
+        
         -- Join package parts with dots, then outer class, then inner classes with $
         local package_part = table.concat(parts, ".", 1, first_class_idx - 1)
         local class_parts = {}

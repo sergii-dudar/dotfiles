@@ -76,6 +76,7 @@ local function find_field_position(bufnr, class_name, field_name)
 
     -- Pre-compile class detection patterns
     -- Use word boundary to handle cases where class name is at end of line
+
     local class_patterns = {
         "class%s+" .. class_name .. "%f[^%w_]",
         "record%s+" .. class_name .. "%f[^%w_]",
