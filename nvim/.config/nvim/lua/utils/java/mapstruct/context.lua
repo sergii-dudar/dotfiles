@@ -35,9 +35,7 @@ local function cleanup_cache(cache, cache_name)
 
     if removed_count > 0 then
         log.info(string.format("Cleaned %d expired entries from %s cache", removed_count, cache_name))
-        vim.notify(string.format("Cleaned %d expired entries from %s cache", removed_count, cache_name))
     end
-    dd(cache)
 end
 
 -- Periodic cleanup for all caches
@@ -55,7 +53,6 @@ local function start_cleanup_timer()
     cleanup_timer = vim.fn.timer_start(CLEANUP_INTERVAL_MS, function()
         cleanup_all_caches()
         log.debug("Automatic cache cleanup completed")
-        vim.notify("Automatic cache cleanup completed")
     end, { ["repeat"] = -1 }) -- -1 means repeat indefinitely
 
     log.info(string.format("Cache cleanup timer started (interval: %dms)", CLEANUP_INTERVAL_MS))
@@ -551,7 +548,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
     local return_type_from_ts, params_from_ts = extract_method_signature_from_treesitter(method_node, bufnr)
     local cache_key = generate_method_cache_key(method_name, return_type_from_ts, params_from_ts)
 
-    vim.notify("key: " .. cache_key)
+    -- vim.notify("key: " .. cache_key)
 
     -- Check cache first and update last_used timestamp
     local cached_entry = method_params_cache[cache_key]
@@ -590,7 +587,7 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
 
     log.debug("Using optimized classpath:", classpath)
 
-    vim.notify("Calling Javap")
+    -- vim.notify("Calling Javap")
 
     -- Run javap WITHOUT verbose flag (10x faster!)
     -- We don't need -v because @MappingTarget is detected via Treesitter
@@ -780,7 +777,7 @@ end
 function M.get_completion_context(bufnr, row, col)
     -- Lazy initialization: Start cleanup timer on first use
     start_cleanup_timer()
-    
+
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
     -- EARLY EXIT 1: Check filetype (fastest check)

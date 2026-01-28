@@ -60,14 +60,17 @@ local function find_field_position(bufnr, class_name, field_name)
     local brace_depth = 0
 
     -- Pre-compile patterns for better performance
-    local field_pattern = field_name .. "%s*[;=]"
-    local record_field_pattern = field_name .. "%s*[,)]" -- matches record parameters
+    -- Use word boundary (%f[]) to match field name properly, even with generics
+    -- %f[%w_] = frontier before word char (word boundary at start)
+    -- %f[^%w_] = frontier before non-word char (word boundary at end)
+    local field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[;=]"
+    local record_field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[,)]"
     local getter_capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
     local getter_pattern = "get" .. getter_capitalized .. "%s*%("
     local setter_pattern = "set" .. getter_capitalized .. "%s*%("
-    local method_pattern = field_name .. "%s*%(%)"
+    local method_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(%)"
     local builder_pattern = "Builder%s+" .. field_name .. "%s*%("
-    local fluent_pattern = field_name .. "%s*%(.*%)%s*{"
+    local fluent_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(.*%)%s*{"
 
     -- Pre-compile class detection patterns
     local class_patterns = {
