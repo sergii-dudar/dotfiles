@@ -1273,14 +1273,14 @@ function M.get_completion_context(bufnr, row, col)
     log.info("Detected annotation: @" .. mapping_type .. ", attribute:", attribute_type)
 
     -- EARLY EXIT 6: Check if JDTLS is ready before attempting any type resolution
-    -- This prevents incorrect FQN resolution when JDTLS is still initializing
-    local jdtls_client = require("utils.lsp-util").get_client_by_name("jdtls")
-    if not jdtls_client then
+    -- This prevents incorrect FQN resolution when JDTLS is still initializing or compiling
+    local classpath_util = require("utils.java.jdtls-classpath-util")
+    if not classpath_util.is_jdtls_ready(bufnr) then
         log.warn("JDTLS is not ready yet - cannot resolve types safely")
         return {
             ok = false,
             reason = "jdtls_not_ready",
-            message = "JDTLS is still initializing. Please wait and try again.",
+            message = "JDTLS is still initializing or compiling. Please wait and try again.",
         }
     end
 
