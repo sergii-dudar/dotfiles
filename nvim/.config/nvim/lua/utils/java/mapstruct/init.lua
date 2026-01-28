@@ -9,6 +9,7 @@ local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
 local common_util = require("utils.common-util")
 local log = logging_util.new({ name = "MapStruct", filename = "mapstruct-source.log" })
+local spinner = require("utils.ui.spinner")
 
 local M = {}
 
@@ -207,6 +208,7 @@ local function ensure_server_running(callback)
     -- Start server
     state.server_started = true
 
+    spinner.start("🚀 " .. "Starting MapStruct Server...")
     server.start(state.jar_path, {
         java_cmd = state.java_cmd,
         use_jdtls_classpath = state.use_jdtls_classpath,
@@ -223,6 +225,7 @@ local function ensure_server_running(callback)
             log.info("Server started successfully")
             callback(true)
         end
+        spinner.stop(success, "Starting MapStruct")
     end)
 end
 
@@ -460,5 +463,18 @@ function M.goto_path_definition(opts)
     local path_goto = require("utils.java.mapstruct.path_item_goto")
     path_goto.goto_path_item_definitions(opts)
 end
+
+vim.api.nvim_create_user_command("MapStructServerStart", function()
+    -- Auto-initialize if needed
+    ensure_initialized()
+    ensure_server_running(function(success, err)
+        if success then
+            log.info("Server started successfully")
+            vim.notify("[MapStruct] Server started successfully", vim.log.levels.INFO)
+        else
+            vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
+        end
+    end)
+end, { desc = "Start MapStruct server" })
 
 return M

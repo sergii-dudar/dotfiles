@@ -187,14 +187,12 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 
 -- Setup user command for testing
-vim.api.nvim_create_user_command("MapStructGotoDefinition", function()
-    require("utils.java.mapstruct").goto_path_definition()
-end, { desc = "Go to MapStruct path item definition" })
+local mapstruct = require("utils.java.mapstruct")
 vim.keymap.set("n", "gj", function()
-    require("utils.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true })
+    mapstruct.goto_path_definition({ is_open_as_floating_win = true })
 end, { desc = "Go to definition (MapStruct) Float" })
 vim.keymap.set("n", "gJ", function()
-    require("utils.java.mapstruct").goto_path_definition()
+    mapstruct.goto_path_definition()
 end, { desc = "Go to definition (MapStruct)" })
 
 -- Highlight pattern in terminal output
