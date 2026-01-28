@@ -63,15 +63,16 @@ local function find_field_position(bufnr, class_name, field_name)
     -- Use word boundary (%f[]) to match field name properly, even with generics
     -- %f[%w_] = frontier before word char (word boundary at start)
     -- %f[^%w_] = frontier before non-word char (word boundary at end)
-    local field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[;=,(]"
-    local enum_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]" -- No symbol required for enum constants
-    local record_field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[,)]"
+    -- [^"] ensures we don't match inside string literals
+    local field_pattern = '[^"]' .. "%f[%w_]" .. field_name .. "%f[^%w_]%s*[;=,(]"
+    local enum_pattern = '[^"]' .. "%f[%w_]" .. field_name .. "%f[^%w_]" -- No symbol required for enum constants
+    local record_field_pattern = '[^"]' .. "%f[%w_]" .. field_name .. "%f[^%w_]%s*[,)]"
     local getter_capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
-    local getter_pattern = "get" .. getter_capitalized .. "%s*%("
-    local setter_pattern = "set" .. getter_capitalized .. "%s*%("
-    local method_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(%)"
-    local builder_pattern = "Builder%s+" .. field_name .. "%s*%("
-    local fluent_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(.*%)%s*{"
+    local getter_pattern = '[^"]' .. "get" .. getter_capitalized .. "%s*%("
+    local setter_pattern = '[^"]' .. "set" .. getter_capitalized .. "%s*%("
+    local method_pattern = '[^"]' .. "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(%)"
+    local builder_pattern = '[^"]' .. "Builder%s+" .. field_name .. "%s*%("
+    local fluent_pattern = '[^"]' .. "%f[%w_]" .. field_name .. "%f[^%w_]%s*%(.*%)%s*{"
 
     -- Pre-compile class detection patterns
     -- Use word boundary to handle cases where class name is at end of line
@@ -110,7 +111,8 @@ local function find_field_position(bufnr, class_name, field_name)
                 or line:find(record_field_pattern)
 
             if col then
-                return line_num, col - 1
+                -- Adjust column by +1 because [^"] consumed one character before the field name
+                return line_num, col
             end
 
             -- Record field pattern needs special handling to find field name position
