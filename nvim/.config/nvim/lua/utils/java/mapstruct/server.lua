@@ -166,7 +166,7 @@ function M.start(jar_path, opts, callback)
                 for _, line in ipairs(data) do
                     if line ~= "" then
                         log.error("Server error:", line)
-                        vim.notify("[MapStruct Server Error] " .. line, vim.log.levels.ERROR)
+                        -- vim.notify("[MapStruct Server Error] " .. line, vim.log.levels.ERROR)
                     end
                 end
             end

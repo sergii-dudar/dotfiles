@@ -345,14 +345,60 @@ function M.get_completions(params, callback)
         }
     end
 
-    -- Make request using base request logic
-    make_ipc_request("explore_path", request_params, function(result, err)
-        if result then
-            -- Attach completion context to result for consumers
-            result.completion_ctx = completion_ctx
-        end
-        callback(result, err)
-    end)
+    -- Make request using base request logic with retry on compilation errors
+    local max_retries = 5
+    local retry_delay_ms = 2000 -- Start with 2 seconds
+    local attempt = 0
+
+    local function make_request_with_retry()
+        attempt = attempt + 1
+
+        make_ipc_request("explore_path", request_params, function(result, err)
+            if result then
+                -- Attach completion context to result for consumers
+                result.completion_ctx = completion_ctx
+                callback(result, err)
+                return
+            end
+
+            -- Check if this is a compilation/classpath error that might resolve with a retry
+            if err and type(err) == "string" and err:match("Error exploring path") then
+                if attempt <= max_retries then
+                    -- log.warn(
+                    vim.notify(
+                        string.format(
+                            "Path exploration failed (attempt %d/%d), retrying in %dms: %s",
+                            attempt,
+                            max_retries,
+                            retry_delay_ms,
+                            err
+                        )
+                    )
+
+                    -- Schedule retry with delay
+                    vim.defer_fn(function()
+                        make_request_with_retry()
+                    end, retry_delay_ms)
+
+                    -- Increase delay for next retry (exponential backoff)
+                    retry_delay_ms = retry_delay_ms * 2
+                else
+                    -- Max retries exceeded, return the error
+                    log.error(string.format("Path exploration failed after %d attempts: %s", max_retries, err))
+                    vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
+                    callback(result, err)
+                end
+            else
+                -- Other error, don't retry
+                if err then
+                    vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
+                end
+                callback(result, err)
+            end
+        end)
+    end
+
+    make_request_with_retry()
 end
 
 -- Explore type source location
