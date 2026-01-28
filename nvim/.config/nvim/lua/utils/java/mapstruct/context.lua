@@ -660,7 +660,7 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
     for part in base_type:gmatch("[^%.]+") do
         table.insert(parts, part)
     end
-    
+
     if #parts == 2 then
         local first = parts[1]
         local second = parts[2]
@@ -1172,20 +1172,20 @@ local function convert_to_java_inner_class_notation(fqn)
         -- If the last part is the first part + "Builder", it's a Lombok builder
         local last_part = parts[#parts]
         local first_class_part = parts[first_class_idx]
-        
+
         if last_part == first_class_part .. "Builder" then
             -- This is a Lombok builder - it's a generated inner class, convert to $
             log.debug("Detected Lombok builder pattern:", fqn, "- converting to $ notation")
             local package_part = table.concat(parts, ".", 1, first_class_idx - 1)
             local builder_notation = first_class_part .. "$" .. last_part
-            
+
             if package_part ~= "" then
                 return package_part .. "." .. builder_notation
             else
                 return builder_notation
             end
         end
-        
+
         -- Join package parts with dots, then outer class, then inner classes with $
         local package_part = table.concat(parts, ".", 1, first_class_idx - 1)
         local class_parts = {}
@@ -1207,6 +1207,16 @@ end
 
 -- Extract completion context from the current cursor position using Treesitter
 -- Optimized with early exit checks to avoid expensive operations for invalid contexts
+-- Returns: { ok = true, value = context } on success
+--          { ok = false, reason = "error_code", message = "user message" } on failure
+-- Error codes:
+--   - "not_java_file": Not a Java file
+--   - "not_in_string": Cursor not in string literal
+--   - "not_in_mapping": Not in @Mapping/@ValueMapping annotation
+--   - "jdtls_not_ready": JDTLS is still initializing
+--   - "invalid_path": Could not extract path expression
+--   - "invalid_context": Other context validation failed
+--- @return table
 function M.get_completion_context(bufnr, row, col)
     -- Lazy initialization: Start cleanup timer on first use
     start_cleanup_timer()
@@ -1217,14 +1227,14 @@ function M.get_completion_context(bufnr, row, col)
     local filetype = vim.bo[bufnr].filetype
     if filetype ~= "java" then
         log.debug("Not a Java file:", filetype)
-        return nil
+        return { ok = false, reason = "not_java_file", message = "Not a Java file" }
     end
 
     -- EARLY EXIT 2: Get treesitter node at cursor
     local node = get_node_at_cursor(bufnr, row, col)
     if not node then
         log.debug("No node at cursor")
-        return nil
+        return { ok = false, reason = "invalid_context", message = "No treesitter node at cursor" }
     end
 
     log.debug("Node type at cursor:", node:type())
@@ -1237,7 +1247,7 @@ function M.get_completion_context(bufnr, row, col)
 
     if not string_node then
         log.debug("Not in string literal")
-        return nil
+        return { ok = false, reason = "not_in_string", message = "Not in a string literal" }
     end
 
     -- EARLY EXIT 4: Check if string is inside @Mapping annotation (medium cost)
@@ -1253,7 +1263,7 @@ function M.get_completion_context(bufnr, row, col)
 
     if not value_node or not annotation_node then
         log.debug("Not in @Mapping/@ValueMapping source/target")
-        return nil
+        return { ok = false, reason = "not_in_mapping", message = "Not in a MapStruct @Mapping annotation" }
     end
 
     -- At this point, we've confirmed we're in a valid MapStruct annotation context
@@ -1267,24 +1277,24 @@ function M.get_completion_context(bufnr, row, col)
     local jdtls_client = require("utils.lsp-util").get_client_by_name("jdtls")
     if not jdtls_client then
         log.warn("JDTLS is not ready yet - cannot resolve types safely")
-        vim.notify(
-            "[MapStruct] JDTLS is still initializing. Please wait and try again.",
-            vim.log.levels.WARN
-        )
-        return nil
+        return {
+            ok = false,
+            reason = "jdtls_not_ready",
+            message = "JDTLS is still initializing. Please wait and try again.",
+        }
     end
 
     -- EARLY EXIT 7: Extract and validate path expression (before javap)
     local path_expr = extract_path_from_string(string_node, bufnr, col)
     if path_expr == nil then
         log.debug("Could not extract path")
-        return nil
+        return { ok = false, reason = "invalid_path", message = "Could not extract path expression" }
     end
 
     -- For ValueMapping, only empty path is valid (enum constants, no nested paths)
     if is_value_mapping and path_expr ~= "" then
         log.debug("ValueMapping does not support nested paths")
-        return nil
+        return { ok = false, reason = "invalid_path", message = "ValueMapping does not support nested paths" }
     end
 
     log.debug("Path expression: '" .. path_expr .. "'")
@@ -1293,14 +1303,14 @@ function M.get_completion_context(bufnr, row, col)
     local method_node = find_method_declaration(annotation_node)
     if not method_node then
         log.debug("No method declaration found")
-        return nil
+        return { ok = false, reason = "invalid_context", message = "No method declaration found" }
     end
 
     -- Get method name for parameter extraction
     local method_name_node = method_node:field("name")[1]
     if not method_name_node then
         log.debug("Could not get method name")
-        return nil
+        return { ok = false, reason = "invalid_context", message = "Could not get method name" }
     end
     local method_name = get_node_text(method_name_node, bufnr)
 
@@ -1313,7 +1323,7 @@ function M.get_completion_context(bufnr, row, col)
 
         if not result or not result.parameters or #result.parameters == 0 then
             log.debug("Could not extract method parameters")
-            return nil
+            return { ok = false, reason = "invalid_context", message = "Could not extract method parameters" }
         end
 
         -- Filter out @MappingTarget parameters (they are targets, not sources)
@@ -1340,18 +1350,25 @@ function M.get_completion_context(bufnr, row, col)
 
         if #sources == 0 then
             log.warn("No source parameters found (all are @MappingTarget?)")
-            return nil
+            return {
+                ok = false,
+                reason = "invalid_context",
+                message = "No source parameters found (all are @MappingTarget?)",
+            }
         end
 
         log.info(string.format("Built sources array with %d parameter(s)", #sources))
 
         return {
-            sources = sources, -- Array of {name, type}
-            path_expression = path_expr,
-            attribute_type = attribute_type, -- "source"
-            is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
-            line = row,
-            col = col,
+            ok = true,
+            value = {
+                sources = sources, -- Array of {name, type}
+                path_expression = path_expr,
+                attribute_type = attribute_type, -- "source"
+                is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
+                line = row,
+                col = col,
+            },
         }
     elseif attribute_type == "target" then
         -- For target attribute, we need to determine the target type:
@@ -1381,32 +1398,34 @@ function M.get_completion_context(bufnr, row, col)
                 log.info("Using return type from javap:", target_type)
             else
                 log.debug("Could not resolve target class from javap")
-                return nil
+                return { ok = false, reason = "invalid_context", message = "Could not resolve target class" }
             end
         end
 
         -- Check if target type is void (invalid)
         if target_type == "void" then
             log.error("Target type is void, cannot navigate fields")
-            vim.notify(
-                "[MapStruct Context] Method has void return type and no @MappingTarget parameter",
-                vim.log.levels.ERROR
-            )
-            return nil
+            return {
+                ok = false,
+                reason = "invalid_context",
+                message = "Method has void return type and no @MappingTarget parameter",
+            }
         end
 
         return {
-            class_name = convert_to_java_inner_class_notation(target_type), -- Convert to $ notation for Java
-            path_expression = path_expr,
-            attribute_type = attribute_type, -- "target"
-            is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
-            line = row,
-            col = col,
+            ok = true,
+            value = {
+                class_name = convert_to_java_inner_class_notation(target_type), -- Convert to $ notation for Java
+                path_expression = path_expr,
+                attribute_type = attribute_type, -- "target"
+                is_enum = is_value_mapping, -- true for @ValueMapping (enum constants)
+                line = row,
+                col = col,
+            },
         }
     else
         log.error("Unknown attribute type:", attribute_type)
-        vim.notify("[MapStruct Context] Unknown attribute type: " .. attribute_type, vim.log.levels.ERROR)
-        return nil
+        return { ok = false, reason = "invalid_context", message = "Unknown attribute type: " .. attribute_type }
     end
 end
 

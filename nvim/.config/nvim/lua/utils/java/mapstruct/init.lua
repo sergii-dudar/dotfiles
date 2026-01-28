@@ -310,13 +310,22 @@ function M.get_completions(params, callback)
     local col = params.col or vim.api.nvim_win_get_cursor(0)[2] -- 0-indexed
 
     -- Extract completion context using Treesitter
-    local completion_ctx = context.get_completion_context(bufnr, row, col)
+    local completion_ctx_result = context.get_completion_context(bufnr, row, col)
 
-    if not completion_ctx then
+    if not completion_ctx_result.ok then
         -- Not in a valid MapStruct context
-        callback(nil, "Not in a valid MapStruct @Mapping context")
+        local msg = completion_ctx_result.message or "Not in a valid MapStruct @Mapping context"
+
+        -- Only show notification for jdtls_not_ready, others are expected (cursor not in right place)
+        if completion_ctx_result.reason == "jdtls_not_ready" then
+            vim.notify("[MapStruct] " .. msg, vim.log.levels.WARN)
+        end
+
+        callback(nil, msg)
         return
     end
+
+    local completion_ctx = completion_ctx_result.value
 
     -- Build request based on attribute type
     local request_params
@@ -376,7 +385,8 @@ end
 
 -- Get context information at cursor position
 -- params: { bufnr, row, col }
--- Returns: completion context or nil
+-- Returns: { ok = true, value = context } on success
+--          { ok = false, reason = "error_code", message = "user message" } on failure
 function M.get_context(params)
     params = params or {}
     local bufnr = params.bufnr or vim.api.nvim_get_current_buf()
@@ -441,7 +451,7 @@ end
 -- params: { bufnr, row, col }
 function M.is_in_mapping_context(params)
     local ctx = M.get_context(params)
-    return ctx ~= nil
+    return ctx.ok == true
 end
 
 -- Check if file is a mapper file
