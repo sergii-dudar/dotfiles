@@ -29,6 +29,51 @@ local function generate_socket_path()
     return string.format("%s/mapstruct-ipc-%d.sock", tmpdir, nvim_pid)
 end
 
+-- Filter out SLF4J providers from classpath to avoid conflicts
+-- Patterns to exclude: logback, log4j, slf4j-simple, slf4j-jdk14, etc.
+local function filter_slf4j_providers(classpath)
+    if not classpath or classpath == "" then
+        return classpath
+    end
+
+    local exclude_patterns = {
+        "logback%-core",
+        "logback%-classic",
+        "log4j%-slf4j",
+        "log4j%-to%-slf4j",
+        "slf4j%-simple",
+        "slf4j%-jdk14",
+        "slf4j%-log4j",
+        "slf4j%-reload4j",
+        "slf4j%-jcl",
+        "slf4j%-nop",
+    }
+
+    local entries = vim.split(classpath, ":", { plain = true })
+    local filtered = {}
+
+    for _, entry in ipairs(entries) do
+        local should_exclude = false
+        for _, pattern in ipairs(exclude_patterns) do
+            if entry:match(pattern) then
+                log.debug("Excluding SLF4J provider from classpath:", entry)
+                should_exclude = true
+                break
+            end
+        end
+        if not should_exclude then
+            table.insert(filtered, entry)
+        end
+    end
+
+    local filtered_count = #entries - #filtered
+    if filtered_count > 0 then
+        log.info("Filtered out", filtered_count, "SLF4J provider(s) from classpath")
+    end
+
+    return table.concat(filtered, ":")
+end
+
 -- Start the Java IPC server
 function M.start(jar_path, opts, callback)
     opts = opts or {}
@@ -60,6 +105,8 @@ function M.start(jar_path, opts, callback)
     if opts.use_jdtls_classpath ~= false then
         local jdtls_cp = classpath_util.get_classpath({ bufnr = vim.api.nvim_get_current_buf() })
         if jdtls_cp then
+            -- Filter out SLF4J providers to avoid conflicts
+            jdtls_cp = filter_slf4j_providers(jdtls_cp)
             classpath = classpath .. ":" .. jdtls_cp
             log.info("Using classpath from classpath-util")
         elseif opts.classpath then
@@ -87,6 +134,8 @@ function M.start(jar_path, opts, callback)
         table.insert(cmd, "-Dmapstruct.log.file=" .. log_path)
         log.info("Setting Java log file:", log_path)
     end
+
+    -- dd(classpath)
 
     -- Add classpath and main class
     table.insert(cmd, "-cp")
