@@ -705,48 +705,52 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
     -- Try wildcard imports via jdtls
     local jdtls_client = require("utils.lsp-util").get_client_by_name("jdtls")
 
-    if jdtls_client then
-        for _, package in ipairs(wildcard_imports) do
-            local candidate_fqn = package .. "." .. base_type
-            log.debug("Trying wildcard import:", candidate_fqn)
-
-            local result = jdtls_client:request_sync("workspace/symbol", { query = candidate_fqn }, 5000, bufnr)
-            if result and result.result and #result.result > 0 then
-                -- jdtls workspace/symbol can return multiple matches (e.g., Person, PersonAnother)
-                -- We need to find the exact match for our type
-                for _, symbol in ipairs(result.result) do
-                    -- Check if this symbol exactly matches what we're looking for
-                    -- symbol.name should be the simple class name (e.g., "Person")
-                    -- symbol.containerName should be the package (e.g., "com.example" or "Outer" for inner classes)
-                    local symbol_fqn = nil
-
-                    if symbol.containerName and symbol.containerName ~= "" then
-                        symbol_fqn = symbol.containerName .. "." .. symbol.name
-                    else
-                        symbol_fqn = symbol.name
-                    end
-
-                    -- Check for exact match
-                    if symbol_fqn == candidate_fqn or symbol.name == base_type and symbol.containerName == package then
-                        log.debug("Exact match found via wildcard import:", candidate_fqn)
-                        wildcard_resolution_cache[base_type] = candidate_fqn
-                        return candidate_fqn .. generics .. array_brackets
-                    end
-                end
-                log.debug(
-                    "No exact match found for:",
-                    candidate_fqn,
-                    "- got",
-                    #result.result,
-                    "results but none matched exactly"
-                )
-            end
-        end
-    else
-        log.warn("jdtls client not available for type resolution")
+    if not jdtls_client then
+        log.warn("jdtls client not available for type resolution - cannot resolve wildcard imports safely")
+        -- Do NOT fall back to same-package assumption when JDTLS is not ready
+        -- This prevents incorrect FQN resolution (e.g., com.example.mapper.DTO instead of com.example.dto.DTO)
+        -- The caller will handle this failure and fall back to javap approach
+        return nil
     end
 
-    -- Check in same package as current file
+    for _, package in ipairs(wildcard_imports) do
+        local candidate_fqn = package .. "." .. base_type
+        log.debug("Trying wildcard import:", candidate_fqn)
+
+        local result = jdtls_client:request_sync("workspace/symbol", { query = candidate_fqn }, 5000, bufnr)
+        if result and result.result and #result.result > 0 then
+            -- jdtls workspace/symbol can return multiple matches (e.g., Person, PersonAnother)
+            -- We need to find the exact match for our type
+            for _, symbol in ipairs(result.result) do
+                -- Check if this symbol exactly matches what we're looking for
+                -- symbol.name should be the simple class name (e.g., "Person")
+                -- symbol.containerName should be the package (e.g., "com.example" or "Outer" for inner classes)
+                local symbol_fqn = nil
+
+                if symbol.containerName and symbol.containerName ~= "" then
+                    symbol_fqn = symbol.containerName .. "." .. symbol.name
+                else
+                    symbol_fqn = symbol.name
+                end
+
+                -- Check for exact match
+                if symbol_fqn == candidate_fqn or symbol.name == base_type and symbol.containerName == package then
+                    log.debug("Exact match found via wildcard import:", candidate_fqn)
+                    wildcard_resolution_cache[base_type] = candidate_fqn
+                    return candidate_fqn .. generics .. array_brackets
+                end
+            end
+            log.debug(
+                "No exact match found for:",
+                candidate_fqn,
+                "- got",
+                #result.result,
+                "results but none matched exactly"
+            )
+        end
+    end
+
+    -- Check in same package as current file (only if JDTLS is available but didn't find the type in wildcard imports)
     local package_name, _ = get_mapper_class_info(bufnr)
     if package_name then
         local same_package_fqn = package_name .. "." .. base_type
