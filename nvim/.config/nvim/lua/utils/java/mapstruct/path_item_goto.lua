@@ -63,7 +63,8 @@ local function find_field_position(bufnr, class_name, field_name)
     -- Use word boundary (%f[]) to match field name properly, even with generics
     -- %f[%w_] = frontier before word char (word boundary at start)
     -- %f[^%w_] = frontier before non-word char (word boundary at end)
-    local field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[;=]"
+    local field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[;=,(]"
+    local enum_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]" -- No symbol required for enum constants
     local record_field_pattern = "%f[%w_]" .. field_name .. "%f[^%w_]%s*[,)]"
     local getter_capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
     local getter_pattern = "get" .. getter_capitalized .. "%s*%("
@@ -77,6 +78,7 @@ local function find_field_position(bufnr, class_name, field_name)
     local class_patterns = {
         "class%s+" .. class_name .. "%f[^%w_]",
         "record%s+" .. class_name .. "%f[^%w_]",
+        "enum%s+" .. class_name .. "%f[^%w_]",
     }
 
     for line_num, line in ipairs(lines) do
@@ -99,7 +101,9 @@ local function find_field_position(bufnr, class_name, field_name)
         -- If we're in the target class, search for the field/method
         if in_target_class then
             -- Try patterns in order of likelihood (fields first, then getters, then setters)
+            -- For enums, use enum_pattern which doesn't require a symbol after the name
             local col = line:find(field_pattern)
+                or line:find(enum_pattern)
                 or line:find(getter_pattern)
                 or line:find(method_pattern)
                 or line:find(setter_pattern)

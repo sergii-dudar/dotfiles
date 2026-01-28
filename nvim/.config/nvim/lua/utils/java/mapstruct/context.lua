@@ -681,11 +681,38 @@ local function get_all_method_parameters(bufnr, method_name, method_node, param_
                 -- Check if parameter count matches expected count
                 log.info("Candidate has " .. #candidate_param_types .. " parameters")
                 if #candidate_param_types == expected_param_count then
-                    -- This is the right method!
-                    param_types = candidate_param_types
-                    method_found = true
-                    log.info("Parameter count matches! Using this method.")
-                    break -- Found it, no need to continue
+                    -- Check if parameter types match the expected types from Treesitter
+                    local types_match = true
+                    for i, javap_type in ipairs(candidate_param_types) do
+                        local expected_type = params_from_ts[i] and params_from_ts[i].type
+                        if expected_type then
+                            -- Extract simple class names (last part after . or $)
+                            local javap_simple = javap_type:match("([^%.$]+)$") or javap_type
+                            local expected_simple = expected_type:match("([^%.$]+)$") or expected_type
+                            if javap_simple ~= expected_simple then
+                                types_match = false
+                                log.info(
+                                    string.format(
+                                        "Type mismatch at param %d: expected '%s', got '%s'",
+                                        i,
+                                        expected_simple,
+                                        javap_simple
+                                    )
+                                )
+                                break
+                            end
+                        end
+                    end
+
+                    if types_match then
+                        -- This is the right method!
+                        param_types = candidate_param_types
+                        method_found = true
+                        log.info("Parameter count and types match! Using this method.")
+                        break -- Found it, no need to continue
+                    else
+                        log.info("Parameter types mismatch, continuing search for correct overload...")
+                    end
                 else
                     log.info("Parameter count mismatch, continuing search...")
                 end
