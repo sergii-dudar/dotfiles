@@ -37,6 +37,7 @@ return {
                     ".settings",
                     ".project",
                     ".factorypath",
+                    ".DS_Store",
                     "target",
                     -- "bin",
                     -- ".rgignore"

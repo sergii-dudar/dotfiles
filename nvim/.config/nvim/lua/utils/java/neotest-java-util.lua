@@ -191,6 +191,14 @@ M.resolve_parametrized_method_signature_nio = function(context)
 end
 
 --[[ nio.run(function()
+
+  print(require("utils.lsp-util").get_client_by_name("jdtls"):request_sync('workspace/executeCommand', {command = 'vscode.java.resolveMainClass'}))
+
+
+  local jdtls_client = nio.lsp.get_clients({ name = "jdtls" })[1]
+  local err, result = jdtls_client.request.workspace_executeCommand({ command = 'vscode.java.resolveMainClass' })
+
+
     print(
         M.resolve_parametrized_method_signature(
             "ua.serhii.application.Something1Test#someMonths_enum(ua.serhii.application.TestMonth)"

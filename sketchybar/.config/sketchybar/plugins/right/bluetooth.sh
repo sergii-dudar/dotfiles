@@ -81,7 +81,7 @@ if [[ "$AIRPODS_CONNECTED" == true ]]; then
 elif [[ "$BT_ENABLED" == true ]]; then
     # Bluetooth enabled but no AirPods
     ICON="$BLUETOOTH_ON"
-    COLOR="BLUETOOTH_ON_ICON_COLOR"
+    COLOR="$BLUETOOTH_ON_ICON_COLOR"
     DRAWING=on
 else
     # Bluetooth disabled
