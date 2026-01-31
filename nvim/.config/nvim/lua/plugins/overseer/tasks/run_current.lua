@@ -1,10 +1,13 @@
 return {
-    name = "run currenta2",
+    name = "run current",
     builder = function()
         local file = vim.fn.expand("%:p")
         local cmd = { file }
         if vim.bo.filetype == "go" then
             cmd = { "go", "run", file }
+        elseif vim.bo.filetype == "java" then
+            local java_runner = require("plugins.overseer.tasks.runner.java-runner")
+            cmd = java_runner.build_cmd()
         elseif vim.bo.filetype == "python" then
             cmd = { "python", file }
         elseif vim.bo.filetype == "cpp" then
@@ -37,6 +40,6 @@ return {
         }
     end,
     condition = {
-        filetype = { "sh", "python", "go", "cpp" },
+        filetype = { "sh", "python", "go", "cpp", "java" },
     },
 }

@@ -1,3 +1,22 @@
+function restart_last()
+    local overseer = require("overseer")
+    local task_list = require("overseer.task_list")
+    local tasks = overseer.list_tasks({
+        status = {
+            overseer.STATUS.SUCCESS,
+            overseer.STATUS.FAILURE,
+            overseer.STATUS.CANCELED,
+        },
+        sort = task_list.sort_finished_recently,
+    })
+    if vim.tbl_isempty(tasks) then
+        vim.notify("No tasks found", vim.log.levels.WARN)
+    else
+        local most_recent = tasks[1]
+        overseer.run_action(most_recent, "restart")
+    end
+end
+
 return {
     {
         "stevearc/overseer.nvim",
@@ -46,12 +65,15 @@ return {
                         vim.cmd("OverseerOpen")
                     end
                 end, desc = "Run Current" },
-            { "<leader>rr", function() Snacks.debug.run() end,      desc = "Run Selected Lua", mode = "v" },
+            { "<leader>rl", restart_last, desc = "Re-Run Last" },
+            { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v" },
         },
         config = function(_, opts)
             require("overseer").setup(opts)
             local run_current = require("plugins.overseer.tasks.run_current")
+            local build_current = require("plugins.overseer.tasks.build_current")
             require("overseer").register_template(run_current)
+            require("overseer").register_template(build_current)
         end,
     },
     {
