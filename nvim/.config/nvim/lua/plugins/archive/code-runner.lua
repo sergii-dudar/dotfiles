@@ -2,6 +2,7 @@ local java_util = require("utils.java.java-common")
 
 return {
     "CRAG666/code_runner.nvim",
+    enabled = false,
     -- stylua: ignore
     keys = {
         { "<leader>r", desc = "Run ..." },

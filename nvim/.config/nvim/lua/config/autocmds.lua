@@ -157,6 +157,23 @@ vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
     end,
 })
 
+-------------------------------------------------------
+------------ Runner (Overseer) -----------
+
+vim.api.nvim_create_user_command("WatchRun", function()
+    local overseer = require("overseer")
+    overseer.run_task({ name = "run current", autostart = false }, function(task)
+        if task then
+            task:add_component({ "restart_on_save", paths = { vim.fn.expand("%:p") } })
+            task:start()
+            -- task:open_output("vertical")
+            task:open_output("horizontal")
+        else
+            vim.notify("WatchRun not supported for filetype " .. vim.bo.filetype, vim.log.levels.ERROR)
+        end
+    end)
+end, {})
+
 -----------------------------------------------------------
 ------------- enable\disable newline defaults -------------
 --- useful by working with sensitive files

@@ -112,14 +112,14 @@ Snacks.toggle.zen():map("<leader>zz")
 -- help to replace intellij - replace qualified name with import
 
 -- stylua: ignore start
-vim.api.nvim_set_keymap( "v", "<leader>rr", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
+-- vim.api.nvim_set_keymap( "v", "<leader>rr", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
 
 -- run lua in runtime (in all buffers!)
-map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
--- map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
--- map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
-map("n", "<space>rl", function() Snacks.debug.run() end, { desc = "Run current lua buffer (file)" })
-map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selected code" })
+-- map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
+-- -- -- map("n", "<space>rl", ":.lua<CR>", { desc = "Run lua current line" })
+-- -- -- map("v", "<space>rl", ":lua<CR>", { desc = "Run lua selected code" })
+-- map("n", "<space>rV", function() Snacks.debug.run() end, { desc = "Run current lua buffer (file)" })
+-- map("v", "<space>rl", function() Snacks.debug.run() end, { desc = "Run lua selected code" })
 
 -- mouse horisontal scrolling
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
