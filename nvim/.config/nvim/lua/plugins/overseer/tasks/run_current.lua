@@ -35,7 +35,7 @@ local build_resolvers = function()
 end
 
 return {
-    name = "run current",
+    name = "RUN_CURRENT",
     builder = function()
         local resolvers = build_resolvers()
         local type_resolver = resolvers[vim.bo.filetype]

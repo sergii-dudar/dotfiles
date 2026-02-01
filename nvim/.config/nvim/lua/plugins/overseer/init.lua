@@ -17,6 +17,16 @@ function restart_last()
     end
 end
 
+function run_task(task_name)
+    local overseer = require("overseer")
+    overseer.run_task({ name = task_name }, function(task)
+        if task then
+            task:start()
+            overseer.open()
+        end
+    end)
+end
+
 return {
     {
         "stevearc/overseer.nvim",
@@ -53,26 +63,45 @@ return {
             --     },
             -- },
         },
-        -- stylua: ignore
         keys = {
             -- { "<leader>rt", "<cmd>OverseerTaskAction<cr>",  desc = "Task action" },
             -- { "<leader>rw", "<cmd>OverseerToggle<cr>",      desc = "Task list" },
-            { "<leader>rr", function()
+            {
+                "<leader>rr",
+                function()
                     if vim.bo.filetype == "lua" then
                         Snacks.debug.run()
                     else
-                        vim.cmd("OverseerRun")
-                        vim.cmd("OverseerOpen")
+                        run_task("RUN_CURRENT")
                     end
-                end, desc = "Run Current" },
+                end,
+                desc = "Run Current",
+            },
+            {
+                "<leader>rd",
+                function()
+                    run_task("DEBUG_CURRENT")
+                end,
+                desc = "Debug Current",
+            },
             { "<leader>rl", restart_last, desc = "Re-Run Last" },
-            { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v" },
+            {
+                "<leader>rr",
+                function()
+                    Snacks.debug.run()
+                end,
+                desc = "Run Selected Lua",
+                mode = "v",
+            },
         },
+        -- stylua: ignore
         config = function(_, opts)
             require("overseer").setup(opts)
             local run_current = require("plugins.overseer.tasks.run_current")
+            local debug_current = require("plugins.overseer.tasks.debug_current")
             -- local build_current = require("plugins.overseer.tasks.build_current")
             require("overseer").register_template(run_current)
+            require("overseer").register_template(debug_current)
             -- require("overseer").register_template(build_current)
         end,
     },
