@@ -8,9 +8,9 @@
      map struct support - implement goto definition separated path items in mapstruct mapping path
      map struct support - implement validation and highlight bad\invalid mapings paths inside single mapping context
      map struct support - performance and speed improvements (especially javap run)
-     neotest-java - investigation of issue of not working debugging for some king of prjects using spring-boot
-     better dap and dap ui configuration (explore more convenient ways to debug java code)
+     neotest-java - investigation of issue of not working debugging for some king of prjects using spring-boot
      investigate stevearc/overseer.nvim integration
+     better dap and dap ui configuration (explore more convenient ways to debug java code)
 
 ### Screenshots
 

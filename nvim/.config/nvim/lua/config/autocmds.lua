@@ -158,7 +158,7 @@ vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
 })
 
 -------------------------------------------------------
------------- Runner (Overseer) -----------
+----------------- Runner (Overseer) -------------------
 
 vim.api.nvim_create_user_command("WatchRun", function()
     local overseer = require("overseer")
@@ -173,6 +173,17 @@ vim.api.nvim_create_user_command("WatchRun", function()
         end
     end)
 end, {})
+
+-------------------------------------------------------
+---------------- blink.cmp (cmp-dap) ------------------
+
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "dap-repl", "dapui_watches", "dapui_hover" },
+    callback = function()
+        vim.b.completion = true
+    end,
+    desc = "Enable completion for DAP-REPL filetypes",
+})
 
 -----------------------------------------------------------
 ------------- enable\disable newline defaults -------------

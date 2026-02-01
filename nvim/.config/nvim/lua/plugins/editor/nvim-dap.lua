@@ -25,6 +25,54 @@ return {
         },
     },
     {
+        "rcarriga/nvim-dap-ui",
+        opts = {
+            layouts = {
+                {
+                    elements = {
+                        {
+                            id = "scopes",
+                            size = 0.2,
+                        },
+                        {
+                            id = "breakpoints",
+                            size = 0.2,
+                        },
+                        {
+                            id = "stacks",
+                            size = 0.2,
+                        },
+                        {
+                            id = "watches",
+                            size = 0.2,
+                        },
+                        {
+                            id = "repl",
+                            size = 0.2,
+                        },
+                    },
+                    position = "left",
+                    size = 40,
+                },
+                {
+                    elements = {
+                        {
+                            id = "console",
+                            size = 1,
+                        },
+                    },
+                    position = "bottom",
+                    size = 10,
+                },
+            },
+        },
+        -- stylua: ignore
+        keys = {
+            -- { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+            { "<leader>de", function() require("dapui").eval(nil, { enter = true }) end, desc = "Eval", mode = {"n", "x"} },
+        },
+    },
+    {
         "theHamsta/nvim-dap-virtual-text",
         opts = {
             enabled = true, -- enable this plugin (the default)

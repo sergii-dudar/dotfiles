@@ -71,9 +71,9 @@ return {
         config = function(_, opts)
             require("overseer").setup(opts)
             local run_current = require("plugins.overseer.tasks.run_current")
-            local build_current = require("plugins.overseer.tasks.build_current")
+            -- local build_current = require("plugins.overseer.tasks.build_current")
             require("overseer").register_template(run_current)
-            require("overseer").register_template(build_current)
+            -- require("overseer").register_template(build_current)
         end,
     },
     {

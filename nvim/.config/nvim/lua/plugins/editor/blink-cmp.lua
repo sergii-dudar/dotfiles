@@ -4,7 +4,16 @@
 -- local data_table = vim.json.decode(json_string)
 -- dd(data_table)
 
+local function is_dap_buffer()
+    return require("cmp_dap").is_dap_buffer()
+end
+
 return {
+    {
+        "saghen/blink.compat",
+        lazy = true,
+        opts = {},
+    },
     {
         "saghen/blink.cmp",
         enabled = true,
@@ -13,6 +22,7 @@ return {
             "nvim-tree/nvim-web-devicons",
             "onsails/lspkind.nvim",
             --"echasnovski/mini.icons",
+            "rcarriga/cmp-dap",
         },
         opts = {
             keymap = {
@@ -44,6 +54,10 @@ return {
             fuzzy = {
                 implementation = "rust", -- prefer_rust_with_warning(default)|prefer_rust|rust|lua
             },
+            enabled = function()
+                -- vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false -- default
+                return vim.bo.buftype ~= "prompt" or is_dap_buffer()
+            end,
             completion = {
                 menu = {
                     auto_show = true,
@@ -156,6 +170,11 @@ return {
                 -- completion = { menu = { auto_show = true } },
             },
             sources = {
+                -- per_filetype = {
+                --     ["dap-repl"] = { "dap", score_offset = 200 },
+                --     ["dapui_watches"] = { "dap", score_offset = 200 },
+                --     ["dapui_hover"] = { "dap", score_offset = 200 },
+                -- },
                 providers = {
                     lsp = { fallbacks = {} },
                     path = {
@@ -163,6 +182,7 @@ return {
                             show_hidden_files_by_default = true,
                         },
                     },
+                    dap = { name = "dap", module = "blink.compat.source" },
                     -- Buffer completion from all open buffers
                     -- buffer = {
                     --     opts = {
@@ -207,7 +227,7 @@ return {
                         },
                     },
                 },
-                default = { "lsp", "mapstruct", "path", "snippets", "buffer" },
+                default = { "lsp", "mapstruct", "dap", "path", "snippets", "buffer" },
                 -- default = { "mapstruct" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },
