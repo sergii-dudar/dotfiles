@@ -199,7 +199,10 @@ local function get_jdtls_classpath_internal(bufnr)
 
     if projects_err then
         log.warn("jdtls java.project.getAll error:", projects_err)
-        vim.notify("[Java Classpath] Failed to get projects from jdtls: " .. tostring(projects_err), vim.log.levels.WARN)
+        vim.notify(
+            "[Java Classpath] Failed to get projects from jdtls: " .. tostring(projects_err),
+            vim.log.levels.WARN
+        )
         return nil
     end
 
@@ -320,6 +323,70 @@ function M.get_classpath(opts)
     end
 
     return classpath
+end
+
+-- Detect if current file is in test scope based on path
+local function is_test_file(file_path)
+    return file_path:match("/src/test/") ~= nil
+end
+
+-- Get classpath for running main method in current buffer
+-- Automatically detects if file is in test or main scope
+function M.get_classpath_for_main_method(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+    -- Get jdtls client
+    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
+    if not clients or #clients == 0 then
+        log.warn("jdtls not attached to buffer")
+        vim.notify("[Java Classpath] jdtls not attached", vim.log.levels.WARN)
+        return nil
+    end
+
+    local client = clients[1]
+    if not client.initialized then
+        log.warn("jdtls not initialized")
+        vim.notify("[Java Classpath] jdtls not initialized", vim.log.levels.WARN)
+        return nil
+    end
+
+    -- Get current file URI
+    local file_path = vim.api.nvim_buf_get_name(bufnr)
+    local file_uri = vim.uri_from_fname(file_path)
+
+    -- Detect scope based on file path
+    local scope = is_test_file(file_path) and "test" or "runtime"
+    log.info("Detected scope:", scope, "for file:", file_path)
+
+    -- Get classpath for the file's project
+    local result, err = client:request_sync("workspace/executeCommand", {
+        command = "java.project.getClasspaths",
+        arguments = { file_uri, vim.json.encode({ scope = scope }) },
+    }, 10000, bufnr)
+
+    if err then
+        log.warn("Failed to get classpath:", err)
+        vim.notify("[Java Classpath] Failed to get classpath: " .. tostring(err), vim.log.levels.WARN)
+        return nil
+    end
+
+    if not result or not result.result then
+        log.warn("Empty result from java.project.getClasspaths")
+        vim.notify("[Java Classpath] No classpath returned", vim.log.levels.WARN)
+        return nil
+    end
+
+    local classpaths = result.result.classpaths or result.result
+    if type(classpaths) ~= "table" or #classpaths == 0 then
+        log.warn("No classpath entries found")
+        vim.notify("[Java Classpath] No classpath entries found", vim.log.levels.WARN)
+        return nil
+    end
+
+    local deduplicated = deduplicate_classpaths(classpaths)
+    log.info("Got", #deduplicated, scope, "classpath entries for main method")
+
+    return table.concat(deduplicated, ":")
 end
 
 -- Clear cache
