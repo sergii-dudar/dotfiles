@@ -80,6 +80,7 @@ return {
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
             { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
             -- { "<leader>ghb", function() Snacks.git.blame_line() end, desc = "Blame Line (Snacks)" },
+            { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
         },
     },
 }

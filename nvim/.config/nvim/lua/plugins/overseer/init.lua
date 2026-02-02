@@ -21,26 +21,44 @@ local restart_last = function()
     else
         local most_recent = tasks[1]
         overseer.run_action(most_recent, "restart")
+
+        -- TEST:
+        vim.defer_fn(function()
+            local dap = require("dap")
+            dap.run({
+                type = "java",
+                request = "attach",
+                name = "Attach to Overseer (port 5005)",
+                hostName = "127.0.0.1",
+                port = 5005,
+            })
+        end, 200) -- 1.5s; increase if your JVM is slow to start
     end
 end
 
-local run_task = function(task_name, is_open_output)
+---@class task.Options
+---@field task_name string
+---@field is_open_output? boolean
+---@field on_finish? function
+
+---@param opts task.Options
+local run_task = function(opts)
     local overseer = require("overseer")
-    overseer.run_task({ name = task_name }, function(task)
+    overseer.run_task({ name = opts.task_name }, function(task)
         if task then
             task:start()
-            if is_open_output then
+            if opts.is_open_output then
                 overseer.open()
             end
-            task:subscribe("on_complete", function(t, status)
-                vim.notify("on_complete")
-            end)
-            task:subscribe("on_exit", function(t, status)
-                vim.notify("on_exit")
-            end)
-            task:subscribe("on_dispose", function(t, status)
-                vim.notify("on_dispose")
-            end)
+            if opts.on_finish then
+                task:subscribe("on_complete", function(t, status)
+                    opts.on_finish()
+                    vim.notify("on_complete")
+                end)
+                task:subscribe("on_exit", function(t, status)
+                    vim.notify("on_exit")
+                end)
+            end
         end
     end)
 end
@@ -90,7 +108,7 @@ return {
                     if vim.bo.filetype == "lua" then
                         Snacks.debug.run()
                     else
-                        run_task("RUN_CURRENT", true)
+                        run_task({ task_name = "RUN_CURRENT", is_open_output = true })
                     end
                     write_run_info("run")
                 end,
@@ -116,7 +134,25 @@ return {
                     dapui.close({})
 
                     -- 3. Re-launch via Overseer (non-blocking)
-                    run_task("DEBUG_CURRENT")
+                    run_task({
+                        task_name = "DEBUG_CURRENT",
+                        on_finish = function()
+                            local dap = require("dap")
+                            dap.close()
+
+                            -- 2. Kill the current overseer task (the running JVM)
+                            local overseer = require("overseer")
+                            local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
+                            for _, task in ipairs(tasks) do
+                                if task.name == "Java Debug" then
+                                    task:dispose(true) -- true = force kill
+                                end
+                            end
+
+                            local dapui = require("dapui")
+                            dapui.close({})
+                        end,
+                    })
 
                     -- 4. After a short delay, re-attach DAP
                     -- The delay gives the JVM a moment to start and open the port.

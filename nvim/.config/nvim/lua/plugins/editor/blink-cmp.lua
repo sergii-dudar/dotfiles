@@ -11,6 +11,7 @@ end
 return {
     {
         "saghen/blink.compat",
+        version = "*",
         lazy = true,
         opts = {},
     },
@@ -170,11 +171,6 @@ return {
                 -- completion = { menu = { auto_show = true } },
             },
             sources = {
-                -- per_filetype = {
-                --     ["dap-repl"] = { "dap", score_offset = 200 },
-                --     ["dapui_watches"] = { "dap", score_offset = 200 },
-                --     ["dapui_hover"] = { "dap", score_offset = 200 },
-                -- },
                 providers = {
                     lsp = { fallbacks = {} },
                     path = {
@@ -182,7 +178,11 @@ return {
                             show_hidden_files_by_default = true,
                         },
                     },
-                    dap = { name = "dap", module = "blink.compat.source" },
+                    dap = {
+                        name = "dap",
+                        module = "blink.compat.source",
+                        enabled = is_dap_buffer,
+                    },
                     -- Buffer completion from all open buffers
                     -- buffer = {
                     --     opts = {
@@ -227,7 +227,12 @@ return {
                         },
                     },
                 },
-                default = { "lsp", "mapstruct", "dap", "path", "snippets", "buffer" },
+                per_filetype = {
+                    ["dap-repl"] = { "dap", "lsp", "path", "buffer" },
+                    ["dapui_watches"] = { "dap", "lsp", "path", "buffer" },
+                    ["dapui_hover"] = { "dap", "lsp", "path", "buffer" },
+                },
+                default = { "lsp", "mapstruct", "path", "snippets", "buffer" },
                 -- default = { "mapstruct" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },

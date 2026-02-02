@@ -67,6 +67,14 @@ M.picker = {
             --     "--ignore-case",
             -- },
         },
+        projects = {
+            dev = {
+                "~/serhii.home/work/git.work",
+                "~/serhii.home/work/git.infra",
+                "~/serhii.home/work/git.java.base/",
+            },
+            patterns = { ".git", "_darcs", ".hg", ".bzr", ".svn", "package.json", "Makefile" },
+        },
     },
     toggles = {
         hidden = "󱞞",
