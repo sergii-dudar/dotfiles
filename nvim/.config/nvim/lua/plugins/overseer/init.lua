@@ -1,4 +1,11 @@
-function restart_last()
+local last_run_info = {}
+
+local write_run_info = function(runtype)
+    last_run_info.filetype = vim.bo.filetype
+    last_run_info.runtype = runtype
+end
+
+local restart_last = function()
     local overseer = require("overseer")
     local task_list = require("overseer.task_list")
     local tasks = overseer.list_tasks({
@@ -17,12 +24,14 @@ function restart_last()
     end
 end
 
-function run_task(task_name)
+local run_task = function(task_name, is_open_output)
     local overseer = require("overseer")
     overseer.run_task({ name = task_name }, function(task)
         if task then
             task:start()
-            overseer.open()
+            if is_open_output then
+                overseer.open()
+            end
         end
     end)
 end
@@ -72,19 +81,75 @@ return {
                     if vim.bo.filetype == "lua" then
                         Snacks.debug.run()
                     else
-                        run_task("RUN_CURRENT")
+                        run_task("RUN_CURRENT", true)
                     end
+                    write_run_info("run")
                 end,
                 desc = "Run Current",
             },
+            -- {
+            --     "<leader>rd",
+            --     function()
+            --         -- 1. Stop any existing debug session
+            --         local dap = require("dap")
+            --         dap.close()
+            --
+            --         -- 2. Kill the current overseer task (the running JVM)
+            --         local overseer = require("overseer")
+            --         local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
+            --         for _, task in ipairs(tasks) do
+            --             if task.name == "Java Debug" then
+            --                 task:dispose(true) -- true = force kill
+            --             end
+            --         end
+            --
+            --         local dapui = require("dapui")
+            --         dapui.close({})
+            --
+            --         -- 3. Re-launch via Overseer (non-blocking)
+            --         run_task("DEBUG_CURRENT")
+            --
+            --         -- 4. After a short delay, re-attach DAP
+            --         -- The delay gives the JVM a moment to start and open the port.
+            --         vim.defer_fn(function()
+            --             dap.run({
+            --                 type = "java",
+            --                 request = "attach",
+            --                 name = "Attach to Overseer (port 5005)",
+            --                 hostName = "127.0.0.1",
+            --                 port = 5005,
+            --             })
+            --         end, 200) -- 1.5s; increase if your JVM is slow to start
+            --     end,
+            --     desc = "Debug Current",
+            -- },
+            -- { "<leader>rl", restart_last, desc = "Re-Run Last" },
             {
                 "<leader>rd",
                 function()
-                    run_task("DEBUG_CURRENT")
+                    if vim.bo.filetype == "java" then
+                        require("utils.java.jdtls-config-dap-util").run_current_main_class()
+                    end
+                    write_run_info("dap")
                 end,
-                desc = "Debug Current",
+                desc = "Run Java Code Debug",
+                noremap = true,
+                silent = false,
             },
-            { "<leader>rl", restart_last, desc = "Re-Run Last" },
+            {
+                "<leader>rl",
+                function()
+                    if last_run_info.filetype == "java" and last_run_info.runtype == "dap" then
+                        require("utils.java.jdtls-config-dap-util").rerun_last()
+                    else
+                        restart_last()
+                    end
+                end,
+                desc = "Re-Run Last",
+                noremap = true,
+                silent = false,
+            },
+
             {
                 "<leader>rr",
                 function()
