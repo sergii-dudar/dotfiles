@@ -56,4 +56,18 @@ M.run_current_main_class = function()
     run_main_class_config(last_runned_dap_config)
 end
 
+function M.attach_to_remote(port)
+    port = port or 5005
+    vim.defer_fn(function()
+        require("dap").run({
+            type = "java",
+            request = "attach",
+            name = "Attach to Overseer (port 5005)",
+            hostName = "127.0.0.1",
+            port = 5005,
+        })
+        vim.cmd("Neotree close")
+    end, 200) -- 1.5s; increase if your JVM is slow to start
+end
+
 return M
