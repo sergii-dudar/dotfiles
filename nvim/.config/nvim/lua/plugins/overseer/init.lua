@@ -32,13 +32,13 @@ local run_task = function(task_name, is_open_output)
             if is_open_output then
                 overseer.open()
             end
-            task:subscribe("on_complete", function()
+            task:subscribe("on_complete", function(t, status)
                 vim.notify("on_complete")
             end)
-            task:subscribe("on_exit", function()
+            task:subscribe("on_exit", function(t, status)
                 vim.notify("on_exit")
             end)
-            task:subscribe("on_dispose", function()
+            task:subscribe("on_dispose", function(t, status)
                 vim.notify("on_dispose")
             end)
         end
@@ -96,44 +96,44 @@ return {
                 end,
                 desc = "Run Current",
             },
-            -- {
-            --     "<leader>rd",
-            --     function()
-            --         -- 1. Stop any existing debug session
-            --         local dap = require("dap")
-            --         dap.close()
-            --
-            --         -- 2. Kill the current overseer task (the running JVM)
-            --         local overseer = require("overseer")
-            --         local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
-            --         for _, task in ipairs(tasks) do
-            --             if task.name == "Java Debug" then
-            --                 task:dispose(true) -- true = force kill
-            --             end
-            --         end
-            --
-            --         local dapui = require("dapui")
-            --         dapui.close({})
-            --
-            --         -- 3. Re-launch via Overseer (non-blocking)
-            --         run_task("DEBUG_CURRENT")
-            --
-            --         -- 4. After a short delay, re-attach DAP
-            --         -- The delay gives the JVM a moment to start and open the port.
-            --         vim.defer_fn(function()
-            --             dap.run({
-            --                 type = "java",
-            --                 request = "attach",
-            --                 name = "Attach to Overseer (port 5005)",
-            --                 hostName = "127.0.0.1",
-            --                 port = 5005,
-            --             })
-            --         end, 200) -- 1.5s; increase if your JVM is slow to start
-            --     end,
-            --     desc = "Debug Current",
-            -- },
-            -- { "<leader>rl", restart_last, desc = "Re-Run Last" },
             {
+                "<leader>rd",
+                function()
+                    -- 1. Stop any existing debug session
+                    local dap = require("dap")
+                    dap.close()
+
+                    -- 2. Kill the current overseer task (the running JVM)
+                    local overseer = require("overseer")
+                    local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
+                    for _, task in ipairs(tasks) do
+                        if task.name == "Java Debug" then
+                            task:dispose(true) -- true = force kill
+                        end
+                    end
+
+                    local dapui = require("dapui")
+                    dapui.close({})
+
+                    -- 3. Re-launch via Overseer (non-blocking)
+                    run_task("DEBUG_CURRENT")
+
+                    -- 4. After a short delay, re-attach DAP
+                    -- The delay gives the JVM a moment to start and open the port.
+                    vim.defer_fn(function()
+                        dap.run({
+                            type = "java",
+                            request = "attach",
+                            name = "Attach to Overseer (port 5005)",
+                            hostName = "127.0.0.1",
+                            port = 5005,
+                        })
+                    end, 200) -- 1.5s; increase if your JVM is slow to start
+                end,
+                desc = "Debug Current",
+            },
+            { "<leader>rl", restart_last, desc = "Re-Run Last" },
+            --[[ {
                 "<leader>rd",
                 function()
                     if vim.bo.filetype == "java" then
@@ -157,8 +157,7 @@ return {
                 desc = "Re-Run Last",
                 noremap = true,
                 silent = false,
-            },
-
+            }, ]]
             {
                 "<leader>rr",
                 function()

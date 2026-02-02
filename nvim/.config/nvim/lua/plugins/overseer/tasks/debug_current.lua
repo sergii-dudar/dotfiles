@@ -17,11 +17,11 @@ return {
             cmd = result_cmd,
             -- add some components that will pipe the output to quickfix,
             -- parse it using errorformat, and display any matching lines as diagnostics.
-            -- components = {
-            --     { "on_output_quickfix", set_diagnostics = true },
-            --     "on_result_diagnostics",
-            --     "default",
-            -- },
+            components = {
+                { "on_output_quickfix", set_diagnostics = true },
+                "on_result_diagnostics",
+                "default",
+            },
         }
     end,
     condition = {
