@@ -16,6 +16,7 @@ local last_runned_dap_config = nil
 
 local run_main_class_config = function(dap_config)
     require("dap").run(dap_config)
+    vim.cmd("Neotree close")
 end
 
 M.rerun_last = function()
@@ -25,6 +26,7 @@ M.rerun_last = function()
     end
     run_main_class_config(last_runned_dap_config) ]]
     require("dap").run_last()
+    vim.cmd("Neotree close")
 end
 
 M.run_current_main_class = function()

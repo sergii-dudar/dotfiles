@@ -333,6 +333,7 @@ return {
                                                                 and opts.test.config_overrides
                                                             or nil,
                                                     })
+                                                    vim.cmd("Neotree close")
                                                 end,
                                                 desc = "Debug Nearest Test (Jdtls)", -- "Run Nearest Test",
                                             },
@@ -343,7 +344,10 @@ return {
                                             }, ]]
                                             {
                                                 "<leader>tD",
-                                                require("dap").run_last,
+                                                function()
+                                                    require("dap").run_last()
+                                                    vim.cmd("Neotree close")
+                                                end,
                                                 desc = "Debug Re-Run Last (Jdtls)",
                                             },
                                         },

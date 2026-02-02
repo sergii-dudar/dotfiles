@@ -1,9 +1,8 @@
-local last_run_info = {}
-
-local write_run_info = function(runtype)
-    last_run_info.filetype = vim.bo.filetype
-    last_run_info.runtype = runtype
-end
+-- local last_run_info = {}
+-- local write_run_info = function(runtype)
+--     last_run_info.filetype = vim.bo.filetype
+--     last_run_info.runtype = runtype
+-- end
 
 local restart_last = function()
     local overseer = require("overseer")
@@ -32,6 +31,7 @@ local restart_last = function()
                 hostName = "127.0.0.1",
                 port = 5005,
             })
+            vim.cmd("Neotree close")
         end, 200) -- 1.5s; increase if your JVM is slow to start
     end
 end
@@ -53,11 +53,10 @@ local run_task = function(opts)
             if opts.on_finish then
                 task:subscribe("on_complete", function(t, status)
                     opts.on_finish()
-                    vim.notify("on_complete")
                 end)
-                task:subscribe("on_exit", function(t, status)
-                    vim.notify("on_exit")
-                end)
+                -- task:subscribe("on_exit", function(t, status)
+                --     vim.notify("on_exit")
+                -- end)
             end
         end
     end)
@@ -100,8 +99,6 @@ return {
             -- },
         },
         keys = {
-            -- { "<leader>rt", "<cmd>OverseerTaskAction<cr>",  desc = "Task action" },
-            -- { "<leader>rw", "<cmd>OverseerToggle<cr>",      desc = "Task list" },
             {
                 "<leader>rr",
                 function()
@@ -164,6 +161,7 @@ return {
                             hostName = "127.0.0.1",
                             port = 5005,
                         })
+                        vim.cmd("Neotree close")
                     end, 200) -- 1.5s; increase if your JVM is slow to start
                 end,
                 desc = "Debug Current",

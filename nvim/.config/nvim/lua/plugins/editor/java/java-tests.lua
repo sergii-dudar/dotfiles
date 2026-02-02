@@ -33,7 +33,10 @@ return {
             -- { "<leader>tr", function() require("neotest").run.run() end, desc = "Run Nearest (Neotest)" },
             -- { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run Last (Neotest)" },
             -- stylua: ignore
-            { "<leader>tR", function() require("neotest").run.run({strategy = "dap"}) end, desc = "Debug Nearest" },
+            { "<leader>tR", function() 
+                require("neotest").run.run({strategy = "dap"}) 
+                vim.cmd("Neotree close")
+            end, desc = "Debug Nearest" },
             {
                 "<leader>ts",
                 function()
