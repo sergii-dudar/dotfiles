@@ -32,6 +32,15 @@ local run_task = function(task_name, is_open_output)
             if is_open_output then
                 overseer.open()
             end
+            task:subscribe("on_complete", function()
+                vim.notify("on_complete")
+            end)
+            task:subscribe("on_exit", function()
+                vim.notify("on_exit")
+            end)
+            task:subscribe("on_dispose", function()
+                vim.notify("on_dispose")
+            end)
         end
     end)
 end
