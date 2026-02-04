@@ -1,34 +1,3 @@
-# https://alacritty.org/config-alacritty.html
-
-###########
-# GENERAL #
-###########
-
-# Import additional configuration files
-# second best: alabaster_dark, alacritty_0_12, ayu_dark, baitong, breeze, marine_dark, midnight-haze, nightfly, nightfox, nordic, github_dark_colorblind, github_dark_high_contrast, github_dark_tritanopia,  alabaster_dark, google, horizon-dark, hyper, iterm, midnight-haze, moonlight_ii_vscode, night_owl, one_dark, pencil_dark, solarized_osaka, ubuntu, citylights, dracula_plus, papercolor_dark, pastel_dark, snazzy, tomorrow_night_bright, wombat,  
-
-# ayu_dark, breeze, marine_dark, github_dark_colorblind, alabaster_dark, google, hyper, citylights
-
-# alabaster_dark, google,
-
-import = [
-    "~/.config/alacritty/themes/themes/alabaster_dark.toml"
-]
-
-# Shell program and its arguments
-# Default for Linux/BSD/macOS is $SHELL or user's login shell
-# Default for Windows is "powershell"
-
-shell = { program = "/bin/zsh", args = ["-l"] }
-
-# Working directory
-working_directory = "None"  # Default: "None"
-
-# Live config reload (changes require restart)
-live_config_reload = true  # Default: true
-
-# Offer IPC using alacritty msg (unix only)
-ipc_socket = true  # Default: true
 
 #######
 # ENV #
@@ -56,7 +25,7 @@ padding = { x = 0, y = 0 }  # Default: x = 0, y = 0
 dynamic_padding = false  # Default: false
 
 # Window decorations
-decorations = "Full"  # "Full" | "None"
+decorations = "None"  # "Full" | "None"
 
 # Opacity
 opacity = 0.95  # Default: 1.0
@@ -107,7 +76,7 @@ multiplier = 3  # Default: 3
 # https://github.com/ryanoasis/nerd-fonts/releases
 #normal = { family = "monospace", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
 #normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
-normal = { family = "Hack Nerd Font", style = "Regular" }
+normal = { family = "CaskaydiaCove Nerd Font", style = "Regular" }
 
 # Bold font style
 bold = { style = "Bold" }  # Inherits family from normal, Default style: Bold
@@ -119,7 +88,7 @@ italic = { style = "Italic" }  # Inherits family from normal, Default style: Ita
 bold_italic = { style = "Bold Italic" }  # Inherits family from normal, Default style: Bold Italic
 
 # Font size in points
-size = 18  # Default: 11.25
+size = 22  # Default: 11.25
 
 # Offset is extra space around each character
 offset = { x = 0, y = 0 }  # Default: x = 0, y = 0
@@ -194,7 +163,7 @@ bright_foreground = "None"  # Default
 
 # Normal colors
 [colors.normal]
-black = "#75b5aa"  # Default
+#black = "#75b5aa"  # Default
 #red = "#ac4242"  # Default
 #green = "#90a959"  # Default
 #yellow = "#f4bf75"  # Default
@@ -253,7 +222,7 @@ command = "None"  # Default: "None"
 semantic_escape_chars = ",│`|:\"' ()[]{}<>\\t"  # Default: ",│`|:\"' ()[]{}<>\\t"
 
 # When set to true, selected text will be copied to the primary clipboard
-save_to_clipboard = false  # Default: false
+save_to_clipboard = true  # Default: false
 
 ##########
 # CURSOR #
@@ -287,6 +256,12 @@ thickness = 0.15  # Default: 0.15
 
 # Controls the OSC 52 behavior for clipboard interactions
 osc52 = "CopyPaste"  # Default: "OnlyCopy"
+
+# Shell program and its arguments
+# Default for Linux/BSD/macOS is $SHELL or user's login shell
+# Default for Windows is "powershell"
+
+shell = { program = "/bin/zsh", args = ["-l"] }
 
 #########
 # MOUSE #
@@ -333,6 +308,33 @@ bindings = [
     # { key = "Key", mods = "Modifiers", chars = "Characters to send" },
     # ...
 
-    { key = "V", mods = "Control", action = "Paste" },
-    { key = "C", mods = "Control", action = "Copy" }
+    # { key = "V", mods = "Control", action = "Paste" },
+    # { key = "C", mods = "Control", action = "Copy" }
+]
+
+[general]
+
+# Live config reload (changes require restart)
+live_config_reload = true  # Default: true
+
+# Working directory
+working_directory = "None"  # Default: "None"
+
+# Offer IPC using alacritty msg (unix only)
+ipc_socket = true  # Default: true
+# https://alacritty.org/config-alacritty.html
+
+###########
+# GENERAL #
+###########
+
+# Import additional configuration files
+# second best: alabaster_dark, alacritty_0_12, ayu_dark, baitong, breeze, marine_dark, midnight-haze, nightfly, nightfox, nordic, github_dark_colorblind, github_dark_high_contrast, github_dark_tritanopia,  alabaster_dark, google, horizon-dark, hyper, iterm, midnight-haze, moonlight_ii_vscode, night_owl, one_dark, pencil_dark, solarized_osaka, ubuntu, citylights, dracula_plus, papercolor_dark, pastel_dark, snazzy, tomorrow_night_bright, wombat,  
+
+# ayu_dark, breeze, marine_dark, github_dark_colorblind, alabaster_dark, google, hyper, citylights
+
+# alabaster_dark, google,
+
+import = [
+    "~/.config/alacritty/themes/themes/alabaster_dark.toml"
 ]
