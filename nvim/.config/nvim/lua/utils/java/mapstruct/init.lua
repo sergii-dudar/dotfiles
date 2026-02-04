@@ -17,7 +17,8 @@ local M = {}
 local DEFAULT_OPTS = {
     -- Required: path to mapstruct-path-explorer.jar
     -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+    -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
+    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer-repo/target/mapstruct-path-explorer.jar",
 
     -- Optional: use jdtls classpath (default: true)
     use_jdtls_classpath = true,
