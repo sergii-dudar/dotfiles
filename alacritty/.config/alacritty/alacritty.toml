@@ -120,9 +120,11 @@ dim_foreground = "#828482"  # Default
 bright_foreground = "None"  # Default
 
 # Cursor colors
-#[colors.cursor]
-#text = "CellBackground"  # Default
-#cursor = "CellForeground"  # Default
+[colors.cursor]
+# text = "CellBackground"  # Default
+# cursor = "CellForeground"  # Default
+text = "#181818"   # Default
+cursor = "#d8d8d8" # Default
 
 # Vi mode cursor colors
 #[colors.vi_mode_cursor]
@@ -246,7 +248,7 @@ blink_timeout = 0  # Default: 5
 # When true, the cursor will be rendered as a hollow box when the window is not focused
 unfocused_hollow = true  # Default: true
 
-# Thickness of the cursor relative to the cell width
+# Thickness of the cursor relative to the cell width (0.0 to 1.0)
 thickness = 0.15  # Default: 0.15
 
 ############
