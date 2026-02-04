@@ -26,7 +26,8 @@ case "$wm_name" in
         # brave &
         # ghostty --class=com.ghostty.group01 &
 
-        (sleep 0.4 && ghostty --class=com.ghostty.group01) &
+        # (sleep 0.4 && ghostty --class=com.ghostty.group01) &
+        (sleep 0.4 && alacritty --class=com.alacritty.group01) &
         # (sleep 0.7 && brave --force-device-scale-factor=1.2) &
         (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
 
@@ -34,7 +35,8 @@ case "$wm_name" in
     hyprland)
         # systemctl --user --now enable hyprpolkitagent
 
-        ghostty --class=com.ghostty.group01 &
+        # ghostty --class=com.ghostty.group01 &
+        alacritty --class=com.alacritty.group01 &
         # brave --force-device-scale-factor=1.2 &
         ~/dotfiles/bin/start-browserw &
 

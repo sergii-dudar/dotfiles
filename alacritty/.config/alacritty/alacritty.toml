@@ -38,10 +38,10 @@ blur = false  # Default: false
 startup_mode = "Windowed"  # Default: "Windowed"
 
 # Window title
-title = "Serhii@Alacritty"  # Default: "Alacritty"
+# title = "Serhii@Alacritty"  # Default: "Alacritty"
 
 # Dynamic title
-dynamic_title = false  # Default: true
+dynamic_title = true  # Default: true
 
 # Window class (Linux/BSD only)
 class = { instance = "Alacritty", general = "Alacritty" }  # Default: instance = "Alacritty", general = "Alacritty"
@@ -311,7 +311,7 @@ bindings = [
     # { key = "Key", mods = "Modifiers", chars = "Characters to send" },
     # ...
 
-    # { key = "V", mods = "Control", action = "Paste" },
+    { key = "V", mods = "Control", action = "Paste" },
     # { key = "C", mods = "Control", action = "Copy" }
 ]
 
