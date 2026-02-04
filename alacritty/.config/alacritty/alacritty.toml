@@ -28,7 +28,7 @@ dynamic_padding = false  # Default: false
 decorations = "None"  # "Full" | "None"
 
 # Opacity
-opacity = 0.95  # Default: 1.0
+opacity = 0.94  # Default: 1.0
 
 # Blur (macOS/KDE Wayland only)
 blur = false  # Default: false
@@ -52,7 +52,7 @@ decorations_theme_variant = "None"  # "Dark" | "Light" | "None"
 resize_increments = false  # Default: false
 
 # Option as Alt (macOS only)
-option_as_alt = "None"  # Default: "None"
+option_as_alt = "Both"  #  "OnlyLeft" | "OnlyRight" | "Both" | "None" (Default) # (macOS only)
 
 #############
 # SCROLLING #
@@ -328,13 +328,20 @@ ipc_socket = true  # Default: true
 # GENERAL #
 ###########
 
-# Import additional configuration files
-# second best: alabaster_dark, alacritty_0_12, ayu_dark, baitong, breeze, marine_dark, midnight-haze, nightfly, nightfox, nordic, github_dark_colorblind, github_dark_high_contrast, github_dark_tritanopia,  alabaster_dark, google, horizon-dark, hyper, iterm, midnight-haze, moonlight_ii_vscode, night_owl, one_dark, pencil_dark, solarized_osaka, ubuntu, citylights, dracula_plus, papercolor_dark, pastel_dark, snazzy, tomorrow_night_bright, wombat,  
-
-# ayu_dark, breeze, marine_dark, github_dark_colorblind, alabaster_dark, google, hyper, citylights
-
-# alabaster_dark, google,
-
+# mkdir -p ~/.config/alacritty/themes && git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
 import = [
-    "~/.config/alacritty/themes/themes/alabaster_dark.toml"
+    # Best 1
+    # "~/.config/alacritty/themes/themes/alabaster_dark.toml",
+     "~/.config/alacritty/themes/themes/vscode.toml",
+    # "~/.config/alacritty/themes/themes/kitty.toml",
+    
+    # Best 2
+    # "~/.config/alacritty/themes/themes/hyper.toml", 
+    # "~/.config/alacritty/themes/themes/argonaut.toml",
+    # "~/.config/alacritty/themes/themes/dark_plus.toml",
+    # "~/.config/alacritty/themes/themes/falcon.toml",
+
+    # Second Best
+    # "~/.config/alacritty/themes/themes/tomorrow_night_bright.toml"
+    # "~/.config/alacritty/themes/themes/wombat.toml"
 ]
