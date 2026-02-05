@@ -44,11 +44,30 @@ end
 ---@param opts task.Options
 local run_task = function(opts)
     local overseer = require("overseer")
+
+    -- Stop all running tasks
+    local running_tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
+    for _, task in ipairs(running_tasks) do
+        task:dispose(true) -- true = force kill
+    end
+
+    -- Clear completed/failed/canceled tasks from the list
+    local finished_tasks = overseer.list_tasks({
+        status = {
+            overseer.STATUS.SUCCESS,
+            overseer.STATUS.FAILURE,
+            overseer.STATUS.CANCELED,
+        },
+    })
+    for _, task in ipairs(finished_tasks) do
+        task:dispose()
+    end
+
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then
             task:start()
             if opts.is_open_output then
-                overseer.open()
+                overseer.open({ enter = false })
             end
             if opts.on_finish then
                 task:subscribe("on_complete", function(t, status)
@@ -237,7 +256,7 @@ return {
     --             title = "Overseer",
     --             ft = "OverseerList",
     --             open = function()
-    --                 require("overseer").open()
+    --                 require("overseer").open({ enter = false })
     --             end,
     --         })
     --     end,
