@@ -107,7 +107,7 @@ return {
                     else
                         run_task({ task_name = "RUN_CURRENT", is_open_output = true })
                     end
-                    write_run_info("run")
+                    -- write_run_info("run")
                 end,
                 desc = "Run Current",
             },

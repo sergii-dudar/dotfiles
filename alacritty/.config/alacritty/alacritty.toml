@@ -76,8 +76,11 @@ multiplier = 3  # Default: 3
 # Normal font style
 # https://github.com/ryanoasis/nerd-fonts/releases
 #normal = { family = "monospace", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
-#normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
+# normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
+# normal = { family = "FiraCode Nerd Font", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
+# normal = { family = "MesloLGS Nerd Font", style = "Regular" }  # Default for Linux/BSD: "monospace", Regular
 normal = { family = "CaskaydiaCove Nerd Font", style = "Regular" }
+# normal = { family = "Hack Nerd Font", style = "Regular" }
 
 # Bold font style
 bold = { style = "Bold" }  # Inherits family from normal, Default style: Bold
