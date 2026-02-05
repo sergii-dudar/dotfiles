@@ -45,22 +45,10 @@ end
 local run_task = function(opts)
     local overseer = require("overseer")
 
-    -- Stop all running tasks
-    local running_tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
-    for _, task in ipairs(running_tasks) do
-        task:dispose(true) -- true = force kill
-    end
-
-    -- Clear completed/failed/canceled tasks from the list
-    local finished_tasks = overseer.list_tasks({
-        status = {
-            overseer.STATUS.SUCCESS,
-            overseer.STATUS.FAILURE,
-            overseer.STATUS.CANCELED,
-        },
-    })
-    for _, task in ipairs(finished_tasks) do
-        task:dispose()
+    -- Get ALL tasks (without any filters) and dispose them to clear the list
+    local all_tasks = overseer.list_tasks()
+    for _, task in ipairs(all_tasks) do
+        task:dispose(true) -- true = force kill (for running tasks)
     end
 
     overseer.run_task({ name = opts.task_name }, function(task)
