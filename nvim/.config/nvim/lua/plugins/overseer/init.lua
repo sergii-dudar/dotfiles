@@ -39,6 +39,7 @@ end
 ---@class task.Options
 ---@field task_name string
 ---@field is_open_output? boolean
+---@field output_direction? "float"|"tab"|"vertical"|"horizontal"|"dock"
 ---@field on_finish? function
 
 ---@param opts task.Options
@@ -55,7 +56,17 @@ local run_task = function(opts)
         if task then
             task:start()
             if opts.is_open_output then
-                overseer.open({ enter = false })
+                -- overseer.open({ enter = false })
+
+                local direction = opts.output_direction or "horizontal"
+                -- Use task:open_output() to show just the output without task list
+                -- Options: "float", "tab", "vertical", "horizontal"
+                -- Or use "dock" to show output with task list
+                if direction == "dock" then
+                    overseer.open({ enter = false })
+                else
+                    task:open_output(direction)
+                end
             end
             if opts.on_finish then
                 task:subscribe("on_complete", function(t, status)
@@ -112,7 +123,11 @@ return {
                     if vim.bo.filetype == "lua" then
                         Snacks.debug.run()
                     else
-                        run_task({ task_name = "RUN_CURRENT", is_open_output = true })
+                        run_task({
+                            task_name = "RUN_CURRENT",
+                            is_open_output = true,
+                            output_direction = "horizontal", -- Shows only output, no task list
+                        })
                     end
                     -- write_run_info("run")
                 end,
