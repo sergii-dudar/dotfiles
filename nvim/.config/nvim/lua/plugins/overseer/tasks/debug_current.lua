@@ -22,6 +22,9 @@ return {
                 "on_result_diagnostics",
                 "on_exit_set_status",
                 "on_complete_dispose",
+                -- "on_complete_notify",
+                -- Pipe output to DAP REPL/console
+                "custom.pipe_to_dap",
             },
         }
     end,
