@@ -12,6 +12,7 @@ local default_attach = {
     hostName = "127.0.0.1",
     port = 5005,
 }
+M.default_attach_config = default_attach
 local last_runned_dap_config = nil
 
 local run_main_class_config = function(dap_config)
