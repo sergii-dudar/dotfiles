@@ -20,7 +20,8 @@ return {
             components = {
                 { "on_output_quickfix", set_diagnostics = true },
                 "on_result_diagnostics",
-                "default",
+                "on_exit_set_status",
+                "on_complete_dispose",
             },
         }
     end,

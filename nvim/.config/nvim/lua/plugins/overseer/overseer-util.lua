@@ -108,24 +108,8 @@ end
 
 function dap_after_session_clear()
     if last_run_info.runtype == "dap" then
-        if last_run_info.filetype == "java" then
-            -- 1. Stop any existing debug session
-            local dap = require("dap")
-            dap.close()
-
-            -- 2. Kill the current overseer task (the running JVM)
-            local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
-            for _, task in ipairs(tasks) do
-                dd({ task.name })
-                if task.name == "Java Debug" then
-                    task:dispose(true) -- true = force kill
-                end
-            end
-
-            -- 3. close dap ui
-            local dapui = require("dapui")
-            dapui.close({})
-        end
+        require("dap").close()
+        require("dapui").close({})
     end
 end
 

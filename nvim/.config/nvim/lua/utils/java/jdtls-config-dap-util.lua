@@ -10,8 +10,10 @@ local default_attach_config = {
     type = "java",
     request = "attach",
     name = "Debug (Attach) - Remote",
-    hostName = "127.0.0.1",
+    -- hostName = "127.0.0.1",
+    host = "localhost",
     port = M.default_dap_port,
+    -- projectName = project_name,
 }
 M.default_attach_config = default_attach_config
 local last_runned_dap_config = nil

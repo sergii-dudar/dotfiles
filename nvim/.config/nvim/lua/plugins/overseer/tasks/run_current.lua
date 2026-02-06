@@ -53,11 +53,11 @@ return {
             components = {
                 { "on_output_quickfix", set_diagnostics = true },
                 "on_result_diagnostics",
-                -- "on_result_diagnostics_trouble",
                 "on_exit_set_status",
+                "on_complete_dispose",
                 -- "on_complete_notify",
                 -- { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
-                "on_complete_dispose",
+                -- "on_result_diagnostics_trouble",
                 -- "open_output",
                 -- "on_output_notify",
                 --"default",
