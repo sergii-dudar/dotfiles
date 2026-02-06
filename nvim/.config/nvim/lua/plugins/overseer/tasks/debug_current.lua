@@ -24,7 +24,7 @@ return {
                 "on_complete_dispose",
                 -- "on_complete_notify",
                 -- Pipe output to DAP REPL/console
-                "custom.pipe_to_dap",
+                "debug.pipe_to_dap",
             },
         }
     end,
