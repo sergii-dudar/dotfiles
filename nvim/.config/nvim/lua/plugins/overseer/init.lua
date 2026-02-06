@@ -22,7 +22,7 @@ local restart_last = function()
         overseer.run_action(most_recent, "restart")
 
         -- TEST:
-        vim.defer_fn(function()
+        --[[ vim.defer_fn(function()
             local dap = require("dap")
             dap.run({
                 type = "java",
@@ -32,41 +32,23 @@ local restart_last = function()
                 port = 5005,
             })
             vim.cmd("Neotree close")
-        end, 200) -- 1.5s; increase if your JVM is slow to start
+        end, 200) -- 1.5s; increase if your JVM is slow to start ]]
     end
 end
 
 ---@class task.Options
 ---@field task_name string
 ---@field is_open_output? boolean
----@field output_direction? "float"|"tab"|"vertical"|"horizontal"|"dock"
 ---@field on_finish? function
 
 ---@param opts task.Options
 local run_task = function(opts)
     local overseer = require("overseer")
-
-    -- Get ALL tasks (without any filters) and dispose them to clear the list
-    local all_tasks = overseer.list_tasks()
-    for _, task in ipairs(all_tasks) do
-        task:dispose(true) -- true = force kill (for running tasks)
-    end
-
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then
             task:start()
             if opts.is_open_output then
-                -- overseer.open({ enter = false })
-
-                local direction = opts.output_direction or "horizontal"
-                -- Use task:open_output() to show just the output without task list
-                -- Options: "float", "tab", "vertical", "horizontal"
-                -- Or use "dock" to show output with task list
-                if direction == "dock" then
-                    overseer.open({ enter = false })
-                else
-                    task:open_output(direction)
-                end
+                overseer.open({ enter = false })
             end
             if opts.on_finish then
                 task:subscribe("on_complete", function(t, status)
@@ -123,11 +105,7 @@ return {
                     if vim.bo.filetype == "lua" then
                         Snacks.debug.run()
                     else
-                        run_task({
-                            task_name = "RUN_CURRENT",
-                            is_open_output = true,
-                            output_direction = "horizontal", -- Shows only output, no task list
-                        })
+                        run_task({ task_name = "RUN_CURRENT", is_open_output = true })
                     end
                     -- write_run_info("run")
                 end,
