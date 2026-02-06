@@ -44,10 +44,27 @@ end
 ---@param opts task.Options
 local run_task = function(opts)
     local overseer = require("overseer")
+
+    local task_list = require("overseer.task_list")
+    local tasks = overseer.list_tasks({
+        status = {
+            overseer.STATUS.RUNNING,
+            overseer.STATUS.SUCCESS,
+            overseer.STATUS.FAILURE,
+            overseer.STATUS.CANCELED,
+        },
+        sort = task_list.sort_finished_recently,
+    })
+    for _, task in ipairs(tasks) do
+        task:dispose(true) -- true = force kill
+    end
+    -- dd(tasks)
+
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then
             task:start()
             if opts.is_open_output then
+                -- toggle_runner("hsplit")
                 overseer.open({ enter = false })
             end
             if opts.on_finish then
@@ -73,30 +90,16 @@ return {
             "OverseerTaskAction",
         },
         opts = {
-            -- dap = false,
-            -- task_list = {
-            --     bindings = {
-            --         ["<C-h>"] = false,
-            --         ["<C-j>"] = false,
-            --         ["<C-k>"] = false,
-            --         ["<C-l>"] = false,
-            --     },
+            -- output = {
+            --     use_terminal = true,
+            --     preserve_output = false,
             -- },
-            -- form = {
-            --     win_opts = {
-            --         winblend = 0,
-            --     },
-            -- },
-            -- confirm = {
-            --     win_opts = {
-            --         winblend = 0,
-            --     },
-            -- },
-            -- task_win = {
-            --     win_opts = {
-            --         winblend = 0,
-            --     },
-            -- },
+            task_list = {
+                max_width = 5,
+                min_width = 5,
+                max_height = 0.33,
+                min_height = 0.33,
+            },
         },
         keys = {
             {
@@ -200,6 +203,8 @@ return {
                 desc = "Run Selected Lua",
                 mode = "v",
             },
+            { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
+            { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
         },
         -- stylua: ignore
         config = function(_, opts)
