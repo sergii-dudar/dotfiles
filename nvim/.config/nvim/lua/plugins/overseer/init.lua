@@ -24,7 +24,7 @@ return {
         keys = {
             { "<leader>rr", function() require("plugins.overseer.overseer-util").run_current() end, desc = "Run Current", },
             { "<leader>rd", function() require("plugins.overseer.overseer-util").debug_current() end, desc = "Debug Current", },
-            { "<leader>rl", function() require("plugins.overseer.overseer-util").debug_current() end, desc = "Re-Run Last" },
+            { "<leader>rl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
             { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v", },
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },

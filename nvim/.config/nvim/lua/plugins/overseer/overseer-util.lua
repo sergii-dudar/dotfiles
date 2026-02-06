@@ -1,6 +1,6 @@
 local overseer = require("overseer")
 local task_list = require("overseer.task_list")
-local java_dap_util = require("utils.java.jdtls-config-dap-util")
+local jdtls_dap_util = require("utils.java.jdtls-config-dap-util")
 
 ---@class task.Options
 ---@field task_name string
@@ -19,51 +19,17 @@ function M.run_current()
 end
 
 function M.debug_current()
-    -- 1. Stop any existing debug session
-    local dap = require("dap")
-    dap.close()
-
-    -- 2. Kill the current overseer task (the running JVM)
-    local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
-    for _, task in ipairs(tasks) do
-        if task.name == "Java Debug" then
-            task:dispose(true) -- true = force kill
-        end
-    end
-
-    local dapui = require("dapui")
-    dapui.close({})
+    dap_after_session_clear()
 
     -- 3. Re-launch via Overseer (non-blocking)
     run_task({
         task_name = "DEBUG_CURRENT",
-        on_finish = function()
-            dap.close()
-
-            -- 2. Kill the current overseer task (the running JVM)
-            local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
-            for _, task in ipairs(tasks) do
-                if task.name == "Java Debug" then
-                    task:dispose(true) -- true = force kill
-                end
-            end
-
-            dapui.close({})
-        end,
+        on_finish = dap_after_session_clear,
     })
 
     -- 4. After a short delay, re-attach DAP
     -- The delay gives the JVM a moment to start and open the port.
-    vim.defer_fn(function()
-        dap.run({
-            type = "java",
-            request = "attach",
-            name = "Attach to Overseer (port 5005)",
-            hostName = "127.0.0.1",
-            port = 5005,
-        })
-        vim.cmd("Neotree close")
-    end, 200) -- 1.5s; increase if your JVM is slow to start
+    jdtls_dap_util.attach_to_remote()
     write_run_info("dap")
 end
 
@@ -79,25 +45,11 @@ end
 
 ---@param opts task.Options
 function run_task(opts)
-    local tasks = overseer.list_tasks({
-        status = {
-            overseer.STATUS.RUNNING,
-            overseer.STATUS.SUCCESS,
-            overseer.STATUS.FAILURE,
-            overseer.STATUS.CANCELED,
-        },
-        sort = task_list.sort_finished_recently,
-    })
-    for _, task in ipairs(tasks) do
-        task:dispose(true) -- true = force kill
-    end
-    -- dd(tasks)
-
+    stop_all_prev_tasks()
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then
             task:start()
             if opts.is_open_output then
-                -- toggle_runner("hsplit")
                 overseer.open({ enter = false })
             end
             if opts.on_finish then
@@ -112,6 +64,22 @@ function run_task(opts)
     end)
 end
 
+function stop_all_prev_tasks()
+    local tasks = overseer.list_tasks({
+        status = {
+            overseer.STATUS.RUNNING,
+            overseer.STATUS.SUCCESS,
+            overseer.STATUS.FAILURE,
+            overseer.STATUS.CANCELED,
+        },
+        sort = task_list.sort_finished_recently,
+    })
+    for _, task in ipairs(tasks) do
+        task:dispose(true) -- true = force kill
+    end
+    -- dd(tasks)
+end
+
 function restart_last_task()
     local tasks = overseer.list_tasks({
         status = {
@@ -122,23 +90,42 @@ function restart_last_task()
         sort = task_list.sort_finished_recently,
     })
     if vim.tbl_isempty(tasks) then
-        vim.notify("No tasks found", vim.log.levels.WARN)
+        vim.notify("⚠️ No tasks found", vim.log.levels.WARN)
     else
         local most_recent = tasks[1]
         overseer.run_action(most_recent, "restart")
+        dap_attach_if_specified()
+    end
+end
 
-        -- TEST:
-        --[[ vim.defer_fn(function()
+function dap_attach_if_specified()
+    if last_run_info.runtype == "dap" then
+        if last_run_info.filetype == "java" then
+            jdtls_dap_util.attach_to_remote()
+        end
+    end
+end
+
+function dap_after_session_clear()
+    if last_run_info.runtype == "dap" then
+        if last_run_info.filetype == "java" then
+            -- 1. Stop any existing debug session
             local dap = require("dap")
-            dap.run({
-                type = "java",
-                request = "attach",
-                name = "Attach to Overseer (port 5005)",
-                hostName = "127.0.0.1",
-                port = 5005,
-            })
-            vim.cmd("Neotree close")
-        end, 200) -- 1.5s; increase if your JVM is slow to start ]]
+            dap.close()
+
+            -- 2. Kill the current overseer task (the running JVM)
+            local tasks = overseer.list_tasks({ status = overseer.STATUS.RUNNING })
+            for _, task in ipairs(tasks) do
+                dd({ task.name })
+                if task.name == "Java Debug" then
+                    task:dispose(true) -- true = force kill
+                end
+            end
+
+            -- 3. close dap ui
+            local dapui = require("dapui")
+            dapui.close({})
+        end
     end
 end
 

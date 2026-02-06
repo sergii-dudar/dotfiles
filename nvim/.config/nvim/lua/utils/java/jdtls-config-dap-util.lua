@@ -5,14 +5,15 @@ local java_ts_util = require("utils.java.java-ts-util")
 
 local M = {}
 
-local default_attach = {
+M.default_dap_port = 5005
+local default_attach_config = {
     type = "java",
     request = "attach",
     name = "Debug (Attach) - Remote",
     hostName = "127.0.0.1",
-    port = 5005,
+    port = M.default_dap_port,
 }
-M.default_attach_config = default_attach
+M.default_attach_config = default_attach_config
 local last_runned_dap_config = nil
 
 local run_main_class_config = function(dap_config)
@@ -57,18 +58,14 @@ M.run_current_main_class = function()
     run_main_class_config(last_runned_dap_config)
 end
 
+--- Attach to existing jvm dap session.
+---@param port integer|nil 5005 if not specified.
 function M.attach_to_remote(port)
-    port = port or 5005
+    port = port or M.default_dap_port
     vim.defer_fn(function()
-        require("dap").run({
-            type = "java",
-            request = "attach",
-            name = "Attach to Overseer (port 5005)",
-            hostName = "127.0.0.1",
-            port = 5005,
-        })
+        require("dap").run(default_attach_config)
         vim.cmd("Neotree close")
-    end, 200) -- 1.5s; increase if your JVM is slow to start
+    end, 200) -- ms; increase if your JVM is slow to start
 end
 
 return M
