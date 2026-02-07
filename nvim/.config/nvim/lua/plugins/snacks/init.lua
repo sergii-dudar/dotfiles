@@ -51,7 +51,10 @@ return {
                         col = 0, -- Column of the window. Use <1 for relative column. (default: center)
                     },
                 },
-                notifier = { enabled = true },
+                notifier = {
+                    enabled = true,
+                    -- style = "compact",
+                },
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
