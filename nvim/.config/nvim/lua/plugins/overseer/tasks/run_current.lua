@@ -12,7 +12,7 @@ local build_resolvers = function()
     end
 
     type_to_resolver["java"] = function()
-        local java_runner = require("plugins.overseer.tasks.runner.java-runner")
+        local java_runner = require("plugins.overseer.tasks.lang.java-runner")
         return java_runner.build_cmd()
     end
 

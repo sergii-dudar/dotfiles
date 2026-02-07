@@ -91,7 +91,7 @@ function restart_last_task()
         sort = task_list.sort_finished_recently,
     })
     if vim.tbl_isempty(tasks) then
-        vim.notify("⚠️ No tasks found", vim.log.levels.WARN)
+        vim.notify("  No tasks found", vim.log.levels.WARN)
     else
         local most_recent = tasks[1]
         overseer.run_action(most_recent, "restart")
