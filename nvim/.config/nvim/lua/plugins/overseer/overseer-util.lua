@@ -19,6 +19,7 @@ function M.run_current()
 end
 
 function M.debug_current()
+    overseer.close()
     dap_after_session_clear()
 
     -- 3. Re-launch via Overseer (non-blocking)

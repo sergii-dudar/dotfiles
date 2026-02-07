@@ -22,6 +22,22 @@ function write_to_dapui_console(lines)
     end
 end
 
+function clean_dapui_console()
+    local ok_dap, dap = pcall(require, "dap")
+    local ok_dapui, dapui = pcall(require, "dapui")
+
+    if ok_dap and ok_dapui then
+        local console_buf = dapui.elements.console.buffer()
+        if console_buf and vim.api.nvim_buf_is_valid(console_buf) then
+            local modifiable = vim.bo[console_buf].modifiable
+            vim.bo[console_buf].modifiable = true
+            -- Clear all lines
+            vim.api.nvim_buf_set_lines(console_buf, 0, -1, false, {})
+            vim.bo[console_buf].modifiable = modifiable
+        end
+    end
+end
+
 function write_to_dapui_repl(lines)
     local ok, dap = pcall(require, "dap")
     if ok and dap.session() then
@@ -36,10 +52,14 @@ return {
     desc = "Pipe task output to DAP UI console",
     constructor = function(params)
         return {
+            on_start = function(self, task)
+                -- Clear console buffer when task starts
+                vim.schedule(clean_dapui_console)
+            end,
             on_output_lines = function(self, task, lines)
                 vim.schedule(function()
-                    -- write_to_dapui_console(lines)
-                    write_to_dapui_repl(lines)
+                    write_to_dapui_console(lines)
+                    -- write_to_dapui_repl(lines)
                 end)
             end,
         }
