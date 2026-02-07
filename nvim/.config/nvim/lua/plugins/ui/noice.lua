@@ -27,9 +27,9 @@ return {
                     },
                 },
             },
-            -- notify = {
-            --     enabled = false,
-            -- },
+            notify = {
+                enabled = false,
+            },
             -- not needed in case blink.cmp
             -- lsp = {
             --     hover = {
