@@ -315,7 +315,7 @@ bindings = [
     # ...
 
     { key = "V", mods = "Control", action = "Paste" },
-    # { key = "C", mods = "Control", action = "Copy" }
+    { key = "Slash", mods = "Control", chars = "\u001f" } # { key = "C", mods = "Control", action = "Copy" }
 ]
 
 [general]
