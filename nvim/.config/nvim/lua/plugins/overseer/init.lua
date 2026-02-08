@@ -35,10 +35,8 @@ return {
             overseer.enable_dap()
             local run_current = require("plugins.overseer.tasks.run_current")
             local debug_current = require("plugins.overseer.tasks.debug_current")
-            -- local build_current = require("plugins.overseer.tasks.build_current")
-            overseer.register_template(run_current)
-            overseer.register_template(debug_current)
-            -- overseer.register_template(build_current)
+            overseer.register_template(run_current.build_taks())
+            overseer.register_template(debug_current.build_taks())
         end,
     },
     {

@@ -1,9 +1,4 @@
-local jdtls_classpath_util = require("utils.java.jdtls-classpath-util")
-local java_ts_util = require("utils.java.java-ts-util")
-
-local home = os.getenv("HOME")
-local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
-local java_bin = java_dir .. "/bin/java"
+local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 
 local M = {}
 
@@ -19,8 +14,8 @@ end
 
 ---@param is_debug boolean|nil
 function build_java_cmd(is_debug)
-    local classpath = jdtls_classpath_util.get_classpath_for_main_method()
-    local class_name = java_ts_util.get_class_name()
+    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method()
+    local class_name = require("utils.java.java-ts-util").get_class_name()
     if not class_name then
         vim.notify("❌ Could not determine current class name for debug", vim.log.levels.WARN)
         return {}
@@ -39,9 +34,16 @@ function build_java_cmd(is_debug)
     }
 end
 
+--- Attach to existing jvm dap session.
+---@param port integer|nil 5005 if not specified.
+function M.dap_attach_to_remote(port)
+    require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
+end
+-- vim.bo.filetype
+
 ---@return table DAP configuration
 function M.build_dap_launch_config()
-    local class_name = java_ts_util.get_class_name()
+    local class_name = require("utils.java.java-ts-util").get_class_name()
     if not class_name then
         vim.notify("❌ Could not determine current class name for debug", vim.log.levels.WARN)
     end

@@ -1,6 +1,6 @@
+local lang_runner_resolver = require("plugins.overseer.tasks.lang.lang-runner-resolver")
 local overseer = require("overseer")
 local task_list = require("overseer.task_list")
-local jdtls_dap_util = require("utils.java.jdtls-config-dap-util")
 
 ---@class task.Options
 ---@field task_name string
@@ -30,7 +30,8 @@ function M.debug_current()
 
     -- 4. After a short delay, re-attach DAP
     -- The delay gives the JVM a moment to start and open the port.
-    jdtls_dap_util.attach_to_remote()
+    -- jdtls_dap_util.attach_to_remote()
+    lang_runner_resolver.resolve(vim.bo.filetype).dap_attach_to_remote()
     write_run_info("dap")
 end
 
@@ -102,7 +103,8 @@ end
 function dap_attach_if_specified()
     if last_run_info.runtype == "dap" then
         if last_run_info.filetype == "java" then
-            jdtls_dap_util.attach_to_remote()
+            -- jdtls_dap_util.attach_to_remote()
+            lang_runner_resolver.resolve(vim.bo.filetype).dap_attach_to_remote()
         end
     end
 end
