@@ -39,23 +39,13 @@ end
 function M.dap_attach_to_remote(port)
     require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
 end
--- vim.bo.filetype
 
----@return table DAP configuration
-function M.build_dap_launch_config()
-    local class_name = require("utils.java.java-ts-util").get_class_name()
-    if not class_name then
-        vim.notify("❌ Could not determine current class name for debug", vim.log.levels.WARN)
-    end
+function M.dap_launch()
+    require("utils.java.jdtls-config-dap-util").run_current_main_class()
+end
 
-    return {
-        type = "java",
-        request = "launch",
-        name = "Debug Current Main Class (Overseer)",
-        javaExec = java_bin,
-        mainClass = class_name,
-        modulePaths = {},
-    }
+function M.dap_launch_rerun()
+    require("utils.java.jdtls-config-dap-util").rerun_last()
 end
 
 return M

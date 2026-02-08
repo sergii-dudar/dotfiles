@@ -116,20 +116,4 @@ function dap_after_session_clear()
     end
 end
 
---[[ 
-function run_java_code_debug()
-    if vim.bo.filetype == "java" then
-        require("utils.java.jdtls-config-dap-util").run_current_main_class()
-    end
-    write_run_info("dap")
-end
-function rerun_java_last()
-    if last_run_info.filetype == "java" and last_run_info.runtype == "dap" then
-        require("utils.java.jdtls-config-dap-util").rerun_last()
-    else
-        restart_last()
-    end
-end
-]]
-
 return M

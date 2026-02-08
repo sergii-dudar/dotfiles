@@ -168,7 +168,8 @@ local M = {}
 ---@field build_cmd function
 ---@field build_debug_cmd function|nil - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
 ---@field dap_attach_to_remote function|nil
----@field build_dap_launch_config table
+---@field dap_launch function|nil - [dap_launch] requiring to have defined [dap_launch_rerun]
+---@field dap_launch_rerun function|nil
 
 ---@return task.lang.Runner|nil
 function M.resolve(filetype)
@@ -201,13 +202,11 @@ for key, resolver in pairs(type_to_resolver) do
         table.insert(M.types_supported_debug_cmd, key)
         types_supported_debug_cmd_flag[key] = true
     end
-    if resolver.build_dap_launch_config then
+    if resolver.dap_launch then
         -- table.insert(M.types_supported_dap_launch, key)
         types_supported_dap_launch_flag[key] = true
     end
 end
-
-print(M.resolve("java"))
 
 --[[ print(vim.tbl_contains(M.types_supported, "jaav"))
 print(vim.tbl_contains(M.types_supported, "java"))
