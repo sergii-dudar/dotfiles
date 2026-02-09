@@ -115,53 +115,53 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["c"] = build_cmd_only_resolver(function()
-        local dir = vim.fn.expand("%:p:h")
-        local fileName = vim.fn.expand("%:t")
-        local fileNameWithoutExt = vim.fn.expand("%:t:r")
-        return {
-            "sh",
-            "-c",
-            "cd "
-                .. dir
-                .. " && gcc -std=c17 -Wno-format "
-                .. fileName
-                .. " -o /tmp/"
-                .. fileNameWithoutExt
-                .. " && /tmp/"
-                .. fileNameWithoutExt
-                .. " && rm /tmp/"
-                .. fileNameWithoutExt,
-        }
-    end)
+    -- type_to_resolver["c"] = build_cmd_only_resolver(function()
+    --     local dir = vim.fn.expand("%:p:h")
+    --     local fileName = vim.fn.expand("%:t")
+    --     local fileNameWithoutExt = vim.fn.expand("%:t:r")
+    --     return {
+    --         "sh",
+    --         "-c",
+    --         "cd "
+    --             .. dir
+    --             .. " && gcc -std=c17 -Wno-format "
+    --             .. fileName
+    --             .. " -o /tmp/"
+    --             .. fileNameWithoutExt
+    --             .. " && /tmp/"
+    --             .. fileNameWithoutExt
+    --             .. " && rm /tmp/"
+    --             .. fileNameWithoutExt,
+    --     }
+    -- end)
 
-    type_to_resolver["cpp"] = build_cmd_only_resolver(function()
-        local fileNameWithoutExt = vim.fn.expand("%:t:r")
-        local fileDir = vim.fn.expand("%:p:h")
-        return {
-            "sh",
-            "-c",
-            "g++ -std=c++23 "
-                .. fileDir
-                .. "/"
-                .. fileNameWithoutExt
-                .. "*.cpp -o /tmp/"
-                .. fileNameWithoutExt
-                .. " && /tmp/"
-                .. fileNameWithoutExt
-                .. " && rm /tmp/"
-                .. fileNameWithoutExt,
-        }
-    end)
+    -- type_to_resolver["cpp"] = build_cmd_only_resolver(function()
+    --     local fileNameWithoutExt = vim.fn.expand("%:t:r")
+    --     local fileDir = vim.fn.expand("%:p:h")
+    --     return {
+    --         "sh",
+    --         "-c",
+    --         "g++ -std=c++23 "
+    --             .. fileDir
+    --             .. "/"
+    --             .. fileNameWithoutExt
+    --             .. "*.cpp -o /tmp/"
+    --             .. fileNameWithoutExt
+    --             .. " && /tmp/"
+    --             .. fileNameWithoutExt
+    --             .. " && rm /tmp/"
+    --             .. fileNameWithoutExt,
+    --     }
+    -- end)
 
-    type_to_resolver["cs"] = build_cmd_only_resolver(function()
-        local dir = vim.fn.expand("%:p:h")
-        return {
-            "sh",
-            "-c",
-            "cd " .. dir .. " && dotnet run",
-        }
-    end)
+    -- type_to_resolver["cs"] = build_cmd_only_resolver(function()
+    --     local dir = vim.fn.expand("%:p:h")
+    --     return {
+    --         "sh",
+    --         "-c",
+    --         "cd " .. dir .. " && dotnet run",
+    --     }
+    -- end)
 
     return type_to_resolver
 end

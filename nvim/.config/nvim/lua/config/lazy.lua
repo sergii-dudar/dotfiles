@@ -73,7 +73,7 @@ require("lazy").setup({
 
         -- ========= langs that using not very often: =========
         --{ import = "lazyvim.plugins.extras.lang.go" },
-        --{ import = "lazyvim.plugins.extras.lang.omnisharp" },
+        -- { import = "lazyvim.plugins.extras.lang.dotnet" },
         --{ import = "lazyvim.plugins.extras.lang.kotlin" },
         --{ import = "lazyvim.plugins.extras.lang.scala" },
         { import = "lazyvim.plugins.extras.lang.typescript" },
