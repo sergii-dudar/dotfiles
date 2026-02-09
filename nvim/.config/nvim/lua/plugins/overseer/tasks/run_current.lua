@@ -10,7 +10,7 @@ function M.build_taks()
             local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
             local result_cmd
             if type_resolver then
-                result_cmd = type_resolver.build_cmd()
+                result_cmd = type_resolver.build_run_cmd()
             else
                 local file = vim.fn.expand("%:p")
                 vim.notify(file .. " is not supported.")

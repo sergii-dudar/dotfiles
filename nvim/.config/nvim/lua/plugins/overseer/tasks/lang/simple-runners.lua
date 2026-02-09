@@ -1,6 +1,6 @@
-function build_cmd_only_resolver(build_cmd)
+function build_run_cmd_only_resolver(build_run_cmd)
     local resolver = {}
-    resolver.build_cmd = build_cmd
+    resolver.build_run_cmd = build_run_cmd
     return resolver
 end
 
@@ -9,17 +9,17 @@ local M = {}
 function M.register(type_to_resolver)
     type_to_resolver = type_to_resolver or {}
 
-    -- type_to_resolver["go"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["go"] = build_run_cmd_only_resolver(function()
     --     local file = vim.fn.expand("%:p")
     --     return { "go", "run", file }
     -- end)
 
-    -- type_to_resolver["python"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["python"] = build_run_cmd_only_resolver(function()
     --     local file = vim.fn.expand("%:p")
     --     return { "python3.14", file }
     -- end)
 
-    type_to_resolver["html"] = build_cmd_only_resolver(function()
+    type_to_resolver["html"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         local fileName = vim.fn.expand("%:t")
         return {
@@ -38,7 +38,7 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["yaml"] = build_cmd_only_resolver(function()
+    type_to_resolver["yaml"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         local fileName = vim.fn.expand("%:t")
         return {
@@ -56,29 +56,29 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["typescript"] = build_cmd_only_resolver(function()
+    type_to_resolver["typescript"] = build_run_cmd_only_resolver(function()
         local file = vim.fn.expand("%:p")
         return { "deno", "run", file }
     end)
 
-    -- type_to_resolver["javascript"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["javascript"] = build_run_cmd_only_resolver(function()
     --     local file = vim.fn.expand("%:p")
     --     return { "deno", "run", file }
     -- end)
 
-    type_to_resolver["lua"] = build_cmd_only_resolver(function()
+    type_to_resolver["lua"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         local fileName = vim.fn.expand("%:t")
         return { "lua", dir .. "/" .. fileName }
     end)
 
-    -- type_to_resolver["sh"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["sh"] = build_run_cmd_only_resolver(function()
     --     local dir = vim.fn.expand("%:p:h")
     --     local fileName = vim.fn.expand("%:t")
     --     return { "bash", dir .. "/" .. fileName }
     -- end)
 
-    type_to_resolver["haskell"] = build_cmd_only_resolver(function()
+    type_to_resolver["haskell"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         local fileName = vim.fn.expand("%:t")
         return {
@@ -92,7 +92,7 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["cabal"] = build_cmd_only_resolver(function()
+    type_to_resolver["cabal"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         local fileNameWithoutExt = vim.fn.expand("%:t:r")
         return {
@@ -106,7 +106,7 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["rust"] = build_cmd_only_resolver(function()
+    type_to_resolver["rust"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
         return {
             "sh",
@@ -115,7 +115,7 @@ function M.register(type_to_resolver)
         }
     end)
 
-    -- type_to_resolver["c"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["c"] = build_run_cmd_only_resolver(function()
     --     local dir = vim.fn.expand("%:p:h")
     --     local fileName = vim.fn.expand("%:t")
     --     local fileNameWithoutExt = vim.fn.expand("%:t:r")
@@ -135,7 +135,7 @@ function M.register(type_to_resolver)
     --     }
     -- end)
 
-    -- type_to_resolver["cpp"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["cpp"] = build_run_cmd_only_resolver(function()
     --     local fileNameWithoutExt = vim.fn.expand("%:t:r")
     --     local fileDir = vim.fn.expand("%:p:h")
     --     return {
@@ -154,7 +154,7 @@ function M.register(type_to_resolver)
     --     }
     -- end)
 
-    -- type_to_resolver["cs"] = build_cmd_only_resolver(function()
+    -- type_to_resolver["cs"] = build_run_cmd_only_resolver(function()
     --     local dir = vim.fn.expand("%:p:h")
     --     return {
     --         "sh",

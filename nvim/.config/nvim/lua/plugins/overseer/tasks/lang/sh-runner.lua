@@ -3,7 +3,7 @@ local bash_path = vim.fn.has("mac") == 1 and "/opt/homebrew/bin/bash" or "/bin/b
 local M = {}
 
 ---@return table
-function M.build_cmd()
+function M.build_run_cmd()
     local dir = vim.fn.expand("%:p:h")
     local fileName = vim.fn.expand("%:t")
     return { bash_path, dir .. "/" .. fileName }

@@ -1,7 +1,7 @@
 local M = {}
 
 ---@return table
-function M.build_cmd()
+function M.build_run_cmd()
     return {}
 end
 

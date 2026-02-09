@@ -3,7 +3,7 @@ local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 local M = {}
 
 ---@return table
-function M.build_cmd()
+function M.build_run_cmd()
     return build_java_cmd()
 end
 
