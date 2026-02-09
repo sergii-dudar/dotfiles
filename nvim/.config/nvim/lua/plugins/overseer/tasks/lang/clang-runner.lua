@@ -11,14 +11,23 @@ function M.build_compile_cmd()
     }
 end
 
----@return table
 function M.build_run_cmd()
     local dir = vim.fn.expand("%:p:h")
+    local fileName = vim.fn.expand("%:t")
     local fileNameWithoutExt = vim.fn.expand("%:t:r")
     return {
         "sh",
         "-c",
-        "cd " .. dir .. " && /tmp/" .. fileNameWithoutExt .. " && rm /tmp/" .. fileNameWithoutExt,
+        "cd "
+            .. dir
+            .. " && gcc -g -std=c17 -Wno-format "
+            .. fileName
+            .. " -o /tmp/"
+            .. fileNameWithoutExt
+            .. " && /tmp/"
+            .. fileNameWithoutExt
+            .. " && rm /tmp/"
+            .. fileNameWithoutExt,
     }
 end
 
