@@ -59,6 +59,12 @@ end
 
 ---@param opts task.Options
 function run_task(opts)
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+    if not type_resolver then
+        vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+
     stop_all_prev_tasks()
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then

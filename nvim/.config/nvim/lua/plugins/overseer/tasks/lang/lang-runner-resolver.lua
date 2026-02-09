@@ -2,6 +2,10 @@ local type_to_resolver = {}
 
 require("plugins.overseer.tasks.lang.simple-runners").register(type_to_resolver)
 type_to_resolver["java"] = require("plugins.overseer.tasks.lang.java-runner")
+type_to_resolver["python"] = require("plugins.overseer.tasks.lang.python-runner")
+type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
+type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner")
+type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 
 local M = {}
 
@@ -25,27 +29,11 @@ end
 
 M.types_supported = {} -- all basic support it's shell cmd to run by overseer
 M.types_supported_debug_cmd = {}
--- M.types_supported_dap_launch = {}
-local types_supported_debug_cmd_flag = {}
-local types_supported_dap_launch_flag = {}
-
-function M.is_type_supported_debug_cmd(filetype)
-    return types_supported_debug_cmd_flag[filetype]
-end
-
-function M.is_type_supported_dap_launch(filetype)
-    return types_supported_dap_launch_flag[filetype]
-end
 
 for key, resolver in pairs(type_to_resolver) do
     table.insert(M.types_supported, key)
     if resolver.build_debug_cmd and resolver.dap_attach_to_remote then
         table.insert(M.types_supported_debug_cmd, key)
-        types_supported_debug_cmd_flag[key] = true
-    end
-    if resolver.dap_launch then
-        -- table.insert(M.types_supported_dap_launch, key)
-        types_supported_dap_launch_flag[key] = true
     end
 end
 
