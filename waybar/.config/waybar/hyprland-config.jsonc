@@ -9,7 +9,7 @@
         "spacing": 4, // Gaps between modules (4px)
         "output": "!HDMI-A-3",
         "modules-left": [
-            "group/group-runners",
+            // "group/group-runners", -- TODO: waiting fix of https://github.com/Alexays/Waybar/issues/4829
             "custom/weather",
             "hyprland/submap",
             "idle_inhibitor",
@@ -37,8 +37,8 @@
             // "custom/pacman-updates",
             "privacy",
             "network",
-            "tray",
-            "image#runner-power"
+            "tray"
+            // "image#runner-power" -- -- TODO: waiting fix of https://github.com/Alexays/Waybar/issues/4829
         ],
         "include": [
             "~/.config/waybar/module/hyprland.jsonc",
