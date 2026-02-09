@@ -1,4 +1,4 @@
-local lang_runner_resolver = require("plugins.overseer.tasks.lang.lang-runner-resolver")
+local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
 
 local M = {}
 
