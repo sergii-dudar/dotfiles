@@ -41,7 +41,7 @@ startup_mode = "Windowed"  # Default: "Windowed"
 # title = "Serhii@Alacritty"  # Default: "Alacritty"
 
 # Dynamic title
-dynamic_title = true  # Default: true
+dynamic_title = false  # Default: true
 
 # Window class (Linux/BSD only)
 class = { instance = "Alacritty", general = "Alacritty" }  # Default: instance = "Alacritty", general = "Alacritty"
@@ -61,11 +61,13 @@ option_as_alt = "Both"  #  "OnlyLeft" | "OnlyRight" | "Both" | "None" (Default) 
 
 [scrolling]
 
+# Disabled, and I'm using tmux history
+
 # Maximum number of lines in the scrollback buffer
-history = 10000  # Default: 10000
+history = 0  # Default: 10000
 
 # Number of lines scrolled for every input scroll increment
-multiplier = 3  # Default: 3
+multiplier = 0  # Default: 3
 
 ########
 # FONT #
@@ -101,7 +103,7 @@ offset = { x = 0, y = 0 }  # Default: x = 0, y = 0
 glyph_offset = { x = 0, y = 0 }  # Default: x = 0, y = 0
 
 # Use built-in font for box drawing characters
-builtin_box_drawing = true  # Default: true
+builtin_box_drawing = false  # Default: true
 
 ##########
 # COLORS #
