@@ -19,19 +19,31 @@ function M.run_current()
 end
 
 function M.debug_current()
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+    if not type_resolver or (not type_resolver.build_debug_cmd and not type_resolver.dap_launch) then
+        vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+
     overseer.close()
-    dap_after_session_clear()
 
-    -- 3. Re-launch via Overseer (non-blocking)
-    run_task({
-        task_name = "DEBUG_CURRENT",
-        on_finish = dap_after_session_clear,
-    })
+    if type_resolver.build_debug_cmd then
+        dap_after_session_clear()
 
-    -- 4. After a short delay, re-attach DAP
-    -- The delay gives the JVM a moment to start and open the port.
-    -- jdtls_dap_util.attach_to_remote()
-    lang_runner_resolver.resolve(vim.bo.filetype).dap_attach_to_remote()
+        -- 3. Re-launch via Overseer (non-blocking)
+        run_task({
+            task_name = "DEBUG_CURRENT",
+            on_finish = dap_after_session_clear,
+        })
+
+        -- 4. After a short delay, re-attach DAP
+        -- The delay gives the JVM a moment to start and open the port.
+        -- jdtls_dap_util.attach_to_remote()
+        type_resolver.dap_attach_to_remote()
+    else
+        type_resolver.dap_launch()
+    end
+
     write_run_info("dap")
 end
 
@@ -79,10 +91,9 @@ function stop_all_prev_tasks()
     for _, task in ipairs(tasks) do
         task:dispose(true) -- true = force kill
     end
-    -- dd(tasks)
 end
 
-function restart_last_task()
+function run_last_task()
     local tasks = overseer.list_tasks({
         status = {
             overseer.STATUS.SUCCESS,
@@ -92,20 +103,51 @@ function restart_last_task()
         sort = task_list.sort_finished_recently,
     })
     if vim.tbl_isempty(tasks) then
-        vim.notify("  No tasks found", vim.log.levels.WARN)
-    else
-        local most_recent = tasks[1]
-        overseer.run_action(most_recent, "restart")
-        dap_attach_if_specified()
+        vim.notify("  No last tasks found", vim.log.levels.WARN)
+        return
     end
+    local last_task = tasks[1]
+    overseer.run_action(last_task, "restart")
 end
 
-function dap_attach_if_specified()
+function restart_last_task()
     if last_run_info.runtype == "dap" then
-        if last_run_info.filetype == "java" then
-            -- jdtls_dap_util.attach_to_remote()
-            lang_runner_resolver.resolve(vim.bo.filetype).dap_attach_to_remote()
+        local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+        if
+            not type_resolver
+            or (
+                not type_resolver.build_debug_cmd
+                and not type_resolver.dap_launch
+                and not type_resolver.dap_launch_rerun
+            )
+        then
+            vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+            return
         end
+
+        if type_resolver.build_debug_cmd then
+            require("dap").terminate()
+            vim.defer_fn(function()
+                run_last_task()
+                type_resolver.dap_attach_to_remote()
+                -- vim.notify("build_debug_cmd " .. vim.bo.filetype, vim.log.levels.WARN)
+            end, 400)
+            return
+        end
+
+        if type_resolver.dap_launch_rerun then
+            type_resolver.dap_launch_rerun()
+            -- vim.notify("dap_launch_rerun" .. vim.bo.filetype, vim.log.levels.WARN)
+            return
+        end
+
+        if type_resolver.dap_launch then
+            type_resolver.dap_launch()
+            -- vim.notify("dap_launch" .. vim.bo.filetype, vim.log.levels.WARN)
+            return
+        end
+    else
+        run_last_task()
     end
 end
 
