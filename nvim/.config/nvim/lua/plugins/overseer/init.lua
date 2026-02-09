@@ -33,8 +33,10 @@ return {
             local overseer = require("overseer")
             overseer.setup(opts)
             overseer.enable_dap()
+            local compile_current = require("plugins.overseer.tasks.compile_current")
             local run_current = require("plugins.overseer.tasks.run_current")
             local debug_current = require("plugins.overseer.tasks.debug_current")
+            overseer.register_template(compile_current.build_taks())
             overseer.register_template(run_current.build_taks())
             overseer.register_template(debug_current.build_taks())
         end,

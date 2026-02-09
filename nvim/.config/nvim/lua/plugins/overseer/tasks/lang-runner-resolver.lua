@@ -18,6 +18,8 @@ local M = {}
 ---@field dap_attach_to_remote function|nil
 ---@field dap_launch function|nil - [dap_launch] requiring to have defined [dap_launch_rerun]
 ---@field dap_launch_rerun function|nil
+---@field build_compile_cmd function|nil
+---@field make_compile function|nil
 
 ---@return task.lang.Runner|nil
 function M.resolve(filetype)
@@ -32,11 +34,15 @@ end
 
 M.types_supported = {} -- all basic support it's shell cmd to run by overseer
 M.types_supported_debug_cmd = {}
+M.types_supported_compile_cmd = {}
 
 for key, resolver in pairs(type_to_resolver) do
     table.insert(M.types_supported, key)
     if resolver.build_debug_cmd and resolver.dap_attach_to_remote then
         table.insert(M.types_supported_debug_cmd, key)
+    end
+    if resolver.build_compile_cmd then
+        table.insert(M.types_supported_compile_cmd, key)
     end
 end
 

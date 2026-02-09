@@ -5,13 +5,45 @@ local task_list = require("overseer.task_list")
 ---@class task.Options
 ---@field task_name string
 ---@field is_open_output? boolean
----@field on_finish? function
+---@field on_complete? function
 
 local M = {}
+
+---@param on_success function
+function run_compile(on_success)
+    vim.notify("running compile")
+    run_task({
+        task_name = "COMPILE_CURRENT",
+        on_complete = function(task, status)
+            vim.notify("finished." .. status, vim.log.levels.INFO)
+            if status == overseer.STATUS.SUCCESS then
+                vim.notify("Compilation successful.")
+                on_success()
+            else
+                vim.notify("Compilation failed.", vim.log.levels.INFO)
+                vim.cmd("Trouble diagnostics open")
+                -- vim.cmd("copen") -- Open quickfix to show errors
+            end
+        end,
+    })
+end
 
 function M.run_current()
     if vim.bo.filetype == "lua" then
         Snacks.debug.run()
+        return
+    end
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+    if not type_resolver then
+        vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+    if type_resolver.build_compile_cmd then
+        run_compile(function()
+            vim.notify("Starting run.")
+            run_task({ task_name = "RUN_CURRENT", is_open_output = true })
+            write_run_info("run")
+        end)
         return
     end
     run_task({ task_name = "RUN_CURRENT", is_open_output = true })
@@ -25,6 +57,18 @@ function M.debug_current()
         return
     end
 
+    if type_resolver.build_compile_cmd then
+        run_compile(function()
+            vim.notify("Starting run.")
+            debug_current_internal(type_resolver)
+        end)
+        return
+    end
+    debug_current_internal(type_resolver)
+end
+
+---@param type_resolver task.lang.Runner
+function debug_current_internal(type_resolver)
     overseer.close()
 
     if type_resolver.build_debug_cmd then
@@ -33,7 +77,7 @@ function M.debug_current()
         -- 3. Re-launch via Overseer (non-blocking)
         run_task({
             task_name = "DEBUG_CURRENT",
-            on_finish = dap_after_session_clear,
+            on_complete = dap_after_session_clear,
         })
 
         -- 4. After a short delay, re-attach DAP
@@ -48,7 +92,22 @@ function M.debug_current()
 end
 
 function M.restart_last()
-    restart_last_task()
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+
+    if not type_resolver then
+        vim.notify("Is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+
+    if type_resolver.build_compile_cmd then
+        run_compile(function()
+            vim.notify("Starting run.")
+            restart_last_task(type_resolver)
+        end)
+        return
+    end
+
+    restart_last_task(type_resolver)
 end
 
 local last_run_info = {}
@@ -59,12 +118,6 @@ end
 
 ---@param opts task.Options
 function run_task(opts)
-    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
-    if not type_resolver then
-        vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
-        return
-    end
-
     stop_all_prev_tasks()
     overseer.run_task({ name = opts.task_name }, function(task)
         if task then
@@ -72,9 +125,9 @@ function run_task(opts)
             if opts.is_open_output then
                 overseer.open({ enter = false })
             end
-            if opts.on_finish then
+            if opts.on_complete then
                 task:subscribe("on_complete", function(t, status)
-                    opts.on_finish()
+                    opts.on_complete(t, status)
                 end)
                 -- task:subscribe("on_exit", function(t, status)
                 --     vim.notify("on_exit")
@@ -116,16 +169,13 @@ function run_last_task()
     overseer.run_action(last_task, "restart")
 end
 
-function restart_last_task()
+---@param type_resolver task.lang.Runner
+function restart_last_task(type_resolver)
     if last_run_info.runtype == "dap" then
-        local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
         if
-            not type_resolver
-            or (
-                not type_resolver.build_debug_cmd
-                and not type_resolver.dap_launch
-                and not type_resolver.dap_launch_rerun
-            )
+            not type_resolver.build_debug_cmd
+            and not type_resolver.dap_launch
+            and not type_resolver.dap_launch_rerun
         then
             vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
             return
@@ -136,7 +186,6 @@ function restart_last_task()
             vim.defer_fn(function()
                 run_last_task()
                 type_resolver.dap_attach_to_remote()
-                -- vim.notify("build_debug_cmd " .. vim.bo.filetype, vim.log.levels.WARN)
             end, 400)
             return
         end
