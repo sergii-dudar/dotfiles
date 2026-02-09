@@ -10,14 +10,7 @@ type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
 type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
 type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
-type_to_resolver["rust"] = build_run_cmd_only_resolver(function()
-    local dir = vim.fn.expand("%:p:h")
-    return {
-        "sh",
-        "-c",
-        "cd " .. dir .. " && cargo -q run",
-    }
-end)
+type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
 
 local M = {}
 
@@ -29,6 +22,8 @@ local M = {}
 ---@field dap_launch_rerun function|nil
 ---@field build_compile_cmd function|nil
 ---@field make_compile function|nil
+
+-- dap examples configs - ~/.local/share/nvim/lazy/mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/configurations.lua
 
 ---@return task.lang.Runner|nil
 function M.resolve(filetype)
