@@ -106,14 +106,14 @@ function M.register(type_to_resolver)
         }
     end)
 
-    type_to_resolver["rust"] = build_run_cmd_only_resolver(function()
-        local dir = vim.fn.expand("%:p:h")
-        return {
-            "sh",
-            "-c",
-            "cd " .. dir .. " && cargo -q run",
-        }
-    end)
+    -- type_to_resolver["rust"] = build_run_cmd_only_resolver(function()
+    --     local dir = vim.fn.expand("%:p:h")
+    --     return {
+    --         "sh",
+    --         "-c",
+    --         "cd " .. dir .. " && cargo -q run",
+    --     }
+    -- end)
 
     -- type_to_resolver["c"] = build_run_cmd_only_resolver(function()
     --     local dir = vim.fn.expand("%:p:h")

@@ -1,3 +1,5 @@
+local overseer_task_util = require("plugins.overseer.overseer-task-util")
+
 local M = {}
 
 function M.build_compile_cmd()
@@ -39,15 +41,17 @@ end
 -- end
 
 function M.dap_launch()
-    local fileNameWithoutExt = vim.fn.expand("%:t:r")
-    require("dap").run({
-        type = "codelldb",
-        request = "launch",
-        name = "Launch file",
-        program = "/tmp/" .. fileNameWithoutExt,
-        cwd = "${workspaceFolder}",
-    })
-    vim.cmd("Neotree close")
+    overseer_task_util.run_compile(function()
+        local fileNameWithoutExt = vim.fn.expand("%:t:r")
+        require("dap").run({
+            type = "codelldb",
+            request = "launch",
+            name = "Launch file",
+            program = "/tmp/" .. fileNameWithoutExt,
+            cwd = "${workspaceFolder}",
+        })
+        vim.cmd("Neotree close")
+    end)
 end
 
 function M.dap_launch_rerun()

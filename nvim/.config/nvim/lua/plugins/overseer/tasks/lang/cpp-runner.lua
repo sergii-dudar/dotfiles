@@ -1,4 +1,16 @@
+local overseer_task_util = require("plugins.overseer.overseer-task-util")
+
 local M = {}
+
+function M.build_compile_cmd()
+    local fileNameWithoutExt = vim.fn.expand("%:t:r")
+    local fileDir = vim.fn.expand("%:p:h")
+    return {
+        "sh",
+        "-c",
+        "g++ -std=c++23 -g " .. fileDir .. "/" .. fileNameWithoutExt .. "*.cpp -o /tmp/" .. fileNameWithoutExt,
+    }
+end
 
 ---@return table
 function M.build_run_cmd()
@@ -7,16 +19,16 @@ function M.build_run_cmd()
     return {
         "sh",
         "-c",
-        "g++ -g -std=c++23 "
+        "g++ -std=c++23 -g "
             .. fileDir
             .. "/"
             .. fileNameWithoutExt
             .. "*.cpp -o /tmp/"
             .. fileNameWithoutExt
             .. " && /tmp/"
+            .. fileNameWithoutExt
+            .. " && rm /tmp/"
             .. fileNameWithoutExt,
-        -- .. " && rm /tmp/"
-        -- .. fileNameWithoutExt,
     }
 end
 
@@ -28,18 +40,17 @@ end
 -- end
 
 function M.dap_launch()
-    require("dap").run({
-        type = "codelldb",
-        request = "launch",
-        name = "Launch file",
-        program = function()
-            -- return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-            local fileNameWithoutExt = vim.fn.expand("%:t:r")
-            return "/tmp/" .. fileNameWithoutExt
-        end,
-        cwd = "${workspaceFolder}",
-    })
-    vim.cmd("Neotree close")
+    overseer_task_util.run_compile(function()
+        local fileNameWithoutExt = vim.fn.expand("%:t:r")
+        require("dap").run({
+            type = "codelldb",
+            request = "launch",
+            name = "Launch file",
+            program = "/tmp/" .. fileNameWithoutExt,
+            cwd = "${workspaceFolder}",
+        })
+        vim.cmd("Neotree close")
+    end)
 end
 
 function M.dap_launch_rerun()

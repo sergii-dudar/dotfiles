@@ -8,7 +8,16 @@ type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner"
 type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 -- type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
-type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.clang-runner")
+type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
+type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
+type_to_resolver["rust"] = build_run_cmd_only_resolver(function()
+    local dir = vim.fn.expand("%:p:h")
+    return {
+        "sh",
+        "-c",
+        "cd " .. dir .. " && cargo -q run",
+    }
+end)
 
 local M = {}
 

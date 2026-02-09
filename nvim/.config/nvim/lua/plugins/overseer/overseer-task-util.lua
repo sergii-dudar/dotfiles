@@ -10,11 +10,9 @@ local M = {}
 
 ---@param on_success function
 function M.run_compile(on_success)
-    vim.notify("running compile")
     M.run_task({
         task_name = "COMPILE_CURRENT",
         on_complete = function(task, status)
-            vim.notify("finished." .. status, vim.log.levels.INFO)
             if status == overseer.STATUS.SUCCESS then
                 vim.notify("Compilation successful.")
                 on_success()

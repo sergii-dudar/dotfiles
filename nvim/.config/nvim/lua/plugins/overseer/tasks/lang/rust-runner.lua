@@ -1,8 +1,15 @@
 local M = {}
 
+function M.build_compile_cmd() end
+
 ---@return table
 function M.build_run_cmd()
-    return {}
+    local dir = vim.fn.expand("%:p:h")
+    return {
+        "sh",
+        "-c",
+        "cd " .. dir .. " && cargo -q run",
+    }
 end
 
 -- ---@return table
@@ -13,6 +20,7 @@ end
 -- end
 
 function M.dap_launch()
+    -- TODO:
     require("dap").run({})
     vim.cmd("Neotree close")
 end
