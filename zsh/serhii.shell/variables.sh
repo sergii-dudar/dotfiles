@@ -19,6 +19,7 @@ if isMacOs; then
         sudo bash -c "$(which kanata) --cfg $HOME/.config/kanata/kanata.kbd >> /var/log/kanata.log 2>&1 &"
         tail -f /var/log/kanata.log
     }
+    # cargo install --features cmd kanata
     function kanata_restart() {
         sudo killall kanata && kanata_run
     }
