@@ -314,8 +314,8 @@ return {
                                             mode = "n",
                                             buffer = args.buf,
                                             { "<leader>t", group = "test" },
-                                            --[[ {
-                                                "<leader>tD", -- "<leader>tt",
+                                            {
+                                                "<leader>tC", -- "<leader>tt",
                                                 function()
                                                     require("jdtls.dap").test_class({
                                                         config_overrides = type(opts.test) ~= "boolean"
@@ -324,7 +324,7 @@ return {
                                                     })
                                                 end,
                                                 desc = "Debug All Test (Jdtls)", -- "Run All Test",
-                                            }, ]]
+                                            },
                                             {
                                                 "<leader>td", -- "<leader>tr",
                                                 function()

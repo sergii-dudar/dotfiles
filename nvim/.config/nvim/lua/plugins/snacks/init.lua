@@ -5,6 +5,13 @@
     { '<leader>s/', function() Snacks.picker.search_history() end, desc = "Search History" },
     { "<leader>su", function() Snacks.picker.undo() end, desc = "Undotree" },
     { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
+
+    { "<leader>fc", LazyVim.pick.config_files(), desc = "Find Config File" },
+    { "<leader>sp", function() Snacks.picker.lazy() end, desc = "Search for Plugin Spec" },
+    { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
+    { "<leader>sw", LazyVim.pick("grep_word"), desc = "Visual selection or word (Root Dir)", mode = { "n", "x" } },
+    { "<leader>sW", LazyVim.pick("grep_word", { root = false }), desc = "Visual selection or word (cwd)", mode = { "n", "x" } },
+    map("n", "<leader>gb", function() Snacks.picker.git_log_line() end, { desc = "Git Blame Line" })
 ]]
 
 return {
@@ -74,9 +81,10 @@ return {
             -- pickets
             { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
-            { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
+            -- { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             -- { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
+            { "<leader>m", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader><space>", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
