@@ -58,4 +58,48 @@ function M.dap_launch_rerun()
     M.dap_launch()
 end
 
+--[[ ---@return boolean - true when success
+function make_compile()
+    local dir = vim.fn.expand("%:p:h")
+    local fileName = vim.fn.expand("%:t")
+    local fileNameWithoutExt = vim.fn.expand("%:t:r")
+
+    -- Set makeprg for this buffer
+    local compile_cmd =
+        string.format("cd %s && gcc -g -std=c17 -Wno-format %s -o /tmp/%s", dir, fileName, fileNameWithoutExt)
+    vim.bo.makeprg = compile_cmd
+
+    -- Compile synchronously
+    vim.cmd("silent make")
+
+    -- Check if compilation succeeded by checking quickfix list
+    local qflist = vim.fn.getqflist()
+    if #qflist > 0 then
+        vim.cmd("Trouble qflist open")
+        -- vim.cmd("Trouble diagnostics open")
+        -- vim.cmd("copen") -- Show errors
+        vim.notify("Compilation failed. Fix errors before debugging.", vim.log.levels.WARN)
+        return false
+    end
+
+    vim.notify("Compilation successful. Starting debugger...")
+    return true
+end
+
+function M.dap_launch()
+    if not make_compile() then
+        return
+    end
+
+    local fileNameWithoutExt = vim.fn.expand("%:t:r")
+    require("dap").run({
+        type = "codelldb",
+        request = "launch",
+        name = "Launch file",
+        program = "/tmp/" .. fileNameWithoutExt,
+        cwd = "${workspaceFolder}",
+    })
+    vim.cmd("Neotree close")
+end ]]
+
 return M
