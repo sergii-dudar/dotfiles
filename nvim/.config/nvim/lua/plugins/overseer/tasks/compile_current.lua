@@ -22,7 +22,7 @@ function M.build_taks()
                 -- parse it using errorformat, and display any matching lines as diagnostics.
                 components = {
                     "on_exit_set_status",
-                    "on_complete_dispose",
+                   -- "on_complete_dispose",
                     { "on_result_diagnostics_trouble", close = true },
                     -- "on_result_diagnostics",
                     -- { "on_output_quickfix", close = true, open = true },

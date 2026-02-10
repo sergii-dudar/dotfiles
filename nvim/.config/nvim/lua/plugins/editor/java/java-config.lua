@@ -81,6 +81,24 @@ return {
                         client.server_capabilities.documentHighlightProvider = false
                         util.boot_ls_init(client, ctx)
                     end,
+                    settings = {
+                        -- options: ~/.local/share/nvim/mason/packages/vscode-spring-boot-tools/extension/package.json
+                        ["spring-boot"] = {
+                            ls = {
+                                problem = {
+                                    -- [ IGNORE, INFO, WARNING, HINT, ERROR ]
+                                    ["application-properties"] = {
+                                        -- spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY
+                                        PROP_UNKNOWN_PROPERTY = "IGNORE",
+                                    },
+                                    ["application-yaml"] = {
+                                        -- pring-boot.ls.problem.application-yaml.YAML_UNKNOWN_PROPERTY
+                                        YAML_UNKNOWN_PROPERTY = "IGNORE",
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
             }
         end,
@@ -91,7 +109,7 @@ return {
         lazy = true,
         -- stylua: ignore
         keys = {
-            { "<leader>je", function() require('java-deps').toggle_outline() end, desc = "Toogle Java Dependencies" },
+            { "<leader>jdd", function() require('java-deps').toggle_outline() end, desc = "Toogle Java Dependencies" },
             -- :lua require('java-deps').open_outline()
             -- :lua require('java-deps').close_outline()
         },

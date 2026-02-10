@@ -24,7 +24,7 @@ function M.build_taks()
                     { "on_output_quickfix", set_diagnostics = true },
                     "on_result_diagnostics",
                     "on_exit_set_status",
-                    "on_complete_dispose",
+                    -- "on_complete_dispose",
                     -- "on_complete_notify",
                     -- { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
                     -- "on_result_diagnostics_trouble",
