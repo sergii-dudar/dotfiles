@@ -18,6 +18,12 @@ return {
                 min_width = 5,
                 max_height = 0.33,
                 min_height = 0.33,
+                render = function(task)
+                    local render = require("overseer.render")
+                    return {
+                        render.status_and_name(task),
+                    }
+                end,
             },
         },
         -- stylua: ignore
