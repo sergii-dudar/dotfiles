@@ -45,6 +45,15 @@ return {
             overseer.register_template(compile_current.build_taks())
             overseer.register_template(run_current.build_taks())
             overseer.register_template(debug_current.build_taks())
+
+            -- Map 'q' to close overseer task output windows
+            vim.api.nvim_create_autocmd("FileType", {
+                -- pattern = { "OverseerList", "OverseerOutput" },
+                pattern = { "OverseerOutput" },
+                callback = function(event)
+                    vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
+                end,
+            })
         end,
     },
     {
