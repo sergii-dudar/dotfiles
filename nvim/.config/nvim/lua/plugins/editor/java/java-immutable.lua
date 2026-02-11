@@ -221,6 +221,10 @@ return {
 
             local function attach_jdtls()
                 local fname = vim.api.nvim_buf_get_name(0)
+                -- Don't attach LSP to Java files outside current working directory
+                if require("utils.java.java-common").if_java_file_outside() then
+                    return
+                end
 
                 -- Configuration can be augmented and overridden by opts.jdtls
                 local config = extend_or_override({

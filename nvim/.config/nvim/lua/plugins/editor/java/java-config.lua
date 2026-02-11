@@ -85,6 +85,7 @@ return {
             return {
                 ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar"),
                 log_file = home .. "/.local/state/nvim/spring-boot-ls.log",
+                autocmd = false, -- disable default autocmd, we'll create our own
                 server = {
                     on_init = function(client, ctx)
                         client.server_capabilities.inlayHintProvider = false -- disable to not conflict with jdtls inlay hint
@@ -111,6 +112,25 @@ return {
                     },
                 },
             }
+        end,
+        config = function(_, opts)
+            require("spring_boot").setup(opts)
+            -- Create custom autocmd that checks if file is within cwd
+            local launch = require("spring_boot.launch")
+            local ls_config = launch.update_ls_config(opts)
+            local group = vim.api.nvim_create_augroup("spring_boot_ls_custom", { clear = true })
+            vim.api.nvim_create_autocmd("FileType", {
+                group = group,
+                pattern = { "java", "yaml", "jproperties" },
+                desc = "Spring Boot Language Server (CWD check)",
+                callback = function()
+                    if require("utils.java.java-common").if_java_file_outside() then
+                        return
+                    end
+                    -- Only start LSP if file is within current working directory
+                    launch.start(ls_config)
+                end,
+            })
         end,
     },
     {

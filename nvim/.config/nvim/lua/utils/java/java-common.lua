@@ -191,6 +191,12 @@ function M.is_java_project()
     return is_java_project_loc
 end
 
+function M.if_java_file_outside()
+    local fname = vim.api.nvim_buf_get_name(0)
+    local cwd = vim.fn.getcwd()
+    return not vim.startswith(fname, cwd)
+end
+
 local get_root_src_package_inner = function(src_dir)
     -- run your fd command
     local cmd = "fd -e java --type f . " .. src_dir .. " --exec dirname {} \\; | sort -u | head -n 1"
