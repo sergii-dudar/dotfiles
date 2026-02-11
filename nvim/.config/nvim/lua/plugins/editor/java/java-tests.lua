@@ -1,6 +1,8 @@
 -- :lua print(vim.fn.stdpath("log"))
 -- :lua print(vim.fn.stdpath("data"))
 
+local java_util = require("utils.java.java-common")
+
 -- https://github.com/rcasia/neotest-java/pull/153#issuecomment-2395210490
 return {
     {
@@ -10,6 +12,7 @@ return {
         --[[ branch = "main",
         commit = "f6e357f630fc21111d92553fb0ceacfdba1157b3", ]]
         ft = "java",
+        cond = java_util.is_java_project(),
         dependencies = {
             "mfussenegger/nvim-jdtls",
             "mfussenegger/nvim-dap", -- for the debugger
@@ -33,9 +36,8 @@ return {
             -- { "<leader>tr", function() require("neotest").run.run() end, desc = "Run Nearest (Neotest)" },
             -- { "<leader>tl", function() require("neotest").run.run_last() end, desc = "Run Last (Neotest)" },
             -- stylua: ignore
-            { "<leader>tR", function() 
+            { "<leader>tR", function()
                 require("neotest").run.run({strategy = "dap"}) 
-                vim.cmd("Neotree close")
             end, desc = "Debug Nearest" },
             {
                 "<leader>ts",

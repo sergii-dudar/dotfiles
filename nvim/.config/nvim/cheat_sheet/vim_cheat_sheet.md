@@ -302,7 +302,17 @@ usefull links:
 | `"_`    | Black hole register |
 | `:reg`  | Show all registers  |
 
-## Search & Replace
+## ============================== Command Mode ==============================
+
+### Special hotkeys inside command mode
+
+| Command      | Description                                            |
+| ------------ | ------------------------------------------------------ |
+| `<C-R><C-W>` | the `Word` under the cursor (when called command mode) |
+| `<C-R><C-A>` | the `WORD` under the cursor                            |
+| `<C-R><C-L>` | the `line` under the cursor                            |
+
+## ============================== Search & Replace ==============================
 
 ### Searching
 

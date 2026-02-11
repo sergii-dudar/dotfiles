@@ -89,7 +89,6 @@ function M.dap_launch()
             args = {},
             console = "integratedTerminal",
         })
-        vim.cmd("Neotree close")
     end)
 end
 

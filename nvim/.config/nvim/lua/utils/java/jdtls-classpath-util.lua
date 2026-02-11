@@ -332,7 +332,7 @@ end
 
 -- Get classpath for running main method in current buffer
 -- Automatically detects if file is in test or main scope
-function M.get_classpath_for_main_method(bufnr)
+function M.get_classpath_for_main_method_table(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
     -- Get jdtls client
@@ -386,7 +386,16 @@ function M.get_classpath_for_main_method(bufnr)
     local deduplicated = deduplicate_classpaths(classpaths)
     log.info("Got", #deduplicated, scope, "classpath entries for main method")
 
-    return table.concat(deduplicated, ":")
+    -- return table.concat(deduplicated, ":")
+    return deduplicated
+end
+
+function M.get_classpath_for_main_method(bufnr)
+    local classpath = M.get_classpath_for_main_method_table(bufnr)
+    if classpath then
+        return table.concat(classpath, ":")
+    end
+    return nil
 end
 
 -- Clear cache

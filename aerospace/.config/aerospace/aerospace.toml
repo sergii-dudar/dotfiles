@@ -1,4 +1,4 @@
-config-version = 2
+# config-version = 2
 
 # In i3, all workspaces are phantom
 # persistent-workspaces = []
@@ -81,7 +81,8 @@ inner.vertical = 0
 outer.left = 0
 outer.right = 0
 outer.bottom = 0
-outer.top = 27
+# outer.top = 27 # in case sketchybar enabled
+outer.top = 0
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes

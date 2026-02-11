@@ -20,9 +20,19 @@ return {
     --         { "<leader>Mf", "<cmd>MavenFavorites<cr>", desc = "Maven Favorite Commands" },
     --     },
     -- },
+    -- {
+    --     "neovim/nvim-lspconfig",
+    --     cond = not java_util.is_java_project(),
+    --     opts = {
+    --         servers = {
+    --             java_language_server = {},
+    --         },
+    --     },
+    -- },
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
+        cond = java_util.is_java_project(),
         dependencies = {
             "mason-org/mason.nvim",
             "JavaHello/spring-boot.nvim",
@@ -106,6 +116,7 @@ return {
     {
         "JavaHello/java-deps.nvim",
         ft = { "java" },
+        cond = java_util.is_java_project(),
         lazy = true,
         -- stylua: ignore
         keys = {
@@ -147,6 +158,7 @@ return {
     {
         -- "simaxme/java.nvim",
         "sergii-dudar/java.nvim", -- my fork with [ neo-tree, oil.nvim, snacks rename ] support
+        cond = java_util.is_java_project(),
         ft = "java",
         -- stylua: ignore
         keys = {

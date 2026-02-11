@@ -20,7 +20,6 @@ local last_runned_dap_config = nil
 
 local run_main_class_config = function(dap_config)
     require("dap").run(dap_config)
-    vim.cmd("Neotree close")
 end
 
 M.rerun_last = function()
@@ -30,7 +29,6 @@ M.rerun_last = function()
     end
     run_main_class_config(last_runned_dap_config) ]]
     require("dap").run_last()
-    vim.cmd("Neotree close")
 end
 
 M.run_current_main_class = function()
@@ -40,13 +38,14 @@ M.run_current_main_class = function()
         return
     end
 
+    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method_table()
     last_runned_dap_config = {
         -- You need to extend the classPath to list your dependencies.
         -- `nvim-jdtls` would automatically add the `classPaths` property if it is missing
-        -- classPaths = {},
+        classPaths = classpath,
 
         -- If using multi-module projects, remove otherwise.
-        -- projectName = "yourProjectName",
+        projectName = "payment-norkom-adapter-service", -- TODO: make dynamic
         javaExec = java_bin,
         mainClass = class_name,
 
@@ -66,7 +65,6 @@ function M.attach_to_remote(port)
     port = port or M.default_dap_port
     vim.defer_fn(function()
         require("dap").run(default_attach_config)
-        vim.cmd("Neotree close")
     end, 200) -- ms; increase if your JVM is slow to start
 end
 

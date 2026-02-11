@@ -31,7 +31,6 @@ function M.dap_launch()
             "!**/node_modules/**",
         },
     })
-    vim.cmd("Neotree close")
 end
 
 function M.dap_launch_rerun()

@@ -20,7 +20,6 @@ function M.dap_launch()
         request = "launch",
         program = "${file}",
     })
-    vim.cmd("Neotree close")
 end
 
 function M.dap_launch_rerun()

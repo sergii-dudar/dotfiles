@@ -114,7 +114,6 @@ function M.dap_launch()
 
     dd({ config = config, adapter = dap.adapters.netcoredbg })
     dap.run(config)
-    vim.cmd("Neotree close")
 end
 
 function M.dap_launch_rerun()

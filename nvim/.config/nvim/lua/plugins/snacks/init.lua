@@ -69,6 +69,11 @@ return {
         end,
         -- stylua: ignore
         keys = {
+            { "<leader>g.", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
+            { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
+            -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
+            -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },
+
             -- { "<leader>S", desc = "Scratch ..." },
             -- { "<leader>SS", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
             -- { "<leader>Sf", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },

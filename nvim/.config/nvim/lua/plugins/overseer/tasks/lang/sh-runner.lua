@@ -36,7 +36,6 @@ function M.dap_launch()
         env = {},
         terminalKind = "integrated",
     })
-    vim.cmd("Neotree close")
 end
 
 function M.dap_launch_rerun()

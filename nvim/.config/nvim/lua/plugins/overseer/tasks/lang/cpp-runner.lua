@@ -49,7 +49,6 @@ function M.dap_launch()
             program = "/tmp/" .. fileNameWithoutExt,
             cwd = "${workspaceFolder}",
         })
-        vim.cmd("Neotree close")
     end)
 end
 
