@@ -90,8 +90,8 @@ return {
                 local lombok_jar = vim.fn.expand("$MASON/share/jdtls/lombok.jar")
                 table.insert(cmd, string.format("--jvm-arg=-javaagent:%s", lombok_jar))
             end
-            -- table.insert(cmd, "--jvm-arg=-Xms8g")
-            -- table.insert(cmd, "--jvm-arg=-Xmx16g")
+            table.insert(cmd, "--jvm-arg=-Xms4g")
+            table.insert(cmd, "--jvm-arg=-Xmx8g")
             return {
                 root_dir = function(path)
                     return vim.fs.root(path, vim.lsp.config.jdtls.root_markers)

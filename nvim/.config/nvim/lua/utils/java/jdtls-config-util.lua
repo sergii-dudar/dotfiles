@@ -48,6 +48,7 @@ M.jdtls_settings = {
         -- ====================================================================
         -- Automatic build settings
         autobuild = {
+            -- TODO: map to build keyboard
             enabled = true, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
         },
         -- Max number of concurrent builds
@@ -106,6 +107,8 @@ M.jdtls_settings = {
                 "**/archetype-resources/**",
                 "**/META-INF/maven/**",
                 "**/.git/**",
+                "**/target/classes/**",
+                "**/target/test-classes/**",
                 -- "**/target/**",
                 -- "**/build/**",
             },
@@ -240,11 +243,11 @@ M.jdtls_settings = {
             -- How many classes from a specific package should be imported before automatic imports combine them all into a single import
             organizeImports = {
                 -- Specifies the number of imports added before a star-import declaration is used.
-                --starThreshold = 9999,
-                starThreshold = 5,
+                starThreshold = 9999,
+                -- starThreshold = 5,
                 -- Specifies the number of static imports added before a star-import declaration is used.
-                --staticStarThreshold = 9999,
-                staticStarThreshold = 3,
+                staticStarThreshold = 9999,
+                -- staticStarThreshold = 3,
             },
         },
         -- ====================================================================
@@ -274,10 +277,10 @@ M.jdtls_settings = {
         -- ====================================================================
         -- CODE LENS
         -- ====================================================================
-        implementationCodeLens = "all", -- all, types, methods
+        -- implementationCodeLens = "methods", -- all, types, methods
         -- enable code lens in the lsp
-        referencesCodeLens = {
-            enabled = true,
+        referencesCodeLens = { -- shows inline information above methods, classes, and fields
+            enabled = false, -- disabled for performance
         },
         -- ====================================================================
         -- INLAY HINTS
@@ -285,7 +288,7 @@ M.jdtls_settings = {
         inlayHints = {
             -- enable inlay hints for parameter names,
             parameterNames = {
-                enabled = "all", --none, all,
+                enabled = "all", -- 'none', 'literals', 'all'
             },
         },
         -- ====================================================================
@@ -342,7 +345,7 @@ M.jdtls_settings = {
         -- Enable downloading archives from maven automatically
         maven = {
             downloadSources = true,
-            updateSnapshots = true,
+            updateSnapshots = false, -- to speed up
         },
         references = {
             includeDecompiledSources = true,
