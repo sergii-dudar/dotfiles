@@ -1,6 +1,6 @@
 local M = {}
 
-M.current_java_package = function()
+function M.current_java_package()
     local file = vim.api.nvim_buf_get_name(0)
     -- local file =
     --     "/home/serhii/serhii.home/git/tests/serhii-application/src/main/java/ua/serhii/application/mapper/data/UserMapper.java"
@@ -19,7 +19,7 @@ M.current_java_package = function()
     return ""
 end
 
-M.current_java_file_name = function()
+function M.current_java_file_name()
     local file = vim.api.nvim_buf_get_name(0)
     local name = vim.fn.fnamemodify(file, ":t:r")
 
@@ -30,7 +30,7 @@ M.current_java_file_name = function()
     return name .. " "
 end
 
-M.add_imports = function(imports)
+function M.add_imports(imports)
     local skip_on_first = 0
     return function()
         if skip_on_first == 0 then

@@ -17,31 +17,31 @@ local function get_verify_runner(debug)
     return cmd
 end
 
-M.run_java_test_method = function(debug)
+function M.run_java_test_method(debug)
     -- local method_name = utils.get_current_full_method_name("\\#")
     local method_name = java_ts_util.get_full_method("\\#")
     vim.cmd("15sp|term " .. get_test_runner(method_name, debug))
 end
 
-M.run_java_test_method_debug = function()
+function M.run_java_test_method_debug()
     M.run_java_test_method(true)
 end
 
-M.run_java_test_class = function(debug)
+function M.run_java_test_class(debug)
     -- local class_name = utils.get_current_full_class_name()
     local class_name = java_ts_util.get_class_name()
     vim.cmd("15sp|term " .. get_test_runner(class_name, debug))
 end
 
-M.run_java_test_class_debug = function()
+function M.run_java_test_class_debug()
     M.run_java_test_class(true)
 end
 
-M.run_java_test_all = function(debug)
+function M.run_java_test_all(debug)
     vim.cmd("15sp|term " .. get_verify_runner(debug))
 end
 
-M.run_java_test_all_debug = function()
+function M.run_java_test_all_debug()
     M.run_java_test_all(true)
 end
 
@@ -62,11 +62,11 @@ end
 -- 15sp|term mvn spring-boot:run
 -- 15sp|term mvn test -Dtest="testSomething"
 
-M.run_spring_boot = function(debug)
+function M.run_spring_boot(debug)
     vim.cmd("15sp|term " .. get_spring_boot_runner(nil, debug))
 end
 
-M.run_spring_boot_debug = function()
+function M.run_spring_boot_debug()
     M.run_spring_boot(true)
 end
 

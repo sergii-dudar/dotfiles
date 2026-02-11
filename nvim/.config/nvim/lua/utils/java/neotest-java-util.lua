@@ -71,13 +71,13 @@ local function get_params(sig)
     return params
 end
 
-M.build_method_test_param_qualified_name = function(simple_name, default_qualified_name)
+function M.build_method_test_param_qualified_name(simple_name, default_qualified_name)
     return string.format("jdtls:{{%s}}||default:{{%s}}", simple_name, default_qualified_name)
 end
 
 ---@param qualified_name string - build_method_test_param_qualified_name based name to handle
 ---return string
-M.parse_and_resolve_method_params_nio = function(qualified_name)
+function M.parse_and_resolve_method_params_nio(qualified_name)
     local params = get_params(qualified_name)
     -- print(params)
     for _, value in ipairs(params) do
@@ -174,7 +174,7 @@ end
 
 ---@param context { qualified_name:string, classpath:string }
 ---@return string
-M.resolve_parametrized_method_signature_nio = function(context)
+function M.resolve_parametrized_method_signature_nio(context)
     local class_name, method_name, method_parameters = context.qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
         return context.qualified_name

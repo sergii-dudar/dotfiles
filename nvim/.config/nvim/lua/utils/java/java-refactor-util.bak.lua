@@ -329,7 +329,7 @@ local all_registered_changes = {}
 
 ---@param src string
 ---@param dst string
-M.register_change = function(src, dst)
+function M.register_change(src, dst)
     table.insert(all_registered_changes, {
         src = src,
         dst = dst,
@@ -353,7 +353,7 @@ local get_all_src_siblings = function(context, all_changes)
     return context_src_siblings
 end
 
-M.process_registerd_changes = function()
+function M.process_registerd_changes()
     if vim.tbl_isempty(all_registered_changes) then
         vim.notify("No any registered changes")
     else
@@ -378,7 +378,7 @@ end
 
 ---@param src string
 ---@param dst string
-M.process_single_file_change = function(src, dst)
+function M.process_single_file_change(src, dst)
     M.register_change(src, dst)
     M.process_registerd_changes()
 end

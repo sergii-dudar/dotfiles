@@ -22,7 +22,7 @@ local run_main_class_config = function(dap_config)
     require("dap").run(dap_config)
 end
 
-M.rerun_last = function()
+function M.rerun_last()
     --[[ if not last_runned_dap_config then
         vim.notify("❌ There no any previous DAP config to run", vim.log.levels.WARN)
         return
@@ -31,7 +31,7 @@ M.rerun_last = function()
     require("dap").run_last()
 end
 
-M.run_current_main_class = function()
+function M.run_current_main_class()
     local class_name = java_ts_util.get_class_name()
     if not class_name then
         vim.notify("❌ Could not determine current class name for DAP run", vim.log.levels.WARN)

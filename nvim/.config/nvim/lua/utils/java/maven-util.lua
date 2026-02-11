@@ -10,11 +10,11 @@ local function maven_settings()
     end
 end
 
-M.get_maven_settings = function()
+function M.get_maven_settings()
     return vim.env["MAVEN_SETTINGS_XML"] or maven_settings()
 end
 
-M.is_pom_file = function(file)
+function M.is_pom_file(file)
     return vim.endswith(file, "pom.xml")
 end
 
@@ -25,12 +25,12 @@ local severity_map = {
     HINT = "HINT",
 }
 
-M.to_severity = function(log_level)
+function M.to_severity(log_level)
     local key = severity_map[log_level:upper()] or "ERROR"
     return vim.diagnostic.severity[key]
 end
 
-M.dedupe_file_diagnstics = function(file_diadnostics)
+function M.dedupe_file_diagnstics(file_diadnostics)
     local seen = {}
     local out = {}
 

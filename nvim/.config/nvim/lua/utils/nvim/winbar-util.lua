@@ -21,7 +21,7 @@ function split_str_by_src(str)
     return str
 end
 
-M.eval = function()
+function M.eval()
     --local file_path = vim.api.nvim_eval_statusline('%f', {}).str
     local file_path = split_str_by_src(vim.api.nvim_eval_statusline("%f", {}).str)
 

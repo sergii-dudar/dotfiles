@@ -42,7 +42,7 @@ local java_compile_java_pattern = "%[([A-Z]+)%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)
 ---line_start_position: integer,
 ---line_end_position: integer,
 ---method: string} | nil
-M.parse_java_mvn_run_class_line = function(line)
+function M.parse_java_mvn_run_class_line(line)
     -- line = util.strip_ansi(line)
     local prefix, class_path, method, file_name, line_num = line:match(java_mvn_class_pattern)
     if class_path then
@@ -64,7 +64,7 @@ end
 ---end_col: integer,
 ---message: string,
 ---severity: string} | nil
-M.parse_mvn_compile_java_line = function(line)
+function M.parse_mvn_compile_java_line(line)
     -- line = util.strip_ansi(line)
     local level, file, lnum, col, msg = line:match(java_compile_java_pattern)
     if file then
@@ -88,7 +88,7 @@ end
 ---line_start_position: integer,
 ---line_end_position: integer,
 ---method: string}]
-M.parse_java_mvn_run_class_text = function(text)
+function M.parse_java_mvn_run_class_text(text)
     local items = {}
     for line in text:gmatch("[^\n]+") do
         local p = M.parse_java_mvn_run_class_line(line)
@@ -105,7 +105,7 @@ end
 ---end_col: integer,
 ---message: string,
 ---severity: string}]
-M.parse_mvn_compile_java_text = function(text)
+function M.parse_mvn_compile_java_text(text)
     local items = {}
     -- for line in trace:gmatch("[^\r\n]+") do
     for line in text:gmatch("[^\n]+") do
@@ -122,7 +122,7 @@ end
 -- local src_dir = root .. "/src/main/java/"
 -- local test_dir = root .. "/src/test/java/"
 
-M.java_class_to_proj_path = function(classname)
+function M.java_class_to_proj_path(classname)
     local relative_path = classname:gsub("%.", "/") .. ".java"
     local file_path = vim.fn.glob("*/**/" .. relative_path)
 
@@ -146,7 +146,7 @@ M.java_class_to_proj_path = function(classname)
     return nil ]]
 end
 
---[[ M.edit_java_resourse_file = function(resource_package_url)
+--[[ function M.edit_java_resourse_file(resource_package_url)
     resource_package_url = resource_package_url or util.get_token_under_cursor('%"')
     local main_resource = string.format("%s/src/main/resources/%s", cwd, resource_package_url)
     local test_resource = string.format("%s/src/test/resources/%s", cwd, resource_package_url)
@@ -172,7 +172,7 @@ local java_root_files = {
 }
 
 local is_java_project_loc = nil
-M.is_java_project = function()
+function M.is_java_project()
     if is_java_project_loc ~= nil then
         return is_java_project_loc
     end
@@ -224,7 +224,7 @@ end
 
 local root_src_package_cache = {}
 
-M.get_root_src_package = function(src_dir)
+function M.get_root_src_package(src_dir)
     src_dir = src_dir or "src/main/java"
     local result = root_src_package_cache[src_dir]
     if result then
@@ -236,11 +236,11 @@ M.get_root_src_package = function(src_dir)
     return result
 end
 
-M.get_root_src_main_package = function()
+function M.get_root_src_main_package()
     return M.get_root_src_package("src/main/java")
 end
 
-M.get_root_src_test_package = function()
+function M.get_root_src_test_package()
     return M.get_root_src_package("src/test/java")
 end
 

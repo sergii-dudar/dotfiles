@@ -47,7 +47,7 @@ local function push_current(diagnostics_table, current_error)
     end
 end
 
-M.parse_maven_output = function(diagnostics, text)
+function M.parse_maven_output(diagnostics, text)
     local current = nil
     local current_num = 1
 
@@ -127,7 +127,7 @@ M.parse_maven_output = function(diagnostics, text)
     return diagnostics
 end
 
-M.publish_maven_diagnostics = function(diagnostics)
+function M.publish_maven_diagnostics(diagnostics)
     if vim.tbl_isempty(diagnostics) then
         vim.diagnostic.reset()
         return
@@ -236,7 +236,7 @@ local function get_verify_runner()
     return { "mvn", "-q", "verify", "-DskipAssembly", "-DskipInstall", "-DskipTests=false" }
 end
 
-M.run_java_test_method = function(is_debug)
+function M.run_java_test_method(is_debug)
     local method_name = java_ts_util.get_full_method("#")
     if method_name then
         run_mvn_test_cmd(get_test_runner(method_name, is_debug))
@@ -245,7 +245,7 @@ M.run_java_test_method = function(is_debug)
     end
 end
 
-M.run_java_test_class = function(is_debug)
+function M.run_java_test_class(is_debug)
     local class_name = java_ts_util.get_class_name()
     if class_name then
         run_mvn_test_cmd(get_test_runner(class_name, is_debug))
@@ -254,11 +254,11 @@ M.run_java_test_class = function(is_debug)
     end
 end
 
-M.run_java_test_all = function()
+function M.run_java_test_all()
     run_mvn_test_cmd(get_verify_runner())
 end
 
-M.rerun_last_cmd = function()
+function M.rerun_last_cmd()
     if last_runned_test_cmd_args then
         run_mvn_test_cmd(last_runned_test_cmd_args)
     else

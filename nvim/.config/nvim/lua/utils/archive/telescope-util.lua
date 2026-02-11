@@ -6,7 +6,7 @@ local init_telescope = function()
     local M = {}
 
     -- Function to change working directory and re-run live_grep
-    M.change_directory_and_search = function(prompt_bufnr, current_opts)
+    function M.change_directory_and_search(prompt_bufnr, current_opts)
         actions.close(prompt_bufnr)
 
         telescope_builtin.file_browser({
@@ -28,7 +28,7 @@ local init_telescope = function()
     end
 
     -- Function to change file extension and re-run live_grep
-    M.change_extension_and_search = function(prompt_bufnr, current_opts)
+    function M.change_extension_and_search(prompt_bufnr, current_opts)
         actions.close(prompt_bufnr)
 
         -- Prompt for file extension
@@ -43,7 +43,7 @@ local init_telescope = function()
     end
 
     -- Combined function for live_grep with dynamic directory and file extension change
-    M.grep_with_dynamic_options = function(opts)
+    function M.grep_with_dynamic_options(opts)
         opts = opts or {}
 
         -- Save initial options to maintain context between actions

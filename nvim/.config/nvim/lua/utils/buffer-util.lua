@@ -6,7 +6,7 @@ local work_buffer_types = {
 }
 
 -- get loaded bufferIds list, same as by `:ls` command or telescope buffers
-M.get_active_ls_buffers = function()
+function M.get_active_ls_buffers()
     local buffers = vim.api.nvim_list_bufs()
     local active_buffers = {}
     for _, buf in ipairs(buffers) do
@@ -25,7 +25,7 @@ M.get_active_ls_buffers = function()
 end
 
 ---@return integer|nil
-M.find_buf_by_path = function(path)
+function M.find_buf_by_path(path)
     path = vim.fn.fnamemodify(path, ":p")
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         if vim.api.nvim_buf_is_loaded(buf) then
@@ -39,7 +39,7 @@ M.find_buf_by_path = function(path)
     return nil
 end
 
-M.close_buffer_by_path = function(path)
+function M.close_buffer_by_path(path)
     local buf = M.find_buf_by_path(path)
     if buf then
         vim.api.nvim_buf_delete(buf, { force = false })
@@ -48,7 +48,7 @@ M.close_buffer_by_path = function(path)
     return false
 end
 
-M.open_buffer_by_path = function(path)
+function M.open_buffer_by_path(path)
     vim.cmd.edit(path)
 end
 

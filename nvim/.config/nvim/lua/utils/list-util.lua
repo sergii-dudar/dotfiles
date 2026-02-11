@@ -4,7 +4,7 @@ local M = {}
 ---@param tbl [table]
 ---@param predicate function(table)
 ---@return table|nil
-M.findFirst = function(tbl, predicate)
+function M.findFirst(tbl, predicate)
     for _, v in ipairs(tbl) do
         if predicate(v) then
             return v
@@ -17,7 +17,7 @@ end
 ---@param tbl [table]
 ---@param predicate function(table)
 ---@return [table]
-M.findAll = function(tbl, predicate)
+function M.findAll(tbl, predicate)
     local result = {}
     for _, v in ipairs(tbl) do
         if predicate(v) then
@@ -27,7 +27,7 @@ M.findAll = function(tbl, predicate)
     return result
 end
 
-M.any_match = function(target_string, match_table)
+function M.any_match(target_string, match_table)
     -- vim.notify(
     --     "input: " .. target_string .. " --- " .. require("utils.common-util").table_to_string(match_table),
     --     vim.log.levels.INFO
@@ -40,7 +40,7 @@ M.any_match = function(target_string, match_table)
     return false
 end
 
-M.find_by = function(tbl, key, value)
+function M.find_by(tbl, key, value)
     for _, subtable in ipairs(tbl) do
         if subtable[key] == value then
             return subtable
@@ -48,7 +48,7 @@ M.find_by = function(tbl, key, value)
     end
 end
 
-M.to_unique_list = function(tbl)
+function M.to_unique_list(tbl)
     local seen_map = {}
     local unique = {}
 

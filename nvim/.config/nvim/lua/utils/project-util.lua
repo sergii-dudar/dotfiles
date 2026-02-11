@@ -1,6 +1,6 @@
 local M = {}
 
-M.is_multifile_proj = function()
+function M.is_multifile_proj()
     local current_file = vim.fn.getcwd() -- vim.fn.expand("%:p")
     local list_util = require("utils.list-util")
     local multifile_projs_dirs = {

@@ -135,7 +135,7 @@ end
 
 ---@param symbol string
 ---@return { fqn: string } | nil
-M.jdt_load_workspace_symbol_sync_nio = function(symbol)
+function M.jdt_load_workspace_symbol_sync_nio(symbol)
     local result = cache_util.java.jdt_load_workspace_symbol_map[symbol]
     if result then
         return result
@@ -152,7 +152,7 @@ end
 
 ---@param class_names [string]
 ---@param handler function([table])
-M.jdt_load_unique_class_list = function(class_names, handler)
+function M.jdt_load_unique_class_list(class_names, handler)
     local all_items = {}
     class_names = list_util.to_unique_list(class_names)
     local pending = #class_names
@@ -230,13 +230,13 @@ end
 
 ---@param class_name string
 ---@param handler function(table)
-M.jdt_load_unique_class = function(class_name, handler)
+function M.jdt_load_unique_class(class_name, handler)
     M.jdt_load_unique_class_list({ class_name }, function(responseList)
         handler(responseList[class_name])
     end)
 end
 
-M.jdt_open_class = function(class_name, line_number)
+function M.jdt_open_class(class_name, line_number)
     if not class_name or class_name == "" then
         vim.notify("Please provide a class name.", vim.log.levels.WARN)
         return
@@ -263,7 +263,7 @@ M.jdt_open_class = function(class_name, line_number)
     end)
 end
 
-M.parse_jdt_link = function(encoded_jdt_link)
+function M.parse_jdt_link(encoded_jdt_link)
     if not encoded_jdt_link then
         return nil, nil
     end
@@ -300,7 +300,7 @@ local extract_jdt_all_links = function(jdt_link_text)
     return results
 end
 
-M.extrace_and_open_first_jdt_link = function(line)
+function M.extrace_and_open_first_jdt_link(line)
     local extracted = extract_jdt_first_link(line)
     if not extracted then
         vim.notify(string.format("⚠️ Can't extract class name with line from %s", line))
@@ -310,7 +310,7 @@ M.extrace_and_open_first_jdt_link = function(line)
     M.jdt_open_class(extracted.class_name, extracted.line_number)
 end
 
-M.extrace_and_open_all_jdt_link = function(line)
+function M.extrace_and_open_all_jdt_link(line)
     local extracted = extract_jdt_all_links(line)
     if not extracted or vim.tbl_isempty(extracted) then
         vim.notify(string.format("⚠️ Can't extrct any class name with line from %s", line))
@@ -322,22 +322,22 @@ M.extrace_and_open_all_jdt_link = function(line)
     end
 end
 
-M.extrace_and_open_current_line_first_jdt_link = function()
+function M.extrace_and_open_current_line_first_jdt_link()
     local current_line = util.get_line_under_cursor()
     M.extrace_and_open_first_jdt_link(current_line)
 end
 
-M.extrace_and_open_current_line_all_jdt_link = function()
+function M.extrace_and_open_current_line_all_jdt_link()
     local current_line = util.get_line_under_cursor()
     M.extrace_and_open_all_jdt_link(current_line)
 end
 
-M.extrace_and_open_cursor_position_jdt_link = function()
+function M.extrace_and_open_cursor_position_jdt_link()
     local cursor_token = util.get_token_under_cursor()
     M.extrace_and_open_first_jdt_link(cursor_token)
 end
 
--- M.jdt_open_class = function(class_name, line_number)
+-- function M.jdt_open_class(class_name, line_number)
 --     if not class_name or class_name == "" then
 --         vim.notify("Please provide a class name.", vim.log.levels.WARN)
 --         return
@@ -417,7 +417,7 @@ end
 -- end
 
 --- Find word under curser in lsp dynamic_workspace_symbols
-M.connect_jdtls_and_search_symbol_under_cursor = function()
+function M.connect_jdtls_and_search_symbol_under_cursor()
     local jdtls_client_id = lsp_util.get_client_id_by_name("jdtls")
     if jdtls_client_id then
         local current_buf_id = vim.api.nvim_get_current_buf()

@@ -1,15 +1,15 @@
 local M = {}
 
-M.starts_with = function(str, prefix)
+function M.starts_with(str, prefix)
     return str:sub(1, #prefix) == prefix
 end
 
-M.split_by_last_dot = function(str)
+function M.split_by_last_dot(str)
     local before, after = string.match(str, "^(.*)%.([^%.]+)$")
     return before, after
 end
 
-M.contains = function(str, substr)
+function M.contains(str, substr)
     return string.find(str, substr, 1, true)
 end
 

@@ -82,7 +82,7 @@ local function run_maven_compile(cmd_args)
     end)
 end
 
-M.toggle_auto_compile = function(key)
+function M.toggle_auto_compile(key)
     key = key or "toggle_compile"
     if compile_autocmds[key] then
         -- remove existing autocmd
@@ -105,12 +105,12 @@ M.toggle_auto_compile = function(key)
     end
 end
 
-M.compile = function()
+function M.compile()
     run_maven_compile({ "-q", "compile", "test-compile" })
     -- run_maven({ "compile" })
 end
 
-M.clean_compile = function()
+function M.clean_compile()
     run_maven_compile({ "-q", "clean", "compile", "test-compile" })
     -- run_maven({ "clean", "compile" })
 end

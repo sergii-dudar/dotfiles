@@ -19,7 +19,7 @@ vim.api.nvim_set_hl(0, "TraceNonProjectClassHl", {
     bold = true,
 })
 
-M.highlight_java_test_trace_lines = function(lines, trace_selected_line)
+function M.highlight_java_test_trace_lines(lines, trace_selected_line)
     trace_selected_line = (trace_selected_line and trace_selected_line - 1) or 0
     -- vim.notify("selected_line: " .. trace_selected_line)
     for i, line in ipairs(lines) do
@@ -39,7 +39,7 @@ M.highlight_java_test_trace_lines = function(lines, trace_selected_line)
 end
 
 ---@param text string
-M.highlight_java_test_trace_text = function(text, selected_line)
+function M.highlight_java_test_trace_text(text, selected_line)
     local lines = {}
     for line in text:gmatch("[^\n]+") do
         table.insert(lines, line)
@@ -48,18 +48,18 @@ M.highlight_java_test_trace_text = function(text, selected_line)
     M.highlight_java_test_trace_lines(lines, selected_line)
 end
 
-M.highlight_java_test_trace = function(buffer)
+function M.highlight_java_test_trace(buffer)
     if vim.api.nvim_buf_is_valid(buffer) then
         local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
         M.highlight_java_test_trace_lines(lines)
     end
 end
 
-M.highlight_java_test_trace_current_buf = function()
+function M.highlight_java_test_trace_current_buf()
     M.highlight_java_test_trace(vim.api.nvim_get_current_buf())
 end
 
-M.highlight_java_trace_selected = function()
+function M.highlight_java_trace_selected()
     local stack_trace = common.get_visual_selection()
     M.highlight_java_test_trace_text(stack_trace, vim.fn.getpos("v")[2])
 end
@@ -128,7 +128,7 @@ local parse_java_stack_trace = function(trace, result_callback)
     end
 end
 
-M.show_stack_trace_qflist = function(stack_trace)
+function M.show_stack_trace_qflist(stack_trace)
     parse_java_stack_trace(stack_trace, function(trace_items)
         -- dd(trace_items)
         vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
@@ -136,22 +136,22 @@ M.show_stack_trace_qflist = function(stack_trace)
     end)
 end
 
-M.parse_selected_trace_to_qflist = function()
+function M.parse_selected_trace_to_qflist()
     local stack_trace = common.get_visual_selection()
     M.show_stack_trace_qflist(stack_trace)
 end
 
-M.parse_buffer_trace_to_qflist = function()
+function M.parse_buffer_trace_to_qflist()
     local stack_trace = common.get_current_buffer_text()
     M.show_stack_trace_qflist(stack_trace)
 end
 
-M.parse_current_line_trace_to_qflist = function()
+function M.parse_current_line_trace_to_qflist()
     local stack_trace = common.get_line_under_cursor()
     M.show_stack_trace_qflist(stack_trace)
 end
 
-M.parse_trace_under_cursor_and_open_in_buffer = function()
+function M.parse_trace_under_cursor_and_open_in_buffer()
     local trace_line = common.get_line_under_cursor()
     local parsed = java_util.parse_java_mvn_run_class_line(trace_line)
     if not parsed then
