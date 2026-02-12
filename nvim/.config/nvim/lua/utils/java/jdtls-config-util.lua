@@ -11,6 +11,18 @@ local M = {}
 -- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
 -- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/blob/main/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
 -- - https://github.com/neovim/nvim-lspconfig/blob/master/lsp/jdtls.lua
+--
+-- PERFORMANCE OPTIMIZATIONS:
+-- ✅ inlayHints: enabled (useful, low cost)
+-- ❌ autobuild: disabled (HIGH COST - like IntelliJ, use :JdtCompile manually)
+-- ❌ referencesCodeLens: disabled (HIGH COST - performance killer)
+-- ❌ downloadSources: disabled (HIGH COST - auto-download slows indexing)
+-- ❌ includeDecompiledSources: disabled (HIGH COST - slow search in references)
+-- ❌ selectionRange: disabled (VERY LOW COST - safe to re-enable)
+-- ❌ format.comments: disabled (LOW COST - safe to re-enable)
+-- ❌ importHint: disabled (VERY LOW COST - safe to re-enable)
+-- ❌ foldingRange: disabled (LOW-MEDIUM COST - safe to re-enable if you use folding)
+-- NOTE: JDTLS still validates code in real-time without autobuild!
 -- ============================================================================
 
 M.jdtls_settings = {
@@ -37,7 +49,8 @@ M.jdtls_settings = {
         -- PROJECT CONFIGURATION
         -- ====================================================================
         project = {
-            importHint = true,
+            -- Disable import hints (LOW COST - safe to re-enable if you want notifications)
+            importHint = false,
             --[[ sourcePaths = {
                 "src/main/java",
                 "target/generated-sources/annotations",
@@ -48,8 +61,10 @@ M.jdtls_settings = {
         -- ====================================================================
         -- Automatic build settings
         autobuild = {
-            -- TODO: map to build keyboard
-            enabled = true, -- Auto-compile on save, NOTE: temp disable to check if issues with lombok.config related to jdtls build
+            -- Disabled for performance (like IntelliJ default)
+            -- JDTLS still validates code in real-time without autobuild
+            -- Use :JdtCompile manually when needed, or let Maven/Gradle build on run
+            enabled = false,
         },
         -- Max number of concurrent builds
         maxConcurrentBuilds = 4,
@@ -102,11 +117,15 @@ M.jdtls_settings = {
         -- ====================================================================
         import = {
             exclusions = {
+                "**/.idea/**",
+                "**/.settings/**",
+                "**/.github/**",
                 "**/node_modules/**",
                 "**/.metadata/**",
                 "**/archetype-resources/**",
                 "**/META-INF/maven/**",
                 "**/.git/**",
+                "**/build/**",
                 "**/target/classes/**",
                 "**/target/test-classes/**",
                 -- "**/target/**",
@@ -224,9 +243,9 @@ M.jdtls_settings = {
             insertSpaces = true,
             -- Tab size
             tabSize = 4,
-            -- Format comments
+            -- Disable comment formatting (LOW COST - only affects explicit formatting)
             comments = {
-                enabled = true,
+                enabled = false,
             },
         },
         -- ====================================================================
@@ -294,15 +313,17 @@ M.jdtls_settings = {
         -- ====================================================================
         -- FOLDING
         -- ====================================================================
-        -- foldingRange = {
-        --     enabled = true,
-        -- },
+        -- Code folding regions (LOW-MEDIUM COST - calculates once per file)
+        foldingRange = {
+            enabled = false,
+        },
         -- ====================================================================
         -- ECLIPSE SETTINGS
         -- ====================================================================
         eclipse = {
-            -- Enable downloading archives from eclipse automatically
-            downloadSources = true,
+            -- Disable auto-downloading sources for better performance
+            -- (you can manually download when needed)
+            downloadSources = false,
         },
         -- ====================================================================
         -- CODE ACTIONS
@@ -316,8 +337,9 @@ M.jdtls_settings = {
         -- ====================================================================
         -- SELECTION RANGE
         -- ====================================================================
+        -- Smart selection expansion (VERY LOW COST - only triggers on keybind)
         selectionRange = {
-            enabled = true,
+            enabled = false,
         },
         -- ====================================================================
         -- SIGNATURE HELP
@@ -342,13 +364,15 @@ M.jdtls_settings = {
         rename = {
             enabled = true,
         },
-        -- Enable downloading archives from maven automatically
+        -- Disable auto-downloading Maven sources for better performance
         maven = {
-            downloadSources = true,
-            updateSnapshots = false, -- to speed up
+            downloadSources = false, -- manually download when needed
+            updateSnapshots = false, -- keep disabled for speed
         },
         references = {
-            includeDecompiledSources = true,
+            -- Disable searching decompiled sources in "Find References" for performance
+            -- (Go to Definition will still work!)
+            includeDecompiledSources = false,
         },
         redhat = { telemetry = { enabled = false } },
     },

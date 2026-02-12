@@ -101,16 +101,20 @@ return {
 
             -- Memory Settings (Per-instance allocation)
             -- Lower initial, allow growth - better for multiple concurrent instances
-            table.insert(cmd, "--jvm-arg=-Xms4g")  -- Initial heap (start smaller)
-            table.insert(cmd, "--jvm-arg=-Xmx8g")  -- Maximum heap (grow as needed)
+            table.insert(cmd, "--jvm-arg=-Xms4g") -- Initial heap (start smaller)
+            table.insert(cmd, "--jvm-arg=-Xmx8g") -- Maximum heap (grow as needed)
+
+            -- JAR/ZIP handling optimization
+            -- Disable memory-mapping to reduce memory pressure from many JARs in microservices
+            table.insert(cmd, "--jvm-arg=-Dsun.zip.disableMemoryMapping=true")
 
             -- Garbage Collection Settings (G1GC - best balance for microservices)
             -- Comment this block to use JVM defaults
             do
-                table.insert(cmd, "--jvm-arg=-XX:+UseG1GC")                    -- Use G1 garbage collector
-                table.insert(cmd, "--jvm-arg=-XX:MaxGCPauseMillis=100")        -- Target 100ms max pause (lower for responsiveness)
-                table.insert(cmd, "--jvm-arg=-XX:+UseStringDeduplication")     -- Save memory (Spring Boot has many duplicate strings)
-                table.insert(cmd, "--jvm-arg=-XX:G1ReservePercent=10")         -- Reserve 10% heap for G1 (default 10)
+                table.insert(cmd, "--jvm-arg=-XX:+UseG1GC") -- Use G1 garbage collector
+                table.insert(cmd, "--jvm-arg=-XX:MaxGCPauseMillis=100") -- Target 100ms max pause (lower for responsiveness)
+                table.insert(cmd, "--jvm-arg=-XX:+UseStringDeduplication") -- Save memory (Spring Boot has many duplicate strings)
+                table.insert(cmd, "--jvm-arg=-XX:G1ReservePercent=10") -- Reserve 10% heap for G1 (default 10)
             end
 
             -- Alternative: ZGC for ultra-low latency (Java 15+, great for Java 25)
@@ -124,17 +128,17 @@ return {
             -- Performance Optimizations for Microservices
             -- Focus on startup speed and resource efficiency
             do
-                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation")          -- Enable tiered compilation
-                table.insert(cmd, "--jvm-arg=-XX:TieredStopAtLevel=1")         -- Faster startup (C1 only, no C2 optimization)
-                table.insert(cmd, "--jvm-arg=-XX:CICompilerCount=2")           -- Limit JIT threads (reduce CPU contention)
+                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation") -- Enable tiered compilation
+                table.insert(cmd, "--jvm-arg=-XX:TieredStopAtLevel=1") -- Faster startup (C1 only, no C2 optimization)
+                table.insert(cmd, "--jvm-arg=-XX:CICompilerCount=2") -- Limit JIT threads (reduce CPU contention)
             end
 
             -- Metaspace & Code Cache (for Spring Boot microservices)
             -- Tune for typical microservice class counts
             do
-                table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m")          -- Lower initial (microservices are smaller)
-                table.insert(cmd, "--jvm-arg=-XX:MaxMetaspaceSize=1g")         -- Lower max (microservices don't need 2g)
-                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=256m")  -- Reduced (TieredStopAtLevel=1 needs less)
+                table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m") -- Lower initial (microservices are smaller)
+                table.insert(cmd, "--jvm-arg=-XX:MaxMetaspaceSize=1g") -- Lower max (microservices don't need 2g)
+                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=256m") -- Reduced (TieredStopAtLevel=1 needs less)
             end
 
             --==============================================================================
