@@ -163,41 +163,13 @@ end
     end
 end ]]
 
-local java_root_files = {
-    "pom.xml",
-    "build.gradle",
-    "build.gradle.kts",
-    "settings.gradle",
-    "settings.gradle.kts",
-}
-
-local is_java_project_loc = nil
-function M.is_java_project()
-    if is_java_project_loc ~= nil then
-        return is_java_project_loc
-    end
-
-    local root = vim.fn.getcwd()
-    for _, f in ipairs(java_root_files) do
-        -- vim.notify(root .. "/" .. f)
-        if util.is_file_exists(root .. "/" .. f) then
-            -- vim.notify("it's java proj")
-            is_java_project_loc = true
-            return is_java_project_loc
-        end
-    end
-    -- vim.notify("it's NOT java proj")
-    is_java_project_loc = false
-    return is_java_project_loc
-end
-
 function M.if_java_file_outside()
     local fname = vim.api.nvim_buf_get_name(0)
     local cwd = vim.fn.getcwd()
     return not vim.startswith(fname, cwd)
 end
 
-local get_root_src_package_inner = function(src_dir)
+--[[ local get_root_src_package_inner = function(src_dir)
     -- run your fd command
     local cmd = "fd -e java --type f . " .. src_dir .. " --exec dirname {} \\; | sort -u | head -n 1"
     local handle = io.popen(cmd)
@@ -228,9 +200,9 @@ local get_root_src_package_inner = function(src_dir)
     return pkg
 end
 
-local root_src_package_cache = {}
+local root_src_package_cache = {} ]]
 
-function M.get_root_src_package(src_dir)
+--[[ function M.get_root_src_package(src_dir)
     src_dir = src_dir or "src/main/java"
     local result = root_src_package_cache[src_dir]
     if result then
@@ -248,22 +220,68 @@ end
 
 function M.get_root_src_test_package()
     return M.get_root_src_package("src/test/java")
-end
+end ]]
 
 -- Get the project root directory for the current buffer
 -- Returns the path containing .git, pom.xml, build.gradle, etc., or nil if not found
 function M.get_buffer_project_path()
-    local buf_path = vim.api.nvim_buf_get_name(0)
+    -- Find project root by looking for common project markers
+    local root_markers = {
+        "pom.xml", -- Maven
+        "build.gradle", -- Gradle
+        "build.gradle.kts", -- Gradle Kotlin DSL
+        "settings.gradle", -- Gradle multi-project
+        "settings.gradle.kts",
+        "gradlew", -- Gradle wrapper
+        "mvnw", -- Maven wrapper
+        "build.xml", -- Ant
+        ".git", -- fallback
+    }
 
-    -- If buffer has no name (empty buffer), return nil
-    if buf_path == "" then
-        vim.notify("Cant get root project path of current buffer, cwd using", vim.log.levels.WARN)
-        return vim.fn.getcwd()
+    local root_dir = vim.fs.root(0, root_markers)
+
+    return root_dir
+end
+
+local project_type_loc = nil
+function M.detect_project_type()
+    if project_type_loc ~= nil then
+        return project_type_loc
+    end
+
+    -- Try to find maven project root from current buffer
+    local maven_markers = { "pom.xml" }
+    local maven_root = vim.fs.root(0, maven_markers)
+    if maven_root then
+        project_type_loc = "maven"
+        return project_type_loc
+    end
+
+    -- Try to find gradle project root from current buffer
+    local gradle_markers = {
+        "build.gradle",
+        "build.gradle.kts",
+        "settings.gradle",
+        "settings.gradle.kts",
+    }
+    local gradle_root = vim.fs.root(0, gradle_markers)
+    if gradle_root then
+        project_type_loc = "gradle"
+        return project_type_loc
+    end
+
+    project_type_loc = "unknown"
+    return project_type_loc
+end
+
+local is_java_project_loc = nil
+function M.is_java_project()
+    if is_java_project_loc ~= nil then
+        return is_java_project_loc
     end
 
     -- Find project root by looking for common project markers
     local root_markers = {
-        ".git",
         "pom.xml", -- Maven
         "build.gradle", -- Gradle
         "build.gradle.kts", -- Gradle Kotlin DSL
@@ -274,10 +292,10 @@ function M.get_buffer_project_path()
         "build.xml", -- Ant
     }
 
-    local root_dir = vim.fs.root(buf_path, root_markers)
-
-    vim.notify(root_dir)
-    return root_dir
+    local root_dir = vim.fs.root(0, root_markers)
+    is_java_project_loc = root_dir ~= nil
+    -- vim.notify("it's NOT java proj")
+    return is_java_project_loc
 end
 
 return M

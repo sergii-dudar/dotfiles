@@ -2,6 +2,7 @@ local home = os.getenv("HOME")
 local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
 local java_bin = java_dir .. "/bin/java"
 local java_ts_util = require("utils.java.java-ts-util")
+local project_name_resolver = require("utils.java.project_name_resolver")
 
 local M = {}
 
@@ -39,13 +40,16 @@ function M.run_current_main_class()
     end
 
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method_table()
+    local module_name = project_name_resolver.resolve_project_name()
+    -- print(project_name_resolver.resolve_project_name())
+
     last_runned_dap_config = {
         -- You need to extend the classPath to list your dependencies.
         -- `nvim-jdtls` would automatically add the `classPaths` property if it is missing
         classPaths = classpath,
 
         -- If using multi-module projects, remove otherwise.
-        projectName = "payment-norkom-adapter-service", -- TODO: make dynamic
+        -- projectName = module_name, -- "payment-norkom-adapter-service",
         javaExec = java_bin,
         mainClass = class_name,
 
