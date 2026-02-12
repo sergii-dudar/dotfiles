@@ -69,11 +69,6 @@ return {
         end,
         -- stylua: ignore
         keys = {
-            { "<leader>g.", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
-            { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
-            -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
-            -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },
-
             -- { "<leader>S", desc = "Scratch ..." },
             -- { "<leader>SS", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
             -- { "<leader>Sf", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },
@@ -97,6 +92,26 @@ return {
             { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
             -- { "<leader>ghb", function() Snacks.git.blame_line() end, desc = "Blame Line (Snacks)" },
             { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
+
+            -- working exploring helpers:
+            { "<leader>g.", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
+            { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
+            -- { "<leader>b.", function() LazyVim.pick("files", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Find File (Root of buffer)" },
+            -- { "<leader>b/", function() LazyVim.pick("live_grep", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Grep (Root of buffer)" },
+            { "<leader>b.", function()
+                local path = require("utils.java.java-common").get_buffer_project_path()
+                local name = vim.fn.fnamemodify(path, ":t:r")
+                Snacks.picker.files({ cwd = path, title = "Files in: " .. name })
+            end, desc = "Find File (Root of buffer)" },
+            { "<leader>b/", function()
+                local path = require("utils.java.java-common").get_buffer_project_path()
+                local name = vim.fn.fnamemodify(path, ":t:r")
+                Snacks.picker.grep({ cwd = path, title = "Grep in: " .. name })
+            end, desc = "Grep (Root of buffer)" },
+
+            -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
+            -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },
+
         },
     },
 }

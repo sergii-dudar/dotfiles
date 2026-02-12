@@ -250,4 +250,34 @@ function M.get_root_src_test_package()
     return M.get_root_src_package("src/test/java")
 end
 
+-- Get the project root directory for the current buffer
+-- Returns the path containing .git, pom.xml, build.gradle, etc., or nil if not found
+function M.get_buffer_project_path()
+    local buf_path = vim.api.nvim_buf_get_name(0)
+
+    -- If buffer has no name (empty buffer), return nil
+    if buf_path == "" then
+        vim.notify("Cant get root project path of current buffer, cwd using", vim.log.levels.WARN)
+        return vim.fn.getcwd()
+    end
+
+    -- Find project root by looking for common project markers
+    local root_markers = {
+        ".git",
+        "pom.xml", -- Maven
+        "build.gradle", -- Gradle
+        "build.gradle.kts", -- Gradle Kotlin DSL
+        "settings.gradle", -- Gradle multi-project
+        "settings.gradle.kts",
+        "gradlew", -- Gradle wrapper
+        "mvnw", -- Maven wrapper
+        "build.xml", -- Ant
+    }
+
+    local root_dir = vim.fs.root(buf_path, root_markers)
+
+    vim.notify(root_dir)
+    return root_dir
+end
+
 return M
