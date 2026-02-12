@@ -86,12 +86,60 @@ return {
         ft = java_filetypes,
         opts = function()
             local cmd = { vim.fn.exepath("jdtls") }
+
+            -- Lombok agent
             if LazyVim.has("mason.nvim") then
                 local lombok_jar = vim.fn.expand("$MASON/share/jdtls/lombok.jar")
                 table.insert(cmd, string.format("--jvm-arg=-javaagent:%s", lombok_jar))
             end
-            table.insert(cmd, "--jvm-arg=-Xms4g")
-            table.insert(cmd, "--jvm-arg=-Xmx8g")
+
+            --==============================================================================
+            -- JVM Performance Tuning for Multiple Microservices (Java 25, 32GB RAM)
+            --==============================================================================
+            -- Strategy: Balance startup speed, memory efficiency, and runtime performance
+            -- Each microservice = separate JDTLS instance
+
+            -- Memory Settings (Per-instance allocation)
+            -- Lower initial, allow growth - better for multiple concurrent instances
+            table.insert(cmd, "--jvm-arg=-Xms4g")  -- Initial heap (start smaller)
+            table.insert(cmd, "--jvm-arg=-Xmx8g")  -- Maximum heap (grow as needed)
+
+            -- Garbage Collection Settings (G1GC - best balance for microservices)
+            -- Comment this block to use JVM defaults
+            do
+                table.insert(cmd, "--jvm-arg=-XX:+UseG1GC")                    -- Use G1 garbage collector
+                table.insert(cmd, "--jvm-arg=-XX:MaxGCPauseMillis=100")        -- Target 100ms max pause (lower for responsiveness)
+                table.insert(cmd, "--jvm-arg=-XX:+UseStringDeduplication")     -- Save memory (Spring Boot has many duplicate strings)
+                table.insert(cmd, "--jvm-arg=-XX:G1ReservePercent=10")         -- Reserve 10% heap for G1 (default 10)
+            end
+
+            -- Alternative: ZGC for ultra-low latency (Java 15+, great for Java 25)
+            -- ZGC has lower pause times but uses more memory - good if responsiveness is critical
+            -- do
+            --     table.insert(cmd, "--jvm-arg=-XX:+UseZGC")                  -- Use ZGC (sub-millisecond pauses)
+            --     table.insert(cmd, "--jvm-arg=-XX:ZCollectionInterval=5")    -- Proactive GC every 5s
+            --     table.insert(cmd, "--jvm-arg=-XX:ZUncommitDelay=300")       -- Return unused memory after 5min
+            -- end
+
+            -- Performance Optimizations for Microservices
+            -- Focus on startup speed and resource efficiency
+            do
+                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation")          -- Enable tiered compilation
+                table.insert(cmd, "--jvm-arg=-XX:TieredStopAtLevel=1")         -- Faster startup (C1 only, no C2 optimization)
+                table.insert(cmd, "--jvm-arg=-XX:CICompilerCount=2")           -- Limit JIT threads (reduce CPU contention)
+            end
+
+            -- Metaspace & Code Cache (for Spring Boot microservices)
+            -- Tune for typical microservice class counts
+            do
+                table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m")          -- Lower initial (microservices are smaller)
+                table.insert(cmd, "--jvm-arg=-XX:MaxMetaspaceSize=1g")         -- Lower max (microservices don't need 2g)
+                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=256m")  -- Reduced (TieredStopAtLevel=1 needs less)
+            end
+
+            --==============================================================================
+            -- End JVM Performance Tuning
+            --==============================================================================
             return {
                 root_dir = function(path)
                     return vim.fs.root(path, vim.lsp.config.jdtls.root_markers)
