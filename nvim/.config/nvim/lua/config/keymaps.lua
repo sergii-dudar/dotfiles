@@ -8,9 +8,9 @@ local map = LazyVim.safe_keymap_set
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- Quick diff conflict resolution
-vim.keymap.set("n", "<leader>d1", ":diffget 1<CR>") -- get from left [LOCAL]
-vim.keymap.set("n", "<leader>d2", ":diffget 2<CR>") -- get from right [REMORE]
-vim.keymap.set("n", "<leader>d3", ":diffget 3<CR>") -- get from right [REMORE]
+vim.keymap.set("n", "<leader>d1", ":diffget 1<CR>", { desc = "get from left [LOCAL]" }) -- get from left [LOCAL]
+vim.keymap.set("n", "<leader>d2", ":diffget 2<CR>", { desc = "get from right [REMORE]" }) -- get from right [REMORE]
+vim.keymap.set("n", "<leader>d3", ":diffget 3<CR>", { desc = "get from right [REMORE]" }) -- get from right [REMORE]
 -- vim.keymap.set("n", "<leader>dl", ":diffget 3<CR>") -- get from right [REMORE]
 
 -- tabs
