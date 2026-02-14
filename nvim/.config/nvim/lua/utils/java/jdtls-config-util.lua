@@ -7,10 +7,7 @@ local M = {}
 
 -- ============================================================================
 -- JDTLS FULL SETTINGS CONFIGURATION
--- urls:
--- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
--- - https://github.com/eclipse-jdtls/eclipse.jdt.ls/blob/main/org.eclipse.jdt.ls.core/src/org/eclipse/jdt/ls/core/internal/preferences/Preferences.java
--- - https://github.com/neovim/nvim-lspconfig/blob/master/lsp/jdtls.lua
+-- config params schema: ~/.local/share/nvim/mason/packages/jdtls/mason-schemas/lsp.json
 --
 -- PERFORMANCE OPTIMIZATIONS:
 -- ✅ inlayHints: enabled (useful, low cost)
@@ -25,6 +22,15 @@ local M = {}
 -- NOTE: JDTLS still validates code in real-time without autobuild!
 -- ============================================================================
 
+--[[ M.jdtls_settings = {
+    java = {
+        inlayHints = {
+            parameterNames = {
+                enabled = "all",
+            },
+        },
+    },
+} ]]
 M.jdtls_settings = {
     java = {
         -- ====================================================================
@@ -43,28 +49,20 @@ M.jdtls_settings = {
                 protofBufSupport = {
                     enabled = true,
                 },
+                -- [Experimental] Specify whether to enable Javac-based compilation in the language server. Requires running this extension with Java 25
+                javac = {
+                    enabled = "on", -- "on"|"off"
+                },
             },
-        },
-        -- ====================================================================
-        -- PROJECT CONFIGURATION
-        -- ====================================================================
-        project = {
-            -- Disable import hints (LOW COST - safe to re-enable if you want notifications)
-            importHint = false,
-            --[[ sourcePaths = {
-                "src/main/java",
-                "target/generated-sources/annotations",
-            }, ]]
         },
         -- ====================================================================
         -- BUILD CONFIGURATION
         -- ====================================================================
         -- Automatic build settings
         autobuild = {
-            -- Disabled for performance (like IntelliJ default)
-            -- JDTLS still validates code in real-time without autobuild
-            -- Use :JdtCompile manually when needed, or let Maven/Gradle build on run
-            enabled = false,
+            -- Enable/disable the 'auto build'
+            -- better to keep enabled in case many generated-sources using (issue with requiring two full compile on startup)
+            enabled = true,
         },
         -- Max number of concurrent builds
         maxConcurrentBuilds = 4,
@@ -93,25 +91,25 @@ M.jdtls_settings = {
         -- ====================================================================
         -- RUNTIME CONFIGURATION
         -- ====================================================================
-        configuration = {
-            -- Multiple JDK runtimes for different Java versions
-            runtimes = {
-                -- {
-                --     name = "JavaSE-17",
-                --     path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
-                -- },
-                {
-                    name = "JavaSE-25",
-                    path = java_util.java_dir,
-                },
-            },
-            -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
-            updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
-            maven = {
-                userSettings = home .. "/.m2/settings.xml",
-                globalSettings = home .. "/.m2/settings.xml",
-            },
-        },
+        -- configuration = {
+        --     -- Multiple JDK runtimes for different Java versions
+        --     runtimes = {
+        --         -- {
+        --         --     name = "JavaSE-17",
+        --         --     path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
+        --         -- },
+        --         {
+        --             name = "JavaSE-25",
+        --             path = java_util.java_dir,
+        --         },
+        --     },
+        --     -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
+        --     updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
+        --     maven = {
+        --         userSettings = home .. "/.m2/settings.xml",
+        --         globalSettings = home .. "/.m2/settings.xml",
+        --     },
+        -- },
         -- ====================================================================
         -- IMPORT SETTINGS (Maven/Gradle)
         -- ====================================================================
@@ -148,12 +146,15 @@ M.jdtls_settings = {
                     enabled = true,
                 },
             },
+            -- [Experimental] Specifies how to select build configuration files to import. \nNote: Currently, `Gradle` projects cannot be partially imported.
+            -- projectSelection = "automatic", -- "manual"|"automatic"
         },
         -- ====================================================================
         -- CODE COMPLETION
         -- ====================================================================
         completion = {
             enabled = true,
+            engine = "dom", -- "ecj"|"dom"
             -- Defines a list of static members or types with static members. Content
             -- assist will propose those static members even if the import is missing.
             favoriteStaticMembers = {
@@ -192,9 +193,9 @@ M.jdtls_settings = {
                 "jdk.*",
                 "sun.*",
             },
-            -- Defines the sorting order of import statements. A package or type name
-            -- prefix (e.g. 'org.eclipse') is a valid entry. An import is always added
-            -- to the most specific group.
+            -- Defines the sorting order of import statements. A package or type name prefix (e.g. 'org.eclipse') is a valid entry.
+            -- An import is always added to the most specific group. As a result, the empty string (e.g. '') can be used to group all other imports.
+            -- Static imports are prefixed with a '#'
             importOrder = {
                 "", -- Import all other imports
                 "java", -- java.*
@@ -235,14 +236,10 @@ M.jdtls_settings = {
                 -- Optional formatter profile name from the Eclipse formatter settings.
                 profile = java_util.java_formatter.profile_name,
             },
-            -- Format on type
+            -- Enable/disable automatic block formatting when typing `;`, `<enter>` or `}`
             onType = {
-                enabled = false,
+                enabled = true,
             },
-            -- Insert spaces
-            insertSpaces = true,
-            -- Tab size
-            tabSize = 4,
             -- Disable comment formatting (LOW COST - only affects explicit formatting)
             comments = {
                 enabled = false,
@@ -254,6 +251,16 @@ M.jdtls_settings = {
         saveActions = {
             -- Setup automatical package import oranization on file save
             organizeImports = true,
+            cleanup = true,
+        },
+        cleanup = {
+            -- The list of clean ups to be run on the current document when it's saved or when the cleanup command is issued.
+            -- Clean ups can automatically fix code style or programming mistakes.
+            -- https://github.com/redhat-developer/vscode-java/blob/HEAD/document/_java.learnMoreAboutCleanUps.md#java-clean-ups
+            actions = {
+                "renameFileToType",
+                "organizeImports",
+            },
         },
         -- ====================================================================
         -- ORGANIZE IMPORTS
@@ -294,14 +301,6 @@ M.jdtls_settings = {
             },
         },
         -- ====================================================================
-        -- CODE LENS
-        -- ====================================================================
-        -- implementationCodeLens = "methods", -- all, types, methods
-        -- enable code lens in the lsp
-        referencesCodeLens = { -- shows inline information above methods, classes, and fields
-            enabled = false, -- disabled for performance
-        },
-        -- ====================================================================
         -- INLAY HINTS
         -- ====================================================================
         inlayHints = {
@@ -311,43 +310,13 @@ M.jdtls_settings = {
             },
         },
         -- ====================================================================
-        -- FOLDING
-        -- ====================================================================
-        -- Code folding regions (LOW-MEDIUM COST - calculates once per file)
-        foldingRange = {
-            enabled = false,
-        },
-        -- ====================================================================
-        -- ECLIPSE SETTINGS
-        -- ====================================================================
-        eclipse = {
-            -- Disable auto-downloading sources for better performance
-            -- (you can manually download when needed)
-            downloadSources = false,
-        },
-        -- ====================================================================
-        -- CODE ACTIONS
-        -- ====================================================================
-        codeAction = {
-            -- Sort members
-            sortMembers = {
-                avoidVolatileChanges = false,
-            },
-        },
-        -- ====================================================================
-        -- SELECTION RANGE
-        -- ====================================================================
-        -- Smart selection expansion (VERY LOW COST - only triggers on keybind)
-        selectionRange = {
-            enabled = false,
-        },
-        -- ====================================================================
         -- SIGNATURE HELP
         -- ====================================================================
         signatureHelp = {
-            -- Enable method signature help
+            -- Enable/disable methods the signature help.
             enabled = true,
             description = {
+                -- Enable/disable to show the description in signature help.
                 enabled = true,
             },
         },
@@ -358,23 +327,13 @@ M.jdtls_settings = {
             -- Use the fernflower decompiler when using the javap command to decompile byte code back to java code
             preferred = "fernflower",
         },
-        -- ====================================================================
-        -- RENAME
-        -- ====================================================================
-        rename = {
-            enabled = true,
-        },
-        -- Disable auto-downloading Maven sources for better performance
         maven = {
+            -- Enable/disable download of Maven source artifacts as part of importing Maven projects.
             downloadSources = false, -- manually download when needed
-            updateSnapshots = false, -- keep disabled for speed
         },
         references = {
-            -- Disable searching decompiled sources in "Find References" for performance
-            -- (Go to Definition will still work!)
-            includeDecompiledSources = false,
+            includeDecompiledSources = true,
         },
-        redhat = { telemetry = { enabled = false } },
     },
 }
 
