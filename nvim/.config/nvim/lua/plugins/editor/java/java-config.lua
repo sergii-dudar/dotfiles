@@ -54,20 +54,6 @@ return {
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests ", },
             { "<leader>ci", function() require("utils.java.java-import-util").import_class_and_replace() end, desc = "[I]mport class package and apply simple name", },
-            {
-                "<leader>jcC",
-                function()
-                    vim.notify("🔨 Compiling project...", vim.log.levels.INFO)
-                    vim.cmd("JdtCompile")
-                    -- Refresh config after compile to pick up generated sources
-                    vim.defer_fn(function()
-                        vim.notify("🔄 Updating config for generated sources...", vim.log.levels.INFO)
-                        vim.cmd("JdtCompile full")
-                    end, 3000)
-                end,
-                desc = "Compile + Refresh Config",
-            },
-
         },
         opts = {
             --[[jdtls = {
