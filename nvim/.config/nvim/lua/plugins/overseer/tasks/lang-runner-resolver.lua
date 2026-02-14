@@ -22,6 +22,12 @@ local M = {}
 ---@field dap_launch_rerun function|nil
 ---@field build_compile_cmd function|nil
 ---@field make_compile function|nil
+---@field build_run_all_tests_cmd function|nil
+---@field build_run_file_tests_cmd function|nil
+---@field build_run_test_cmd function|nil
+---@field build_debug_run_test_cmd function|nil
+---@field build_run_parametrized_num_test_cmd function|nil
+---@field build_debug_parametrized_num_test_cmd function|nil
 
 -- dap examples configs - ~/.local/share/nvim/lazy/mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/configurations.lua
 
