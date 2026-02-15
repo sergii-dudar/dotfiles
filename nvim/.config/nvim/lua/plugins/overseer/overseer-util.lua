@@ -32,7 +32,9 @@ end
 function debug_current_internal(type_resolver)
     overseer.close()
 
-    if type_resolver.build_debug_cmd then
+    if type_resolver.dap_launch then
+        type_resolver.dap_launch()
+    elseif type_resolver.build_debug_cmd then
         dap_after_session_clear()
 
         -- 3. Re-launch via Overseer (non-blocking)
@@ -45,8 +47,6 @@ function debug_current_internal(type_resolver)
         -- The delay gives the JVM a moment to start and open the port.
         -- jdtls_dap_util.attach_to_remote()
         type_resolver.dap_attach_to_remote()
-    else
-        type_resolver.dap_launch()
     end
 
     write_run_info("dap")
@@ -81,15 +81,6 @@ function restart_last_task(type_resolver)
             return
         end
 
-        if type_resolver.build_debug_cmd then
-            require("dap").terminate()
-            vim.defer_fn(function()
-                overseer_task_util.run_last_task()
-                type_resolver.dap_attach_to_remote()
-            end, 400)
-            return
-        end
-
         if type_resolver.dap_launch_rerun then
             type_resolver.dap_launch_rerun()
             -- vim.notify("dap_launch_rerun" .. vim.bo.filetype, vim.log.levels.WARN)
@@ -99,6 +90,15 @@ function restart_last_task(type_resolver)
         if type_resolver.dap_launch then
             type_resolver.dap_launch()
             -- vim.notify("dap_launch" .. vim.bo.filetype, vim.log.levels.WARN)
+            return
+        end
+
+        if type_resolver.build_debug_cmd then
+            require("dap").terminate()
+            vim.defer_fn(function()
+                overseer_task_util.run_last_task()
+                type_resolver.dap_attach_to_remote()
+            end, 400)
             return
         end
     else

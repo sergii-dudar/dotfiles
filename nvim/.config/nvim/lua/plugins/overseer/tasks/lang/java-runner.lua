@@ -1,3 +1,4 @@
+require("utils.java.junit")
 local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 
 local M = {}
@@ -7,10 +8,10 @@ function M.build_run_cmd()
     return build_java_cmd()
 end
 
--- ---@return table
--- function M.build_debug_cmd()
---     return build_java_cmd(true)
--- end
+---@return table
+function M.build_debug_cmd()
+    return build_java_cmd(true)
+end
 
 ---@param is_debug boolean|nil
 function build_java_cmd(is_debug)
@@ -34,13 +35,15 @@ function build_java_cmd(is_debug)
     }
 end
 
--- --- Attach to existing jvm dap session.
--- ---@param port integer|nil 5005 if not specified.
--- function M.dap_attach_to_remote(port)
---     require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
--- end
+--- Attach to existing jvm dap session.
+---@param port integer|nil 5005 if not specified.
+function M.dap_attach_to_remote(port)
+    vim.notify("dap_attach_to_remote")
+    require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
+end
 
 function M.dap_launch()
+    vim.notify("dap_launch")
     require("utils.java.jdtls-config-dap-util").run_current_main_class()
 end
 
