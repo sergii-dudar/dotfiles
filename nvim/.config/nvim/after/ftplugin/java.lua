@@ -46,10 +46,10 @@ vim.opt.breakindent = true
 --------------------------------------------------------------------
 
 -- stylua: ignore start
-local maven_compile = require("utils.java.maven-compile")
-vim.api.nvim_create_user_command("MavenCompile", maven_compile.compile, {})
-vim.api.nvim_create_user_command("MavenAutoCompileToggle", maven_compile.toggle_auto_compile, {})
-vim.api.nvim_create_user_command("MavenCleanCompile", maven_compile.clean_compile, {})
+-- local maven_compile = require("utils.java.maven-compile")
+-- vim.api.nvim_create_user_command("MavenCompile", maven_compile.compile, {})
+-- vim.api.nvim_create_user_command("MavenAutoCompileToggle", maven_compile.toggle_auto_compile, {})
+-- vim.api.nvim_create_user_command("MavenCleanCompile", maven_compile.clean_compile, {})
 
 --------------------------------------------------------------------
 -- Keybinds
@@ -74,24 +74,16 @@ vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap
 -- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
 -- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
 
-
-local maven_tests_v2 = require("utils.java.maven-tests-v2")
-vim.keymap.set("n", "<leader><F6>", maven_tests_v2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
-vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { noremap = true, silent = true, desc = "Maven Run Current Test Class" })
-vim.keymap.set("n", "<leader>d<F6>", function() maven_tests_v2.run_java_test_method(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Method" })
-vim.keymap.set("n", "<leader>d<F7>", function() maven_tests_v2.run_java_test_class(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Class" })
-vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
-vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
+-- local maven_tests_v2 = require("utils.java.maven-tests-v2")
+-- vim.keymap.set("n", "<leader><F6>", maven_tests_v2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
+-- vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { noremap = true, silent = true, desc = "Maven Run Current Test Class" })
+-- vim.keymap.set("n", "<leader>d<F6>", function() maven_tests_v2.run_java_test_method(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Method" })
+-- vim.keymap.set("n", "<leader>d<F7>", function() maven_tests_v2.run_java_test_class(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Class" })
+-- vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
+-- vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
 
 -- map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
 -- map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-
-
-local filename = vim.fn.expand("%:t")
-if filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil then
-    -- TODO:
-    vim.keymap.set("n", "gp", function() end, { noremap = true, silent = true, desc = "GoTo Property [MapStruct]" })
-end
 
 ----------------------------- Testing cmds start
 ----------------------------- Testing cmds end
