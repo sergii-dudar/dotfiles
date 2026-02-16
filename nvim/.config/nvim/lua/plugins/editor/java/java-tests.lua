@@ -40,8 +40,49 @@ return {
                 require("neotest").run.run({strategy = "dap"}) 
             end, desc = "Debug Nearest" },
             {
+                "<leader>tt",
+                function()
+                    require("neotest").run.run(vim.fn.expand("%"))
+                    vim.defer_fn(function()
+                        require("neotest").run.attach()
+                    end, 500)
+                end,
+                desc = "Run File (Neotest)",
+            },
+            {
+                "<leader>tT",
+                function()
+                    require("neotest").run.run(vim.uv.cwd())
+                    vim.defer_fn(function()
+                        require("neotest").run.attach()
+                    end, 500)
+                end,
+                desc = "Run All Test Files (Neotest)",
+            },
+            {
+                "<leader>tr",
+                function()
+                    require("neotest").run.run()
+                    vim.defer_fn(function()
+                        require("neotest").run.attach()
+                    end, 500)
+                end,
+                desc = "Run Nearest (Neotest)",
+            },
+            {
+                "<leader>tl",
+                function()
+                    require("neotest").run.run_last()
+                    vim.defer_fn(function()
+                        require("neotest").run.attach()
+                    end, 500)
+                end,
+                desc = "Run Last (Neotest)",
+            },
+            {
                 "<leader>ts",
                 function()
+                    -- lua require("neotest").run.attach()
                     local before = vim.api.nvim_get_current_win()
                     require("neotest").summary.toggle()
                     local after = vim.api.nvim_get_current_win()
