@@ -38,12 +38,10 @@ end
 --- Attach to existing jvm dap session.
 ---@param port integer|nil 5005 if not specified.
 function M.dap_attach_to_remote(port)
-    vim.notify("dap_attach_to_remote")
     require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
 end
 
 function M.dap_launch()
-    vim.notify("dap_launch")
     require("utils.java.jdtls-config-dap-util").run_current_main_class()
 end
 
@@ -51,25 +49,17 @@ function M.dap_launch_rerun()
     require("utils.java.jdtls-config-dap-util").rerun_last()
 end
 
-function M.build_run_all_tests_cmd()
-    -- TODO:
+function M.build_run_all_tests_cmd(is_debug)
+    return require("utils.java.junit").build_run_all_tests_cmd(is_debug)
 end
-function M.build_run_file_tests_cmd()
-    -- TODO:
+function M.build_run_file_tests_cmd(is_debug)
+    return require("utils.java.junit").build_run_file_tests_cmd(is_debug)
 end
-
-function M.build_run_test_cmd()
-    -- TODO:
+function M.build_run_test_cmd(is_debug)
+    return require("utils.java.junit").build_run_test_cmd(is_debug)
 end
-function M.build_debug_run_test_cmd()
-    -- TODO:
-end
-
-function M.build_run_parametrized_num_test_cmd()
-    -- TODO:
-end
-function M.build_debug_parametrized_num_test_cmd()
-    -- TODO:
+function M.build_run_parametrized_num_test_cmd(is_debug)
+    return require("utils.java.junit").build_run_parametrized_num_test_cmd(is_debug)
 end
 
 return M

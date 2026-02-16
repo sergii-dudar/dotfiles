@@ -5,6 +5,26 @@ local overseer = require("overseer")
 
 local M = {}
 
+---@class task.test.Runner
+---@field type task.test_type|integer
+---@field is_debug boolean|nil
+
+---@param opts task.test.Runner
+function M.run_test(opts)
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+    if not type_resolver then
+        vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+    overseer_task_util.run_task({
+        task_name = "RUN_TESTS",
+        is_open_output = true,
+        test_type = opts.type,
+        is_test_debug = opts.is_debug,
+    })
+    write_run_info(task.run_type.RUN, false)
+end
+
 function M.run_current()
     if vim.bo.filetype == "lua" then
         Snacks.debug.run()
@@ -16,7 +36,7 @@ function M.run_current()
         return
     end
     overseer_task_util.run_task({ task_name = "RUN_CURRENT", is_open_output = true })
-    write_run_info("run")
+    write_run_info(task.run_type.RUN, false)
 end
 
 function M.debug_current()
@@ -49,7 +69,7 @@ function debug_current_internal(type_resolver)
         type_resolver.dap_attach_to_remote()
     end
 
-    write_run_info("dap")
+    write_run_info(task.run_type.RUN, true)
 end
 
 function M.restart_last()
@@ -64,45 +84,60 @@ function M.restart_last()
 end
 
 local last_run_info = {}
-function write_run_info(runtype)
+---@param runtype task.run_type|integer
+---@param is_debug boolean
+function write_run_info(runtype, is_debug)
     last_run_info.filetype = vim.bo.filetype
     last_run_info.runtype = runtype
+    last_run_info.is_debug = is_debug
 end
 
 ---@param type_resolver task.lang.Runner
 function restart_last_task(type_resolver)
-    if last_run_info.runtype == "dap" then
-        if
-            not type_resolver.build_debug_cmd
-            and not type_resolver.dap_launch
-            and not type_resolver.dap_launch_rerun
-        then
-            vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
-            return
-        end
+    if last_run_info.runtype == task.run_type.RUN then
+        if last_run_info.is_debug then
+            if
+                not type_resolver.build_debug_cmd
+                and not type_resolver.dap_launch
+                and not type_resolver.dap_launch_rerun
+            then
+                vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+                return
+            end
 
-        if type_resolver.dap_launch_rerun then
-            type_resolver.dap_launch_rerun()
-            -- vim.notify("dap_launch_rerun" .. vim.bo.filetype, vim.log.levels.WARN)
-            return
-        end
+            if type_resolver.dap_launch_rerun then
+                type_resolver.dap_launch_rerun()
+                -- vim.notify("dap_launch_rerun" .. vim.bo.filetype, vim.log.levels.WARN)
+                return
+            end
 
-        if type_resolver.dap_launch then
-            type_resolver.dap_launch()
-            -- vim.notify("dap_launch" .. vim.bo.filetype, vim.log.levels.WARN)
-            return
-        end
+            if type_resolver.dap_launch then
+                type_resolver.dap_launch()
+                -- vim.notify("dap_launch" .. vim.bo.filetype, vim.log.levels.WARN)
+                return
+            end
 
-        if type_resolver.build_debug_cmd then
+            if type_resolver.build_debug_cmd then
+                require("dap").terminate()
+                vim.defer_fn(function()
+                    overseer_task_util.run_last_task()
+                    type_resolver.dap_attach_to_remote()
+                end, 400)
+                return
+            end
+        else
+            overseer_task_util.run_last_task()
+        end
+    elseif last_run_info.runtype == task.run_type.TEST then
+        if last_run_info.is_debug then
             require("dap").terminate()
             vim.defer_fn(function()
                 overseer_task_util.run_last_task()
                 type_resolver.dap_attach_to_remote()
             end, 400)
-            return
+        else
+            overseer_task_util.run_last_task()
         end
-    else
-        overseer_task_util.run_last_task()
     end
 end
 

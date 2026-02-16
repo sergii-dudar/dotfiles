@@ -1,11 +1,6 @@
 local overseer = require("overseer")
 local task_list = require("overseer.task_list")
 
----@class task.Options
----@field task_name string
----@field is_open_output? boolean
----@field on_complete? function
-
 local M = {}
 
 ---@param on_success function
@@ -25,10 +20,24 @@ function M.run_compile(on_success)
     })
 end
 
+---@class task.Options
+---@field task_name string
+---@field test_type task.test_type|integer|nil
+---@field is_test_debug boolean|nil
+---@field is_open_output? boolean
+---@field on_complete? function
+
 ---@param opts task.Options
 function M.run_task(opts)
     M.stop_all_prev_tasks()
-    overseer.run_task({ name = opts.task_name }, function(task)
+    local task_opts = { name = opts.task_name }
+    -- task_opts.env nil|table<string, string> Additional environment variables for the task
+    if opts.test_type then
+        task_opts.params = {}
+        task_opts.params.test_type = opts.test_type
+        task_opts.params.is_test_debug = opts.is_test_debug
+    end
+    overseer.run_task(task_opts, function(task)
         if task then
             task:start()
             if opts.is_open_output then

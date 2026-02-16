@@ -65,6 +65,7 @@ return {
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
+                scratch = { enabled = true },
             })
         end,
         -- stylua: ignore

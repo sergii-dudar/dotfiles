@@ -25,9 +25,7 @@ local M = {}
 ---@field build_run_all_tests_cmd function|nil
 ---@field build_run_file_tests_cmd function|nil
 ---@field build_run_test_cmd function|nil
----@field build_debug_run_test_cmd function|nil
 ---@field build_run_parametrized_num_test_cmd function|nil
----@field build_debug_parametrized_num_test_cmd function|nil
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]
@@ -48,6 +46,7 @@ end
 M.types_supported = {} -- all basic support it's shell cmd to run by overseer
 M.types_supported_debug_cmd = {}
 M.types_supported_compile_cmd = {}
+M.types_supported_test_cmd = {}
 
 for key, resolver in pairs(type_to_resolver) do
     table.insert(M.types_supported, key)
@@ -56,6 +55,14 @@ for key, resolver in pairs(type_to_resolver) do
     end
     if resolver.build_compile_cmd then
         table.insert(M.types_supported_compile_cmd, key)
+    end
+    if
+        resolver.build_run_all_tests_cmd
+        or resolver.build_run_file_tests_cmd
+        or resolver.build_run_test_cmd
+        or resolver.build_run_parametrized_num_test_cmd
+    then
+        table.insert(M.types_supported_test_cmd, key)
     end
 end
 
