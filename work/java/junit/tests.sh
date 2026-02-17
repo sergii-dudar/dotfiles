@@ -20,6 +20,18 @@ java -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
     --scan-class-path --include-engine junit-jupiter --disable-banner
 
+java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
+    --fail-if-no-tests \
+    --reports-dir=./target/test-classes/report \
+    --scan-class-path=target/test-classes \
+    --config=junit.platform.output.capture.stdout=true \
+    --config=junit.platform.output.capture.stderr=true \
+    --details=testfeed \
+    --include-engine junit-jupiter --disable-banner
+
+
 java -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar discover \
     --include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$" \
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
@@ -57,6 +69,17 @@ java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
     --select-class ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT \
+    --include-engine junit-jupiter --disable-banner
+
+java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
+    --fail-if-no-tests \
+    --reports-dir=./target/test-classes/report \
+    --scan-class-path=target/test-classes \
+    --config=junit.platform.output.capture.stdout=true \
+    --config=junit.platform.output.capture.stderr=true \
+    --details=testfeed \
     --include-engine junit-jupiter --disable-banner
 
 # --select-class ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http.CardTransferInitiationIT \
