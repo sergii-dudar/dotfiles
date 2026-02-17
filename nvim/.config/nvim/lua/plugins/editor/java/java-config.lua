@@ -105,6 +105,7 @@ return {
                                     ["application-yaml"] = {
                                         -- pring-boot.ls.problem.application-yaml.YAML_UNKNOWN_PROPERTY
                                         YAML_UNKNOWN_PROPERTY = "IGNORE",
+                                        YAML_SHOULD_ESCAPE = "IGNORE"
                                     },
                                 },
                             },

@@ -510,7 +510,8 @@ function M.is_mapper_file(bufnr)
     end
 
     local filename = vim.fn.expand("%:t")
-    return filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil
+    -- return filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil
+    return (filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")
 end
 
 -- Go to definition of a field/method in MapStruct path

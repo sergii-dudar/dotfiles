@@ -94,6 +94,7 @@ alias short='tldr'
 
 # alias vimdiff='nvim -d'
 alias lg="lazygit"
+alias ldr="lazydocker"
 
 # alias fz="fzf --preview='bat {}'"
 
