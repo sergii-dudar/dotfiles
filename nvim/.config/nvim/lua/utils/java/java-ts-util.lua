@@ -95,8 +95,17 @@ local function get_method_param_types(method_node)
             for p in c:iter_children() do
                 if p:type() == "formal_parameter" then
                     for pc in p:iter_children() do
-                        if pc:type() == "type_type" or pc:type() == "unann_type" then
+                        if
+                            pc:type() == "type_type"
+                            or pc:type() == "unann_type"
+                            or pc:type() == "type_identifier"
+                            or pc:type() == "generic_type"
+                            or pc:type() == "array_type"
+                            or pc:type() == "integral_type"
+                            or pc:type() == "scoped_type_identifier"
+                        then
                             table.insert(params, vim.treesitter.get_node_text(pc, 0))
+                            break
                         end
                     end
                 end
@@ -133,6 +142,28 @@ function M.get_full_method(delimiter)
     if not class or not sig then
         return nil
     end
+    return class .. delimiter .. sig
+end
+
+-- ---------------------------------------------------------
+--  GET FULL METHOD WITH CLASS + PACKAGE + PARAMS
+-- ---------------------------------------------------------
+function M.get_full_method_with_params(delimiter)
+    delimiter = delimiter or "."
+    local class = M.get_class_name()
+    local method_name = M.get_method_name_only()
+    if not class or not method_name then
+        return nil
+    end
+
+    local m = get_method_node()
+    if not m then
+        return nil
+    end
+
+    local params = get_method_param_types(m)
+    local sig = method_name .. "(" .. table.concat(params, ", ") .. ")"
+
     return class .. delimiter .. sig
 end
 

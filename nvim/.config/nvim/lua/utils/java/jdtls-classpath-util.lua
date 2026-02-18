@@ -179,7 +179,7 @@ local function get_classpath_from_project(bufnr)
 end
 
 -- Get classpath from jdtls for all modules
-local function get_jdtls_classpath_internal(bufnr)
+local function get_jdtls_classpath_of_all_modules(bufnr)
     -- Find jdtls client
     local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
     if not clients or #clients == 0 then
@@ -302,7 +302,7 @@ function M.get_classpath(opts)
     end
 
     -- Try jdtls first
-    local classpath = get_jdtls_classpath_internal(bufnr)
+    local classpath = get_jdtls_classpath_of_all_modules(bufnr)
 
     if not classpath then
         -- Fallback to project structure
