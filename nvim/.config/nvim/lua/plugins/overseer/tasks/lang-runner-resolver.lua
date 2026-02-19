@@ -26,6 +26,7 @@ local M = {}
 ---@field build_run_file_tests_cmd function|nil
 ---@field build_run_test_cmd function|nil
 ---@field build_run_parametrized_num_test_cmd function|nil
+---@field set_parametrized_test_num string|nil
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]

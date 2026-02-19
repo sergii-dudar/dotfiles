@@ -11,30 +11,20 @@ local setting = {
     },
     report_dir = "/target/junit-report",
 }
+local state = {
+    parametrized_test_num = 0,
+}
+
+function M.set_parametrized_test_num(value)
+    state.parametrized_test_num = value
+end
+
+vim.api.nvim_create_user_command("ParamTestNum", function(opts)
+    state.parametrized_test_num = opts.args
+end, { nargs = 1 })
 
 ---@return table
 function M.build_run_all_tests_cmd(is_debug)
-    -- local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method()
-    -- local module_path = java_util.get_buffer_project_path()
-    -- local test_classes = module_path .. "/target/test-classes"
-    -- local current_report_dir = module_path .. setting.report_dir
-    -- return {
-    --     java_util.java_bin,
-    --     "-jar",
-    --     setting.junit_jar,
-    --     "execute",
-    --     "--classpath=" .. classpath,
-    --     "--reports-dir=" .. current_report_dir,
-    --     "--fail-if-no-tests",
-    --     "--disable-banner",
-    --     "--details=testfeed",
-    --     "--config=junit.platform.output.capture.stdout=true",
-    --     "--config=junit.platform.output.capture.stderr=true",
-    --     "--include-engine junit-jupiter",
-    --     -- "--include-classname=(^.*Tests?$|^.*IT$|^.*Spec$)",
-    --     "--scan-class-path=" .. test_classes,
-    -- }
-
     return build_junit_tests_cmd(task.test_type.ALL_TESTS, is_debug)
 end
 
@@ -104,7 +94,7 @@ local test_selector_resolver = {
         current_test_method_fqn =
             javap_util.resolve_parametrized_method_signature(current_test_method_fqn, test_classes)
         vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
-        return "--select-iteration=method:" .. current_test_method_fqn .. "[0]"
+        return "--select-iteration=method:" .. current_test_method_fqn .. "[" .. state.parametrized_test_num .. "]"
     end,
 }
 

@@ -61,5 +61,8 @@ end
 function M.build_run_parametrized_num_test_cmd(is_debug)
     return require("utils.java.junit").build_run_parametrized_num_test_cmd(is_debug)
 end
+function M.set_parametrized_test_num(value)
+    return require("utils.java.junit").set_parametrized_test_num(value)
+end
 
 return M

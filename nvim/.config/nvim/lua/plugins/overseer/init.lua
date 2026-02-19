@@ -54,8 +54,21 @@ return {
             { "<leader>rtd", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_TEST, is_debug = true }) end, desc = "Debug Current Test", },
             { "<leader>rtf", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.FILE_TESTS }) end, desc = "Run File Tests", },
             { "<leader>rta", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.ALL_TESTS }) end, desc = "Run All Tests", },
-            { "<leader>rtp", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST }) end, desc = "Run Current Parametrized Single Test", },
-            { "<leader>rtP", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, is_debug = true }) end, desc = "Debug Current Parametrized Single Test", },
+            { "<leader>rtp", function()
+                Snacks.input({ prompt = "Test Number" }, function(value)
+                    require("plugins.overseer.tasks.lang-runner-resolver").resolve(vim.bo.filetype).set_parametrized_test_num(value)
+                    require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST })
+                end)
+            end, desc = "Run Current Parametrized Single Test", },
+            { "<leader>rtP", function()
+                Snacks.input({ prompt = "Test Number" }, function(value)
+                    require("plugins.overseer.tasks.lang-runner-resolver").resolve(vim.bo.filetype).set_parametrized_test_num(value)
+                    require("plugins.overseer.overseer-util").run_test({
+                        type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
+                        is_debug = true,
+                    })
+                end)
+            end, desc = "Debug Current Parametrized Single Test", },
         },
         config = function(_, opts)
             local overseer = require("overseer")
