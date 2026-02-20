@@ -88,7 +88,7 @@ function fzf_preview() {
         --exact \
         --color "hl:-1:underline,hl+:-1:underline:reverse" \
         --delimiter : \
-        --preview 'bat --style=numbers --color=always {1} --highlight-line {2}' \
+        --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
         --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
         --bind "enter:become(nvim --clean {1})"
     # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
@@ -101,7 +101,7 @@ function fzf_preview_no_select() {
         --exact \
         --color "hl:-1:underline,hl+:-1:underline:reverse" \
         --delimiter : \
-        --preview 'bat --style=numbers --color=always {1}' \
+        --preview 'bat --style=changes --color=always {1}' \
         --preview-window 'up,85%,border-bottom' \
         --bind "enter:become(bat --color=always {1})"
 }

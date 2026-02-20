@@ -22,10 +22,10 @@ return {
             "vim",
             "yaml",
             "java",
-            "kotlin",
+            -- "kotlin",
             "xml",
-            "strace",
-            "groovy",
+            -- "strace",
+            -- "groovy",
             "terraform",
             "haskell",
             "hyprlang",
@@ -40,10 +40,15 @@ return {
         },
         indent = { enable = true, disable = { "java" } },
     },
-    -- {
-    --     "nvim-treesitter/nvim-treesitter-context",
-    --     enabled = false,
-    -- },
+    {
+        "nvim-treesitter/nvim-treesitter-context",
+        opts = {
+            multiline_threshold = 1,
+            on_attach = function(bufnr)
+                return vim.bo[bufnr].filetype ~= "java"
+            end,
+        },
+    },
 }
 
 --[[ {
