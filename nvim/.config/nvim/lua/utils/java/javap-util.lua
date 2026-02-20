@@ -80,7 +80,7 @@ end
 function M.resolve_parametrized_method_signature(method_qualified_name, class_path)
     local class_name, method_name, method_parameters = method_qualified_name:match("^([^%#]+)#([^%(]+)(%([^)]*%))$")
     if not method_parameters or method_parameters == "()" then
-        return method_qualified_name.qualified_name
+        return method_qualified_name
     end
 
     local resolved_method_parameters = resolve_test_method_params(class_name, method_name, class_path)

@@ -12,6 +12,31 @@ task.run_type = {
     TEST = 1,
 }
 
+---@param type task.test_type|integer
+---@param is_debug boolean|nil
+---@return function
+local build_run_test = function(type, is_debug)
+    return function()
+        require("plugins.overseer.overseer-util").run_test({ type = type, is_debug = is_debug })
+    end
+end
+
+---@param is_debug boolean|nil
+---@return function
+local build_run_param_test = function(is_debug)
+    return function()
+        Snacks.input({ prompt = "Test Number" }, function(value)
+            require("plugins.overseer.tasks.lang-runner-resolver")
+                .resolve(vim.bo.filetype)
+                .set_parametrized_test_num(value)
+            require("plugins.overseer.overseer-util").run_test({
+                type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
+                is_debug = true,
+            })
+        end)
+    end
+end
+
 return {
     {
         "stevearc/overseer.nvim",
@@ -50,25 +75,12 @@ return {
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
             -- test runners
-            { "<leader>rtr", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_TEST }) end, desc = "Run Current Test", },
-            { "<leader>rtd", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_TEST, is_debug = true }) end, desc = "Debug Current Test", },
-            { "<leader>rtf", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.FILE_TESTS }) end, desc = "Run File Tests", },
-            { "<leader>rta", function() require("plugins.overseer.overseer-util").run_test({ type = task.test_type.ALL_TESTS }) end, desc = "Run All Tests", },
-            { "<leader>rtp", function()
-                Snacks.input({ prompt = "Test Number" }, function(value)
-                    require("plugins.overseer.tasks.lang-runner-resolver").resolve(vim.bo.filetype).set_parametrized_test_num(value)
-                    require("plugins.overseer.overseer-util").run_test({ type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST })
-                end)
-            end, desc = "Run Current Parametrized Single Test", },
-            { "<leader>rtP", function()
-                Snacks.input({ prompt = "Test Number" }, function(value)
-                    require("plugins.overseer.tasks.lang-runner-resolver").resolve(vim.bo.filetype).set_parametrized_test_num(value)
-                    require("plugins.overseer.overseer-util").run_test({
-                        type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
-                        is_debug = true,
-                    })
-                end)
-            end, desc = "Debug Current Parametrized Single Test", },
+            { "<leader>rtr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
+            { "<leader>rtd", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
+            { "<leader>rtf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
+            { "<leader>rta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
+            { "<leader>rtp", build_run_param_test(), desc = "Run Current Parametrized Single Test", },
+            { "<leader>rtP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
         },
         config = function(_, opts)
             local overseer = require("overseer")
