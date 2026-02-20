@@ -31,7 +31,7 @@ local build_run_param_test = function(is_debug)
                 .set_parametrized_test_num(value)
             require("plugins.overseer.overseer-util").run_test({
                 type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
-                is_debug = true,
+                is_debug = is_debug,
             })
         end)
     end
@@ -94,6 +94,7 @@ return {
             overseer.register_template(run_current.build_taks())
             overseer.register_template(debug_current.build_taks())
             overseer.register_template(run_tests.build_taks())
+            overseer.register_template(run_tests.build_debug_taks())
 
             -- Map 'q' to close overseer task output windows
             vim.api.nvim_create_autocmd("FileType", {

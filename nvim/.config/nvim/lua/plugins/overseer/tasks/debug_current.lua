@@ -24,9 +24,9 @@ function M.build_taks()
                     { "on_output_quickfix", set_diagnostics = true },
                     "on_result_diagnostics",
                     "on_exit_set_status",
-                   -- "on_complete_dispose",
+                    -- "on_complete_dispose",
                     -- "on_complete_notify",
-                    "debug.dap_ui_output", -- mirror output to DAP REPL/console
+                    "debug.dap_ctrl_component",
                 },
             }
         end,

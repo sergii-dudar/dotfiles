@@ -65,11 +65,17 @@ end
 
 --- Attach to existing jvm dap session.
 ---@param port integer|nil 5005 if not specified.
-function M.attach_to_remote(port)
+---@param delay_ms integer|nil
+function M.attach_to_remote(port, delay_ms)
     port = port or M.default_dap_port
-    vim.defer_fn(function()
+    if delay_ms then
+        vim.defer_fn(function()
+            require("dap").run(default_attach_config)
+        end, delay_ms) -- 200 ms; increase if your JVM is slow to start
+    else
+        -- TODO: forward passed port
         require("dap").run(default_attach_config)
-    end, 200) -- ms; increase if your JVM is slow to start
+    end
 end
 
 return M

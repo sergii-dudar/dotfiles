@@ -16,13 +16,25 @@ function M.run_test(opts)
         vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
-    overseer_task_util.run_task({
-        task_name = "RUN_TESTS",
-        is_open_output = true,
-        test_type = opts.type,
-        is_test_debug = opts.is_debug,
-    })
-    write_run_info(task.run_type.RUN, false)
+    if opts.is_debug then
+        overseer.close()
+        dap_after_session_clear()
+        overseer_task_util.run_task({
+            task_name = "DEBUG_TESTS",
+            is_open_output = false,
+            test_type = opts.type,
+            is_test_debug = opts.is_debug,
+        })
+        write_run_info(task.run_type.TEST, true)
+    else
+        overseer_task_util.run_task({
+            task_name = "RUN_TESTS",
+            is_open_output = true,
+            test_type = opts.type,
+            is_test_debug = opts.is_debug,
+        })
+        write_run_info(task.run_type.TEST, false)
+    end
 end
 
 function M.run_current()
@@ -66,7 +78,7 @@ function debug_current_internal(type_resolver)
         -- 4. After a short delay, re-attach DAP
         -- The delay gives the JVM a moment to start and open the port.
         -- jdtls_dap_util.attach_to_remote()
-        type_resolver.dap_attach_to_remote()
+        -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
     end
 
     write_run_info(task.run_type.RUN, true)
@@ -119,10 +131,10 @@ function restart_last_task(type_resolver)
 
             if type_resolver.build_debug_cmd then
                 require("dap").terminate()
-                vim.defer_fn(function()
-                    overseer_task_util.run_last_task()
-                    type_resolver.dap_attach_to_remote()
-                end, 400)
+                -- vim.defer_fn(function()
+                overseer_task_util.run_last_task()
+                -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
+                -- end, 400)
                 return
             end
         else
@@ -131,10 +143,10 @@ function restart_last_task(type_resolver)
     elseif last_run_info.runtype == task.run_type.TEST then
         if last_run_info.is_debug then
             require("dap").terminate()
-            vim.defer_fn(function()
-                overseer_task_util.run_last_task()
-                type_resolver.dap_attach_to_remote()
-            end, 400)
+            -- vim.defer_fn(function()
+            overseer_task_util.run_last_task()
+            --     -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
+            -- end, 400)
         else
             overseer_task_util.run_last_task()
         end

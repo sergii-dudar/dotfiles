@@ -112,8 +112,11 @@ function build_junit_tests_cmd(type, is_debug)
         return { "echo", "Wrong test selector context!" }
     end
 
+    local debug_param = is_debug and "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" or nil
+
     return vim.iter({
         java_util.java_bin,
+        debug_param,
         "-jar",
         setting.junit_jar,
         "execute",
@@ -129,6 +132,9 @@ function build_junit_tests_cmd(type, is_debug)
         test_selector,
     })
         :flatten()
+        :filter(function(v)
+            return v ~= nil
+        end)
         :totable()
 end
 

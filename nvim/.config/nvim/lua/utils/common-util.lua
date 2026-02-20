@@ -130,6 +130,29 @@ function M.timewatch(callback, msg_pref)
     return result
 end
 
+function M.now_datetime()
+    -- Get current date/time table
+    local date_table = os.date("*t")
+
+    -- Get fractional seconds from os.clock()
+    -- We take the modulo 1 to get only the fractional part, then multiply by 1000
+    local milliseconds = math.floor((os.clock() % 1) * 1000)
+
+    -- Format the date and time string, adding leading zeros where necessary
+    local formatted_time = string.format(
+        "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+        date_table.year,
+        date_table.month,
+        date_table.day,
+        date_table.hour,
+        date_table.min,
+        date_table.sec,
+        milliseconds
+    )
+
+    return formatted_time
+end
+
 -- function M.table_to_string(tbl, indent)
 --     indent = indent or 0
 --     local to_log = string.rep(" ", indent) .. "{\n"

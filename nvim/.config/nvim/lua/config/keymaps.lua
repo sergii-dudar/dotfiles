@@ -112,7 +112,7 @@ Snacks.toggle.zen():map("<leader>zz")
 -- help to replace intellij - replace qualified name with import
 
 -- stylua: ignore start
--- vim.api.nvim_set_keymap( "v", "<leader>rr", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
+vim.api.nvim_set_keymap("v", "<leader>R", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
 
 -- run lua in runtime (in all buffers!)
 -- map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
