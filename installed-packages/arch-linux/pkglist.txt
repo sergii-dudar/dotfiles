@@ -11,6 +11,7 @@ base-devel
 bashtop
 bat
 bc
+bluez-utils
 brightnessctl
 bspwm
 btop
@@ -116,6 +117,7 @@ jq
 k9s
 kitty
 kolourpaint
+lazydocker
 lazygit
 libpulse
 linux
@@ -142,12 +144,11 @@ networkmanager
 noto-fonts
 noto-fonts-cjk
 ntfs-3g
-nvidia-dkms
+nvidia-open-dkms
 nwg-look
 pamixer
 pavucontrol
 picom
-pinta
 pipewire
 pipewire-alsa
 pipewire-jack
@@ -156,7 +157,6 @@ playerctl
 pngquant
 polkit-gnome
 polybar
-postgresql
 procs
 pulseaudio-alsa
 python-dbus
@@ -170,7 +170,6 @@ qtile-extras
 ranger
 redshift
 ripgrep
-rmpc
 rofi
 rust
 rust-analyzer
@@ -180,6 +179,7 @@ slock
 smartmontools
 snapd
 snapshot
+socat
 sof-firmware
 stow
 sublime-text-4
@@ -215,6 +215,7 @@ vlc
 volumeicon
 waybar
 waypaper
+wev
 wezterm
 wget
 wireless_tools
@@ -246,7 +247,6 @@ xsettingsd
 xss-lock
 xterm
 yay
-yazi
 yelp
 zellij
 zig
