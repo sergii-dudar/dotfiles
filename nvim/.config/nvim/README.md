@@ -9,7 +9,7 @@
      neotest-java - investigation of issue of not working debugging for some king of prjects using spring-boot
      investigate stevearc/overseer.nvim integration and implement it to replace CRAG666/code_runner.nvim
      better dap and dap ui configuration (explore more convenient ways to debug java code)
-     stevearc/overseer.nvim: implement junit test runners by using junit-platform-console-standalone with parsing result xml and diagnostics, qflist and marks support
+     stevearc/overseer.nvim: implement junit test runners by using junit-platform-console-standalone with parsing result xml and diagnostics, qflist and marks support...
      stabilize `java-refactor-util.lua` for fixing batch moved\renamed java files, packages etc.
 
 ### Screenshots
