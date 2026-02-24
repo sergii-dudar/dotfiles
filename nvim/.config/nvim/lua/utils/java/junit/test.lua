@@ -25,7 +25,7 @@ nio.run(function()
             command_executor = CommandExecutor(),
             binaries = binaries,
         }),
-    }).discover_positions(
+    }).discover_positionsiiii(
         "/home/serhii/serhii.home/git/tests/demo-spring/src/test/java/com/example/demo/DemoApplicationTest.java"
     )
     -- dd(tree:to_list())
