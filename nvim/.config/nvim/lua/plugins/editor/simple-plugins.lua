@@ -54,7 +54,9 @@ return {
     },
     {
         "MeanderingProgrammer/render-markdown.nvim",
-        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" }, -- if you use the mini.nvim suite
+        enabled = true, -- This plugin uses extmarks to avoid reserved space issues
+        ft = { "markdown" },
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" },
         opts = {
             heading = {
                 -- Highlight for the heading icon and extends through the entire line.
@@ -77,6 +79,14 @@ return {
                     "RenderMarkdownH5",
                     "RenderMarkdownH6",
                 },
+            },
+            -- anti_conceal = {
+            --     enabled = true,
+            -- },
+            -- Link rendering: show only link text, hide URL, no empty space
+            link = {
+                enabled = true, -- Enable to properly handle links without reserved space
+                -- hyperlink = "Underlined",
             },
         },
     },
