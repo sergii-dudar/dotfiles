@@ -10,6 +10,7 @@ vim.diagnostic.config({
     float = { border = "rounded" },
 })
 
+local jdtls_util = require("utils.java.jdtls-util")
 local original_handler = vim.lsp.buf_request_all
 ---@diagnostic disable-next-line: duplicate-set-field
 vim.lsp.buf_request_all = function(bufnr, method, params, handler)
@@ -22,12 +23,17 @@ vim.lsp.buf_request_all = function(bufnr, method, params, handler)
     original_handler(bufnr, method, params, function(results, ctx)
         local non_empty_result = {}
         for client_id, resp in pairs(results) do
+            local is_jdtls = vim.lsp.get_client_by_id(client_id).name == "jdtls"
             local contents = resp and resp.result and resp.result.contents
             if contents then
                 local cont_type = type(contents)
                 if cont_type == "string" and contents ~= "" then
+                    resp.result.contents = is_jdtls and jdtls_util.fix_hover_contents(resp.result.contents)
+                        or resp.result.contents
                     non_empty_result[client_id] = resp
                 elseif cont_type == "table" and not vim.tbl_isempty(contents) then
+                    resp.result.contents = is_jdtls and jdtls_util.fix_hover_contents(resp.result.contents)
+                        or resp.result.contents
                     non_empty_result[client_id] = resp
                 end
             end

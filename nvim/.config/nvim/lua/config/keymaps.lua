@@ -135,9 +135,9 @@ if require("utils.java.java-common").is_java_project() then
     map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
     -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
-    map("n", "gj", function() require("utils.java.jdtls-util").extrace_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
-    map("n", "<leader>jda", function() require("utils.java.jdtls-util").extrace_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
-    map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extrace_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
+    map("n", "gj", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
+    map("n", "<leader>jda", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
+    map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
     --[[ if require("utils.java.java-common").is_java_project() then
         map("n", "gf", function() require("utils.java.java-common").edit_java_resourse_file() end, { desc = "[J]ava [G]o to [F]ile Link Under Cursor" })
     end ]]

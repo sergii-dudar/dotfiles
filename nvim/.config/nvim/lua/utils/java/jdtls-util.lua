@@ -300,7 +300,7 @@ local extract_jdt_all_links = function(jdt_link_text)
     return results
 end
 
-function M.extrace_and_open_first_jdt_link(line)
+function M.extract_and_open_first_jdt_link(line)
     local extracted = extract_jdt_first_link(line)
     if not extracted then
         vim.notify(string.format("⚠️ Can't extract class name with line from %s", line))
@@ -310,7 +310,7 @@ function M.extrace_and_open_first_jdt_link(line)
     M.jdt_open_class(extracted.class_name, extracted.line_number)
 end
 
-function M.extrace_and_open_all_jdt_link(line)
+function M.extract_and_open_all_jdt_link(line)
     local extracted = extract_jdt_all_links(line)
     if not extracted or vim.tbl_isempty(extracted) then
         vim.notify(string.format("⚠️ Can't extrct any class name with line from %s", line))
@@ -322,19 +322,19 @@ function M.extrace_and_open_all_jdt_link(line)
     end
 end
 
-function M.extrace_and_open_current_line_first_jdt_link()
+function M.extract_and_open_current_line_first_jdt_link()
     local current_line = util.get_line_under_cursor()
-    M.extrace_and_open_first_jdt_link(current_line)
+    M.extract_and_open_first_jdt_link(current_line)
 end
 
-function M.extrace_and_open_current_line_all_jdt_link()
+function M.extract_and_open_current_line_all_jdt_link()
     local current_line = util.get_line_under_cursor()
-    M.extrace_and_open_all_jdt_link(current_line)
+    M.extract_and_open_all_jdt_link(current_line)
 end
 
-function M.extrace_and_open_cursor_position_jdt_link()
+function M.extract_and_open_cursor_position_jdt_link()
     local cursor_token = util.get_token_under_cursor()
-    M.extrace_and_open_first_jdt_link(cursor_token)
+    M.extract_and_open_first_jdt_link(cursor_token)
 end
 
 -- function M.jdt_open_class(class_name, line_number)
@@ -440,6 +440,41 @@ function M.connect_jdtls_and_search_symbol_under_cursor()
     Snacks.picker.lsp_workspace_symbols({
         search = fileName,
     })
+end
+
+function M.fix_hover_links(text)
+    if not text then
+        return text
+    end
+
+    return text:gsub("%((jdt://[^%)]+)%)", function(url)
+        return "(" .. url .. "))"
+    end)
+end
+
+function M.fix_hover_contents(contents)
+    if type(contents) == "string" then
+        return M.fix_hover_links(contents)
+    elseif type(contents) == "table" then
+        -- MarkupContent
+        if contents.kind and contents.value then
+            contents.value = M.fix_hover_links(contents.value)
+            return contents
+        end
+
+        -- MarkedString array
+        for i, item in ipairs(contents) do
+            if type(item) == "string" then
+                contents[i] = M.fix_hover_links(item)
+            elseif type(item) == "table" and item.value then
+                item.value = M.fix_hover_links(item.value)
+            end
+        end
+
+        return contents
+    end
+
+    return contents
 end
 
 --[[ local open_jdt_link = function(uri)

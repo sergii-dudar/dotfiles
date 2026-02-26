@@ -10,7 +10,8 @@ function M.get_token_under_cursor(edges_separator_pattern)
 end
 
 function M.get_token_under_cursor_sides(left_edges_separator_pattern, right_edges_separator_pattern)
-    edges_separator_pattern = edges_separator_pattern or "%s" -- space by defaule
+    left_edges_separator_pattern = left_edges_separator_pattern or "%s" -- space by defaule
+    right_edges_separator_pattern = right_edges_separator_pattern or "%s"
     local _, col = unpack(vim.api.nvim_win_get_cursor(0))
     local line = vim.api.nvim_get_current_line()
 

@@ -211,7 +211,7 @@ vim.api.nvim_create_user_command("RunMainClass", function()
         },
     }, function(configs)
         if #configs > 0 then
-            dd(configs)
+            -- dd(configs)
             require("dap").run(configs[1])
         end
     end)

@@ -32,7 +32,7 @@ return {
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
-        cond = java_util.is_java_project(),
+        -- cond = java_util.is_java_project(),
         dependencies = {
             "mason-org/mason.nvim",
             "JavaHello/spring-boot.nvim",
@@ -105,7 +105,7 @@ return {
                                     ["application-yaml"] = {
                                         -- pring-boot.ls.problem.application-yaml.YAML_UNKNOWN_PROPERTY
                                         YAML_UNKNOWN_PROPERTY = "IGNORE",
-                                        YAML_SHOULD_ESCAPE = "IGNORE"
+                                        YAML_SHOULD_ESCAPE = "IGNORE",
                                     },
                                 },
                             },

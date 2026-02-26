@@ -112,7 +112,7 @@ function M.dap_launch()
         end,
     }
 
-    dd({ config = config, adapter = dap.adapters.netcoredbg })
+    -- dd({ config = config, adapter = dap.adapters.netcoredbg })
     dap.run(config)
 end
 

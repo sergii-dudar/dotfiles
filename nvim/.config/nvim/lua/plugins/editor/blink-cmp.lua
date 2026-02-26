@@ -4,6 +4,8 @@
 -- local data_table = vim.json.decode(json_string)
 -- dd(data_table)
 
+local jdtls_util = require("utils.java.jdtls-util")
+
 local function is_dap_buffer()
     return require("cmp_dap").is_dap_buffer()
 end
@@ -141,6 +143,18 @@ return {
                     window = {
                         border = "rounded",
                     },
+                    draw = function(opts)
+                        if opts.item and opts.item.documentation and opts.item.documentation.value then
+                            if opts.item.client_name == "jdtls" then
+                                opts.item.documentation.value =
+                                    jdtls_util.fix_hover_links(opts.item.documentation.value)
+                            end
+                            local out = require("pretty_hover.parser").parse(opts.item.documentation.value)
+                            opts.item.documentation.value = out:string()
+                        end
+
+                        opts.default_implementation(opts)
+                    end,
                 },
                 ghost_text = {
                     enabled = true,
