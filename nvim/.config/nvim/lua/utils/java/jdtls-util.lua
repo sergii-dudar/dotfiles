@@ -333,6 +333,14 @@ function M.extract_and_open_current_line_all_jdt_link()
 end
 
 function M.extract_and_open_cursor_position_jdt_link()
+    if vim.bo.filetype == "markdown" then -- qadzek/link.vim
+        vim.cmd("LinkJump")
+        vim.schedule(function()
+            local cursor_token = util.get_token_under_cursor()
+            M.extract_and_open_first_jdt_link(cursor_token)
+        end)
+        return
+    end
     local cursor_token = util.get_token_under_cursor()
     M.extract_and_open_first_jdt_link(cursor_token)
 end
@@ -454,7 +462,7 @@ function M.convert_markdown_links_to_references(markdown_text)
     local bufnr = vim.api.nvim_create_buf(false, true)
 
     -- Set buffer to markdown filetype so link.vim works properly
-    vim.api.nvim_buf_set_option(bufnr, 'filetype', 'markdown')
+    vim.bo[bufnr].filetype = "markdown"
 
     -- Split text into lines and set them in the buffer
     local lines = vim.split(markdown_text, "\n", { plain = true })

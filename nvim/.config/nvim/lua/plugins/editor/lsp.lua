@@ -34,9 +34,11 @@ vim.lsp.buf_request_all = function(bufnr, method, params, handler)
                     non_empty_result[client_id] = resp
                 elseif cont_type == "table" and not vim.tbl_isempty(contents) then
                     if is_jdtls then
-                        -- Handle MarkupContent or MarkedString array
+                        -- LSP hover can return contents in different formats:
+                        -- 1. MarkupContent: { kind = "markdown", value = "..." }
                         if contents.kind and contents.value then
                             contents.value = jdtls_util.convert_markdown_links_to_references(contents.value)
+                        -- 2. MarkedString array: { "text", { language = "java", value = "code" }, ... }
                         else
                             for i, item in ipairs(contents) do
                                 if type(item) == "string" then
