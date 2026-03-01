@@ -35,13 +35,18 @@ return {
                 --     LazyVim.cmp.map({ "snippet_forward", "ai_accept" }),
                 --     "fallback",
                 -- },
-                ["<C-k>"] = { "select_prev", "fallback" },
-                ["<C-j>"] = { "select_next", "fallback" },
+                -- ["<C-k>"] = { "select_prev", "fallback" },
+                -- ["<C-j>"] = { "select_next", "fallback" },
                 -- ["<C-h>"] = {
                 --     function()
                 --         require("pretty_hover").close()
                 --     end,
                 -- },
+                ["<C-u>"] = { "scroll_signature_up", "fallback" },
+                ["<C-d>"] = { "scroll_signature_down", "fallback" },
+
+                -- default in all keymap presets
+                ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
 
                 -- ["<Space>"] = { "select_and_accept", "fallback" },
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
@@ -167,6 +172,8 @@ return {
                 window = {
                     border = "rounded",
                     show_documentation = true, -- to only show the signature, and not the documentation.
+                    -- direction_priority = { "n", "s" },
+                    direction_priority = { "s" }, -- Options are 'n' (north/up) or 's' (south/down)
                 },
             },
             cmdline = {

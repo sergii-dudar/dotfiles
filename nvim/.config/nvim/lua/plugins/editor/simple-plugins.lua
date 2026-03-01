@@ -5,9 +5,11 @@ return {
         "catgoose/nvim-colorizer.lua", -- fork with support of AARRGGBB and another color formats
         config = function()
             require("colorizer").setup({
-                user_default_options = {
-                    RRGGBBAA = true, -- #RRGGBBAA hex codes
-                    AARRGGBB = true, -- 0xAARRGGBB hex codes
+                options = {
+                    parsers = {
+                        rrggbbaa = true, -- #RRGGBBAA hex codes
+                        aarrggbb = true, -- 0xAARRGGBB hex codes
+                    },
                 },
             })
         end,
