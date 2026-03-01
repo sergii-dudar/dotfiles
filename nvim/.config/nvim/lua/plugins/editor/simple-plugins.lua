@@ -54,6 +54,7 @@ return {
             -- },
         },
     },
+    -- Keep long URLs out of your way in (Neo)Vim (livesaver for javadoc with long jdt urls)
     { "qadzek/link.vim" },
     -- {
     --     "OXY2DEV/markview.nvim",

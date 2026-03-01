@@ -22,3 +22,6 @@
 -- If you prefer wrapping despite the gaps:
 -- vim.opt_local.wrap = true
 -- vim.opt_local.linebreak = true
+
+vim.keymap.set("n", "<leader>jj", ":LinkJump<CR>", { buffer = true, desc = "Jump to Link (link.vim)" })
+vim.keymap.set("n", "<leader>jo", ":LinkOpen<CR>", { buffer = true, desc = "Open Link (link.vim)" })
