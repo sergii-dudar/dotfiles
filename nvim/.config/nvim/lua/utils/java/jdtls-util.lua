@@ -442,6 +442,48 @@ function M.connect_jdtls_and_search_symbol_under_cursor()
     })
 end
 
+--- Convert markdown text by moving links to bottom using link.vim plugin
+--- @param markdown_text string
+--- @return string|nil
+function M.convert_markdown_links_to_references(markdown_text)
+    if not markdown_text or markdown_text == "" then
+        return markdown_text
+    end
+
+    -- Create a temporary scratch buffer
+    local bufnr = vim.api.nvim_create_buf(false, true)
+
+    -- Set buffer to markdown filetype so link.vim works properly
+    vim.api.nvim_buf_set_option(bufnr, 'filetype', 'markdown')
+
+    -- Split text into lines and set them in the buffer
+    local lines = vim.split(markdown_text, "\n", { plain = true })
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+
+    -- Execute the LinkConvertAll command on the buffer
+    local ok, err = pcall(function()
+        vim.api.nvim_buf_call(bufnr, function()
+            vim.cmd("silent! LinkConvertAll")
+        end)
+    end)
+
+    if not ok then
+        -- If conversion failed, return original text
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+        vim.notify("Link conversion failed: " .. tostring(err), vim.log.levels.WARN)
+        return markdown_text
+    end
+
+    -- Get the converted text from the buffer
+    local converted_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local converted_text = table.concat(converted_lines, "\n")
+
+    -- Clean up the temporary buffer
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+
+    return converted_text
+end
+
 function M.fix_hover_links(text)
     if not text then
         return text

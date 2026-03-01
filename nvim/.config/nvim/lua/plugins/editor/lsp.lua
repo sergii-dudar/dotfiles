@@ -28,12 +28,25 @@ vim.lsp.buf_request_all = function(bufnr, method, params, handler)
             if contents then
                 local cont_type = type(contents)
                 if cont_type == "string" and contents ~= "" then
-                    resp.result.contents = is_jdtls and jdtls_util.fix_hover_contents(resp.result.contents)
-                        or resp.result.contents
+                    if is_jdtls then
+                        resp.result.contents = jdtls_util.convert_markdown_links_to_references(contents)
+                    end
                     non_empty_result[client_id] = resp
                 elseif cont_type == "table" and not vim.tbl_isempty(contents) then
-                    resp.result.contents = is_jdtls and jdtls_util.fix_hover_contents(resp.result.contents)
-                        or resp.result.contents
+                    if is_jdtls then
+                        -- Handle MarkupContent or MarkedString array
+                        if contents.kind and contents.value then
+                            contents.value = jdtls_util.convert_markdown_links_to_references(contents.value)
+                        else
+                            for i, item in ipairs(contents) do
+                                if type(item) == "string" then
+                                    contents[i] = jdtls_util.convert_markdown_links_to_references(item)
+                                elseif type(item) == "table" and item.value then
+                                    item.value = jdtls_util.convert_markdown_links_to_references(item.value)
+                                end
+                            end
+                        end
+                    end
                     non_empty_result[client_id] = resp
                 end
             end
