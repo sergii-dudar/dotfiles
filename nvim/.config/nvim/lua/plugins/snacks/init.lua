@@ -61,6 +61,14 @@ return {
                 notifier = {
                     enabled = true,
                     -- style = "compact",
+                    filter = function(notif)
+                        -- TODO:
+                        -- dd({ vim.bo.filetype })
+                        -- if vim.bo.filetype == "markdown" then
+                        --     dd(notif)
+                        -- end
+                        return true
+                    end,
                 },
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
