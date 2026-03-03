@@ -462,6 +462,10 @@ function M.convert_markdown_links_to_references(markdown_text)
     then
         return markdown_text
     end
+    if string_util.contains(markdown_text, "[0]: ") then
+        -- can be already converted (cached as in case blink.cmp documentation)
+        return markdown_text
+    end
     -- dd(markdown_text)
     -- vim.notify("called", vim.log.levels.ERROR)
 

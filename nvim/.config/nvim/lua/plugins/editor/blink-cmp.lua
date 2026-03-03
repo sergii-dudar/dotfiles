@@ -151,8 +151,8 @@ return {
                     draw = function(opts)
                         if opts.item and opts.item.documentation and opts.item.documentation.value then
                             if opts.item.client_name == "jdtls" then
-                                opts.item.documentation.value =
-                                    jdtls_util.fix_hover_links(opts.item.documentation.value)
+                                -- opts.item.documentation.value = jdtls_util.fix_hover_links(opts.item.documentation.value)
+                                opts.item.documentation.value = jdtls_util.convert_markdown_links_to_references(opts.item.documentation.value)
                             end
                             local out = require("pretty_hover.parser").parse(opts.item.documentation.value)
                             opts.item.documentation.value = out:string()
