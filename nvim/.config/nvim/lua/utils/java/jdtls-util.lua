@@ -457,6 +457,13 @@ function M.convert_markdown_links_to_references(markdown_text)
     if not markdown_text or markdown_text == "" then
         return markdown_text
     end
+    if
+        not string_util.contains(markdown_text, "jdt://") --[[ and not string_util.contains(markdown_text, "file://") ]]
+    then
+        return markdown_text
+    end
+    -- dd(markdown_text)
+    -- vim.notify("called", vim.log.levels.ERROR)
 
     -- Create a temporary scratch buffer
     local bufnr = vim.api.nvim_create_buf(false, true)
