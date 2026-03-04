@@ -117,6 +117,7 @@ function build_junit_tests_cmd(type, is_debug)
     return vim.iter({
         java_util.java_bin,
         debug_param,
+        setting.jvm_args,
         "-jar",
         setting.junit_jar,
         "execute",

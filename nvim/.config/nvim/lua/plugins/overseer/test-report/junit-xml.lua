@@ -65,26 +65,56 @@ function M._process_testsuite(testsuite, results)
             local method_name = name:match("^([^%(%)%[%]]+)") or name
             local id = classname .. "#" .. method_name
 
+            -- Capture output streams
+            local stdout = M._extract_text(tc["system-out"])
+            local stderr = M._extract_text(tc["system-err"])
+
             if tc.failure then
-                local errors = M._extract_errors(classname, tc.failure)
-                results[id] = { status = "failed", errors = errors }
+                local errors, stacktrace = M._extract_errors(classname, tc.failure)
+                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace }
             elseif tc.error then
-                local errors = M._extract_errors(classname, tc.error)
-                results[id] = { status = "failed", errors = errors }
+                local errors, stacktrace = M._extract_errors(classname, tc.error)
+                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace }
             elseif tc.skipped then
-                results[id] = { status = "skipped" }
+                results[id] = { status = "skipped", stdout = stdout, stderr = stderr }
             else
-                results[id] = { status = "passed" }
+                results[id] = { status = "passed", stdout = stdout, stderr = stderr }
             end
         end
     end
 end
 
+--- Extracts text from a parsed XML node.
+--- Handles single tag (string after reduce), or multiple tags (array of strings).
+---@param node table|string|nil
+---@return string|nil
+function M._extract_text(node)
+    if not node then
+        return nil
+    end
+    if type(node) == "string" then
+        return node
+    end
+    if type(node) == "table" then
+        local parts = {}
+        for _, v in ipairs(node) do
+            if type(v) == "string" then
+                parts[#parts + 1] = v
+            end
+        end
+        if #parts > 0 then
+            return table.concat(parts)
+        end
+    end
+    return nil
+end
+
 ---@param classname string
 ---@param failure_node table|string
----@return { message: string, line: number|nil }[]
+---@return { message: string, line: number|nil }[], string
 function M._extract_errors(classname, failure_node)
     local errors = {}
+    local full_stacktrace = ""
 
     -- failure_node can be a single table or an array of failures
     local failures = failure_node
@@ -108,11 +138,15 @@ function M._extract_errors(classname, failure_node)
             stacktrace = f
         end
 
+        if stacktrace ~= "" then
+            full_stacktrace = full_stacktrace .. stacktrace
+        end
+
         local line = M._extract_error_line(classname, stacktrace)
         table.insert(errors, { message = message, line = line })
     end
 
-    return errors
+    return errors, full_stacktrace
 end
 
 ---@param classname string

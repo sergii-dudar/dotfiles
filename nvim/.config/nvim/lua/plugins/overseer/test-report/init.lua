@@ -10,6 +10,9 @@ local M = {}
 ---@class test_report.TestResult
 ---@field status "passed"|"failed"|"skipped"
 ---@field errors? { message: string, line: number|nil }[]
+---@field stdout? string
+---@field stderr? string
+---@field stacktrace? string
 
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
@@ -35,6 +38,11 @@ local sign_config = {
 -- Track buffers where we placed signs for efficient cleanup
 local signed_buffers = {}
 
+-- Store last results for output viewing
+local last_results = {} -- { [classname#method] = TestResult }
+local last_positions = {} -- { [file_path] = { [method_name] = 0-indexed line } }
+local output_bufnr = nil -- scratch buffer for test output
+
 ---@param report_dir string
 ---@param filetype string
 function M.process(report_dir, filetype)
@@ -56,6 +64,8 @@ function M.process(report_dir, filetype)
     end
 
     log.info("parsed " .. vim.tbl_count(results) .. " test results")
+    last_results = results
+    last_positions = {}
     for id, r in pairs(results) do
         log.debug("  " .. id .. " -> " .. r.status)
     end
@@ -84,6 +94,7 @@ function M.process(report_dir, filetype)
             log.debug("absolute path: " .. file_path)
 
             local test_positions, class_line = adapter.find_test_positions(file_path)
+            last_positions[file_path] = test_positions
             log.debug("test_positions: ", test_positions)
             log.debug("class_line: " .. tostring(class_line))
 
@@ -193,6 +204,97 @@ function M.clear()
     signed_buffers = {}
     -- Clear diagnostics
     vim.diagnostic.reset(ns_diag)
+    -- Clear stored results
+    last_results = {}
+    last_positions = {}
+    -- Close output buffer if open
+    if output_bufnr and vim.api.nvim_buf_is_valid(output_bufnr) then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_buf(win) == output_bufnr then
+                vim.api.nvim_win_close(win, true)
+            end
+        end
+    end
+end
+
+function M.show_test_output()
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-indexed
+
+    -- Toggle: if output buffer is visible, close it
+    if output_bufnr and vim.api.nvim_buf_is_valid(output_bufnr) then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_buf(win) == output_bufnr then
+                vim.api.nvim_win_close(win, true)
+                return
+            end
+        end
+    end
+
+    -- Find the test method at/above cursor
+    local positions = last_positions[file_path]
+    if not positions then
+        vim.notify("test-report: no test results for this file", vim.log.levels.WARN)
+        return
+    end
+
+    local best_method, best_line = nil, -1
+    for method, line in pairs(positions) do
+        if line <= cursor_line and line > best_line then
+            best_method = method
+            best_line = line
+        end
+    end
+
+    if not best_method then
+        vim.notify("test-report: no test method found at cursor", vim.log.levels.WARN)
+        return
+    end
+
+    -- Find the matching result by scanning last_results for matching method
+    local result = nil
+    for id, r in pairs(last_results) do
+        local _, method = id:match("^(.+)#(.+)$")
+        if method == best_method then
+            result = r
+            break
+        end
+    end
+
+    if not result then
+        vim.notify("test-report: no output for " .. best_method, vim.log.levels.WARN)
+        return
+    end
+
+    -- Build output lines
+    local lines = { "Test: " .. best_method, "Status: " .. result.status, "" }
+    if result.stdout and result.stdout ~= "" then
+        table.insert(lines, "--- stdout ---")
+        vim.list_extend(lines, vim.split(result.stdout, "\n"))
+        table.insert(lines, "")
+    end
+    if result.stderr and result.stderr ~= "" then
+        table.insert(lines, "--- stderr ---")
+        vim.list_extend(lines, vim.split(result.stderr, "\n"))
+        table.insert(lines, "")
+    end
+    if result.stacktrace and result.stacktrace ~= "" then
+        table.insert(lines, "--- stacktrace ---")
+        vim.list_extend(lines, vim.split(result.stacktrace, "\n"))
+    end
+
+    -- Create scratch buffer in bottom split
+    output_bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
+    vim.bo[output_bufnr].buftype = "nofile"
+    vim.bo[output_bufnr].bufhidden = "wipe"
+    vim.bo[output_bufnr].modifiable = false
+    vim.cmd("botright split")
+    vim.api.nvim_win_set_buf(0, output_bufnr)
+    vim.api.nvim_win_set_height(0, math.min(#lines + 1, 15))
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_win_close(0, true)
+    end, { buffer = output_bufnr, silent = true })
 end
 
 return M

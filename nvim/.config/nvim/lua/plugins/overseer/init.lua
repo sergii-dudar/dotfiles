@@ -81,6 +81,7 @@ return {
             { "<leader>rta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
             { "<leader>rtp", build_run_param_test(), desc = "Run Current Parametrized Single Test", },
             { "<leader>rtP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
+            { "<leader>rto", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
         },
         config = function(_, opts)
             local overseer = require("overseer")
