@@ -129,7 +129,7 @@ function build_junit_tests_cmd(type, is_debug)
         "--config=junit.platform.output.capture.stdout=true",
         "--config=junit.platform.output.capture.stderr=true",
         "--include-engine=junit-jupiter",
-        -- "--include-classname=(^.*Tests?$|^.*IT$|^.*Spec$)",
+        "--include-classname=(^.*Tests?$|^.*IT$|^.*Spec$)",
         test_selector,
     })
         :flatten()

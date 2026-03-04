@@ -13,7 +13,7 @@ local M = {}
 ---@field stdout? string
 ---@field stderr? string
 ---@field stacktrace? string
----@field time? string
+---@field time? number
 
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
@@ -276,7 +276,7 @@ end
 local function open_output(method_name, result)
     local lines = { "Test: " .. method_name, "Status: " .. result.status }
     if result.time then
-        table.insert(lines, "Time: " .. result.time .. "s")
+        table.insert(lines, string.format("Time: %.3fs", result.time))
     end
     table.insert(lines, "")
     if result.stdout and result.stdout ~= "" then

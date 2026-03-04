@@ -68,44 +68,85 @@ function M._process_testsuite(testsuite, results)
             -- Capture output streams
             local stdout = M._extract_text(tc["system-out"])
             local stderr = M._extract_text(tc["system-err"])
-            local time = attr.time
+            local time = tonumber(attr.time)
 
+            local status, errors, stacktrace
             if tc.failure then
-                local errors, stacktrace = M._extract_errors(classname, tc.failure)
-                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace, time = time }
+                errors, stacktrace = M._extract_errors(classname, tc.failure)
+                status = "failed"
             elseif tc.error then
-                local errors, stacktrace = M._extract_errors(classname, tc.error)
-                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace, time = time }
+                errors, stacktrace = M._extract_errors(classname, tc.error)
+                status = "failed"
             elseif tc.skipped then
-                results[id] = { status = "skipped", stdout = stdout, stderr = stderr, time = time }
+                status = "skipped"
             else
-                results[id] = { status = "passed", stdout = stdout, stderr = stderr, time = time }
+                status = "passed"
+            end
+
+            -- Merge parameterized invocations into a single result
+            local existing = results[id]
+            if existing then
+                if status == "failed" then
+                    existing.status = "failed"
+                end
+                if errors then
+                    existing.errors = existing.errors or {}
+                    vim.list_extend(existing.errors, errors)
+                end
+                existing.stdout = M._concat_text(existing.stdout, stdout)
+                existing.stderr = M._concat_text(existing.stderr, stderr)
+                existing.stacktrace = M._concat_text(existing.stacktrace, stacktrace)
+                existing.time = (existing.time or 0) + (time or 0)
+            else
+                results[id] = {
+                    status = status,
+                    errors = errors,
+                    stdout = stdout,
+                    stderr = stderr,
+                    stacktrace = stacktrace,
+                    time = time,
+                }
             end
         end
     end
 end
 
+---@param a string|nil
+---@param b string|nil
+---@return string|nil
+function M._concat_text(a, b)
+    if a and b then
+        return a .. b
+    end
+    return a or b
+end
+
+--- Recursively collects all string fragments from a parsed XML node.
+---@param node table|string|nil
+---@param parts string[]
+local function collect_text(node, parts)
+    if type(node) == "string" then
+        parts[#parts + 1] = node
+    elseif type(node) == "table" then
+        for _, v in ipairs(node) do
+            collect_text(v, parts)
+        end
+    end
+end
+
 --- Extracts text from a parsed XML node.
---- Handles single tag (string after reduce), or multiple tags (array of strings).
+--- Handles single tag (string after reduce), multiple tags (array of strings),
+--- and nested tables from split CDATA sections (e.g. escaped ]]> in content).
 ---@param node table|string|nil
 ---@return string|nil
 function M._extract_text(node)
     if not node then
         return nil
     end
-    if type(node) == "string" then
-        return node
-    end
-    if type(node) == "table" then
-        local parts = {}
-        for _, v in ipairs(node) do
-            if type(v) == "string" then
-                parts[#parts + 1] = v
-            end
-        end
-        if #parts > 0 then
-            return table.concat(parts)
-        end
+    local parts = {}
+    collect_text(node, parts)
+    if #parts > 0 then
+        return table.concat(parts)
     end
     return nil
 end

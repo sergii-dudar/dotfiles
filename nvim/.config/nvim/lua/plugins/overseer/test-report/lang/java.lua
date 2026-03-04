@@ -42,11 +42,9 @@ function M.find_test_positions(file_path)
     local class_line = nil
     log.debug("find_test_positions: " .. file_path)
 
-    local bufnr = vim.fn.bufnr(file_path)
-    local buf_loaded = bufnr ~= -1
-    if not buf_loaded then
-        log.debug("buffer not loaded, adding: " .. file_path)
-        bufnr = vim.fn.bufadd(file_path)
+    local bufnr = vim.fn.bufadd(file_path)
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+        log.debug("buffer not loaded, loading: " .. file_path)
         vim.fn.bufload(bufnr)
     end
     log.debug("bufnr=" .. bufnr)
