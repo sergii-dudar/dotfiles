@@ -2,6 +2,14 @@ local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolve
 
 local M = {}
 
+local resolve_report_dir = function()
+    local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
+    if type_resolver and type_resolver.get_test_report_dir then
+        return type_resolver.get_test_report_dir()
+    end
+    return nil
+end
+
 local resolve_type_cmd = function(params)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     local result_cmd
@@ -33,22 +41,21 @@ function M.build_taks()
         name = "RUN_TESTS",
         builder = function(params)
             local result_cmd = resolve_type_cmd(params)
+            local report_dir = resolve_report_dir()
+            local components = { "on_exit_set_status" }
+            if report_dir then
+                table.insert(components, 1, {
+                    "test_report.junit_report",
+                    report_dir = report_dir,
+                    filetype = vim.bo.filetype,
+                })
+            else
+                table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
+                table.insert(components, 2, "on_result_diagnostics")
+            end
             return {
                 cmd = result_cmd,
-                -- add some components that will pipe the output to quickfix,
-                -- parse it using errorformat, and display any matching lines as diagnostics.
-                components = {
-                    { "on_output_quickfix", set_diagnostics = true },
-                    "on_result_diagnostics",
-                    "on_exit_set_status",
-                    -- "on_complete_dispose",
-                    -- "on_complete_notify",
-                    -- { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
-                    -- "on_result_diagnostics_trouble",
-                    -- "open_output",
-                    -- "on_output_notify",
-                    --"default",
-                },
+                components = components,
             }
         end,
         condition = {
@@ -63,23 +70,21 @@ function M.build_debug_taks()
         name = "DEBUG_TESTS",
         builder = function(params)
             local result_cmd = resolve_type_cmd(params)
+            local report_dir = resolve_report_dir()
+            local components = { "on_exit_set_status", "debug.dap_ctrl_component" }
+            if report_dir then
+                table.insert(components, 1, {
+                    "test_report.junit_report",
+                    report_dir = report_dir,
+                    filetype = vim.bo.filetype,
+                })
+            else
+                table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
+                table.insert(components, 2, "on_result_diagnostics")
+            end
             return {
                 cmd = result_cmd,
-                -- add some components that will pipe the output to quickfix,
-                -- parse it using errorformat, and display any matching lines as diagnostics.
-                components = {
-                    { "on_output_quickfix", set_diagnostics = true },
-                    "on_result_diagnostics",
-                    "on_exit_set_status",
-                    "debug.dap_ctrl_component",
-                    -- "on_complete_dispose",
-                    -- "on_complete_notify",
-                    -- { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
-                    -- "on_result_diagnostics_trouble",
-                    -- "open_output",
-                    -- "on_output_notify",
-                    --"default",
-                },
+                components = components,
             }
         end,
         condition = {

@@ -65,4 +65,9 @@ function M.set_parametrized_test_num(value)
     return require("utils.java.junit").set_parametrized_test_num(value)
 end
 
+function M.get_test_report_dir()
+    local java_util = require("utils.java.java-common")
+    return java_util.get_buffer_project_path() .. "/target/junit-report"
+end
+
 return M
