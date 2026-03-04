@@ -53,7 +53,8 @@ function M.find_test_positions(file_path)
 
     local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
     if not ok or not parser then
-        log.warn("treesitter parser failed for bufnr=" .. bufnr .. " err=" .. tostring(parser))
+        log.error("treesitter parser failed for bufnr=" .. bufnr .. " err=" .. tostring(parser))
+        vim.notify("test-report: treesitter parser failed for " .. file_path, vim.log.levels.ERROR)
         return positions, class_line
     end
 

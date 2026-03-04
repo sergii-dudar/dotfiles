@@ -42,8 +42,8 @@ function M.process(report_dir, filetype)
 
     local adapter_fn = lang_adapters[filetype]
     if not adapter_fn then
-        log.warn("no adapter for filetype: " .. tostring(filetype))
-        vim.notify("No test-report adapter for filetype: " .. filetype, vim.log.levels.WARN)
+        log.error("no adapter for filetype: " .. tostring(filetype))
+        vim.notify("test-report: no adapter for filetype: " .. filetype, vim.log.levels.ERROR)
         return
     end
     local adapter = adapter_fn()
@@ -51,6 +51,7 @@ function M.process(report_dir, filetype)
     local results = junit_xml.parse_report_dir(report_dir)
     if vim.tbl_isempty(results) then
         log.warn("no results from XML parsing")
+        vim.notify("test-report: no results from XML parsing in " .. report_dir, vim.log.levels.ERROR)
         return
     end
 
@@ -90,7 +91,8 @@ function M.process(report_dir, filetype)
             local bufnr = vim.fn.bufnr(file_path)
             log.debug("bufnr: " .. bufnr)
             if bufnr == -1 then
-                log.warn("buffer not found for: " .. file_path)
+                log.error("buffer not found for: " .. file_path)
+                vim.notify("test-report: buffer not found for: " .. file_path, vim.log.levels.ERROR)
                 goto continue
             end
 
@@ -168,7 +170,8 @@ function M.process(report_dir, filetype)
 
             ::continue::
         else
-            log.warn("classname_to_file returned nil for: " .. classname)
+            log.error("classname_to_file returned nil for: " .. classname)
+            vim.notify("test-report: could not resolve file for class: " .. classname, vim.log.levels.ERROR)
         end
     end
 

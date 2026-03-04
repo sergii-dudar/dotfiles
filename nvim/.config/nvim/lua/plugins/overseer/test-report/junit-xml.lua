@@ -28,12 +28,14 @@ function M.parse_report_dir(report_dir)
                 M._process_testsuite(parsed.testsuite, results)
             elseif not ok then
                 log.error("XML parse error: " .. tostring(parsed))
-                vim.notify("Failed to parse XML: " .. filepath, vim.log.levels.WARN)
+                vim.notify("test-report: failed to parse XML: " .. filepath, vim.log.levels.ERROR)
             else
                 log.warn("parsed OK but no testsuite key found")
+                vim.notify("test-report: no testsuite in XML: " .. filepath, vim.log.levels.ERROR)
             end
         else
-            log.warn("could not read file: " .. filepath)
+            log.error("could not read file: " .. filepath)
+            vim.notify("test-report: could not read file: " .. filepath, vim.log.levels.ERROR)
         end
     end
 
