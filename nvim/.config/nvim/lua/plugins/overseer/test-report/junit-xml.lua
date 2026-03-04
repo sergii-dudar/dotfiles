@@ -68,17 +68,18 @@ function M._process_testsuite(testsuite, results)
             -- Capture output streams
             local stdout = M._extract_text(tc["system-out"])
             local stderr = M._extract_text(tc["system-err"])
+            local time = attr.time
 
             if tc.failure then
                 local errors, stacktrace = M._extract_errors(classname, tc.failure)
-                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace }
+                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace, time = time }
             elseif tc.error then
                 local errors, stacktrace = M._extract_errors(classname, tc.error)
-                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace }
+                results[id] = { status = "failed", errors = errors, stdout = stdout, stderr = stderr, stacktrace = stacktrace, time = time }
             elseif tc.skipped then
-                results[id] = { status = "skipped", stdout = stdout, stderr = stderr }
+                results[id] = { status = "skipped", stdout = stdout, stderr = stderr, time = time }
             else
-                results[id] = { status = "passed", stdout = stdout, stderr = stderr }
+                results[id] = { status = "passed", stdout = stdout, stderr = stderr, time = time }
             end
         end
     end

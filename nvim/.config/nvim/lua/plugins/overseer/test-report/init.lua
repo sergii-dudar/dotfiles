@@ -13,6 +13,7 @@ local M = {}
 ---@field stdout? string
 ---@field stderr? string
 ---@field stacktrace? string
+---@field time? string
 
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
@@ -42,6 +43,7 @@ local signed_buffers = {}
 local last_results = {} -- { [classname#method] = TestResult }
 local last_positions = {} -- { [file_path] = { [method_name] = 0-indexed line } }
 local output_bufnr = nil -- scratch buffer for test output
+local output_method = nil -- method name currently shown in output buffer
 
 ---@param report_dir string
 ---@param filetype string
@@ -217,27 +219,23 @@ function M.clear()
     end
 end
 
-function M.show_test_output()
-    local file_path = vim.api.nvim_buf_get_name(0)
-    local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-indexed
-
-    -- Toggle: if output buffer is visible, close it
+local function close_output_win()
     if output_bufnr and vim.api.nvim_buf_is_valid(output_bufnr) then
         for _, win in ipairs(vim.api.nvim_list_wins()) do
             if vim.api.nvim_win_get_buf(win) == output_bufnr then
                 vim.api.nvim_win_close(win, true)
-                return
+                return true
             end
         end
     end
+    return false
+end
 
-    -- Find the test method at/above cursor
+local function find_method_at_cursor(file_path, cursor_line)
     local positions = last_positions[file_path]
     if not positions then
-        vim.notify("test-report: no test results for this file", vim.log.levels.WARN)
-        return
+        return nil
     end
-
     local best_method, best_line = nil, -1
     for method, line in pairs(positions) do
         if line <= cursor_line and line > best_line then
@@ -245,29 +243,25 @@ function M.show_test_output()
             best_line = line
         end
     end
+    return best_method
+end
 
-    if not best_method then
-        vim.notify("test-report: no test method found at cursor", vim.log.levels.WARN)
-        return
-    end
-
-    -- Find the matching result by scanning last_results for matching method
-    local result = nil
+local function find_result_for_method(method_name)
     for id, r in pairs(last_results) do
         local _, method = id:match("^(.+)#(.+)$")
-        if method == best_method then
-            result = r
-            break
+        if method == method_name then
+            return r
         end
     end
+    return nil
+end
 
-    if not result then
-        vim.notify("test-report: no output for " .. best_method, vim.log.levels.WARN)
-        return
+local function open_output(method_name, result)
+    local lines = { "Test: " .. method_name, "Status: " .. result.status }
+    if result.time then
+        table.insert(lines, "Time: " .. result.time .. "s")
     end
-
-    -- Build output lines
-    local lines = { "Test: " .. best_method, "Status: " .. result.status, "" }
+    table.insert(lines, "")
     if result.stdout and result.stdout ~= "" then
         table.insert(lines, "--- stdout ---")
         vim.list_extend(lines, vim.split(result.stdout, "\n"))
@@ -283,8 +277,9 @@ function M.show_test_output()
         vim.list_extend(lines, vim.split(result.stacktrace, "\n"))
     end
 
-    -- Create scratch buffer in bottom split
+    require("overseer").close()
     output_bufnr = vim.api.nvim_create_buf(false, true)
+    output_method = method_name
     vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
     vim.bo[output_bufnr].buftype = "nofile"
     vim.bo[output_bufnr].bufhidden = "wipe"
@@ -295,6 +290,40 @@ function M.show_test_output()
     vim.keymap.set("n", "q", function()
         vim.api.nvim_win_close(0, true)
     end, { buffer = output_bufnr, silent = true })
+end
+
+function M.show_test_output()
+    local file_path = vim.api.nvim_buf_get_name(0)
+    local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-indexed
+
+    local best_method = find_method_at_cursor(file_path, cursor_line)
+
+    -- If output is visible, close it; if same method, just toggle off
+    if close_output_win() and output_method == best_method then
+        return
+    end
+
+    if not last_positions[file_path] then
+        vim.notify("test-report: no test results for this file", vim.log.levels.WARN)
+        return
+    end
+
+    if not best_method then
+        vim.notify("test-report: no test method found at cursor", vim.log.levels.WARN)
+        return
+    end
+
+    local result = find_result_for_method(best_method)
+    if not result then
+        vim.notify("test-report: no output for " .. best_method, vim.log.levels.WARN)
+        return
+    end
+
+    open_output(best_method, result)
+end
+
+function M.hide_test_output()
+    close_output_win()
 end
 
 return M
