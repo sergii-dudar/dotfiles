@@ -7,13 +7,20 @@ local log = require("utils.logging-util").new({
 
 local M = {}
 
----@class test_report.TestResult
+---@class test_report.Invocation
+---@field name string
 ---@field status "passed"|"failed"|"skipped"
----@field errors? { message: string, line: number|nil }[]
+---@field metadata? string
 ---@field stdout? string
 ---@field stderr? string
 ---@field stacktrace? string
 ---@field time? number
+
+---@class test_report.TestResult
+---@field status "passed"|"failed"|"skipped"
+---@field errors? { message: string, line: number|nil }[]
+---@field time? number
+---@field invocations test_report.Invocation[]
 
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
@@ -273,31 +280,73 @@ local function find_result_for_method(method_name)
     return nil
 end
 
+local ns_output = vim.api.nvim_create_namespace("test_report_output")
+
+local function make_separator(label)
+    local total = 80
+    local pad = total - #label - 2
+    local left = math.floor(pad / 2)
+    local right = pad - left
+    return string.rep("=", left) .. " " .. label .. " " .. string.rep("=", right)
+end
+
 local function open_output(method_name, result)
     local lines = { "Test: " .. method_name, "Status: " .. result.status }
     if result.time then
-        table.insert(lines, string.format("Time: %.3fs", result.time))
+        table.insert(lines, string.format("Time: %.3fs (total)", result.time))
     end
     table.insert(lines, "")
-    if result.stdout and result.stdout ~= "" then
-        table.insert(lines, "--- stdout ---")
-        vim.list_extend(lines, vim.split(result.stdout, "\n"))
-        table.insert(lines, "")
+
+    -- Track lines for highlighting: { {line_idx, hl_group}, ... }
+    local highlights = {}
+    local function hl(hl_group)
+        highlights[#highlights + 1] = { #lines - 1, hl_group }
     end
-    if result.stderr and result.stderr ~= "" then
-        table.insert(lines, "--- stderr ---")
-        vim.list_extend(lines, vim.split(result.stderr, "\n"))
-        table.insert(lines, "")
+
+    local function add_section(label, text, hl_group)
+        if text and text ~= "" then
+            table.insert(lines, make_separator(label))
+            hl(hl_group)
+            vim.list_extend(lines, vim.split(text, "\n"))
+            table.insert(lines, "")
+        end
     end
-    if result.stacktrace and result.stacktrace ~= "" then
-        table.insert(lines, "--- stacktrace ---")
-        vim.list_extend(lines, vim.split(result.stacktrace, "\n"))
+
+    for i, inv in ipairs(result.invocations) do
+        -- Invocation header for parameterized tests
+        if #result.invocations > 1 then
+            local inv_label = string.format("[%d] %s (%s, %.3fs)", i, inv.name, inv.status, inv.time or 0)
+            table.insert(lines, make_separator(inv_label))
+            hl(inv.status == "failed" and "DiagnosticError" or "DiagnosticOk")
+        end
+
+        -- Metadata (unique-id / display-name)
+        if inv.metadata and inv.metadata ~= "" then
+            local sep = string.rep("=", 80)
+            table.insert(lines, sep)
+            hl("DiagnosticHint")
+            for _, meta_line in ipairs(vim.split(inv.metadata, "\n")) do
+                if meta_line ~= "" then
+                    table.insert(lines, meta_line)
+                    hl("DiagnosticHint")
+                end
+            end
+            table.insert(lines, sep)
+            hl("DiagnosticHint")
+        end
+
+        add_section("stdout", inv.stdout, "DiagnosticOk")
+        add_section("stderr", inv.stderr, "DiagnosticError")
+        add_section("stacktrace", inv.stacktrace, "DiagnosticError")
     end
 
     require("overseer").close()
     output_bufnr = vim.api.nvim_create_buf(false, true)
     output_method = method_name
     vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
+    for _, entry in ipairs(highlights) do
+        vim.api.nvim_buf_add_highlight(output_bufnr, ns_output, entry[2], entry[1], 0, -1)
+    end
     vim.bo[output_bufnr].buftype = "nofile"
     vim.bo[output_bufnr].bufhidden = "wipe"
     vim.bo[output_bufnr].modifiable = false

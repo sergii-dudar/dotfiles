@@ -65,8 +65,8 @@ function M._process_testsuite(testsuite, results)
             local method_name = name:match("^([^%(%)%[%]]+)") or name
             local id = classname .. "#" .. method_name
 
-            -- Capture output streams
-            local stdout = M._extract_text(tc["system-out"])
+            -- Capture output streams (separate JUnit metadata from actual stdout)
+            local metadata, stdout = M._extract_system_out(tc["system-out"])
             local stderr = M._extract_text(tc["system-err"])
             local time = tonumber(attr.time)
 
@@ -83,6 +83,16 @@ function M._process_testsuite(testsuite, results)
                 status = "passed"
             end
 
+            local invocation = {
+                name = name,
+                status = status,
+                metadata = metadata,
+                stdout = stdout,
+                stderr = stderr,
+                stacktrace = stacktrace,
+                time = time,
+            }
+
             -- Merge parameterized invocations into a single result
             local existing = results[id]
             if existing then
@@ -93,18 +103,14 @@ function M._process_testsuite(testsuite, results)
                     existing.errors = existing.errors or {}
                     vim.list_extend(existing.errors, errors)
                 end
-                existing.stdout = M._concat_text(existing.stdout, stdout)
-                existing.stderr = M._concat_text(existing.stderr, stderr)
-                existing.stacktrace = M._concat_text(existing.stacktrace, stacktrace)
                 existing.time = (existing.time or 0) + (time or 0)
+                table.insert(existing.invocations, invocation)
             else
                 results[id] = {
                     status = status,
                     errors = errors,
-                    stdout = stdout,
-                    stderr = stderr,
-                    stacktrace = stacktrace,
                     time = time,
+                    invocations = { invocation },
                 }
             end
         end
@@ -132,6 +138,31 @@ local function collect_text(node, parts)
             collect_text(v, parts)
         end
     end
+end
+
+--- Splits system-out into JUnit metadata (first element) and actual stdout (rest).
+--- The first <system-out> CDATA always contains unique-id/display-name metadata.
+---@param node table|string|nil
+---@return string|nil metadata, string|nil stdout
+function M._extract_system_out(node)
+    if not node then
+        return nil, nil
+    end
+    -- Single <system-out> tag (reduced to string): metadata only, no stdout
+    if type(node) == "string" then
+        return node, nil
+    end
+    -- Multiple <system-out> tags: first is metadata, rest is stdout
+    if type(node) == "table" and #node > 0 then
+        local metadata = M._extract_text(node[1])
+        local parts = {}
+        for i = 2, #node do
+            collect_text(node[i], parts)
+        end
+        local stdout = #parts > 0 and table.concat(parts) or nil
+        return metadata, stdout
+    end
+    return nil, nil
 end
 
 --- Extracts text from a parsed XML node.
