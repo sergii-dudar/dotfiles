@@ -83,6 +83,7 @@ return {
             { "<leader>rtP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
             { "<leader>rto", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>rtO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
+            { "<leader>rtl", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Test Report" },
         },
         config = function(_, opts)
             local overseer = require("overseer")

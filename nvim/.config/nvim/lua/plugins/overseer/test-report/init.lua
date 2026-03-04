@@ -195,6 +195,23 @@ function M.process(report_dir, filetype)
     log.info("process complete")
 end
 
+function M.load_existing()
+    local ft = vim.bo.filetype
+    local adapter_fn = lang_adapters[ft]
+    if not adapter_fn then
+        vim.notify("test-report: no adapter for filetype: " .. ft, vim.log.levels.WARN)
+        return
+    end
+    local adapter = adapter_fn()
+    local report_dir = adapter.get_test_report_dir()
+    if vim.fn.isdirectory(report_dir) ~= 1 then
+        vim.notify("test-report: no report dir found: " .. report_dir, vim.log.levels.WARN)
+        return
+    end
+    M.clear()
+    M.process(report_dir, ft)
+end
+
 function M.clear()
     log.info("clear")
     -- Clear sign extmarks
