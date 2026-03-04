@@ -1,5 +1,9 @@
 local junit_xml = require("plugins.overseer.test-report.junit-xml")
-local log = require("utils.logging-util").new({ name = "test-report", filename = "test-report.log", level = vim.log.levels.DEBUG })
+local log = require("utils.logging-util").new({
+    name = "test-report",
+    filename = "test-report.log",
+    level = vim.log.levels.DEBUG,
+})
 
 local M = {}
 
@@ -9,7 +13,7 @@ local M = {}
 
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
----@field find_test_positions fun(file_path: string): table<string, number>
+---@field find_test_positions fun(file_path: string): table<string, number>, number|nil
 ---@field extract_error_line fun(classname: string, stacktrace: string): number|nil
 ---@field get_test_report_dir fun(): string
 
@@ -23,9 +27,9 @@ local ns_diag = vim.api.nvim_create_namespace("overseer_test_report_diag")
 local ns_signs = vim.api.nvim_create_namespace("overseer_test_report_signs")
 
 local sign_config = {
-    passed = { text = "✓", hl = "DiagnosticOk" },
-    failed = { text = "✗", hl = "DiagnosticError" },
-    skipped = { text = "○", hl = "DiagnosticWarn" },
+    passed = { text = "", hl = "DiagnosticOk" },
+    failed = { text = "", hl = "DiagnosticError" },
+    skipped = { text = "", hl = "DiagnosticWarn" },
 }
 
 -- Track buffers where we placed signs for efficient cleanup
@@ -78,8 +82,9 @@ function M.process(report_dir, filetype)
             file_path = vim.fn.fnamemodify(file_path, ":p")
             log.debug("absolute path: " .. file_path)
 
-            local test_positions = adapter.find_test_positions(file_path)
+            local test_positions, class_line = adapter.find_test_positions(file_path)
             log.debug("test_positions: ", test_positions)
+            log.debug("class_line: " .. tostring(class_line))
 
             -- Resolve buffer number (find_test_positions ensures buffer is loaded)
             local bufnr = vim.fn.bufnr(file_path)
@@ -89,16 +94,24 @@ function M.process(report_dir, filetype)
                 goto continue
             end
 
+            local has_failure = false
+
             for method_name, result in pairs(methods) do
                 local line = test_positions[method_name]
                 log.debug("method=" .. method_name .. " status=" .. result.status .. " line=" .. tostring(line))
                 if line ~= nil then
-                    -- Place gutter sign via extmark
+                    if result.status == "failed" then
+                        has_failure = true
+                    end
+
+                    -- Place gutter sign + virtual text via extmark
                     local sign = sign_config[result.status]
                     if sign then
                         local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
                             sign_text = sign.text,
                             sign_hl_group = sign.hl,
+                            virt_text = { { " " .. sign.text, sign.hl } },
+                            virt_text_pos = "eol",
                             priority = 20,
                         })
                         signed_buffers[bufnr] = true
@@ -134,6 +147,22 @@ function M.process(report_dir, filetype)
                     end
                 else
                     log.warn("no treesitter position found for method: " .. method_name)
+                end
+            end
+
+            -- Place class-level mark (aggregate: fail if any failed, pass if all passed)
+            if class_line ~= nil then
+                local class_status = has_failure and "failed" or "passed"
+                local class_sign = sign_config[class_status]
+                if class_sign then
+                    vim.api.nvim_buf_set_extmark(bufnr, ns_signs, class_line, 0, {
+                        sign_text = class_sign.text,
+                        sign_hl_group = class_sign.hl,
+                        virt_text = { { " " .. class_sign.text, class_sign.hl } },
+                        virt_text_pos = "eol",
+                        priority = 20,
+                    })
+                    log.debug("placed class mark: " .. class_status .. " at line " .. class_line)
                 end
             end
 

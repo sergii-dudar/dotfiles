@@ -36,8 +36,10 @@ end
 
 ---@param file_path string
 ---@return table<string, number> method_name -> 0-indexed line number
+---@return number|nil class_line 0-indexed line of class declaration
 function M.find_test_positions(file_path)
     local positions = {}
+    local class_line = nil
     log.debug("find_test_positions: " .. file_path)
 
     local bufnr = vim.fn.bufnr(file_path)
@@ -52,10 +54,14 @@ function M.find_test_positions(file_path)
     local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
     if not ok or not parser then
         log.warn("treesitter parser failed for bufnr=" .. bufnr .. " err=" .. tostring(parser))
-        return positions
+        return positions, class_line
     end
 
     local query_str = [[
+        (class_declaration
+          name: (identifier) @class.name
+        ) @class.definition
+
         (method_declaration
           (modifiers
             [
@@ -76,19 +82,23 @@ function M.find_test_positions(file_path)
     local query = vim.treesitter.query.parse("java", query_str)
     local tree = parser:parse()[1]
     if not tree then
-        return positions
+        return positions, class_line
     end
 
     for id, node, _ in query:iter_captures(tree:root(), bufnr) do
         local name = query.captures[id]
-        if name == "test.name" then
+        if name == "class.name" then
+            local row, _, _, _ = node:range()
+            class_line = row
+            log.debug("class declaration at line " .. row)
+        elseif name == "test.name" then
             local method_name = vim.treesitter.get_node_text(node, bufnr)
             local row, _, _, _ = node:range()
             positions[method_name] = row -- 0-indexed
         end
     end
 
-    return positions
+    return positions, class_line
 end
 
 ---@param classname string
