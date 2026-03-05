@@ -199,6 +199,21 @@ function M.process(report_dir, filetype)
         vim.fn.setqflist(qf_entries, "r")
         log.debug("set " .. #qf_entries .. " quickfix entries")
     end
+
+    -- Summary notification
+    local total = vim.tbl_count(results)
+    local failed = 0
+    for _, r in pairs(results) do
+        if r.status == "failed" then
+            failed = failed + 1
+        end
+    end
+    if failed > 0 then
+        vim.notify("🚫 Tests Finished with failed " .. failed .. "/" .. total .. " tests", vim.log.levels.WARN)
+    else
+        vim.notify("🚀 " .. total .. " Tests Passed", vim.log.levels.INFO)
+    end
+
     log.info("process complete")
 end
 
