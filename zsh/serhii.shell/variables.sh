@@ -21,7 +21,7 @@ if isMacOs; then
     }
     # cargo install --features cmd kanata
     function kanata_restart() {
-        sudo killall kanata && kanata_run
+        sudo killall kanata ; kanata_run
     }
 
     # iterm:

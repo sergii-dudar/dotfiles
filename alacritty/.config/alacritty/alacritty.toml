@@ -278,7 +278,7 @@ shell = { program = "/bin/zsh", args = ["-l"] }
 [mouse]
 
 # When true, the cursor is temporarily hidden when typing
-hide_when_typing = true  # Default: false
+hide_when_typing = false  # Default: false
 
 # Mouse bindings (actual bindings need to be defined as per user preference)
 # Example: bindings = [{ mouse = "Left", action = "Paste" }]

@@ -1,0 +1,9 @@
+## Context information for Junit Implementation
+
+Analyze next plugins
+- For running tests we are using overseer.nvim: sources here ~/.local/share/nvim/lazy/overseer.nvim, configuration is here ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/init.lua
+- Take in context next plugins: neotest (path: ~/.local/share/nvim/lazy/neotest) and neotest-java adapter (paht: ~/.local/share/nvim/lazy/neotest-java), as we need some time see on how some tricki thinks implemented
+- In last session we implemented junit test-report processing, here ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report
+
+please analyze it before we continue
+
