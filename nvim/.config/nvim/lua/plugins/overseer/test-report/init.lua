@@ -198,7 +198,12 @@ function M.process(report_dir, filetype)
     if #qf_entries > 0 then
         vim.fn.setqflist(qf_entries, "r")
         log.debug("set " .. #qf_entries .. " quickfix entries")
-        vim.cmd("Trouble qflist open")
+        -- vim.cmd("Trouble qflist open")
+        vim.cmd("Trouble junit_diagnostics open")
+
+        -- TODO:
+        -- lua Snacks.picker.qflist()
+        -- Snacks.picker.diagnostics()
     end
 
     -- Summary notification

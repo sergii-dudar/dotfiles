@@ -14,9 +14,9 @@ M.picker = {
     hidden = true, -- Include hidden files in grep
     ignored = true, -- Exclude git-ignored files
     exclude = {
-        "target/classes",
-        "target/test-classes",
-        "bin",
+        "**/target/classes",
+        "**/target/test-classes",
+        "**/bin",
         ".git",
         ".idea",
     },
