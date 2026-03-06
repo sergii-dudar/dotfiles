@@ -1,3 +1,4 @@
+local constants = require("utils.constants")
 _G.task = {}
 task.test_type = {
     --- @enum task.test_type
@@ -74,17 +75,31 @@ return {
             { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v", },
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
+            -- TODO:
+            -- { "<leader>rs", function() require("neotest").run.stop() end, desc = "Stop Current" },
             -- test runners
-            { "<leader>rtr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
-            { "<leader>rtd", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
-            { "<leader>rtf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
-            { "<leader>rta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
-            { "<leader>rtp", build_run_param_test(), desc = "Run Current Parametrized Single Test", },
-            { "<leader>rtP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
-            { "<leader>rto", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
-            { "<leader>rtO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
-            { "<leader>rtl", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Test Report" },
-            { "<leader>rd", function() Snacks.picker.diagnostics({ severity = vim.diagnostic.severity.ERROR }) end, desc = "Diagnostics" },
+            -- TODO:
+            -- { "<leader>ts", function() require("neotest").run.stop() end, desc = "Stop Test" },
+            { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
+            { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
+            { "<leader>tt", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
+            { "<leader>tT", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
+            { "<leader>tp", build_run_param_test(), desc = "Run Current Parametrized Single Test", },
+            { "<leader>tP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
+            { "<leader>tl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
+            { "<leader>to", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
+            { "<leader>tO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
+            { "<leader>tL", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Last Test Report" },
+            { "<leader>tD", function()
+                Snacks.picker.diagnostics({
+                     -- severity = vim.diagnostic.severity.ERROR,
+                     filter = {
+                        filter = function(item, filter)
+                            return item.item.source == constants.java.junit
+                        end,
+                     },
+                })
+            end, desc = "Test diagnostics" },
         },
         config = function(_, opts)
             local overseer = require("overseer")
@@ -115,7 +130,8 @@ return {
         optional = true,
         opts = {
             spec = {
-                { "<leader>r", group = "overseer runner" },
+                { "<leader>r", group = "+code runner" },
+                { "<leader>t", group = "+tests runner" },
             },
         },
     },

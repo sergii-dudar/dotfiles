@@ -42,6 +42,7 @@ local sign_config = {
     failed = { text = "", hl = "DiagnosticError" },
     skipped = { text = "", hl = "DiagnosticWarn" },
 }
+--      
 
 -- Track buffers where we placed signs for efficient cleanup
 local signed_buffers = {}

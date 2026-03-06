@@ -1,3 +1,4 @@
+-- NOTE: configuration archived in favor of custom implementation based on `junit-platform-console-standalone.jar` and `overseer.nvim`
 -- :lua print(vim.fn.stdpath("log"))
 -- :lua print(vim.fn.stdpath("data"))
 
