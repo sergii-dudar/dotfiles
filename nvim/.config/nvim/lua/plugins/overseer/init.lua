@@ -84,14 +84,7 @@ return {
             { "<leader>rto", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>rtO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
             { "<leader>rtl", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Test Report" },
-            { "<leader>rd", function() 
-                Snacks.picker.diagnostics({
-                    filter = function(item, filter)
-                        dd(item)
-                        return true
-                    end
-                })
-            end, desc = "Diagnostics" },
+            { "<leader>rd", function() Snacks.picker.diagnostics({ severity = vim.diagnostic.severity.ERROR }) end, desc = "Diagnostics" },
         },
         config = function(_, opts)
             local overseer = require("overseer")
