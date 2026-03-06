@@ -1,9 +1,71 @@
-## Context information for Junit Implementation
+## Context information for JUnit Implementation
 
-Analyze next plugins
-- For running tests we are using overseer.nvim: sources here ~/.local/share/nvim/lazy/overseer.nvim, configuration is here ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/init.lua
-- Take in context next plugins: neotest (path: ~/.local/share/nvim/lazy/neotest) and neotest-java adapter (paht: ~/.local/share/nvim/lazy/neotest-java), as we need some time see on how some tricki thinks implemented
-- In last session we implemented junit test-report processing, here ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report
+### Overview
+Custom JUnit XML test report processor integrated into overseer.nvim workflow.
+Parses JUnit XML reports after test runs, displays results as gutter signs, virtual text,
+diagnostics, quickfix entries, and a detailed output viewer.
 
-please analyze it before we continue
+### Plugins Used
+- overseer.nvim: Task runner framework (~/.local/share/nvim/lazy/overseer.nvim)
+- neotest + neotest-java: Reference for patterns (~/.local/share/nvim/lazy/neotest, ~/.local/share/nvim/lazy/neotest-java)
+- trouble.nvim: Used to display quickfix list on failures (via `Trouble qflist open`)
 
+### Key Files
+
+## Overseer plugin config (keybindings, task registration, setup)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/init.lua
+
+## Test report engine (core orchestrator: process, clear, show/hide output)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/init.lua
+
+## JUnit XML parser (parses TEST-*.xml, merges parameterized invocations, extracts errors)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/junit-xml.lua
+
+## Java language adapter (classname-to-file, treesitter test positions, error line extraction)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/lang/java.lua
+
+## Overseer component (hooks into overseer lifecycle: on_complete/on_reset/on_dispose)
+- ~/dotfiles/nvim/.config/nvim/lua/overseer/component/test_report/junit_report.lua
+
+## Task builders (RUN_TESTS / DEBUG_TESTS templates, attaches junit_report component)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/run_tests.lua
+
+## Java runner (delegates to utils.java.junit for building test commands)
+- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/lang/java-runner.lua
+
+## XML parsing library (vendored xml2lua-based parser)
+- ~/dotfiles/nvim/.config/nvim/lua/lib/xml/
+
+## Java utilities
+- ~/dotfiles/nvim/.config/nvim/lua/utils/java/junit/        -- JUnit command builders
+- ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-common.lua -- Common helpers (get_buffer_project_path, etc.)
+- ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-ts-util.lua -- Treesitter utils for Java
+
+### Architecture Flow
+```
+Keybindings (<leader>rt*)
+  -> overseer tasks (run_tests.lua)
+    -> overseer component (junit_report.lua)
+      -> test-report engine (test-report/init.lua)
+        -> XML parser (junit-xml.lua)
+        -> Language adapter (lang/java.lua) -- extensible to other langs
+```
+
+### Key Design Details
+- Treesitter-based test position detection (queries @Test, @ParameterizedTest, @TestFactory, @CartesianTest)
+- Parameterized tests are merged under classname#methodName with individual invocations preserved
+- First <system-out> in JUnit XML is treated as JUnit5 metadata, rest is actual stdout
+- Report directory convention: <project>/target/junit-report
+- Results displayed via: extmark signs + EOL virtual text, vim.diagnostic, quickfix (opened with Trouble)
+- Summary notification after processing: success shows count, failure shows failed/total
+
+### Keybindings
+- <leader>rtr  -- Run Current Test
+- <leader>rtd  -- Debug Current Test
+- <leader>rtf  -- Run File Tests
+- <leader>rta  -- Run All Tests
+- <leader>rtp  -- Run Current Parametrized Single Test
+- <leader>rtP  -- Debug Current Parametrized Single Test
+- <leader>rto  -- Toggle Test Output (cursor-aware)
+- <leader>rtO  -- Hide Test Output
+- <leader>rtl  -- Load Existing Test Report
