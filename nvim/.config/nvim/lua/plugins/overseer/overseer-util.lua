@@ -160,4 +160,24 @@ function dap_after_session_clear()
     end
 end
 
+function M.stop_all()
+    -- Stop running overseer tasks
+    local tasks = overseer.list_tasks({ status = { "RUNNING" } })
+    if not vim.tbl_isempty(tasks) then
+        for _, t in ipairs(tasks) do
+            t:stop()
+        end
+        return
+    end
+
+    -- Terminate DAP session if active
+    local dap = require("dap")
+    if dap.session() then
+        dap.terminate()
+        return
+    end
+
+    vim.notify("  No running tasks or active dap session found", vim.log.levels.WARN)
+end
+
 return M

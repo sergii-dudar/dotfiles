@@ -75,11 +75,9 @@ return {
             { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v", },
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
-            -- TODO:
-            -- { "<leader>rs", function() require("neotest").run.stop() end, desc = "Stop Current" },
+            { "<leader>rs", function() require("plugins.overseer.overseer-util").stop_all() end, desc = "Stop All" },
             -- test runners
-            -- TODO:
-            -- { "<leader>ts", function() require("neotest").run.stop() end, desc = "Stop Test" },
+            { "<leader>ts", function() require("plugins.overseer.overseer-util").stop_all() end, desc = "Stop All" },
             { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
             { "<leader>tt", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
