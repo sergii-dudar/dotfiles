@@ -55,6 +55,43 @@ function M.get_class_name()
 end
 
 -- ---------------------------------------------------------
+--  GET CLASS NAME WITH ABSTRACT FLAG
+-- ---------------------------------------------------------
+function M.get_class_name_with_abstract()
+    local node = node_at_cursor()
+    if not node then
+        return nil
+    end
+
+    while node and node:type() ~= "class_declaration" do
+        node = node:parent()
+    end
+    if not node then
+        return nil
+    end
+
+    local cls_name
+    local is_abstract = false
+    for c in node:iter_children() do
+        if c:type() == "identifier" then
+            cls_name = vim.treesitter.get_node_text(c, 0)
+        end
+        if c:type() == "modifiers" then
+            for m in c:iter_children() do
+                if vim.treesitter.get_node_text(m, 0) == "abstract" then
+                    is_abstract = true
+                end
+            end
+        end
+    end
+
+    local pkg = get_package_name(node)
+    local full_name = pkg and (pkg .. "." .. cls_name) or cls_name
+
+    return { name = full_name, is_abstract = is_abstract }
+end
+
+-- ---------------------------------------------------------
 --  GET METHOD NAME ONLY
 -- ---------------------------------------------------------
 local function get_method_node()
