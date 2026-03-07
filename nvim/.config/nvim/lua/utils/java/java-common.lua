@@ -42,7 +42,7 @@ local java_compile_java_pattern = "%[([A-Z]+)%]%s+([^:]+):%[(%d+),(%d+)%]%s*(.*)
 ---line_start_position: integer,
 ---line_end_position: integer,
 ---method: string} | nil
-function M.parse_java_mvn_run_class_line(line)
+function M.parse_java_class_trace_line(line)
     -- line = util.strip_ansi(line)
     local prefix, class_path, method, file_name, line_num = line:match(java_mvn_class_pattern)
     if class_path then
@@ -91,7 +91,7 @@ end
 function M.parse_java_mvn_run_class_text(text)
     local items = {}
     for line in text:gmatch("[^\n]+") do
-        local p = M.parse_java_mvn_run_class_line(line)
+        local p = M.parse_java_class_trace_line(line)
         if p then
             items[#items + 1] = p
         end

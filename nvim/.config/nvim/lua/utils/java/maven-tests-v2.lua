@@ -91,7 +91,7 @@ function M.parse_maven_output(diagnostics, text)
             -- local line = "        at ua.serhii.application.test.utils.TestUtil.assertThat(TestUtil.java:10)"
             -- local classpath, methodname, filename, lnum =
             --     line:match("^%s*at ([%w%._$]+)%.([%w%._$]+)%(([%w%._$]+):(%d+)%)$")
-            local trace = java_util.parse_java_mvn_run_class_line(line)
+            local trace = java_util.parse_java_class_trace_line(line)
             -- print(classpath, methodname, filename, lnum)
             -- print(file_path)
 

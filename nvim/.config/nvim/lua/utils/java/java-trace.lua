@@ -23,7 +23,7 @@ function M.highlight_java_test_trace_lines(lines, trace_selected_line)
     trace_selected_line = (trace_selected_line and trace_selected_line - 1) or 0
     -- vim.notify("selected_line: " .. trace_selected_line)
     for i, line in ipairs(lines) do
-        local trace = java_util.parse_java_mvn_run_class_line(line)
+        local trace = java_util.parse_java_class_trace_line(line)
         if trace then
             local line_ix = i - 1 + trace_selected_line
             local file_path = java_util.java_class_to_proj_path(trace.class_path)
@@ -64,6 +64,7 @@ function M.highlight_java_trace_selected()
     M.highlight_java_test_trace_text(stack_trace, vim.fn.getpos("v")[2])
 end
 
+---@type parce java trace to locations (local project files and load from jdtls in case lib refs)
 local parse_java_stack_trace = function(trace, result_callback)
     local loc_result_items_map = {}
     local jdt_classes = {}
@@ -153,7 +154,7 @@ end
 
 function M.parse_trace_under_cursor_and_open_in_buffer()
     local trace_line = common.get_line_under_cursor()
-    local parsed = java_util.parse_java_mvn_run_class_line(trace_line)
+    local parsed = java_util.parse_java_class_trace_line(trace_line)
     if not parsed then
         vim.notify(string.format("⚠️ cant parse java class from line:\n%s", trace_line))
         return
