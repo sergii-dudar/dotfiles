@@ -62,29 +62,6 @@ local map = LazyVim.safe_keymap_set
 vim.api.nvim_set_keymap("n", "<leader><F9>", ":JdtCompile incremental<CR>", { noremap = true, silent = true, desc = "JDTLS Compile Incremental" })
 vim.api.nvim_set_keymap("n", "<leader><F10>", ":JdtCompile full<CR>", { noremap = true, silent = true, desc = "JDTLS Compile Full" })
 
--- vim.api.nvim_set_keymap("n", "<leader><F11>", ":MavenAutoCompileToggle<CR>", { noremap = true, silent = true, desc = "Maven Auto Compile Toggle" })
-
---[[ local maven_tests = require("utils.java.maven-tests")
-vim.keymap.set("n", "<leader><F6>", maven_tests.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
-vim.keymap.set("n", "<leader>TM", maven_tests.run_java_test_method_debug, { noremap = true, silent = true, desc = "Maven Run Current Test Method (Debug)" })
-vim.keymap.set("n", "<leader><F7>", maven_tests.run_java_test_class, { noremap = true, silent = true, desc = "Mave Run Current Test Class" })
-vim.keymap.set("n", "<leader>TC", maven_tests.run_java_test_class_debug, { noremap = true, silent = true, desc = "Mave Run Current Test Class (Debug)" })
-vim.keymap.set("n", "<leader><F8>", maven_tests.run_java_test_all, { noremap = true, silent = true, desc = "Mave Run Test All" })
-vim.keymap.set("n", "<leader>TA", maven_tests.run_java_test_all_debug, { noremap = true, silent = true, desc = "Mave Run Test All (Debug)" }) ]]
--- vim.keymap.set("n", "<F9>", maven_tests.run_spring_boot, { noremap = true, silent = true, desc = "Maven Run Spring Boot" })
--- vim.keymap.set("n", "<F10>", maven_tests.run_spring_boot_debug, { noremap = true, silent = true, desc = "Maven Run Spring Boot (Debug)" })
-
--- local maven_tests_v2 = require("utils.java.maven-tests-v2")
--- vim.keymap.set("n", "<leader><F6>", maven_tests_v2.run_java_test_method, { noremap = true, silent = true, desc = "Maven Run Current Test Method" })
--- vim.keymap.set("n", "<leader><F7>", maven_tests_v2.run_java_test_class, { noremap = true, silent = true, desc = "Maven Run Current Test Class" })
--- vim.keymap.set("n", "<leader>d<F6>", function() maven_tests_v2.run_java_test_method(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Method" })
--- vim.keymap.set("n", "<leader>d<F7>", function() maven_tests_v2.run_java_test_class(true) end, { noremap = true, silent = true, desc = "Maven (Debug) Current Test Class" })
--- vim.keymap.set("n", "<leader><F8>", maven_tests_v2.run_java_test_all, { noremap = true, silent = true, desc = "Maven Run Test All" })
--- vim.keymap.set("n", "<leader><F5>", maven_tests_v2.rerun_last_cmd, { noremap = true, silent = true, desc = "Maven Re-Run Last Test" })
-
--- map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
--- map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-
 ----------------------------- Testing cmds start
 ----------------------------- Testing cmds end
 
