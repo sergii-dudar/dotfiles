@@ -477,6 +477,60 @@ function M.jdt_find_implementations_sync(abstract_class_fqn, timeout_ms)
     return results
 end
 
+--- Find all implementation FQNs for an abstract class (async version)
+---@param abstract_class_fqn string fully qualified name
+---@param handler function(string[]) callback with list of implementation FQNs
+function M.jdt_find_implementations(abstract_class_fqn, handler)
+    local jdtls_client = lsp_util.get_client_by_name("jdtls")
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer")
+        return handler({})
+    end
+
+    local simple_name = last_segment(abstract_class_fqn)
+
+    -- 1. Resolve the abstract class location via workspace/symbol
+    jdtls_client:request("workspace/symbol", { query = simple_name }, function(err, symbols)
+        if err or not symbols or vim.tbl_isempty(symbols) then
+            vim.notify("⚠️ Could not find symbol: " .. abstract_class_fqn, vim.log.levels.WARN)
+            return handler({})
+        end
+
+        local target = list_util.findFirst(symbols, function(s)
+            return build_fqn(s) == abstract_class_fqn
+        end) or symbols[1]
+
+        local uri = target.location.uri
+        local range = target.location.range
+
+        -- 2. Prepare type hierarchy at the class position
+        jdtls_client:request("textDocument/prepareTypeHierarchy", {
+            textDocument = { uri = uri },
+            position = range.start,
+        }, function(th_err, th_items)
+            if th_err or not th_items or vim.tbl_isempty(th_items) then
+                vim.notify("⚠️ Could not prepare type hierarchy for: " .. abstract_class_fqn, vim.log.levels.WARN)
+                return handler({})
+            end
+
+            -- 3. Get subtypes (implementations)
+            jdtls_client:request("typeHierarchy/subtypes", { item = th_items[1] }, function(sub_err, subtypes)
+                if sub_err or not subtypes or vim.tbl_isempty(subtypes) then
+                    return handler({})
+                end
+
+                -- 4. Build FQNs from TypeHierarchyItem (detail = package, name = class)
+                local results = {}
+                for _, item in ipairs(subtypes) do
+                    local fqn = item.detail and item.detail ~= "" and (item.detail .. "." .. item.name) or item.name
+                    table.insert(results, fqn)
+                end
+                handler(results)
+            end)
+        end)
+    end)
+end
+
 --- Find word under curser in lsp dynamic_workspace_symbols
 function M.connect_jdtls_and_search_symbol_under_cursor()
     local jdtls_client_id = lsp_util.get_client_id_by_name("jdtls")

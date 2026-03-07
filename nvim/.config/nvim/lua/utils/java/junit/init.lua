@@ -61,6 +61,12 @@ local test_selector_resolver = {
         return "--scan-class-path=" .. test_classes
     end,
     [task.test_type.FILE_TESTS] = function()
+        -- Snacks.picker.select(
+        --     { "item1", "item2", "item3" },
+        --     { prompt = "Pick one" }, -- opts (optional)
+        --     function(item) end
+        -- )
+
         local current_class_fqn = java_ts.get_class_name()
         if current_class_fqn == nil then
             vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
