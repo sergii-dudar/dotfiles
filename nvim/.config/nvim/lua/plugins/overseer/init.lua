@@ -89,7 +89,8 @@ return {
             { "<leader>to", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>tO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
             { "<leader>tL", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Last Test Report" },
-            { "<leader>tD", function()
+            { "<leader>txx", "<cmd>Trouble junit_diagnostics toggle<cr>", desc = "Tests junit diagnostics trouble" },
+            { "<leader>txd", function()
                 Snacks.picker.diagnostics({
                      -- severity = vim.diagnostic.severity.ERROR,
                      filter = {
@@ -98,7 +99,7 @@ return {
                         end,
                      },
                 })
-            end, desc = "Test diagnostics" },
+            end, desc = "Tests junit diagnostics picker" },
         },
         config = function(_, opts)
             local overseer = require("overseer")
