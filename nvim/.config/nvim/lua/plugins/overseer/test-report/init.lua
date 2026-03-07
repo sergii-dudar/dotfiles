@@ -367,7 +367,9 @@ local function open_output(method_name, result)
     output_method = method_name
     vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
     for _, entry in ipairs(highlights) do
-        vim.api.nvim_buf_add_highlight(output_bufnr, ns_output, entry[2], entry[1], 0, -1)
+        vim.api.nvim_buf_set_extmark(output_bufnr, ns_output, entry[1], 0, {
+            line_hl_group = entry[2],
+        })
     end
     vim.bo[output_bufnr].buftype = "nofile"
     vim.bo[output_bufnr].bufhidden = "wipe"

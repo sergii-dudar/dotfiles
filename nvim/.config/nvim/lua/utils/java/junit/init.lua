@@ -79,7 +79,7 @@ local test_selector_resolver = {
         local test_classes = module_path .. "/target/test-classes"
         current_test_method_fqn =
             javap_util.resolve_parametrized_method_signature(current_test_method_fqn, test_classes)
-        vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
+        -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
         return "--select-method=" .. current_test_method_fqn
     end,
     [task.test_type.CURRENT_PARAMETRIZED_NUM_TEST] = function()
@@ -93,7 +93,7 @@ local test_selector_resolver = {
         local test_classes = module_path .. "/target/test-classes"
         current_test_method_fqn =
             javap_util.resolve_parametrized_method_signature(current_test_method_fqn, test_classes)
-        vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
+        -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
         return "--select-iteration=method:" .. current_test_method_fqn .. "[" .. state.parametrized_test_num .. "]"
     end,
 }

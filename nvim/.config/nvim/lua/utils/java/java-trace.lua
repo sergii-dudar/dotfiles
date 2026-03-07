@@ -152,6 +152,21 @@ function M.parse_current_line_trace_to_qflist()
     M.show_stack_trace_qflist(stack_trace)
 end
 
+--- Find a normal editing window (listed, normal buftype, not current)
+local function find_edit_win()
+    local cur_win = vim.api.nvim_get_current_win()
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if win ~= cur_win then
+            local buf = vim.api.nvim_win_get_buf(win)
+            local bt = vim.bo[buf].buftype
+            if bt == "" and vim.bo[buf].buflisted then
+                return win
+            end
+        end
+    end
+    return nil
+end
+
 function M.parse_trace_under_cursor_and_open_in_buffer()
     local trace_line = common.get_line_under_cursor()
     local parsed = java_util.parse_java_class_trace_line(trace_line)
@@ -159,21 +174,25 @@ function M.parse_trace_under_cursor_and_open_in_buffer()
         vim.notify(string.format("⚠️ cant parse java class from line:\n%s", trace_line))
         return
     end
+
+    local edit_win = find_edit_win()
+    if not edit_win then
+        vim.cmd("above split")
+        edit_win = vim.api.nvim_get_current_win()
+    else
+        vim.api.nvim_set_current_win(edit_win)
+    end
+
     local file_path = java_util.java_class_to_proj_path(parsed.class_path)
     if file_path then
-        vim.cmd(string.format("wincmd k | l | edit +%d %s", parsed.class_line_number, file_path))
-        -- vim.api.nvim_win_set_cursor(0, { tonumber(lnum), 0 })
+        vim.cmd(string.format("edit +%d %s", parsed.class_line_number, file_path))
     else
-        -- vim.notify(string.format("⚠️ no local file found to open for %s", parsed.class_path))
         local jdtls_client_id = lsp_util.get_client_id_by_name("jdtls")
         if jdtls_client_id then
             local current_buf_id = vim.api.nvim_get_current_buf()
             if not vim.lsp.buf_is_attached(current_buf_id, jdtls_client_id) then
                 vim.lsp.buf_attach_client(current_buf_id, jdtls_client_id)
-                -- LazyVim.info("jdtls client found by ID:" .. jdtls_client_id)
-                -- LazyVim.info("attaching jdtls to current buffer by ID:" .. current_buf_id)
             end
-            vim.cmd("wincmd k | l")
             jdtls_util.jdt_open_class(parsed.class_path, parsed.class_line_number)
         else
             vim.notify(string.format("⚠️ JDTLS is not running to open %s", parsed.class_path))
