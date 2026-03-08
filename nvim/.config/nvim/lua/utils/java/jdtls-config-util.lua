@@ -177,9 +177,14 @@ M.jdtls_settings = {
                 "org.assertj.core.api.Assertions.assertThatThrownBy",
                 "org.assertj.core.api.Assertions.assertThatExceptionOfType",
                 "org.assertj.core.api.Assertions.catchThrowable",
+                "Assertions.as",
                 -- "java.util.Objects.requireNonNull",
                 -- "java.util.Objects.requireNonNullElse",
                 "org.mockito.Mockito.*",
+                "org.mockito.Mockito.when",
+                "org.mockito.Mockito.verify",
+                "org.mockito.Mockito.times",
+                "org.mockito.Mockito.never",
             },
             -- Defines the type filters. All types whose fully qualified name matches
             -- the selected filter strings will be ignored in content assist or quick

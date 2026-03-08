@@ -1,4 +1,4 @@
-require("utils.java.junit")
+require("modules.java.junit.init")
 local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 
 local M = {}
@@ -51,7 +51,7 @@ end
 
 ---@param context task.lang.Context
 function M.build_run_test_cmd(context)
-    return require("utils.java.junit").build_run_test_cmd(context)
+    return require("modules.java.junit.init").build_run_test_cmd(context)
 end
 
 function M.get_test_report_dir()
