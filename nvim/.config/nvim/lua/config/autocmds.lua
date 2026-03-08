@@ -126,7 +126,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 --------------- project roots commands ----------------
 
 if java_util.is_java_project() then
-    local java_refactor_util = require("utils.java.refactor.java-refactor-util")
+    local java_refactor = require("modules.java.refactor")
     vim.api.nvim_create_autocmd({ "FileType" }, {
         group = general_group,
         pattern = "fyler",
@@ -137,7 +137,7 @@ if java_util.is_java_project() then
                 buffer = ev.buf,
                 callback = function()
                     vim.notify("Fyler: fixing after move is running...")
-                    java_refactor_util.process_registerd_changes()
+                    java_refactor.process_registerd_changes()
                     vim.notify("Fyler: fixing after move was finished!")
                 end,
             })

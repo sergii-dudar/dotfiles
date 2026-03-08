@@ -1,5 +1,5 @@
 local java_util = require("utils.java.java-common")
-local java_refactor_util = require("utils.java.refactor.java-refactor-util")
+local java_refactor = require("modules.java.refactor")
 function toggle_fyler()
     vim.cmd("Neotree close") -- close neotree, as in case moving files and opened neotree getting errors.
     require("fyler").toggle()
@@ -26,7 +26,7 @@ return {
             -- end,
             on_rename = function(src, dst)
                 if java_util.is_java_project() then
-                    java_refactor_util.register_change(src, dst)
+                    java_refactor.register_change(src, dst)
                     -- vim.notify("SUCCESS: " .. src .. " > " .. dst, vim.log.levels.INFO) -- You can do anything whenever an item Renamed
                 else
                     Snacks.rename.on_rename_file(src, dst) -- LSP-integrated file renaming (for lsp supported it) - DEFAULT

@@ -12,18 +12,11 @@ My MacOS config random screen:
 
 ---
 
-Most of my dotfile catalogs structured to be used as symlinks by [gnu stow][2], where
-config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example
-`nvim/.config/nvim`,
-where `stow nvim` will create symlink under `~/.config/nvim` with link to
-`~/dotfiles/nvim/.config/nvim`.
+Most of my dotfile catalogs structured to be used as symlinks by [gnu stow][2], where config location is - `[app name]/[path to config from home dir that should be symlinked from repo catalog]`, for example `nvim/.config/nvim`, where `stow nvim` will create symlink under `~/.config/nvim` with link to `~/dotfiles/nvim/.config/nvim`.
 
-All scripts that are using by dot configurations required to have `dotfiles` to be cloned directly in `$HOME` directory as
-`~/dotfiles`
+All scripts that are using by dot configurations required to have `dotfiles` to be cloned directly in `$HOME` directory as `~/dotfiles`
 
-Some of my configurations (terminals etc) are using wallpapers that can be found
-here [my wallpaper collection][3].
-It's also required to have wallpaper in home directory `~/wallpapers`
+Some of my configurations (terminals etc) are using wallpapers that can be found here [my wallpaper collection][3]. It's also required to have wallpaper in home directory `~/wallpapers`
 
 ## My current tool preferences
 
@@ -93,9 +86,9 @@ It's also required to have wallpaper in home directory `~/wallpapers`
 [14]: fastfetch/.config/fastfetch
 [15]: nvim/.config/nvim
 [16]: idea/.ideavimrc
-[17]: nvim/.config/nvim/lua/utils/java/refactor
-[18]: nvim/.config/nvim/lua/utils/java/junit
-[19]: nvim/.config/nvim/lua/utils/java/mapstruct
+[17]: nvim/.config/nvim/lua/modules/java/refactor
+[18]: nvim/.config/nvim/lua/modules/java/junit
+[19]: nvim/.config/nvim/lua/modules/java/mapstruct
 [20]: nvim/.config/nvim/lua/utils
 [21]: https://www.programmingfonts.org/#cascadia-code
 [22]: https://www.programmingfonts.org/#hack

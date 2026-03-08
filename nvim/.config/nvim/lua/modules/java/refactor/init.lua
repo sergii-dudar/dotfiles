@@ -17,8 +17,8 @@ local list_util = require("utils.list-util")
 local buffer_util = require("utils.buffer-util")
 local logging = require("utils.logging-util")
 local global = require("utils.global-util")
-local import_fixer = require("utils.java.refactor.import-fixer")
-local sibling_usage_fixer = require("utils.java.refactor.sibling-usage-fixer")
+local import_fixer = require("modules.java.refactor.import-fixer")
+local sibling_usage_fixer = require("modules.java.refactor.sibling-usage-fixer")
 
 -- Create logger for java refactoring
 local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })

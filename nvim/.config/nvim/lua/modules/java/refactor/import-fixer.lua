@@ -190,7 +190,7 @@ function M.fix_old_package_imports(opts)
     -- Fix imports in files that stayed in old directory (both main and test)
     -- They need to import the moved type from the new package
     log.debug("Fixing imports in old directory files")
-    local sibling_usage_fixer = require("utils.java.refactor.sibling-usage-fixer")
+    local sibling_usage_fixer = require("modules.java.refactor.sibling-usage-fixer")
 
     -- Process main directory
     local old_dir_files_handle =

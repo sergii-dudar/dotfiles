@@ -73,8 +73,8 @@ ln -s $(which fdfind) ~/.local/bin/fd
 Since this is currently part of a dotfiles configuration, the structure is:
 
 ```
-nvim/.config/nvim/lua/utils/java/refactor/
-├── java-refactor-util.lua      # Main orchestration module
+nvim/.config/nvim/lua/modules/java/refactor/
+├── init.lua      # Main orchestration module
 ├── import-fixer.lua             # Import management
 ├── sibling-usage-fixer.lua      # Sibling file reference handling
 └── README.md                    # This file
@@ -86,13 +86,13 @@ nvim/.config/nvim/lua/utils/java/refactor/
 
 ```lua
 -- lua/config/autocmds.lua
-local java_refactor_util = require("utils.java.refactor.java-refactor-util")
+local java_refactor = require("modules.java.refactor")
 
 -- Example: Integrate with fyler.nvim
 vim.api.nvim_create_autocmd("User", {
     pattern = "FylerBatchOperationComplete",
     callback = function()
-        java_refactor_util.process_registerd_changes()
+        java_refactor.process_registerd_changes()
     end,
 })
 ```
@@ -104,12 +104,12 @@ vim.api.nvim_create_autocmd("User", {
 return {
     "dmtrKovalenko/fyler.nvim",
     config = function()
-        local java_refactor_util = require("utils.java.refactor.java-refactor-util")
+        local java_refactor = require("modules.java.refactor")
         local fyler = require("fyler")
 
         fyler.setup({
             on_register_file_move = function(from, to)
-                java_refactor_util.register_change(from, to)
+                java_refactor.register_change(from, to)
             end,
         })
     end,
@@ -122,7 +122,7 @@ return {
 
 The refactoring system consists of three main modules:
 
-#### 1. **java-refactor-util.lua** (Orchestration)
+#### 1. **init.lua** (Orchestration)
 
 - Registers file/directory move operations
 - Determines operation type (file move vs directory move)
@@ -223,7 +223,7 @@ The tool intelligently determines operation type:
 Registers a file or directory move operation.
 
 ```lua
-local java_refactor = require("utils.java.refactor.java-refactor-util")
+local java_refactor = require("modules.java.refactor")
 
 -- Register a single file move
 java_refactor.register_change(
@@ -345,7 +345,7 @@ The tool automatically detects standard Java package roots:
 - `src/main/java/`
 - `src/test/java/`
 
-To customize, modify the `package_roots` table in `java-refactor-util.lua`:
+To customize, modify the `package_roots` table in `init.lua`:
 
 ```lua
 local package_roots = {
@@ -375,7 +375,7 @@ local log = logging.new({
 For automated testing, enable test mode to skip UI:
 
 ```lua
-local java_refactor = require("utils.java.refactor.java-refactor-util")
+local java_refactor = require("modules.java.refactor")
 java_refactor.test_mode = true
 ```
 
