@@ -9,6 +9,10 @@ function M.split_by_last_dot(str)
     return before, after
 end
 
+function M.split(str, delimiter)
+    return vim.split(str, delimiter, { plain = true })
+end
+
 function M.contains(str, substr)
     return string.find(str, substr, 1, true)
 end

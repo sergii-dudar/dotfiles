@@ -204,4 +204,33 @@ function M.get_full_method_with_params(delimiter)
     return class .. delimiter .. sig
 end
 
+-- ---------------------------------------------------------
+--  GET FULL METHOD WITH CLASS + PACKAGE + PARAMS + ABSTRACT FLAG
+-- ---------------------------------------------------------
+function M.get_full_method_with_params_and_abstract(delimiter)
+    delimiter = delimiter or "."
+    local class_info = M.get_class_name_with_abstract()
+    if not class_info then
+        return nil
+    end
+
+    local method_name = M.get_method_name_only()
+    if not method_name then
+        return nil
+    end
+
+    local m = get_method_node()
+    if not m then
+        return nil
+    end
+
+    local params = get_method_param_types(m)
+    local sig = method_name .. "(" .. table.concat(params, ", ") .. ")"
+
+    return {
+        value = class_info.name .. delimiter .. sig,
+        is_abstract = class_info.is_abstract,
+    }
+end
+
 return M

@@ -162,7 +162,7 @@ end
 
 function M.stop_all()
     -- Stop running overseer tasks
-    local tasks = overseer.list_tasks({ status = { "RUNNING" } })
+    local tasks = overseer.list_tasks({ status = { overseer.STATUS.RUNNING } })
     if not vim.tbl_isempty(tasks) then
         for _, t in ipairs(tasks) do
             t:stop()
