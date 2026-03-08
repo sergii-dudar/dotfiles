@@ -1,4 +1,5 @@
 local constants = require("utils.constants")
+local nio = require("nio")
 _G.task = {}
 task.test_type = {
     --- @enum task.test_type
@@ -18,7 +19,9 @@ task.run_type = {
 ---@return function
 local build_run_test = function(type, is_debug)
     return function()
-        require("plugins.overseer.overseer-util").run_test({ type = type, is_debug = is_debug })
+        nio.run(function()
+            require("plugins.overseer.overseer-util").run_test({ type = type, is_debug = is_debug })
+        end)
     end
 end
 
@@ -41,6 +44,7 @@ end
 return {
     {
         "stevearc/overseer.nvim",
+        dependencies = { "nvim-neotest/nvim-nio" },
         cmd = {
             "OverseerOpen",
             "OverseerClose",

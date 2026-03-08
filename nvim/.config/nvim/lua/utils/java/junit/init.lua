@@ -3,6 +3,58 @@ local java_ts = require("utils.java.java-ts-util")
 local javap_util = require("utils.java.javap-util")
 -- local jdtls_util = require("utils.java.jdtls-util")
 -- local string_util = require("utils.string-util")
+local nio = require("nio")
+-- nio.run(function()
+--     local selected = nio.ui.select({
+--         "item1",
+--         "item2",
+--         "item3",
+--     }, { kind =})
+--     print("selected: " .. selected)
+-- end)
+
+-- vim.ui.select({
+--     "item1",
+--     "item2",
+--     "item3",
+-- }, { prompt = "Select something: " }, function(selected)
+--     dd({ selected })
+-- end)
+--
+-- vim.ui.select(vim.api.nvim_list_bufs(), {
+-- 	preview = function(buf)
+-- 		return buf
+-- 	end,
+-- 	format_item = function(buf)
+-- 		return vim.api.nvim_buf_get_name(buf)
+-- 	end,
+-- }, function(buf)
+-- 	vim.cmd.buffer(buf)
+-- end)
+
+-- local nio = require("nio")
+-- local select = nio.wrap(function(items, prompt, cb)
+--     -- vim.defer_fn(cb, ms)
+--     print(items)
+--     print(prompt)
+--     print(cb)
+--     Snacks.picker.select(
+--         items,
+--         { prompt = prompt }, -- opts (optional)
+--         cb
+--     )
+-- end, 3)
+--
+-- nio.run(function()
+--     -- sleep(10)
+--     print(select({ "item-1", "item-2", "item-3" }, "Pick implementation"))
+-- end)
+--
+-- Snacks.picker.select(
+--     { "item1", "item2", "item3" },
+--     { prompt = "Pick one" }, -- opts (optional)
+--     function(item) end
+-- )
 
 local M = {}
 
@@ -77,6 +129,13 @@ local test_selector_resolver = {
         return "--select-class=" .. current_class_fqn
     end,
     [task.test_type.CURRENT_TEST] = function()
+        local selected = nio.ui.select({
+            "item11",
+            "item22",
+            "item33",
+        }, {})
+        vim.notify("selected: " .. selected, vim.log.levels.ERROR)
+
         local current_test_method_fqn = java_ts.get_full_method_with_params("#")
         if current_test_method_fqn == nil then
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)

@@ -477,6 +477,57 @@ function M.jdt_find_implementations_sync(abstract_class_fqn, timeout_ms)
     return results
 end
 
+--- Find all implementation FQNs for an abstract class (nio version, must be called inside nio.run)
+---@param abstract_class_fqn string fully qualified name
+---@return string[] list of fully qualified implementation class names
+function M.jdt_find_implementations_nio(abstract_class_fqn)
+    local jdtls_client = nio.lsp.get_clients({ name = "jdtls" })[1]
+    if not jdtls_client then
+        vim.notify("⚠️ JDTLS is not connected to current buffer")
+        return {}
+    end
+
+    -- 1. Resolve the abstract class location via workspace/symbol
+    local simple_name = last_segment(abstract_class_fqn)
+    local err, symbols = jdtls_client.request.workspace_symbol({ query = simple_name })
+    if err or not symbols or vim.tbl_isempty(symbols) then
+        vim.notify("⚠️ Could not find symbol: " .. abstract_class_fqn, vim.log.levels.WARN)
+        return {}
+    end
+
+    -- Find the exact match by FQN
+    local target = list_util.findFirst(symbols, function(s)
+        return build_fqn(s) == abstract_class_fqn
+    end) or symbols[1]
+
+    local uri = target.location.uri
+    local range = target.location.range
+
+    -- 2. Prepare type hierarchy at the class position
+    local th_err, th_items = jdtls_client.request.textDocument_prepareTypeHierarchy({
+        textDocument = { uri = uri },
+        position = range.start,
+    })
+    if th_err or not th_items or vim.tbl_isempty(th_items) then
+        vim.notify("⚠️ Could not prepare type hierarchy for: " .. abstract_class_fqn, vim.log.levels.WARN)
+        return {}
+    end
+
+    -- 3. Get subtypes (implementations)
+    local sub_err, subtypes = jdtls_client.request.typeHierarchy_subtypes({ item = th_items[1] })
+    if sub_err or not subtypes or vim.tbl_isempty(subtypes) then
+        return {}
+    end
+
+    -- 4. Build FQNs from TypeHierarchyItem (detail = package, name = class)
+    local results = {}
+    for _, item in ipairs(subtypes) do
+        local fqn = item.detail and item.detail ~= "" and (item.detail .. "." .. item.name) or item.name
+        table.insert(results, fqn)
+    end
+    return results
+end
+
 --- Find all implementation FQNs for an abstract class (async version)
 ---@param abstract_class_fqn string fully qualified name
 ---@param handler function(string[]) callback with list of implementation FQNs

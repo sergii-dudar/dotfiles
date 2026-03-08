@@ -76,6 +76,12 @@ M.picker = {
             },
             patterns = { ".git", "_darcs", ".hg", ".bzr", ".svn", "package.json", "Makefile" },
         },
+        select = {
+            layout = {
+                preset = "select",
+                reverse = false,
+            },
+        },
     },
     toggles = {
         hidden = "󱞞",
