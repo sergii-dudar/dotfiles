@@ -19,6 +19,7 @@ local M = {}
 ---@field is_debug boolean|nil
 
 ---@class task.lang.Runner
+---@field get_envs fun(): table<string, string>|nil
 ---@field build_run_cmd function
 ---@field build_debug_cmd function|nil - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
 ---@field dap_attach_to_remote function|nil

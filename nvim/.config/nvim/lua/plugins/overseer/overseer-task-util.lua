@@ -22,9 +22,11 @@ end
 
 ---@class task.Options
 ---@field task_name string
----@field context task.lang.Context|nil
+---@field context? task.lang.Context
 ---@field is_open_output? boolean
 ---@field on_complete? function
+---@field env? table<string, string>
+
 ---@param opts task.Options
 function M.run_task(opts)
     M.stop_all_prev_tasks()
@@ -34,6 +36,9 @@ function M.run_task(opts)
         task_opts.params = {
             context = opts.context,
         }
+    end
+    if opts.env then
+        task_opts.env = opts.env
     end
     overseer.run_task(task_opts, function(task)
         if task then

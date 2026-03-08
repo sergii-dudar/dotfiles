@@ -41,7 +41,11 @@ function M.run_current()
         vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
-    overseer_task_util.run_task({ task_name = "RUN_CURRENT", is_open_output = true })
+    local task_opts = { task_name = "RUN_CURRENT", is_open_output = true }
+    if type_resolver.get_envs then
+        task_opts.env = type_resolver.get_envs()
+    end
+    overseer_task_util.run_task(task_opts)
     write_run_info(task.run_type.RUN, false)
 end
 

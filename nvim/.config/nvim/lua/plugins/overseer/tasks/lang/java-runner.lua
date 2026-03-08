@@ -3,6 +3,13 @@ local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 
 local M = {}
 
+---@return table<string, string>
+function M.get_envs()
+    return {
+        ["TEST_ENV_VAR"] = "TEST VALUE1",
+    } -- TODO: load from current module resources - dev.application.properties.env
+end
+
 ---@return table
 function M.build_run_cmd()
     return build_java_cmd()

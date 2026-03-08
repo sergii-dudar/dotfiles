@@ -34,6 +34,7 @@ if isMacOs; then
     alias brave="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
     # alias move_cursor='bash -c "cd ~/dotfiles/work/python && pipenv run python mouse_cursor.py > /dev/null 2>&1"'
     alias move_cursor='bash -c "cd ~/dotfiles/work/python && python3 mouse_cursor.py > /dev/null 2>&1"'
+    alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head_\$(date +%y%d%m).bundle HEAD --not --remotes=origin"
 else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
