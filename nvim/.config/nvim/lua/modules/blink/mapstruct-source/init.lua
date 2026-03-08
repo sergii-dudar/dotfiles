@@ -2,7 +2,7 @@
 -- Provides path completion for MapStruct @Mapping annotations
 -- This is a thin wrapper around the isolated MapStruct module
 
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStruct.BlinkSource", filename = "mapstruct-source.log" })
 

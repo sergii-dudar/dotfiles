@@ -5,7 +5,7 @@ Quick reference for the isolated MapStruct module API.
 ## Module Loading
 
 ```lua
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 ```
 
 ## Request Flow - Start to Finish
@@ -136,7 +136,7 @@ mapstruct.setup({
 If you don't call `setup()`, the module will **automatically initialize with default options** on the first call to `get_completions()`. This means you can use the module without any configuration if the default jar path exists.
 
 ```lua
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 
 -- No setup needed! Auto-initializes on first use
 mapstruct.get_completions({}, function(result, err)
@@ -329,7 +329,7 @@ mapstruct.set_log_level(vim.log.levels.DEBUG)
 ## Complete Example
 
 ```lua
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 
 -- Initialize
 if not mapstruct.setup({

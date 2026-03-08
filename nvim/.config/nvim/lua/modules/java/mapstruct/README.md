@@ -5,7 +5,7 @@ This directory contains the isolated MapStruct completion module that can be use
 ## Module Structure
 
 ```
-utils/java/mapstruct/
+modules/java/mapstruct/
 ├── init.lua         - Main module API (isolated from blink.cmp)
 ├── context.lua      - Treesitter-based context extraction
 ├── server.lua       - Java IPC server lifecycle management
@@ -26,7 +26,7 @@ utils/java/mapstruct/
 ### Standalone Usage
 
 ```lua
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 
 -- Option 1: Use with defaults (auto-initializes on first use)
 mapstruct.get_completions({}, function(result, err)

@@ -2,9 +2,9 @@
 -- Provides MapStruct completion functionality independent of any completion framework
 -- Can be used with blink.cmp, nvim-cmp, or standalone
 
-local server = require("utils.java.mapstruct.server")
-local ipc_client = require("utils.java.mapstruct.ipc_client")
-local context = require("utils.java.mapstruct.context")
+local server = require("modules.java.mapstruct.server")
+local ipc_client = require("modules.java.mapstruct.ipc_client")
+local context = require("modules.java.mapstruct.context")
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
 local common_util = require("utils.common-util")
@@ -518,7 +518,7 @@ end
 -- Requires cursor to be on a path item in @Mapping annotation (e.g., "person.address.city")
 ---@param opts GoToMapStructOptions|nil of options
 function M.goto_path_definition(opts)
-    local path_goto = require("utils.java.mapstruct.path_item_goto")
+    local path_goto = require("modules.java.mapstruct.path_item_goto")
     path_goto.goto_path_item_definitions(opts)
 end
 

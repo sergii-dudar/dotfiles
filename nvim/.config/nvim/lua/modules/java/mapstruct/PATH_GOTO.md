@@ -27,7 +27,7 @@ Result: Opens `Address.java` and jumps to the `city` field/getter.
 ### Via Lua API
 
 ```lua
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 mapstruct.goto_path_definition()
 ```
 
@@ -35,8 +35,8 @@ mapstruct.goto_path_definition()
 
 ```lua
 vim.keymap.set("n", "gd", function()
-    if require("utils.java.mapstruct").is_in_mapping_context({}) then
-        require("utils.java.mapstruct").goto_path_definition()
+    if require("modules.java.mapstruct").is_in_mapping_context({}) then
+        require("modules.java.mapstruct").goto_path_definition()
     else
         vim.lsp.buf.definition()  -- Fallback to LSP
     end
@@ -78,7 +78,7 @@ The function can find:
 
 ## Implementation Details
 
-See `lua/utils/java/mapstruct/path_item_goto.lua` for the full implementation.
+See `lua/modules/java/mapstruct/path_item_goto.lua` for the full implementation.
 
 Main function: `goto_path_item_definitions()`
 

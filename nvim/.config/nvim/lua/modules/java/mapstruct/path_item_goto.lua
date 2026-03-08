@@ -1,5 +1,5 @@
 local util = require("utils.common-util")
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 local jdtls_util = require("utils.java.jdtls-util")
 
 local M = {}

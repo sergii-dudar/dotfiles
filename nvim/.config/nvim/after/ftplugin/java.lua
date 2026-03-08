@@ -161,7 +161,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 
 -- Setup user command for testing
-local mapstruct = require("utils.java.mapstruct")
+local mapstruct = require("modules.java.mapstruct")
 vim.keymap.set("n", "gj", function()
     mapstruct.goto_path_definition({ is_open_as_floating_win = true })
 end, { desc = "Go to definition (MapStruct) Float" })

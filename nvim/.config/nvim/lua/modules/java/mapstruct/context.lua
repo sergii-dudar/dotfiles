@@ -160,7 +160,7 @@ local function get_class_source_path(type_name)
 
     -- Get the mapstruct module to make IPC request
     -- Use pcall to avoid circular dependency issues
-    local ok, mapstruct = pcall(require, "utils.java.mapstruct")
+    local ok, mapstruct = pcall(require, "modules.java.mapstruct")
     if not ok then
         log.error("Failed to load mapstruct module:", mapstruct)
         return nil
