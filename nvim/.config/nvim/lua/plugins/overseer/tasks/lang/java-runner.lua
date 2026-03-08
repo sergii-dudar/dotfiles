@@ -53,9 +53,6 @@ end
 function M.build_run_test_cmd(context)
     return require("utils.java.junit").build_run_test_cmd(context)
 end
-function M.set_parametrized_test_num(value)
-    return require("utils.java.junit").set_parametrized_test_num(value)
-end
 
 function M.get_test_report_dir()
     local java_util = require("utils.java.java-common")

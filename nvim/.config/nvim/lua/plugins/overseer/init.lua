@@ -26,22 +26,6 @@ local build_run_test = function(type, is_debug)
     end
 end
 
----@param is_debug boolean|nil
----@return function
-local build_run_param_test = function(is_debug)
-    return function()
-        Snacks.input({ prompt = "Test Number" }, function(value)
-            require("plugins.overseer.tasks.lang-runner-resolver")
-                .resolve(vim.bo.filetype)
-                .set_parametrized_test_num(value)
-            require("plugins.overseer.overseer-util").run_test({
-                test_type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
-                is_debug = is_debug,
-            })
-        end)
-    end
-end
-
 return {
     {
         "stevearc/overseer.nvim",
@@ -88,8 +72,8 @@ return {
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
-            { "<leader>tp", build_run_param_test(), desc = "Run Current Parametrized Single Test", },
-            { "<leader>tP", build_run_param_test(true), desc = "Debug Current Parametrized Single Test", },
+            { "<leader>tp", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST), desc = "Run Current Parametrized Single Test", },
+            { "<leader>tP", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, true), desc = "Debug Current Parametrized Single Test", },
             { "<leader>tl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
             { "<leader>to", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>tO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },

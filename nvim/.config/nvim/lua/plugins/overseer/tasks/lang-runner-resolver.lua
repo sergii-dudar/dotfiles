@@ -27,7 +27,6 @@ local M = {}
 ---@field build_compile_cmd function|nil
 ---@field make_compile function|nil
 ---@field build_run_test_cmd  fun(context: task.lang.Context):string|nil
----@field set_parametrized_test_num string|nil
 ---@field get_test_report_dir fun(): string|nil
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],

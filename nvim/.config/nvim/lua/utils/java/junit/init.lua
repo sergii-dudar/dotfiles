@@ -1,8 +1,8 @@
 local java_util = require("utils.java.java-common")
 local java_ts = require("utils.java.java-ts-util")
 local javap_util = require("utils.java.javap-util")
--- local jdtls_util = require("utils.java.jdtls-util")
--- local string_util = require("utils.string-util")
+local jdtls_util = require("utils.java.jdtls-util")
+local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
 
 local M = {}
@@ -17,10 +17,6 @@ local setting = {
 local state = {
     parametrized_test_num = 0,
 }
-
-function M.set_parametrized_test_num(value)
-    state.parametrized_test_num = value
-end
 
 vim.api.nvim_create_user_command("ParamTestNum", function(opts)
     state.parametrized_test_num = opts.args
@@ -39,12 +35,6 @@ local test_selector_resolver = {
         return "--scan-class-path=" .. test_classes
     end,
     [task.test_type.FILE_TESTS] = function()
-        -- Snacks.picker.select(
-        --     { "item1", "item2", "item3" },
-        --     { prompt = "Pick one" }, -- opts (optional)
-        --     function(item) end
-        -- )
-
         local current_class_fqn = java_ts.get_class_name()
         if current_class_fqn == nil then
             vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
@@ -72,7 +62,7 @@ local test_selector_resolver = {
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)
             return nil
         end
-
+        state.parametrized_test_num = nio_util.input("Test Number")
         local module_path = java_util.get_buffer_project_path()
         local test_classes = module_path .. "/target/test-classes"
         current_test_method_fqn =
@@ -85,8 +75,6 @@ local test_selector_resolver = {
 ---@param context task.lang.Context
 ---@return table
 function build_junit_tests_cmd(context)
-    dd(context)
-    -- task.test_type.CURRENT_TEST, is_debug
     local type = context.test_type
     local is_debug = context.is_debug
 
