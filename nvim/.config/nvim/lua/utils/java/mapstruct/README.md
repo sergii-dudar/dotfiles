@@ -89,7 +89,7 @@ mapstruct.stop()
 
 ### With blink.cmp
 
-The `utils.blink.mapstruct-source` module is a thin wrapper that adapts the isolated module for blink.cmp:
+The `modules.blink.mapstruct-source` module is a thin wrapper that adapts the isolated module for blink.cmp:
 
 ```lua
 -- In blink.cmp config
@@ -97,7 +97,7 @@ sources = {
     providers = {
         mapstruct = {
             name = "mapstruct",
-            module = "utils.blink.mapstruct-source",
+            module = "modules.blink.mapstruct-source",
             opts = {
                 jar_path = "~/path/to/mapstruct-path-explorer.jar",
                 use_jdtls_classpath = true,
@@ -253,6 +253,6 @@ This separation allows:
 
 ## Examples
 
-See `utils/blink/mapstruct-source/init.lua` for a complete integration example with blink.cmp.
+See `modules/blink/mapstruct-source/init.lua` for a complete integration example with blink.cmp.
 
 For standalone usage examples, see the test files in the project.

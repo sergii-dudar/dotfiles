@@ -96,7 +96,7 @@ The source is already configured in `lua/plugins/editor/blink-cmp.lua`. Update t
 ```lua
 mapstruct = {
     name = "mapstruct",
-    module = "utils.blink.mapstruct-source",
+    module = "modules.blink.mapstruct-source",
     opts = {
         -- Required: path to mapstruct-path-explorer.jar
         jar_path = "~/path/to/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
@@ -296,7 +296,7 @@ This happens when the server starts with incomplete classpath:
 
 ```lua
 -- In a Java file with MapStruct annotations
-local context = require('utils.blink.mapstruct-source.context')
+local context = require('modules.blink.mapstruct-source.context')
 local ctx = context.get_completion_context(0, vim.fn.line('.') - 1, vim.fn.col('.'))
 print(vim.inspect(ctx))
 -- Should print: { class_name = "...", path_expression = "...", ... }

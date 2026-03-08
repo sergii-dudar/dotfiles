@@ -392,4 +392,4 @@ Common errors:
 
 ## See Also
 
-- `utils.blink.mapstruct-source` - blink.cmp integration
+- `modules.blink.mapstruct-source` - blink.cmp integration
