@@ -1,5 +1,6 @@
 local constants = require("utils.constants")
-local nio = require("nio")
+local nio_util = require("utils.nio-util")
+
 _G.task = {}
 task.test_type = {
     --- @enum task.test_type
@@ -19,8 +20,8 @@ task.run_type = {
 ---@return function
 local build_run_test = function(type, is_debug)
     return function()
-        nio.run(function()
-            require("plugins.overseer.overseer-util").run_test({ type = type, is_debug = is_debug })
+        nio_util.run(function()
+            require("plugins.overseer.overseer-util").run_test({ test_type = type, is_debug = is_debug })
         end)
     end
 end
@@ -34,7 +35,7 @@ local build_run_param_test = function(is_debug)
                 .resolve(vim.bo.filetype)
                 .set_parametrized_test_num(value)
             require("plugins.overseer.overseer-util").run_test({
-                type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
+                test_type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST,
                 is_debug = is_debug,
             })
         end)

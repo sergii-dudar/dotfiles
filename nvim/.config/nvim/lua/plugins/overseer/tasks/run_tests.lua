@@ -10,23 +10,12 @@ local resolve_report_dir = function()
     return nil
 end
 
+---@param params { context: task.lang.Context }
 local resolve_type_cmd = function(params)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     local result_cmd
     if type_resolver then
-        if params.test_type == task.test_type.CURRENT_TEST then
-            result_cmd = type_resolver.build_run_test_cmd(params.is_test_debug)
-        elseif params.test_type == task.test_type.FILE_TESTS then
-            result_cmd = type_resolver.build_run_file_tests_cmd(params.is_test_debug)
-        elseif params.test_type == task.test_type.ALL_TESTS then
-            result_cmd = type_resolver.build_run_all_tests_cmd(params.is_test_debug)
-        elseif params.test_type == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-            result_cmd = type_resolver.build_run_parametrized_num_test_cmd(params.is_test_debug)
-        else
-            local file = vim.fn.expand("%:p")
-            vim.notify(file .. " test_type " .. params.test_type .. " is not supported.")
-            result_cmd = { "echo", file .. " test_type " .. params.test_type .. " is not supported tests." }
-        end
+        result_cmd = type_resolver.build_run_test_cmd(params.context)
     else
         local file = vim.fn.expand("%:p")
         vim.notify(file .. " is not supported.")

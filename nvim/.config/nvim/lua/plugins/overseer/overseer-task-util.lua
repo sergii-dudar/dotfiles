@@ -22,20 +22,18 @@ end
 
 ---@class task.Options
 ---@field task_name string
----@field test_type task.test_type|integer|nil
----@field is_test_debug boolean|nil
+---@field context task.lang.Context|nil
 ---@field is_open_output? boolean
 ---@field on_complete? function
-
 ---@param opts task.Options
 function M.run_task(opts)
     M.stop_all_prev_tasks()
     local task_opts = { name = opts.task_name }
     -- task_opts.env nil|table<string, string> Additional environment variables for the task
-    if opts.test_type then
-        task_opts.params = {}
-        task_opts.params.test_type = opts.test_type
-        task_opts.params.is_test_debug = opts.is_test_debug
+    if opts.context then
+        task_opts.params = {
+            context = opts.context,
+        }
     end
     overseer.run_task(task_opts, function(task)
         if task then

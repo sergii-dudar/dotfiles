@@ -49,17 +49,9 @@ function M.dap_launch_rerun()
     require("utils.java.jdtls-config-dap-util").rerun_last()
 end
 
-function M.build_run_all_tests_cmd(context)
-    return require("utils.java.junit").build_run_all_tests_cmd(context)
-end
-function M.build_run_file_tests_cmd(context)
-    return require("utils.java.junit").build_run_file_tests_cmd(context)
-end
+---@param context task.lang.Context
 function M.build_run_test_cmd(context)
     return require("utils.java.junit").build_run_test_cmd(context)
-end
-function M.build_run_parametrized_num_test_cmd(context)
-    return require("utils.java.junit").build_run_parametrized_num_test_cmd(context)
 end
 function M.set_parametrized_test_num(value)
     return require("utils.java.junit").set_parametrized_test_num(value)

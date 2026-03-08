@@ -3,58 +3,7 @@ local java_ts = require("utils.java.java-ts-util")
 local javap_util = require("utils.java.javap-util")
 -- local jdtls_util = require("utils.java.jdtls-util")
 -- local string_util = require("utils.string-util")
-local nio = require("nio")
--- nio.run(function()
---     local selected = nio.ui.select({
---         "item1",
---         "item2",
---         "item3",
---     }, { kind =})
---     print("selected: " .. selected)
--- end)
-
--- vim.ui.select({
---     "item1",
---     "item2",
---     "item3",
--- }, { prompt = "Select something: " }, function(selected)
---     dd({ selected })
--- end)
---
--- vim.ui.select(vim.api.nvim_list_bufs(), {
--- 	preview = function(buf)
--- 		return buf
--- 	end,
--- 	format_item = function(buf)
--- 		return vim.api.nvim_buf_get_name(buf)
--- 	end,
--- }, function(buf)
--- 	vim.cmd.buffer(buf)
--- end)
-
--- local nio = require("nio")
--- local select = nio.wrap(function(items, prompt, cb)
---     -- vim.defer_fn(cb, ms)
---     print(items)
---     print(prompt)
---     print(cb)
---     Snacks.picker.select(
---         items,
---         { prompt = prompt }, -- opts (optional)
---         cb
---     )
--- end, 3)
---
--- nio.run(function()
---     -- sleep(10)
---     print(select({ "item-1", "item-2", "item-3" }, "Pick implementation"))
--- end)
---
--- Snacks.picker.select(
---     { "item1", "item2", "item3" },
---     { prompt = "Pick one" }, -- opts (optional)
---     function(item) end
--- )
+local nio_util = require("utils.nio-util")
 
 local M = {}
 
@@ -78,34 +27,9 @@ vim.api.nvim_create_user_command("ParamTestNum", function(opts)
 end, { nargs = 1 })
 
 ---@return table
-function M.build_run_all_tests_cmd(is_debug)
-    return build_junit_tests_cmd(task.test_type.ALL_TESTS, is_debug)
-end
-
----@return table
-function M.build_run_file_tests_cmd(is_debug)
-    return build_junit_tests_cmd(task.test_type.FILE_TESTS, is_debug)
-end
-
----@return table
-function M.build_run_test_cmd(is_debug)
-    return build_junit_tests_cmd(task.test_type.CURRENT_TEST, is_debug)
-end
-
----@return table
-function M.build_run_parametrized_num_test_cmd(is_debug)
-    return build_junit_tests_cmd(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, is_debug)
-end
-
-local read_xml = function(filepath)
-    local xml = require("lib.xml")
-    local file = require("lib.file")
-    local content = file.read_file(
-        "/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-prevalidation/payment-prevalidation/pom.xml"
-    )
-    -- print(content)
-    -- print(xml.parse(content))
-    -- print(xml.parse(content).project.artifactId)
+---@param context task.lang.Context
+function M.build_run_test_cmd(context)
+    return build_junit_tests_cmd(context)
 end
 
 local test_selector_resolver = {
@@ -129,13 +53,6 @@ local test_selector_resolver = {
         return "--select-class=" .. current_class_fqn
     end,
     [task.test_type.CURRENT_TEST] = function()
-        local selected = nio.ui.select({
-            "item11",
-            "item22",
-            "item33",
-        }, {})
-        vim.notify("selected: " .. selected, vim.log.levels.ERROR)
-
         local current_test_method_fqn = java_ts.get_full_method_with_params("#")
         if current_test_method_fqn == nil then
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)
@@ -165,10 +82,14 @@ local test_selector_resolver = {
     end,
 }
 
----@param type task.test_type|integer
----@param is_debug boolean|nil
+---@param context task.lang.Context
 ---@return table
-function build_junit_tests_cmd(type, is_debug)
+function build_junit_tests_cmd(context)
+    dd(context)
+    -- task.test_type.CURRENT_TEST, is_debug
+    local type = context.test_type
+    local is_debug = context.is_debug
+
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method()
 
     local module_path = java_util.get_buffer_project_path()

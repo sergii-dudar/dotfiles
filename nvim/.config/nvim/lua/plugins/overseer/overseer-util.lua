@@ -5,33 +5,27 @@ local overseer = require("overseer")
 
 local M = {}
 
----@class task.test.Runner
----@field type task.test_type|integer
----@field is_debug boolean|nil
-
----@param opts task.test.Runner
-function M.run_test(opts)
+---@param context task.lang.Context
+function M.run_test(context)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     if not type_resolver then
         vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
-    if opts.is_debug then
+    if context.is_debug then
         overseer.close()
         dap_after_session_clear()
         overseer_task_util.run_task({
             task_name = "DEBUG_TESTS",
             is_open_output = false,
-            test_type = opts.type,
-            is_test_debug = opts.is_debug,
+            context = context,
         })
         write_run_info(task.run_type.TEST, true)
     else
         overseer_task_util.run_task({
             task_name = "RUN_TESTS",
             is_open_output = true,
-            test_type = opts.type,
-            is_test_debug = opts.is_debug,
+            context = context,
         })
         write_run_info(task.run_type.TEST, false)
     end

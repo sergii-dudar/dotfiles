@@ -14,6 +14,10 @@ type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
 
 local M = {}
 
+---@class task.lang.Context
+---@field test_type task.test_type|integer|nil
+---@field is_debug boolean|nil
+
 ---@class task.lang.Runner
 ---@field build_run_cmd function
 ---@field build_debug_cmd function|nil - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
@@ -22,10 +26,7 @@ local M = {}
 ---@field dap_launch_rerun function|nil
 ---@field build_compile_cmd function|nil
 ---@field make_compile function|nil
----@field build_run_all_tests_cmd function|nil
----@field build_run_file_tests_cmd function|nil
----@field build_run_test_cmd function|nil
----@field build_run_parametrized_num_test_cmd function|nil
+---@field build_run_test_cmd  fun(context: task.lang.Context):string|nil
 ---@field set_parametrized_test_num string|nil
 ---@field get_test_report_dir fun(): string|nil
 
@@ -58,12 +59,7 @@ for key, resolver in pairs(type_to_resolver) do
     if resolver.build_compile_cmd then
         table.insert(M.types_supported_compile_cmd, key)
     end
-    if
-        resolver.build_run_all_tests_cmd
-        or resolver.build_run_file_tests_cmd
-        or resolver.build_run_test_cmd
-        or resolver.build_run_parametrized_num_test_cmd
-    then
+    if resolver.build_run_test_cmd then
         table.insert(M.types_supported_test_cmd, key)
     end
 end
