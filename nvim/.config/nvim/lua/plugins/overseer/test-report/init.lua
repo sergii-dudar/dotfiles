@@ -200,6 +200,7 @@ function M.process(report_dir, filetype)
         vim.fn.setqflist(qf_entries, "r")
         log.debug("set " .. #qf_entries .. " quickfix entries")
         -- vim.cmd("Trouble qflist open")
+        require("overseer").close()
         vim.cmd("Trouble junit_diagnostics open")
     end
 
