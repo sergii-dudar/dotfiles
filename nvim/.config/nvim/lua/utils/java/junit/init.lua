@@ -35,26 +35,58 @@ local test_selector_resolver = {
         return "--scan-class-path=" .. test_classes
     end,
     [task.test_type.FILE_TESTS] = function()
-        local current_class_fqn = java_ts.get_class_name()
-        if current_class_fqn == nil then
+        local current_class = java_ts.get_class_name_with_abstract()
+        if current_class == nil then
             vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
             return nil
         end
+        local current_class_fqn = current_class.fqn
+        if not current_class.is_abstract then
+            return "--select-class=" .. current_class_fqn
+        end
+
+        local impls = jdtls_util.jdt_find_implementations_nio(current_class_fqn)
+        if not vim.tbl_isempty(impls) then
+            if #impls == 1 then
+                return "--select-class=" .. impls[1]
+            end
+            local picked_impl = nio_util.select(impls, "Select implementation to run")
+            return "--select-class=" .. picked_impl
+        end
+        vim.notify("No any implementations found for: " .. current_class_fqn)
         return "--select-class=" .. current_class_fqn
     end,
     [task.test_type.CURRENT_TEST] = function()
-        local current_test_method_fqn = java_ts.get_full_method_with_params("#")
-        if current_test_method_fqn == nil then
+        local current_test_method = java_ts.get_full_method_with_params_and_abstract("#")
+        if current_test_method == nil then
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)
             return nil
         end
 
         local module_path = java_util.get_buffer_project_path()
         local test_classes = module_path .. "/target/test-classes"
-        current_test_method_fqn =
-            javap_util.resolve_parametrized_method_signature(current_test_method_fqn, test_classes)
+        local current_test_method_fsignature =
+            javap_util.resolve_parametrized_method_signature(current_test_method.fsignature, test_classes)
         -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
-        return "--select-method=" .. current_test_method_fqn
+
+        if not current_test_method.is_abstract then
+            return "--select-method=" .. current_test_method_fsignature
+        end
+
+        local current_test_method_parts = string_util.split(current_test_method_fsignature, "#")
+        local current_class_fqn = current_test_method_parts[1]
+        local method_signature = current_test_method_parts[2]
+
+        local impls = jdtls_util.jdt_find_implementations_nio(current_class_fqn)
+        if not vim.tbl_isempty(impls) then
+            if #impls == 1 then
+                return "--select-method=" .. impls[1] .. "#" .. method_signature
+            end
+            local picked_impl = nio_util.select(impls, "Select implementation to run")
+            return "--select-method=" .. picked_impl .. "#" .. method_signature
+        end
+        vim.notify("No any implementations found for: " .. current_class_fqn)
+        return "--select-method=" .. current_test_method_fsignature
     end,
     [task.test_type.CURRENT_PARAMETRIZED_NUM_TEST] = function()
         local current_test_method_fqn = java_ts.get_full_method_with_params("#")

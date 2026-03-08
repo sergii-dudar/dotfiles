@@ -88,7 +88,7 @@ function M.get_class_name_with_abstract()
     local pkg = get_package_name(node)
     local full_name = pkg and (pkg .. "." .. cls_name) or cls_name
 
-    return { name = full_name, is_abstract = is_abstract }
+    return { fqn = full_name, is_abstract = is_abstract }
 end
 
 -- ---------------------------------------------------------
@@ -228,7 +228,7 @@ function M.get_full_method_with_params_and_abstract(delimiter)
     local sig = method_name .. "(" .. table.concat(params, ", ") .. ")"
 
     return {
-        value = class_info.name .. delimiter .. sig,
+        fsignature = class_info.fqn .. delimiter .. sig,
         is_abstract = class_info.is_abstract,
     }
 end
