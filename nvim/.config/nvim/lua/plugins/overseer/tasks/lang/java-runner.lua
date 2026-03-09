@@ -5,9 +5,29 @@ local M = {}
 
 ---@return table<string, string>
 function M.get_envs()
-    return {
-        ["TEST_ENV_VAR"] = "TEST VALUE1",
-    } -- TODO: load from current module resources - dev.application.properties.env
+    local java_util = require("utils.java.java-common")
+    local module_path = java_util.get_buffer_project_path()
+    if not module_path then
+        return {}
+    end
+
+    local env_file = module_path .. "/src/main/resources/dev.application.properties.env"
+    local content = require("lib.file").read_file(env_file)
+    if not content then
+        return {}
+    end
+
+    local envs = {}
+    for line in content:gmatch("[^\r\n]+") do
+        -- skip comments and empty lines
+        if not line:match("^%s*#") and not line:match("^%s*$") then
+            local key, value = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
+            if key then
+                envs[key] = value
+            end
+        end
+    end
+    return envs
 end
 
 ---@return table

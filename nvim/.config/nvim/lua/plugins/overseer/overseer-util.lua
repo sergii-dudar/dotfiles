@@ -19,6 +19,7 @@ function M.run_test(context)
             task_name = "DEBUG_TESTS",
             is_open_output = false,
             context = context,
+            env = type_resolver.get_envs and type_resolver.get_envs(),
         })
         write_run_info(task.run_type.TEST, true)
     else
@@ -26,6 +27,7 @@ function M.run_test(context)
             task_name = "RUN_TESTS",
             is_open_output = true,
             context = context,
+            env = type_resolver.get_envs and type_resolver.get_envs(),
         })
         write_run_info(task.run_type.TEST, false)
     end
@@ -41,11 +43,11 @@ function M.run_current()
         vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
-    local task_opts = { task_name = "RUN_CURRENT", is_open_output = true }
-    if type_resolver.get_envs then
-        task_opts.env = type_resolver.get_envs()
-    end
-    overseer_task_util.run_task(task_opts)
+    overseer_task_util.run_task({
+        task_name = "RUN_CURRENT",
+        is_open_output = true,
+        env = type_resolver.get_envs and type_resolver.get_envs(),
+    })
     write_run_info(task.run_type.RUN, false)
 end
 
@@ -71,6 +73,7 @@ function debug_current_internal(type_resolver)
         overseer_task_util.run_task({
             task_name = "DEBUG_CURRENT",
             on_complete = dap_after_session_clear,
+            env = type_resolver.get_envs and type_resolver.get_envs(),
         })
 
         -- 4. After a short delay, re-attach DAP

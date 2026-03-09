@@ -37,7 +37,7 @@ function M.run_task(opts)
             context = opts.context,
         }
     end
-    if opts.env then
+    if opts.env and not vim.tbl_isempty(opts.env) then
         task_opts.env = opts.env
     end
     overseer.run_task(task_opts, function(task)
@@ -88,6 +88,7 @@ function M.run_last_task()
     end
     local last_task = tasks[1]
     overseer.run_action(last_task, "restart")
+    overseer.open()
 end
 
 return M
