@@ -1,5 +1,6 @@
 local constants = require("utils.constants")
 local nio_util = require("utils.nio-util")
+local overseer_group = vim.api.nvim_create_augroup("myOverseerGroup", { clear = true })
 
 _G.task = {}
 task.test_type = {
@@ -106,10 +107,14 @@ return {
 
             -- Map 'q' to close overseer task output windows
             vim.api.nvim_create_autocmd("FileType", {
-                -- pattern = { "OverseerList", "OverseerOutput" },
-                pattern = { "OverseerOutput" },
+                pattern = { "OverseerList", "OverseerOutput" },
+                -- pattern = { "OverseerOutput" },
                 callback = function(event)
-                    vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
+                    -- vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
+                    vim.keymap.set("n", "q", function()
+                        vim.cmd("OverseerClose")
+                        vim.cmd("wincmd l")
+                    end, { buffer = event.buf, silent = true })
                 end,
             })
         end,

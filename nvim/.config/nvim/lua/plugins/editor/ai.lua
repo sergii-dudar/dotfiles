@@ -93,6 +93,7 @@ return {
                         local bufnr = vim.api.nvim_get_current_buf()
                         vim.keymap.set("n", "q", function()
                             vim.api.nvim_buf_delete(bufnr, { force = true })
+                            vim.cmd("wincmd l")
                         end, { buffer = bufnr, desc = "Close wtf.nvim popup" })
                     end
                 end,
