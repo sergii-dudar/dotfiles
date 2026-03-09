@@ -14,6 +14,10 @@ return {
             })
         end,
     },
+    {
+        "fei6409/log-highlight.nvim",
+        opts = {},
+    },
     -- translate
     {
         "acidsugarx/babel.nvim",
