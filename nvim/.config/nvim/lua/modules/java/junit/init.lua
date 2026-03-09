@@ -4,16 +4,17 @@ local javap_util = require("utils.java.javap-util")
 local jdtls_util = require("utils.java.jdtls-util")
 local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
+local common_util = require("utils.common-util")
 
 local M = {}
 
+local home = os.getenv("HOME")
 local mockito_core_version = "5.20.0"
-local mockito_core_jar = vim.fn.glob(
-    "$HOME/.m2/repository/org/mockito/mockito-core/"
-        .. mockito_core_version
-        .. "/mockito-core-"
-        .. mockito_core_version
-        .. ".jar"
+local mockito_core_jar = string.format(
+    "%s/.m2/repository/org/mockito/mockito-core/%s/mockito-core-%s.jar",
+    home,
+    mockito_core_version,
+    mockito_core_version
 )
 
 local setting = {
@@ -24,7 +25,7 @@ local setting = {
     },
     report_dir = "/target/junit-report",
 }
-if string_util.is_not_empty(mockito_core_jar) then
+if common_util.is_file_exists(mockito_core_jar) then
     table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
 end
 
