@@ -14,6 +14,25 @@ return {
             })
         end,
     },
+    -- translate
+    {
+        "acidsugarx/babel.nvim",
+        version = "*", -- recomended for the latest tag, not main
+        opts = {
+            target = "uk", -- target language
+            provider = "google",
+            display = "float", -- "float" or "picker"
+            picker = "snacks", -- "auto", "telescope", "fzf", "snacks", "mini"
+            keymaps = {
+                translate = "<leader>tr",
+                translate_word = "<leader>tw",
+            },
+        },
+        keys = {
+            { "<leader>tr", mode = "v", desc = "Translate selection" },
+            { "<leader>tw", desc = "Translate word" },
+        },
+    },
     {
         "hedyhli/outline.nvim",
         opts = {
