@@ -1,4 +1,4 @@
-local junit_xml = require("plugins.overseer.test-report.junit-xml")
+local junit_xml = require("modules.java.test-report.junit-xml")
 local log = require("utils.logging-util").new({
     name = "test-report",
     filename = "test-report.log",
@@ -30,7 +30,7 @@ local M = {}
 
 local lang_adapters = {
     java = function()
-        return require("plugins.overseer.test-report.lang.java")
+        return require("modules.java.test-report.lang.java")
     end,
 }
 

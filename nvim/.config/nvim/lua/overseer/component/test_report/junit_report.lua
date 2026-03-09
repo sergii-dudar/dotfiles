@@ -1,4 +1,4 @@
-local test_report = require("plugins.overseer.test-report")
+local test_report = require("modules.java.test-report")
 local log = require("utils.logging-util").new({ name = "test-report-component", filename = "test-report.log", level = vim.log.levels.DEBUG })
 
 ---@type overseer.ComponentFileDefinition

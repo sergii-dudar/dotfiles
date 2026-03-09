@@ -75,9 +75,9 @@ return {
             { "<leader>tp", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST), desc = "Run Current Parametrized Single Test", },
             { "<leader>tP", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, true), desc = "Debug Current Parametrized Single Test", },
             { "<leader>tl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
-            { "<leader>to", function() require("plugins.overseer.test-report").show_test_output() end, desc = "Toggle Test Output" },
-            { "<leader>tO", function() require("plugins.overseer.test-report").hide_test_output() end, desc = "Hide Test Output" },
-            { "<leader>tL", function() require("plugins.overseer.test-report").load_existing() end, desc = "Load Last Test Report" },
+            { "<leader>to", function() require("modules.java.test-report").show_test_output() end, desc = "Toggle Test Output" },
+            { "<leader>tO", function() require("modules.java.test-report").hide_test_output() end, desc = "Hide Test Output" },
+            { "<leader>tL", function() require("modules.java.test-report").load_existing() end, desc = "Load Last Test Report" },
             { "<leader>txx", "<cmd>Trouble junit_diagnostics toggle<cr>", desc = "Tests junit diagnostics trouble" },
             { "<leader>txd", function()
                 Snacks.picker.diagnostics({

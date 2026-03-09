@@ -13,6 +13,9 @@ vim.keymap.set("n", "<leader>d2", ":diffget 2<CR>", { desc = "get from right [RE
 vim.keymap.set("n", "<leader>d3", ":diffget 3<CR>", { desc = "get from right [REMORE]" }) -- get from right [REMORE]
 -- vim.keymap.set("n", "<leader>dl", ":diffget 3<CR>") -- get from right [REMORE]
 
+-- disable start recording of macros (I'm not using it a lot, but often conflicting with another plugins on `q`, that quite anoying)
+vim.keymap.set("n", "q", "<Nop>", { noremap = true, silent = true })
+
 -- tabs
 --[[ map("n", "<leader><tab>n", function()
     vim.cmd.tabnew()

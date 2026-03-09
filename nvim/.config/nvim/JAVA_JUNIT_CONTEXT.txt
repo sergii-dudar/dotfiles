@@ -21,13 +21,13 @@ diagnostics, quickfix entries, and a detailed output viewer with stack trace hig
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/overseer-task-util.lua
 
 ## Test report engine (core orchestrator: process, clear, show/hide output)
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/init.lua
+- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/init.lua
 
 ## JUnit XML parser (parses TEST-*.xml, merges parameterized invocations, extracts errors)
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/junit-xml.lua
+- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/junit-xml.lua
 
 ## Java language adapter (classname-to-file, treesitter test positions, error line extraction)
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/test-report/lang/java.lua
+- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/lang/java.lua
 
 ## Overseer component (hooks into overseer lifecycle: on_complete/on_reset/on_dispose)
 - ~/dotfiles/nvim/.config/nvim/lua/overseer/component/test_report/junit_report.lua
