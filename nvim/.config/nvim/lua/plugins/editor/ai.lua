@@ -79,11 +79,24 @@ return {
                     model_id = "claude-sonnet-4-6",
                 },
                 copilot = {
-                    model_id = "claude-sonnet-4.5",
+                    model_id = "gpt-4o",
+                    -- model_id = "claude-sonnet-4.5",
                 },
             },
             search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
             picker = "snacks", -- "telescope" | "snacks" | "fzf-lua",
+            hooks = {
+                request_started = nil,
+                request_finished = function()
+                    if vim.bo.filetype == "markdown" then
+                        -- means pupup with diagnostics answer opened
+                        local bufnr = vim.api.nvim_get_current_buf()
+                        vim.keymap.set("n", "q", function()
+                            vim.api.nvim_buf_delete(bufnr, { force = true })
+                        end, { buffer = bufnr, desc = "Close wtf.nvim popup" })
+                    end
+                end,
+            },
         },
         -- stylua: ignore
         keys = {
