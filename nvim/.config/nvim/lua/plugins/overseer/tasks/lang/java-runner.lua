@@ -1,4 +1,3 @@
-require("modules.java.junit.init")
 local java_bin = vim.fn.glob("~/.sdkman/candidates/java/current/bin/java")
 
 local M = {}
@@ -10,24 +9,8 @@ function M.get_envs()
     if not module_path then
         return {}
     end
-
     local env_file = module_path .. "/src/main/resources/dev.application.properties.env"
-    local content = require("lib.file").read_file(env_file)
-    if not content then
-        return {}
-    end
-
-    local envs = {}
-    for line in content:gmatch("[^\r\n]+") do
-        -- skip comments and empty lines
-        if not line:match("^%s*#") and not line:match("^%s*$") then
-            local key, value = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
-            if key then
-                envs[key] = value
-            end
-        end
-    end
-    return envs
+    return require("utils.envs-util").load_env_file(env_file)
 end
 
 ---@return table

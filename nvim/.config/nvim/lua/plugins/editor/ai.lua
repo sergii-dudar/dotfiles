@@ -41,7 +41,6 @@ return {
             },
         },
     },
-
     --[[ {
         "saghen/blink.cmp",
         opts = {
@@ -55,4 +54,45 @@ return {
             },
         },
     }, ]]
+    {
+        "piersolenski/wtf.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "MunifTanjim/nui.nvim",
+            -- Optional: For WtfGrepHistory (pick one)
+            -- "nvim-telescope/telescope.nvim",
+            "folke/snacks.nvim",
+            -- "ibhagwan/fzf-lua",
+        },
+        opts = {
+            popup_type = "horizontal", -- "popup" | "horizontal" | "vertical",
+            -- provider = "anthropic", -- "anthropic" | "copilot" | "deepseek" | "gemini" | "grok" | "ollama" | "openai",
+            provider = "copilot",
+            providers = {
+                anthropic = {
+                    url = "https://genai-sbox.rbi.tech/v1/messages",
+                    api_key = function()
+                        local claude_env = os.getenv("HOME") .. "/.claude/.env"
+                        return require("utils.envs-util").load_env_file_variable(claude_env, "ANTHROPIC_API_KEY")
+                    end,
+                    -- model_id = "claude-opus-4-6",
+                    model_id = "claude-sonnet-4-6",
+                },
+                copilot = {
+                    model_id = "claude-sonnet-4.5",
+                },
+            },
+            search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
+            picker = "snacks", -- "telescope" | "snacks" | "fzf-lua",
+        },
+        -- stylua: ignore
+        keys = {
+            { "<leader>wd", mode = { "n", "x" }, function() require("wtf").diagnose() end, desc = "Debug diagnostic with AI", },
+            { "<leader>wf", mode = { "n", "x" }, function() require("wtf").fix() end, desc = "Fix diagnostic with AI", },
+            { mode = { "n" }, "<leader>ws", function() require("wtf").search() end, desc = "Search diagnostic with Google", },
+            { mode = { "n" }, "<leader>wp", function() require("wtf").pick_provider() end, desc = "Pick provider", },
+            { mode = { "n" }, "<leader>wh", function() require("wtf").history() end, desc = "Populate the quickfix list with previous chat history", },
+            { mode = { "n" }, "<leader>wg", function() require("wtf").grep_history() end, desc = "Grep previous chat history with Telescope", },
+        },
+    },
 }

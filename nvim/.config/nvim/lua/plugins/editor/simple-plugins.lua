@@ -17,6 +17,9 @@ return {
     -- translate
     {
         "acidsugarx/babel.nvim",
+        dependencies = {
+            "folke/snacks.nvim",
+        },
         version = "*", -- recomended for the latest tag, not main
         opts = {
             target = "uk", -- target language
