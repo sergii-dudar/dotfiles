@@ -25,9 +25,9 @@ local setting = {
     },
     report_dir = "/target/junit-report",
 }
-if common_util.is_file_exists(mockito_core_jar) then
-    table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
-end
+-- if common_util.is_file_exists(mockito_core_jar) then
+--     table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
+-- end
 
 local state = {
     parametrized_test_num = 0,

@@ -115,6 +115,8 @@ return {
                         vim.cmd("OverseerClose")
                         vim.cmd("wincmd l")
                     end, { buffer = event.buf, silent = true })
+                    vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
+                    vim.cmd("runtime! syntax/log.vim")
                 end,
             })
         end,
