@@ -17,6 +17,10 @@ function M.contains(str, substr)
     return string.find(str, substr, 1, true)
 end
 
+function M.is_not_empty(str)
+    return str ~= nil and str ~= ""
+end
+
 --- Convert table with key\values to single unique string (as lua have no buildin concept equals & hashcode)
 local function table_to_hash(tbl)
     local parts = {}

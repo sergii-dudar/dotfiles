@@ -7,13 +7,27 @@ local nio_util = require("utils.nio-util")
 
 local M = {}
 
+local mockito_core_version = "5.20.0"
+local mockito_core_jar = vim.fn.glob(
+    "$HOME/.m2/repository/org/mockito/mockito-core/"
+        .. mockito_core_version
+        .. "/mockito-core-"
+        .. mockito_core_version
+        .. ".jar"
+)
+
 local setting = {
     junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
     jvm_args = {
+        "--enable-native-access=ALL-UNNAMED",
         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", os.getenv("HOME")),
     },
     report_dir = "/target/junit-report",
 }
+if string_util.is_not_empty(mockito_core_jar) then
+    table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
+end
+
 local state = {
     parametrized_test_num = 0,
 }
