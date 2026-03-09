@@ -34,7 +34,8 @@ if isMacOs; then
     alias brave="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
     # alias move_cursor='bash -c "cd ~/dotfiles/work/python && pipenv run python mouse_cursor.py > /dev/null 2>&1"'
     alias move_cursor='bash -c "cd ~/dotfiles/work/python && python3 mouse_cursor.py > /dev/null 2>&1"'
-    alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head_\$(date +%y%d%m).bundle HEAD --not --remotes=origin"
+    # alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head_\$(date +%y%d%m).bundle HEAD --not --remotes=origin"
+    alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head.bundle HEAD --not --remotes=origin"
 else
     alias amenu="~/.config/rofi/scripts/launcher_t1"
     alias pmenu="~/.config/rofi/scripts/powermenu_t1"
@@ -49,6 +50,7 @@ else
     alias ubuntuar="sudo apt autoremove"
     alias archu="sudo pacman -Syu && yay -Syu"
     alias archua="archu && yaziu"
+    alias dots_pull_bundle="cd ~/dotfiles && git pull /mnt/ssd500/Shared/bundles/dotfiles_head.bundle HEAD"
 fi
 
 # Changing "ps" to "procs"
