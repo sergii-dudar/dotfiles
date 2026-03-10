@@ -31,6 +31,7 @@ local setting = {
     junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
     jvm_args = {
         "--enable-native-access=ALL-UNNAMED",
+        "-Dspring.output.ansi.enabled=NEVER",
         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
     report_dir = "/target/junit-report",
