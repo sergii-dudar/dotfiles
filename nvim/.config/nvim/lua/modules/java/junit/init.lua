@@ -9,25 +9,24 @@ local common_util = require("utils.common-util")
 local M = {}
 
 local home = os.getenv("HOME")
-local mockito_core_version = "5.20.0"
-local mockito_core_jar = string.format(
-    "%s/.m2/repository/org/mockito/mockito-core/%s/mockito-core-%s.jar",
-    home,
-    mockito_core_version,
-    mockito_core_version
-)
+
+-- Resolve latest byte-buddy-agent version from local maven cache
+local byte_buddy_agent_dir = home .. "/.m2/repository/net/bytebuddy/byte-buddy-agent"
+local byte_buddy_agent_jar = vim.fn.glob(byte_buddy_agent_dir .. "/*/byte-buddy-agent-*.jar", false, true)
+-- glob returns sorted, last entry is latest version
+byte_buddy_agent_jar = byte_buddy_agent_jar[#byte_buddy_agent_jar]
 
 local setting = {
     junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
     jvm_args = {
         "--enable-native-access=ALL-UNNAMED",
-        string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", os.getenv("HOME")),
+        string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
     report_dir = "/target/junit-report",
 }
--- if common_util.is_file_exists(mockito_core_jar) then
---     table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
--- end
+if byte_buddy_agent_jar then
+    table.insert(setting.jvm_args, "-javaagent:" .. byte_buddy_agent_jar)
+end
 
 local state = {
     parametrized_test_num = 0,
