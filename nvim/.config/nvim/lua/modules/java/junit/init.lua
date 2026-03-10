@@ -61,9 +61,12 @@ local test_selector_resolver = {
     end,
     [task.test_type.FILE_TESTS] = function()
         local current_class = java_ts.get_class_name_with_abstract()
-        if current_class == nil then
-            vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
-            return nil
+        if current_class == nil or vim.tbl_isempty(current_class) then
+            current_class = java_ts.get_root_class_with_abstract()
+            if current_class == nil then
+                vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
+                return nil
+            end
         end
         local current_class_fqn = current_class.fqn
         if not current_class.is_abstract then

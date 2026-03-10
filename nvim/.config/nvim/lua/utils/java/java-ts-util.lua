@@ -92,6 +92,43 @@ function M.get_class_name_with_abstract()
 end
 
 -- ---------------------------------------------------------
+--  GET ROOT CLASS FQN (first class in file, cursor-independent)
+-- ---------------------------------------------------------
+function M.get_root_class_with_abstract()
+    local tree = vim.treesitter.get_parser(0, "java"):parse()[1]
+    if not tree then
+        return nil
+    end
+    local root = tree:root()
+
+    local pkg = get_package_name(root)
+
+    for child in root:iter_children() do
+        if child:type() == "class_declaration" then
+            local cls_name
+            local is_abstract = false
+            for c in child:iter_children() do
+                if c:type() == "identifier" then
+                    cls_name = vim.treesitter.get_node_text(c, 0)
+                end
+                if c:type() == "modifiers" then
+                    for m in c:iter_children() do
+                        if vim.treesitter.get_node_text(m, 0) == "abstract" then
+                            is_abstract = true
+                        end
+                    end
+                end
+            end
+            if cls_name then
+                local full_name = pkg and (pkg .. "." .. cls_name) or cls_name
+                return { fqn = full_name, is_abstract = is_abstract }
+            end
+        end
+    end
+    return nil
+end
+
+-- ---------------------------------------------------------
 --  GET METHOD NAME ONLY
 -- ---------------------------------------------------------
 local function get_method_node()
