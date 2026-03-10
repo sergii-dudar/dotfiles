@@ -102,6 +102,14 @@ vim.api.nvim_create_autocmd("BufRead", {
 --    end
 --})
 
+vim.api.nvim_create_autocmd("VimLeavePre", {
+    callback = function()
+        -- Always save a special session named "last"
+        local resession = require("resession")
+        resession.save("last")
+    end,
+})
+
 -------------------------------------------
 ------------ winbar file path -----------
 vim.api.nvim_create_autocmd("BufWinEnter", {

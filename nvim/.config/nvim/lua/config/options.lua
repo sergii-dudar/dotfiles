@@ -52,6 +52,13 @@ vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default regis
 -- Preview substitutions
 vim.opt.inccommand = "split"
 
+-- Session
+vim.opt.sessionoptions = {
+    "buffers",
+    "tabpages",
+    "globals",
+}
+
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
 vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
@@ -110,7 +117,9 @@ end
 function open_tree_on_start()
     if require("utils.project-util").is_multifile_proj() then
         -- restore current proj session
-        require("persistence").load()
+        local resession = require("resession")
+        resession.load("last", { silence_errors = true })
+        -- require("persistence").load()
 
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
         vim.cmd("Neotree filesystem reveal left")
