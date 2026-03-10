@@ -20,6 +20,13 @@ java -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
     --scan-class-path --include-engine junit-jupiter --disable-banner
 
+java -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar discover \
+    --include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$" \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-api" test)":"$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-service" test)" \
+    --include-engine junit-jupiter --disable-banner \
+    --scan-class-path=/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-service/target/test-classes \
+    --scan-class-path=/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-api/target/test-classes
+
 java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
     --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "$PWD" test)" \
@@ -59,6 +66,22 @@ java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
     --include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$" \
     --include-engine junit-jupiter --disable-banner \
     --select-package ua.raiffeisen.payments.cardtransferinitiation
+
+
+java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-api" test)" \
+    --include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$" \
+    --include-engine junit-jupiter --disable-banner \
+    --scan-class-path=/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-api/target/test-classes
+
+java -javaagent:"$HOME"/tools/java-extensions/jmockit/jmockit.jar \
+    -jar "$HOME"/tools/java-extensions/junit/junit-platform-console-standalone.jar execute \
+    --class-path "$("$HOME"/dotfiles/work/java/mvn_cp_cache.sh "/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-service" test)" \
+    --include-classname="^(Test.*|.+[.$]Test.*|.*Tests?|I[Tt].*|.+[.$]I[Tt].*|.*I[Tt]?)$" \
+    --include-engine junit-jupiter --disable-banner \
+    --scan-class-path=/Users/iuada144/serhii.home/work/git.work/ua-payments-payment-norkom-adapter/payment-norkom-adapter-service/target/test-classes
+
 
 #--select-package ua.raiffeisen.payments.cardtransferinitiation.adapter.api.http
 
