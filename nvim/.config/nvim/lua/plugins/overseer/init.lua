@@ -113,9 +113,9 @@ return {
                     -- vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
                     vim.keymap.set("n", "q", function()
                         vim.cmd("OverseerClose")
-                        vim.cmd("wincmd l")
+                        require("utils.buffer-util").focus_right_if_neotree()
                     end, { buffer = event.buf, silent = true })
-                    vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
+
                     -- apply log-highlight.nvim to output buffer
                     -- vim.cmd("source " .. LazyVim.get_plugin_path("log-highlight.nvim") .. "/syntax/log.vim")
                     vim.cmd("runtime! syntax/log.vim")

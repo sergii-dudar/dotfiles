@@ -79,8 +79,8 @@ return {
                     model_id = "claude-sonnet-4-6",
                 },
                 copilot = {
-                    model_id = "gpt-4o",
-                    -- model_id = "claude-sonnet-4.5",
+                    -- model_id = "gpt-4o",
+                    model_id = "claude-sonnet-4.5",
                 },
             },
             search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
@@ -93,7 +93,7 @@ return {
                         local bufnr = vim.api.nvim_get_current_buf()
                         vim.keymap.set("n", "q", function()
                             vim.api.nvim_buf_delete(bufnr, { force = true })
-                            vim.cmd("wincmd l")
+                            require("utils.buffer-util").focus_right_if_neotree()
                         end, { buffer = bufnr, desc = "Close wtf.nvim popup" })
                     end
                 end,

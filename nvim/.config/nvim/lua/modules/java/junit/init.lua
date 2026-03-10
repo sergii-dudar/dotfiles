@@ -10,6 +10,17 @@ local M = {}
 
 local home = os.getenv("HOME")
 
+--[[ local mockito_core_version = "5.20.0"
+local mockito_core_jar = string.format(
+    "%s/.m2/repository/org/mockito/mockito-core/%s/mockito-core-%s.jar",
+    home,
+    mockito_core_version,
+    mockito_core_version
+)
+if common_util.is_file_exists(mockito_core_jar) then
+    table.insert(setting.jvm_args, "-javaagent:" .. mockito_core_jar)
+end ]]
+
 -- Resolve latest byte-buddy-agent version from local maven cache
 local byte_buddy_agent_dir = home .. "/.m2/repository/net/bytebuddy/byte-buddy-agent"
 local byte_buddy_agent_jar = vim.fn.glob(byte_buddy_agent_dir .. "/*/byte-buddy-agent-*.jar", false, true)

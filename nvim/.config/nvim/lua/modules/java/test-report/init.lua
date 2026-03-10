@@ -378,6 +378,7 @@ local function open_output(method_name, result)
     require("utils.java.java-trace").highlight_java_test_trace(output_bufnr)
     vim.keymap.set("n", "q", function()
         vim.api.nvim_win_close(0, true)
+        require("utils.buffer-util").focus_right_if_neotree()
     end, { buffer = output_bufnr, silent = true })
 end
 

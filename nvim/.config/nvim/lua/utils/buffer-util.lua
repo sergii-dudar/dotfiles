@@ -52,4 +52,11 @@ function M.open_buffer_by_path(path)
     vim.cmd.edit(path)
 end
 
+function M.focus_right_if_neotree()
+    local buff_name = vim.fn.expand("%") -- neo-tree filesystem [1]
+    if require("utils.string-util").starts_with(buff_name, "neo-tree filesystem") then
+        vim.cmd("wincmd l")
+    end
+end
+
 return M
