@@ -108,10 +108,10 @@ M.jdtls_settings = {
             maven = {
                 -- userSettings = home .. "/.m2/settings.xml",
                 -- globalSettings = home .. "/.m2/settings.xml",
-                -- Lifecycle mappings for m2e to execute codegen plugins (e.g. graphql-codegen)
-                -- lifecycleMappings = home .. "/dotfiles/nvim/.config/nvim/lua/utils/java/m2e-lifecycle-mappings.xml",
+                -- Lifecycle mappings for m2e to execute codegen plugins (e.g. graphql-codegen) - that can't be picked automatically to classpath
+                lifecycleMappings = global.dotfiles_path("work/maven/m2e-lifecycle-mappings.xml"),
                 -- Specifies default mojo execution action when no associated metadata can be detected.
-                defaultMojoExecutionAction = "execute", -- "ignore","warn","error","execute"
+                -- defaultMojoExecutionAction = "execute", -- "ignore","warn","error","execute"
             },
         },
         -- ====================================================================
