@@ -31,7 +31,7 @@ return {
                 explorer = pickers.explorer,
                 image = {
                     force = true,
-                    enabled = true,
+                    enabled = false, -- disabled as using alacritty now
                     debug = { request = false, convert = false, placement = false },
                     math = { enabled = true },
                     doc = {

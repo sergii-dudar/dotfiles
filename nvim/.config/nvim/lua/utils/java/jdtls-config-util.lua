@@ -91,25 +91,29 @@ M.jdtls_settings = {
         -- ====================================================================
         -- RUNTIME CONFIGURATION
         -- ====================================================================
-        -- configuration = {
-        --     -- Multiple JDK runtimes for different Java versions
-        --     runtimes = {
-        --         -- {
-        --         --     name = "JavaSE-17",
-        --         --     path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
-        --         -- },
-        --         {
-        --             name = "JavaSE-25",
-        --             path = java_util.java_dir,
-        --         },
-        --     },
-        --     -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
-        --     updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
-        --     maven = {
-        --         userSettings = home .. "/.m2/settings.xml",
-        --         globalSettings = home .. "/.m2/settings.xml",
-        --     },
-        -- },
+        configuration = {
+            -- -- Multiple JDK runtimes for different Java versions
+            -- runtimes = {
+            --     -- {
+            --     --     name = "JavaSE-17",
+            --     --     path = vim.fn.glob(home .. "/.sdkman/candidates/java/17.*-oracle/"),
+            --     -- },
+            --     {
+            --         name = "JavaSE-25",
+            --         path = java_util.java_dir,
+            --     },
+            -- },
+            -- -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
+            -- updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
+            maven = {
+                -- userSettings = home .. "/.m2/settings.xml",
+                -- globalSettings = home .. "/.m2/settings.xml",
+                -- Lifecycle mappings for m2e to execute codegen plugins (e.g. graphql-codegen)
+                -- lifecycleMappings = home .. "/dotfiles/nvim/.config/nvim/lua/utils/java/m2e-lifecycle-mappings.xml",
+                -- Specifies default mojo execution action when no associated metadata can be detected.
+                defaultMojoExecutionAction = "execute", -- "ignore","warn","error","execute"
+            },
+        },
         -- ====================================================================
         -- IMPORT SETTINGS (Maven/Gradle)
         -- ====================================================================
