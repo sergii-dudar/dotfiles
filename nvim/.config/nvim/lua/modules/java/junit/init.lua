@@ -158,7 +158,7 @@ function build_junit_tests_cmd(context)
         "--reports-dir=" .. current_report_dir,
         "--fail-if-no-tests",
         "--disable-banner",
-        -- "--details=testfeed",
+        "--details=testfeed", -- tree (default) broke logs hightlight roles
         "--config=junit.platform.output.capture.stdout=true",
         "--config=junit.platform.output.capture.stderr=true",
         "--include-engine=junit-jupiter",

@@ -16,7 +16,17 @@ return {
     },
     {
         "fei6409/log-highlight.nvim",
-        opts = {},
+        opts = {
+            keyword = {
+                -- error = "ERROR_MSG",
+                -- warning = { "WARN_X", "WARN_Y" },
+                -- info = { "INFORMATION" },
+                -- debug = {},
+                -- pass = {},
+                info = { "UETR", "iban", "status", "X-Request-ID", "X-Correlation-ID" },
+                warning = { "errorCode", "errorMessage" },
+            },
+        },
     },
     -- translate
     {

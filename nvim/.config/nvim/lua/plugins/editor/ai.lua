@@ -1,3 +1,4 @@
+local prev_win = nil
 return {
     {
         "folke/sidekick.nvim",
@@ -86,14 +87,19 @@ return {
             search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
             picker = "snacks", -- "telescope" | "snacks" | "fzf-lua",
             hooks = {
-                request_started = nil,
+                request_started = function()
+                    prev_win = vim.api.nvim_get_current_win()
+                end,
                 request_finished = function()
                     if vim.bo.filetype == "markdown" then
                         -- means pupup with diagnostics answer opened
                         local bufnr = vim.api.nvim_get_current_buf()
                         vim.keymap.set("n", "q", function()
                             vim.api.nvim_buf_delete(bufnr, { force = true })
-                            require("utils.buffer-util").focus_right_if_neotree()
+                            -- require("utils.buffer-util").focus_right_if_neotree()
+                            if prev_win and vim.api.nvim_win_is_valid(prev_win) then
+                                vim.api.nvim_set_current_win(prev_win)
+                            end
                         end, { buffer = bufnr, desc = "Close wtf.nvim popup" })
                     end
                 end,

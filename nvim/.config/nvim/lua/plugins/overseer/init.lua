@@ -1,6 +1,6 @@
 local constants = require("utils.constants")
 local nio_util = require("utils.nio-util")
-local overseer_group = vim.api.nvim_create_augroup("myOverseerGroup", { clear = true })
+-- local overseer_group = vim.api.nvim_create_augroup("myOverseerGroup", { clear = true })
 
 _G.task = {}
 task.test_type = {
@@ -119,6 +119,7 @@ return {
                     -- apply log-highlight.nvim to output buffer
                     -- vim.cmd("source " .. LazyVim.get_plugin_path("log-highlight.nvim") .. "/syntax/log.vim")
                     vim.cmd("runtime! syntax/log.vim")
+                    -- vim.cmd("runtime! after/syntax/log.vim")
                 end,
             })
         end,
