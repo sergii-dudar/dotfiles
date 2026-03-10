@@ -92,6 +92,17 @@ function M.get_class_name_with_abstract()
 end
 
 -- ---------------------------------------------------------
+--  GET PACKAGE NAME (public)
+-- ---------------------------------------------------------
+function M.get_class_package()
+    local tree = vim.treesitter.get_parser(0, "java"):parse()[1]
+    if not tree then
+        return nil
+    end
+    return get_package_name(tree:root())
+end
+
+-- ---------------------------------------------------------
 --  GET ROOT CLASS FQN (first class in file, cursor-independent)
 -- ---------------------------------------------------------
 function M.get_root_class_with_abstract()

@@ -9,6 +9,7 @@ task.test_type = {
     FILE_TESTS = 1,
     CURRENT_TEST = 2,
     CURRENT_PARAMETRIZED_NUM_TEST = 3,
+    ALL_DIR_TESTS = 4,
 }
 task.run_type = {
     --- @enum task.run_type
@@ -72,6 +73,7 @@ return {
             { "<leader>tt", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
+            { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
             { "<leader>tp", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST), desc = "Run Current Parametrized Single Test", },
             { "<leader>tP", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, true), desc = "Debug Current Parametrized Single Test", },
