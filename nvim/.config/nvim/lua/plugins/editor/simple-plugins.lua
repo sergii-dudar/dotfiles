@@ -23,7 +23,7 @@ return {
                 -- info = { "INFORMATION" },
                 -- debug = {},
                 -- pass = {},
-                info = { "UETR", "iban", "status", "X-Request-ID", "X-Correlation-ID" },
+                info = { "UETR", "iban", "status", "class", "X-Request-ID", "X-Correlation-ID" },
                 warning = { "errorCode", "errorMessage" },
             },
         },

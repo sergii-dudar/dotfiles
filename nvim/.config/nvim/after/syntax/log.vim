@@ -11,3 +11,16 @@ hi def link LogBracketContent LogGreen
 " Match ua.raiffeisen package paths
 syn match LogRaiffeisen display 'ua\.raiffeisen[[:alnum:]._$]\+'
 hi def link LogRaiffeisen LogLvDebug
+
+" ========================================
+" JSON blocks
+" ========================================
+syn region LogJsonBlock start='{' end='}' contains=LogJsonBlock
+hi def link LogJsonBlock LogGreen
+
+" ========================================
+" Java toString objects (class Foo { ... })
+" ========================================
+" syn region LogToString start='class \S\+ {' end='}' contains=LogToStringInner
+" syn region LogToStringInner start='{' end='}' contained transparent contains=LogToStringInner
+" hi def link LogToString LogGreen
