@@ -117,9 +117,10 @@ end
 function open_tree_on_start()
     if require("utils.project-util").is_multifile_proj() then
         -- restore current proj session
-        local resession = require("resession")
-        resession.load("last", { silence_errors = true })
-        -- require("persistence").load()
+        --if vim.fn.argc(-1) == 0 and not vim.g.using_stdin then
+        -- Save these to a different directory, so our manual sessions don't get polluted
+        require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
+        --end
 
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
         vim.cmd("Neotree filesystem reveal left")

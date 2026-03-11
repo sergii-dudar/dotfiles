@@ -102,13 +102,20 @@ vim.api.nvim_create_autocmd("BufRead", {
 --    end
 --})
 
+-------------------------------------------
+---------------- dirsession  --------------
+
 vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()
-        -- Always save a special session named "last"
-        local resession = require("resession")
-        resession.save("last")
+        require("resession").save(vim.fn.getcwd(), { dir = "dirsession", notify = false })
     end,
 })
+-- vim.api.nvim_create_autocmd("StdinReadPre", {
+--     callback = function()
+--         -- Store this for later
+--         vim.g.using_stdin = true
+--     end,
+-- })
 
 -------------------------------------------
 ------------ winbar file path -----------
