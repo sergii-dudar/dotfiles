@@ -37,4 +37,4 @@ find ~/.m2 -type d -name "*sources*" | xargs rg "search text" -g "*.java" -g "*.
 fd -t d -g '*sources*' ~/.m2 | xargs rg "search text" -g "*.java" -g "*.yaml"
 fd -t d -g '*sources*' ~/.m2 -0 | xargs -0 rg "search text" -g "*.java" -g "*.yaml"
 
-d --color=never -t d -g '*sources*' . | xargs rg "CollectionUtil" -g "*.java" -g "*.yaml"
+fd --color=never -t d -g '*sources*' . | xargs rg "CollectionUtil" -g "*.java" -g "*.yaml"
