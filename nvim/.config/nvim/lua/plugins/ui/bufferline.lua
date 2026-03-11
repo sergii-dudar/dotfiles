@@ -22,10 +22,14 @@ return {
                 tab_separator_selected = {
                     bg = "#676868",
                 },
+                separator = {
+                    fg = "#676868",
+                    bg = "#0f1011",
+                },
             },
             options = {
                 -- mode = "tabs", -- buffers|tabs: set to "tabs" to only show tabpages instead
-                separator_style = "thick", --thin, thick, slant
+                separator_style = { "|", "|" }, -- { "|", "|" }, -- "thick", --thin, thick, slant
                 show_buffer_close_icons = false,
                 show_close_icon = true,
                 always_show_bufferline = true,
@@ -34,8 +38,8 @@ return {
                 tab_size = 8,
                 indicator = {
                     -- icon = "",
-                    icon = "󰜴",
-                    style = "icon", -- 'icon' | 'underline' | 'none'
+                    -- icon = "󰜴",
+                    style = "none", -- 'icon' | 'underline' | 'none'
                 },
 
                 -- name_formatter = function(buf) -- buf contains:
