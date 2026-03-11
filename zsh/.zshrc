@@ -114,6 +114,7 @@ VI_MODE_DISABLE_CLIPBOARD=false
 # zsh-syntax-highlighting
 # git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
+ZSH_DISABLE_COMPFIX="true"
 source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
