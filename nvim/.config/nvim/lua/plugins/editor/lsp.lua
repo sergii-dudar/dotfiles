@@ -10,6 +10,20 @@ vim.diagnostic.config({
     float = { border = "rounded" },
 })
 
+local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
+vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+    if result and result.uri then
+        local path = result.uri
+        if path:match("/target/generated%-sources/") or path:match("/build/generated/") then
+            -- Drop non-error diagnostics from generated `Java`(by jdtls) sources
+            result.diagnostics = vim.tbl_filter(function(d)
+                return d.source == "Java" and d.severity == vim.lsp.protocol.DiagnosticSeverity.Error
+            end, result.diagnostics)
+        end
+    end
+    return original_publish(err, result, ctx, config)
+end
+
 local jdtls_util = require("utils.java.jdtls-util")
 local original_handler = vim.lsp.buf_request_all
 ---@diagnostic disable-next-line: duplicate-set-field
