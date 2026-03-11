@@ -40,7 +40,7 @@ function M.run_current_main_class()
     end
 
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method_table()
-    local module_name = project_name_resolver.resolve_project_name()
+    -- local module_name = project_name_resolver.resolve_project_name()
     -- print(project_name_resolver.resolve_project_name())
 
     last_runned_dap_config = {

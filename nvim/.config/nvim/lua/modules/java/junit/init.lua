@@ -147,7 +147,7 @@ function build_junit_tests_cmd(context)
     local type = context.test_type
     local is_debug = context.is_debug
 
-    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method()
+    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
 
     local module_path = java_util.get_buffer_project_path()
     local current_report_dir = module_path .. setting.report_dir

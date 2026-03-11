@@ -109,6 +109,9 @@ return {
                                         YAML_VALUE_TYPE_MISMATCH = "IGNORE",
                                         YAML_INVALID_BEAN_PROPERTY = "IGNORE",
                                     },
+                                    boot2 = {
+                                        JAVA_PUBLIC_BEAN_METHOD = "IGNORE",
+                                    },
                                 },
                             },
                         },

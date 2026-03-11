@@ -330,10 +330,16 @@ local function is_test_file(file_path)
     return file_path:match("/src/test/") ~= nil
 end
 
+---@class jdtls.classpath.Options
+---@field bufnr? integer
+---@field scope? "runtime"|"test"|nil
+
 -- Get classpath for running main method in current buffer
--- Automatically detects if file is in test or main scope
-function M.get_classpath_for_main_method_table(bufnr)
-    bufnr = bufnr or vim.api.nvim_get_current_buf()
+-- Automatically detects if buffer file is in test or main scope
+---@param opts? jdtls.classpath.Options
+function M.get_classpath_for_main_method_table(opts)
+    opts = opts or {}
+    local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
 
     -- Get jdtls client
     local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
@@ -354,9 +360,9 @@ function M.get_classpath_for_main_method_table(bufnr)
     local file_path = vim.api.nvim_buf_get_name(bufnr)
     local file_uri = vim.uri_from_fname(file_path)
 
-    -- Detect scope based on file path
-    local scope = is_test_file(file_path) and "test" or "runtime"
-    log.info("Detected scope:", scope, "for file:", file_path)
+    -- Use provided scope or auto-detect from file path
+    local scope = opts.scope or (is_test_file(file_path) and "test" or "runtime")
+    log.info("Using scope:", scope, "for file:", file_path)
 
     -- Get classpath for the file's project
     local result, err = client:request_sync("workspace/executeCommand", {
@@ -390,8 +396,9 @@ function M.get_classpath_for_main_method_table(bufnr)
     return deduplicated
 end
 
-function M.get_classpath_for_main_method(bufnr)
-    local classpath = M.get_classpath_for_main_method_table(bufnr)
+---@param opts? jdtls.classpath.Options
+function M.get_classpath_for_main_method(opts)
+    local classpath = M.get_classpath_for_main_method_table(opts)
     if classpath then
         return table.concat(classpath, ":")
     end
