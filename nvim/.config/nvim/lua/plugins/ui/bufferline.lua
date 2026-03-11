@@ -1,7 +1,3 @@
--- local r = require("resession")
--- r.save("session")
--- r.load("session")
-
 return {
     { "tiagovla/scope.nvim", config = true }, -- relying on stevearc/resession.nvim
     {
