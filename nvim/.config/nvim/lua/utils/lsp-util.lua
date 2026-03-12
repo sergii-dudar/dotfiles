@@ -26,4 +26,41 @@ function M.get_client_id_by_name(name)
     return client and client.id or nil
 end
 
+local LspCodeAction = function()
+    return {
+        apply_first_available = function(...)
+            vim.ui.select = Snacks.picker.select
+            local action_match_names = { ... }
+            vim.lsp.buf.code_action({
+                filter = function(action)
+                    for _, value in ipairs(action_match_names) do
+                        if action.title:match(value) then
+                            return true
+                        end
+                    end
+                    return false
+                end,
+                apply = true,
+            })
+        end,
+        toggle = function(action_match_name1, action_match_name2)
+            vim.lsp.buf.code_action({
+                filter = function(action)
+                    return action.title:match(action_match_name1) or action.title:match(action_match_name2)
+                end,
+                apply = true,
+            })
+        end,
+        apply = function(action_match_name)
+            vim.lsp.buf.code_action({
+                filter = function(action)
+                    return action.title:match(action_match_name)
+                end,
+                apply = true,
+            })
+        end,
+    }
+end
+M.code_action = LspCodeAction()
+
 return M
