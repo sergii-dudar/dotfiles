@@ -16,9 +16,23 @@ M.picker = {
     exclude = {
         "**/target/classes",
         "**/target/test-classes",
+        "**/target/maven-*",
+        "**/target/surefire-reports",
+        "**/target/junit-report",
+        "**/target/jacoco-output",
+        "**/target/site",
+        "**/target/.cache",
+        "**/target/*.jar",
+        "**/target/*.war",
+        "**/target/*.ear",
         "**/bin",
         ".git",
+        ".settings",
         ".idea",
+        ".mvn",
+        "**/.classpath",
+        "**/.factorypath",
+        "**/.project",
     },
     formatters = {
         file = {

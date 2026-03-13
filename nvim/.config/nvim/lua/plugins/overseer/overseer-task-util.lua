@@ -21,7 +21,7 @@ function M.run_compile(on_success)
 end
 
 ---@class task.Options
----@field task_name string
+---@field task_name? string
 ---@field context? task.lang.Context
 ---@field is_open_output? boolean
 ---@field on_complete? function
@@ -73,7 +73,9 @@ function M.stop_all_prev_tasks()
     end
 end
 
-function M.run_last_task()
+---@param opts? task.Options
+function M.run_last_task(opts)
+    opts = opts or {}
     local tasks = overseer.list_tasks({
         status = {
             overseer.STATUS.SUCCESS,
@@ -88,7 +90,9 @@ function M.run_last_task()
     end
     local last_task = tasks[1]
     overseer.run_action(last_task, "restart")
-    overseer.open()
+    if opts.is_open_output then
+        overseer.open()
+    end
 end
 
 return M

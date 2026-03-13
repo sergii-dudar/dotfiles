@@ -139,7 +139,7 @@ function restart_last_task(type_resolver)
                 return
             end
         else
-            overseer_task_util.run_last_task()
+            overseer_task_util.run_last_task({ is_open_output = true })
         end
     elseif last_run_info.runtype == task.run_type.TEST then
         if last_run_info.is_debug then
@@ -149,7 +149,7 @@ function restart_last_task(type_resolver)
             --     -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
             -- end, 400)
         else
-            overseer_task_util.run_last_task()
+            overseer_task_util.run_last_task({ is_open_output = true })
         end
     end
 end
