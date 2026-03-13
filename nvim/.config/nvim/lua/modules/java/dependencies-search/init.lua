@@ -64,6 +64,7 @@ local state = {
     loaded = false,
     source_dirs = {},
     source_dirs_all = {},
+    modules = {}, -- { label, dir } for all source dirs
     exclude = {},
 }
 
@@ -93,6 +94,32 @@ local function is_jar_ignored(jar_path)
         end
     end
     return false
+end
+
+-- Parse Maven coordinates from a source dir path
+-- ~/.m2/repository/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final-sources
+-- -> { label = "org.mapstruct:mapstruct:1.5.5.Final", dir = "..." }
+local function source_dir_to_module(dir)
+    local repo_rel = dir:match(".m2/repository/(.+)")
+    if not repo_rel then
+        return nil
+    end
+    local parts = vim.split(repo_rel, "/")
+    -- parts: {groupId...}, artifactId, version, dirname
+    if #parts < 4 then
+        return nil
+    end
+    local version = parts[#parts - 1]
+    local artifact_id = parts[#parts - 2]
+    local group_parts = {}
+    for i = 1, #parts - 3 do
+        table.insert(group_parts, parts[i])
+    end
+    local group_id = table.concat(group_parts, ".")
+    return {
+        label = group_id .. ":" .. artifact_id .. ":" .. version,
+        dir = dir,
+    }
 end
 
 local function jar_to_sources_dir(jar_path)
@@ -150,6 +177,18 @@ function M.load_sources(opts)
 
     state.source_dirs = source_dirs
     state.source_dirs_all = source_dirs_all
+
+    local modules = {}
+    for _, dir in ipairs(source_dirs_all) do
+        local mod = source_dir_to_module(dir)
+        if mod then
+            table.insert(modules, mod)
+        end
+    end
+    table.sort(modules, function(a, b)
+        return a.label < b.label
+    end)
+    state.modules = modules
 
     local exclude = {}
     for _, ext in ipairs(ignored_extensions) do
@@ -280,46 +319,73 @@ local function toggle_all_sources(picker)
     vim.notify(string.format("[Dep Search] Sources: %s (%d dirs)", label, #dirs), vim.log.levels.INFO)
 end
 
+-- Forward declarations for select_module (needs open_picker reference)
+local open_picker
+
+local function select_module(picker)
+    local labels = vim.tbl_map(function(m)
+        return m.label
+    end, state.modules)
+
+    -- Remember picker type so we can relaunch after selection
+    local source = picker.opts.source
+    picker:close()
+
+    vim.ui.select(labels, { prompt = "Select dependency module" }, function(choice)
+        if not choice then
+            -- Relaunch with original dirs on cancel
+            open_picker(source)
+            return
+        end
+        for _, mod in ipairs(state.modules) do
+            if mod.label == choice then
+                open_picker(source, { mod.dir }, "Dep: " .. mod.label)
+                break
+            end
+        end
+    end)
+end
+
+local dep_picker_actions = {
+    toggle_jdt_opener = toggle_jdt_opener,
+    toggle_all_sources = toggle_all_sources,
+    select_module = select_module,
+}
+
 local dep_picker_keys = {
     ["<C-o>"] = { "toggle_jdt_opener", mode = { "n", "i" }, desc = "Toggle jdtls/file opener" },
     ["<C-a>"] = { "toggle_all_sources", mode = { "n", "i" }, desc = "Toggle all/filtered sources" },
+    ["<C-s>"] = { "select_module", mode = { "n", "i" }, desc = "Scope to single module" },
 }
+
+---@param source "files"|"grep"
+---@param dirs? string[] override dirs (nil = use default filtered dirs)
+---@param title? string override title
+open_picker = function(source, dirs, title)
+    local picker_fn = source == "files" and Snacks.picker.files or Snacks.picker.grep
+    local default_title = source == "files" and "Dependency Sources" or "Grep Dependency Sources"
+    picker_fn({
+        dirs = dirs or state.source_dirs,
+        exclude = state.exclude,
+        title = title or default_title,
+        confirm = dep_confirm,
+        actions = dep_picker_actions,
+        win = {
+            input = { keys = dep_picker_keys },
+            list = { keys = dep_picker_keys },
+        },
+    })
+end
 
 function M.find_files()
     ensure_loaded(function()
-        Snacks.picker.files({
-            dirs = state.source_dirs,
-            exclude = state.exclude,
-            title = "Dependency Sources",
-            confirm = dep_confirm,
-            actions = {
-                toggle_jdt_opener = toggle_jdt_opener,
-                toggle_all_sources = toggle_all_sources,
-            },
-            win = {
-                input = { keys = dep_picker_keys },
-                list = { keys = dep_picker_keys },
-            },
-        })
+        open_picker("files")
     end)
 end
 
 function M.grep()
     ensure_loaded(function()
-        Snacks.picker.grep({
-            dirs = state.source_dirs,
-            exclude = state.exclude,
-            title = "Grep Dependency Sources",
-            confirm = dep_confirm,
-            actions = {
-                toggle_jdt_opener = toggle_jdt_opener,
-                toggle_all_sources = toggle_all_sources,
-            },
-            win = {
-                input = { keys = dep_picker_keys },
-                list = { keys = dep_picker_keys },
-            },
-        })
+        open_picker("grep")
     end)
 end
 
