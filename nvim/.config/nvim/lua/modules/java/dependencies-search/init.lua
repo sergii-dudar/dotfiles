@@ -63,6 +63,7 @@ local ignored_dependencies = {
 local state = {
     loaded = false,
     source_dirs = {},
+    source_dirs_all = {},
     exclude = {},
 }
 
@@ -112,10 +113,10 @@ function M.load_sources(opts)
         return
     end
 
-    -- Filter to .jar entries only, skip ignored dependencies
+    -- Filter to .jar entries only
     local jars = {}
     for _, entry in ipairs(classpaths) do
-        if entry:match("%.jar$") and not is_jar_ignored(entry) then
+        if entry:match("%.jar$") then
             table.insert(jars, entry)
         end
     end
@@ -123,6 +124,7 @@ function M.load_sources(opts)
     spinner.start("Loading dependency sources...")
 
     local source_dirs = {}
+    local source_dirs_all = {}
     local to_extract = {}
     local missing_sources = {}
 
@@ -131,16 +133,23 @@ function M.load_sources(opts)
         local sources_dir = jar_to_sources_dir(jar)
 
         if vim.fn.isdirectory(sources_dir) == 1 then
-            table.insert(source_dirs, sources_dir)
+            table.insert(source_dirs_all, sources_dir)
+            if not is_jar_ignored(jar) then
+                table.insert(source_dirs, sources_dir)
+            end
         elseif vim.fn.filereadable(sources_jar) == 1 then
             table.insert(to_extract, { sources_jar = sources_jar, sources_dir = sources_dir })
-            table.insert(source_dirs, sources_dir)
+            table.insert(source_dirs_all, sources_dir)
+            if not is_jar_ignored(jar) then
+                table.insert(source_dirs, sources_dir)
+            end
         else
             table.insert(missing_sources, vim.fn.fnamemodify(jar, ":t"))
         end
     end
 
     state.source_dirs = source_dirs
+    state.source_dirs_all = source_dirs_all
 
     local exclude = {}
     for _, ext in ipairs(ignored_extensions) do
@@ -260,8 +269,20 @@ local function toggle_jdt_opener(picker)
     vim.notify("[Dep Search] Open mode: " .. mode, vim.log.levels.INFO)
 end
 
+local use_all_dirs = false
+
+local function toggle_all_sources(picker)
+    use_all_dirs = not use_all_dirs
+    local dirs = use_all_dirs and state.source_dirs_all or state.source_dirs
+    picker.opts.dirs = dirs
+    picker:find()
+    local label = use_all_dirs and "all" or "filtered"
+    vim.notify(string.format("[Dep Search] Sources: %s (%d dirs)", label, #dirs), vim.log.levels.INFO)
+end
+
 local dep_picker_keys = {
     ["<C-o>"] = { "toggle_jdt_opener", mode = { "n", "i" }, desc = "Toggle jdtls/file opener" },
+    ["<C-a>"] = { "toggle_all_sources", mode = { "n", "i" }, desc = "Toggle all/filtered sources" },
 }
 
 function M.find_files()
@@ -271,8 +292,14 @@ function M.find_files()
             exclude = state.exclude,
             title = "Dependency Sources",
             confirm = dep_confirm,
-            actions = { toggle_jdt_opener = toggle_jdt_opener },
-            win = { input = { keys = dep_picker_keys }, list = { keys = dep_picker_keys } },
+            actions = {
+                toggle_jdt_opener = toggle_jdt_opener,
+                toggle_all_sources = toggle_all_sources,
+            },
+            win = {
+                input = { keys = dep_picker_keys },
+                list = { keys = dep_picker_keys },
+            },
         })
     end)
 end
@@ -284,8 +311,14 @@ function M.grep()
             exclude = state.exclude,
             title = "Grep Dependency Sources",
             confirm = dep_confirm,
-            actions = { toggle_jdt_opener = toggle_jdt_opener },
-            win = { input = { keys = dep_picker_keys }, list = { keys = dep_picker_keys } },
+            actions = {
+                toggle_jdt_opener = toggle_jdt_opener,
+                toggle_all_sources = toggle_all_sources,
+            },
+            win = {
+                input = { keys = dep_picker_keys },
+                list = { keys = dep_picker_keys },
+            },
         })
     end)
 end
