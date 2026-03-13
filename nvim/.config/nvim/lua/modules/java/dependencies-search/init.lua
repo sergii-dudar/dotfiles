@@ -4,7 +4,32 @@ local spinner = require("utils.ui.spinner")
 local M = {}
 
 -- stylua: ignore
-local ignored_extensions = { "txt", "md", "mf", "html", "css", "js", "png", "gif", "jpg", "svg", "dtd", "xsd", "xml" }
+local ignored_extensions = {
+        "txt",
+        "MD",
+        "md",
+        "MF",
+        "mf",
+        "html",
+        "css",
+        "js",
+        "png",
+        "gif",
+        "jpg",
+        "svg",
+        "dtd",
+        "factories",
+        "imports",
+        "Provider"
+}
+
+local ignored_file_names = {
+    "module-info.java",
+    "package-info.java",
+    "DEPENDENCIES",
+    "NOTICE",
+    "LICENSE",
+}
 
 -- stylua: ignore
 local ignored_packages = {
@@ -15,7 +40,7 @@ local ignored_packages = {
 local state = {
     loaded = false,
     source_dirs = {},
-    exclude_globs = {},
+    exclude = {},
 }
 
 local function jar_to_sources_dir(jar_path)
@@ -66,16 +91,20 @@ function M.load_sources(opts)
 
     state.source_dirs = source_dirs
 
-    local exclude_globs = {}
+    local exclude = {}
     for _, ext in ipairs(ignored_extensions) do
-        table.insert(exclude_globs, "!*." .. ext)
+        table.insert(exclude, "*." .. ext)
     end
+    for _, file_name in ipairs(ignored_file_names) do
+        table.insert(exclude, file_name)
+    end
+
     for _, pkg in ipairs(ignored_packages) do
-        -- org.springframework.* -> !**/org/springframework/**
+        -- org.springframework.* -> org/springframework/**
         local dir_pattern = pkg:gsub("%.", "/"):gsub("%*$", "**")
-        table.insert(exclude_globs, "!**/" .. dir_pattern)
+        table.insert(exclude, dir_pattern)
     end
-    state.exclude_globs = exclude_globs
+    state.exclude = exclude
 
     local function notify_missing()
         if #missing_sources == 0 then
@@ -156,13 +185,13 @@ end
 
 function M.find_files()
     ensure_loaded(function()
-        Snacks.picker.files({ dirs = state.source_dirs, glob = state.exclude_globs, title = "Dependency Sources" })
+        Snacks.picker.files({ dirs = state.source_dirs, exclude = state.exclude, title = "Dependency Sources" })
     end)
 end
 
 function M.grep()
     ensure_loaded(function()
-        Snacks.picker.grep({ dirs = state.source_dirs, glob = state.exclude_globs, title = "Grep Dependency Sources" })
+        Snacks.picker.grep({ dirs = state.source_dirs, exclude = state.exclude, title = "Grep Dependency Sources" })
     end)
 end
 
