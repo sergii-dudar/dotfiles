@@ -175,7 +175,8 @@ function M.load_sources(opts)
         table.insert(lines, "Run in project root to download sources:")
         table.insert(lines, "  mvn dependency:resolve -Dclassifier=sources")
         table.insert(lines, "Then press <leader>jdl again.")
-        vim.notify(table.concat(lines, "\n"), vim.log.levels.WARN)
+        -- NOTE: disable for now notification
+        -- vim.notify(table.concat(lines, "\n"), vim.log.levels.WARN)
     end
 
     state.loaded = true
