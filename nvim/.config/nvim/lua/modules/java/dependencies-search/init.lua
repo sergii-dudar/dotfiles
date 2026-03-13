@@ -389,4 +389,40 @@ function M.grep()
     end)
 end
 
+function M.explore()
+    ensure_loaded(function()
+        local labels = vim.tbl_map(function(m)
+            return m.label
+        end, state.modules)
+
+        vim.ui.select(labels, { prompt = "Select dependency to explore" }, function(choice)
+            if not choice then
+                return
+            end
+            for _, mod in ipairs(state.modules) do
+                if mod.label == choice then
+                    Snacks.picker.explorer({
+                        cwd = mod.dir,
+                        title = "Explore: " .. mod.label,
+                        confirm = dep_confirm,
+                        actions = { toggle_jdt_opener = toggle_jdt_opener },
+                        win = {
+                            list = {
+                                keys = {
+                                    ["<C-o>"] = {
+                                        "toggle_jdt_opener",
+                                        mode = { "n" },
+                                        desc = "Toggle jdtls/file opener",
+                                    },
+                                },
+                            },
+                        },
+                    })
+                    break
+                end
+            end
+        end)
+    end)
+end
+
 return M

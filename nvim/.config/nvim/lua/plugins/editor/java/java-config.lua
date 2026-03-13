@@ -56,6 +56,7 @@ return {
             { "<leader>jdl", function() require("modules.java.dependencies-search").load_sources() end, desc = "Load Dependency Sources", },
             { "<leader>j.", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
+            { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
             -- { "<leader>j?", function() require("modules.java.dependencies-search").grep_with_handler(function (file, line, col)
                 -- dd({file, line, col})
             --end) end, desc = "Grep in Dependencies", },

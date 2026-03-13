@@ -29,7 +29,6 @@ end
 local LspCodeAction = function()
     return {
         apply_first_available = function(...)
-            vim.ui.select = Snacks.picker.select
             local action_match_names = { ... }
             vim.lsp.buf.code_action({
                 filter = function(action)
