@@ -18,6 +18,7 @@ function write_to_dapui_console(lines)
 
             -- Restore modifiable setting
             vim.bo[console_buf].modifiable = modifiable
+            vim.bo[console_buf].filetype = "log" -- highlight logs (log-highlight.nvim)
         end
     end
 end

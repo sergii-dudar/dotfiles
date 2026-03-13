@@ -371,7 +371,7 @@ local function open_output(method_name, result)
     end
     vim.bo[output_bufnr].buftype = "nofile"
     vim.bo[output_bufnr].bufhidden = "wipe"
-    vim.bo[output_bufnr].filetype = "log"
+    vim.bo[output_bufnr].filetype = "log" -- log-highlight.nvim
     vim.bo[output_bufnr].modifiable = false
     vim.cmd("botright split")
     vim.api.nvim_win_set_buf(0, output_bufnr)
