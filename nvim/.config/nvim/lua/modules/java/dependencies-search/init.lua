@@ -37,9 +37,18 @@ local ignored_packages = {
     -- "org.junit.*",
 }
 
--- Exclude entire dependencies from source_dirs by Maven coordinates.
--- Matches against ~/.m2/repository path structure: {groupId}/{artifactId}/{version}/...
--- Format: "groupId" to ignore all artifacts in group, or "groupId:artifactId" for specific one
+-- Filter dependencies by Maven coordinates (matched against ~/.m2/repository path).
+-- Format: "groupId" to match all artifacts in group, or "groupId:artifactId" for specific one.
+--
+-- When include_dependencies is non-empty, ONLY matching jars are included (whitelist mode).
+-- When it's empty, ignored_dependencies is used as a blacklist instead.
+-- stylua: ignore
+local include_dependencies = {
+    -- "org.mapstruct",
+    -- "com.fasterxml.jackson.core:jackson-databind",
+    "ua.raiffeisen.payments"
+}
+
 -- stylua: ignore
 local ignored_dependencies = {
         "software.amazon.awssdk",
@@ -57,16 +66,26 @@ local state = {
     exclude = {},
 }
 
--- Convert ignored_dependencies entries to path patterns for matching against jar paths
--- "org.springframework.boot" -> "org/springframework/boot/"
--- "org.springframework.boot:spring-boot-starter-actuator" -> "org/springframework/boot/spring-boot-starter-actuator/"
-local ignored_dep_patterns = {}
-for _, dep in ipairs(ignored_dependencies) do
-    local pattern = dep:gsub(":", "/"):gsub("%.", "/") .. "/"
-    table.insert(ignored_dep_patterns, pattern)
+local function to_path_patterns(deps)
+    local patterns = {}
+    for _, dep in ipairs(deps) do
+        table.insert(patterns, dep:gsub(":", "/"):gsub("%.", "/") .. "/")
+    end
+    return patterns
 end
 
+local include_dep_patterns = to_path_patterns(include_dependencies)
+local ignored_dep_patterns = to_path_patterns(ignored_dependencies)
+
 local function is_jar_ignored(jar_path)
+    if #include_dep_patterns > 0 then
+        for _, pattern in ipairs(include_dep_patterns) do
+            if jar_path:find(pattern, 1, true) then
+                return false
+            end
+        end
+        return true
+    end
     for _, pattern in ipairs(ignored_dep_patterns) do
         if jar_path:find(pattern, 1, true) then
             return true
