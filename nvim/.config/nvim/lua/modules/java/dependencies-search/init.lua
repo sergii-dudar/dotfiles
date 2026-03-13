@@ -235,35 +235,41 @@ local function ensure_loaded(callback)
     end
 end
 
+-- For .java files: open via jdtls (navigates to decompiled source with proper LSP support)
+-- For other files: fall back to default Snacks jump (open file directly)
+local function dep_confirm(picker, item)
+    if not item then
+        return
+    end
+    local file = item.file or ""
+    if file:match("%.java$") then
+        picker:close()
+        local line = item.pos and item.pos[1] or 1
+        local fqcn = file_to_fqcn(file)
+        require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
+    else
+        return Snacks.picker.actions.jump(picker, item)
+    end
+end
+
 function M.find_files()
     ensure_loaded(function()
-        Snacks.picker.files({ dirs = state.source_dirs, exclude = state.exclude, title = "Dependency Sources" })
+        Snacks.picker.files({
+            dirs = state.source_dirs,
+            exclude = state.exclude,
+            title = "Dependency Sources",
+            confirm = dep_confirm,
+        })
     end)
 end
 
 function M.grep()
     ensure_loaded(function()
-        Snacks.picker.grep({ dirs = state.source_dirs, exclude = state.exclude, title = "Grep Dependency Sources" })
-    end)
-end
-
----@param handler fun(file: string, line: number, col: number)
-function M.grep_with_handler(handler)
-    ensure_loaded(function()
         Snacks.picker.grep({
             dirs = state.source_dirs,
             exclude = state.exclude,
             title = "Grep Dependency Sources",
-            confirm = function(picker, item)
-                if not item then
-                    return
-                end
-                picker:close()
-                local file = item.file or ""
-                local line = item.pos and item.pos[1] or 1
-                local fqcn = require("utils.java.java-common").file_to_fqcn(file)
-                require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
-            end,
+            confirm = dep_confirm,
         })
     end)
 end
