@@ -247,4 +247,25 @@ function M.grep()
     end)
 end
 
+---@param handler fun(file: string, line: number, col: number)
+function M.grep_with_handler(handler)
+    ensure_loaded(function()
+        Snacks.picker.grep({
+            dirs = state.source_dirs,
+            exclude = state.exclude,
+            title = "Grep Dependency Sources",
+            confirm = function(picker, item)
+                if not item then
+                    return
+                end
+                picker:close()
+                local file = item.file or ""
+                local line = item.pos and item.pos[1] or 1
+                local fqcn = require("utils.java.java-common").file_to_fqcn(file)
+                require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
+            end,
+        })
+    end)
+end
+
 return M

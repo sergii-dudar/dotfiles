@@ -298,4 +298,21 @@ function M.is_java_project()
     return is_java_project_loc
 end
 
+-- Read package from first line of Java file, combine with filename to get FQCN
+-- e.g. "package org.mapstruct;" + "Mapper.java" -> "org.mapstruct.Mapper"
+function M.file_to_fqcn(file)
+    local f = io.open(file, "r")
+    if not f then
+        return vim.fn.fnamemodify(file, ":t:r")
+    end
+    local first_line = f:read("*l")
+    f:close()
+    local pkg = first_line and first_line:match("^package%s+([%w%.]+)%s*;")
+    local class_name = vim.fn.fnamemodify(file, ":t:r")
+    if pkg then
+        return pkg .. "." .. class_name
+    end
+    return class_name
+end
+
 return M
