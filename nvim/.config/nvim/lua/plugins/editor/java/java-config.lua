@@ -53,6 +53,9 @@ return {
             { "<leader>jdf", ":JdtWipeDataAndRestart<CR>", desc = "JDTLS Wipe Data and [F]ull Restart" },
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests ", },
+            { "<leader>jdl", function() require("modules.java.dependencies-search").load_sources() end, desc = "Load Dependency Sources", },
+            { "<leader>j.", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
+            { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
             -- { "<leader>ci", function() require("utils.java.java-import-util").import_class_and_replace() end, desc = "[I]mport class package and apply simple name", },
         },
         opts = {

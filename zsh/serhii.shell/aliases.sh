@@ -71,7 +71,8 @@ alias rg="rg --color=always"
 alias yyc='yazi --clear-cache && yy'
 
 # java
-alias mvn_sources="mvn dependency:sources && mvn dependency:resolve -Dclassifier=javadoc"
+# alias mvn_sources="mvn dependency:sources && mvn dependency:resolve -Dclassifier=javadoc"
+alias mvn_sources="mvn dependency:resolve-sources dependency:resolve -Dclassifier=javadoc"
 
 # navigation
 alias ..='cd ..'
