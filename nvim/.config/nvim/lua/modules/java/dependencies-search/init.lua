@@ -250,7 +250,7 @@ local function dep_confirm(picker, item)
         local fqcn = require("utils.java.java-common").file_to_fqcn(file)
         require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
     else
-        return Snacks.picker.actions.jump(picker, item)
+        return picker:action("jump")
     end
 end
 
