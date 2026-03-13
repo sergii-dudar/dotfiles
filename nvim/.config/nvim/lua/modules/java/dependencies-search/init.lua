@@ -33,8 +33,8 @@ local ignored_file_names = {
 
 -- stylua: ignore
 local ignored_packages = {
-    "org.springframework.*",
-    "org.junit.*",
+    -- "org.springframework.*",
+    -- "org.junit.*",
 }
 
 local state = {
@@ -101,7 +101,7 @@ function M.load_sources(opts)
 
     for _, pkg in ipairs(ignored_packages) do
         -- org.springframework.* -> org/springframework/**
-        local dir_pattern = pkg:gsub("%.", "/"):gsub("%*$", "**")
+        local dir_pattern = "**/" .. pkg:gsub("%.", "/"):gsub("%*$", "**")
         table.insert(exclude, dir_pattern)
     end
     state.exclude = exclude
