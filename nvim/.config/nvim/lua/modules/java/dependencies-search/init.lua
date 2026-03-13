@@ -235,22 +235,34 @@ local function ensure_loaded(callback)
     end
 end
 
--- For .java files: open via jdtls (navigates to decompiled source with proper LSP support)
--- For other files: fall back to default Snacks jump (open file directly)
+local use_jdt_opener = true
+
+-- For .java files: open via jdtls or default jump, depending on toggle state
+-- For other files: always fall back to default Snacks jump
 local function dep_confirm(picker, item)
     if not item then
         return
     end
     local file = item.file or ""
-    if file:match("%.java$") then
+    if use_jdt_opener and file:match("%.java$") then
         picker:close()
         local line = item.pos and item.pos[1] or 1
-        local fqcn = file_to_fqcn(file)
+        local fqcn = require("utils.java.java-common").file_to_fqcn(file)
         require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
     else
         return Snacks.picker.actions.jump(picker, item)
     end
 end
+
+local function toggle_jdt_opener(picker)
+    use_jdt_opener = not use_jdt_opener
+    local mode = use_jdt_opener and "jdtls" or "file"
+    vim.notify("[Dep Search] Open mode: " .. mode, vim.log.levels.INFO)
+end
+
+local dep_picker_keys = {
+    ["<C-o>"] = { "toggle_jdt_opener", mode = { "n", "i" }, desc = "Toggle jdtls/file opener" },
+}
 
 function M.find_files()
     ensure_loaded(function()
@@ -259,6 +271,8 @@ function M.find_files()
             exclude = state.exclude,
             title = "Dependency Sources",
             confirm = dep_confirm,
+            actions = { toggle_jdt_opener = toggle_jdt_opener },
+            win = { input = { keys = dep_picker_keys }, list = { keys = dep_picker_keys } },
         })
     end)
 end
@@ -270,6 +284,8 @@ function M.grep()
             exclude = state.exclude,
             title = "Grep Dependency Sources",
             confirm = dep_confirm,
+            actions = { toggle_jdt_opener = toggle_jdt_opener },
+            win = { input = { keys = dep_picker_keys }, list = { keys = dep_picker_keys } },
         })
     end)
 end
