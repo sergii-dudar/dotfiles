@@ -107,6 +107,14 @@ vim.api.nvim_create_autocmd("BufRead", {
 
 vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()
+        -- Close jdtls virtual buffers (jdt:// URIs) before saving session
+        -- so resession doesn't try to restore them on next startup
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            local name = vim.api.nvim_buf_get_name(buf)
+            if name:sub(1, 6) == "jdt://" or name:sub(1, 10) == "zipfile://" then
+                vim.api.nvim_buf_delete(buf, { force = true })
+            end
+        end
         require("resession").save(vim.fn.getcwd(), { dir = "dirsession", notify = false })
     end,
 })

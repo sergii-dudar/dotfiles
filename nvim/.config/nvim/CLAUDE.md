@@ -44,6 +44,7 @@ Complex features extracted into standalone modules:
 - `java/junit/` - Custom JUnit test runner: builds `junit-platform-console-standalone` commands with classpath from JDTLS, supports single test/file/package/parametrized
 - `java/test-report/` - JUnit XML report parser, shows test diagnostics in Trouble
 - `java/refactor/` - Java refactoring helpers (import fixing after file moves, sibling usage fixer)
+- `java/dependencies-search/` - Search/browse dependency source code via Snacks picker. Extracts `-sources.jar` in `~/.m2/repository/`, provides files/grep/explorer pickers with jdtls-aware file opening. Keymaps: `<leader>jdl` (load), `<leader>j.` (files), `<leader>j/` (grep), `<leader>je` (explore). Supports dependency whitelist/blacklist filtering, toggling all/filtered sources (`<C-a>`), scoping to single module (`<C-s>`), and jdtls/raw file opener toggle (`<C-o>`)
 
 ### Utilities (`lua/utils/`)
 

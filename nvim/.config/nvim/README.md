@@ -11,7 +11,7 @@
      better dap and dap ui configuration (explore more convenient ways to debug java code)
      stevearc/overseer.nvim: implement junit test runners by using junit-platform-console-standalone with parsing result xml and diagnostics, qflist and marks support...
      stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc.
-     implement java source depencenties (per project) fast search ability (with ability to search by `rg` and `fd` + snack pickers)
+     implement java source depencenties (per project) fast search ability (with ability to search by `rg` and `fd` + snack pickers)
      big refactoring of `utils` and `modules`
 
 ### Screenshots

@@ -166,6 +166,7 @@ return {
             options = {
                 width = 60,
                 show_relative_numbers = true,
+                show_non_java_resources = true,
                 position = "right",
                 --     show_guides = true,
                 --     auto_close = false,
