@@ -389,6 +389,13 @@ function M.grep()
     end)
 end
 
+local explorer_actions = {
+    toggle_jdt_opener = toggle_jdt_opener,
+}
+local explorer_keys = {
+    ["<C-o>"] = { "toggle_jdt_opener", mode = { "n", "i" }, desc = "Toggle jdtls/file opener" },
+}
+
 function M.explore()
     ensure_loaded(function()
         local labels = vim.tbl_map(function(m)
@@ -404,7 +411,11 @@ function M.explore()
                     Snacks.picker.explorer({
                         cwd = mod.dir,
                         title = "Explore: " .. mod.label,
-                        actions = { toggle_jdt_opener = toggle_jdt_opener },
+                        actions = explorer_actions,
+                        win = {
+                            input = { keys = explorer_keys },
+                            list = { keys = explorer_keys },
+                        },
                         config = function(opts)
                             local orig_confirm = opts.actions.confirm
                             opts.actions.confirm = function(picker, item, action)
@@ -435,17 +446,6 @@ function M.explore()
                             open_all(mod.dir)
                             picker:find()
                         end,
-                        win = {
-                            list = {
-                                keys = {
-                                    ["<C-o>"] = {
-                                        "toggle_jdt_opener",
-                                        mode = { "n" },
-                                        desc = "Toggle jdtls/file opener",
-                                    },
-                                },
-                            },
-                        },
                     })
                     break
                 end
