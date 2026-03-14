@@ -404,8 +404,37 @@ function M.explore()
                     Snacks.picker.explorer({
                         cwd = mod.dir,
                         title = "Explore: " .. mod.label,
-                        confirm = dep_confirm,
                         actions = { toggle_jdt_opener = toggle_jdt_opener },
+                        config = function(opts)
+                            local orig_confirm = opts.actions.confirm
+                            opts.actions.confirm = function(picker, item, action)
+                                if not item or item.dir then
+                                    return orig_confirm(picker, item, action)
+                                end
+                                local file = item.file or ""
+                                if use_jdt_opener and file:match("%.java$") then
+                                    picker:close()
+                                    local fqcn = require("utils.java.java-common").file_to_fqcn(file)
+                                    require("utils.java.jdtls-util").jdt_open_class(fqcn)
+                                else
+                                    return orig_confirm(picker, item, action)
+                                end
+                            end
+                            return opts
+                        end,
+                        on_show = function(picker)
+                            local Tree = require("snacks.explorer.tree")
+                            local function open_all(path)
+                                Tree:open(path)
+                                for name, t in vim.fs.dir(path) do
+                                    if t == "directory" then
+                                        open_all(path .. "/" .. name)
+                                    end
+                                end
+                            end
+                            open_all(mod.dir)
+                            picker:find()
+                        end,
                         win = {
                             list = {
                                 keys = {
