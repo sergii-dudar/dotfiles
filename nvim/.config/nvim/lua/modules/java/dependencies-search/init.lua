@@ -389,15 +389,75 @@ function M.grep()
     end)
 end
 
+local selected_explore_module = nil
+
+local function change_module(picker)
+    picker:close()
+    selected_explore_module = nil
+    M.explore()
+end
+
 local explorer_actions = {
     toggle_jdt_opener = toggle_jdt_opener,
+    change_module = change_module,
 }
+
 local explorer_keys = {
     ["<C-o>"] = { "toggle_jdt_opener", mode = { "n", "i" }, desc = "Toggle jdtls/file opener" },
+    ["<C-s>"] = { "change_module", mode = { "n", "i" }, desc = "Change module" },
 }
+
+local function open_explorer(mod)
+    selected_explore_module = mod
+
+    Snacks.picker.explorer({
+        cwd = mod.dir,
+        title = "Explore: " .. mod.label,
+        actions = explorer_actions,
+        win = {
+            input = { keys = explorer_keys },
+            list = { keys = explorer_keys },
+        },
+        config = function(opts)
+            local orig_confirm = opts.actions.confirm
+            opts.actions.confirm = function(picker, item, action)
+                if not item or item.dir then
+                    return orig_confirm(picker, item, action)
+                end
+                local file = item.file or ""
+                if use_jdt_opener and file:match("%.java$") then
+                    picker:close()
+                    local fqcn = require("utils.java.java-common").file_to_fqcn(file)
+                    require("utils.java.jdtls-util").jdt_open_class(fqcn)
+                else
+                    return orig_confirm(picker, item, action)
+                end
+            end
+            return opts
+        end,
+        on_show = function(picker)
+            local Tree = require("snacks.explorer.tree")
+            local function open_all(path)
+                Tree:open(path)
+                for name, t in vim.fs.dir(path) do
+                    if t == "directory" then
+                        open_all(path .. "/" .. name)
+                    end
+                end
+            end
+            open_all(mod.dir)
+            picker:find()
+        end,
+    })
+end
 
 function M.explore()
     ensure_loaded(function()
+        if selected_explore_module then
+            open_explorer(selected_explore_module)
+            return
+        end
+
         local labels = vim.tbl_map(function(m)
             return m.label
         end, state.modules)
@@ -408,45 +468,7 @@ function M.explore()
             end
             for _, mod in ipairs(state.modules) do
                 if mod.label == choice then
-                    Snacks.picker.explorer({
-                        cwd = mod.dir,
-                        title = "Explore: " .. mod.label,
-                        actions = explorer_actions,
-                        win = {
-                            input = { keys = explorer_keys },
-                            list = { keys = explorer_keys },
-                        },
-                        config = function(opts)
-                            local orig_confirm = opts.actions.confirm
-                            opts.actions.confirm = function(picker, item, action)
-                                if not item or item.dir then
-                                    return orig_confirm(picker, item, action)
-                                end
-                                local file = item.file or ""
-                                if use_jdt_opener and file:match("%.java$") then
-                                    picker:close()
-                                    local fqcn = require("utils.java.java-common").file_to_fqcn(file)
-                                    require("utils.java.jdtls-util").jdt_open_class(fqcn)
-                                else
-                                    return orig_confirm(picker, item, action)
-                                end
-                            end
-                            return opts
-                        end,
-                        on_show = function(picker)
-                            local Tree = require("snacks.explorer.tree")
-                            local function open_all(path)
-                                Tree:open(path)
-                                for name, t in vim.fs.dir(path) do
-                                    if t == "directory" then
-                                        open_all(path .. "/" .. name)
-                                    end
-                                end
-                            end
-                            open_all(mod.dir)
-                            picker:find()
-                        end,
-                    })
+                    open_explorer(mod)
                     break
                 end
             end
