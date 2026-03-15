@@ -38,6 +38,21 @@ return {
                     style = "none", -- 'icon' | 'underline' | 'none'
                 },
 
+                get_element_icon = function(element)
+                    if element.path and element.path:find("^jdt://jarentry/") then
+                        return "󰏗", "Special"
+                    end
+                end,
+
+                name_formatter = function(buf)
+                    if buf.path and buf.path:find("^jdt://jarentry/") then
+                        local entry = buf.path:match("jdt://jarentry/(.-)%?")
+                        if entry then
+                            return "jdt:" .. vim.fn.fnamemodify(entry, ":t")
+                        end
+                    end
+                    return buf.name
+                end,
                 -- name_formatter = function(buf) -- buf contains:
                 --     return buf.name .. "  "
                 --     -- name                | str        | the basename of the active file
