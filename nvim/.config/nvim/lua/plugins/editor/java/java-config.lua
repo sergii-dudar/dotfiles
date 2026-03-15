@@ -148,7 +148,7 @@ return {
     },
     {
         -- "JavaHello/java-deps.nvim",
-        "sergii-dudar/java-deps.nvim.git",
+        "sergii-dudar/java-deps.nvim",
         ft = { "java" },
         cond = java_util.is_java_project(),
         lazy = true,
