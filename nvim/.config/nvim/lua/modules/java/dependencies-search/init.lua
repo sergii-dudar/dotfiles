@@ -1,4 +1,5 @@
 local classpath_util = require("utils.java.jdtls-classpath-util")
+local jarentry = require("modules.java.dependencies-search.jarentry")
 local spinner = require("utils.ui.spinner")
 
 local M = {}
@@ -285,20 +286,30 @@ end
 
 local use_jdt_opener = true
 
--- For .java files: open via jdtls or default jump, depending on toggle state
--- For other files: always fall back to default Snacks jump
+-- When jdt opener is on:
+--   .java files: open via jdtls FQCN (jdt://contents/)
+--   other files: open via jdt://jarentry/ URI
+-- When jdt opener is off: default Snacks jump (raw file)
 local function dep_confirm(picker, item)
     if not item then
         return
     end
     local file = item.file or ""
-    if use_jdt_opener and file:match("%.java$") then
-        picker:close()
-        local line = item.pos and item.pos[1] or 1
+    if not use_jdt_opener then
+        return picker:action("jump")
+    end
+    picker:close()
+    local line = item.pos and item.pos[1] or 1
+    if file:match("%.java$") then
         local fqcn = require("utils.java.java-common").file_to_fqcn(file)
         require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
     else
-        return picker:action("jump")
+        if not jarentry.open(file, state.source_dirs_all, line) then
+            vim.cmd("edit " .. vim.fn.fnameescape(file))
+            if line > 1 then
+                pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+            end
+        end
     end
 end
 
@@ -421,16 +432,19 @@ local function open_explorer(mod)
         config = function(opts)
             local orig_confirm = opts.actions.confirm
             opts.actions.confirm = function(picker, item, action)
-                if not item or item.dir then
+                if not item or item.dir or not use_jdt_opener then
                     return orig_confirm(picker, item, action)
                 end
                 local file = item.file or ""
-                if use_jdt_opener and file:match("%.java$") then
+                if file:match("%.java$") then
                     picker:close()
                     local fqcn = require("utils.java.java-common").file_to_fqcn(file)
                     require("utils.java.jdtls-util").jdt_open_class(fqcn)
                 else
-                    return orig_confirm(picker, item, action)
+                    picker:close()
+                    if not jarentry.open(file, state.source_dirs_all) then
+                        return orig_confirm(picker, item, action)
+                    end
                 end
             end
             return opts
