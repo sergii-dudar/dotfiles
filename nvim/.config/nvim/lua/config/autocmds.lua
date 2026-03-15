@@ -105,13 +105,25 @@ vim.api.nvim_create_autocmd("BufRead", {
 -------------------------------------------
 ---------------- dirsession  --------------
 
+local function is_virtual_buf(name)
+    return name:sub(1, 6) == "jdt://" or name:sub(1, 10) == "zipfile://"
+end
+
 vim.api.nvim_create_autocmd("VimLeavePre", {
     callback = function()
+        -- If focused buffer is a virtual URI, switch to a real file first
+        if is_virtual_buf(vim.api.nvim_buf_get_name(0)) then
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_loaded(buf) and not is_virtual_buf(vim.api.nvim_buf_get_name(buf)) and vim.api.nvim_buf_get_name(buf) ~= "" then
+                    vim.api.nvim_set_current_buf(buf)
+                    break
+                end
+            end
+        end
         -- Close jdtls virtual buffers (jdt:// URIs) before saving session
         -- so resession doesn't try to restore them on next startup
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            local name = vim.api.nvim_buf_get_name(buf)
-            if name:sub(1, 6) == "jdt://" or name:sub(1, 10) == "zipfile://" then
+            if is_virtual_buf(vim.api.nvim_buf_get_name(buf)) then
                 vim.api.nvim_buf_delete(buf, { force = true })
             end
         end
