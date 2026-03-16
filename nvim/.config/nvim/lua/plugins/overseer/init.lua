@@ -45,8 +45,8 @@ return {
             --     preserve_output = false,
             -- },
             task_list = {
-                max_width = 7,
-                min_width = 7,
+                max_width = 2,
+                min_width = 2,
                 max_height = 0.33,
                 min_height = 0.33,
                 render = function(task)
