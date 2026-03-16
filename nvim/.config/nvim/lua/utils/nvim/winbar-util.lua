@@ -12,10 +12,15 @@ vim.api.nvim_set_hl(0, "WinBarPath", {
 vim.api.nvim_set_hl(0, "WinBarContentModified", { fg = "#f54257", bg = existing_hi.bg })
 
 function split_str_by_src(str)
-    local root, package = str:match("^.*src/(%w*)/java/(.*)")
+    local module, root, package = str:match("([^/]+)/src/(%w+)/java/(.*)")
+
+    if not package then
+        root, package = str:match("^.*src/(%w*)/java/(.*)")
+    end
 
     if package then
-        return root .. " 󰬷 " .. package
+        local prefix = module and (module .. " 󰏗 ") or ""
+        return prefix .. root .. " 󰬷 " .. package
     end
 
     return str
