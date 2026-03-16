@@ -114,7 +114,11 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
         -- If focused buffer is a virtual URI, switch to a real file first
         if is_virtual_buf(vim.api.nvim_buf_get_name(0)) then
             for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                if vim.api.nvim_buf_is_loaded(buf) and not is_virtual_buf(vim.api.nvim_buf_get_name(buf)) and vim.api.nvim_buf_get_name(buf) ~= "" then
+                if
+                    vim.api.nvim_buf_is_loaded(buf)
+                    and not is_virtual_buf(vim.api.nvim_buf_get_name(buf))
+                    and vim.api.nvim_buf_get_name(buf) ~= ""
+                then
                     vim.api.nvim_set_current_buf(buf)
                     break
                 end
