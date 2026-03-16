@@ -91,6 +91,10 @@ alias cdi='zi'
 # alias tmuxan='tmux attach || tmux new -s default \; command-prompt -p "Window name: " "rename-window ''%%''"'
 #alias tmuxan='tmux new-session -A -s default'
 
+if [[ $TMUX ]]; then
+    alias clear='clear && tmux clear-history'
+fi
+
 #alias idea='intellij-idea-ultimate'
 
 #alias tldr='tldr --color=always'

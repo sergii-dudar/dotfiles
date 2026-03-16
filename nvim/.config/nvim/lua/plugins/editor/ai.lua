@@ -1,4 +1,8 @@
 local prev_win = nil
+
+local current_ai = "copilot"
+-- local current_ai = "claude"
+
 return {
     {
         "folke/sidekick.nvim",
@@ -7,7 +11,7 @@ return {
             { "<a-a>", false },
             { "<tab>", false },
             -- { "<leader>aa", function() require("sidekick.cli").toggle({ name = "copilot", focus = true }) end, desc = "Toggle Copilot CLI", },
-            { "<leader>aa", function() require("sidekick.cli").toggle({ name = "claude", focus = true }) end, desc = "Toggle Copilot CLI", },
+            { "<leader>aa", function() require("sidekick.cli").toggle({ name = current_ai, focus = true }) end, desc = "Toggle Copilot CLI", },
             -- { "<leader>an", function() require("sidekick").nes_jump_or_apply() end, desc = "Goto/Apply Next Edit Suggestion" },
             -- { "<leader>an", function() require("sidekick.nes").jump() end, desc = "Goto Next Edit Suggestion" },
             { "<leader>an", function() require("sidekick.nes").apply() end, desc = "Apply Current Edit Suggestion" },
@@ -80,8 +84,11 @@ return {
                     model_id = "claude-sonnet-4-6",
                 },
                 copilot = {
-                    -- model_id = "gpt-4o",
-                    model_id = "claude-sonnet-4.5",
+                    -- model_id = "gpt-5.1",
+                    -- model_id = "gpt-5.2",
+                    -- model_id = "gpt-5.4", -- not yet accessible by api
+                    model_id = "claude-sonnet-4.6",
+                    -- model_id = "claude-opus-4.6",
                 },
             },
             search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
