@@ -15,7 +15,7 @@ function split_str_by_src(str)
     local root, package = str:match("^.*src/(%w*)/java/(.*)")
 
     if package then
-        return root .. "  " .. package
+        return root .. " 󰬷 " .. package
     end
 
     return str
@@ -28,7 +28,7 @@ function M.eval()
     local has_modified = vim.api.nvim_eval_statusline("%m", {}).str == "[+]"
     local modified_status = has_modified and "  " or ""
 
-    file_path = " " .. file_path:gsub("/", " ➤ ")
+    file_path = " " .. file_path:gsub("/", " ❯ ")
     --file_path = " " .. file_path:gsub("/", ".")
 
     --vim.notify(file_path)

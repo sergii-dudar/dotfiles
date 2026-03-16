@@ -46,14 +46,16 @@ return {
             { "<leader>jdr", ":JdtRestart<CR>", desc = "JDTLS [R]estart" },
             -- If you add a dependency to the POM or change one of the existing dependencies version, 
             -- you must run “:JdtUpdateConfig” so the Java LSP can download the new dependencies.
-            { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
+            -- { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
+            { "<leader>jdu", function() require("jdtls").update_project_config() end, desc = "JDTLS Update Config [module of current buf]" },
+            { "<leader>jdU", function() require("jdtls").update_projects_config({ select_mode = "all" }) end, desc = "JDTLS Update Config [all modules]" },
             -- In case of misalignments of the workspace, e.g., if you wipe the local Maven cache (“~/.m2/repository”) when restarting 
             -- an already opened project, you get errors due to unresolved dependencies, you can run “:JdtWipeDataAndRestart”
             -- which will resolve the Maven dependencies from scratch
             { "<leader>jdf", ":JdtWipeDataAndRestart<CR>", desc = "JDTLS Wipe Data and [F]ull Restart" },
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests ", },
-            { "<leader>jdl", function() require("modules.java.dependencies-search").load_sources() end, desc = "Load Dependency Sources", },
+            -- Proj Dependency Search: 
             { "<leader>j.", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
