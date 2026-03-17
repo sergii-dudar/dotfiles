@@ -177,7 +177,7 @@ end
 local function cmd_to_string(cmd_table)
     local parts = {}
     for _, arg in ipairs(cmd_table) do
-        if arg:find("%s") then
+        if arg:find("[%s%(%)%$%|%*%^&;><\"'\\#?!{}%[%]~`]") then
             table.insert(parts, "'" .. arg:gsub("'", "'\\''") .. "'")
         else
             table.insert(parts, arg)
