@@ -139,6 +139,12 @@ local test_selector_resolver = {
         -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
         return "--select-iteration=method:" .. current_test_method_fqn .. "[" .. state.parametrized_test_num .. "]"
     end,
+    [task.test_type.ALL_MODULES_TESTS] = function()
+        vim.notify("TODO: ALL_MODULES_TESTS", vim.log.levels.ERROR)
+    end,
+    [task.test_type.SELECTED_MODULES_TESTS] = function()
+        vim.notify("TODO: SELECTED_MODULES_TESTS", vim.log.levels.ERROR)
+    end,
 }
 
 ---@param context task.lang.Context

@@ -10,6 +10,8 @@ task.test_type = {
     CURRENT_TEST = 2,
     CURRENT_PARAMETRIZED_NUM_TEST = 3,
     ALL_DIR_TESTS = 4,
+    ALL_MODULES_TESTS = 5,
+    SELECTED_MODULES_TESTS = 6,
 }
 task.run_type = {
     --- @enum task.run_type
@@ -47,8 +49,8 @@ return {
             task_list = {
                 max_width = 2,
                 min_width = 2,
-                max_height = 0.33,
-                min_height = 0.33,
+                max_height = constants.output.height_rows, --0.45,
+                min_height = constants.output.height_rows, --0.45,
                 render = function(task)
                     local render = require("overseer.render")
                     return {
@@ -77,6 +79,8 @@ return {
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
             { "<leader>tp", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST), desc = "Run Current Parametrized Single Test", },
             { "<leader>tP", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, true), desc = "Debug Current Parametrized Single Test", },
+            { "<leader>tm", build_run_test(task.test_type.SELECTED_MODULES_TESTS), desc = "Run All Tests in Selected Modules", },
+            { "<leader>tM", build_run_test(task.test_type.ALL_MODULES_TESTS), desc = "Run All Tests in All Modules", },
             { "<leader>tl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
             { "<leader>to", function() require("modules.java.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>tO", function() require("modules.java.test-report").hide_test_output() end, desc = "Hide Test Output" },

@@ -5,5 +5,8 @@ M.java = {
     maven_diagnostics_compile_source = "maven-compile",
     junit = "junit",
 }
+M.output = {
+    height_rows = 22,
+}
 
 return M

@@ -1,4 +1,5 @@
 local junit_xml = require("modules.java.test-report.junit-xml")
+local constants = require("utils.constants")
 local log = require("utils.logging-util").new({
     name = "test-report",
     filename = "test-report.log",
@@ -375,7 +376,7 @@ local function open_output(method_name, result)
     vim.bo[output_bufnr].modifiable = false
     vim.cmd("botright split")
     vim.api.nvim_win_set_buf(0, output_bufnr)
-    vim.api.nvim_win_set_height(0, math.min(#lines + 1, 15))
+    vim.api.nvim_win_set_height(0, math.min(#lines + 1, constants.output.height_rows))
     require("utils.java.java-trace").highlight_java_test_trace(output_bufnr)
     vim.keymap.set("n", "q", function()
         vim.api.nvim_win_close(0, true)
