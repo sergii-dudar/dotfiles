@@ -215,9 +215,20 @@ local function build_multi_module_cmd(modules)
         return nil
     end
 
+    local isParallelRun = false -- just for testing for now
     local chained = "r=0"
-    for _, cmd_str in ipairs(cmds) do
-        chained = chained .. "; " .. cmd_str .. " || r=1"
+    if isParallelRun then
+        -- Run modules in parallel, collect exit codes
+        for i, cmd_str in ipairs(cmds) do
+            chained = chained .. "; " .. cmd_str .. " & p" .. i .. "=$!"
+        end
+        for i = 1, #cmds do
+            chained = chained .. "; wait $p" .. i .. " || r=1"
+        end
+    else
+        for _, cmd_str in ipairs(cmds) do
+            chained = chained .. "; " .. cmd_str .. " || r=1"
+        end
     end
     chained = chained .. "; exit $r"
 
