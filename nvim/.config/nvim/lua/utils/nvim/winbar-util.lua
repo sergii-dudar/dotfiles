@@ -23,7 +23,9 @@ function split_str_by_src(str)
         return prefix .. root .. " 󰬷 " .. package
     end
 
-    return str
+    local dir_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+    local parts = require("utils.string-util").split(str, dir_name .. "/")
+    return #parts == 2 and parts[2] or str
 end
 
 function M.eval()

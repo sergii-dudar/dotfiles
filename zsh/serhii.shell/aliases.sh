@@ -73,6 +73,9 @@ alias yyc='yazi --clear-cache && yy'
 # java
 # alias mvn_sources="mvn dependency:sources && mvn dependency:resolve -Dclassifier=javadoc"
 alias mvn_sources="mvn dependency:resolve-sources dependency:resolve -Dclassifier=javadoc"
+# mvn dependency:resolve -U -Dclassifier=sources
+# mvn dependency:resolve -U -Dclassifier=javadoc
+alias mvn_update_deps="mvn dependency:resolve -U" # load latest version from remote
 
 # navigation
 alias ..='cd ..'

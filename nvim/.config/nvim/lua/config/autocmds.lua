@@ -156,9 +156,14 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
             return
         end
 
+        if vim.bo.filetype == "neo-tree" then
+            vim.wo.winbar = nil
+            return
+        end
+
         vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar-util'.eval()%}"
     end,
-    group = vim.api.nvim_create_augroup("WinBar", {}),
+    group = vim.api.nvim_create_augroup("WinBar", { clear = true }),
 })
 
 -------------------------------------------------------
