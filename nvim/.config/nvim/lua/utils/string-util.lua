@@ -21,6 +21,15 @@ function M.is_not_empty(str)
     return str ~= nil and str ~= ""
 end
 
+function M.any_eq(target_string, match_table)
+    for _, current_match in ipairs(match_table) do
+        if target_string == current_match then
+            return true
+        end
+    end
+    return false
+end
+
 --- Convert table with key\values to single unique string (as lua have no buildin concept equals & hashcode)
 local function table_to_hash(tbl)
     local parts = {}

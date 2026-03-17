@@ -20,6 +20,7 @@ end, 2)
 M.multi_select = nio.wrap(function(items, prompt, callback)
     Snacks.picker.pick({
         title = prompt,
+        layout = { preview = false, layout = { width = 0.4, height = 0.3 } },
         items = vim.tbl_map(function(item)
             return { text = item.name, item = item }
         end, items),

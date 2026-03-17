@@ -151,12 +151,14 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
             return
         end
 
-        -- skip if new buffer
-        if vim.bo.filetype == "" then
-            return
-        end
-
-        if vim.bo.filetype == "neo-tree" then
+        if
+            require("utils.string-util").any_eq(vim.bo.filetype, {
+                "",
+                "log",
+                "OverseerOutput",
+                "neo-tree",
+            })
+        then
             vim.wo.winbar = nil
             return
         end
