@@ -4,7 +4,7 @@ local existing_win_bar_hi = vim.api.nvim_get_hl(0, { name = "WinBar", link = fal
 local existing_path_hi = vim.api.nvim_get_hl(0, { name = "WinBarPath", link = false })
 local existing_hi = vim.api.nvim_get_hl(0, { name = "WinBarContentModified", link = false })
 
-vim.api.nvim_set_hl(0, "WinBar", { fg = "#ff8700", bg = existing_win_bar_hi.bg, bold = true })
+vim.api.nvim_set_hl(0, "WinBar", { fg = "#ff8700", bg = existing_win_bar_hi.bg, bold = false, italic = true })
 vim.api.nvim_set_hl(0, "WinBarPath", {
     fg = "#676868",
     bg = existing_path_hi.bg, --[[bold = true italic = true]]
