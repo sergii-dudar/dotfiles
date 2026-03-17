@@ -405,6 +405,96 @@ function M.get_classpath_for_main_method(opts)
     return nil
 end
 
+-- Get all project modules from jdtls
+---@param bufnr? integer
+---@return { uri: string, path: string, name: string }[]|nil
+function M.get_all_project_modules(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
+    if not clients or #clients == 0 then
+        log.warn("No jdtls client found")
+        return nil
+    end
+
+    local client = clients[1]
+    local result, err = client:request_sync("workspace/executeCommand", {
+        command = "java.project.getAll",
+        arguments = {},
+    }, 5000, bufnr)
+
+    if err or not result or not result.result then
+        log.warn("java.project.getAll failed:", err)
+        return nil
+    end
+
+    local project_uris = result.result
+    if type(project_uris) ~= "table" or #project_uris == 0 then
+        log.warn("No projects found")
+        return nil
+    end
+
+    local modules = {}
+    for _, uri in ipairs(project_uris) do
+        -- Only include file: URIs (skip jdt:// virtual projects)
+        if uri:match("^file:") then
+            local path = vim.uri_to_fname(uri):gsub("/$", "")
+            local name = vim.fn.fnamemodify(path, ":t")
+            table.insert(modules, { uri = uri, path = path, name = name })
+        end
+    end
+
+    log.info("Found", #modules, "file-based project modules")
+    return #modules > 0 and modules or nil
+end
+
+-- Get classpath for a single module URI
+---@param module_uri string
+---@param opts? { scope?: string, bufnr?: integer }
+---@return string|nil
+function M.get_classpath_for_module_uri(module_uri, opts)
+    opts = opts or {}
+    local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
+    local scope = opts.scope or "test"
+
+    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
+    if not clients or #clients == 0 then
+        log.warn("No jdtls client found")
+        return nil
+    end
+
+    local client = clients[1]
+    local all_classpaths = {}
+
+    for _, s in ipairs({ "runtime", scope }) do
+        local result, err = client:request_sync("workspace/executeCommand", {
+            command = "java.project.getClasspaths",
+            arguments = { module_uri, vim.json.encode({ scope = s }) },
+        }, 10000, bufnr)
+
+        if result and result.result then
+            local classpaths = result.result.classpaths or result.result
+            if type(classpaths) == "table" then
+                for _, cp in ipairs(classpaths) do
+                    table.insert(all_classpaths, cp)
+                end
+            end
+        else
+            if err then
+                log.debug("getClasspaths", s, "error for", module_uri, ":", err)
+            end
+        end
+    end
+
+    if #all_classpaths == 0 then
+        log.warn("No classpath entries for module:", module_uri)
+        return nil
+    end
+
+    local deduplicated = deduplicate_classpaths(all_classpaths)
+    return table.concat(deduplicated, ":")
+end
+
 -- Clear cache
 function M.clear_cache()
     classpath_cache.classpath = nil

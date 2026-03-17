@@ -5,6 +5,7 @@ local jdtls_util = require("utils.java.jdtls-util")
 local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
 local common_util = require("utils.common-util")
+local jdtls_classpath = require("utils.java.jdtls-classpath-util")
 
 local M = {}
 
@@ -139,31 +140,12 @@ local test_selector_resolver = {
         -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
         return "--select-iteration=method:" .. current_test_method_fqn .. "[" .. state.parametrized_test_num .. "]"
     end,
-    [task.test_type.ALL_MODULES_TESTS] = function()
-        vim.notify("TODO: ALL_MODULES_TESTS", vim.log.levels.ERROR)
-    end,
-    [task.test_type.SELECTED_MODULES_TESTS] = function()
-        vim.notify("TODO: SELECTED_MODULES_TESTS", vim.log.levels.ERROR)
-    end,
 }
 
----@param context task.lang.Context
+---@param opts { classpath: string, report_dir: string, test_selector: string, is_debug?: boolean }
 ---@return table
-function build_junit_tests_cmd(context)
-    local type = context.test_type
-    local is_debug = context.is_debug
-
-    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
-
-    local module_path = java_util.get_buffer_project_path()
-    local current_report_dir = module_path .. setting.report_dir
-
-    local test_selector = test_selector_resolver[type]()
-    if test_selector == nil then
-        return { "echo", "Wrong test selector context!" }
-    end
-
-    local debug_param = is_debug and "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" or nil
+local function build_single_module_cmd(opts)
+    local debug_param = opts.is_debug and "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" or nil
 
     return vim.iter({
         java_util.java_bin,
@@ -172,8 +154,8 @@ function build_junit_tests_cmd(context)
         "-jar",
         setting.junit_jar,
         "execute",
-        "--classpath=" .. classpath,
-        "--reports-dir=" .. current_report_dir,
+        "--classpath=" .. opts.classpath,
+        "--reports-dir=" .. opts.report_dir,
         "--fail-if-no-tests",
         "--disable-banner",
         -- "--single-color",
@@ -183,13 +165,101 @@ function build_junit_tests_cmd(context)
         "--config=junit.platform.output.capture.stderr=true",
         "--include-engine=junit-jupiter",
         "--include-classname=(^.*Tests?$|^.*IT$|^.*Spec$)",
-        test_selector,
+        opts.test_selector,
     })
         :flatten()
         :filter(function(v)
             return v ~= nil
         end)
         :totable()
+end
+
+local function cmd_to_string(cmd_table)
+    local parts = {}
+    for _, arg in ipairs(cmd_table) do
+        if arg:find("%s") then
+            table.insert(parts, "'" .. arg:gsub("'", "'\\''") .. "'")
+        else
+            table.insert(parts, arg)
+        end
+    end
+    return table.concat(parts, " ")
+end
+
+--- Build a chained shell command running tests for each module
+---@param modules { uri: string, path: string, name: string }[]
+---@return { cmd: string, report_dirs: string[] }|nil
+local function build_multi_module_cmd(modules)
+    local cmds = {}
+    local report_dirs = {}
+
+    for _, mod in ipairs(modules) do
+        local test_classes = mod.path .. "/target/test-classes"
+        if vim.fn.isdirectory(test_classes) == 1 then
+            local classpath = jdtls_classpath.get_classpath_for_module_uri(mod.uri)
+            if classpath then
+                local report_dir = mod.path .. setting.report_dir
+                local cmd_table = build_single_module_cmd({
+                    classpath = classpath,
+                    report_dir = report_dir,
+                    test_selector = "--scan-class-path=" .. test_classes,
+                })
+                table.insert(cmds, cmd_to_string(cmd_table))
+                table.insert(report_dirs, report_dir)
+            end
+        end
+    end
+
+    if #cmds == 0 then
+        vim.notify("No modules with test-classes found", vim.log.levels.WARN)
+        return nil
+    end
+
+    local chained = "r=0"
+    for _, cmd_str in ipairs(cmds) do
+        chained = chained .. "; " .. cmd_str .. " || r=1"
+    end
+    chained = chained .. "; exit $r"
+
+    -- return { cmd = chained, report_dirs = report_dirs }
+    return chained
+end
+
+---@param context task.lang.Context
+---@return table
+function build_junit_tests_cmd(context)
+    local type = context.test_type
+    local is_debug = context.is_debug
+
+    if type == task.test_type.ALL_MODULES_TESTS or type == task.test_type.SELECTED_MODULES_TESTS then
+        local modules = jdtls_classpath.get_all_project_modules()
+        if not modules then
+            return { "echo", "No modules found from jdtls" }
+        end
+        if type == task.test_type.SELECTED_MODULES_TESTS then
+            modules = nio_util.multi_select(modules, "Select modules to test")
+            if not modules then
+                return { "echo", "No modules selected" }
+            end
+        end
+        return build_multi_module_cmd(modules) or { "echo", "No testable modules found" }
+    end
+
+    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
+    local module_path = java_util.get_buffer_project_path()
+    local current_report_dir = module_path .. setting.report_dir
+
+    local test_selector = test_selector_resolver[type]()
+    if test_selector == nil then
+        return { "echo", "Wrong test selector context!" }
+    end
+
+    return build_single_module_cmd({
+        classpath = classpath,
+        report_dir = current_report_dir,
+        test_selector = test_selector,
+        is_debug = is_debug,
+    })
 end
 
 -- print(vim.iter({

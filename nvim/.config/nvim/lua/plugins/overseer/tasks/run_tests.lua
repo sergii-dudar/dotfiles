@@ -42,6 +42,7 @@ function M.build_taks()
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
                 table.insert(components, 2, "on_result_diagnostics")
             end
+            -- dd(result_cmd)
             return {
                 cmd = result_cmd,
                 components = components,
