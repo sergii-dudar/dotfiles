@@ -59,4 +59,37 @@ function M.focus_right_if_neotree()
     end
 end
 
+---Open a scratch buffer in a bottom split with standard options.
+---Sets buftype=nofile, bufhidden=wipe, filetype=log, modifiable=false.
+---Adds `q` keymap to close the split and return to the previous window.
+---@param bufnr integer Buffer to show (should already have content set)
+---@param opts? { max_height?: integer, filetype?: string }
+---@return integer prev_win Window that was active before opening the split
+function M.open_scratch_split(bufnr, opts)
+    opts = opts or {}
+    local constants = require("utils.constants")
+    local max_height = opts.max_height or constants.output.height_rows
+    local prev_win = vim.api.nvim_get_current_win()
+
+    vim.bo[bufnr].buftype = "nofile"
+    vim.bo[bufnr].bufhidden = "wipe"
+    vim.bo[bufnr].filetype = opts.filetype or "log"
+    vim.bo[bufnr].modifiable = false
+
+    vim.cmd("botright split")
+    vim.api.nvim_win_set_buf(0, bufnr)
+
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+    vim.api.nvim_win_set_height(0, math.min(line_count + 1, max_height))
+
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_win_close(0, true)
+        if vim.api.nvim_win_is_valid(prev_win) then
+            vim.api.nvim_set_current_win(prev_win)
+        end
+    end, { buffer = bufnr, silent = true })
+
+    return prev_win
+end
+
 return M

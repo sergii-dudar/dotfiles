@@ -374,7 +374,6 @@ local function open_output(method_name, result)
     end
 
     require("overseer").close()
-    local prev_win = vim.api.nvim_get_current_win()
     output_bufnr = vim.api.nvim_create_buf(false, true)
     output_method = method_name
     vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
@@ -383,20 +382,9 @@ local function open_output(method_name, result)
             line_hl_group = entry[2],
         })
     end
-    vim.bo[output_bufnr].buftype = "nofile"
-    vim.bo[output_bufnr].bufhidden = "wipe"
-    vim.bo[output_bufnr].filetype = "log" -- log-highlight.nvim
-    vim.bo[output_bufnr].modifiable = false
-    vim.cmd("botright split")
-    vim.api.nvim_win_set_buf(0, output_bufnr)
-    vim.api.nvim_win_set_height(0, math.min(#lines + 1, constants.output.height_rows))
-    require("utils.java.java-trace").highlight_java_test_trace(output_bufnr)
-    vim.keymap.set("n", "q", function()
-        vim.api.nvim_win_close(0, true)
-        if vim.api.nvim_win_is_valid(prev_win) then
-            vim.api.nvim_set_current_win(prev_win)
-        end
-    end, { buffer = output_bufnr, silent = true })
+
+    require("utils.buffer-util").open_scratch_split(output_bufnr)
+    -- require("utils.java.java-trace").highlight_java_test_trace(output_bufnr)
 end
 
 function M.show_test_output()
