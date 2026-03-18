@@ -232,6 +232,7 @@ local function build_multi_module_cmd(modules)
     end
     chained = chained .. "; exit $r"
 
+    -- TODO: pass report_dirs to processor instead of one report_dir
     -- return { cmd = chained, report_dirs = report_dirs }
     return chained
 end

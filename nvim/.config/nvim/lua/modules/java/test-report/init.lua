@@ -54,10 +54,11 @@ local last_positions = {} -- { [file_path] = { [method_name] = 0-indexed line } 
 local output_bufnr = nil -- scratch buffer for test output
 local output_method = nil -- method name currently shown in output buffer
 
----@param report_dir string
+---@param report_dir string|string[]
 ---@param filetype string
 function M.process(report_dir, filetype)
-    log.info("process: report_dir=" .. tostring(report_dir) .. " ft=" .. tostring(filetype))
+    local dirs = type(report_dir) == "table" and report_dir or { report_dir }
+    log.info("process: dirs=" .. vim.inspect(dirs) .. " ft=" .. tostring(filetype))
 
     local adapter_fn = lang_adapters[filetype]
     if not adapter_fn then
@@ -67,10 +68,15 @@ function M.process(report_dir, filetype)
     end
     local adapter = adapter_fn()
 
-    local results = junit_xml.parse_report_dir(report_dir)
+    local results = {}
+    for _, dir in ipairs(dirs) do
+        for id, r in pairs(junit_xml.parse_report_dir(dir)) do
+            results[id] = r
+        end
+    end
     if vim.tbl_isempty(results) then
         log.warn("no results from XML parsing")
-        vim.notify("test-report: no results from XML parsing in " .. report_dir, vim.log.levels.ERROR)
+        vim.notify("test-report: no results from XML parsing in: " .. vim.inspect(dirs), vim.log.levels.ERROR)
         return
     end
 
