@@ -13,11 +13,7 @@
      stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc.
      implement java source depencenties (per project) fast search ability (with ability to search by `rg` and `fd` + snack pickers)
      big refactoring of `utils` and `modules`
-     junit module: add ability to run tests for all proj modules, and to separated module (with selector, myabe with multiselect ability)
-
-    ability to save last runned command to file, to be able to rerun after restart nvim.
-
-    ability to run from not java file. means run modules from root folder, need to start jdtls indise not java file.
+     junit module: add ability to run tests for all proj modules, and to separated module (with selector, myabe with multiselect ability)
 
 ### Screenshots
 

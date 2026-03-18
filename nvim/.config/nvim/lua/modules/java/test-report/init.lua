@@ -198,6 +198,7 @@ function M.process(report_dir, filetype)
                         virt_text_pos = "eol",
                         priority = 20,
                     })
+                    signed_buffers[bufnr] = true
                     log.debug("placed class mark: " .. class_status .. " at line " .. class_line)
                 end
             end
