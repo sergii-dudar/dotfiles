@@ -4,7 +4,7 @@ local javap_util = require("utils.java.javap-util")
 local jdtls_util = require("utils.java.jdtls-util")
 local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
-local common_util = require("utils.common-util")
+-- local common_util = require("utils.common-util")
 local jdtls_classpath = require("utils.java.jdtls-classpath-util")
 local constants = require("utils.constants")
 
@@ -40,6 +40,24 @@ local setting = {
 }
 if byte_buddy_agent_jar then
     table.insert(setting.jvm_args, "-javaagent:" .. byte_buddy_agent_jar)
+end
+
+---@param module_path string
+---@return boolean
+local function has_test_classes(module_path)
+    local test_classes_dir = module_path .. "/target/test-classes"
+    local test_sources_dir = module_path .. "/src/test"
+    if vim.fn.isdirectory(test_sources_dir) ~= 1 or vim.fn.isdirectory(test_classes_dir) ~= 1 then
+        return false
+    end
+    local class_files = vim.fn.glob(test_classes_dir .. "/**/*.class", false, true)
+    for _, file in ipairs(class_files) do
+        local basename = vim.fn.fnamemodify(file, ":t:r")
+        if basename:match("Tests?$") or basename:match("IT$") or basename:match("Spec$") then
+            return true
+        end
+    end
+    return false
 end
 
 local state = {
@@ -196,7 +214,7 @@ local function build_multi_module_cmd(modules)
 
     for _, mod in ipairs(modules) do
         local test_classes = mod.path .. "/target/test-classes"
-        if vim.fn.isdirectory(test_classes) == 1 then
+        if has_test_classes(mod.path) then
             local classpath = jdtls_classpath.get_classpath_for_module_uri(mod.uri)
             if classpath then
                 local report_dir = mod.path .. setting.report_dir
@@ -246,6 +264,9 @@ function build_junit_tests_cmd(context)
         if not modules then
             return { cmd = { "echo", "No modules found from jdtls" } }
         end
+        modules = vim.tbl_filter(function(m)
+            return has_test_classes(m.path)
+        end, modules)
         if type == task.test_type.SELECTED_MODULES_TESTS then
             modules = nio_util.multi_select(modules, "Select modules to test")
             if not modules then
@@ -274,16 +295,5 @@ function build_junit_tests_cmd(context)
         report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
     }
 end
-
--- print(vim.iter({
---     1,
---     2,
---     3,
---     { 4, 5, 6 },
---     7,
---     { 8, 9 },
--- })
---     :flatten()
---     :totable())
 
 return M
