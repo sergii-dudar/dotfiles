@@ -102,7 +102,13 @@ function M.process(report_dir, filetype)
     local qf_entries = {}
 
     for classname, methods in pairs(by_class) do
-        local file_path = adapter.classname_to_file(classname, report_dir)
+        local file_path
+        for _, dir in ipairs(dirs) do
+            file_path = adapter.classname_to_file(classname, dir)
+            if file_path then
+                break
+            end
+        end
         log.debug("classname_to_file: " .. classname .. " -> " .. tostring(file_path))
 
         if file_path then
