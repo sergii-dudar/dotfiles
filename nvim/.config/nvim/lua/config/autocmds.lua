@@ -143,27 +143,40 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 
 -------------------------------------------
 ------------ winbar file path -----------
+
+function set_wrap(filetype)
+    if filetype == "OverseerOutput" then
+        vim.wo.wrap = true
+    end
+end
+function set_winbar(filetype)
+    -- skip if a pop up window
+    if vim.fn.win_gettype() == "popup" then
+        return
+    end
+
+    if
+        require("utils.string-util").any_eq(filetype, {
+            "",
+            "log",
+            "OverseerOutput",
+            "neo-tree",
+        })
+    then
+        vim.wo.winbar = nil
+        return
+    end
+
+    vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar-util'.eval()%}"
+end
+
 vim.api.nvim_create_autocmd("BufWinEnter", {
     pattern = "*",
-    callback = function()
-        -- skip if a pop up window
-        if vim.fn.win_gettype() == "popup" then
-            return
-        end
-
-        if
-            require("utils.string-util").any_eq(vim.bo.filetype, {
-                "",
-                "log",
-                "OverseerOutput",
-                "neo-tree",
-            })
-        then
-            vim.wo.winbar = nil
-            return
-        end
-
-        vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar-util'.eval()%}"
+    callback = function(event)
+        -- local filetype = vim.bo.filetype
+        local filetype = vim.bo[event.buf].filetype
+        set_wrap(filetype)
+        set_winbar(filetype)
     end,
     group = vim.api.nvim_create_augroup("WinBar", { clear = true }),
 })
