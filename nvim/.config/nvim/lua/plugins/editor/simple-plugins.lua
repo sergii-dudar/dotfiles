@@ -25,6 +25,7 @@ return {
                 -- pass = {},
                 info = { "UETR", "iban", "status", "class", "X-Request-ID", "X-Correlation-ID" },
                 warning = { "errorCode", "errorMessage" },
+                error = { "Exception in thread" },
             },
         },
     },
