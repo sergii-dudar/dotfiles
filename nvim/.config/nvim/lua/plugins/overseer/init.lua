@@ -42,10 +42,9 @@ return {
             "OverseerTaskAction",
         },
         opts = {
-            -- output = {
-            --     use_terminal = true,
-            --     preserve_output = false,
-            -- },
+            output = {
+                use_terminal = false,
+            },
             task_list = {
                 max_width = 2,
                 min_width = 2,
