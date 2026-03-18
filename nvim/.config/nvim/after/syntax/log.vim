@@ -12,6 +12,16 @@ hi def link LogBracketContent LogGreen
 syn match LogRaiffeisen display 'ua\.raiffeisen[[:alnum:]._$]\+'
 hi def link LogRaiffeisen LogLvDebug
 
+
+" ========================================
+" Java stack trace lines: at package.Class.method(File.java:123)
+" ========================================
+syn match LogJavaTrace display '\vat [[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
+hi def link LogJavaTrace LogLvDebug
+
+syn match LogJavaTraceCustom display '\vat (ua\.serhii\.application\.util2|ua\.raiffeisen\.)[[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
+hi def link LogJavaTraceCustom LogBlue
+
 " ========================================
 " JSON blocks
 " ========================================

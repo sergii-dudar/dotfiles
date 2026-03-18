@@ -71,16 +71,14 @@ local parse_java_stack_trace = function(trace, result_callback)
 
     -- for i, parsed in ipairs(java_util.parse_java_mvn_run_class_text(trace)) do
     local parsed_trace = java_util.parse_java_mvn_run_class_text(trace)
-    for _, parsed in ipairs(parsed_trace) do
+    for i, parsed in ipairs(parsed_trace) do
         local file_path = java_util.java_class_to_proj_path(parsed.class_path)
         if file_path then
-            loc_result_items_map[parsed.class_path] = {
+            loc_result_items_map[i] = {
                 filename = file_path,
                 lnum = parsed.class_line_number,
                 end_lnum = parsed.class_line_number,
-                col = 1, -- Default to column 1
-                --text = file .. " error location from stack trace"
-                -- text = string.format("( %s ) %s", trace_number, parsed.method),
+                col = 1,
             }
         else
             table.insert(jdt_classes, parsed.class_path)
@@ -92,13 +90,14 @@ local parse_java_stack_trace = function(trace, result_callback)
         local trace_number = 1
         for i = #parsed_trace, 1, -1 do
             local parsed = parsed_trace[i]
-            local loc_item = loc_result_items_map[parsed.class_path]
-            loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
-            -- loc_item.kind = "Class"
-            table.insert(loc_result_items, loc_item)
+            local loc_item = loc_result_items_map[i]
+            if loc_item then
+                loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
+                table.insert(loc_result_items, loc_item)
+            end
             trace_number = trace_number + 1
         end
-        -- dd(loc_result_items)
+        dd(parsed_trace)
         result_callback(loc_result_items)
     else
         jdtls_util.jdt_load_unique_class_list(jdt_classes, function(jdt_results_items_map)
@@ -106,7 +105,7 @@ local parse_java_stack_trace = function(trace, result_callback)
             local all_result_items = {}
             for i = #parsed_trace, 1, -1 do
                 local parsed = parsed_trace[i]
-                local loc_item = loc_result_items_map[parsed.class_path]
+                local loc_item = loc_result_items_map[i]
                 local jdt_sym_loc_item = jdt_results_items_map[parsed.class_path]
                 if loc_item then
                     loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
