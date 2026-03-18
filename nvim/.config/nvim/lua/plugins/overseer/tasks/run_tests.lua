@@ -11,17 +11,16 @@ local resolve_report_dir = function()
 end
 
 ---@param params { context: task.lang.Context }
-local resolve_type_cmd = function(params)
+---@return task.lang.test.TestCmd
+local resolve_type_test_cmd = function(params)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
-    local result_cmd
     if type_resolver then
-        result_cmd = type_resolver.build_run_test_cmd(params.context)
-    else
-        local file = vim.fn.expand("%:p")
-        vim.notify(file .. " is not supported.")
-        result_cmd = { "echo", file .. " is not supported tests." }
+        return type_resolver.build_run_test_cmd(params.context)
     end
-    return result_cmd
+
+    local file = vim.fn.expand("%:p")
+    vim.notify(file .. " is not supported.")
+    return { cmd = { "echo", file .. " is not supported tests." } }
 end
 
 ---@return table
@@ -29,8 +28,9 @@ function M.build_taks()
     return {
         name = "RUN_TESTS",
         builder = function(params)
-            local result_cmd = resolve_type_cmd(params)
-            local report_dir = resolve_report_dir()
+            local test_cmd = resolve_type_test_cmd(params)
+            local result_cmd = test_cmd.cmd
+            local report_dir = test_cmd.report_dir or resolve_report_dir()
             local components = { "on_exit_set_status" }
             if report_dir then
                 table.insert(components, 1, {
@@ -59,8 +59,9 @@ function M.build_debug_taks()
     return {
         name = "DEBUG_TESTS",
         builder = function(params)
-            local result_cmd = resolve_type_cmd(params)
-            local report_dir = resolve_report_dir()
+            local test_cmd = resolve_type_test_cmd(params)
+            local result_cmd = test_cmd.cmd
+            local report_dir = test_cmd.report_dir or resolve_report_dir()
             local components = { "on_exit_set_status", "debug.dap_ctrl_component" }
             if report_dir then
                 table.insert(components, 1, {

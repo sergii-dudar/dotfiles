@@ -6,6 +6,7 @@ local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
 local common_util = require("utils.common-util")
 local jdtls_classpath = require("utils.java.jdtls-classpath-util")
+local constants = require("utils.constants")
 
 local M = {}
 
@@ -35,7 +36,7 @@ local setting = {
         "-Dspring.output.ansi.enabled=NEVER",
         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
-    report_dir = "/target/junit-report",
+    report_dir = constants.java.junit_report_dir,
 }
 if byte_buddy_agent_jar then
     table.insert(setting.jvm_args, "-javaagent:" .. byte_buddy_agent_jar)
@@ -49,8 +50,8 @@ vim.api.nvim_create_user_command("ParamTestNum", function(opts)
     state.parametrized_test_num = opts.args
 end, { nargs = 1 })
 
----@return table
 ---@param context task.lang.Context
+---@return task.lang.test.TestCmd
 function M.build_run_test_cmd(context)
     return build_junit_tests_cmd(context)
 end
@@ -143,7 +144,7 @@ local test_selector_resolver = {
 }
 
 ---@param opts { classpath: string, report_dir: string, test_selector: string, is_debug?: boolean }
----@return table
+---@return string[]
 local function build_single_module_cmd(opts)
     local debug_param = opts.is_debug and "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" or nil
 
@@ -188,7 +189,7 @@ end
 
 --- Build a chained shell command running tests for each module
 ---@param modules { uri: string, path: string, name: string }[]
----@return { cmd: string, report_dirs: string[] }|nil
+---@return task.lang.test.TestCmd
 local function build_multi_module_cmd(modules)
     local cmds = {}
     local report_dirs = {}
@@ -231,14 +232,11 @@ local function build_multi_module_cmd(modules)
         end
     end
     chained = chained .. "; exit $r"
-
-    -- TODO: pass report_dirs to processor instead of one report_dir
-    -- return { cmd = chained, report_dirs = report_dirs }
-    return chained
+    return { cmd = chained, report_dir = report_dirs }
 end
 
 ---@param context task.lang.Context
----@return table
+---@return task.lang.test.TestCmd
 function build_junit_tests_cmd(context)
     local type = context.test_type
     local is_debug = context.is_debug
@@ -246,12 +244,12 @@ function build_junit_tests_cmd(context)
     if type == task.test_type.ALL_MODULES_TESTS or type == task.test_type.SELECTED_MODULES_TESTS then
         local modules = jdtls_classpath.get_all_project_modules()
         if not modules then
-            return { "echo", "No modules found from jdtls" }
+            return { cmd = { "echo", "No modules found from jdtls" } }
         end
         if type == task.test_type.SELECTED_MODULES_TESTS then
             modules = nio_util.multi_select(modules, "Select modules to test")
             if not modules then
-                return { "echo", "No modules selected" }
+                return { cmd = { "echo", "No modules selected" } }
             end
         end
         return build_multi_module_cmd(modules) or { "echo", "No testable modules found" }
@@ -263,15 +261,18 @@ function build_junit_tests_cmd(context)
 
     local test_selector = test_selector_resolver[type]()
     if test_selector == nil then
-        return { "echo", "Wrong test selector context!" }
+        return { cmd = { "echo", "Wrong test selector context!" } }
     end
 
-    return build_single_module_cmd({
-        classpath = classpath,
-        report_dir = current_report_dir,
-        test_selector = test_selector,
-        is_debug = is_debug,
-    })
+    return {
+        cmd = build_single_module_cmd({
+            classpath = classpath,
+            report_dir = current_report_dir,
+            test_selector = test_selector,
+            is_debug = is_debug,
+        }),
+        report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
+    }
 end
 
 -- print(vim.iter({

@@ -18,6 +18,7 @@ M.picker = {
         "**/target/test-classes",
         "**/target/maven-*",
         "**/target/surefire-reports",
+        "**/target/failsafe-reports",
         "**/target/junit-report",
         "**/target/jacoco-output",
         "**/target/site",

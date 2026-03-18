@@ -15,20 +15,24 @@ type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
 local M = {}
 
 ---@class task.lang.Context
----@field test_type task.test_type|integer|nil
+---@field test_type? task.test_type|integer
 ---@field is_debug boolean|nil
 
+---@class task.lang.test.TestCmd
+---@field cmd string|string[]
+---@field report_dir? string|string[]
+
 ---@class task.lang.Runner
----@field get_envs fun(): table<string, string>|nil
----@field build_run_cmd function
----@field build_debug_cmd function|nil - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
----@field dap_attach_to_remote function|nil
----@field dap_launch function|nil - [dap_launch] requiring to have defined [dap_launch_rerun]
----@field dap_launch_rerun function|nil
----@field build_compile_cmd function|nil
----@field make_compile function|nil
----@field build_run_test_cmd  fun(context: task.lang.Context):string|nil
----@field get_test_report_dir fun(): string|nil
+---@field get_envs? fun():table<string, string>
+---@field build_run_cmd fun():string[]
+---@field build_debug_cmd? fun():string[] - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
+---@field dap_attach_to_remote? fun()
+---@field dap_launch? fun() - [dap_launch] requiring to have defined [dap_launch_rerun]
+---@field dap_launch_rerun? fun()
+---@field build_compile_cmd? fun()
+---@field make_compile? fun()
+---@field build_run_test_cmd?  fun(context:task.lang.Context):task.lang.test.TestCmd
+---@field get_test_report_dir? fun():string
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]

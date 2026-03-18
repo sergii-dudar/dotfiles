@@ -60,13 +60,14 @@ function M.dap_launch_rerun()
 end
 
 ---@param context task.lang.Context
+---@return task.lang.test.TestCmd
 function M.build_run_test_cmd(context)
     return require("modules.java.junit.init").build_run_test_cmd(context)
 end
 
 function M.get_test_report_dir()
     local java_util = require("utils.java.java-common")
-    return java_util.get_buffer_project_path() .. "/target/junit-report"
+    return java_util.get_buffer_project_path() .. require("utils.constants").java.junit_report_dir
 end
 
 return M

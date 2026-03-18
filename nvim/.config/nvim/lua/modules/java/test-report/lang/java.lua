@@ -1,5 +1,9 @@
 local java_util = require("utils.java.java-common")
-local log = require("utils.logging-util").new({ name = "test-report-java", filename = "test-report.log", level = vim.log.levels.DEBUG })
+local log = require("utils.logging-util").new({
+    name = "test-report-java",
+    filename = "test-report.log",
+    level = vim.log.levels.DEBUG,
+})
 
 ---@type test_report.LangAdapter
 local M = {}
@@ -118,7 +122,7 @@ end
 
 ---@return string
 function M.get_test_report_dir()
-    return java_util.get_buffer_project_path() .. "/target/junit-report"
+    return java_util.get_buffer_project_path() .. require("utils.constants").java.junit_report_dir
 end
 
 return M
