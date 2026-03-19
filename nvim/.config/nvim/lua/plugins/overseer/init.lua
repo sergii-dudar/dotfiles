@@ -68,6 +68,7 @@ return {
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
             { "<leader>rs", function() require("plugins.overseer.overseer-util").stop_all() end, desc = "Stop All" },
+            { "<leader>do", function() require("utils.dap-util").show_logs() end, desc = "Dap log output" },
             -- test runners
             { "<leader>ts", function() require("plugins.overseer.overseer-util").stop_all() end, desc = "Stop All" },
             -- { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
