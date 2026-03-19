@@ -1,5 +1,6 @@
 local junit_xml = require("modules.java.test-report.junit-xml")
 local constants = require("utils.constants")
+local spinner = require("utils.ui.spinner")
 local log = require("utils.logging-util").new({
     name = "test-report",
     filename = "test-report.log",
@@ -57,6 +58,8 @@ local output_method = nil -- method name currently shown in output buffer
 ---@param report_dir string|string[]
 ---@param filetype string
 function M.process(report_dir, filetype)
+    vim.notify("🚀 " .. "Processsing Junit Report...", vim.log.levels.INFO)
+
     local dirs = type(report_dir) == "table" and report_dir or { report_dir }
     log.info("process: dirs=" .. vim.inspect(dirs) .. " ft=" .. tostring(filetype))
 

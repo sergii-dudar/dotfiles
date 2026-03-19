@@ -19,7 +19,7 @@ hi def link LogRaiffeisen LogLvDebug
 syn match LogJavaTrace display '\vat [[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
 hi def link LogJavaTrace LogLvDebug
 
-syn match LogJavaTraceCustom display '\vat (ua\.serhii\.application\.util2|ua\.raiffeisen\.)[[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
+syn match LogJavaTraceCustom display '\vat (ua\.serhii\.application\.util2|ua\.raiffeisen\.|ua\.aval\.)[[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
 hi def link LogJavaTraceCustom LogBlue
 
 " ========================================

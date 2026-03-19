@@ -151,7 +151,7 @@ local test_selector_resolver = {
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)
             return nil
         end
-        state.parametrized_test_num = nio_util.input("Test Number")
+        state.parametrized_test_num = tonumber(nio_util.input("Test Number")) - 1
         local module_path = java_util.get_buffer_project_path()
         local test_classes = module_path .. "/target/test-classes"
         current_test_method_fqn =
