@@ -224,7 +224,10 @@ end ]]
 
 -- Get the project root directory for the current buffer
 -- Returns the path containing .git, pom.xml, build.gradle, etc., or nil if not found
-function M.get_buffer_project_path()
+---@param bufnr? integer
+function M.get_buffer_project_path(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+
     -- Find project root by looking for common project markers
     local root_markers = {
         "pom.xml", -- Maven
@@ -238,7 +241,7 @@ function M.get_buffer_project_path()
         ".git", -- fallback
     }
 
-    local root_dir = vim.fs.root(0, root_markers)
+    local root_dir = vim.fs.root(bufnr, root_markers)
 
     return root_dir
 end

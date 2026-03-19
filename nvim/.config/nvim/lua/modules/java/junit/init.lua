@@ -253,8 +253,6 @@ local function build_multi_module_cmd(modules)
     return { cmd = chained, report_dir = report_dirs }
 end
 
-local last_runned_details = {}
-
 ---@param context task.lang.Context
 ---@return task.lang.test.TestCmd
 function build_junit_tests_cmd(context)
@@ -278,24 +276,32 @@ function build_junit_tests_cmd(context)
         return build_multi_module_cmd(modules) or { "echo", "No testable modules found" }
     end
 
-    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
-    local module_path = java_util.get_buffer_project_path()
-    local current_report_dir = module_path .. setting.report_dir
-
     if type == task.test_type.TOGGLE_LAST_DEBUG then
-        if type == task.test_type.CURRENT_TEST or task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-            last_runned_details.is_debug = not last_runned_details.is_debug
-            vim.notify("test.. :" .. vim.inspect(last_runned_details.is_debug), vim.log.levels.ERROR)
+        if not task.last_test.type then
+            return { cmd = { "echo", type .. " there no registered last run cmd" } }
+        end
+        if
+            task.last_test.type == task.test_type.CURRENT_TEST
+            or task.last_test.type == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST
+        then
+            local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({
+                scope = "test",
+                bufnr = task.last_test.bufnr,
+            })
+            local module_path = java_util.get_buffer_project_path(task.last_test.bufnr)
+            local current_report_dir = module_path .. setting.report_dir
+
             return {
                 cmd = build_single_module_cmd({
                     classpath = classpath,
                     report_dir = current_report_dir,
-                    test_selector = last_runned_details.test_selector,
-                    is_debug = last_runned_details.is_debug,
+                    test_selector = task.last_test.test_selector,
+                    is_debug = task.last_test.is_debug,
                 }),
                 report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
             }
         end
+        vim.notify(type .. " is not supported to toggle last run cmd", vim.log.levels.WARN)
         return { cmd = { "echo", type .. " is not supported to toggle last run cmd" } }
     end
 
@@ -304,8 +310,14 @@ function build_junit_tests_cmd(context)
         return { cmd = { "echo", "Wrong test selector context!" } }
     end
 
-    last_runned_details.test_selector = test_selector
-    last_runned_details.is_debug = is_debug
+    local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
+    local module_path = java_util.get_buffer_project_path()
+    local current_report_dir = module_path .. setting.report_dir
+
+    task.last_test.test_selector = test_selector
+    task.last_test.is_debug = (is_debug ~= nil and is_debug ~= false) and true or false
+    task.last_test.type = type
+    task.last_test.bufnr = vim.api.nvim_get_current_buf()
     return {
         cmd = build_single_module_cmd({
             classpath = classpath,

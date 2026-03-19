@@ -12,12 +12,22 @@ task.test_type = {
     ALL_DIR_TESTS = 4,
     ALL_MODULES_TESTS = 5,
     SELECTED_MODULES_TESTS = 6,
-    TOGGLE_LAST_DEBUG = 7, -- toggle last test cmd between debug and regular run
+    TOGGLE_LAST_DEBUG = 7, -- toggle last test cmd between debug and regular run. very useful in case I'm investigation some issue deep inside stack, and want rerun, but in debug mode.
 }
 task.run_type = {
     --- @enum task.run_type
     RUN = 0,
     TEST = 1,
+}
+task.last_run = {
+    path = nil,
+    is_debug = false,
+}
+task.last_test = {
+    test_selector = nil,
+    is_debug = false,
+    type = nil,
+    bufnr = nil, -- start buffer (inportand to define test module, class path, or whatever when switch debug inside deep trace)
 }
 
 ---@param type task.test_type|integer
@@ -65,6 +75,7 @@ return {
             { "<leader>rr", function() require("plugins.overseer.overseer-util").run_current() end, desc = "Run Current", },
             { "<leader>rd", function() require("plugins.overseer.overseer-util").debug_current() end, desc = "Debug Current", },
             { "<leader>rl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
+            { "<leader>rD", function() vim.notify("Not implemented", vim.log.levels.WARN) end, desc = "Toggle Debug of Last Run Cmd", }, -- TODO:
             { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v", },
             { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
@@ -75,7 +86,12 @@ return {
             -- { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>tt", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
-            { "<leader>tD", build_run_test(task.test_type.TOGGLE_LAST_DEBUG), desc = "Toggle Debug of Last Test Cmd", },
+            { "<leader>tD", function()
+                task.last_test.is_debug = not task.last_test.is_debug
+                nio_util.run(function()
+                    require("plugins.overseer.overseer-util").run_test({ test_type = task.test_type.TOGGLE_LAST_DEBUG, is_debug = task.last_test.is_debug })
+                end)
+            end, desc = "Toggle Debug of Last Test Cmd", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
             { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
