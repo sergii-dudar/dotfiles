@@ -1,61 +1,68 @@
 local M = {}
 
-local shown = false
-local snapshot_lines = nil
 local log_bufnr = nil
 
----Snapshot the dapui console buffer content.
----Call this BEFORE dapui.close() to preserve the output.
-function M.snapshot()
+---Read dapui console buffer lines. Returns nil if empty/invalid.
+---@return string[]|nil
+local function read_console()
     local ok_dapui, dapui = pcall(require, "dapui")
     if not ok_dapui then
-        return
+        return nil
     end
 
     local console_buf = dapui.elements.console.buffer()
     if not console_buf or not vim.api.nvim_buf_is_valid(console_buf) then
-        return
+        return nil
     end
 
     local lines = vim.api.nvim_buf_get_lines(console_buf, 0, -1, false)
     if #lines == 0 or (#lines == 1 and lines[1] == "") then
-        snapshot_lines = nil
-        return
+        return nil
     end
 
-    snapshot_lines = lines
+    return lines
 end
 
----Show the snapshotted DAP logs in a bottom split.
----Call this after dapui is closed.
+---Close the log split if open.
+local function close_log_win()
+    if not log_bufnr then
+        return
+    end
+    if vim.api.nvim_buf_is_valid(log_bufnr) then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+            if vim.api.nvim_win_get_buf(win) == log_bufnr then
+                vim.api.nvim_win_close(win, true)
+                break
+            end
+        end
+        -- bufhidden=wipe may have already deleted it after window close
+        if vim.api.nvim_buf_is_valid(log_bufnr) then
+            vim.api.nvim_buf_delete(log_bufnr, { force = true })
+        end
+    end
+    log_bufnr = nil
+end
+
+---Show the dapui console output in a bottom split.
+---Safe to call multiple times — replaces previous log split.
 function M.show_logs()
-    -- Guard against duplicate calls (event_terminated + event_exited)
-    if shown or not snapshot_lines then
+    local lines = read_console()
+    if not lines then
         return
     end
 
-    shown = true
+    close_log_win()
 
     log_bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(log_bufnr, 0, -1, false, snapshot_lines)
-    -- snapshot_lines = nil
+    vim.api.nvim_buf_set_lines(log_bufnr, 0, -1, false, lines)
 
     require("utils.buffer-util").open_scratch_split(log_bufnr)
     vim.cmd("normal! G")
 end
 
----Close the log split if open, and reset state for a new debug session.
+---Close any existing log split. Call on new debug session start.
 function M.reset()
-    if log_bufnr and vim.api.nvim_buf_is_valid(log_bufnr) then
-        for _, win in ipairs(vim.api.nvim_list_wins()) do
-            if vim.api.nvim_win_get_buf(win) == log_bufnr then
-                vim.api.nvim_win_close(win, true)
-            end
-        end
-    end
-    log_bufnr = nil
-    shown = false
-    snapshot_lines = nil
+    close_log_win()
 end
 
 return M

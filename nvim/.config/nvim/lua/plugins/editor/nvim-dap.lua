@@ -65,24 +65,20 @@ return {
                 vim.cmd("Neotree close")
                 dap_util.reset()
                 dapui.open({})
-
-                local console_buf = dapui.elements.console.buffer()
-                vim.bo[console_buf].filetype = "log" -- highlight logs (log-highlight.nvim)
             end
             dap.listeners.before.event_terminated["dapui_config"] = function()
-                dap_util.snapshot()
+                dap_util.show_logs()
                 dapui.close({})
                 vim.schedule(function()
                     vim.cmd("Neotree filesystem reveal left action=show")
-                    dap_util.show_logs()
+                    -- dap_util.show_logs()
                 end)
             end
             dap.listeners.before.event_exited["dapui_config"] = function()
-                dap_util.snapshot()
                 dapui.close({})
                 vim.schedule(function()
                     vim.cmd("Neotree filesystem reveal left action=show")
-                    dap_util.show_logs()
+                    -- dap_util.show_logs()
                 end)
             end
         end,

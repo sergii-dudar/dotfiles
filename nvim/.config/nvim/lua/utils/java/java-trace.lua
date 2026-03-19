@@ -97,7 +97,6 @@ local parse_java_stack_trace = function(trace, result_callback)
             end
             trace_number = trace_number + 1
         end
-        dd(parsed_trace)
         result_callback(loc_result_items)
     else
         jdtls_util.jdt_load_unique_class_list(jdt_classes, function(jdt_results_items_map)
