@@ -12,6 +12,7 @@ task.test_type = {
     ALL_DIR_TESTS = 4,
     ALL_MODULES_TESTS = 5,
     SELECTED_MODULES_TESTS = 6,
+    TOGGLE_LAST_DEBUG = 7, -- toggle last test cmd between debug and regular run
 }
 task.run_type = {
     --- @enum task.run_type
@@ -74,6 +75,7 @@ return {
             -- { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>tt", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
+            { "<leader>tD", build_run_test(task.test_type.TOGGLE_LAST_DEBUG), desc = "Toggle Debug of Last Test Cmd", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
             { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },

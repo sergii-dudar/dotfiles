@@ -253,6 +253,8 @@ local function build_multi_module_cmd(modules)
     return { cmd = chained, report_dir = report_dirs }
 end
 
+local last_runned_details = {}
+
 ---@param context task.lang.Context
 ---@return task.lang.test.TestCmd
 function build_junit_tests_cmd(context)
@@ -280,11 +282,30 @@ function build_junit_tests_cmd(context)
     local module_path = java_util.get_buffer_project_path()
     local current_report_dir = module_path .. setting.report_dir
 
+    if type == task.test_type.TOGGLE_LAST_DEBUG then
+        if type == task.test_type.CURRENT_TEST or task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
+            last_runned_details.is_debug = not last_runned_details.is_debug
+            vim.notify("test.. :" .. vim.inspect(last_runned_details.is_debug), vim.log.levels.ERROR)
+            return {
+                cmd = build_single_module_cmd({
+                    classpath = classpath,
+                    report_dir = current_report_dir,
+                    test_selector = last_runned_details.test_selector,
+                    is_debug = last_runned_details.is_debug,
+                }),
+                report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
+            }
+        end
+        return { cmd = { "echo", type .. " is not supported to toggle last run cmd" } }
+    end
+
     local test_selector = test_selector_resolver[type]()
     if test_selector == nil then
         return { cmd = { "echo", "Wrong test selector context!" } }
     end
 
+    last_runned_details.test_selector = test_selector
+    last_runned_details.is_debug = is_debug
     return {
         cmd = build_single_module_cmd({
             classpath = classpath,
