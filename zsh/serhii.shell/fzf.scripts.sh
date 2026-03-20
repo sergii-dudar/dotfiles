@@ -90,7 +90,7 @@ function fzf_preview() {
         --delimiter : \
         --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
         --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
-        --bind "enter:become(nvim --clean {1})"
+        --bind "enter:become(LIMITED=Y nvim {1})"
     # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
 }
 

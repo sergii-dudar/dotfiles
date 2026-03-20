@@ -30,7 +30,7 @@ prepend_keymap = [
     #{ on = [ "v", "f" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
     #{ on = [ "t", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && open -a iTerm . || kitty" --orphan', desc = "open terminal" },
     { on = [ "e", "t" ], run = 'shell "[[ "$(uname)" == "Darwin" ]] && iterm || kitty" --orphan', desc = "open terminal" },
-    { on = [ "e", "v" ], run = 'shell "nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
+    { on = [ "e", "v" ], run = 'shell "LIMITED=Y nvim -p \"$@\"" --block', desc = "NeoVim [selected file]" },
     { on = [ "e", "s" ], run = 'shell "sudo nvim -p \"$@\"" --block', desc = "Sudo NeoVim [selected file]" },
     ###{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },
     #{ on = [ "t", "t" ], run = 'shell "kitty" --orphan', desc = "open terminal" },

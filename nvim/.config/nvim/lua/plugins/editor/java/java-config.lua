@@ -33,6 +33,7 @@ return {
     {
         "mfussenegger/nvim-jdtls",
         -- cond = java_util.is_java_project(),
+        cond = global.is_not_limited,
         dependencies = {
             "mason-org/mason.nvim",
             "JavaHello/spring-boot.nvim",
@@ -85,7 +86,7 @@ return {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
         ft = { "java", "yaml", "properties", "yml" },
-        cond = java_util.is_java_project(),
+        cond = java_util.is_java_project() and global.is_not_limited,
         dependencies = {
             "mfussenegger/nvim-jdtls",
         },
@@ -152,7 +153,7 @@ return {
         -- "JavaHello/java-deps.nvim",
         "sergii-dudar/java-deps.nvim",
         ft = { "java" },
-        cond = java_util.is_java_project(),
+        cond = java_util.is_java_project() and global.is_not_limited,
         lazy = true,
         -- stylua: ignore
         keys = {
