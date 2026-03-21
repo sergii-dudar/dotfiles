@@ -137,6 +137,7 @@ function grept_in() {
     search="$1"
     search_in="$2"
 
+    # --hidden
     rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
 }
 

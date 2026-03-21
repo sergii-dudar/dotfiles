@@ -1,0 +1,42 @@
+[metadata]
+name = "tldrc" # Identifier used to invoke the channel (tv tldr)
+description = "Browse and preview TLDR help pages" # Shown in the remote control and help
+requirements = ["tldr"] # Lists required binaries - tv checks these exist at runtime and warns if missing
+
+[source]
+command = "tldr --list" # The shell command that produces searchable entries
+
+[preview]
+command = "tldr '{}'" # The {} is a placeholder that gets replaced with the selected entry.
+
+[ui]
+# preview_panel = { size = 60 }  # 60% width for preview
+layout = "portrait" # "landscape" or "portrait"
+# ui_scale = 100 # integer (0-100) - Percentage of terminal to use
+input_bar_position = "bottom" # "top" or "bottom"
+# input_prompt = "👉"
+input_header = "Search files:"
+input_prompt = ">> "
+
+[ui.preview_panel]
+size = 60
+# border_type = "rounded" # "none", "plain", "rounded", "thick"
+
+[ui.status_bar]
+# separator_open = "["
+# separator_close = "]"
+hidden = true
+
+[keybindings]
+shortcut = "f5"  # Press F5 anywhere to switch to this channel
+ctrl-e = "actions:open" # Maps Ctrl+E to trigger the "open" action
+
+[actions.open] # Defines a custom action with a command
+description = "Open TLDR page in pager"
+# command = "tldr '{}' | less"
+command = "tldr '{}' | bat"
+mode = "execute" # Runs the command and returns to tv when done
+
+# Action modes:
+#  - fork: Run command, return to tv afterward
+#  - execute: Replace tv with the command (doesn't return)
