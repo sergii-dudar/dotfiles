@@ -1,5 +1,5 @@
 [metadata]
-name = "tldrc" # Identifier used to invoke the channel (tv tldr)
+name = "ctldr" # Identifier used to invoke the channel (tv tldr)
 description = "Browse and preview TLDR help pages" # Shown in the remote control and help
 requirements = ["tldr"] # Lists required binaries - tv checks these exist at runtime and warns if missing
 
