@@ -5,25 +5,35 @@ requirements = ["rg", "bat"]
 
 [source]
 command = [
-  "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
-  "rg . --no-heading --line-number --hidden --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
+  "rg . -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
+  # "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
+  # "rg . --no-heading --line-number --hidden --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
 ]
 ansi = true
 output = "{strip_ansi|split:\\::..2}"
 
 [preview]
-command = "bat -n --color=always '{strip_ansi|split:\\::0}'"
+# command = "bat -n --color=always '{strip_ansi|split:\\::0}'"
+# command = "bat --style=changes --color=always '{strip_ansi|split:\\::0}'"
+command = "bat --style=changes --color=always '{strip_ansi|split:\\::0}'"
 env = { BAT_THEME = "ansi" }
 offset = '{strip_ansi|split:\::1}'
 
-[ui]
-preview_panel = { header = '{strip_ansi|split:\::..2}' }
+# [ui]
+# preview_panel = { header = '{strip_ansi|split:\::..2}' }
+
+[ui.preview_panel]
+header = '{strip_ansi|split:\::..2}'
+size = 70
+
+[ui.input_bar]
+header = "grept"
 
 [keybindings]
 enter = "actions:edit"
 
 [actions.edit]
 description = "Open file in editor at line"
-command = "${EDITOR:-vim} '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'"
+command = "LIMITED=Y nvim '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'"
 shell = "bash"
-mode = "execute"
+mode = "fork"

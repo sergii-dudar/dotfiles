@@ -111,11 +111,12 @@ sort_alphabetically = true
 # as hex values (e.g., "#ff0000", "#1e1e2e").
 #
 # Example overrides:
-# [ui.theme_overrides]
+[ui.theme_overrides]
 # background = "#000000"
 # text_fg = "#ffffff"
 # selection_bg = "#444444"
 # match_fg = "#ff0000"
+selection_bg = "#44475a"
 
 # Keybindings and Events
 # ----------------------------------------------------------------------------
