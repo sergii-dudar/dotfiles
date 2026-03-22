@@ -13,10 +13,12 @@ command = "tldr '{}'" # The {} is a placeholder that gets replaced with the sele
 # preview_panel = { size = 60 }  # 60% width for preview
 layout = "portrait" # "landscape" or "portrait"
 # ui_scale = 100 # integer (0-100) - Percentage of terminal to use
-input_bar_position = "bottom" # "top" or "bottom"
-# input_prompt = "👉"
-input_header = "Search files:"
-input_prompt = ">> "
+
+[ui.input_bar]
+# header = "Search files:"
+## prompt = "👉"
+# prompt = ">> "
+position = "top" # "top" or "bottom"
 
 [ui.preview_panel]
 size = 60
@@ -30,6 +32,14 @@ hidden = true
 [keybindings]
 shortcut = "f5"  # Press F5 anywhere to switch to this channel
 ctrl-e = "actions:open" # Maps Ctrl+E to trigger the "open" action
+# quit = ["esc", "ctrl-c"]
+ctrl-n = "select_next_entry"
+ctrl-p = "select_prev_entry"
+ctrl-d = "select_next_page"
+ctrl-u = "select_prev_page"
+# select_next_entry = ["down", "ctrl-j", "ctrl-n"]
+# select_prev_entry = ["up", "ctrl-k", "ctrl-p"]
+# confirm_selection = "enter"
 
 [actions.open] # Defines a custom action with a command
 description = "Open TLDR page in pager"

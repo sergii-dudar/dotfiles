@@ -154,6 +154,8 @@ function grept_src_in() {
     rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
 }
 
+# legacy
+
 function findt() {
     rg -i -N -C 15 -g '!node_modules*' -g '!target*' -g '!bin*' "$1" .
 }
