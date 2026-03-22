@@ -70,11 +70,9 @@ function grept() {
     layout=$(detect_layout)
     if [ -z "$1" ]; then
         tv ctext --layout "$layout"
-        # rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
     else
         search="$1"
         tv ctext --layout "$layout" -i "$search"
-        # rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
     fi
 }
 
@@ -87,14 +85,33 @@ function grept_in() {
 }
 
 function grept_src() {
-    search="$1"
-
-    rg -g '!node_modules*' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+    local layout
+    local header
+    local source_cmd
+    layout=$(detect_layout)
+    header="grept src"
+    source_cmd="rg . -g '!node_modules*' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
+    if [ -z "$1" ]; then
+        tv ctext --layout "$layout" --input-header "$header" --source-command "$source_cmd"
+    else
+        search="$1"
+        tv ctext --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
+    fi
 }
 
 function grept_src_in() {
-    search="$1"
+    local layout
+    local search_in
+    local header
+    local source_cmd
+    layout=$(detect_layout)
     search_in="$2"
-
-    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+    header="grept src in ( $search_in )"
+    source_cmd="rg . -g '!node_modules*' -g '$search_in' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case"
+    if [ -z "$1" ]; then
+        tv ctext --layout "$layout" --input-header "$header" --source-command "$source_cmd"
+    else
+        search="$1"
+        tv ctext --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
+    fi
 }

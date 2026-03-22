@@ -5,7 +5,9 @@ requirements = ["rg", "bat"]
 
 [source]
 command = [
-  "rg . -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
+  "rg . -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings",
+  # search only in src (ignore test)
+  "rg . -g '!test*' -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
   # "rg . --no-heading --line-number --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
   # "rg . --no-heading --line-number --hidden --colors 'match:fg:white' --colors 'path:fg:blue' --color=always",
 ]
