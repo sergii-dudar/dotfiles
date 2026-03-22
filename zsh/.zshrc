@@ -146,6 +146,7 @@ source "$ZSH/oh-my-zsh.sh"
 # ============================== Dependencies:
 # https://formulae.brew.sh/formula/tldr
 # https://github.com/junegunn/fzf
+# https://github.com/alexpasmantier/television
 # https://github.com/sharkdp/fd
 # https://github.com/BurntSushi/ripgrep
 # https://github.com/sharkdp/bat
@@ -164,6 +165,7 @@ source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
 source "$HOME/serhii.shell/aliases.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
+source "$HOME/serhii.shell/tv.scripts.sh"
 source "$HOME/serhii.shell/tmux.scripts.sh"
 [ -s "$HOME/serhii.shell/work.sh" ] && source "$HOME/serhii.shell/work.sh"
 [ -s "$HOME/serhii.shell/private.sh" ] && source "$HOME/serhii.shell/private.sh"
