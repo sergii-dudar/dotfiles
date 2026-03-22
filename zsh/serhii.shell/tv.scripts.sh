@@ -47,23 +47,39 @@ function detect_layout() {
     fi
 }
 
+### Find File ###
+
 function findf() {
+    local layout
+    layout=$(detect_layout)
     if [ -z "$1" ]; then
-        fd --type f --color=always --hidden --exclude .git | fzf_preview_no_select
+        tv cfiles --layout "$layout"
     else
-        search="$1"
-        fd --type f --color=always --hidden --exclude .git "$search" | fzf_preview_no_select
+        search="'$1"
+        tv cfiles --layout "$layout" -i "$search"
     fi
 }
 
 function findf_src() {
+    local layout
+    local header
+    local source_cmd
+    layout=$(detect_layout)
+    header="findt src"
+    source_cmd="fd --type f --color=always --hidden --exclude .git --exclude test"
     if [ -z "$1" ]; then
-        fd --type f --color=always --hidden --exclude .git --exclude test | fzf_preview_no_select
+        tv cfiles --layout "$layout" --input-header "$header" --source-command "$source_cmd"
     else
-        search="$1"
-        fd --type f --color=always --hidden --exclude .git  --exclude test "$search" | fzf_preview_no_select
+        search="'$1"
+        tv cfiles --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
     fi
 }
+
+### Find Dir ###
+
+# TODO: dind dirs, and open with nvim/idea/yazi/just cd
+
+### Grep ###
 
 function grept() {
     local layout

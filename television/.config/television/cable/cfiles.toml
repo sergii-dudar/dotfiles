@@ -4,25 +4,36 @@ description = "A channel to select files and directories"
 requirements = ["fd", "bat"]
 
 [source]
-command = ["fd -t f", "fd -t f -H"]
+command = ["fd --type f --color=always --hidden --exclude .git", "fd --type f --color=always --hidden --exclude .git -H"]
+ansi = true
 
 [preview]
-command = "bat -n --color=always '{}'"
+#command = "bat -n --color=always '{}'"
+command = "bat --style=changes --color=always '{strip_ansi|split:\\::0}'"
 env = { BAT_THEME = "ansi" }
 
+[ui.preview_panel]
+header = '{strip_ansi|split:\::..2}'
+size = 70
+
+[ui.input_bar]
+header = "findf"
+prompt = "❯"
+
 [keybindings]
-shortcut = "f1"
-f12 = "actions:edit"
+# shortcut = "f1"
+# f12 = "actions:edit"
 ctrl-up = "actions:goto_parent_dir"
+enter = "actions:edit"
 
 [actions.edit]
-description = "Opens the selected entries with the default editor (falls back to vim)"
-command = "${EDITOR:-vim} '{}'"
+description = "Opens the selected entries with the nvim editor"
+command = "LIMITED=Y nvim '{strip_ansi|split:\\::0}'"
 shell = "bash"
 # use `mode = "fork"` if you want to return to tv afterwards
-mode = "execute"
+mode = "fork"
 
 [actions.goto_parent_dir]
 description = "Re-opens tv in the parent directory"
-command = "tv files .."
+command = "tv cfiles .."
 mode = "execute"

@@ -33,7 +33,7 @@ prompt = "❯"
 enter = "actions:edit"
 
 [actions.edit]
-description = "Open file in editor at line"
+description = "Open file in nvim at line"
 command = "LIMITED=Y nvim '+{strip_ansi|split:\\::1}' '{strip_ansi|split:\\::0}'"
 shell = "bash"
 mode = "fork"
