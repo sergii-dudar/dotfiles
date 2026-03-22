@@ -23,6 +23,30 @@ function fzf_preview_no_select() {
         --bind "enter:become(bat --color=always {1})"
 }
 
+function detect_layout() {
+    local cols lines
+    # if [[ -n "$TMUX" ]]; then
+    #     cols=$(tmux display -p '#{pane_width}')
+    #     lines=$(tmux display -p '#{pane_height}')
+    # else
+    cols=${COLUMNS:-$(tput cols)}
+    lines=${LINES:-$(tput lines)}
+    # echo $((cols / 3.2)) - $((lines))
+    # echo "$(echo "scale=2; $cols / 3" | bc)" - $((lines))
+    # echo $((cols / 3)) - $((lines))
+
+    # fi
+
+    # if (( cols > 2 * lines )); then
+    # if (( cols * 2 > lines * 3 )); then
+    # if (( lines > cols / 3 )); then
+    if (( lines > "$(echo "scale=2; $cols / 3.2" | bc)" )); then
+        echo "portrait"
+    else
+        echo "landscape"
+    fi
+}
+
 function findf() {
     if [ -z "$1" ]; then
         fd --type f --color=always --hidden --exclude .git | fzf_preview_no_select
@@ -42,12 +66,14 @@ function findf_src() {
 }
 
 function grept() {
+    local layout
+    layout=$(detect_layout)
     if [ -z "$1" ]; then
-        tv ctext
+        tv ctext --layout "$layout"
         # rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
     else
         search="$1"
-        tv ctext -i "$search"
+        tv ctext --layout "$layout" -i "$search"
         # rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
     fi
 }

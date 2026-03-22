@@ -63,7 +63,7 @@ theme = "television"
 # Where to place the input bar in the UI (top or bottom)
 position = "top"
 # The input prompt string (defaults to ">" if not specified)
-prompt = ">"
+prompt = "❯"
 # header = "{}"
 # padding = {"left": 0, "right": 0, "top": 0, "bottom": 0}
 border_type = "rounded" # https://docs.rs/ratatui/latest/ratatui/widgets/block/enum.BorderType.html#variants

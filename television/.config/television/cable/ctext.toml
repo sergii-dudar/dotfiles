@@ -19,15 +19,13 @@ command = "bat --style=changes --color=always '{strip_ansi|split:\\::0}'"
 env = { BAT_THEME = "ansi" }
 offset = '{strip_ansi|split:\::1}'
 
-# [ui]
-# preview_panel = { header = '{strip_ansi|split:\::..2}' }
-
 [ui.preview_panel]
 header = '{strip_ansi|split:\::..2}'
 size = 70
 
 [ui.input_bar]
 header = "grept"
+prompt = "❯"
 
 [keybindings]
 enter = "actions:edit"
