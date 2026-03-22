@@ -71,17 +71,26 @@ function grept() {
     if [ -z "$1" ]; then
         tv ctext --layout "$layout"
     else
-        search="$1"
+        search="'$1"
         tv ctext --layout "$layout" -i "$search"
     fi
 }
 
 function grept_in() {
-    search="$1"
-    search_in="$2"
-
-    # --hidden
-    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+    local layout
+    local search_in
+    local header
+    local source_cmd
+    layout=$(detect_layout)
+    search_in="*.$2"
+    header="grept in ( $search_in )"
+    source_cmd="rg . -g '!node_modules*' -g '$search_in' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
+    if [ -z "$1" ]; then
+        tv ctext --layout "$layout" --input-header "$header" --source-command "$source_cmd"
+    else
+        search="'$1"
+        tv ctext --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
+    fi
 }
 
 function grept_src() {
@@ -94,7 +103,7 @@ function grept_src() {
     if [ -z "$1" ]; then
         tv ctext --layout "$layout" --input-header "$header" --source-command "$source_cmd"
     else
-        search="$1"
+        search="'$1"
         tv ctext --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
     fi
 }
@@ -105,13 +114,13 @@ function grept_src_in() {
     local header
     local source_cmd
     layout=$(detect_layout)
-    search_in="$2"
+    search_in="*.$2"
     header="grept src in ( $search_in )"
-    source_cmd="rg . -g '!node_modules*' -g '$search_in' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case"
+    source_cmd="rg . -g '!node_modules*' -g '$search_in' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings"
     if [ -z "$1" ]; then
         tv ctext --layout "$layout" --input-header "$header" --source-command "$source_cmd"
     else
-        search="$1"
+        search="'$1"
         tv ctext --layout "$layout" --input-header "$header" -i "$search" --source-command "$source_cmd"
     fi
 }
