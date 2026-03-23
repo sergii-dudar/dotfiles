@@ -106,6 +106,9 @@ function grept() {
     fi
 }
 
+zle -N grept
+bindkey '^g' grept
+
 function grept_in() {
     local layout
     local search_in

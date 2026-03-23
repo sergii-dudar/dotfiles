@@ -63,7 +63,14 @@ export FZF_ALT_C_OPTS=$'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
 echo "change-prompt(Zoxide> )+reload(zoxide query -l)" ||
 echo "change-prompt(Directories> )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
+--bind \'ctrl-e:execute(cd {} && nvim)\'
+--bind \'ctrl-y:execute(cd {} && yazi)\'
+--bind \'ctrl-g:execute(cd {} && tv ctext)\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
+
+# Press F1 to open the file with less without leaving fzf
+# Press CTRL-Y to copy the line to clipboard and aborts fzf (requires pbcopy)
+# fzf --bind 'f1:execute(less -f {}),ctrl-y:execute-silent(echo {} | pbcopy)+abort'
 
 if isMacOs; then
     # workaround for fzf keybinding with alt+
