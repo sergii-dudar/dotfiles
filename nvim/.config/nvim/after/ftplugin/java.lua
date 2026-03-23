@@ -67,37 +67,34 @@ vim.api.nvim_set_keymap("n", "<leader><F10>", ":JdtCompile full<CR>", { noremap 
 
 -- stylua: ignore end
 
--- NOTE: usefull in case incremental compile
-local is_config_updated = false
-local old_handler = vim.lsp.handlers["$/progress"]
+-- NOTE: Trigger full compile AFTER JDTLS finishes workspace build.
+-- Actual startup order: Building → Importing Maven → Synchronizing → Clean workspace
+--   → Validate documents → Publish Diagnostics → Register Watchers → Send Classpath
+-- "Publish Diagnostics" means JDTLS has validated code and knows about generated-sources dirs.
+-- local log = require("utils.logging-util").new({
+--     name = "jdtls.progress",
+--     filename = "jdtls-progress.log",
+--     level = vim.log.levels.DEBUG,
+-- })
+-- local old_handler = vim.lsp.handlers["$/progress"]
 vim.lsp.handlers["$/progress"] = function(_, result, ctx)
-    -- Forward to any existing UI plugins (like fidget.nvim)
-    --[[ if old_handler then
-        old_handler(_, result, ctx)
-    end ]]
+    -- if old_handler then
+    --     old_handler(_, result, ctx)
+    -- end
 
-    -- Check for the specific "Service Ready" or end of background work
     local val = result.value
+    -- if val then
+    --     log.fmt_debug("kind=%s message=%s", val.kind or "nil", val.message or "nil")
+    -- end
 
-    --[[ if val.kind == "report" then
-        return
-    end
-    dd(val) ]]
-
-    -- "Clean workspace..."
-    -- "Synchronizing projects"
-    -- "Send Classpath Notifications"
-    -- "Register Watchers"
-    if not is_config_updated and val and val.kind == "end" and val.message == "Register Watchers" then
+    if not vim.g._is_workspace_built and val and val.kind == "end" and val.message == "Publish Diagnostics" then
+        vim.g._is_workspace_built = true
+        -- log.info("Publish Diagnostics completed — triggering JdtCompile full (1s delay)")
         vim.notify("🏄 JDTLS updating workspace started...")
-        is_config_updated = true
-
-        -- need to regenerate (repick) generated source codes like [mapscruct etc] after startup cleanup project workspace,
-        -- very important to call update after cleanup and initialize completed
-        vim.schedule(function()
-            -- pcall(vim.cmd, "JdtUpdateConfig")
-            pcall(vim.cmd, "JdtCompile full") -- in case jdtls java.autobuild.enabled = true
-        end)
+        vim.defer_fn(function()
+            pcall(vim.cmd, "JdtCompile full")
+            -- log.info("JdtCompile full dispatched")
+        end, 1000)
     end
 end
 

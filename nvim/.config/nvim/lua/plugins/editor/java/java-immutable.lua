@@ -125,20 +125,21 @@ return {
             --     table.insert(cmd, "--jvm-arg=-XX:ZUncommitDelay=300")       -- Return unused memory after 5min
             -- end
 
-            -- Performance Optimizations for Microservices
-            -- Focus on startup speed and resource efficiency
+            -- Performance Optimizations
+            -- JDTLS is long-running — allow full C2 JIT optimization for faster indexing.
+            -- TieredStopAtLevel=1 was removed: it saved ~2s startup but made workspace builds
+            -- significantly slower (no C2 optimization), widening the window where "Go to
+            -- Implementation" fails for generated sources (MapStruct etc.)
             do
-                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation") -- Enable tiered compilation
-                table.insert(cmd, "--jvm-arg=-XX:TieredStopAtLevel=1") -- Faster startup (C1 only, no C2 optimization)
+                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation") -- Enable tiered compilation (full C1→C2)
                 table.insert(cmd, "--jvm-arg=-XX:CICompilerCount=2") -- Limit JIT threads (reduce CPU contention)
             end
 
-            -- Metaspace & Code Cache (for Spring Boot microservices)
-            -- Tune for typical microservice class counts
+            -- Metaspace & Code Cache
             do
                 table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m") -- Lower initial (microservices are smaller)
                 table.insert(cmd, "--jvm-arg=-XX:MaxMetaspaceSize=1g") -- Lower max (microservices don't need 2g)
-                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=256m") -- Reduced (TieredStopAtLevel=1 needs less)
+                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=512m") -- Increased: full tiered compilation needs more code cache
             end
 
             --==============================================================================
