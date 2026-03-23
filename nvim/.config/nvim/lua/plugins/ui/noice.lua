@@ -26,10 +26,19 @@ return {
                 lsp_doc_border = true, -- add a border to hover docs and signature help
             },
             lsp = {
+                message = {
+                    -- Messages shown by lsp servers
+                    enabled = true,
+                },
+                progress = {
+                    enabled = true, -- temp enabled, as usefull in filtering not important lsp errors
+                },
                 hover = {
+                    enabled = false, -- using blink
                     silent = true, -- set to true to not show a message if hover is not available
                 },
                 signature = {
+                    enabled = false,
                     auto_open = {
                         enabled = false, -- in favor of blink.cmp
                     },
