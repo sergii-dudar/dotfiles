@@ -58,11 +58,12 @@ export FZF_CTRL_R_OPTS="
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
+_fzf_alt_c_header=" █ [${b}󰘴a${n}]:All ⚡ █ [${b}󰘴t${n}]:Tmux 🪟 █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █ "
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
     --header \'ctrl-t: Zoxide/Directories\'
-    --header \' █ [${b}󰘴a${n}]:All ⚡ █ [${b}󰘴t${n}]:Tmux 🪟 █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █ \'
+    --header \''"${_fzf_alt_c_header}"$'\'
     --border-label \' Directories Manager \'
     --pointer \'👉\'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
