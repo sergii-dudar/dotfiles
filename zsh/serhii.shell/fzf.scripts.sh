@@ -51,14 +51,19 @@ export FZF_CTRL_R_OPTS="
 --bind 'ctrl-/:toggle-preview'
 --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
 --color header:italic
---header 'Press CTRL-Y to copy command into clipboard'"
+--header 'copy:ctrl-y | preview:ctrl-/'"
 
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
-export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
-# Print tree structure in the preview window
-export FZF_ALT_C_OPTS="
---walker-skip .git,node_modules,target
---preview 'tree -C -L 1 {}'"
+# export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
+export FZF_ALT_C_COMMAND='zoxide query -l'
+export FZF_ALT_C_OPTS=$'
+    --exact
+    --prompt \'Zoxide> \'
+    --header \'ctrl-t: Zoxide/Directories\'
+    --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
+echo "change-prompt(Zoxide> )+reload(zoxide query -l)" ||
+echo "change-prompt(Directories> )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
+--preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
 if isMacOs; then
     # workaround for fzf keybinding with alt+
