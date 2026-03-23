@@ -8,6 +8,8 @@ fi
 
 # - ctrl + r to find command from zsh history
 
+b=$(tput bold)
+n=$(tput sgr0)
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=10000
@@ -58,11 +60,14 @@ export FZF_CTRL_R_OPTS="
 export FZF_ALT_C_COMMAND='zoxide query -l'
 export FZF_ALT_C_OPTS=$'
     --exact
-    --prompt \'Zoxide> \'
+    --prompt \'🚀 Zoxide ❯ \'
     --header \'ctrl-t: Zoxide/Directories\'
+    --header \' █ [${b}󰘴a${n}]:All ⚡ █ [${b}󰘴t${n}]:Tmux 🪟 █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █ \'
+    --border-label \' Directories Manager \'
+    --pointer \'👉\'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
-echo "change-prompt(Zoxide> )+reload(zoxide query -l)" ||
-echo "change-prompt(Directories> )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
+echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
+echo "change-prompt(🔎 Directories ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
 --bind \'ctrl-e:execute(cd {} && nvim)\'
 --bind \'ctrl-y:execute(cd {} && yazi)\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
