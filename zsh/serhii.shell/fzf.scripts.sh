@@ -58,17 +58,16 @@ export FZF_CTRL_R_OPTS="
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" █ [${b}󰘴a${n}]:All ⚡ █ [${b}󰘴t${n}]:Tmux 🪟 █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █ "
+_fzf_alt_c_header=" [${b}󰘴t${n}]:Switch [🚀 Z][🔎 Dirs]  [${b}󰘴e${n}]:Nvim   [${b}󰘴y${n}]:Yazi 📁  [${b}󰘴g${n}]:Grept 🔭 "
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
-    --header \'ctrl-t: Zoxide/Directories\'
     --header \''"${_fzf_alt_c_header}"$'\'
     --border-label \' Directories Manager \'
     --pointer \'👉\'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
 echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
-echo "change-prompt(🔎 Directories ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
+echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
 --bind \'ctrl-e:execute(cd {} && nvim)\'
 --bind \'ctrl-y:execute(cd {} && yazi)\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
