@@ -4,11 +4,19 @@ return {
         dependencies = {
             -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
             "MunifTanjim/nui.nvim",
+            "folke/snacks.nvim",
             -- OPTIONAL:
             --   `nvim-notify` is only needed, if you want to use the notification view.
             --   If not available, we use `mini` as the fallback
             -- "rcarriga/nvim-notify", -- in favor of snacks.notify
         },
+        -- LazyVim resets vim.notify after Snacks setup to let noice take over (lazyvim/plugins/init.lua).
+        -- But with notify.enabled = false, noice never reclaims it — leaving the bare built-in.
+        -- Restore Snacks.notifier as vim.notify after noice loads.
+        config = function(_, opts)
+            require("noice").setup(opts)
+            vim.notify = require("snacks.notifier").notify
+        end,
         opts = {
             presets = {
                 bottom_search = false, -- use a classic bottom cmdline for search
