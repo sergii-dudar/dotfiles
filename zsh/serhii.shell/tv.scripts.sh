@@ -77,7 +77,21 @@ function findf_src() {
 
 ### Find Dir ###
 
-# TODO: dind dirs, and open with nvim/idea/yazi/just cd
+function findd() {
+    local layout
+    local result_dir
+    layout=$(detect_layout)
+    if [ -z "$1" ]; then
+        result_dir=$(tv cdirs --layout "$layout")
+    else
+        search="'$1"
+        result_dir=$(tv cdirs --layout "$layout" -i "$search")
+    fi
+    # echo "$result_dir"
+    # [[ -n "$result_dir" ]] && z "$result_dir"
+    # bash -c "$cmd" >/dev/null 2>&1 &
+    eval "$result_dir"
+}
 
 ### Grep ###
 

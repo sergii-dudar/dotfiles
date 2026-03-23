@@ -1,23 +1,67 @@
 [metadata]
 name = "cdirs"
 description = "A channel to select from directories"
-requirements = ["fd"]
+requirements = ["fd", "eza", "zoxide"]
 
 [source]
-command = ["fd -t d", "fd -t d --hidden"]
+command = "zoxide query -l"
+no_sort = true
+frecency = false
+# command = ["fd --type d --color=always --hidden --exclude .git", "fd --type d --color=always --hidden --exclude .git -H"]
+# ansi = true
 
 [preview]
-command = "ls -la --color=always '{}'"
+command = "eza --tree --icons --level=1 --color=always --group-directories-first '{}'"
+# command = "eza --tree --icons --level=1 --color=always --group-directories-first '{strip_ansi|split:\\::0}'"
+# command = "bat --style=changes --color=always '{strip_ansi|split:\\::0}'"
+
+[ui.preview_panel]
+# header = '{strip_ansi|split:\::..2}'
+header = '{}'
+size = 70
+
+[ui.input_bar]
+header = "findf"
+prompt = "❯"
 
 [keybindings]
-shortcut = "f2"
+# shortcut = "f1"
+# f12 = "actions:edit"
+ctrl-up = "actions:goto_parent_dir"
+f1 = "actions:goto_home_dir"
+enter = "actions:print"
 
-[actions.cd]
+[actions.nvim]
+description = "Open a selected directory in nvim"
+command = "echo \"cd '{}' && nvim\""
+mode = "execute"
+
+[actions.idea]
+description = "Open a selected directory in idea"
+command = "echo 'bash -c \"idea '{}'\" >/dev/null 2>&1 &'"
+mode = "execute"
+
+[actions.files]
+description = "Open a selected directory in file manager"
+command = "echo \"cd '{}' && y\""
+mode = "execute"
+
+[actions.print]
 description = "Open a shell in the selected directory"
-command = "cd '{}' && $SHELL"
+# command = "/usr/bin/cd $PWD/'{strip_ansi|split:\\::0}'"
+# command = "echo $PWD/'{strip_ansi|split:\\::0}'"
+# command = "echo '{strip_ansi|split:\\::0}'"
+command = "echo \"z '{}'\""
+# command = "cd /Users/iuada144/dotfiles/Code/.config/Code/User && $SHELL"
+# command = "cd '{}' && $SHELL"
 mode = "execute"
 
 [actions.goto_parent_dir]
 description = "Re-opens tv in the parent directory"
-command = "tv dirs .."
+command = "tv cdirs .."
+mode = "execute"
+
+[actions.goto_home_dir]
+description = "Re-opens tv in the home directory"
+command = "tv cdirs ~"
 mode = "execute"
