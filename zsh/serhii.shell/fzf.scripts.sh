@@ -46,10 +46,11 @@ export FZF_CTRL_T_OPTS="
 # ===== CTRL-R - Paste the selected command from history onto the command-line
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
+_clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_R_OPTS="
 --preview 'echo {}' --preview-window up:3:hidden:wrap
 --bind 'ctrl-/:toggle-preview'
---bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+--bind 'ctrl-y:execute-silent(echo -n {2..} | ${_clip})+abort'
 --color header:italic
 --header 'copy:ctrl-y | preview:ctrl-/'"
 
