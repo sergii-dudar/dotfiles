@@ -8,8 +8,6 @@ fi
 
 # - ctrl + r to find command from zsh history
 
-b=$(tput bold)
-n=$(tput sgr0)
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
 SAVEHIST=10000
@@ -55,10 +53,15 @@ export FZF_CTRL_R_OPTS="
 --color header:italic
 --header 'copy:ctrl-y | preview:ctrl-/'"
 
+# wl-copy
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" [${b}󰘴t${n}]:Switch [🚀 Z][🔎 Dirs]  [${b}󰘴e${n}]:Nvim   [${b}󰘴y${n}]:Yazi 📁  [${b}󰘴g${n}]:Grept 🔭 "
+b=$(tput bold)
+n=$(tput sgr0)
+s=$'\033[35m'
+k=$'\033[32m'
+_fzf_alt_c_header=" [${b}${k}󰘴t${n}]:Switch (🚀 Z | 🔎 Dirs) ${s}${n} [${b}${k}󰘴e${n}]:Nvim  ${s}${n} [${b}${k}󰘴y${n}]:Yazi 📁 ${s}${n} [${b}${k}󰘴g${n}]:Grept 🔭 "
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
