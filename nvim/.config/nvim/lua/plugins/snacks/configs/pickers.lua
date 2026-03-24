@@ -64,13 +64,13 @@ M.picker = {
         input = {
             keys = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
-                ["<c-y>"] = { "diff_selected", mode = { "i", "n" } },
+                ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
             },
         },
         list = {
             keys = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
-                ["<c-y>"] = { "diff_selected", mode = { "i", "n" } },
+                ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
             },
         },
     },
