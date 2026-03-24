@@ -6,42 +6,14 @@ Snacks.util.set_hl({
 
 local layouts = require("plugins.snacks.configs.layouts")
 
----@param item snacks.picker.Item
----@return string?
-local function resolve_path(item)
-    local file = item.file
-    if not file then
-        return nil
-    end
-    if item.cwd and not vim.startswith(file, "/") then
-        file = item.cwd .. "/" .. file
-    end
-    return vim.fs.normalize(file)
-end
-
 ---Diff two selected files in a new tab.
 ---Use <Tab> to multi-select exactly 2 files, then trigger this action.
 ---@param picker snacks.Picker
 local function diff_selected(picker)
     local selected = picker:selected({ fallback = false })
-    if #selected ~= 2 then
-        local msg = #selected < 2 and "Select exactly 2 files to diff (use <Tab> to select)"
-            or ("Select exactly 2 files to diff (got " .. #selected .. ")")
-        vim.notify(msg, vim.log.levels.WARN)
-        return
-    end
-    local file1 = resolve_path(selected[1])
-    local file2 = resolve_path(selected[2])
-    if not file1 or not file2 then
-        vim.notify("Could not resolve file paths", vim.log.levels.ERROR)
-        return
-    end
     picker:close()
     vim.schedule(function()
-        vim.cmd("tabnew " .. vim.fn.fnameescape(file1))
-        vim.cmd("diffthis")
-        vim.cmd("vsplit " .. vim.fn.fnameescape(file2))
-        vim.cmd("diffthis")
+        require("utils.diff-util").diff_selected(selected)
     end)
 end
 
