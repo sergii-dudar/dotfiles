@@ -106,8 +106,16 @@ function grept() {
     fi
 }
 
-zle -N grept
-bindkey '^g' grept
+function _grept_widget() {
+    emulate -L zsh
+    zle -I
+    [[ -n "$zle_bracketed_paste" ]] && print -nr "${zle_bracketed_paste[2]}" >"${TTY:-/dev/tty}"
+    grept "$@" </dev/tty
+    [[ -n "$zle_bracketed_paste" ]] && print -nr "${zle_bracketed_paste[1]}" >"${TTY:-/dev/tty}"
+    zle reset-prompt
+}
+zle -N _grept_widget
+bindkey '^g' _grept_widget
 
 function grept_in() {
     local layout
