@@ -1,3 +1,5 @@
+local neotree_util = require("utils.neotree-util")
+
 return {
     "nvim-neo-tree/neo-tree.nvim",
     -- cond = require("utils.project-util").is_multifile_proj,
@@ -11,11 +13,18 @@ return {
             winbar = false,
             statusline = false,
         },
+        commands = {
+            shared_copy = neotree_util.shared_copy,
+            shared_copy_visual = neotree_util.shared_copy_visual,
+            shared_paste = neotree_util.shared_paste,
+        },
         window = {
             mappings = {
                 --    e = 'none'
                 ["/"] = "noop",
                 ["<esc>"] = "noop",
+                ["Y"] = "shared_copy",
+                ["P"] = "shared_paste",
             },
             --position = "float",
             popup = { -- settings that apply to float position only
