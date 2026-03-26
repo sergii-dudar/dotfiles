@@ -50,7 +50,7 @@ else
     alias ubuntuar="sudo apt autoremove"
     alias archu="sudo pacman -Syu && yay -Syu"
     alias archua="archu && yaziu"
-    alias dots_pull_bundle="cd ~/dotfiles && git pull /mnt/ssd500/Shared/linux_bundles/dotfiles_head.bundle HEAD && rm /mnt/ssd500/Shared/linux_bundles/dotfiles_head.bundle"
+    alias dots_pull_bundle="cd ~/dotfiles && git pull && git pull /mnt/ssd500/Shared/linux_bundles/dotfiles_head.bundle HEAD && rm /mnt/ssd500/Shared/linux_bundles/dotfiles_head.bundle && git push"
 fi
 
 # Changing "ps" to "procs"
