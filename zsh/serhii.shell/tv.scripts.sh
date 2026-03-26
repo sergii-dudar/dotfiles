@@ -1,28 +1,3 @@
-function fzf_preview() {
-    while IFS= read -r line; do
-        echo "$line"
-    done | fzf --ansi \
-        --exact \
-        --color "hl:-1:underline,hl+:-1:underline:reverse" \
-        --delimiter : \
-        --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
-        --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
-        --bind "enter:become(LIMITED=Y nvim {1})"
-    # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
-}
-
-function fzf_preview_no_select() {
-    while IFS= read -r line; do
-        echo "$line"
-    done | fzf --ansi \
-        --exact \
-        --color "hl:-1:underline,hl+:-1:underline:reverse" \
-        --delimiter : \
-        --preview 'bat --style=changes --color=always {1}' \
-        --preview-window 'up,85%,border-bottom' \
-        --bind "enter:become(bat --color=always {1})"
-}
-
 function detect_layout() {
     local cols lines
     # if [[ -n "$TMUX" ]]; then
