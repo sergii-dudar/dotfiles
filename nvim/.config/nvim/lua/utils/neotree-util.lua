@@ -1,7 +1,6 @@
 local M = {}
 
 local clipboard_dir = vim.fn.stdpath("data") .. "/neo-tree-clipboard"
-print(clipboard_dir)
 
 local function ensure_clipboard_dir()
     vim.fn.mkdir(clipboard_dir, "p")
@@ -51,6 +50,17 @@ function M.paste_from_shared_clipboard(dest_dir)
     for _, name in ipairs(items) do
         local src = clipboard_dir .. "/" .. name
         local dest = dest_dir .. "/" .. name
+        if vim.fn.filereadable(dest) == 1 or vim.fn.isdirectory(dest) == 1 then
+            local base = vim.fn.fnamemodify(name, ":r")
+            local ext = vim.fn.fnamemodify(name, ":e")
+            local counter = 1
+            repeat
+                local new_name = base .. "_" .. counter .. (ext ~= "" and ("." .. ext) or "")
+                dest = dest_dir .. "/" .. new_name
+                counter = counter + 1
+            until vim.fn.filereadable(dest) == 0 and vim.fn.isdirectory(dest) == 0
+            name = vim.fn.fnamemodify(dest, ":t")
+        end
         if vim.fn.isdirectory(src) == 1 then
             vim.fn.system({ "cp", "-r", src, dest })
         else

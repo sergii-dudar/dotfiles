@@ -25,6 +25,14 @@ return {
                 ["<esc>"] = "noop",
                 ["Y"] = "shared_copy",
                 ["P"] = "shared_paste",
+                ["c"] = {
+                    function(state)
+                        local node = state.tree:get_node()
+                        local path = node:get_id()
+                        vim.fn.setreg("+", path, "c")
+                    end,
+                    desc = "[C]opy Path to [C]lipboard",
+                },
             },
             --position = "float",
             popup = { -- settings that apply to float position only
