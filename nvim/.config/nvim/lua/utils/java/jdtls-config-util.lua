@@ -260,7 +260,7 @@ M.jdtls_settings = {
         saveActions = {
             -- Setup automatical package import oranization on file save
             organizeImports = true,
-            cleanup = true,
+            -- cleanup = true, -- little buggy in v1.57.0, disabled for now
         },
         cleanup = {
             -- The list of clean ups to be run on the current document when it's saved or when the cleanup command is issued.

@@ -147,3 +147,6 @@ alias tmuxkill='tmux kill-server'
 
 # rust
 # alias rustdoc='rustup doc'
+
+# nvim
+alias nviml="LIMITED=Y nvim"

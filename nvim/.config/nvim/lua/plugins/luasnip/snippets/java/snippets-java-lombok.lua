@@ -44,6 +44,16 @@ function M.snippets()
                 }),
             }),
         }),
+        s("@val", {
+            f(snip_utils.add_imports({
+                "lombok.Builder",
+                "lombok.Value",
+            })),
+            t({
+                "@Value",
+                "@Builder",
+            }),
+        }),
         s("immutable", {
             f(snip_utils.current_java_package),
             t({

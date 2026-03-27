@@ -166,7 +166,13 @@ return {
                         { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
                         { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
                         { "<leader>cc", function() require("utils.lsp-util").code_action.apply_first_available(
-                            "Add all missing imports", "Change body expression to block", "Change body block to expression") end,
+                            -- "Add all missing imports",
+                            -- "Change body expression to block",
+                            -- "Change body block to expression",
+                            "Convert to method reference",
+                            "Convert to lambda expression",
+                            "Create method '",
+                            "Add unimplemented methods") end,
                             desc = "Context Apply First Code Action [jdtls]",
                         }
                     },
