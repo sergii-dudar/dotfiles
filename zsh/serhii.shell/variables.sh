@@ -33,6 +33,8 @@ if isMacOs; then
     # cargo install --locked yazi-fm yazi-cli
     export PATH=$HOME/.cargo/bin:$PATH
 
+    export PATH=$HOME/go/bin:$PATH
+
     # Haskell
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
@@ -59,6 +61,7 @@ else
     #export PATH=$HOME/.ghcup/bin:$PATH
     export PATH=$PATH:$HOME/.ghcup/bin
     export PATH=$HOME/.cargo/bin:$PATH
+    export PATH=$HOME/go/bin:$PATH
     export PATH=$PATH:$HOME/.local/bin
 
     export QT_SCALE_FACTOR=1.75

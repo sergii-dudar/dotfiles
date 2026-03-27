@@ -2,6 +2,11 @@
 b=$(tput bold)
 n=$(tput sgr0)
 
+s=$'\033[35m'
+k=$'\033[32m'  # green
+bl=$'\033[34m' # blue
+y=$'\033[33m'  # yellow
+
 OS_TYPE=$(uname)
 function isMacOs() {
     if [[ "$OS_TYPE" == "Darwin" ]]; then
@@ -20,7 +25,7 @@ if isMacOs; then
             --no-sort --ansi --border-label " Tmux Session Manager " --prompt ' Tmux: ' --pointer '👉' \
             --header \
             "▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-█ [${b}󰘴a${n}] All ⚡ █ [${b}󰘴t${n}]:Tmux  █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █
+█ [${b}${k}󰘴a${n}] All ${y}⚡${n} █ [${b}${k}󰘴t${n}]:Tmux ${bl}${n} █ [${b}${k}󰘴x${n}]:Z 📁 █ [${b}${k}󰘴f${n}]:Find 🔎 █ [${b}${k}󰘴n${n}]:New 🆕 █ [${b}${k}󰘴d${n}]:Kill ❌ █
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰" \
             --bind 'tab:down,btab:up' \
             --bind 'ctrl-a:change-prompt(⚡ Sesh All: )+reload(sesh list -i)' \
@@ -46,7 +51,7 @@ else
             --no-sort --ansi --border-label " Tmux Session Manager " --prompt '🪟 Tmux: ' --pointer '👉' \
             --header \
             "▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-█ [${b}󰘴a${n}]:All ⚡ █ [${b}󰘴t${n}]:Tmux 🪟 █ [${b}󰘴x${n}]:Z 📁 █ [${b}󰘴f${n}]:Find 🔎 █ [${b}󰘴n${n}]:New 🆕 █ [${b}󰘴d${n}]:Kill ❌ █
+█ [${b}${k}󰘴a${n}]:All ${y}⚡${n} █ [${b}${k}󰘴t${n}]:Tmux ${bl}${n} █ [${b}${k}󰘴x${n}]:Z 📁 █ [${b}${k}󰘴f${n}]:Find 🔎 █ [${b}${k}󰘴n${n}]:New 🆕 █ [${b}${k}󰘴d${n}]:Kill ❌ █
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰" \
             --bind 'tab:down,btab:up' \
             --bind 'ctrl-a:change-prompt(⚡ Sesh All: )+reload(sesh list -i)' \
