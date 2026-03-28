@@ -28,18 +28,38 @@ setopt appendhistory
 # Can select multiple processes with <TAB> or <Shift-TAB> keys
 #
 
+# Some usefull actions:
+
+# become(...)                  (replace fzf process with the specified command; see below for the details)
+# change-prompt(...)           (change prompt to the given string)
+#            change-preview-window(...)   (change --preview-window option; rotate through the multiple option sets separated by '|')
+#                       change-preview(...)          (change --preview option)
+#
+# execute(...)                 (see below for the details)
+# execute-silent(...)          (see below for the details)
+#            reload(...)                  (see below for the details)
+# toggle-preview
+
+# info: Multiple actions can be chained using + separator [fzf --multi --bind 'ctrl-a:select-all+accept]'
 
 # ===============================
 # =============== Bindings
 
 # Default command & options to use when input is tty
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
-export FZF_DEFAULT_OPTS="--ansi --info=inline --height 95% --layout reverse --border"
+export FZF_DEFAULT_OPTS="
+--header-first
+--exact
+--ansi --info=inline --height 100% --layout reverse
+--border --style minimal
+--highlight-line --cycle --wrap-word
+--prompt='❯ ' --info=inline-right --no-separator
+--bind 'ctrl-/:toggle-preview'"
 
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
 export FZF_CTRL_T_COMMAND='fd --color=always --hidden --exclude .git'
 export FZF_CTRL_T_OPTS="
---walker-skip .git,node_modules,target
+--walker-skip .git,node_modules,target,bin
 --preview '[ -d {} ] && tree -C -L 1 {} || bat --color=always --line-range :50 {}'
 --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 
@@ -72,8 +92,8 @@ export FZF_ALT_C_OPTS=$'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
 echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
 echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
---bind \'ctrl-e:execute(cd {} && nvim)\'
---bind \'ctrl-y:execute(cd {} && yazi)\'
+--bind \'ctrl-e:become(cd {} && nvim)\'
+--bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 

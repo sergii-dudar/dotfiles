@@ -6,6 +6,7 @@ s=$'\033[35m'
 k=$'\033[32m'  # green
 bl=$'\033[34m' # blue
 y=$'\033[33m'  # yellow
+r=$'\033[31m'  # red
 
 OS_TYPE=$(uname)
 function isMacOs() {
@@ -22,14 +23,11 @@ if isMacOs; then
 
     session="$(
         sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
-            --no-sort --ansi --border-label " Tmux Session Manager " --prompt ' Tmux: ' --pointer '👉' \
-            --header \
-            "▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-█ [${b}${k}󰘴a${n}] All ${y}⚡${n} █ [${b}${k}󰘴t${n}]:Tmux ${bl}${n} █ [${b}${k}󰘴x${n}]:Z 📁 █ [${b}${k}󰘴f${n}]:Find 🔎 █ [${b}${k}󰘴n${n}]:New 🆕 █ [${b}${k}󰘴d${n}]:Kill ❌ █
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰" \
+            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " --pointer '👉' \
+            --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${s}${n} [${b}${k}󰘴t${n}]:Tmux ${bl}${n} ${s}${n} [${b}${k}󰘴x${n}]:Z 📁 ${s}${n} [${b}${k}󰘴f${n}]:Find 🔎 ${s}${n} [${b}${k}󰘴n${n}]:New 🆕 ${s}${n} [${b}${k}󰘴d${n}]:Kill ${r}${n}" \
             --bind 'tab:down,btab:up' \
-            --bind 'ctrl-a:change-prompt(⚡ Sesh All: )+reload(sesh list -i)' \
-            --bind 'ctrl-t:change-prompt( Tmux: )+reload(sesh list -t -i)' \
+            --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+reload(sesh list -i)" \
+            --bind "ctrl-t:change-prompt(${bl}${n} Tmux: )+reload(sesh list -t -i)" \
             --bind 'ctrl-x:change-prompt(📁 Zoxide: )+reload(sesh list -z -i)' \
             --bind 'ctrl-f:change-prompt(🔎 Find: )+reload((fd -H -d 5 -t d -E ".*" -E "*books*" . ~ | xargs -I folder printf " folder\n" ; \
                                                       fd -H -d 3 -t d -p ~/.tmux ~ | xargs -I folder printf " folder\n" ; \
@@ -48,14 +46,11 @@ else
 
     session="$(
         sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
-            --no-sort --ansi --border-label " Tmux Session Manager " --prompt '🪟 Tmux: ' --pointer '👉' \
-            --header \
-            "▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-█ [${b}${k}󰘴a${n}]:All ${y}⚡${n} █ [${b}${k}󰘴t${n}]:Tmux ${bl}${n} █ [${b}${k}󰘴x${n}]:Z 📁 █ [${b}${k}󰘴f${n}]:Find 🔎 █ [${b}${k}󰘴n${n}]:New 🆕 █ [${b}${k}󰘴d${n}]:Kill ❌ █
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰" \
+            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " --pointer '👉' \
+            --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${s}${n} [${b}${k}󰘴t${n}]:Tmux ${bl}${n} ${s}${n} [${b}${k}󰘴x${n}]:Z 📁 ${s}${n} [${b}${k}󰘴f${n}]:Find 🔎 ${s}${n} [${b}${k}󰘴n${n}]:New 🆕 ${s}${n} [${b}${k}󰘴d${n}]:Kill ${r}${n}" \
             --bind 'tab:down,btab:up' \
-            --bind 'ctrl-a:change-prompt(⚡ Sesh All: )+reload(sesh list -i)' \
-            --bind 'ctrl-t:change-prompt(🪟 Tmux: )+reload(sesh list -t -i)' \
+            --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+reload(sesh list -i)" \
+            --bind "ctrl-t:change-prompt(${bl}${n} Tmux: )+reload(sesh list -t -i)" \
             --bind 'ctrl-x:change-prompt(📁 Zoxide: )+reload(sesh list -z -i)' \
             --bind 'ctrl-f:change-prompt(🔎 Find: )+reload((fd -H -d 5 -t d -E ".*" -E "*books*" . ~ | xargs -I folder printf "\e[34m\e[0m folder\n" ; \
                                                       fd -H -d 3 -t d -p ~/.tmux ~ | xargs -I folder printf "\e[34m\e[0m folder\n" ; \
