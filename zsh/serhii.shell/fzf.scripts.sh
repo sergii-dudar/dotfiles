@@ -75,11 +75,14 @@ export FZF_DEFAULT_OPTS="
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
 # --no-ignore
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
+_fzf_crtl_t_header=" $(_klabel '󰘴y')Copy  $(_klabels 'enter')Apply "
 export FZF_CTRL_T_OPTS=$'
 --prompt \' Files ❯ \'
+--header \''"${_fzf_crtl_t_header}"$'\'
 --preview-window \'right,60%\'
---bind \'enter:become(LIMITED=Y nvim {})\'
---bind \'ctrl-e:become(nvim {})\'
+--bind \'enter:execute(LIMITED=Y nvim {})+abort\'
+--bind \'ctrl-s:execute(subl {} &)+abort\'
+--bind \'ctrl-c:execute(cd {})+abort\'
 --preview \'bat --style=changes --color=always {}\''
 # --walker-skip .git,node_modules,target,bin
 
@@ -88,7 +91,7 @@ export FZF_CTRL_T_OPTS=$'
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
-_fzf_crtl_r_header=" $(_klabel '󰘴y')Copy   "
+_fzf_crtl_r_header=" $(_klabel '󰘴y')Copy  $(_klabels 'enter')Apply "
 export FZF_CTRL_R_OPTS=$'
 --prompt \'  Cmd History ❯ \'
 --header \''"${_fzf_crtl_r_header}"$'\'
@@ -99,7 +102,7 @@ export FZF_CTRL_R_OPTS=$'
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭 "
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
@@ -110,9 +113,16 @@ echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
 echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
 --bind \'ctrl-e:become(cd {} && nvim)\'
 --bind \'ctrl-y:become(cd {} && yazi)\'
+--bind \'ctrl-i:execute-silent(idea {} &)+abort\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
 --preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
+
+
+alias grepid="grepf idea";
+alias grepco="grepf code";
+alias grepvi="grepf nvim";
+alias grepsu="grepf subl";
 
 # --preview-window \'right,50%,border-bottom,+{2}+3/2,~3\'
 
