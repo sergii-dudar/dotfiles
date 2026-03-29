@@ -13,6 +13,19 @@ HISTSIZE=50000
 SAVEHIST=10000
 setopt appendhistory
 
+b=$(tput bold)
+n=$(tput sgr0)
+s=$'\033[35m'
+k=$'\033[32m'
+
+sep="${s}${n}"
+function _klabel() {
+    echo "[${b}${k}$1${n}]:"
+}
+function _klabels() {
+    echo " ${sep} [${b}${k}$1${n}]:"
+}
+
 # ===============================
 # ===============Fuzzy completion
 # https://github.com/junegunn/fzf?tab=readme-ov-file#files-and-directories
@@ -28,23 +41,8 @@ setopt appendhistory
 # Can select multiple processes with <TAB> or <Shift-TAB> keys
 #
 
-# Some usefull actions:
-
-# become(...)                  (replace fzf process with the specified command; see below for the details)
-# change-prompt(...)           (change prompt to the given string)
-#            change-preview-window(...)   (change --preview-window option; rotate through the multiple option sets separated by '|')
-#                       change-preview(...)          (change --preview option)
-#
-# execute(...)                 (see below for the details)
-# execute-silent(...)          (see below for the details)
-#            reload(...)                  (see below for the details)
-# toggle-preview
-
-# info: Multiple actions can be chained using + separator [fzf --multi --bind 'ctrl-a:select-all+accept]'
-
 # ===============================
 # =============== Bindings
-# --tail=100
 
 # color picker: https://minsw.github.io/fzf-color-picker/
 # morhetz/gruvbox
@@ -58,10 +56,6 @@ setopt appendhistory
 
 # custom
 fzf_colors='bg+:#3c3836,spinner:#81A1C1,hl:#928374,fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934,marker:#fb4934,fg+:#ebdbb2,prompt:#81A1C1,hl+:#fb4934'
-
-
-
-# --pointer '󰜴  󰞘 󰁕 '
 
 # Default command & options to use when input is tty
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
@@ -78,34 +72,31 @@ export FZF_DEFAULT_OPTS="
 --bind 'ctrl-h:toggle-preview'
 --bind 'ctrl-/:change-preview-window(down|)'"
 
-# --bind 'ctrl-/:toggle-preview'
-# --bind 'ctrl-/:change-preview-window(down|hidden|)'"
-
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
-export FZF_CTRL_T_COMMAND='fd --color=always --hidden --exclude .git'
+export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git'
 export FZF_CTRL_T_OPTS="
 --walker-skip .git,node_modules,target,bin
---preview '[ -d {} ] && tree -C -L 1 {} || bat --color=always --line-range :50 {}'
---bind 'ctrl-/:change-preview-window(down|)'"
+--preview 'bat --color=always --line-range :50 {}'"
+# --preview \'bat --style=changes --color=always {1} --highlight-line {2}\'
+# --preview-window \'right,50%,+{2}+3/2,~3\'
+
 
 # ===== CTRL-R - Paste the selected command from history onto the command-line
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
-export FZF_CTRL_R_OPTS="
---preview 'echo {}' --preview-window up:3:hidden:wrap
---bind 'ctrl-y:execute-silent(echo -n {2..} | ${_clip})+abort'
---header 'copy:ctrl-y'"
+_fzf_crtl_r_header=" $(_klabel '󰘴y')Copy   "
+export FZF_CTRL_R_OPTS=$'
+--prompt \'  Cmd History ❯ \'
+--header \''"${_fzf_crtl_r_header}"$'\'
+--preview \'echo {}\'
+--preview-window up:3:hidden:wrap
+--bind \'ctrl-y:execute-silent(echo -n {2..} | \''"${_clip}"$'\')+abort\''
 
-# wl-copy
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-b=$(tput bold)
-n=$(tput sgr0)
-s=$'\033[35m'
-k=$'\033[32m'
-_fzf_alt_c_header=" [${b}${k}󰘴t${n}]:Switch 🚀 Z / 🔎 Dirs ${s}${n} [${b}${k}󰘴e${n}]:Nvim  ${s}${n} [${b}${k}󰘴y${n}]:Yazi 📁 ${s}${n} [${b}${k}󰘴g${n}]:Grept 🔭 "
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭 "
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
