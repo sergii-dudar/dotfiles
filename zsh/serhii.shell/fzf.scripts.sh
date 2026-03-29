@@ -68,20 +68,24 @@ export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
 export FZF_DEFAULT_OPTS="
 --header-first
 --exact
---preview-border=line
---color=$fzf_colors
+--preview-border=none
+--color=$fzf_colors,header:italic
 --ansi --info=inline --height 100% --layout reverse
 --border --style minimal
 --highlight-line --cycle --wrap-word
 --prompt='❯ ' --info=inline-right --no-separator
---bind 'ctrl-/:toggle-preview'"
+--bind 'ctrl-h:toggle-preview'
+--bind 'ctrl-/:change-preview-window(down|)'"
+
+# --bind 'ctrl-/:toggle-preview'
+# --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
 export FZF_CTRL_T_COMMAND='fd --color=always --hidden --exclude .git'
 export FZF_CTRL_T_OPTS="
 --walker-skip .git,node_modules,target,bin
 --preview '[ -d {} ] && tree -C -L 1 {} || bat --color=always --line-range :50 {}'
---bind 'ctrl-/:change-preview-window(down|hidden|)'"
+--bind 'ctrl-/:change-preview-window(down|)'"
 
 # ===== CTRL-R - Paste the selected command from history onto the command-line
 # CTRL-/ to toggle small preview window to see the full command
@@ -89,10 +93,8 @@ export FZF_CTRL_T_OPTS="
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_R_OPTS="
 --preview 'echo {}' --preview-window up:3:hidden:wrap
---bind 'ctrl-/:toggle-preview'
 --bind 'ctrl-y:execute-silent(echo -n {2..} | ${_clip})+abort'
---color header:italic
---header 'copy:ctrl-y | preview:ctrl-/'"
+--header 'copy:ctrl-y'"
 
 # wl-copy
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
@@ -116,6 +118,8 @@ echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
+
+# --preview-window \'right,50%,border-bottom,+{2}+3/2,~3\'
 
 # Press F1 to open the file with less without leaving fzf
 # Press CTRL-Y to copy the line to clipboard and aborts fzf (requires pbcopy)
@@ -147,12 +151,13 @@ function fzf_preview() {
         echo "$line"
     done | fzf --ansi \
         --exact \
-        --color "hl:-1:underline,hl+:-1:underline:reverse" \
         --delimiter : \
         --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
-        --preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
+        --preview-window 'right,50%,+{2}+3/2,~3' \
         --bind "enter:become(LIMITED=Y nvim {1})"
     # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
+    #--preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
+    #--color "hl:-1:underline,hl+:-1:underline:reverse" \
 }
 
 function fzf_preview_no_select() {
@@ -160,11 +165,12 @@ function fzf_preview_no_select() {
         echo "$line"
     done | fzf --ansi \
         --exact \
-        --color "hl:-1:underline,hl+:-1:underline:reverse" \
         --delimiter : \
         --preview 'bat --style=changes --color=always {1}' \
-        --preview-window 'up,85%,border-bottom' \
         --bind "enter:become(bat --color=always {1})"
+
+    # --preview-window 'up,85%,border-bottom' \
+    # --color "hl:-1:underline,hl+:-1:underline:reverse" \
 }
 
 function findf() {
@@ -247,8 +253,7 @@ killp() {
     (date; command ps -ef) |
     fzf --exact --bind='ctrl-r:reload(date; ps -ef)' \
         --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
-        --preview='echo {}' --preview-window=down,5,wrap \
-        --layout=reverse --height=80% | awk '{print $2}' | xargs kill -9
+        --preview='echo {}' --preview-window=down,5,wrap | awk '{print $2}' | xargs kill -9
 }
 
 # ffind() {
