@@ -61,13 +61,14 @@ fzf_colors='bg+:#3c3836,spinner:#81A1C1,hl:#928374,fg:#ebdbb2,header:#928374,inf
 
 
 
-
+# --pointer '󰜴  󰞘 󰁕 '
 
 # Default command & options to use when input is tty
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
 export FZF_DEFAULT_OPTS="
 --header-first
 --exact
+--pointer '󰁕'
 --preview-border=none
 --color=$fzf_colors,header:italic
 --ansi --info=inline --height 100% --layout reverse
@@ -110,7 +111,6 @@ export FZF_ALT_C_OPTS=$'
     --prompt \'🚀 Zoxide ❯ \'
     --header \''"${_fzf_alt_c_header}"$'\'
     --border-label \' Directories Manager \'
-    --pointer \'👉\'
     --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
 echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
 echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
