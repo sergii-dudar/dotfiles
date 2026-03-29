@@ -73,12 +73,15 @@ export FZF_DEFAULT_OPTS="
 --bind 'ctrl-/:change-preview-window(down|)'"
 
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
-export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git'
-export FZF_CTRL_T_OPTS="
---walker-skip .git,node_modules,target,bin
---preview 'bat --color=always --line-range :50 {}'"
-# --preview \'bat --style=changes --color=always {1} --highlight-line {2}\'
-# --preview-window \'right,50%,+{2}+3/2,~3\'
+# --no-ignore
+export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
+export FZF_CTRL_T_OPTS=$'
+--prompt \' Files ❯ \'
+--preview-window \'right,60%\'
+--bind \'enter:become(LIMITED=Y nvim {})\'
+--bind \'ctrl-e:become(nvim {})\'
+--preview \'bat --style=changes --color=always {}\''
+# --walker-skip .git,node_modules,target,bin
 
 
 # ===== CTRL-R - Paste the selected command from history onto the command-line
@@ -108,6 +111,7 @@ echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --bind \'ctrl-e:become(cd {} && nvim)\'
 --bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-g:execute(cd {} && tv ctext)\'
+--preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
 # --preview-window \'right,50%,border-bottom,+{2}+3/2,~3\'
