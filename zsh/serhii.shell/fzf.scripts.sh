@@ -44,12 +44,32 @@ setopt appendhistory
 
 # ===============================
 # =============== Bindings
+# --tail=100
+
+# color picker: https://minsw.github.io/fzf-color-picker/
+# morhetz/gruvbox
+#fzf_colors='bg+:#3c3836,bg:#32302f,spinner:#81A1C1,hl:#928374,fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934,marker:#fb4934,fg+:#ebdbb2,prompt:#81A1C1,hl+:#fb4934'
+# junegunn/seoul256.vim (dark)
+#fzf_colors='bg+:#3F3F3F,bg:#4B4B4B,border:#6B6B6B,spinner:#98BC99,hl:#719872,fg:#D9D9D9,header:#719872,info:#BDBB72,pointer:#E12672,marker:#E17899,fg+:#D9D9D9,preview-bg:#3F3F3F,prompt:#98BEDE,hl+:#98BC99'
+# arcticicestudio/nord-vim
+#fzf_colors='bg+:#3B4252,bg:#2E3440,spinner:#81A1C1,hl:#616E88,fg:#D8DEE9,header:#616E88,info:#81A1C1,pointer:#81A1C1,marker:#81A1C1,fg+:#D8DEE9,prompt:#81A1C1,hl+:#81A1C1'
+# tomasr/molokai
+#fzf_colors='bg+:#293739,bg:#1B1D1E,border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672'
+
+# custom
+fzf_colors='bg+:#3c3836,spinner:#81A1C1,hl:#928374,fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934,marker:#fb4934,fg+:#ebdbb2,prompt:#81A1C1,hl+:#fb4934'
+
+
+
+
 
 # Default command & options to use when input is tty
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
 export FZF_DEFAULT_OPTS="
 --header-first
 --exact
+--preview-border=line
+--color=$fzf_colors
 --ansi --info=inline --height 100% --layout reverse
 --border --style minimal
 --highlight-line --cycle --wrap-word
@@ -82,7 +102,7 @@ b=$(tput bold)
 n=$(tput sgr0)
 s=$'\033[35m'
 k=$'\033[32m'
-_fzf_alt_c_header=" [${b}${k}󰘴t${n}]:Switch (🚀 Z | 🔎 Dirs) ${s}${n} [${b}${k}󰘴e${n}]:Nvim  ${s}${n} [${b}${k}󰘴y${n}]:Yazi 📁 ${s}${n} [${b}${k}󰘴g${n}]:Grept 🔭 "
+_fzf_alt_c_header=" [${b}${k}󰘴t${n}]:Switch 🚀 Z / 🔎 Dirs ${s}${n} [${b}${k}󰘴e${n}]:Nvim  ${s}${n} [${b}${k}󰘴y${n}]:Yazi 📁 ${s}${n} [${b}${k}󰘴g${n}]:Grept 🔭 "
 export FZF_ALT_C_OPTS=$'
     --exact
     --prompt \'🚀 Zoxide ❯ \'
