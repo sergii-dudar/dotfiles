@@ -208,18 +208,17 @@ function findf_src() {
 # --header 'CTRL-S: Switch between rg/fzf' \
 _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
 function grept() {
-    rm -f /tmp/rg-fzf-{r,f}
 RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
 INITIAL_QUERY="${*:-}"
 fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
     --bind "start:reload:$RG_PREFIX {q}" \
     --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
     --bind 'alt-a:select-all,alt-d:deselect-all' \
-    --bind "ctrl-s:transform:[[ ! \$FZF_PROMPT =~ rg ]] &&
-echo \"rebind(change)+change-prompt(rg ❯ )+disable-search+transform-query:echo \\{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r\" ||
-echo \"unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo \\{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f\"" \
+    --bind "ctrl-t:transform:[[ ! \$FZF_PROMPT =~ Src ]] &&
+echo \"change-prompt( Search Src ❯ )+reload( --exclude test)\" ||
+echo \"change-prompt( Search ❯ )+reload()\"" \
     --color "hl:-1:underline,hl+:-1:underline:reverse" \
-    --prompt 'rg ❯ ' \
+    --prompt 'Search ❯ ' \
     --delimiter : \
     --border-label '   Search Manager ' \
     --header-first \
@@ -227,6 +226,30 @@ echo \"unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo
     --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
     --preview-window 'right,60%,+{2}/3' \
     --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
+
+
+#     rm -f /tmp/rg-fzf-{r,f}
+# RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
+# INITIAL_QUERY="${*:-}"
+# fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
+#     --bind "start:reload:$RG_PREFIX {q}" \
+#     --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+#     --bind 'alt-a:select-all,alt-d:deselect-all' \
+#     --bind "ctrl-s:transform:[[ ! \$FZF_PROMPT =~ rg ]] &&
+# echo \"rebind(change)+change-prompt(rg ❯ )+disable-search+transform-query:echo \\{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r\" ||
+# echo \"unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo \\{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f\"" \
+#     --bind "ctrl-t:transform:[[ ! \$FZF_PROMPT =~ Src ]] &&
+# echo \"change-prompt( Files Src ❯ )+reload( --exclude test)\" ||
+# echo \"change-prompt( Files ❯ )+reload()\"" \
+#     --color "hl:-1:underline,hl+:-1:underline:reverse" \
+#     --prompt 'rg ❯ ' \
+#     --delimiter : \
+#     --border-label '   Search Manager ' \
+#     --header-first \
+#     --header "$_fzf_ctr_g_header" \
+#     --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
+#     --preview-window 'right,60%,+{2}/3' \
+#     --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
 }
 
 function _grept_widget() {
