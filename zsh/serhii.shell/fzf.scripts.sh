@@ -64,10 +64,11 @@ export FZF_DEFAULT_OPTS="
 --pointer '󰁕'
 --preview-border=none
 --color=$fzf_colors,header:italic
---ansi --info=inline --height 100% --layout reverse
+--ansi --height 100% --layout reverse
 --border --style minimal
+--info=inline-right
 --highlight-line --cycle --wrap-word
---prompt='❯ ' --info=inline-right --no-separator
+--prompt='❯ ' --no-separator
 --bind 'ctrl-h:toggle-preview'
 --bind 'ctrl-/:change-preview-window(down|)'"
 
