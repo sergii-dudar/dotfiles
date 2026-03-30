@@ -122,8 +122,6 @@ echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
-# TODO: grept to ctrl+g
-
 # --preview-window \'right,50%,border-bottom,+{2}+3/2,~3\'
 
 # Press F1 to open the file with less without leaving fzf
@@ -137,102 +135,47 @@ if isMacOs; then
     bindkey "®" fzf-history-widget
 fi
 
-# function reread_zshrc() {
-#    echo 'Hello bind'
-#}
-#zle -N reread_zshrc
-#bindkey "ƒ" reread_zshrc
-
-# ==================================================
-# ================= searching file content \ replace
-# fd [OPTIONS] [pattern] [path].
-alias grepid="grepf idea";
-alias grepco="grepf code";
-alias grepvi="grepf nvim";
-alias grepsu="grepf subl";
-
-function fzf_preview() {
-    while IFS= read -r line; do
-        echo "$line"
-    done | fzf --ansi \
-        --exact \
-        --delimiter : \
-        --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
-        --preview-window 'right,50%,+{2}+3/2,~3' \
-        --bind "enter:become(LIMITED=Y nvim {1})"
-    # --bind "enter:become(bat --color=always {1} --highlight-line {2} --pager=\"less +{2}G -j 10\")"
-    #--preview-window 'up,85%,border-bottom,+{2}+3/2,~3' \
-    #--color "hl:-1:underline,hl+:-1:underline:reverse" \
-}
-
-function fzf_preview_no_select() {
-    while IFS= read -r line; do
-        echo "$line"
-    done | fzf --ansi \
-        --exact \
-        --delimiter : \
-        --preview 'bat --style=changes --color=always {1}' \
-        --bind "enter:become(bat --color=always {1})"
-
-    # --preview-window 'up,85%,border-bottom' \
-    # --color "hl:-1:underline,hl+:-1:underline:reverse" \
-}
-
-function findf() {
-    if [ -z "$1" ]; then
-        fd --type f --color=always --hidden --exclude .git | fzf_preview_no_select
-    else
-        search="$1"
-        fd --type f --color=always --hidden --exclude .git "$search" | fzf_preview_no_select
-    fi
-}
-
-function findf_src() {
-    if [ -z "$1" ]; then
-        fd --type f --color=always --hidden --exclude .git --exclude test | fzf_preview_no_select
-    else
-        search="$1"
-        fd --type f --color=always --hidden --exclude .git --exclude test "$search" | fzf_preview_no_select
-    fi
-}
-
-# function grept() {
-#     if [ -z "$1" ]; then
-#         rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
-#     else
-#         search="$1"
-#         rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
-#     fi
-# }
-
-# --header 'CTRL-S: Switch between rg/fzf' \
-_fzf_ctr_g_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
 function grept() {
     rm -f /tmp/rg-fzf-src
-RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
-RG_SRC="$RG_PREFIX -g '!test*' "
-INITIAL_QUERY="${*:-}"
-fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
-    --bind "start:reload:$RG_PREFIX {q}" \
-    --bind "change:reload:sleep 0.1; if [ -f /tmp/rg-fzf-src ]; then $RG_SRC {q}; else $RG_PREFIX {q}; fi || true" \
-    --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
-    --bind "ctrl-t:transform:[[ ! \$FZF_PROMPT =~ Src ]] &&
-echo \"change-prompt( Search Src ❯ )+execute-silent(touch /tmp/rg-fzf-src)+reload($RG_SRC {q})\" ||
-echo \"change-prompt( Search ❯ )+execute-silent(rm -f /tmp/rg-fzf-src)+reload($RG_PREFIX {q})\"" \
-    --color "hl:-1:underline,hl+:-1:underline:reverse" \
-    --prompt 'Search ❯ ' \
-    --delimiter : \
-    --border-label '   Search Manager ' \
-    --header-first \
-    --header "$_fzf_ctr_g_header" \
-    --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
-    --preview-window 'right,60%,+{2}/3' \
-    --bind "ctrl-y:execute(cd \$(dirname {1}) && yazi)" \
-    --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
+    RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
+    local prompt=" Search ❯ "
+    local prompt_src=" Search Src ❯ "
 
+    if [ -n "$2" ]; then
+        local search_in="*.$2"
+        RG_PREFIX="$RG_PREFIX -g '$search_in' "
+        prompt=" Search ( $search_in ) ❯ "
+        prompt_src=" Search Src ( $search_in ) ❯ "
+    fi
+
+    RG_SRC="$RG_PREFIX -g '!test*' "
+    # INITIAL_QUERY="${*:-}"
+    INITIAL_QUERY="${1:-}"
+    _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch ( Files  / Src  )$(_klabels '󰘴y')Yazi 📁$(_klabels '^e')Nvim(Peek)  $(_klabels 'enter')Nvim  "
+    fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
+        --bind "start:reload:$RG_PREFIX {q}" \
+        --bind "change:reload:sleep 0.1; if [ -f /tmp/rg-fzf-src ]; then $RG_SRC {q}; else $RG_PREFIX {q}; fi || true" \
+        --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
+        --bind "ctrl-t:transform:[[ ! \$FZF_PROMPT =~ Src ]] &&
+    echo \"change-prompt($prompt_src)+execute-silent(touch /tmp/rg-fzf-src)+reload($RG_SRC {q})\" ||
+    echo \"change-prompt($prompt)+execute-silent(rm -f /tmp/rg-fzf-src)+reload($RG_PREFIX {q})\"" \
+        --color "hl:-1:underline,hl+:-1:underline:reverse" \
+        --prompt "$prompt" \
+        --delimiter : \
+        --border-label '   Search Manager ' \
+        --header-first \
+        --header "$_fzf_ctr_g_header" \
+        --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
+        --preview-window 'right,60%,+{2}/3' \
+        --bind "ctrl-y:execute(cd \$(dirname {1}) && yazi)" \
+        --bind 'ctrl-e:execute(LIMITED=Y nvim {1} +{2})' \
+        --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
+
+## example with ability to swith rg and fzf filtering
 #     rm -f /tmp/rg-fzf-{r,f}
 # RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
 # INITIAL_QUERY="${*:-}"
+## --header 'CTRL-S: Switch between rg/fzf' \
 # fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
 #     --bind "start:reload:$RG_PREFIX {q}" \
 #     --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
@@ -240,9 +183,6 @@ echo \"change-prompt( Search ❯ )+execute-silent(rm -f /tmp/rg-fzf-src)+relo
 #     --bind "ctrl-s:transform:[[ ! \$FZF_PROMPT =~ rg ]] &&
 # echo \"rebind(change)+change-prompt(rg ❯ )+disable-search+transform-query:echo \\{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r\" ||
 # echo \"unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo \\{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f\"" \
-#     --bind "ctrl-t:transform:[[ ! \$FZF_PROMPT =~ Src ]] &&
-# echo \"change-prompt( Files Src ❯ )+reload( --exclude test)\" ||
-# echo \"change-prompt( Files ❯ )+reload()\"" \
 #     --color "hl:-1:underline,hl+:-1:underline:reverse" \
 #     --prompt 'rg ❯ ' \
 #     --delimiter : \
@@ -266,25 +206,11 @@ zle -N _grept_widget
 bindkey '^g' _grept_widget
 
 function grept_in() {
-    search="$1"
-    search_in="$2"
-
-    # --hidden
-    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+    grept "$1" "$2"
 }
 
-function grept_src() {
-    search="$1"
-
-    rg -g '!node_modules*' -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
-}
-
-function grept_src_in() {
-    search="$1"
-    search_in="$2"
-
-    rg -g '!node_modules*' -g "$search_in" -g '!target*' -g '!test*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
-}
+# ==================================================
+# ================= searching file content \ replace
 
 # legacy
 
