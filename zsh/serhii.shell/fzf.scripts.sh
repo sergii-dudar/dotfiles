@@ -197,14 +197,44 @@ function findf_src() {
     fi
 }
 
+# function grept() {
+#     if [ -z "$1" ]; then
+#         rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
+#     else
+#         search="$1"
+#         rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
+#     fi
+# }
+
 function grept() {
-    if [ -z "$1" ]; then
-        rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case --fixed-strings "" "$PWD" | fzf_preview
-    else
-        search="$1"
-        rg -g '!node_modules*' -g '!target*' -g '!bin*' --color=always --line-number --no-heading --smart-case "$search" "$PWD" | fzf_preview
-    fi
+    rm -f /tmp/rg-fzf-{r,f}
+RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
+INITIAL_QUERY="${*:-}"
+fzf --ansi --disabled --query "$INITIAL_QUERY" \
+    --bind "start:reload:$RG_PREFIX {q}" \
+    --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+    --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ ripgrep ]] &&
+echo "rebind(change)+change-prompt(1. ripgrep> )+disable-search+transform-query:echo \{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r" ||
+echo "unbind(change)+change-prompt(2. fzf> )+enable-search+transform-query:echo \{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f"' \
+    --color "hl:-1:underline,hl+:-1:underline:reverse" \
+    --prompt '1. ripgrep> ' \
+    --delimiter : \
+    --header 'CTRL-T: Switch between ripgrep/fzf' \
+    --preview 'bat --color=always {1} --highlight-line {2}' \
+    --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+    --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
 }
+
+function _grept_widget() {
+    emulate -L zsh
+    zle -I
+    [[ -n "$zle_bracketed_paste" ]] && print -nr "${zle_bracketed_paste[2]}" >"${TTY:-/dev/tty}"
+    grept "$@" </dev/tty
+    [[ -n "$zle_bracketed_paste" ]] && print -nr "${zle_bracketed_paste[1]}" >"${TTY:-/dev/tty}"
+    zle reset-prompt
+}
+zle -N _grept_widget
+bindkey '^g' _grept_widget
 
 function grept_in() {
     search="$1"
