@@ -74,30 +74,31 @@ export FZF_DEFAULT_OPTS="
 
 # ===== CTRL-T runs $FZF_CTRL_T_COMMAND to get a list of files and directories
 # --no-ignore
+_clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
-_fzf_crtl_t_header=" $(_klabel '󰘴y')Copy  $(_klabels 'enter')Apply "
+_fzf_crtl_t_header=" $(_klabel '󰘴c')Copy path  $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴s')Subl  $(_klabels 'enter')Nvim  "
+# TODO: add switched to find only in src (ignore test)
 export FZF_CTRL_T_OPTS=$'
 --prompt \' Files ❯ \'
 --header \''"${_fzf_crtl_t_header}"$'\'
 --preview-window \'right,60%\'
---bind \'enter:execute(LIMITED=Y nvim {})+abort\'
 --bind \'ctrl-s:execute(subl {} &)+abort\'
---bind \'ctrl-c:execute(cd {})+abort\'
+--bind \'ctrl-c:execute-silent(echo -n {} | \''"${_clip}"$'\')+abort\'
+--bind \'ctrl-y:execute(cd $(dirname {}) && yazi)\'
+--bind \'enter:execute(LIMITED=Y nvim {})+abort\'
 --preview \'bat --style=changes --color=always {}\''
 # --walker-skip .git,node_modules,target,bin
-
 
 # ===== CTRL-R - Paste the selected command from history onto the command-line
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
-_clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
-_fzf_crtl_r_header=" $(_klabel '󰘴y')Copy  $(_klabels 'enter')Apply "
+_fzf_crtl_r_header=" $(_klabel '󰘴c')Copy  $(_klabels 'enter')Apply "
 export FZF_CTRL_R_OPTS=$'
 --prompt \'  Cmd History ❯ \'
 --header \''"${_fzf_crtl_r_header}"$'\'
 --preview \'echo {}\'
 --preview-window up:3:hidden:wrap
---bind \'ctrl-y:execute-silent(echo -n {2..} | \''"${_clip}"$'\')+abort\''
+--bind \'ctrl-c:execute-silent(echo -n {2..} | \''"${_clip}"$'\')+abort\''
 
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
@@ -118,11 +119,7 @@ echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
-
-alias grepid="grepf idea";
-alias grepco="grepf code";
-alias grepvi="grepf nvim";
-alias grepsu="grepf subl";
+# TODO: grept to ctrl+g
 
 # --preview-window \'right,50%,border-bottom,+{2}+3/2,~3\'
 
