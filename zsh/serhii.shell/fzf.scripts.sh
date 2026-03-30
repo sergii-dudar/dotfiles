@@ -61,7 +61,6 @@ fzf_colors='bg+:#3c3836,spinner:#81A1C1,hl:#928374,fg:#ebdbb2,header:#928374,inf
 export FZF_DEFAULT_COMMAND='fd --type f --color=always --hidden --exclude .git'
 export FZF_DEFAULT_OPTS="
 --header-first
---exact
 --pointer '󰁕'
 --preview-border=none
 --color=$fzf_colors,header:italic
@@ -78,6 +77,7 @@ _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipbo
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
 _fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files  / Src  )$(_klabels '󰘴y')Yazi 📁$(_klabels 'enter')Nvim  $(_klabels '󰘴s')Subl  $(_klabels '󰘴c')Copy  "
 export FZF_CTRL_T_OPTS=$'
+--exact
 --border-label \'  Files Manager \'
 --prompt \' Files ❯ \'
 --header \''"${_fzf_crtl_t_header}"$'\'
@@ -107,7 +107,7 @@ export FZF_CTRL_R_OPTS=$'
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels 'enter')CD 󰿄"
 export FZF_ALT_C_OPTS=$'
 --exact
 --prompt \'🚀 Zoxide ❯ \'
@@ -119,7 +119,6 @@ echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --bind \'ctrl-e:become(cd {} && nvim)\'
 --bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-i:execute-silent(idea {} &)+abort\'
---bind \'ctrl-g:execute(cd {} && tv ctext)\'
 --preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
@@ -206,22 +205,25 @@ function findf_src() {
 #     fi
 # }
 
+# --header 'CTRL-S: Switch between rg/fzf' \
+_fzf_ctr_g_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
 function grept() {
-
     rm -f /tmp/rg-fzf-{r,f}
 RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
 INITIAL_QUERY="${*:-}"
-fzf --ansi --disabled --query "$INITIAL_QUERY" \
+fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
     --bind "start:reload:$RG_PREFIX {q}" \
     --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
-    --bind 'ctrl-t:transform:[[ ! $FZF_PROMPT =~ rg ]] &&
-echo "rebind(change)+change-prompt(rg ❯ )+disable-search+transform-query:echo \{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r" ||
-echo "unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo \{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f"' \
+    --bind 'alt-a:select-all,alt-d:deselect-all' \
+    --bind "ctrl-s:transform:[[ ! \$FZF_PROMPT =~ rg ]] &&
+echo \"rebind(change)+change-prompt(rg ❯ )+disable-search+transform-query:echo \\{q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r\" ||
+echo \"unbind(change)+change-prompt(fzf ❯ )+enable-search+transform-query:echo \\{q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f\"" \
     --color "hl:-1:underline,hl+:-1:underline:reverse" \
     --prompt 'rg ❯ ' \
     --delimiter : \
+    --border-label '   Search Manager ' \
     --header-first \
-    --header 'CTRL-T: Switch between ripgrep/fzf' \
+    --header "$_fzf_ctr_g_header" \
     --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
     --preview-window 'right,60%,+{2}/3' \
     --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
