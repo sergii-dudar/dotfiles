@@ -23,7 +23,7 @@ if isMacOs; then
 
     session="$(
         sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
-            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " --pointer '👉' \
+            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " \
             --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${s}${n} [${b}${k}󰘴t${n}]:Tmux ${bl}${n} ${s}${n} [${b}${k}󰘴x${n}]:Z 📁 ${s}${n} [${b}${k}󰘴f${n}]:Find 🔎 ${s}${n} [${b}${k}󰘴n${n}]:New 🆕 ${s}${n} [${b}${k}󰘴d${n}]:Kill ${r}${n}" \
             --bind 'tab:down,btab:up' \
             --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+reload(sesh list -i)" \
@@ -40,13 +40,13 @@ if isMacOs; then
     )"
 
     [[ -n "$session" ]] && sesh connect "$session"
-#echo "$session"
+    #echo "$session"
 
 else
 
     session="$(
         sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
-            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " --pointer '👉' \
+            --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${bl}${n} Tmux: " \
             --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${s}${n} [${b}${k}󰘴t${n}]:Tmux ${bl}${n} ${s}${n} [${b}${k}󰘴x${n}]:Z 📁 ${s}${n} [${b}${k}󰘴f${n}]:Find 🔎 ${s}${n} [${b}${k}󰘴n${n}]:New 🆕 ${s}${n} [${b}${k}󰘴d${n}]:Kill ${r}${n}" \
             --bind 'tab:down,btab:up' \
             --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+reload(sesh list -i)" \

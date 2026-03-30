@@ -76,12 +76,15 @@ export FZF_DEFAULT_OPTS="
 # --no-ignore
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
-_fzf_crtl_t_header=" $(_klabel '󰘴c')Copy path  $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴s')Subl  $(_klabels 'enter')Nvim  "
-# TODO: add switched to find only in src (ignore test)
+_fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files  / Src  )$(_klabels '󰘴y')Yazi 📁$(_klabels 'enter')Nvim  $(_klabels '󰘴s')Subl  $(_klabels '󰘴c')Copy  "
 export FZF_CTRL_T_OPTS=$'
+--border-label \'  Files Manager \'
 --prompt \' Files ❯ \'
 --header \''"${_fzf_crtl_t_header}"$'\'
 --preview-window \'right,60%\'
+--bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Src ]] &&
+echo "change-prompt( Files Src ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules --exclude test)" ||
+echo "change-prompt( Files ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules)"\'
 --bind \'ctrl-s:execute(subl {} &)+abort\'
 --bind \'ctrl-c:execute-silent(echo -n {} | \''"${_clip}"$'\')+abort\'
 --bind \'ctrl-y:execute(cd $(dirname {}) && yazi)\'
@@ -94,6 +97,7 @@ export FZF_CTRL_T_OPTS=$'
 # CTRL-Y to copy the command into clipboard using pbcopy
 _fzf_crtl_r_header=" $(_klabel '󰘴c')Copy  $(_klabels 'enter')Apply "
 export FZF_CTRL_R_OPTS=$'
+--border-label \'   Commands History \'
 --prompt \'  Cmd History ❯ \'
 --header \''"${_fzf_crtl_r_header}"$'\'
 --preview \'echo {}\'
@@ -103,13 +107,13 @@ export FZF_CTRL_R_OPTS=$'
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels '󰘴g')Grept 🔭$(_klabels 'enter')CD 󰿄"
 export FZF_ALT_C_OPTS=$'
-    --exact
-    --prompt \'🚀 Zoxide ❯ \'
-    --header \''"${_fzf_alt_c_header}"$'\'
-    --border-label \' Directories Manager \'
-    --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
+--exact
+--prompt \'🚀 Zoxide ❯ \'
+--header \''"${_fzf_alt_c_header}"$'\'
+--border-label \' Directories Manager \'
+--bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
 echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
 echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
 --bind \'ctrl-e:become(cd {} && nvim)\'
@@ -189,7 +193,7 @@ function findf_src() {
         fd --type f --color=always --hidden --exclude .git --exclude test | fzf_preview_no_select
     else
         search="$1"
-        fd --type f --color=always --hidden --exclude .git  --exclude test "$search" | fzf_preview_no_select
+        fd --type f --color=always --hidden --exclude .git --exclude test "$search" | fzf_preview_no_select
     fi
 }
 
