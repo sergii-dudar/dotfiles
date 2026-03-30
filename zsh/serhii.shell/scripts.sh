@@ -12,11 +12,15 @@ BOLD_YELLOW='\033[1;33m'
 UNDERLINE='\033[4m'
 RESET='\033[0m' # Reset color to default
 
-#TGREEN='%F{green}'
-#TRESET='%f'  # Reset color to default
-#NL='
-#'
-#PS1="${PS1}${NL}${TGREEN}> ${TRESET}"
+# function ansi_color() {
+#     local ansi_color_num="$1"
+#     echo '\033[38;5;'"$ansi_color_num"'m'
+# }
+#
+# function ansi_bold_color() {
+#     local ansi_color_num="$1"
+#     echo '\033[1;38;5;'"$ansi_color_num"'m'
+# }
 
 OS_TYPE=$(uname)
 function isMacOs() {

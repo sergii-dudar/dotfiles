@@ -13,18 +13,31 @@ HISTSIZE=50000
 SAVEHIST=10000
 setopt appendhistory
 
-b=$(tput bold)
-n=$(tput sgr0)
-s=$'\033[35m'
-k=$'\033[32m'
-
-sep="${s}${n}"
 function _klabel() {
-    echo "[${b}${k}$1${n}]:"
+    echo "[${GREEN}${BOLD}$1$RESET]:"
 }
 function _klabels() {
-    echo " ${sep} [${b}${k}$1${n}]:"
+    echo " ${sep} [${GREEN}${BOLD}$1$RESET]:"
 }
+
+ifiles=$'\033[38;5;63m\033[0m'
+ifiles_src=$'\033[38;5;4m\033[0m'
+
+itmux=$'\033[38;5;4m\033[0m'
+ifolder=$'\033[38;5;130m\033[0m'
+invim=$'\033[38;5;32m\033[0m'
+isubl=$'\033[38;5;32m\033[0m'
+icopy=$'\033[38;5;135m\033[0m'
+ihist=$'\033[38;5;32m\033[0m'
+izoxide=$'\033[38;5;14m󱓞\033[0m'
+isearch=$'\033[38;5;141m\033[0m'
+
+iidea=$'\033[38;5;12m\033[0m'
+ienter=$'\033[38;5;69m󰿄\033[0m'
+
+iapply=$'\033[38;5;32m\033[0m'
+
+sep="${MAGENTA}$RESET"
 
 # ===============================
 # ===============Fuzzy completion
@@ -76,16 +89,16 @@ export FZF_DEFAULT_OPTS="
 # --no-ignore
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
-_fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files  / Src  )$(_klabels '󰘴y')Yazi 📁$(_klabels 'enter')Nvim  $(_klabels '󰘴s')Subl  $(_klabels '󰘴c')Copy  "
+_fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels 'enter')Nvim ${invim}$(_klabels '󰘴s')Subl ${isubl}$(_klabels '󰘴c')Copy ${icopy} "
 export FZF_CTRL_T_OPTS=$'
 --exact
---border-label \'  Files Manager \'
---prompt \' Files ❯ \'
+--border-label \'  Files Manager \'
+--prompt \' Files ❯ \'
 --header \''"${_fzf_crtl_t_header}"$'\'
 --preview-window \'right,60%\'
 --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Src ]] &&
-echo "change-prompt( Files Src ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules --exclude test)" ||
-echo "change-prompt( Files ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules)"\'
+echo "change-prompt( Files Src ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules --exclude test)" ||
+echo "change-prompt( Files ❯ )+reload(fd --type file --color=always --hidden --exclude .git --exclude node_modules)"\'
 --bind \'ctrl-s:execute(subl {} &)+abort\'
 --bind \'ctrl-c:execute-silent(echo -n {} | \''"${_clip}"$'\')+abort\'
 --bind \'ctrl-y:execute(cd $(dirname {}) && yazi)\'
@@ -96,7 +109,7 @@ echo "change-prompt( Files ❯ )+reload(fd --type file --color=always --hidde
 # ===== CTRL-R - Paste the selected command from history onto the command-line
 # CTRL-/ to toggle small preview window to see the full command
 # CTRL-Y to copy the command into clipboard using pbcopy
-_fzf_crtl_r_header=" $(_klabel '󰘴c')Copy  $(_klabels 'enter')Apply "
+_fzf_crtl_r_header=" $(_klabel '󰘴c')Copy ${icopy} $(_klabels 'enter')Apply ${iapply}"
 export FZF_CTRL_R_OPTS=$'
 --border-label \'   Commands History \'
 --prompt \'  Cmd History ❯ \'
@@ -108,15 +121,15 @@ export FZF_CTRL_R_OPTS=$'
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z 🚀/ Dirs 🔎)$(_klabels '󰘴e')Nvim  $(_klabels '󰘴i')Idea $(_klabels '󰘴y')Yazi 📁$(_klabels 'enter')CD 󰿄"
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z ${izoxide} / Dirs ${isearch} )$(_klabels '󰘴e')Nvim ${invim} $(_klabels '󰘴i')Idea ${iidea} $(_klabels '󰘴y')Yazi ${ifolder} $(_klabels 'enter')CD ${ienter}"
 export FZF_ALT_C_OPTS=$'
 --exact
---prompt \'🚀 Zoxide ❯ \'
+--prompt \'󱓞 Zoxide ❯ \'
 --header \''"${_fzf_alt_c_header}"$'\'
 --border-label \' Directories Manager \'
 --bind \'ctrl-t:transform:[[ ! $FZF_PROMPT =~ Zoxide ]] &&
-echo "change-prompt(🚀 Zoxide ❯ )+reload(zoxide query -l)" ||
-echo "change-prompt(🔎 Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
+echo "change-prompt(󱓞 Zoxide ❯ )+reload(zoxide query -l)" ||
+echo "change-prompt(  Dirs ❯ )+reload(fd . --type directory --hidden --exclude .git --exclude target --exclude bin $HOME)"\'
 --bind \'ctrl-e:become(cd {} && nvim)\'
 --bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-i:execute-silent(idea {} &)+abort\'
@@ -139,20 +152,20 @@ fi
 function grept() {
     rm -f /tmp/rg-fzf-src
     RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
-    local prompt=" Search ❯ "
-    local prompt_src=" Search Src ❯ "
+    local prompt=" Search ❯ "
+    local prompt_src=" Search Src ❯ "
 
     if [ -n "$2" ]; then
         local search_in="*.$2"
         RG_PREFIX="$RG_PREFIX -g '$search_in' "
-        prompt=" Search ( $search_in ) ❯ "
-        prompt_src=" Search Src ( $search_in ) ❯ "
+        prompt=" Search ( $search_in ) ❯ "
+        prompt_src=" Search Src ( $search_in ) ❯ "
     fi
 
     RG_SRC="$RG_PREFIX -g '!test*' "
     # INITIAL_QUERY="${*:-}"
     INITIAL_QUERY="${1:-}"
-    _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch ( Files  / Src  )$(_klabels '󰘴y')Yazi 📁$(_klabels '^e')Nvim(Peek)  $(_klabels 'enter')Nvim  "
+    _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels '^e')Nvim(Peek) ${invim} $(_klabels 'enter')Nvim ${invim} "
     fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
         --bind "start:reload:$RG_PREFIX {q}" \
         --bind "change:reload:sleep 0.1; if [ -f /tmp/rg-fzf-src ]; then $RG_SRC {q}; else $RG_PREFIX {q}; fi || true" \
