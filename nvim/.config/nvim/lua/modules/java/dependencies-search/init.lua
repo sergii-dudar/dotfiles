@@ -516,4 +516,16 @@ function M.explore()
     end)
 end
 
+function M.is_loaded()
+    return state.loaded
+end
+
+function M.get_source_dirs()
+    return state.source_dirs
+end
+
+function M.get_exclude()
+    return state.exclude
+end
+
 return M
