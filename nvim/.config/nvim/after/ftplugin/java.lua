@@ -91,10 +91,10 @@ vim.lsp.handlers["$/progress"] = function(_, result, ctx)
         vim.g._is_workspace_built = true
         -- log.info("Publish Diagnostics completed — triggering JdtCompile full (1s delay)")
         vim.notify("🏄 JDTLS updating workspace started...")
-        vim.defer_fn(function()
-            pcall(vim.cmd, "JdtCompile full")
-            -- log.info("JdtCompile full dispatched")
-        end, 1000)
+        -- vim.defer_fn(function()
+        --     pcall(vim.cmd, "JdtCompile full")
+        --     -- log.info("JdtCompile full dispatched")
+        -- end, 1000)
     end
 end
 
