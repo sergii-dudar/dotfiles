@@ -31,6 +31,7 @@ icopy=$'\033[38;5;135m\033[0m'
 ihist=$'\033[38;5;32m\033[0m'
 izoxide=$'\033[38;5;14m󱓞\033[0m'
 isearch=$'\033[38;5;141m\033[0m'
+iterm=$'\033[38;5;4m\033[0m'
 
 iidea=$'\033[38;5;12m\033[0m'
 ienter=$'\033[38;5;69m󰿄\033[0m'
@@ -89,7 +90,7 @@ export FZF_DEFAULT_OPTS="
 # --no-ignore
 _clip=$(command -v pbcopy || command -v wl-copy || echo "xclip -selection clipboard")
 export FZF_CTRL_T_COMMAND='fd --type file --color=always --hidden --exclude .git --exclude node_modules'
-_fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels 'enter')Nvim ${invim}$(_klabels '󰘴s')Subl ${isubl}$(_klabels '󰘴c')Copy ${icopy} "
+_fzf_crtl_t_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels 'enter')Nvim ${invim}$(_klabels '󰘴s')Subl ${isubl}$(_klabels '󰘴n')Term ${iterm}$(_klabels '󰘴c')Copy ${icopy} "
 export FZF_CTRL_T_OPTS=$'
 --exact
 --border-label \'  Files Manager \'
@@ -102,6 +103,7 @@ echo "change-prompt( Files ❯ )+reload(fd --type file --color=always --hidde
 --bind \'ctrl-s:execute(subl {} &)+abort\'
 --bind \'ctrl-c:execute-silent(echo -n {} | \''"${_clip}"$'\')+abort\'
 --bind \'ctrl-y:execute(cd $(dirname {}) && yazi)\'
+--bind \'ctrl-n:execute-silent(alacritty --working-directory $PWD/$(dirname {}))\'
 --bind \'enter:execute(LIMITED=Y nvim {})+abort\'
 --preview \'bat --style=changes --color=always {}\''
 # --walker-skip .git,node_modules,target,bin
@@ -121,7 +123,7 @@ export FZF_CTRL_R_OPTS=$'
 # ===== ALT-C runs $FZF_ALT_C_COMMAND to get a list of directories
 # export FZF_ALT_C_COMMAND='fd --type d --color=always --hidden --exclude .git'
 export FZF_ALT_C_COMMAND='zoxide query -l'
-_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z ${izoxide} / Dirs ${isearch} )$(_klabels '󰘴e')Nvim ${invim} $(_klabels '󰘴i')Idea ${iidea} $(_klabels '󰘴y')Yazi ${ifolder} $(_klabels 'enter')CD ${ienter}"
+_fzf_alt_c_header=" $(_klabel '󰘴t')Switch (Z ${izoxide} / Dirs ${isearch} )$(_klabels '󰘴e')Nvim ${invim} $(_klabels '󰘴i')Idea ${iidea}$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels '󰘴n')Term ${iterm}$(_klabels '󰘴c')Copy paht ${icopy}$(_klabels 'enter')CD ${ienter}"
 export FZF_ALT_C_OPTS=$'
 --exact
 --prompt \'󱓞 Zoxide ❯ \'
@@ -133,6 +135,8 @@ echo "change-prompt(  Dirs ❯ )+reload(fd . --type directory --hidden --excl
 --bind \'ctrl-e:become(cd {} && nvim)\'
 --bind \'ctrl-y:become(cd {} && yazi)\'
 --bind \'ctrl-i:execute-silent(idea {} &)+abort\'
+--bind \'ctrl-c:execute-silent(echo -n {} | \''"${_clip}"$'\')\'
+--bind \'ctrl-n:execute-silent(alacritty --working-directory {})\'
 --preview-window \'right,40%\'
 --preview \'eza --tree --icons --level=1 --color=always --group-directories-first {}\''
 
@@ -165,7 +169,7 @@ function grept() {
     RG_SRC="$RG_PREFIX -g '!test*' "
     # INITIAL_QUERY="${*:-}"
     INITIAL_QUERY="${1:-}"
-    _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels '^e')Nvim(Peek) ${invim} $(_klabels 'enter')Nvim ${invim} "
+    _fzf_ctr_g_header=" $(_klabel '󰘴t')Switch ( Files ${ifiles} / Src ${ifiles_src} )$(_klabels '󰘴y')Yazi ${ifolder} $(_klabels '󰘴n')Term ${iterm}$(_klabels '^e')Nvim(Peek) ${invim} $(_klabels '󰘴c')Copy paht ${icopy} $(_klabels 'enter')Nvim ${invim} "
     fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
         --bind "start:reload:$RG_PREFIX {q}" \
         --bind "change:reload:sleep 0.1; if [ -f /tmp/rg-fzf-src ]; then $RG_SRC {q}; else $RG_PREFIX {q}; fi || true" \
@@ -182,6 +186,8 @@ function grept() {
         --preview 'bat --style=changes --color=always {1} --highlight-line {2}' \
         --preview-window 'right,60%,+{2}/3' \
         --bind "ctrl-y:execute(cd \$(dirname {1}) && yazi)" \
+        --bind "ctrl-c:execute-silent(echo -n \${PWD}/{1} | ${_clip})" \
+        --bind "ctrl-n:execute-silent(alacritty --working-directory \${PWD}/\$(dirname {1}))" \
         --bind 'ctrl-e:execute(LIMITED=Y nvim {1} +{2})' \
         --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
 

@@ -189,7 +189,7 @@ return {
                 --#########################################
                 --###### Custom Jdtls Config START ########
                 --#########################################
-                test = false, -- disabled jdtls test in favor of neotest-java or custom runner
+                test = true, -- should be enabled, or vscode_java_test bundle will not be added
                 -- test = { -- using jdtls tests to debug tests, as neotest-java have some issues with dap (for now)
                 --     config_overrides = {
                 --         vmArgs = string.format(
@@ -363,8 +363,9 @@ return {
                                     require("jdtls.dap").setup_dap_main_class_configs(opts.dap_main)
                                 end
 
+                                -- disabled jdtls test keybind in favor of neotest-java or custom runner
                                 -- Java Test require Java debugger to work
-                                if opts.test and mason_registry.is_installed("java-test") then
+                                --[[ if opts.test and mason_registry.is_installed("java-test") then
                                     -- custom keymaps for Java test runner (not yet compatible with neotest)
                                     wk.add({
                                         {
@@ -393,11 +394,11 @@ return {
                                                 end,
                                                 desc = "Debug Nearest Test (Jdtls)", -- "Run Nearest Test",
                                             },
-                                            --[[ {
+                                            {
                                                 "<leader>tP", -- "<leader>tT",
                                                 require("jdtls.dap").pick_test,
                                                 desc = "Debug Pick Test (Jdtls)", -- "Run Test",
-                                            }, ]]
+                                            },
                                             {
                                                 "<leader>tD",
                                                 function()
@@ -407,7 +408,7 @@ return {
                                             },
                                         },
                                     })
-                                end
+                                end ]]
                             end
                         end
 

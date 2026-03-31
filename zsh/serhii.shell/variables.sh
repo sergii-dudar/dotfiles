@@ -39,6 +39,9 @@ if isMacOs; then
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
 
+    # Path to installed alacritty with all permissions
+    export PATH=$PATH:/Applications/Alacritty.app/Contents/MacOS
+
     #export REQUESTS_CA_BUNDLE=$(python3 -m certifi)
 
     # dotnet

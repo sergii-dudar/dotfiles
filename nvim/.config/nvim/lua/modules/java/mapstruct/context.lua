@@ -677,7 +677,32 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
         end
     end
 
-    -- Check if already FQN (contains dots)
+    -- Check for inner class notation: OuterClass.InnerClass (or deeper nesting)
+    -- If ALL parts start with uppercase, this is a simple inner class reference
+    -- (e.g., ProductDetailsResponseDto.StatusEnum), NOT an FQN (e.g., com.example.SomeClass).
+    -- Resolve the outer class through imports to build the full FQN.
+    if #parts >= 2 then
+        local all_class_like = true
+        for _, part in ipairs(parts) do
+            if not part:match("^[A-Z]") then
+                all_class_like = false
+                break
+            end
+        end
+
+        if all_class_like then
+            local outer_fqn = resolve_type_fqn(parts[1], direct_imports, wildcard_imports, bufnr)
+            if outer_fqn then
+                local inner_suffix = table.concat(parts, ".", 2)
+                local full_fqn = outer_fqn .. "." .. inner_suffix
+                log.debug("Resolved inner class type:", base_type, "->", full_fqn)
+                wildcard_resolution_cache[base_type] = full_fqn
+                return full_fqn .. generics .. array_brackets
+            end
+        end
+    end
+
+    -- Check if already FQN (contains dots and has lowercase package parts)
     if base_type:match("%.") then
         return type_name
     end
