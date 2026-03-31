@@ -286,6 +286,10 @@ end
 
 local use_jdt_opener = true
 
+local function is_project_file(file)
+    return not file:find("/.m2/repository/", 1, true)
+end
+
 -- When jdt opener is on:
 --   .java files: open via jdtls FQCN (jdt://contents/)
 --   other files: open via jdt://jarentry/ URI
@@ -295,7 +299,7 @@ local function dep_confirm(picker, item)
         return
     end
     local file = item.file or ""
-    if not use_jdt_opener then
+    if not use_jdt_opener or is_project_file(file) then
         return picker:action("jump")
     end
     picker:close()
@@ -321,9 +325,31 @@ end
 
 local use_all_dirs = false
 
+local function get_module_src_dir()
+    local java_util = require("utils.java.java-common")
+    local module_root = java_util.get_buffer_project_path()
+    if not module_root then
+        return nil
+    end
+    local src_dir = module_root .. "/src"
+    if vim.fn.isdirectory(src_dir) == 1 then
+        return src_dir
+    end
+    return nil
+end
+
+local function get_current_dirs()
+    local dirs = use_all_dirs and state.source_dirs_all or state.source_dirs
+    local src_dir = get_module_src_dir()
+    if src_dir then
+        dirs = vim.list_extend({ src_dir }, dirs)
+    end
+    return dirs
+end
+
 local function toggle_all_sources(picker)
     use_all_dirs = not use_all_dirs
-    local dirs = use_all_dirs and state.source_dirs_all or state.source_dirs
+    local dirs = get_current_dirs()
     picker.opts.dirs = dirs
     picker:find()
     local label = use_all_dirs and "all" or "filtered"
@@ -376,7 +402,7 @@ open_picker = function(source, dirs, title)
     local picker_fn = source == "files" and Snacks.picker.files or Snacks.picker.grep
     local default_title = source == "files" and "Dependency Sources" or "Grep Dependency Sources"
     picker_fn({
-        dirs = dirs or state.source_dirs,
+        dirs = dirs or get_current_dirs(),
         exclude = state.exclude,
         title = title or default_title,
         confirm = dep_confirm,
