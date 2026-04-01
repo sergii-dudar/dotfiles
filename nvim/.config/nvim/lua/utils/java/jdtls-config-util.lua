@@ -281,8 +281,8 @@ M.jdtls_settings = {
                 starThreshold = 9999,
                 -- starThreshold = 5,
                 -- Specifies the number of static imports added before a star-import declaration is used.
-                -- staticStarThreshold = 9999,
-                staticStarThreshold = 1,
+                staticStarThreshold = 9999,
+                -- staticStarThreshold = 1,
             },
         },
         -- ====================================================================

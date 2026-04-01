@@ -172,7 +172,8 @@ return {
                             "Convert to method reference",
                             "Convert to lambda expression",
                             "Create method '",
-                            "Add unimplemented methods") end,
+                            "Add unimplemented methods",
+                            "Add all missing imports") end,
                             desc = "Context Apply First Code Action [jdtls]",
                         }
                     },
