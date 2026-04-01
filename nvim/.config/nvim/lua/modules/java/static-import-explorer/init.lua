@@ -56,7 +56,8 @@ function M.find_quick()
         return
     end
 
-    local pattern = util.build_search(word, state.starts_with)
+    -- local pattern = util.build_search(word, state.starts_with)
+    local pattern = util.build_search(word, true)
     if not pattern then
         return
     end
@@ -64,6 +65,8 @@ function M.find_quick()
     local function fallback_to_find()
         if settings.fallback_to_find then
             state.current_word = word
+            state.include_all_deps = true
+            state.include_deps = false
             picker.open(settings, state)
         end
     end
