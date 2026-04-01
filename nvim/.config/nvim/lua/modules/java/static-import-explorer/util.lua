@@ -102,4 +102,35 @@ function M.build_search(word, starts_with)
     end
 end
 
+--- Parse rg output lines into deduplicated import items.
+---@param stdout string
+---@param import_mode string
+---@return { name: string, fqcn: string, member: string|nil }[]
+function M.parse_rg_results(stdout, import_mode)
+    local lines = vim.split(stdout, "\n", { trimempty = true })
+    local seen = {}
+    local items = {}
+
+    for _, line in ipairs(lines) do
+        local file, text = line:match("^(.-):%d+:(.*)")
+        if file and text then
+            local fqcn = java_util.file_to_fqcn(file)
+            if fqcn then
+                local member = M.extract_static_member(text)
+                local import_str = M.build_import_line(fqcn, member, import_mode)
+                if not seen[import_str] then
+                    seen[import_str] = true
+                    table.insert(items, {
+                        name = import_str,
+                        fqcn = fqcn,
+                        member = member,
+                    })
+                end
+            end
+        end
+    end
+
+    return items
+end
+
 return M

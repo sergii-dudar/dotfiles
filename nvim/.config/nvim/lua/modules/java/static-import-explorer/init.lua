@@ -33,4 +33,64 @@ function M.find()
     picker.open(settings, state)
 end
 
+local function apply_items(items)
+    for _, item in ipairs(items) do
+        util.add_import_to_buffer(item.name, state.source_bufnr)
+    end
+end
+
+function M.find_quick()
+    state.source_bufnr = vim.api.nvim_get_current_buf()
+    local word = vim.fn.expand("<cword>")
+
+    if word == "" then
+        vim.notify("[Static Import] No word under cursor", vim.log.levels.WARN)
+        return
+    end
+
+    local src_dir = util.get_module_src_dir()
+    if not src_dir then
+        vim.notify("[Static Import] No src/ directory found", vim.log.levels.WARN)
+        return
+    end
+
+    local pattern = util.build_search(word, state.starts_with)
+    if not pattern then
+        return
+    end
+
+    vim.system(
+        { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java", src_dir },
+        { text = true },
+        vim.schedule_wrap(function(result)
+            if result.code ~= 0 or not result.stdout or result.stdout == "" then
+                vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
+                return
+            end
+
+            local items = util.parse_rg_results(result.stdout, settings.import_mode)
+            if #items == 0 then
+                vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
+                return
+            end
+
+            if #items == 1 and settings.auto_apply_single then
+                apply_items(items)
+                return
+            end
+
+            vim.ui.select(items, {
+                prompt = "Static Imports (" .. #items .. ")",
+                format_item = function(item)
+                    return item.name
+                end,
+            }, function(choice)
+                if choice then
+                    apply_items({ choice })
+                end
+            end)
+        end)
+    )
+end
+
 return M
