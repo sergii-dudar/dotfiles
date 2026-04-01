@@ -120,7 +120,7 @@ end
 local default_glob = "*.java"
 
 local function set_glob(picker)
-    vim.ui.input({ prompt = "Glob pattern: ", default = picker.opts.glob or default_glob }, function(input)
+    vim.ui.input({ prompt = "Class name filter: " }, function(input)
         if not input then
             return
         end
@@ -163,17 +163,19 @@ function M.find()
     if word ~= "" then
         if word:match("^[A-Z_][A-Z0-9_]*$") then
             -- Static field (ALL_CAPS) — match declaration with assignment
-            search = "\\ " .. word .. ".*="
+            -- search = "[\\s]+" .. word .. "[\\s]+="
+            search = "static.*" .. word .. "[A-Z_][A-Z0-9_]*[\\s]*="
         else
             -- Static method (camelCase) — match declaration/call with opening paren
-            search = "[^=>]\\ " .. word .. "\\("
+            -- search = "public [^=>]*\\ " .. word .. "\\("
+            search = "public[\\s]+static.*" .. word .. "\\("
         end
     end
 
     Snacks.picker.grep({
         dirs = dirs,
         search = search,
-        glob = "*.java",
+        glob = default_glob,
         -- glob = "*CollectionUtil*.java",
         title = "Static Import Search",
         confirm = confirm,
