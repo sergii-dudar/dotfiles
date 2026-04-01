@@ -9,6 +9,8 @@ local settings = {
     import_mode = "explicit",
     -- auto-import without showing multiselect when only one result found
     auto_apply_single = true,
+    -- fallback to find() when quick has no results or user cancels select
+    fallback_to_find = true,
 }
 
 local state = {
@@ -59,18 +61,27 @@ function M.find_quick()
         return
     end
 
+    local function fallback_to_find()
+        if settings.fallback_to_find then
+            state.current_word = word
+            picker.open(settings, state)
+        end
+    end
+
     vim.system(
         { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java", src_dir },
         { text = true },
         vim.schedule_wrap(function(result)
             if result.code ~= 0 or not result.stdout or result.stdout == "" then
                 vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
+                fallback_to_find()
                 return
             end
 
             local items = util.parse_rg_results(result.stdout, settings.import_mode)
             if #items == 0 then
                 vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
+                fallback_to_find()
                 return
             end
 
@@ -90,6 +101,8 @@ function M.find_quick()
             }, function(choice)
                 if choice then
                     apply_items({ choice })
+                else
+                    fallback_to_find()
                 end
             end)
         end)
