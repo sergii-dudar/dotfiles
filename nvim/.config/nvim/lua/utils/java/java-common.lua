@@ -308,9 +308,18 @@ function M.file_to_fqcn(file)
     if not f then
         return vim.fn.fnamemodify(file, ":t:r")
     end
-    local first_line = f:read("*l")
+    local pkg
+    for line in f:lines() do
+        pkg = line:match("^package%s+([%w%.]+)%s*;")
+        if pkg then
+            break
+        end
+        -- Stop scanning after first non-comment, non-blank line that isn't package
+        if not line:match("^%s*$") and not line:match("^%s*[/*]") and not line:match("^%s*%*") then
+            break
+        end
+    end
     f:close()
-    local pkg = first_line and first_line:match("^package%s+([%w%.]+)%s*;")
     local class_name = vim.fn.fnamemodify(file, ":t:r")
     if pkg then
         return pkg .. "." .. class_name
