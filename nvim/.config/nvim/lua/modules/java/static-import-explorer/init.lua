@@ -1,5 +1,6 @@
 local util = require("modules.java.static-import-explorer.util")
 local picker = require("modules.java.static-import-explorer.picker")
+local dep_search = require("modules.java.dependencies-search")
 
 local M = {}
 
@@ -63,10 +64,20 @@ function M.find_quick()
     end
 
     local function fallback_to_find()
-        if settings.fallback_to_find then
-            state.current_word = word
-            state.include_all_deps = true
-            state.include_deps = false
+        if not settings.fallback_to_find then
+            return
+        end
+        state.current_word = word
+        state.include_all_deps = true
+        state.include_deps = false
+        if not dep_search.is_loaded() then
+            dep_search.load_sources({
+                bufnr = state.source_bufnr,
+                on_done = function()
+                    picker.open(settings, state)
+                end,
+            })
+        else
             picker.open(settings, state)
         end
     end
