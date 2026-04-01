@@ -117,14 +117,37 @@ local function toggle_all_deps(picker)
     end)
 end
 
+local default_glob = "*.java"
+
+local function set_glob(picker)
+    vim.ui.input({ prompt = "Glob pattern: ", default = picker.opts.glob or default_glob }, function(input)
+        if not input then
+            return
+        end
+        picker.opts.glob = "*" .. input .. "*.java"
+        picker:find()
+        vim.notify("[Static Import] Glob: " .. input, vim.log.levels.INFO)
+    end)
+end
+
+local function clear_glob(picker)
+    picker.opts.glob = default_glob
+    picker:find()
+    vim.notify("[Static Import] Glob reset: " .. default_glob, vim.log.levels.INFO)
+end
+
 local actions = {
     toggle_deps = toggle_deps,
     toggle_all_deps = toggle_all_deps,
+    set_glob = set_glob,
+    clear_glob = clear_glob,
 }
 
 local keys = {
     ["<C-d>"] = { "toggle_deps", mode = { "n", "i" }, desc = "Toggle filtered dependency sources" },
     ["<C-a>"] = { "toggle_all_deps", mode = { "n", "i" }, desc = "Toggle all dependency sources" },
+    ["<C-g>"] = { "set_glob", mode = { "n", "i" }, desc = "Set glob pattern" },
+    ["<C-x>"] = { "clear_glob", mode = { "n", "i" }, desc = "Clear glob (reset to *.java)" },
 }
 
 function M.find()
@@ -151,6 +174,7 @@ function M.find()
         dirs = dirs,
         search = search,
         glob = "*.java",
+        -- glob = "*CollectionUtil*.java",
         title = "Static Import Search",
         confirm = confirm,
         actions = actions,
