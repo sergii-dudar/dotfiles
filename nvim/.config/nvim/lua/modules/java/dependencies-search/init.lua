@@ -525,6 +525,10 @@ function M.get_source_dirs()
     return state.source_dirs
 end
 
+function M.get_source_dirs_all()
+    return state.source_dirs_all
+end
+
 function M.get_exclude()
     return state.exclude
 end

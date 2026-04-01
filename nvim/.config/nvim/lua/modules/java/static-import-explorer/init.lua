@@ -4,6 +4,7 @@ local dep_search = require("modules.java.dependencies-search")
 local M = {}
 
 local include_deps = false
+local include_all_deps = false
 local source_bufnr = nil
 
 local function get_module_src_dir()
@@ -24,7 +25,12 @@ local function get_search_dirs()
     if src_dir then
         table.insert(dirs, src_dir)
     end
-    if include_deps then
+    if include_all_deps then
+        local dep_dirs = dep_search.get_source_dirs_all()
+        if dep_dirs then
+            vim.list_extend(dirs, dep_dirs)
+        end
+    elseif include_deps then
         local dep_dirs = dep_search.get_source_dirs()
         if dep_dirs then
             vim.list_extend(dirs, dep_dirs)
@@ -76,31 +82,49 @@ local function confirm(picker, item)
     add_static_import(fqcn)
 end
 
-local function toggle_deps(picker)
-    include_deps = not include_deps
-    if include_deps and not dep_search.is_loaded() then
+local function ensure_deps_loaded(picker, callback)
+    if not dep_search.is_loaded() then
         dep_search.load_sources({
             bufnr = source_bufnr,
             on_done = function()
-                picker.opts.dirs = get_search_dirs()
-                picker:find()
-                vim.notify("[Static Import] Dependencies: ON", vim.log.levels.INFO)
+                callback()
             end,
         })
-        return
+    else
+        callback()
     end
-    picker.opts.dirs = get_search_dirs()
-    picker:find()
-    local label = include_deps and "ON" or "OFF"
-    vim.notify("[Static Import] Dependencies: " .. label, vim.log.levels.INFO)
+end
+
+local function toggle_deps(picker)
+    include_deps = not include_deps
+    include_all_deps = false
+    ensure_deps_loaded(picker, function()
+        picker.opts.dirs = get_search_dirs()
+        picker:find()
+        local label = include_deps and "ON" or "OFF"
+        vim.notify("[Static Import] Filtered deps: " .. label, vim.log.levels.INFO)
+    end)
+end
+
+local function toggle_all_deps(picker)
+    include_all_deps = not include_all_deps
+    include_deps = false
+    ensure_deps_loaded(picker, function()
+        picker.opts.dirs = get_search_dirs()
+        picker:find()
+        local label = include_all_deps and "ON" or "OFF"
+        vim.notify("[Static Import] All deps: " .. label, vim.log.levels.INFO)
+    end)
 end
 
 local actions = {
     toggle_deps = toggle_deps,
+    toggle_all_deps = toggle_all_deps,
 }
 
 local keys = {
-    ["<C-d>"] = { "toggle_deps", mode = { "n", "i" }, desc = "Toggle dependency sources" },
+    ["<C-d>"] = { "toggle_deps", mode = { "n", "i" }, desc = "Toggle filtered dependency sources" },
+    ["<C-a>"] = { "toggle_all_deps", mode = { "n", "i" }, desc = "Toggle all dependency sources" },
 }
 
 function M.find()
