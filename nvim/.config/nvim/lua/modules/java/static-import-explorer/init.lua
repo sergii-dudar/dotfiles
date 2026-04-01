@@ -82,7 +82,10 @@ function M.find_quick()
             vim.ui.select(items, {
                 prompt = "Static Imports (" .. #items .. ")",
                 format_item = function(item)
-                    return item.name
+                    local class = item.fqcn:match("([^%.]+)$") or item.fqcn
+                    local pkg = item.fqcn:match("^(.+)%.") or ""
+                    local member_str = item.member or "*"
+                    return class .. "." .. member_str .. "  (" .. pkg .. ")"
                 end,
             }, function(choice)
                 if choice then

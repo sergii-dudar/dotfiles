@@ -95,11 +95,30 @@ function M.build_search(word, starts_with)
     end
     if word:match("^[A-Z_][A-Z0-9_]*$") then
         local suffix = starts_with and "[A-Z0-9_]*[\\s]*=" or "[\\s]*="
-        return "static.*[\\s]+" .. word .. suffix
+        return "public[\\s]+static.*[\\s]+" .. word .. suffix
     else
         local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
         return "public[\\s]+static.*[\\s]+" .. word .. suffix
     end
+end
+
+--- Derive FQCN from Java file path (no I/O, uses path structure).
+--- Looks for src/main/java/ or src/test/java/ prefix to extract package.
+---@param file string
+---@return string|nil fqcn, string|nil class_name
+function M.fqcn_from_path(file)
+    local rel = file:match("src/main/java/(.+)%.java$") or file:match("src/test/java/(.+)%.java$")
+    if not rel then
+        -- fallback: try any path ending with .java after a known java source root pattern
+        rel = file:match("/java/(.+)%.java$")
+    end
+    if rel then
+        local fqcn = rel:gsub("/", ".")
+        local class_name = fqcn:match("([^%.]+)$")
+        return fqcn, class_name
+    end
+    local class_name = vim.fn.fnamemodify(file, ":t:r")
+    return nil, class_name
 end
 
 --- Parse rg output lines into deduplicated import items.

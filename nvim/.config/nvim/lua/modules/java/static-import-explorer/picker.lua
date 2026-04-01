@@ -4,10 +4,7 @@ local util = require("modules.java.static-import-explorer.util")
 
 local M = {}
 
--- Forward declaration
-local open_picker
-
-local function confirm(settings, state)
+local function make_confirm(settings, state)
     return function(picker, item)
         if not item then
             return
@@ -33,6 +30,22 @@ local function confirm(settings, state)
         local import_line = util.build_import_line(fqcn, member, settings.import_mode)
         util.add_import_to_buffer(import_line, state.source_bufnr)
     end
+end
+
+local function format_item(item)
+    local fqcn = java_util.file_to_fqcn(item.file or "")
+    local member = util.extract_static_member(item.text or "")
+    local class_name = fqcn:match("([^%.]+)$") or fqcn
+    local pkg = fqcn:match("^(.+)%.") or ""
+
+    local display = class_name .. "." .. (member or "?")
+    local ret = {
+        { display, "Function" },
+    }
+    if pkg ~= "" then
+        table.insert(ret, { "  " .. pkg, "Comment" })
+    end
+    return ret
 end
 
 local function ensure_deps_loaded(state, callback)
@@ -87,7 +100,7 @@ local function build_actions(settings, state)
             state.starts_with = not state.starts_with
             local glob = picker.opts.glob or state.default_glob
             picker:close()
-            open_picker(settings, state, glob)
+            M.open(settings, state, glob)
             local label = state.starts_with and "starts with" or "full match"
             vim.notify("[Static Import] Match mode: " .. label, vim.log.levels.INFO)
         end,
@@ -105,14 +118,15 @@ local picker_keys = {
 ---@param settings table
 ---@param state table
 ---@param glob? string
-open_picker = function(settings, state, glob)
+function M.open(settings, state, glob)
     local search = util.build_search(state.current_word, state.starts_with)
     Snacks.picker.grep({
         dirs = util.get_search_dirs(state),
         search = search,
         glob = glob or state.default_glob,
         title = "Static Import Search",
-        confirm = confirm(settings, state),
+        format = format_item,
+        confirm = make_confirm(settings, state),
         actions = build_actions(settings, state),
         win = {
             input = { keys = picker_keys },
@@ -120,7 +134,5 @@ open_picker = function(settings, state, glob)
         },
     })
 end
-
-M.open = open_picker
 
 return M
