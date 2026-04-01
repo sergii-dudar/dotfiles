@@ -118,6 +118,34 @@ local function toggle_all_deps(picker)
 end
 
 local default_glob = "*.java"
+local starts_with = false
+local current_word = ""
+
+local function build_search(word)
+    if word == "" then
+        return nil
+    end
+    if word:match("^[A-Z_][A-Z0-9_]*$") then
+        -- Static field (ALL_CAPS)
+        local suffix = starts_with and "[A-Z0-9_]*[\\s]*=" or "[\\s]*="
+        return "static.*" .. word .. suffix
+    else
+        -- Static method (camelCase)
+        local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
+        return "public[\\s]+static.*" .. word .. suffix
+    end
+end
+
+local function toggle_starts_with(picker)
+    starts_with = not starts_with
+    local search = build_search(current_word)
+    if search then
+        picker.opts.search = search
+        picker:find()
+    end
+    local label = starts_with and "starts with" or "full match"
+    vim.notify("[Static Import] Match mode: " .. label, vim.log.levels.INFO)
+end
 
 local function set_glob(picker)
     vim.ui.input({ prompt = "Class name filter: " }, function(input)
@@ -141,6 +169,7 @@ local actions = {
     toggle_all_deps = toggle_all_deps,
     set_glob = set_glob,
     clear_glob = clear_glob,
+    toggle_starts_with = toggle_starts_with,
 }
 
 local keys = {
@@ -148,6 +177,7 @@ local keys = {
     ["<C-a>"] = { "toggle_all_deps", mode = { "n", "i" }, desc = "Toggle all dependency sources" },
     ["<C-g>"] = { "set_glob", mode = { "n", "i" }, desc = "Set glob pattern" },
     ["<C-x>"] = { "clear_glob", mode = { "n", "i" }, desc = "Clear glob (reset to *.java)" },
+    ["<C-w>"] = { "toggle_starts_with", mode = { "n", "i" }, desc = "Toggle full match / starts with" },
 }
 
 function M.find()
@@ -159,18 +189,8 @@ function M.find()
         return
     end
 
-    local search
-    if word ~= "" then
-        if word:match("^[A-Z_][A-Z0-9_]*$") then
-            -- Static field (ALL_CAPS) — match declaration with assignment
-            -- search = "[\\s]+" .. word .. "[\\s]+="
-            search = "static.*" .. word .. "[A-Z_][A-Z0-9_]*[\\s]*="
-        else
-            -- Static method (camelCase) — match declaration/call with opening paren
-            -- search = "public [^=>]*\\ " .. word .. "\\("
-            search = "public[\\s]+static.*" .. word .. "\\("
-        end
-    end
+    current_word = word
+    local search = build_search(word)
 
     Snacks.picker.grep({
         dirs = dirs,
