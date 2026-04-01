@@ -136,13 +136,14 @@ local function build_search(word)
     end
 end
 
+-- Forward declaration
+local open_picker
+
 local function toggle_starts_with(picker)
     starts_with = not starts_with
-    local search = build_search(current_word)
-    if search then
-        picker.opts.search = search
-        picker:find()
-    end
+    local glob = picker.opts.glob or default_glob
+    picker:close()
+    open_picker(build_search(current_word), glob)
     local label = starts_with and "starts with" or "full match"
     vim.notify("[Static Import] Match mode: " .. label, vim.log.levels.INFO)
 end
@@ -180,6 +181,21 @@ local keys = {
     ["<C-w>"] = { "toggle_starts_with", mode = { "n", "i" }, desc = "Toggle full match / starts with" },
 }
 
+open_picker = function(search, glob)
+    Snacks.picker.grep({
+        dirs = get_search_dirs(),
+        search = search,
+        glob = glob or default_glob,
+        title = "Static Import Search",
+        confirm = confirm,
+        actions = actions,
+        win = {
+            input = { keys = keys },
+            list = { keys = keys },
+        },
+    })
+end
+
 function M.find()
     source_bufnr = vim.api.nvim_get_current_buf()
     local word = vim.fn.expand("<cword>")
@@ -190,21 +206,7 @@ function M.find()
     end
 
     current_word = word
-    local search = build_search(word)
-
-    Snacks.picker.grep({
-        dirs = dirs,
-        search = search,
-        glob = default_glob,
-        -- glob = "*CollectionUtil*.java",
-        title = "Static Import Search",
-        confirm = confirm,
-        actions = actions,
-        win = {
-            input = { keys = keys },
-            list = { keys = keys },
-        },
-    })
+    open_picker(build_search(word))
 end
 
 return M
