@@ -4,6 +4,7 @@ local dep_search = require("modules.java.dependencies-search")
 local M = {}
 
 local include_deps = false
+local source_bufnr = nil
 
 local function get_module_src_dir()
     local module_root = java_util.get_buffer_project_path()
@@ -34,7 +35,7 @@ end
 
 local function add_static_import(fqcn)
     local import_line = "import static " .. fqcn .. ".*;"
-    local buf = vim.api.nvim_get_current_buf()
+    local buf = source_bufnr or vim.api.nvim_get_current_buf()
     local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
     for _, line in ipairs(lines) do
@@ -79,6 +80,7 @@ local function toggle_deps(picker)
     include_deps = not include_deps
     if include_deps and not dep_search.is_loaded() then
         dep_search.load_sources({
+            bufnr = source_bufnr,
             on_done = function()
                 picker.opts.dirs = get_search_dirs()
                 picker:find()
@@ -102,6 +104,7 @@ local keys = {
 }
 
 function M.find()
+    source_bufnr = vim.api.nvim_get_current_buf()
     local word = vim.fn.expand("<cword>")
     local dirs = get_search_dirs()
     if #dirs == 0 then
@@ -109,9 +112,20 @@ function M.find()
         return
     end
 
+    local search
+    if word ~= "" then
+        if word:match("^[A-Z_][A-Z0-9_]*$") then
+            -- Static field (ALL_CAPS) — match declaration with assignment
+            search = "\\ " .. word .. ".*="
+        else
+            -- Static method (camelCase) — match declaration/call with opening paren
+            search = "[^=>]\\ " .. word .. "\\("
+        end
+    end
+
     Snacks.picker.grep({
         dirs = dirs,
-        search = word ~= "" and (" " .. word) or nil,
+        search = search,
         glob = "*.java",
         title = "Static Import Search",
         confirm = confirm,

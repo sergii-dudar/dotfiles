@@ -135,7 +135,8 @@ end
 ---@param opts? { on_done?: fun() }
 function M.load_sources(opts)
     local on_done = opts and opts.on_done
-    local classpaths = classpath_util.get_classpath_for_main_method_table({ scope = "test" })
+    local bufnr = opts and opts.bufnr
+    local classpaths = classpath_util.get_classpath_for_main_method_table({ scope = "test", bufnr = bufnr })
     if not classpaths then
         vim.notify("[Dep Search] Failed to get classpath from jdtls", vim.log.levels.WARN)
         return
