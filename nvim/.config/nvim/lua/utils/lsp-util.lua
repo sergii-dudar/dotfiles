@@ -70,12 +70,53 @@ local function request_and_apply_first(action_match_names, fallback)
     }
 
     vim.lsp.buf_request_all(bufnr, "textDocument/codeAction", params, function(results)
-        -- Outer loop over patterns first to respect caller's priority order
-        dd(results)
+        -- 1. Highest priority: import actions (auto-apply if single, picker if multiple)
+        local import_pattern = "^Import '.*' %(.*%)$"
+        local import_matches = {}
+        for client_id, result in pairs(results) do
+            for _, action in ipairs(result.result or {}) do
+                if action.title and action.title:match(import_pattern) then
+                    table.insert(import_matches, { action = action, client_id = client_id })
+                end
+            end
+        end
+
+        dd(params)
+        if #import_matches == 1 then
+            vim.schedule(function()
+                local match = import_matches[1]
+                local client = vim.lsp.get_client_by_id(match.client_id)
+                if client then
+                    apply_lsp_action(match.action, client)
+                end
+            end)
+            return
+        elseif #import_matches > 1 then
+            vim.schedule(function()
+                local titles = vim.tbl_map(function(m)
+                    return m.action.title
+                end, import_matches)
+                Snacks.picker.select(titles, { prompt = "Select import" }, function(choice, idx)
+                    if not choice then
+                        return
+                    end
+                    local match = import_matches[idx]
+                    local client = vim.lsp.get_client_by_id(match.client_id)
+                    if client then
+                        apply_lsp_action(match.action, client)
+                    end
+                end)
+            end)
+            return
+        end
+        vim.notify("1")
+
+        -- 2. Named action patterns (in caller's priority order)
         for _, name_pattern in ipairs(action_match_names) do
             for client_id, result in pairs(results) do
                 for _, action in ipairs(result.result or {}) do
                     if action.title and action.title:match(name_pattern) then
+                        vim.notify("matched with" .. name_pattern)
                         vim.schedule(function()
                             local client = vim.lsp.get_client_by_id(client_id)
                             if client then
@@ -87,7 +128,9 @@ local function request_and_apply_first(action_match_names, fallback)
                 end
             end
         end
+        vim.notify("2")
 
+        -- 3. Fallback
         vim.schedule(function()
             if fallback then
                 fallback()
