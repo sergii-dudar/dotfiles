@@ -43,20 +43,18 @@ local ignored_packages = {
 --
 -- When include_dependencies is non-empty, ONLY matching jars are included (whitelist mode).
 -- When it's empty, ignored_dependencies is used as a blacklist instead.
--- stylua: ignore
 local include_dependencies = {
     -- "org.mapstruct",
     -- "com.fasterxml.jackson.core:jackson-databind",
-    "ua.raiffeisen.payments"
+    "ua.raiffeisen.payments",
 }
 
--- stylua: ignore
 local ignored_dependencies = {
-        "software.amazon.awssdk",
-        "org.springdoc",
-        "org.springframework",
-        "com.google",
-        "org.apache"
+    "software.amazon.awssdk",
+    "org.springdoc",
+    "org.springframework",
+    "com.google",
+    "org.apache",
     -- "org.springframework.boot:spring-boot-starter-actuator",
     -- "org.springframework.boot:spring-boot-health",
 }
