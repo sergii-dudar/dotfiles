@@ -14,7 +14,7 @@
      implement java source depencenties (per project) fast search ability (with ability to search by `rg` and `fd` + snack pickers)
      big refactoring of `utils` and `modules`
      junit module: add ability to run tests for all proj modules, and to separated module (with selector, myabe with multiselect ability)
-     jdtls: implement static members (not `private` static fields or methods) search by snach.picker and import by enter. (quite anoying old problem actually, that not resolved in jdt so far, especially in case transition from intellij as I'm)
+     jdtls: implement static members (not `private` static fields or methods) search by snack.picker and import by enter. (quite anoying old problem actually, that not resolved in jdt so far, especially in case transition from intellij as I'm)
 
 ### Screenshots
 

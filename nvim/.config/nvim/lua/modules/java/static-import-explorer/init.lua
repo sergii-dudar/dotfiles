@@ -51,13 +51,12 @@ function M.find_quick()
         return
     end
 
-    local src_dir = util.get_module_src_dir()
-    if not src_dir then
+    local src_dirs = util.get_module_src_dirs(state.source_bufnr)
+    if #src_dirs == 0 then
         vim.notify("[Static Import] No src/ directory found", vim.log.levels.WARN)
         return
     end
 
-    -- local pattern = util.build_search(word, state.starts_with)
     local pattern = util.build_search(word, true)
     if not pattern then
         return
@@ -82,8 +81,11 @@ function M.find_quick()
         end
     end
 
+    local rg_cmd = { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java" }
+    vim.list_extend(rg_cmd, src_dirs)
+
     vim.system(
-        { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java", src_dir },
+        rg_cmd,
         { text = true },
         vim.schedule_wrap(function(result)
             if result.code ~= 0 or not result.stdout or result.stdout == "" then

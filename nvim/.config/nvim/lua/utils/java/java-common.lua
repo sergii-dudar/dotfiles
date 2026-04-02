@@ -327,4 +327,11 @@ function M.file_to_fqcn(file)
     return class_name
 end
 
+---@param bufnr? integer
+function M.is_test_file(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    local file_path = vim.api.nvim_buf_get_name(bufnr)
+    return file_path:match("/src/test/") ~= nil
+end
+
 return M

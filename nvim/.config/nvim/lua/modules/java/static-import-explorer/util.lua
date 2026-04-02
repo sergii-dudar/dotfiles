@@ -3,24 +3,42 @@ local dep_search = require("modules.java.dependencies-search")
 
 local M = {}
 
-function M.get_module_src_dir()
-    local module_root = java_util.get_buffer_project_path()
+--- Returns source dirs based on buffer context:
+--- main file -> src/main/java only
+--- test file -> src/main/java + src/test/java
+---@param bufnr? integer
+---@return string[]
+function M.get_module_src_dirs(bufnr)
+    local module_root = java_util.get_buffer_project_path(bufnr)
     if not module_root then
-        return nil
+        return {}
     end
-    local src_dir = module_root .. "/src"
-    if vim.fn.isdirectory(src_dir) == 1 then
-        return src_dir
+    local dirs = {}
+    local main_dir = module_root .. "/src/main/java"
+    if vim.fn.isdirectory(main_dir) == 1 then
+        table.insert(dirs, main_dir)
     end
-    return nil
+    if java_util.is_test_file(bufnr) then
+        local test_dir = module_root .. "/src/test/java"
+        if vim.fn.isdirectory(test_dir) == 1 then
+            table.insert(dirs, test_dir)
+        end
+    end
+    return dirs
 end
 
----@param state { include_deps: boolean, include_all_deps: boolean }
+---@param state { include_deps: boolean, include_all_deps: boolean, source_bufnr?: integer }
 function M.get_search_dirs(state)
-    local dirs = {}
-    local src_dir = M.get_module_src_dir()
-    if src_dir then
-        table.insert(dirs, src_dir)
+    local dirs = M.get_module_src_dirs(state.source_bufnr)
+    if #dirs == 0 then
+        -- fallback: try src/ directly
+        local module_root = java_util.get_buffer_project_path(state.source_bufnr)
+        if module_root then
+            local src_dir = module_root .. "/src"
+            if vim.fn.isdirectory(src_dir) == 1 then
+                table.insert(dirs, src_dir)
+            end
+        end
     end
     if state.include_all_deps then
         local dep_dirs = dep_search.get_source_dirs_all()
