@@ -174,10 +174,10 @@ return {
                                         "Convert to lambda expression",
                                         "Create method '",
                                         "Add unimplemented methods",
-                                        "Add all missing imports",
+                                        -- "Add all missing imports",
                                     },
                                     fallback = function()
-                                        vim.notify("No code actions available, fallback to static import", vim.log.levels.INFO)
+                                        -- vim.notify("No code actions available, fallback to static import", vim.log.levels.INFO)
                                         require("modules.java.static-import-explorer").find_quick()
                                     end,
                                 })

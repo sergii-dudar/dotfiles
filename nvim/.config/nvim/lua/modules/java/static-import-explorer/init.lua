@@ -125,7 +125,7 @@ local function run_search(word, pattern)
         return
     end
 
-    dd(search_dirs)
+    -- dd(search_dirs)
     local rg_cmd = { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java" }
     vim.list_extend(rg_cmd, search_dirs)
 

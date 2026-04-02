@@ -63,7 +63,9 @@ end
 ---@param fallback? fun()
 local function request_and_apply_first(action_match_names, fallback)
     local bufnr = vim.api.nvim_get_current_buf()
-    local params = vim.lsp.util.make_range_params()
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    local offset_encoding = clients[1] and clients[1].offset_encoding or "utf-16"
+    local params = vim.lsp.util.make_range_params(0, offset_encoding)
     params.context = {
         diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr),
         triggerKind = vim.lsp.protocol.CodeActionTriggerKind.Invoked,
@@ -81,7 +83,6 @@ local function request_and_apply_first(action_match_names, fallback)
             end
         end
 
-        dd(params)
         if #import_matches == 1 then
             vim.schedule(function()
                 local match = import_matches[1]
@@ -109,7 +110,6 @@ local function request_and_apply_first(action_match_names, fallback)
             end)
             return
         end
-        vim.notify("1")
 
         -- 2. Named action patterns (in caller's priority order)
         for _, name_pattern in ipairs(action_match_names) do
@@ -128,7 +128,6 @@ local function request_and_apply_first(action_match_names, fallback)
                 end
             end
         end
-        vim.notify("2")
 
         -- 3. Fallback
         vim.schedule(function()
