@@ -63,8 +63,10 @@ local ignored_dependencies = {
 
 local state = {
     loaded = false,
-    source_dirs = {},
-    source_dirs_all = {},
+    source_dirs_main = {},
+    source_dirs_main_all = {},
+    source_dirs_test = {},
+    source_dirs_test_all = {},
     modules = {}, -- { label, dir } for all source dirs
     exclude = {},
 }
@@ -133,55 +135,77 @@ local function jar_to_sources_jar(jar_path)
 end
 
 ---@param opts? { on_done?: fun() }
-function M.load_sources(opts)
-    local on_done = opts and opts.on_done
-    local bufnr = opts and opts.bufnr
-    local classpaths = classpath_util.get_classpath_for_main_method_table({ scope = "test", bufnr = bufnr })
-    if not classpaths then
-        vim.notify("[Dep Search] Failed to get classpath from jdtls", vim.log.levels.WARN)
-        return
-    end
-
-    -- Filter to .jar entries only
-    local jars = {}
-    for _, entry in ipairs(classpaths) do
-        if entry:match("%.jar$") then
-            table.insert(jars, entry)
-        end
-    end
-
-    spinner.start("Loading dependency sources...")
-
-    local source_dirs = {}
-    local source_dirs_all = {}
+--- Process a list of jars into source_dirs (filtered) and source_dirs_all (unfiltered).
+--- Returns { dirs, dirs_all, to_extract, missing }
+local function process_jars(jars)
+    local dirs = {}
+    local dirs_all = {}
     local to_extract = {}
-    local missing_sources = {}
+    local missing = {}
 
     for _, jar in ipairs(jars) do
         local sources_jar = jar_to_sources_jar(jar)
         local sources_dir = jar_to_sources_dir(jar)
 
         if vim.fn.isdirectory(sources_dir) == 1 then
-            table.insert(source_dirs_all, sources_dir)
+            table.insert(dirs_all, sources_dir)
             if not is_jar_ignored(jar) then
-                table.insert(source_dirs, sources_dir)
+                table.insert(dirs, sources_dir)
             end
         elseif vim.fn.filereadable(sources_jar) == 1 then
             table.insert(to_extract, { sources_jar = sources_jar, sources_dir = sources_dir })
-            table.insert(source_dirs_all, sources_dir)
+            table.insert(dirs_all, sources_dir)
             if not is_jar_ignored(jar) then
-                table.insert(source_dirs, sources_dir)
+                table.insert(dirs, sources_dir)
             end
         else
-            table.insert(missing_sources, vim.fn.fnamemodify(jar, ":t"))
+            table.insert(missing, vim.fn.fnamemodify(jar, ":t"))
         end
     end
 
-    state.source_dirs = source_dirs
-    state.source_dirs_all = source_dirs_all
+    return { dirs = dirs, dirs_all = dirs_all, to_extract = to_extract, missing = missing }
+end
 
+local function classpaths_to_jars(classpaths)
+    local jars = {}
+    for _, entry in ipairs(classpaths) do
+        if entry:match("%.jar$") then
+            table.insert(jars, entry)
+        end
+    end
+    return jars
+end
+
+function M.load_sources(opts)
+    local on_done = opts and opts.on_done
+    local bufnr = opts and opts.bufnr
+
+    -- Load runtime (main) scope
+    local main_cp = classpath_util.get_classpath_for_main_method_table({ scope = "runtime", bufnr = bufnr })
+    if not main_cp then
+        vim.notify("[Dep Search] Failed to get classpath from jdtls", vim.log.levels.WARN)
+        return
+    end
+
+    -- Load test scope (superset of main)
+    local test_cp = classpath_util.get_classpath_for_main_method_table({ scope = "test", bufnr = bufnr })
+    if not test_cp then
+        test_cp = main_cp
+    end
+
+    spinner.start("Loading dependency sources...")
+
+    local main_result = process_jars(classpaths_to_jars(main_cp))
+    local test_result = process_jars(classpaths_to_jars(test_cp))
+
+    state.source_dirs_main = main_result.dirs
+    state.source_dirs_main_all = main_result.dirs_all
+    state.source_dirs_test = test_result.dirs
+    state.source_dirs_test_all = test_result.dirs_all
+
+    -- Modules from test (superset) for selectors
     local modules = {}
-    for _, dir in ipairs(source_dirs_all) do
+    for _, dir in ipairs(test_result.dirs_all) do
         local mod = source_dir_to_module(dir)
         if mod then
             table.insert(modules, mod)
@@ -199,13 +223,31 @@ function M.load_sources(opts)
     for _, file_name in ipairs(ignored_file_names) do
         table.insert(exclude, file_name)
     end
-
     for _, pkg in ipairs(ignored_packages) do
-        -- org.springframework.* -> org/springframework/**
         local dir_pattern = "**/" .. pkg:gsub("%.", "/"):gsub("%*$", "**")
         table.insert(exclude, dir_pattern)
     end
     state.exclude = exclude
+
+    -- Merge to_extract from both (deduplicated by sources_dir)
+    local seen_extract = {}
+    local to_extract = {}
+    for _, item in ipairs(test_result.to_extract) do
+        if not seen_extract[item.sources_dir] then
+            seen_extract[item.sources_dir] = true
+            table.insert(to_extract, item)
+        end
+    end
+
+    -- Merge missing from both
+    local missing_set = {}
+    local missing_sources = {}
+    for _, name in ipairs(test_result.missing) do
+        if not missing_set[name] then
+            missing_set[name] = true
+            table.insert(missing_sources, name)
+        end
+    end
 
     local function notify_missing()
         if #missing_sources == 0 then
@@ -231,10 +273,16 @@ function M.load_sources(opts)
 
     state.loaded = true
 
+    local total_dirs = #test_result.dirs
     if #to_extract == 0 then
         spinner.stop(
             true,
-            string.format("[Dep Search] Loaded %d sources (%d not available)", #source_dirs, #missing_sources)
+            string.format(
+                "[Dep Search] Loaded %d main + %d test sources (%d not available)",
+                #main_result.dirs,
+                #test_result.dirs,
+                #missing_sources
+            )
         )
         notify_missing()
         if on_done then
@@ -261,8 +309,9 @@ function M.load_sources(opts)
                     spinner.stop(
                         true,
                         string.format(
-                            "[Dep Search] Loaded %d sources (%d newly extracted, %d not available)",
-                            #source_dirs,
+                            "[Dep Search] Loaded %d main + %d test sources (%d extracted, %d not available)",
+                            #main_result.dirs,
+                            #test_result.dirs,
                             #to_extract,
                             #missing_sources
                         )
@@ -309,7 +358,7 @@ local function dep_confirm(picker, item)
         local fqcn = require("utils.java.java-common").file_to_fqcn(file)
         require("utils.java.jdtls-util").jdt_open_class(fqcn, line)
     else
-        if not jarentry.open(file, state.source_dirs_all, line) then
+        if not jarentry.open(file, state.source_dirs_test_all, line) then
             vim.cmd("edit " .. vim.fn.fnameescape(file))
             if line > 1 then
                 pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
@@ -340,7 +389,7 @@ local function get_module_src_dir()
 end
 
 local function get_current_dirs()
-    local dirs = use_all_dirs and state.source_dirs_all or state.source_dirs
+    local dirs = use_all_dirs and state.source_dirs_test_all or state.source_dirs_test
     local src_dir = get_module_src_dir()
     if src_dir then
         dirs = vim.list_extend({ src_dir }, dirs)
@@ -469,7 +518,7 @@ local function open_explorer(mod)
                     require("utils.java.jdtls-util").jdt_open_class(fqcn)
                 else
                     picker:close()
-                    if not jarentry.open(file, state.source_dirs_all) then
+                    if not jarentry.open(file, state.source_dirs_test_all) then
                         return orig_confirm(picker, item, action)
                     end
                 end
@@ -517,16 +566,39 @@ function M.explore()
     end)
 end
 
+function M.reset()
+    state.loaded = false
+    state.source_dirs_main = {}
+    state.source_dirs_main_all = {}
+    state.source_dirs_test = {}
+    state.source_dirs_test_all = {}
+    state.modules = {}
+    state.exclude = {}
+    vim.notify("[Dep Search] Cache cleared. Will reload on next use.", vim.log.levels.INFO)
+end
+
+vim.api.nvim_create_user_command("DepSearchReset", function()
+    M.reset()
+end, { desc = "Clear dependency search cache and reload on next use" })
+
 function M.is_loaded()
     return state.loaded
 end
 
-function M.get_source_dirs()
-    return state.source_dirs
+---@param scope? "main"|"test" defaults to "test" (superset)
+function M.get_source_dirs(scope)
+    if scope == "main" then
+        return state.source_dirs_main
+    end
+    return state.source_dirs_test
 end
 
-function M.get_source_dirs_all()
-    return state.source_dirs_all
+---@param scope? "main"|"test" defaults to "test" (superset)
+function M.get_source_dirs_all(scope)
+    if scope == "main" then
+        return state.source_dirs_main_all
+    end
+    return state.source_dirs_test_all
 end
 
 function M.get_exclude()

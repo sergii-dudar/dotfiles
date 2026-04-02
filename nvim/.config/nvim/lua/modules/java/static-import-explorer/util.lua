@@ -40,13 +40,14 @@ function M.get_search_dirs(state)
             end
         end
     end
+    local scope = java_util.is_test_file(state.source_bufnr) and "test" or "main"
     if state.include_all_deps then
-        local dep_dirs = dep_search.get_source_dirs_all()
+        local dep_dirs = dep_search.get_source_dirs_all(scope)
         if dep_dirs then
             vim.list_extend(dirs, dep_dirs)
         end
     elseif state.include_deps then
-        local dep_dirs = dep_search.get_source_dirs()
+        local dep_dirs = dep_search.get_source_dirs(scope)
         if dep_dirs then
             vim.list_extend(dirs, dep_dirs)
         end
