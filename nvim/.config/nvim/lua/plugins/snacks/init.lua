@@ -15,10 +15,14 @@
 ]]
 
 vim.api.nvim_create_user_command("Search", function(opts)
+    if opts.args == "" then
+        vim.notify("Usage: Search <path>", vim.log.levels.ERROR)
+        return
+    end
     local path = opts.args
     vim.notify("Searching in: " .. path)
     Snacks.picker.grep({ cwd = path, title = path })
-end, { nargs = 1 })
+end, { nargs = "?" })
 
 return {
     {
