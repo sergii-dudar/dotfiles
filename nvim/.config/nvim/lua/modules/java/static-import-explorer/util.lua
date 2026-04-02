@@ -39,6 +39,62 @@ end
 -- Cache for preferred dep dirs, keyed by scope
 local preferred_cache = { main = nil, test = nil }
 
+--- Resolve preferred dep entries into directories.
+--- Supported prefixes:
+---   "dep:groupId" or "dep:groupId:artifactId" — match against dep source dirs (default if no prefix)
+---   "path:glob_pattern" — resolve glob pattern directly
+---   "!" prefix — exclude: "!org.apache.commons.commons-compress" or "!dep:..." or "!path:..."
+---@param entries string[]
+---@param all_dep_dirs string[]
+---@return string[]
+local function resolve_preferred_entries(entries, all_dep_dirs)
+    local dep_coords = {}
+    local exclude_coords = {}
+    local dirs = {}
+
+    for _, entry in ipairs(entries) do
+        local is_exclude = entry:match("^!")
+        local value = is_exclude and entry:sub(2) or entry
+
+        if value:match("^path:") then
+            local pattern = value:sub(6)
+            local matches = vim.fn.glob(pattern, false, true)
+            for _, match in ipairs(matches) do
+                if vim.fn.isdirectory(match) == 1 then
+                    table.insert(dirs, match)
+                end
+            end
+        else
+            local coord = value:match("^dep:(.+)") or value
+            if is_exclude then
+                table.insert(exclude_coords, coord)
+            else
+                table.insert(dep_coords, coord)
+            end
+        end
+    end
+
+    if #dep_coords > 0 then
+        local patterns = M.to_dep_patterns(dep_coords)
+        vim.list_extend(dirs, M.filter_dirs_by_patterns(all_dep_dirs, patterns))
+    end
+
+    -- Remove excluded dirs
+    if #exclude_coords > 0 then
+        local exclude_patterns = M.to_dep_patterns(exclude_coords)
+        dirs = vim.tbl_filter(function(dir)
+            for _, pattern in ipairs(exclude_patterns) do
+                if dir:find(pattern, 1, true) then
+                    return false
+                end
+            end
+            return true
+        end, dirs)
+    end
+
+    return dirs
+end
+
 --- Get cached preferred dep dirs for a scope.
 ---@param scope "main"|"test"
 ---@param settings { preferred_deps_main: string[], preferred_deps_test: string[] }
@@ -55,9 +111,8 @@ function M.get_preferred_dep_dirs(scope, settings)
         preferred_cache[scope] = {}
         return {}
     end
-    local patterns = M.to_dep_patterns(preferred)
     local all_dep_dirs = dep_search.get_source_dirs_all(scope) or {}
-    preferred_cache[scope] = M.filter_dirs_by_patterns(all_dep_dirs, patterns)
+    preferred_cache[scope] = resolve_preferred_entries(preferred, all_dep_dirs)
     return preferred_cache[scope]
 end
 
