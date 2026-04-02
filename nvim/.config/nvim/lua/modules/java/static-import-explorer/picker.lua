@@ -65,7 +65,7 @@ local function build_actions(settings, state)
             state.include_deps = not state.include_deps
             state.include_all_deps = false
             ensure_deps_loaded(state, function()
-                picker.opts.dirs = util.get_search_dirs(state)
+                picker.opts.dirs = util.get_search_dirs(state, settings)
                 picker:find()
                 local label = state.include_deps and "ON" or "OFF"
                 vim.notify("[Static Import] Filtered deps: " .. label, vim.log.levels.INFO)
@@ -75,7 +75,7 @@ local function build_actions(settings, state)
             state.include_all_deps = not state.include_all_deps
             state.include_deps = false
             ensure_deps_loaded(state, function()
-                picker.opts.dirs = util.get_search_dirs(state)
+                picker.opts.dirs = util.get_search_dirs(state, settings)
                 picker:find()
                 local label = state.include_all_deps and "ON" or "OFF"
                 vim.notify("[Static Import] All deps: " .. label, vim.log.levels.INFO)
@@ -121,7 +121,7 @@ local picker_keys = {
 function M.open(settings, state, glob)
     local search = util.build_search(state.current_word, state.starts_with)
     Snacks.picker.grep({
-        dirs = util.get_search_dirs(state),
+        dirs = util.get_search_dirs(state, settings),
         search = search,
         glob = glob or state.default_glob,
         title = "Static Import Search",

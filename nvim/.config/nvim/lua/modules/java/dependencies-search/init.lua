@@ -579,6 +579,10 @@ end
 
 vim.api.nvim_create_user_command("DepSearchReset", function()
     M.reset()
+    -- Clear static-import-explorer preferred deps cache
+    pcall(function()
+        require("modules.java.static-import-explorer.util").clear_preferred_cache()
+    end)
 end, { desc = "Clear dependency search cache and reload on next use" })
 
 function M.is_loaded()

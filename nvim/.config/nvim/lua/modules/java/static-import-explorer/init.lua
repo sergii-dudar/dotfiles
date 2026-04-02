@@ -12,7 +12,26 @@ local settings = {
     auto_apply_single = true,
     -- fallback to find() when quick has no results or user cancels select
     fallback_to_find = true,
+    -- Preferred dependencies included in default search alongside src/.
+    -- Format: "groupId" or "groupId:artifactId" (same as dependencies-search include_dependencies).
+    preferred_deps_main = {
+        -- "org.apache.commons",
+        -- "com.fasterxml.jackson.core:jackson-databind",
+        -- "org.apache.commons.collections4",
+        -- "org.apache.commons.lang3",
+        -- "org.apache.commons.commons-text",
+        "org.apache.commons",
+        "com.google.guava",
+    },
+    -- test scope: these + preferred_deps_main (merged below)
+    preferred_deps_test = {
+        "org.assertj",
+        "org.mockito",
+    },
 }
+
+-- Test scope always includes main preferred deps
+vim.list_extend(settings.preferred_deps_test, settings.preferred_deps_main)
 
 local state = {
     source_bufnr = nil,
@@ -27,7 +46,7 @@ function M.find()
     state.source_bufnr = vim.api.nvim_get_current_buf()
     state.current_word = vim.fn.expand("<cword>")
 
-    local dirs = util.get_search_dirs(state)
+    local dirs = util.get_search_dirs(state, settings)
     if #dirs == 0 then
         vim.notify("[Static Import] No search directories found", vim.log.levels.WARN)
         return
@@ -48,12 +67,6 @@ function M.find_quick()
 
     if word == "" then
         vim.notify("[Static Import] No word under cursor", vim.log.levels.WARN)
-        return
-    end
-
-    local src_dirs = util.get_module_src_dirs(state.source_bufnr)
-    if #src_dirs == 0 then
-        vim.notify("[Static Import] No src/ directory found", vim.log.levels.WARN)
         return
     end
 
@@ -81,48 +94,70 @@ function M.find_quick()
         end
     end
 
-    local rg_cmd = { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java" }
-    vim.list_extend(rg_cmd, src_dirs)
+    local function run_search()
+        local java_util = require("utils.java.java-common")
+        local scope = java_util.is_test_file(state.source_bufnr) and "test" or "main"
+        local search_dirs = util.get_module_src_dirs(state.source_bufnr)
+        vim.list_extend(search_dirs, util.get_preferred_dep_dirs(scope, settings))
 
-    vim.system(
-        rg_cmd,
-        { text = true },
-        vim.schedule_wrap(function(result)
-            if result.code ~= 0 or not result.stdout or result.stdout == "" then
-                vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
-                fallback_to_find()
-                return
-            end
+        if #search_dirs == 0 then
+            vim.notify("[Static Import] No search directories found", vim.log.levels.WARN)
+            return
+        end
 
-            local items = util.parse_rg_results(result.stdout, settings.import_mode)
-            if #items == 0 then
-                vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
-                fallback_to_find()
-                return
-            end
+        local rg_cmd = { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java" }
+        vim.list_extend(rg_cmd, search_dirs)
 
-            if #items == 1 and settings.auto_apply_single then
-                apply_items(items)
-                return
-            end
-
-            vim.ui.select(items, {
-                prompt = "Static Imports (" .. #items .. ")",
-                format_item = function(item)
-                    local class = item.fqcn:match("([^%.]+)$") or item.fqcn
-                    local pkg = item.fqcn:match("^(.+)%.") or ""
-                    local member_str = item.member or "*"
-                    return class .. "." .. member_str .. "  (" .. pkg .. ")"
-                end,
-            }, function(choice)
-                if choice then
-                    apply_items({ choice })
-                else
+        vim.system(
+            rg_cmd,
+            { text = true },
+            vim.schedule_wrap(function(result)
+                if result.code ~= 0 or not result.stdout or result.stdout == "" then
+                    vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
                     fallback_to_find()
+                    return
                 end
+
+                local items = util.parse_rg_results(result.stdout, settings.import_mode)
+                if #items == 0 then
+                    vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
+                    fallback_to_find()
+                    return
+                end
+
+                if #items == 1 and settings.auto_apply_single then
+                    apply_items(items)
+                    return
+                end
+
+                vim.ui.select(items, {
+                    prompt = "Static Imports (" .. #items .. ")",
+                    format_item = function(item)
+                        local class = item.fqcn:match("([^%.]+)$") or item.fqcn
+                        local pkg = item.fqcn:match("^(.+)%.") or ""
+                        local member_str = item.member or "*"
+                        return class .. "." .. member_str .. "  (" .. pkg .. ")"
+                    end,
+                }, function(choice)
+                    if choice then
+                        apply_items({ choice })
+                    else
+                        fallback_to_find()
+                    end
+                end)
             end)
-        end)
-    )
+        )
+    end
+
+    -- Ensure deps are loaded for preferred deps, then search
+    if not dep_search.is_loaded() then
+        dep_search.load_sources({
+            bufnr = state.source_bufnr,
+            on_done = run_search,
+        })
+    else
+        run_search()
+    end
 end
 
 return M

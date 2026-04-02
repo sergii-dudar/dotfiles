@@ -3,6 +3,68 @@ local dep_search = require("modules.java.dependencies-search")
 
 local M = {}
 
+--- Convert dependency coordinates to path patterns for substring matching.
+--- "org.apache.commons" -> "org/apache/commons/"
+--- "org.apache.commons:commons-collections4" -> "org/apache/commons/commons-collections4/"
+---@param deps string[]
+---@return string[]
+function M.to_dep_patterns(deps)
+    local patterns = {}
+    for _, dep in ipairs(deps) do
+        table.insert(patterns, dep:gsub(":", "/"):gsub("%.", "/") .. "/")
+    end
+    return patterns
+end
+
+--- Filter source dirs by dependency patterns (substring match against path).
+---@param source_dirs string[]
+---@param patterns string[]
+---@return string[]
+function M.filter_dirs_by_patterns(source_dirs, patterns)
+    if #patterns == 0 then
+        return {}
+    end
+    local result = {}
+    for _, dir in ipairs(source_dirs) do
+        for _, pattern in ipairs(patterns) do
+            if dir:find(pattern, 1, true) then
+                table.insert(result, dir)
+                break
+            end
+        end
+    end
+    return result
+end
+
+-- Cache for preferred dep dirs, keyed by scope
+local preferred_cache = { main = nil, test = nil }
+
+--- Get cached preferred dep dirs for a scope.
+---@param scope "main"|"test"
+---@param settings { preferred_deps_main: string[], preferred_deps_test: string[] }
+---@return string[]
+function M.get_preferred_dep_dirs(scope, settings)
+    if preferred_cache[scope] then
+        return preferred_cache[scope]
+    end
+    if not dep_search.is_loaded() then
+        return {}
+    end
+    local preferred = scope == "test" and settings.preferred_deps_test or settings.preferred_deps_main
+    if not preferred or #preferred == 0 then
+        preferred_cache[scope] = {}
+        return {}
+    end
+    local patterns = M.to_dep_patterns(preferred)
+    local all_dep_dirs = dep_search.get_source_dirs_all(scope) or {}
+    preferred_cache[scope] = M.filter_dirs_by_patterns(all_dep_dirs, patterns)
+    return preferred_cache[scope]
+end
+
+function M.clear_preferred_cache()
+    preferred_cache = { main = nil, test = nil }
+end
+
 --- Returns source dirs based on buffer context:
 --- main file -> src/main/java only
 --- test file -> src/main/java + src/test/java
@@ -28,7 +90,8 @@ function M.get_module_src_dirs(bufnr)
 end
 
 ---@param state { include_deps: boolean, include_all_deps: boolean, source_bufnr?: integer }
-function M.get_search_dirs(state)
+---@param settings? { preferred_deps_main?: string[], preferred_deps_test?: string[] }
+function M.get_search_dirs(state, settings)
     local dirs = M.get_module_src_dirs(state.source_bufnr)
     if #dirs == 0 then
         -- fallback: try src/ directly
@@ -41,6 +104,12 @@ function M.get_search_dirs(state)
         end
     end
     local scope = java_util.is_test_file(state.source_bufnr) and "test" or "main"
+
+    -- Include preferred deps by default (if deps are loaded)
+    if settings and dep_search.is_loaded() then
+        vim.list_extend(dirs, M.get_preferred_dep_dirs(scope, settings))
+    end
+
     if state.include_all_deps then
         local dep_dirs = dep_search.get_source_dirs_all(scope)
         if dep_dirs then
