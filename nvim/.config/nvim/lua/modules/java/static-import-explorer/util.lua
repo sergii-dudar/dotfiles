@@ -112,11 +112,15 @@ function M.build_search(word, starts_with)
         return nil
     end
     if word:match("^[A-Z_][A-Z0-9_]*$") then
+        -- Static field (ALL_CAPS) — no public/static required (covers interface fields)
         local suffix = starts_with and "[A-Z0-9_]*[\\s]*=" or "[\\s]*="
-        return "public[\\s]+static.*[\\s]+" .. word .. suffix
+        -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
+        return "\\w+[\\s]+" .. word .. suffix
     else
+        -- Static method (camelCase) — requires static, public optional (covers interface methods)
         local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
-        return "public[\\s]+static.*[\\s]+" .. word .. suffix
+        -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- in `interface`
+        return "static[\\s]+.*[\\s]+" .. word .. suffix
     end
 end
 
