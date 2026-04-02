@@ -21,12 +21,12 @@ local settings = {
         -- "org.apache.commons.lang3",
         -- "org.apache.commons.commons-text",
         "org.apache.commons",
-        "com.google.guava",
+        "com.google.guava.guava",
     },
     -- test scope: these + preferred_deps_main (merged below)
     preferred_deps_test = {
         "org.assertj",
-        "org.mockito",
+        "org.mockito.mockito-core",
     },
 }
 
@@ -105,6 +105,7 @@ function M.find_quick()
             return
         end
 
+        dd(search_dirs)
         local rg_cmd = { "rg", "-n", "--no-heading", "-e", pattern, "--glob", "*.java" }
         vim.list_extend(rg_cmd, search_dirs)
 
