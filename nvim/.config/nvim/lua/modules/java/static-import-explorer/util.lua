@@ -40,43 +40,55 @@ end
 local preferred_cache = { main = nil, test = nil }
 
 --- Resolve preferred dep entries into directories.
---- Supported prefixes:
----   "dep:groupId" or "dep:groupId:artifactId" — match against dep source dirs (default if no prefix)
----   "path:glob_pattern" — resolve glob pattern directly
----   "!" prefix — exclude: "!org.apache.commons.commons-compress" or "!dep:..." or "!path:..."
+--- Formats:
+---   "org.apache.commons" — include all source dirs matching this group
+---   "org.apache.commons:commons-lang3" — include specific artifact
+---   "!org.apache.commons.commons-compress" — exclude matching dirs
+---   "org.assertj:assertj-core#org/assertj/core/util;org/assertj/core/api" — include only specific subdirs
 ---@param entries string[]
 ---@param all_dep_dirs string[]
 ---@return string[]
 local function resolve_preferred_entries(entries, all_dep_dirs)
     local dep_coords = {}
+    local dep_with_subpaths = {} -- { coord, subpaths[] }
     local exclude_coords = {}
     local dirs = {}
 
     for _, entry in ipairs(entries) do
-        local is_exclude = entry:match("^!")
-        local value = is_exclude and entry:sub(2) or entry
-
-        if value:match("^path:") then
-            local pattern = value:sub(6)
-            local matches = vim.fn.glob(pattern, false, true)
-            for _, match in ipairs(matches) do
-                if vim.fn.isdirectory(match) == 1 then
-                    table.insert(dirs, match)
-                end
+        if entry:match("^!") then
+            table.insert(exclude_coords, entry:sub(2))
+        elseif entry:find("#", 1, true) then
+            local coord, subpaths_str = entry:match("^(.-)#(.+)$")
+            if coord and subpaths_str then
+                local subpaths = vim.split(subpaths_str, ";", { trimempty = true })
+                table.insert(dep_with_subpaths, { coord = coord, subpaths = subpaths })
             end
         else
-            local coord = value:match("^dep:(.+)") or value
-            if is_exclude then
-                table.insert(exclude_coords, coord)
-            else
-                table.insert(dep_coords, coord)
-            end
+            table.insert(dep_coords, entry)
         end
     end
 
+    -- Resolve full dep dirs
     if #dep_coords > 0 then
         local patterns = M.to_dep_patterns(dep_coords)
         vim.list_extend(dirs, M.filter_dirs_by_patterns(all_dep_dirs, patterns))
+    end
+
+    -- Resolve deps with subpath restrictions
+    for _, item in ipairs(dep_with_subpaths) do
+        local patterns = M.to_dep_patterns({ item.coord })
+        local matched_dirs = M.filter_dirs_by_patterns(all_dep_dirs, patterns)
+        for _, dep_dir in ipairs(matched_dirs) do
+            for _, subpath in ipairs(item.subpaths) do
+                local full = dep_dir .. "/" .. subpath
+                local matches = vim.fn.glob(full, false, true)
+                for _, match in ipairs(matches) do
+                    if vim.fn.isdirectory(match) == 1 then
+                        table.insert(dirs, match)
+                    end
+                end
+            end
+        end
     end
 
     -- Remove excluded dirs

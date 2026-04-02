@@ -21,15 +21,15 @@ local settings = {
         -- "org.apache.commons.collections4",
         -- "org.apache.commons.lang3",
         -- "org.apache.commons.commons-text",
-        "dep:org.apache.commons",
-        "!dep:org.apache.commons.commons-compress",
-        "dep:com.google.guava.guava",
-        "path:**/assertj-core-*-sources/org/assertj/core/util",
+        "org.apache.commons",
+        "!org.apache.commons.commons-compress",
+        "com.google.guava.guava",
     },
     -- test scope: these + preferred_deps_main (merged below)
     preferred_deps_test = {
-        "dep:org.assertj",
-        "dep:org.mockito.mockito-core",
+        -- "org.assertj",
+        "org.assertj:assertj-core#org/assertj/core/util;org/assertj/core/api",
+        "org.mockito.mockito-core",
     },
 }
 
