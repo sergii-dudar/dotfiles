@@ -26,22 +26,101 @@ function M.get_client_id_by_name(name)
     return client and client.id or nil
 end
 
+--- Apply a resolved LSP code action (handles resolve, edit, and command execution)
+---@param action lsp.CodeAction
+---@param client vim.lsp.Client
+local function apply_lsp_action(action, client)
+    local bufnr = vim.api.nvim_get_current_buf()
+
+    if not action.edit and not action.command and client:supports_method("codeAction/resolve") then
+        client:request("codeAction/resolve", action, function(err, resolved)
+            if err then
+                vim.notify("Code action resolve error: " .. (err.message or "unknown"), vim.log.levels.WARN)
+                return
+            end
+            apply_lsp_action(resolved or action, client)
+        end, bufnr)
+        return
+    end
+
+    if action.edit then
+        vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+    end
+
+    if action.command then
+        local command = type(action.command) == "table" and action.command or action
+        client:request("workspace/executeCommand", command, function(err)
+            if err then
+                vim.notify(err.message or "Command execution failed", vim.log.levels.WARN)
+            end
+        end, bufnr)
+    end
+end
+
+--- Request code actions from all LSP clients, apply the first matching one
+--- (respecting pattern priority order), or invoke a fallback if none match.
+---@param action_match_names string[]
+---@param fallback? fun()
+local function request_and_apply_first(action_match_names, fallback)
+    local bufnr = vim.api.nvim_get_current_buf()
+    local params = vim.lsp.util.make_range_params()
+    params.context = {
+        diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr),
+        triggerKind = vim.lsp.protocol.CodeActionTriggerKind.Invoked,
+    }
+
+    vim.lsp.buf_request_all(bufnr, "textDocument/codeAction", params, function(results)
+        -- Outer loop over patterns first to respect caller's priority order
+        dd(results)
+        for _, name_pattern in ipairs(action_match_names) do
+            for client_id, result in pairs(results) do
+                for _, action in ipairs(result.result or {}) do
+                    if action.title and action.title:match(name_pattern) then
+                        vim.schedule(function()
+                            local client = vim.lsp.get_client_by_id(client_id)
+                            if client then
+                                apply_lsp_action(action, client)
+                            end
+                        end)
+                        return
+                    end
+                end
+            end
+        end
+
+        vim.schedule(function()
+            if fallback then
+                fallback()
+            else
+                vim.notify("No code actions available", vim.log.levels.INFO)
+            end
+        end)
+    end)
+end
+
 local LspCodeAction = function()
     return {
-        apply_first_available = function(...)
-            local action_match_names = { ... }
-            vim.lsp.buf.code_action({
-                filter = function(action)
-                    for _, value in ipairs(action_match_names) do
-                        if action.title:match(value) then
-                            return true
-                        end
-                    end
-                    return false
-                end,
-                apply = true,
-            })
+        --- Apply the first matching code action from a priority-ordered list of patterns.
+        --- Calls fallback when no actions match.
+        ---
+        ---@param opts { actions: string[], fallback?: fun() }
+        apply_first_available = function(opts)
+            request_and_apply_first(opts.actions, opts.fallback)
         end,
+        -- apply_first_available = function(...)
+        --     local action_match_names = { ... }
+        --     vim.lsp.buf.code_action({
+        --         filter = function(action)
+        --             for _, value in ipairs(action_match_names) do
+        --                 if action.title:match(value) then
+        --                     return true
+        --                 end
+        --             end
+        --             return false
+        --         end,
+        --         apply = true,
+        --     })
+        -- end,
         toggle = function(action_match_name1, action_match_name2)
             vim.lsp.buf.code_action({
                 filter = function(action)
