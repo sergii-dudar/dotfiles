@@ -14,6 +14,12 @@
     map("n", "<leader>gb", function() Snacks.picker.git_log_line() end, { desc = "Git Blame Line" })
 ]]
 
+vim.api.nvim_create_user_command("Search", function(opts)
+    local path = opts.args
+    vim.notify("Searching in: " .. path)
+    Snacks.picker.grep({ cwd = path, title = path })
+end, { nargs = 1 })
+
 return {
     {
         "folke/snacks.nvim",

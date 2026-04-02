@@ -191,6 +191,16 @@ return {
                 enabled = true,
                 -- keymap = { preset = "inherit" },
                 -- completion = { menu = { auto_show = true } },
+                sources = function()
+                    local type = vim.fn.getcmdtype()
+                    if type == "/" or type == "?" then
+                        return { "buffer" }
+                    end
+                    if type == ":" then
+                        return { "cmdline", "path" }
+                    end
+                    return {}
+                end,
             },
             sources = {
                 providers = {
