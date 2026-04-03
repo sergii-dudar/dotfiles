@@ -14,7 +14,7 @@
     map("n", "<leader>gb", function() Snacks.picker.git_log_line() end, { desc = "Git Blame Line" })
 ]]
 
-vim.api.nvim_create_user_command("Search", function(opts)
+--[[ vim.api.nvim_create_user_command("Search", function(opts)
     if opts.args == "" then
         vim.notify("Usage: Search <path>", vim.log.levels.ERROR)
         return
@@ -22,7 +22,7 @@ vim.api.nvim_create_user_command("Search", function(opts)
     local path = opts.args
     vim.notify("Searching in: " .. path)
     Snacks.picker.grep({ cwd = path, title = path })
-end, { nargs = "?" })
+end, { nargs = "?" }) ]]
 
 return {
     {
