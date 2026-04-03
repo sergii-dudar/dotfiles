@@ -32,6 +32,7 @@ function M.setup()
     local lombok_snips = require("plugins.luasnip.snippets.java.snippets-java-lombok").snippets()
     local spring_snips = require("plugins.luasnip.snippets.java.snippets-java-spring").snippets()
     local junit_snips = require("plugins.luasnip.snippets.java.snippets-java-junit").snippets()
+    local general_snips = require("plugins.luasnip.snippets.java.snippets-java-general").snippets()
 
     local java_snippets = vim.list_extend({
         s("o", java.primitives.stdout()),
@@ -49,12 +50,12 @@ function M.setup()
         }),
         s("psf", t("public static final ")),
         s("prsf", t("private static final ")),
-        s("nie", t("throw new NotImplementedException();")),
     }, mapstruct_snips)
 
     java_snippets = vim.list_extend(java_snippets, lombok_snips)
     java_snippets = vim.list_extend(java_snippets, spring_snips)
     java_snippets = vim.list_extend(java_snippets, junit_snips)
+    java_snippets = vim.list_extend(java_snippets, general_snips)
     ls.add_snippets("java", java_snippets)
 end
 
