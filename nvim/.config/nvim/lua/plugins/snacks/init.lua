@@ -107,9 +107,13 @@ return {
                 Snacks.picker({
                     title = "Directories",
                     finder = "proc",
-                    format = "text",
+                    format = "file",
                     cmd = "fd",
                     args = { "--type", "d", "--hidden", "--exclude", ".git" },
+                    transform = function(item)
+                        item.file = item.text
+                        item.dir = true
+                    end,
                     preview = function(ctx)
                         Preview.cmd({ "eza", "--tree", "--icons", "--level=1", "--color=always", "--group-directories-first", ctx.item.text }, ctx)
                     end,
