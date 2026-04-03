@@ -259,6 +259,8 @@ function M.build_search(word, starts_with)
         -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- in `interface`
         return "static[\\s]+.*[\\s]+" .. word .. suffix
     end
+    -- rg -P '^(?!.*\b(?:private|protected)\b).*\w+\s+WORD[A-Z0-9_]*\s*=' --glob '*.java'
+    -- rg -P '^(?!.*\b(?:private|protected)\b).*static\s+.*\s+word[a-zA-Z0-9_]*\(' --glob '*.java'
 end
 
 --- Derive FQCN from Java file path (no I/O, uses path structure).

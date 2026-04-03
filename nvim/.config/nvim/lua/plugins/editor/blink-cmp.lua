@@ -50,6 +50,8 @@ return {
 
                 -- ["<Space>"] = { "select_and_accept", "fallback" },
                 -- ["<C-h>"] = { "show_signature", "hide_signature", "fallback" },
+                -- show_and_insert_or_accept_single
+                -- ["<C-space>"] = { "show_and_insert_or_accept_single", "show_documentation", "hide_documentation" },
 
                 -- show with a list of providers
                 -- ["<C-space>"] = {
