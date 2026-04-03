@@ -121,26 +121,26 @@ return {
     --     end,
     -- },
     -- Fully customizable previewer for LSP code actions.
-    {
-        "aznhe21/actions-preview.nvim",
-        config = function()
-            require("actions-preview").setup({
-                highlight_command = {
-                    require("actions-preview.highlight").delta(),
-                    -- require("actions-preview.highlight").diff_so_fancy(),
-                    -- require("actions-preview.highlight").diff_highlight(),
-                },
-                backend = { "snacks" },
-                snacks = {
-                    layout = {
-                        preset = function()
-                            return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
-                        end,
-                    },
-                },
-            })
-        end,
-    },
+    -- {
+    --     "aznhe21/actions-preview.nvim",
+    --     config = function()
+    --         require("actions-preview").setup({
+    --             highlight_command = {
+    --                 require("actions-preview.highlight").delta(),
+    --                 -- require("actions-preview.highlight").diff_so_fancy(),
+    --                 -- require("actions-preview.highlight").diff_highlight(),
+    --             },
+    --             backend = { "snacks" },
+    --             snacks = {
+    --                 layout = {
+    --                     preset = function()
+    --                         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
+    --                     end,
+    --                 },
+    --             },
+    --         })
+    --     end,
+    -- },
     {
         "neovim/nvim-lspconfig",
         dependencies = {
@@ -161,7 +161,7 @@ return {
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>k", function() require("pretty_hover").hover() end, desc = "Pretty hover" },
                         -- override default preveiw mapping
-                        { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
+                        -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                         -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
                         { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
