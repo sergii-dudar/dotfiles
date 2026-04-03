@@ -49,6 +49,7 @@ function M.setup()
         }),
         s("psf", t("public static final ")),
         s("prsf", t("private static final ")),
+        s("nie", t("throw new NotImplementedException();")),
     }, mapstruct_snips)
 
     java_snippets = vim.list_extend(java_snippets, lombok_snips)

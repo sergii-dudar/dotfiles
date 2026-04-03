@@ -163,27 +163,10 @@ return {
                         -- override default preveiw mapping
                         -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                         -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
-                        { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
+                        -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
                         { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
-                        {
-                            "<leader>cc",
-                            function()
-                                require("utils.lsp-util").code_action.apply_first_available({
-                                    actions = {
-                                        "Convert to method reference",
-                                        "Convert to lambda expression",
-                                        "Create method '",
-                                        "Add unimplemented methods",
-                                        -- "Add all missing imports",
-                                    },
-                                    fallback = function()
-                                        -- vim.notify("No code actions available, fallback to static import", vim.log.levels.INFO)
-                                        require("modules.java.static-import-explorer").find_quick()
-                                    end,
-                                })
-                            end,
-                            desc = "Context Apply First Code Action [jdtls]",
-                        }
+                        { "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, desc = "Resolve imports [jdtls]", },
+                        { "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, desc = "Context Apply First Code Action [jdtls]", }
                     },
                 },
             },

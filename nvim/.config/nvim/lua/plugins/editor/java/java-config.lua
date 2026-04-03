@@ -54,6 +54,13 @@ return {
             -- an already opened project, you get errors due to unresolved dependencies, you can run “:JdtWipeDataAndRestart”
             -- which will resolve the Maven dependencies from scratch
             { "<leader>jdf", ":JdtWipeDataAndRestart<CR>", desc = "JDTLS Wipe Data and [F]ull Restart" },
+            { "<leader>jdg", function()
+                local path = java_util.get_buffer_project_path()
+                local dir = path .. "/target/generated-sources/annotations"
+                vim.fn.delete(dir, "rf")
+                vim.notify("Cleared: " .. dir)
+                require("jdtls").update_project_config()
+            end, desc = "Clear generated-sources and refresh JDTLS" },
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests (jdtls)", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests (jdtls)", },
             -- Proj Dependency Search: 

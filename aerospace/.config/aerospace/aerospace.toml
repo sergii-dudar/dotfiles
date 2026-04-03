@@ -278,7 +278,7 @@ alt-shift-l = ['join-with right', 'mode main', 'exec-and-forget /opt/homebrew/bi
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
-run = "move-node-to-workspace 2"
+run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
@@ -290,23 +290,23 @@ run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.jetbrains.intellij'
-run = "move-node-to-workspace 2"
+run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.jetbrains.intellij.ce'
-run = "move-node-to-workspace 2"
+run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.microsoft.VSCode'
-run = "move-node-to-workspace 2"
+run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
 if.app-id = 'com.google.Chrome'
-run = "move-node-to-workspace 3"
+run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
 if.app-id = 'com.brave.Browser'
-run = "move-node-to-workspace 3"
+run = "move-node-to-workspace 2"
 
 # second monitor configuration: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [workspace-to-monitor-force-assignment]
