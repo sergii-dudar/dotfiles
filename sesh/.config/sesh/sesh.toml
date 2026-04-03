@@ -1,0 +1,48 @@
+#:schema https://github.com/joshmedeski/sesh/raw/main/sesh.schema.json
+
+# support regex https://github.com/joshmedeski/sesh/pull/239
+blacklist = [".*_popup"]
+
+sort_order = [
+    "config",  # show first
+    "tmux",
+    "zoxide",
+    "tmuxinator" # show last
+]
+
+# [[session]]
+# name = "Downloads 📥"
+# path = "~/Downloads"
+# startup_command = "ls"
+
+# looks some bugs with preview, as name taking as path
+[[session]]
+name = "Dotfiles  "
+path = "~/dotfiles"
+startup_command = "nvim"
+preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
+# preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
+# preview_command = "eza --all --git --icons --color=always ~/dotfiles"
+
+# [[session]]
+# name = "tmux config"
+# path = "~/c/dotfiles/.config/tmux"
+# disable_startup_command = true
+# # startup_command = "nvim tmux.conf"
+# preview_command = "bat --color=always ~/dotfiles/tmux/.tmux.conf"
+
+[[session]]
+name = "k9s  "
+path = "~/serhii.home/work/docs"
+disable_startup_command = true
+windows = [ "explorer", "work.explorer" ]
+# preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
+# preview_command = "eza --all --git --icons --color=always ~/dotfiles"
+
+[[window]]
+name = "explorer"
+disable_startup_command = true
+
+[[window]]
+name = "work.explorer"
+disable_startup_command = true
