@@ -102,30 +102,7 @@ return {
             { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
             -- { "<leader>ghb", function() Snacks.git.blame_line() end, desc = "Blame Line (Snacks)" },
             { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
-            { "<leader>fd", function()
-                local Preview = require("snacks.picker.preview")
-                Snacks.picker({
-                    title = "Directories",
-                    finder = "proc",
-                    format = "file",
-                    cmd = "fd",
-                    args = { "--type", "d", "--hidden", "--exclude", ".git" },
-                    transform = function(item)
-                        item.file = item.text
-                        item.dir = true
-                    end,
-                    preview = function(ctx)
-                        Preview.cmd({ "eza", "--tree", "--icons", "--level=1", "--color=always", "--group-directories-first", ctx.item.text }, ctx)
-                    end,
-                    confirm = function(picker, item)
-                        picker:close()
-                        if item then
-                            Snacks.picker.files({ cwd = item.text })
-                        end
-                    end,
-                })
-            end, desc = "Find Directories" },
-
+            { "<leader>fd", function() require("plugins.snacks.configs.find-dir").pick() end, desc = "Find Directories" },
             -- working exploring helpers:
             { "<leader>g.", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
             { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
