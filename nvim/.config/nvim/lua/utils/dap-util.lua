@@ -65,18 +65,48 @@ function M.reset()
     close_log_win()
 end
 
----Prompt for a file path and write lines to it.
+---Pick a directory then prompt for filename, write lines to the resulting path.
 ---@param lines string[]
 local function write_to_file(lines)
-    Snacks.input.input({ prompt = "Write to file: ", completion = "file" }, function(path)
-        if not path or path == "" then
-            return
-        end
-        path = vim.fn.expand(path)
-        vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
-        vim.fn.writefile(lines, path)
-        vim.notify("Written to " .. path, vim.log.levels.INFO)
-    end)
+    local Preview = require("snacks.picker.preview")
+    Snacks.picker({
+        title = "Write to directory",
+        finder = "proc",
+        format = "file",
+        cmd = "fd",
+        args = { "--type", "d", "--hidden", "--exclude", ".git" },
+        transform = function(item)
+            item.file = item.text
+            item.dir = true
+        end,
+        preview = function(ctx)
+            Preview.cmd({
+                "eza",
+                "--tree",
+                "--icons",
+                "--level=1",
+                "--color=always",
+                "--group-directories-first",
+                ctx.item.text,
+            }, ctx)
+        end,
+        confirm = function(picker, item)
+            picker:close()
+            if not item then
+                return
+            end
+            local dir = item.text
+            Snacks.input.input({ prompt = "File name: " }, function(name)
+                if not name or name == "" then
+                    return
+                end
+                local path = dir .. "/" .. name
+                vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+                vim.fn.writefile(lines, path)
+                vim.notify("Written to " .. path, vim.log.levels.INFO)
+            end)
+        end,
+    })
 end
 
 ---Evaluate a DAP expression and write result to file.
