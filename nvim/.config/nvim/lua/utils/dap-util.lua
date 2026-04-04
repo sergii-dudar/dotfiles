@@ -65,9 +65,10 @@ function M.reset()
     close_log_win()
 end
 
----Evaluate DAP expression and return result lines via callback.
+---Evaluate expression via DAP and return result lines via callback.
+---@param expr string
 ---@param callback fun(lines: string[])
-local function eval_dap(callback)
+local function dap_eval(expr, callback)
     local dap = require("dap")
     local session = dap.session()
     if not session then
@@ -75,30 +76,36 @@ local function eval_dap(callback)
         return
     end
 
+    session:request("evaluate", {
+        expression = expr,
+        frameId = session.current_frame and session.current_frame.id,
+        context = "repl",
+    }, function(err, resp)
+        if err then
+            vim.schedule(function()
+                vim.notify("DAP eval error: " .. tostring(err.message or err), vim.log.levels.ERROR)
+            end)
+            return
+        end
+        local result = resp.result
+        if result:match('^".*"$') then
+            result = result:sub(2, -2)
+            result = result:gsub('\\"', '"'):gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\\\", "\\")
+        end
+        vim.schedule(function()
+            callback(vim.split(result, "\n", { plain = true }))
+        end)
+    end)
+end
+
+---Prompt for expression, evaluate via DAP, return result lines via callback.
+---@param callback fun(lines: string[])
+local function prompt_eval_dap(callback)
     Snacks.input.input({ prompt = "Expression: " }, function(expr)
         if not expr or expr == "" then
             return
         end
-        session:request("evaluate", {
-            expression = expr,
-            frameId = session.current_frame and session.current_frame.id,
-            context = "repl",
-        }, function(err, resp)
-            if err then
-                vim.schedule(function()
-                    vim.notify("DAP eval error: " .. tostring(err.message or err), vim.log.levels.ERROR)
-                end)
-                return
-            end
-            local result = resp.result
-            if result:match('^".*"$') then
-                result = result:sub(2, -2)
-                result = result:gsub('\\"', '"'):gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\\\", "\\")
-            end
-            vim.schedule(function()
-                callback(vim.split(result, "\n", { plain = true }))
-            end)
-        end)
+        dap_eval(expr, callback)
     end)
 end
 
@@ -183,32 +190,32 @@ local function write_to_existing_file(lines)
     })
 end
 
--- <leader>dww: eval to new file (normal), selection to new file (visual)
+-- <leader>dww: eval to new file (normal), visual selection as expression to new file (visual)
 function M.eval_to_new_file()
-    eval_dap(write_to_new_file)
+    prompt_eval_dap(write_to_new_file)
 end
 
-function M.selection_to_new_file()
+function M.selection_eval_to_new_file()
     local lines = get_visual_selection()
     if #lines == 0 then
         vim.notify("No selection", vim.log.levels.WARN)
         return
     end
-    write_to_new_file(lines)
+    dap_eval(table.concat(lines, "\n"), write_to_new_file)
 end
 
--- <leader>dwf: eval to existing file (normal), selection to existing file (visual)
+-- <leader>dwf: eval to existing file (normal), visual selection as expression to existing file (visual)
 function M.eval_to_existing_file()
-    eval_dap(write_to_existing_file)
+    prompt_eval_dap(write_to_existing_file)
 end
 
-function M.selection_to_existing_file()
+function M.selection_eval_to_existing_file()
     local lines = get_visual_selection()
     if #lines == 0 then
         vim.notify("No selection", vim.log.levels.WARN)
         return
     end
-    write_to_existing_file(lines)
+    dap_eval(table.concat(lines, "\n"), write_to_existing_file)
 end
 
 return M
