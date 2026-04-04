@@ -65,9 +65,71 @@ function M.reset()
     close_log_win()
 end
 
----Pick a directory then prompt for filename, write lines to the resulting path.
+---Evaluate DAP expression and return result lines via callback.
+---@param callback fun(lines: string[])
+local function eval_dap(callback)
+    local dap = require("dap")
+    local session = dap.session()
+    if not session then
+        vim.notify("No active DAP session", vim.log.levels.WARN)
+        return
+    end
+
+    Snacks.input.input({ prompt = "Expression: " }, function(expr)
+        if not expr or expr == "" then
+            return
+        end
+        session:request("evaluate", {
+            expression = expr,
+            frameId = session.current_frame and session.current_frame.id,
+            context = "repl",
+        }, function(err, resp)
+            if err then
+                vim.schedule(function()
+                    vim.notify("DAP eval error: " .. tostring(err.message or err), vim.log.levels.ERROR)
+                end)
+                return
+            end
+            local result = resp.result
+            if result:match('^".*"$') then
+                result = result:sub(2, -2)
+                result = result:gsub('\\"', '"'):gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\\\", "\\")
+            end
+            vim.schedule(function()
+                callback(vim.split(result, "\n", { plain = true }))
+            end)
+        end)
+    end)
+end
+
+---Get visual selection lines.
+---@return string[]
+local function get_visual_selection()
+    local save = vim.fn.getreg("z")
+    local save_type = vim.fn.getregtype("z")
+    vim.cmd('noautocmd normal! "zy')
+    local text = vim.fn.getreg("z")
+    vim.fn.setreg("z", save, save_type)
+
+    local lines = vim.split(text, "\n", { plain = true })
+    if #lines > 0 and lines[#lines] == "" then
+        table.remove(lines)
+    end
+    return lines
+end
+
+---Write lines to path, creating parent dirs.
 ---@param lines string[]
-local function write_to_file(lines)
+---@param path string
+local function write_lines(lines, path)
+    vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+    vim.fn.writefile(lines, path)
+    vim.notify("Written to " .. path, vim.log.levels.INFO)
+end
+
+---Pick a directory then prompt for filename, write lines.
+---@param lines string[]
+local function write_to_new_file(lines)
     local Preview = require("snacks.picker.preview")
     Snacks.picker({
         title = "Write to directory",
@@ -100,70 +162,53 @@ local function write_to_file(lines)
                 if not name or name == "" then
                     return
                 end
-                local path = dir .. "/" .. name
-                vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
-                vim.fn.writefile(lines, path)
-                vim.notify("Written to " .. path, vim.log.levels.INFO)
+                write_lines(lines, dir .. "/" .. name)
             end)
         end,
     })
 end
 
----Evaluate a DAP expression and write result to file.
-function M.eval_to_file()
-    local dap = require("dap")
-    local session = dap.session()
-    if not session then
-        vim.notify("No active DAP session", vim.log.levels.WARN)
-        return
-    end
-
-    Snacks.input.input({ prompt = "Expression: " }, function(expr)
-        if not expr or expr == "" then
-            return
-        end
-        session:request("evaluate", {
-            expression = expr,
-            frameId = session.current_frame and session.current_frame.id,
-            context = "repl",
-        }, function(err, resp)
-            if err then
-                vim.schedule(function()
-                    vim.notify("DAP eval error: " .. tostring(err.message or err), vim.log.levels.ERROR)
-                end)
+---Pick an existing file, write lines to it.
+---@param lines string[]
+local function write_to_existing_file(lines)
+    Snacks.picker.files({
+        title = "Write to file",
+        confirm = function(picker, item)
+            picker:close()
+            if not item then
                 return
             end
-            local result = resp.result
-            -- Strip surrounding quotes and unescape Java strings
-            if result:match('^".*"$') then
-                result = result:sub(2, -2)
-                result = result:gsub('\\"', '"'):gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\\\", "\\")
-            end
-            local lines = vim.split(result, "\n", { plain = true })
-            vim.schedule(function()
-                write_to_file(lines)
-            end)
-        end)
-    end)
+            write_lines(lines, item.file)
+        end,
+    })
 end
 
----Write visual selection to file.
-function M.selection_to_file()
-    local save = vim.fn.getreg("z")
-    local save_type = vim.fn.getregtype("z")
-    vim.cmd('noautocmd normal! "zy')
-    local text = vim.fn.getreg("z")
-    vim.fn.setreg("z", save, save_type)
+-- <leader>dww: eval to new file (normal), selection to new file (visual)
+function M.eval_to_new_file()
+    eval_dap(write_to_new_file)
+end
 
-    local lines = vim.split(text, "\n", { plain = true })
-    if #lines > 0 and lines[#lines] == "" then
-        table.remove(lines)
-    end
+function M.selection_to_new_file()
+    local lines = get_visual_selection()
     if #lines == 0 then
         vim.notify("No selection", vim.log.levels.WARN)
         return
     end
-    write_to_file(lines)
+    write_to_new_file(lines)
+end
+
+-- <leader>dwf: eval to existing file (normal), selection to existing file (visual)
+function M.eval_to_existing_file()
+    eval_dap(write_to_existing_file)
+end
+
+function M.selection_to_existing_file()
+    local lines = get_visual_selection()
+    if #lines == 0 then
+        vim.notify("No selection", vim.log.levels.WARN)
+        return
+    end
+    write_to_existing_file(lines)
 end
 
 return M

@@ -55,8 +55,10 @@ return {
       { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
             -- { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
             { "<leader>de", function() require("dapui").eval(nil, { enter = true }) end, desc = "Eval", mode = {"n", "x"} },
-            { "<leader>dw", function() require("utils.dap-util").eval_to_file() end, desc = "Eval to File" },
-            { "<leader>dw", function() require("utils.dap-util").selection_to_file() end, desc = "Selection to File", mode = "x" },
+            { "<leader>dww", function() require("utils.dap-util").eval_to_new_file() end, desc = "Eval to New File" },
+            { "<leader>dww", function() require("utils.dap-util").selection_to_new_file() end, desc = "Selection to New File", mode = "x" },
+            { "<leader>dwf", function() require("utils.dap-util").eval_to_existing_file() end, desc = "Eval to Existing File" },
+            { "<leader>dwf", function() require("utils.dap-util").selection_to_existing_file() end, desc = "Selection to Existing File", mode = "x" },
         },
         config = function(_, opts)
             local dap = require("dap")
