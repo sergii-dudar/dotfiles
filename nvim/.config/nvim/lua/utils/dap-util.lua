@@ -218,4 +218,24 @@ function M.selection_eval_to_existing_file()
     dap_eval(table.concat(lines, "\n"), write_to_existing_file)
 end
 
+-- <leader>dww: write visual selection directly to new file (no DAP eval)
+function M.selection_to_new_file()
+    local lines = get_visual_selection()
+    if #lines == 0 then
+        vim.notify("No selection", vim.log.levels.WARN)
+        return
+    end
+    write_to_new_file(lines)
+end
+
+-- <leader>dwW: write visual selection directly to existing file (no DAP eval)
+function M.selection_to_existing_file()
+    local lines = get_visual_selection()
+    if #lines == 0 then
+        vim.notify("No selection", vim.log.levels.WARN)
+        return
+    end
+    write_to_existing_file(lines)
+end
+
 return M
