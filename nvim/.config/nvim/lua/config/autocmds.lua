@@ -106,7 +106,12 @@ vim.api.nvim_create_autocmd("BufRead", {
 ---------------- dirsession  --------------
 
 local function is_virtual_buf(name)
-    return name:sub(1, 6) == "jdt://" or name:sub(1, 10) == "zipfile://"
+    return name:sub(1, 6) == "jdt://"
+        or name:sub(1, 10) == "zipfile://"
+        or name:sub(1, 12) == "miniicons://"
+        or name:match("neo%-tree ")
+        or name:match("%[dap%-repl%-%d+%]")
+        or name:match("DAP [A-Z]")
 end
 
 vim.api.nvim_create_autocmd("VimLeavePre", {
