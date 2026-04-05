@@ -148,7 +148,8 @@ local function pick_and_write(lines)
         cmd = "fd",
         args = (function()
             local args = { "--type", "f", "--type", "d", "--hidden", "--exclude", ".git" }
-            local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
+            -- local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
+            local resource_dirs = { module_root .. "/src/test/resources" }
             if #resource_dirs > 0 then
                 for _, dir in ipairs(resource_dirs) do
                     vim.list_extend(args, { "--search-path", dir })
