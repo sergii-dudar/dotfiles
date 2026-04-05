@@ -134,69 +134,53 @@ local function write_lines(lines, path)
     vim.notify("Written to " .. path, vim.log.levels.INFO)
 end
 
----Mixed files+dirs picker. File selected → write directly. Dir selected → prompt for filename.
----Scoped to resources dirs under current module.
+---Explorer picker to select/create a file, then write lines to it.
+---Rooted at current module's src/test/resources.
+---Use `a` to create new files, `<CR>` on a file to write to it.
 ---@param lines string[]
 local function pick_and_write(lines)
     local java_util = require("utils.java.java-common")
     local module_root = java_util.get_buffer_project_path() or vim.fn.getcwd()
-    local Preview = require("snacks.picker.preview")
-    Snacks.picker({
-        title = "Write to",
-        finder = "proc",
-        format = "file",
-        cmd = "fd",
-        args = (function()
-            local args = { "--type", "f", "--type", "d", "--hidden", "--exclude", ".git" }
-            -- local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
-            local resource_dirs = { module_root .. "/src/test/resources" }
-            if #resource_dirs > 0 then
-                for _, dir in ipairs(resource_dirs) do
-                    vim.list_extend(args, { "--search-path", dir })
+    -- local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
+    local resources_dir = module_root .. "/src/test/resources"
+    if vim.fn.isdirectory(resources_dir) == 0 then
+        resources_dir = module_root .. "/src"
+    end
+
+    Snacks.picker.explorer({
+        cwd = resources_dir,
+        auto_close = true,
+        follow_file = false,
+        focus = "list",
+        actions = {
+            write_to_file = function(picker, item)
+                if not item then
+                    return
                 end
-            else
-                vim.list_extend(args, { "--search-path", module_root .. "/src" })
-            end
-            return args
-        end)(),
-        transform = function(item)
-            local path = item.text
-            item.file = path
-            item.dir = vim.fn.isdirectory(path) == 1
-        end,
-        preview = function(ctx)
-            if ctx.item.dir then
-                Preview.cmd({
-                    "eza",
-                    "--tree",
-                    "--icons",
-                    "--level=1",
-                    "--color=always",
-                    "--group-directories-first",
-                    ctx.item.text,
-                }, ctx)
-            else
-                Preview.file(ctx)
-            end
-        end,
-        confirm = function(picker, item)
-            picker:close()
-            if not item then
-                return
-            end
-            if item.dir then
-                vim.schedule(function()
-                    Snacks.input.input({ prompt = "File name: " }, function(name)
-                        if not name or name == "" then
-                            return
-                        end
-                        write_lines(lines, item.text .. "/" .. name)
-                    end)
-                end)
-            else
+                if item.dir then
+                    local Tree = require("snacks.explorer.tree")
+                    Tree:toggle(item.file)
+                    require("snacks.explorer.actions").update(picker, { refresh = true })
+                    return
+                end
+                picker:close()
+                vim.notify(item.file)
                 write_lines(lines, item.file)
-            end
-        end,
+            end,
+        },
+        win = {
+            input = {
+                keys = {
+                    ["<CR>"] = { "write_to_file", mode = { "i", "n" } },
+                },
+            },
+            list = {
+                keys = {
+                    ["<CR>"] = "write_to_file",
+                    ["l"] = "write_to_file",
+                },
+            },
+        },
     })
 end
 

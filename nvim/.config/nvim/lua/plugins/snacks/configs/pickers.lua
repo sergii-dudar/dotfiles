@@ -77,7 +77,7 @@ M.picker = {
     sources = {
         explorer = {
             -- layout = layouts.custom_explorer,
-            layout = layouts.custom_default,
+            layout = vim.tbl_extend("force", layouts.custom_default, { reverse = false }),
             auto_close = true,
             focus = "input", -- input|list
         },
@@ -125,6 +125,7 @@ M.explorer = {
     ignored = true, -- Show git-ignored files
     replace_netrw = true,
     auto_close = false, -- Keep explorer open
+    reverse = false,
 }
 
 return M
