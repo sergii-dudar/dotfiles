@@ -134,108 +134,91 @@ local function write_lines(lines, path)
     vim.notify("Written to " .. path, vim.log.levels.INFO)
 end
 
----Pick a directory then prompt for filename, write lines.
+---Mixed files+dirs picker. File selected → write directly. Dir selected → prompt for filename.
+---Scoped to resources dirs under current module.
 ---@param lines string[]
-local function write_to_new_file(lines)
+local function pick_and_write(lines)
+    local java_util = require("utils.java.java-common")
+    local module_root = java_util.get_buffer_project_path() or vim.fn.getcwd()
     local Preview = require("snacks.picker.preview")
     Snacks.picker({
-        title = "Write to directory",
+        title = "Write to",
         finder = "proc",
         format = "file",
         cmd = "fd",
-        args = { "--type", "d", "--hidden", "--exclude", ".git" },
+        args = (function()
+            local args = { "--type", "f", "--type", "d", "--hidden", "--exclude", ".git" }
+            local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
+            if #resource_dirs > 0 then
+                for _, dir in ipairs(resource_dirs) do
+                    vim.list_extend(args, { "--search-path", dir })
+                end
+            else
+                vim.list_extend(args, { "--search-path", module_root .. "/src" })
+            end
+            return args
+        end)(),
         transform = function(item)
-            item.file = item.text
-            item.dir = true
+            local path = item.text
+            item.file = path
+            item.dir = vim.fn.isdirectory(path) == 1
         end,
         preview = function(ctx)
-            Preview.cmd({
-                "eza",
-                "--tree",
-                "--icons",
-                "--level=1",
-                "--color=always",
-                "--group-directories-first",
-                ctx.item.text,
-            }, ctx)
+            if ctx.item.dir then
+                Preview.cmd({
+                    "eza",
+                    "--tree",
+                    "--icons",
+                    "--level=1",
+                    "--color=always",
+                    "--group-directories-first",
+                    ctx.item.text,
+                }, ctx)
+            else
+                Preview.file(ctx)
+            end
         end,
         confirm = function(picker, item)
             picker:close()
             if not item then
                 return
             end
-            local dir = item.text
-            Snacks.input.input({ prompt = "File name: " }, function(name)
-                if not name or name == "" then
-                    return
-                end
-                write_lines(lines, dir .. "/" .. name)
-            end)
-        end,
-    })
-end
-
----Pick an existing file, write lines to it.
----@param lines string[]
-local function write_to_existing_file(lines)
-    Snacks.picker.files({
-        title = "Write to file",
-        confirm = function(picker, item)
-            picker:close()
-            if not item then
-                return
+            if item.dir then
+                Snacks.input.input({ prompt = "File name: " }, function(name)
+                    if not name or name == "" then
+                        return
+                    end
+                    write_lines(lines, item.text .. "/" .. name)
+                end)
+            else
+                write_lines(lines, item.file)
             end
-            write_lines(lines, item.file)
         end,
     })
 end
 
--- <leader>dww: eval to new file (normal), visual selection as expression to new file (visual)
-function M.eval_to_new_file()
-    prompt_eval_dap(write_to_new_file)
+-- <leader>dwf: DAP eval → pick file/dir → write result
+function M.eval_to_file()
+    prompt_eval_dap(pick_and_write)
 end
 
-function M.selection_eval_to_new_file()
+function M.selection_eval_to_file()
     local lines = get_visual_selection()
     if #lines == 0 then
         vim.notify("No selection", vim.log.levels.WARN)
         return
     end
-    dap_eval(table.concat(lines, "\n"), write_to_new_file)
+    dap_eval(table.concat(lines, "\n"), pick_and_write)
 end
 
--- <leader>dwf: eval to existing file (normal), visual selection as expression to existing file (visual)
-function M.eval_to_existing_file()
-    prompt_eval_dap(write_to_existing_file)
-end
-
-function M.selection_eval_to_existing_file()
+-- <leader>dww: write visual selection directly → pick file/dir → write
+function M.selection_to_file()
     local lines = get_visual_selection()
     if #lines == 0 then
         vim.notify("No selection", vim.log.levels.WARN)
         return
     end
-    dap_eval(table.concat(lines, "\n"), write_to_existing_file)
-end
-
--- <leader>dww: write visual selection directly to new file (no DAP eval)
-function M.selection_to_new_file()
-    local lines = get_visual_selection()
-    if #lines == 0 then
-        vim.notify("No selection", vim.log.levels.WARN)
-        return
-    end
-    write_to_new_file(lines)
-end
-
--- <leader>dwW: write visual selection directly to existing file (no DAP eval)
-function M.selection_to_existing_file()
-    local lines = get_visual_selection()
-    if #lines == 0 then
-        vim.notify("No selection", vim.log.levels.WARN)
-        return
-    end
-    write_to_existing_file(lines)
+    pick_and_write(lines)
 end
 
 return M
