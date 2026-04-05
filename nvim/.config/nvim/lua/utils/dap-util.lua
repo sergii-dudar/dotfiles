@@ -184,11 +184,13 @@ local function pick_and_write(lines)
                 return
             end
             if item.dir then
-                Snacks.input.input({ prompt = "File name: " }, function(name)
-                    if not name or name == "" then
-                        return
-                    end
-                    write_lines(lines, item.text .. "/" .. name)
+                vim.schedule(function()
+                    Snacks.input.input({ prompt = "File name: " }, function(name)
+                        if not name or name == "" then
+                            return
+                        end
+                        write_lines(lines, item.text .. "/" .. name)
+                    end)
                 end)
             else
                 write_lines(lines, item.file)
