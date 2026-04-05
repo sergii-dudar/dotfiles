@@ -23,6 +23,7 @@ function M.run_test(context)
         })
         write_run_info(task.run_type.TEST, true)
     else
+        require("utils.dap-util").reset()
         overseer_task_util.run_task({
             task_name = "RUN_TESTS",
             is_open_output = true,
@@ -43,6 +44,7 @@ function M.run_current()
         vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
+    require("utils.dap-util").reset()
     overseer_task_util.run_task({
         task_name = "RUN_CURRENT",
         is_open_output = true,
