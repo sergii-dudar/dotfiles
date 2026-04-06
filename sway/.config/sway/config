@@ -120,7 +120,8 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term ghostty
+# set $term ghostty
+set $term alacritty
 # Your preferred application launcher
 set $menu ~/.config/rofi/scripts/launcher_t1
 set $pmenu ~/.config/rofi/scripts/powermenu_t1
