@@ -12,17 +12,21 @@ local APPLICABLE_NEEDLE = "is not applicable for the arguments"
 -- Parse a comma-separated type list while respecting generic angle brackets.
 -- Uses position tracking (no string concatenation in the loop).
 -- e.g. "String, Map<String, Integer>, BigDecimal" -> {"String", "Map<String, Integer>", "BigDecimal"}
+local BYTE_LT = string.byte("<")
+local BYTE_GT = string.byte(">")
+local BYTE_COMMA = string.byte(",")
+
 local function parse_type_list(s)
     local types = {}
     local depth = 0
     local start = 1
     for i = 1, #s do
-        local c = s:sub(i, i)
-        if c == "<" then
+        local b = s:byte(i)
+        if b == BYTE_LT then
             depth = depth + 1
-        elseif c == ">" then
+        elseif b == BYTE_GT then
             depth = depth - 1
-        elseif c == "," and depth == 0 then
+        elseif b == BYTE_COMMA and depth == 0 then
             local t = s:sub(start, i - 1):match("^%s*(.-)%s*$")
             if t ~= "" then
                 types[#types + 1] = t
