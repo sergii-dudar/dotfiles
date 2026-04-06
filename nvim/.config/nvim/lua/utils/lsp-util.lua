@@ -160,29 +160,43 @@ local LspCodeAction = function()
         resolve_imports = function()
             resolve_first()
         end,
+        -- resolve_context = function()
+        --     resolve_first({
+        --         "Convert to method reference",
+        --         "Convert to lambda expression",
+        --         "Create method '",
+        --         "Add unimplemented methods",
+        --         -- "Add all missing imports",
+        --     })
+        -- end,
         resolve_context = function()
-            resolve_first({
+            local action_match_names = {
+                "Convert to static import",
+                "Correct package declaration",
+                "Rename type to",
                 "Convert to method reference",
                 "Convert to lambda expression",
                 "Create method '",
                 "Add unimplemented methods",
                 -- "Add all missing imports",
+            }
+            local is_match_found = false
+            vim.lsp.buf.code_action({
+                filter = function(action)
+                    if is_match_found then
+                        return false
+                    end
+                    for _, value in ipairs(action_match_names) do
+                        if action.title:match(value) then
+                            is_match_found = true
+                            return true
+                        end
+                    end
+                    return false
+                end,
+                apply = true,
             })
         end,
-        -- apply_first_available = function(...)
-        --     local action_match_names = { ... }
-        --     vim.lsp.buf.code_action({
-        --         filter = function(action)
-        --             for _, value in ipairs(action_match_names) do
-        --                 if action.title:match(value) then
-        --                     return true
-        --                 end
-        --             end
-        --             return false
-        --         end,
-        --         apply = true,
-        --     })
-        -- end,
         toggle = function(action_match_name1, action_match_name2)
             vim.lsp.buf.code_action({
                 filter = function(action)

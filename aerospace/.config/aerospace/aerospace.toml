@@ -176,6 +176,7 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 # alt-shift-f = 'fullscreen'
 alt-shift-f = 'fullscreen --no-outer-gaps'
+alt-shift-h = 'macos-native-minimize'
 alt-f = 'fullscreen'
 
 ################################################################

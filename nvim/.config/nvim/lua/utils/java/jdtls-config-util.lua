@@ -189,6 +189,8 @@ M.jdtls_settings = {
                 "org.mockito.Mockito.verify",
                 "org.mockito.Mockito.times",
                 "org.mockito.Mockito.never",
+                "org.springframework.http.HttpHeaders.*",
+                "org.springframework.http.HttpStatus.*",
             },
             -- Defines the type filters. All types whose fully qualified name matches
             -- the selected filter strings will be ignored in content assist or quick
