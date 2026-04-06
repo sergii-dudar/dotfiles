@@ -13,20 +13,34 @@ vim.diagnostic.config({
 local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
 local java_arg_highlight = require("utils.java.java-arg-highlight")
 vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-    if result and result.uri then
-        local path = result.uri
-        if path:match("/target/generated%-sources/") or path:match("/build/generated/") then
-            -- Drop non-error diagnostics from generated `Java`(by jdtls) sources
-            result.diagnostics = vim.tbl_filter(function(d)
-                return d.source == "Java" and d.severity == vim.lsp.protocol.DiagnosticSeverity.Error
-            end, result.diagnostics)
-        end
-    end
-    -- Highlight the specific wrong argument(s) for type-mismatch diagnostics
+    -- if result and result.uri then
+    --     local path = result.uri
+    --     if path:match("/target/generated%-sources/") or path:match("/build/generated/") then
+    --         -- Drop non-error diagnostics from generated `Java`(by jdtls) sources
+    --         result.diagnostics = vim.tbl_filter(function(d)
+    --             return d.source == "Java" and d.severity == vim.lsp.protocol.DiagnosticSeverity.Error
+    --         end, result.diagnostics)
+    --     end
+    -- end
     if result and result.uri and result.diagnostics then
+        local is_generated = result.uri:match("/target/generated%-sources/") or result.uri:match("/build/generated/")
+        local java_diags = {}
+        local filtered = {}
+        for _, d in ipairs(result.diagnostics) do
+            if d.source == "Java" then
+                -- Drop non-error Java diagnostics from generated sources
+                if not is_generated or d.severity == vim.lsp.protocol.DiagnosticSeverity.Error then
+                    filtered[#filtered + 1] = d
+                    java_diags[#java_diags + 1] = d
+                end
+            else
+                filtered[#filtered + 1] = d
+            end
+        end
+        result.diagnostics = filtered
         local bufnr = vim.uri_to_bufnr(result.uri)
         vim.schedule(function()
-            java_arg_highlight.apply(bufnr, result.diagnostics)
+            java_arg_highlight.apply(bufnr, java_diags)
         end)
     end
     return original_publish(err, result, ctx, config)
