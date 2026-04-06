@@ -11,6 +11,7 @@ vim.diagnostic.config({
 })
 
 local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
+local java_arg_highlight = require("utils.java.java-arg-highlight")
 vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
     if result and result.uri then
         local path = result.uri
@@ -20,6 +21,13 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
                 return d.source == "Java" and d.severity == vim.lsp.protocol.DiagnosticSeverity.Error
             end, result.diagnostics)
         end
+    end
+    -- Highlight the specific wrong argument(s) for type-mismatch diagnostics
+    if result and result.uri and result.diagnostics then
+        local bufnr = vim.uri_to_bufnr(result.uri)
+        vim.schedule(function()
+            java_arg_highlight.apply(bufnr, result.diagnostics)
+        end)
     end
     return original_publish(err, result, ctx, config)
 end
