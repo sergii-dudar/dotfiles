@@ -4,9 +4,9 @@
 blacklist = [".*_popup"]
 
 sort_order = [
-    "config",  # show first
     "tmux",
     "zoxide",
+    "config",  # show first
     "tmuxinator" # show last
 ]
 

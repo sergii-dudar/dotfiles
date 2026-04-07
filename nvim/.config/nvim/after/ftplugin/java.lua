@@ -17,10 +17,13 @@
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
-vim.opt.shiftwidth = 4 --8, need create custom indentexpr to handle correctly where 8, and where 4
+vim.opt.shiftwidth = 4
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
+-- j1: indent Java anonymous classes correctly
+-- +2s: continuation indent = 2 * shiftwidth (standard Java convention)
+vim.bo.cinoptions = "j1,+2s"
 
 -- Set shift width
 --vim.opt.shiftwidth = 8
@@ -102,43 +105,63 @@ end
 -- Format
 --------------------------------------------------------------------
 
--- Lua function for Java indentation
--- TODO: implement better behavior as current default
+---@param trimmed string
+---@return boolean
+local function is_chain_line(trimmed)
+    return trimmed:match("^%.%a") ~= nil
+end
+
+--- Scan upward to find the indent for a method chain continuation.
+--- Returns the indent of existing chain lines, or chain_origin + 2*sw for a new chain.
+---@param from_lnum number
+---@param sw number
+---@return number
+local function find_chain_indent(from_lnum, sw)
+    local scan = from_lnum
+    local chain_indent = nil
+    while scan > 0 do
+        local trimmed = vim.fn.trim(vim.fn.getline(scan))
+        if is_chain_line(trimmed) then
+            chain_indent = vim.fn.indent(scan)
+            scan = vim.fn.prevnonblank(scan - 1)
+        else
+            return chain_indent or (vim.fn.indent(scan) + sw * 2)
+        end
+    end
+    return chain_indent or 0
+end
+
+--- Custom Java indentation handling method chain continuations.
+--- Falls back to cindent() for all non-chain cases.
 function GetJavaIndent()
-    vim.notify("test")
-
-    -- Get the current line number
     local lnum = vim.v.lnum
-    -- Get the previous non-blank line number
     local prev_lnum = vim.fn.prevnonblank(lnum - 1)
-
-    -- If there's no previous line, return 0 indentation
     if prev_lnum == 0 then
         return 0
     end
 
-    -- Get the indentation level of the previous non-blank line
+    local sw = vim.bo.shiftwidth
     local prev_indent = vim.fn.indent(prev_lnum)
-    -- Get the content of the previous line
-    local prev_line = vim.fn.getline(prev_lnum)
+    local prev_trimmed = vim.fn.trim(vim.fn.getline(prev_lnum))
+    local curr_trimmed = vim.fn.trim(vim.fn.getline(lnum))
 
-    -- Continuation indent: If the previous line does NOT end with ;, {, or }
-    if not prev_line:find("[;{}]%s*$") then
-        -- Apply continuation indent by adding 2 levels of shiftwidth
-        return prev_indent + vim.bo.shiftwidth * 2
+    -- Current line starts with '.method(' → align with existing chain
+    if is_chain_line(curr_trimmed) then
+        return find_chain_indent(prev_lnum, sw)
     end
 
-    -- Normal indentation (like smartindent behavior)
-    if prev_line:find("{%s*$") then
-        -- Increase indent after an opening brace '{'
-        return prev_indent + vim.bo.shiftwidth
-    elseif prev_line:find("}%s*$") then
-        -- Decrease indent after a closing brace '}'
-        return prev_indent - vim.bo.shiftwidth
+    -- Previous line is a chain member (starts with '.method')
+    if is_chain_line(prev_trimmed) then
+        if prev_trimmed:match(";%s*$") then
+            -- Chain ended with ';' → delegate to cindent for next statement
+            return vim.fn.cindent(lnum)
+        end
+        -- Chain still open → same indent for next .method() call
+        return prev_indent
     end
 
-    -- Default: Maintain the same indent as the previous line
-    return prev_indent
+    -- Everything else (braces, keywords, etc.) → cindent
+    return vim.fn.cindent(lnum)
 end
 
 --------------------------------------------------------------------
@@ -147,15 +170,18 @@ end
 
 local java_group = vim.api.nvim_create_augroup("JavaGroup", { clear = true })
 
--- Disable Tree-sitter indent for Java files
-vim.api.nvim_create_autocmd({ "FileType" }, {
-    group = java_group,
-    pattern = "java",
-    callback = function()
-        vim.bo.indentexpr = ""
-        --vim.bo.indentexpr = "v:lua.GetJavaIndent()"
-    end,
-})
+-- Set custom Java indentation
+-- Deferred because filetypeindent and lazyvim_treesitter override indentexpr during FileType processing
+local buf = vim.api.nvim_get_current_buf()
+vim.schedule(function()
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "java" then
+        vim.api.nvim_buf_call(buf, function()
+            vim.bo.indentexpr = "v:lua.GetJavaIndent()"
+            vim.bo.cinoptions = "j1,+2s"
+            vim.opt_local.indentkeys:append("0.")
+        end)
+    end
+end)
 
 -- Setup user command for testing
 local mapstruct = require("modules.java.mapstruct")
