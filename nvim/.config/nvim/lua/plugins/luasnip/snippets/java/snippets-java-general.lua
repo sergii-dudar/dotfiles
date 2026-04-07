@@ -46,6 +46,8 @@ function M.snippets()
         }),
         s({
             trig = "build",
+            dscr = "Type.builder().<methods>.build();",
+            docstring = "Type.builder().$1.build();",
             resolveExpandParams = function(_, line_to_cursor, matched_trigger, _)
                 local context = line_to_cursor:sub(1, #line_to_cursor - #matched_trigger)
                 local type_name = extract_builder_type(context)
