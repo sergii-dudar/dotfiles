@@ -11,6 +11,7 @@ function M.snippets()
     local c = ls.choice_node
     local d = ls.dynamic_node
     local r = ls.restore_node
+    -- local postfix = require("luasnip.extras.postfix").postfix
     -- local l = require("luasnip.extras").lambda
     -- local rep = require("luasnip.extras").rep
     -- local p = require("luasnip.extras").partial
@@ -76,6 +77,17 @@ function M.snippets()
             condition = is_builder_context,
             show_condition = show_builder_context,
         }),
+        -- postfix({
+        --     trig = ".bb",
+        --     dscr = "Type.builder().<methods>.build()",
+        --     docstring = "Type.builder().$1.build()",
+        -- }, {
+        --     f(function(_, snip)
+        --         return snip.env.POSTFIX_MATCH .. ".builder()."
+        --     end),
+        --     i(1),
+        --     t(".build()"),
+        -- }),
     }
 end
 
