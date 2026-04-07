@@ -301,20 +301,106 @@ function M.is_java_project()
     return is_java_project_loc
 end
 
--- Read package from first line of Java file, combine with filename to get FQCN
+--- Find all enclosing class-like declaration names at a given line using tree-sitter.
+--- Returns the chain from outermost to innermost, e.g. {"TestPerson", "TestPersonInner"}.
+---@param content string file content
+---@param line_num integer 1-indexed line number
+---@return string[]
+local function get_enclosing_classes(content, line_num)
+    local ok, parser = pcall(vim.treesitter.get_string_parser, content, "java")
+    if not ok or not parser then
+        return {}
+    end
+    local trees = parser:parse()
+    if not trees or #trees == 0 then
+        return {}
+    end
+    local root = trees[1]:root()
+    local ts_line = line_num - 1
+
+    -- stylua: ignore
+    local class_types = {
+        class_declaration = true, interface_declaration = true,
+        enum_declaration = true,  record_declaration = true,
+    }
+
+    local classes = {}
+    local function walk(node)
+        for child in node:iter_children() do
+            local start_row, _, end_row, _ = child:range()
+            if ts_line >= start_row and ts_line <= end_row then
+                if class_types[child:type()] then
+                    for grandchild in child:iter_children() do
+                        if grandchild:type() == "identifier" then
+                            table.insert(classes, vim.treesitter.get_node_text(grandchild, content))
+                            break
+                        end
+                    end
+                end
+                walk(child)
+            end
+        end
+    end
+
+    walk(root)
+    return classes
+end
+
+--- Extract package declaration from file content string.
+---@param content string
+---@return string|nil
+local function extract_package(content)
+    for line in content:gmatch("[^\r\n]+") do
+        local pkg = line:match("^package%s+([%w%.]+)%s*;")
+        if pkg then
+            return pkg
+        end
+        if not line:match("^%s*$") and not line:match("^%s*[/*]") and not line:match("^%s*%*") then
+            break
+        end
+    end
+    return nil
+end
+
+-- Read package from first line of Java file, combine with filename to get FQCN.
+-- When line_num is provided, uses tree-sitter to resolve inner class nesting.
 -- e.g. "package org.mapstruct;" + "Mapper.java" -> "org.mapstruct.Mapper"
-function M.file_to_fqcn(file)
+-- e.g. with line_num inside inner class -> "org.example.Outer.Inner"
+---@param file string
+---@param line_num? integer 1-indexed line number (enables inner class resolution)
+function M.file_to_fqcn(file, line_num)
     local f = io.open(file, "r")
     if not f then
         return vim.fn.fnamemodify(file, ":t:r")
     end
+
+    if line_num then
+        local content = f:read("*a")
+        f:close()
+        local pkg = extract_package(content)
+        local classes = get_enclosing_classes(content, line_num)
+        if #classes > 0 then
+            local class_path = table.concat(classes, ".")
+            if pkg then
+                return pkg .. "." .. class_path
+            end
+            return class_path
+        end
+        -- Fallback to filename if tree-sitter fails
+        local class_name = vim.fn.fnamemodify(file, ":t:r")
+        if pkg then
+            return pkg .. "." .. class_name
+        end
+        return class_name
+    end
+
+    -- Original behavior when no line_num: read line-by-line for package
     local pkg
     for line in f:lines() do
         pkg = line:match("^package%s+([%w%.]+)%s*;")
         if pkg then
             break
         end
-        -- Stop scanning after first non-comment, non-blank line that isn't package
         if not line:match("^%s*$") and not line:match("^%s*[/*]") and not line:match("^%s*%*") then
             break
         end

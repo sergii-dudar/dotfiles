@@ -15,7 +15,8 @@ local function make_confirm(settings, state)
             return
         end
         picker:close()
-        local fqcn = java_util.file_to_fqcn(file)
+        local lnum = item.pos and item.pos[1] or nil
+        local fqcn = java_util.file_to_fqcn(file, lnum)
         if not fqcn then
             vim.notify("[Static Import] Could not determine FQCN", vim.log.levels.WARN)
             return
@@ -33,7 +34,8 @@ local function make_confirm(settings, state)
 end
 
 local function format_item(item)
-    local fqcn = java_util.file_to_fqcn(item.file or "")
+    local lnum = item.pos and item.pos[1] or nil
+    local fqcn = java_util.file_to_fqcn(item.file or "", lnum)
     local member = util.extract_static_member(item.text or "")
     local class_name = fqcn:match("([^%.]+)$") or fqcn
     local pkg = fqcn:match("^(.+)%.") or ""
