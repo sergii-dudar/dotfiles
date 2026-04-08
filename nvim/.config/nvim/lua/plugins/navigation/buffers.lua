@@ -22,7 +22,8 @@ return {
                 -- If you remove `j` and `k` from below, you can navigate in the plugin
                 -- dictionary = "sadflewcmpghio",
                 -- dictionary = "asfghl;wertyuiop",
-                dictionary = "1234567890sadflewcmpghio",
+                -- dictionary = "1234567890sadflewcmpghio",
+                dictionary = "sdfghjklwerio",
             },
             navigate = {
                 -- In case you changed your mind, provide a keybind that lets you

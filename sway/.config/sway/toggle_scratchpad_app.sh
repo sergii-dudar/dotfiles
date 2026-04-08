@@ -46,6 +46,12 @@ case "$1" in
         run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         notify_msg="  Monkey Type"
         ;;
+    "vim_hero")
+        shell="xdg_shell"
+        app_id="brave-beifkklpdmlhanbkafbcldldbgnglbpn-Default"
+        run_cmd="brave --profile-directory=Default --app-id=beifkklpdmlhanbkafbcldldbgnglbpn"
+        notify_msg="⌨️ Vim Hero"
+        ;;
         # "monkey_type")
         #     shell="xwayland"
         #     instance_name="crx_picebhhlijnlefeleilfbanaghjlkkna"

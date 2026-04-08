@@ -95,7 +95,7 @@ return {
             -- { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader>m", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
-            { "<leader><space>", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
+            { "<leader><space>", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu" },
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing

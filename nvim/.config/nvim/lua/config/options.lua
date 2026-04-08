@@ -90,9 +90,6 @@ vim.opt.undofile = true
 --LazyVim
 vim.g.trouble_lualine = false
 
-local augroup = vim.api.nvim_create_augroup
-local myCustomGroup = augroup("myCustomStartupGroup", {})
-
 -- gf, gF (to file and line), gx
 vim.opt.path:append("**")
 
@@ -131,9 +128,10 @@ function open_tree_on_start()
     end
 end
 
+local init_nvim_group = vim.api.nvim_create_augroup("init_nvim_group", { clear = true })
 vim.api.nvim_create_autocmd("UiEnter", {
     desc = "Open Neotree automatically",
-    group = myCustomGroup,
+    group = init_nvim_group,
     --pattern = { "*" },
     callback = function()
         open_tree_on_start()
