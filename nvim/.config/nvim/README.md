@@ -15,6 +15,17 @@
      big refactoring of `utils` and `modules`
      junit module: add ability to run tests for all proj modules, and to separated module (with selector, myabe with multiselect ability)
      jdtls: implement static members (not `private` static fields or methods) search by snack.picker and import by enter. (quite anoying old problem actually, that not resolved in jdt so far, especially in case transition from intellij as I'm)
+     big refactoring of `utils` and `modules`
+
+     java: luasnip or related to unwrap ~builder: SomeClass name = builder -> to unwrap to: SomeClass.builder()[place cursor here].build();
+     java: static import - add ability to import static members from inner classes
+     new line indent, in case shiwf with more that 4, like:
+```java
+return paymentAccountPort.getSystemId(creditor.getIban())
+    .filter(SystemId::isInternalSystem)
+    .flatMap(ignore -> this.getCreditorInternalInfo(creditor.getIban()))
+    .defaultIfEmpty(CREDITOR_DEFAULT);
+```
 
 ### Screenshots
 

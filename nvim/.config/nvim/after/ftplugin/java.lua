@@ -114,10 +114,10 @@ local java_group = vim.api.nvim_create_augroup("JavaGroup", { clear = true })
 
 -- Setup user command for testing
 local mapstruct = require("modules.java.mapstruct")
-vim.keymap.set("n", "gj", function()
+vim.keymap.set("n", "<leader>pm", function()
     mapstruct.goto_path_definition({ is_open_as_floating_win = true })
 end, { desc = "Go to definition (MapStruct) Float" })
-vim.keymap.set("n", "gJ", function()
+vim.keymap.set("n", "<leader>pM", function()
     mapstruct.goto_path_definition()
 end, { desc = "Go to definition (MapStruct)" })
 
