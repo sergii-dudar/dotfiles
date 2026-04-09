@@ -189,7 +189,8 @@ function grept() {
         --bind "ctrl-c:execute-silent(echo -n \${PWD}/{1} | ${_clip})" \
         --bind "ctrl-n:execute-silent(alacritty --working-directory \${PWD}/\$(dirname {1}))" \
         --bind 'ctrl-e:execute(LIMITED=Y nvim {1} +{2})' \
-        --bind 'enter:become(LIMITED=Y nvim {1} +{2})'
+        --bind 'enter:execute(LIMITED=Y nvim {1} +{2})'
+    #--bind 'enter:become(LIMITED=Y nvim {1} +{2})'
 
 ## example with ability to swith rg and fzf filtering
 #     rm -f /tmp/rg-fzf-{r,f}
