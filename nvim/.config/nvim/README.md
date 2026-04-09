@@ -19,6 +19,7 @@
 
      java: luasnip or related to unwrap ~builder: SomeClass name = builder -> to unwrap to: SomeClass.builder()[place cursor here].build();
      java: static import - add ability to import static members from inner classes
+     java: highlight parameters of String.format, "".formatted, log.(info|warn|debug|error)("")
      new line indent, in case shiwf with more that 4, like:
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
