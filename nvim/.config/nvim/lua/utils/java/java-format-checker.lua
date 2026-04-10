@@ -333,8 +333,10 @@ local function process_result(bufnr, result, diagnostics)
         end
     end
 
-    -- Too many args: placeholders are all green, highlight extra arg nodes red
-    if not has_wrong_style and result.arg_count > result.placeholder_count then
+    -- Too many args: placeholders are all green, highlight extra arg nodes red.
+    -- SLF4J exception: last arg may be a Throwable (+1 tolerance), skip entirely.
+    local is_slf4j_throwable = result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1
+    if not has_wrong_style and not is_slf4j_throwable and result.arg_count > result.placeholder_count then
         for i = result.placeholder_count + 1, #result.arg_nodes do
             local arg_node = result.arg_nodes[i]
             local sr, sc, er, ec = arg_node:range()
