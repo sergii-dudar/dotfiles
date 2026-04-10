@@ -155,7 +155,7 @@ fi
 
 function grept() {
     rm -f /tmp/rg-fzf-src
-    RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --column --line-number --no-heading --color=always --smart-case "
+    RG_PREFIX="rg -g '!node_modules*' -g '!target*' -g '!bin*' --hidden --column --line-number --no-heading --color=always --smart-case "
     local prompt=" Search ❯ "
     local prompt_src=" Search Src ❯ "
 

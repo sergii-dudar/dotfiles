@@ -90,6 +90,7 @@ M.picker = {
             -- preview = false, -- Enable file preview in picker
             -- args = {
             --     "--ignore-case",
+            --     "--full-path"
             -- },
         },
         grep = {
