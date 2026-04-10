@@ -32,7 +32,7 @@ M.custom_explorer = {
 -- vertical telescope based style with bottom input
 M.custom_vertical = {
     cycle = false,
-    reverse = true,
+    reverse = false,
     layout = {
         backdrop = false,
         width = 0.8,
@@ -48,32 +48,34 @@ M.custom_vertical = {
         -- { win = "list", border = "none" },
         -- { win = "preview", title = "{preview}", height = 0.4, border = "top" },
         {
-            win = "preview",
-            title = "{preview:Preview}",
-            height = 0.65,
-            border = true,
-            title_pos = "center",
-        },
-        {
             box = "vertical",
             border = true,
-            {
-                win = "list",
-                title = " Results ",
-                title_pos = "center",
-                border = "none",
-            },
+            title = "{title} 󰐰",
+            title_pos = "center",
             {
                 -- border = "top",
                 -- title = "{title} {live} {flags}",
 
                 win = "input",
                 height = 1,
-                border = "top",
+                border = "bottom",
                 -- title = "{title} {live} {flags}",
-                title = "{title} 󰐰",
-                title_pos = "center",
+                -- title = "{title} 󰐰",
+                -- title_pos = "center",
             },
+            {
+                win = "list",
+                title = " Results ",
+                title_pos = "center",
+                border = "none",
+            },
+        },
+        {
+            win = "preview",
+            title = "{preview:Preview}",
+            height = 0.65,
+            border = true,
+            title_pos = "center",
         },
     },
 }
@@ -81,7 +83,7 @@ M.custom_vertical = {
 -- telescope based style
 M.custom_horizontal = {
     cycle = false,
-    reverse = true,
+    reverse = false,
     layout = {
         box = "horizontal",
         backdrop = false,
@@ -91,19 +93,21 @@ M.custom_horizontal = {
         {
             box = "vertical",
             border = true,
+            title = "{title} 󰐰",
+            title_pos = "center",
+            {
+                win = "input",
+                height = 1,
+                border = "bottom",
+                -- title = "{title} {live} {flags}",
+                -- title = "{title} 󰐰",
+                -- title_pos = "center",
+            },
             {
                 win = "list",
                 title = " Results ",
                 title_pos = "center",
                 border = "none",
-            },
-            {
-                win = "input",
-                height = 1,
-                border = "top",
-                -- title = "{title} {live} {flags}",
-                title = "{title} 󰐰",
-                title_pos = "center",
             },
         },
         {
@@ -124,7 +128,7 @@ all_layouts.custom_vertical = M.custom_vertical
 M.custom_default = {
     preview = true,
     cycle = true,
-    reverse = true,
+    reverse = false,
     preset = function()
         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
     end,
