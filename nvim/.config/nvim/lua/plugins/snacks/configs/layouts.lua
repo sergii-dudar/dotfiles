@@ -50,7 +50,7 @@ M.custom_vertical = {
         {
             win = "preview",
             title = "{preview:Preview}",
-            height = 0.4,
+            height = 0.65,
             border = true,
             title_pos = "center",
         },
@@ -109,7 +109,7 @@ M.custom_horizontal = {
         {
             win = "preview",
             title = "{preview:Preview}",
-            width = 0.45,
+            width = 0.5,
             border = true, -- "rounded",
             title_pos = "center",
         },
@@ -129,5 +129,16 @@ M.custom_default = {
         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
     end,
 }
+
+-- all_layouts.custom_horizontal_exp = vim.tbl_extend("force", M.custom_horizontal, { reverse = false })
+-- all_layouts.custom_vertical_exp = vim.tbl_extend("force", M.custom_vertical, { reverse = false })
+-- M.custom_default_exp = {
+--     preview = true,
+--     cycle = false,
+--     reverse = false,
+--     preset = function()
+--         return vim.o.columns >= 120 and "custom_horizontal_exp" or "custom_vertical_exp"
+--     end,
+-- }
 
 return M

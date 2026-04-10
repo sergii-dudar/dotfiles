@@ -6,6 +6,15 @@ Snacks.util.set_hl({
 
 local layouts = require("plugins.snacks.configs.layouts")
 
+---Toggle between horizontal and vertical layouts.
+---@param picker snacks.Picker
+local function toggle_layout(picker)
+    local current = picker._layout_toggle_name or "custom_horizontal"
+    local next_name = current == "custom_horizontal" and "custom_vertical" or "custom_horizontal"
+    picker._layout_toggle_name = next_name
+    picker:set_layout(Snacks.picker.config.layout({ layout = next_name }))
+end
+
 ---Diff two selected files in a new tab.
 ---Use <Tab> to multi-select exactly 2 files, then trigger this action.
 ---@param picker snacks.Picker
@@ -59,18 +68,21 @@ M.picker = {
     -- },
     actions = {
         diff_selected = diff_selected,
+        toggle_layout = toggle_layout,
     },
     win = {
         input = {
             keys = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
+                ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
             },
         },
         list = {
             keys = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
+                ["<c-y>"] = { "toggle_layout", mode = { "n" } },
             },
         },
     },
