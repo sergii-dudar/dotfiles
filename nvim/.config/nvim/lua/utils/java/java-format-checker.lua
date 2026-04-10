@@ -1,37 +1,91 @@
 local M = {}
 
--- Namespace for diagnostic messages (WARN severity)
+-- Namespaces: diagnostics (messages) and highlight extmarks (green/red coloring)
 local NS = vim.api.nvim_create_namespace("java_format_check")
--- Namespace for per-placeholder color extmarks (green/red)
 local NS_HL = vim.api.nvim_create_namespace("java_format_check_hl")
+
+-- Highlight groups (default = true → user can override)
+vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
+vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
+
+-- ---------------------------------------------------------------------------
+--  Constants & cached state
+-- ---------------------------------------------------------------------------
 
 local LOG_METHODS = { debug = true, info = true, warn = true, error = true, trace = true }
 
--- Treesitter query: find method_invocation nodes with relevant method names.
+-- Punctuation node types to skip when collecting argument nodes
+local PUNCT = { ["("] = true, [")"] = true, [","] = true }
+
+local STRING_NODES = { string_literal = true, text_block = true }
+
+-- Treesitter query — parsed once and cached
 local QUERY_STR = [[
     (method_invocation
         name: (identifier) @_name
         (#match? @_name "^(format|formatted|debug|info|warn|error|trace)$")
     ) @call
 ]]
+local query_cache, call_capture_id
 
-local STRING_NODE_TYPES = { string_literal = true, text_block = true }
+-- Byte constants
+local BYTE_PERCENT = 0x25 -- '%'
+local BYTE_BACKSLASH = 0x5C -- '\'
+local BYTE_LBRACE = 0x7B -- '{'
+local BYTE_RBRACE = 0x7D -- '}'
+local BYTE_NL = 0x0A -- '\n'
+
+-- Reusable API refs (avoid repeated global lookups in hot paths)
+local api = vim.api
+local ts = vim.treesitter
+local get_node_text = ts.get_node_text
+local buf_set_extmark = api.nvim_buf_set_extmark
+local buf_is_valid = api.nvim_buf_is_valid
+local buf_is_loaded = api.nvim_buf_is_loaded
+local diag_set = vim.diagnostic.set
+local WARN = vim.diagnostic.severity.WARN
+
+-- ---------------------------------------------------------------------------
+--  Query cache
+-- ---------------------------------------------------------------------------
+
+local function get_query()
+    if query_cache then
+        return query_cache, call_capture_id
+    end
+    local ok, q = pcall(ts.query.parse, "java", QUERY_STR)
+    if not ok or not q then
+        return nil, nil
+    end
+    for i, name in ipairs(q.captures) do
+        if name == "call" then
+            call_capture_id = i
+            break
+        end
+    end
+    if not call_capture_id then
+        return nil, nil
+    end
+    query_cache = q
+    return query_cache, call_capture_id
+end
 
 -- ---------------------------------------------------------------------------
 --  Placeholder position finding
 -- ---------------------------------------------------------------------------
 
---- Find byte positions of printf-style placeholders in unquoted string content.
---- Returns list of { offset = <0-based>, length = N }.
---- Handles %% (escaped percent) correctly.
+--- Find byte positions of printf-style placeholders (%s, %d, %02d, %1$s …).
+--- Returns list of { offset, length } (0-based offsets into content). Skips %%.
 local function find_printf_positions(s)
     local positions = {}
+    local n = #s
     local i = 1
-    while i <= #s do
-        if s:byte(i) == 0x25 then -- '%'
-            if i + 1 <= #s and s:byte(i + 1) == 0x25 then
+    while i <= n do
+        if s:byte(i) == BYTE_PERCENT then
+            if i < n and s:byte(i + 1) == BYTE_PERCENT then
                 i = i + 2 -- skip %%
             else
+                -- Match: % [flags] [width] [.precision] [arg_index$] [flags] [width] [.prec] conversion
                 local spec = s:match("^(%%[%-+ #0%(]*[%d%.]*%$?[%-+ #0%(]*[%d%.]*[a-zA-Z])", i)
                 if spec then
                     positions[#positions + 1] = { offset = i - 1, length = #spec }
@@ -47,16 +101,16 @@ local function find_printf_positions(s)
     return positions
 end
 
---- Find byte positions of SLF4J {} placeholders in unquoted string content.
---- Returns list of { offset = <0-based>, length = 2 }.
---- Handles \{} (escaped braces) correctly.
+--- Find byte positions of SLF4J {} placeholders. Skips \{}.
 local function find_slf4j_positions(s)
     local positions = {}
+    local n = #s
     local i = 1
-    while i <= #s do
-        if s:byte(i) == 0x5C and i + 2 <= #s and s:sub(i + 1, i + 2) == "{}" then
+    while i <= n do
+        local b = s:byte(i)
+        if b == BYTE_BACKSLASH and i + 2 <= n and s:byte(i + 1) == BYTE_LBRACE and s:byte(i + 2) == BYTE_RBRACE then
             i = i + 3 -- skip \{}
-        elseif s:sub(i, i + 1) == "{}" then
+        elseif b == BYTE_LBRACE and i < n and s:byte(i + 1) == BYTE_RBRACE then
             positions[#positions + 1] = { offset = i - 1, length = 2 }
             i = i + 2
         else
@@ -70,41 +124,44 @@ end
 --  Treesitter helpers
 -- ---------------------------------------------------------------------------
 
+--- Collect non-punctuation children of an argument_list node.
 local function collect_arg_nodes(arg_list)
     local args = {}
     for child in arg_list:iter_children() do
-        local t = child:type()
-        if t ~= "(" and t ~= ")" and t ~= "," then
+        if not PUNCT[child:type()] then
             args[#args + 1] = child
         end
     end
     return args
 end
 
-local function first_string_literal(arg_list)
+--- Return the first string_literal / text_block child of an argument_list.
+local function first_string_arg(arg_list)
     for child in arg_list:iter_children() do
-        if STRING_NODE_TYPES[child:type()] then
+        if STRING_NODES[child:type()] then
             return child
         end
     end
     return nil
 end
 
---- Decompose a method_invocation node into object, method name, argument_list.
+--- Decompose method_invocation → (object_node, method_name_str, argument_list_node).
+--- Uses child iteration (no node:field) for maximum grammar-version compatibility.
 local function decompose_invocation(node, bufnr)
     local obj_node, method_name, arg_list
     local prev_child = nil
     for child in node:iter_children() do
         local t = child:type()
         if t == "identifier" then
+            -- Last identifier before argument_list = method name; earlier one = object
             if method_name then
                 obj_node = prev_child
             end
-            method_name = vim.treesitter.get_node_text(child, bufnr)
+            method_name = get_node_text(child, bufnr)
             prev_child = child
         elseif t == "argument_list" then
             arg_list = child
-        elseif t ~= "." and t ~= "(" and t ~= ")" and t ~= "," and t ~= "type_arguments" then
+        elseif t ~= "." and t ~= "type_arguments" and not PUNCT[t] then
             obj_node = child
         end
     end
@@ -112,34 +169,61 @@ local function decompose_invocation(node, bufnr)
 end
 
 -- ---------------------------------------------------------------------------
+--  String content extraction
+-- ---------------------------------------------------------------------------
+
+--- Strip surrounding quotes from a string node's raw text.
+--- Returns (content, quote_prefix_len).
+---   string_literal  "…"   → (inner, 1)
+---   text_block      """…""" → (inner after first newline, offset to content start)
+local function strip_quotes(raw_text)
+    if raw_text:byte(1) == 0x22 and raw_text:byte(2) == 0x22 and raw_text:byte(3) == 0x22 then
+        -- Text block: strip opening """ + first newline, and trailing """
+        local after_open = raw_text:sub(4)
+        local nl = after_open:find("\n", 1, true)
+        if nl then
+            local content = after_open:sub(nl + 1)
+            content = content:gsub('"""%s*$', "")
+            return content, 3 + nl -- bytes before content start in raw text
+        end
+        -- Degenerate text block without newline
+        local content = after_open:gsub('"""%s*$', "")
+        return content, 3
+    end
+    -- Regular string literal
+    return raw_text:sub(2, -2), 1
+end
+
+-- ---------------------------------------------------------------------------
 --  Call classification
 -- ---------------------------------------------------------------------------
 
 --- Classify a method_invocation node.
---- Returns { kind, fmt_node, placeholder_count, arg_count, arg_nodes, wrong_style } or nil.
+--- Returns result table or nil (not a format/log call, or no string literal found).
 local function classify_invocation(node, bufnr)
     local obj_node, method_name, arg_list = decompose_invocation(node, bufnr)
     if not method_name or not arg_list then
         return nil
     end
 
-    local fmt_node = nil
-    local is_printf = false
-    local is_slf4j = false
-    local fmt_is_first_arg = false
+    local fmt_node, is_printf, is_slf4j, fmt_is_first_arg
 
-    if method_name == "formatted" and obj_node and STRING_NODE_TYPES[obj_node:type()] then
-        is_printf = true
-        fmt_node = obj_node
-    elseif method_name == "format" and obj_node then
-        local obj_text = vim.treesitter.get_node_text(obj_node, bufnr)
-        if obj_text == "String" then
-            fmt_node = first_string_literal(arg_list)
+    -- Case A: "…".formatted(args…)
+    if method_name == "formatted" then
+        if obj_node and STRING_NODES[obj_node:type()] then
+            fmt_node = obj_node
+            is_printf = true
+        end
+    -- Case B: String.format(fmt, args…)
+    elseif method_name == "format" then
+        if obj_node and get_node_text(obj_node, bufnr) == "String" then
+            fmt_node = first_string_arg(arg_list)
             is_printf = true
             fmt_is_first_arg = true
         end
+    -- Case C: log.debug/info/warn/error/trace(fmt, args…)
     elseif LOG_METHODS[method_name] then
-        fmt_node = first_string_literal(arg_list)
+        fmt_node = first_string_arg(arg_list)
         is_slf4j = true
         fmt_is_first_arg = true
     end
@@ -148,40 +232,28 @@ local function classify_invocation(node, bufnr)
         return nil
     end
 
-    -- Build format-arg node list (excluding the format string itself)
-    local all_arg_nodes = collect_arg_nodes(arg_list)
-    local format_arg_nodes = {}
-    if fmt_is_first_arg then
-        for i = 2, #all_arg_nodes do
-            format_arg_nodes[#format_arg_nodes + 1] = all_arg_nodes[i]
-        end
-    else
-        format_arg_nodes = all_arg_nodes
+    -- Extract content and placeholder positions
+    local raw_text = get_node_text(fmt_node, bufnr)
+    if not raw_text or #raw_text < 2 then
+        return nil
     end
 
-    local raw_text = vim.treesitter.get_node_text(fmt_node, bufnr)
-    -- Strip quotes to get content
-    local content
-    if raw_text:sub(1, 3) == '"""' then
-        content = raw_text:sub(4):gsub('"""%s*$', "")
-        content = content:gsub("^\n", "")
-    else
-        content = raw_text:sub(2, -2)
-    end
+    local content, quote_len = strip_quotes(raw_text)
+    local printf_pos = find_printf_positions(content)
+    local slf4j_pos = find_slf4j_positions(content)
 
-    local printf_positions = find_printf_positions(content)
-    local slf4j_positions = find_slf4j_positions(content)
+    -- Build format-argument node list (excluding format string itself)
+    local all_args = collect_arg_nodes(arg_list)
+    local arg_start = fmt_is_first_arg and 2 or 1
+    local arg_count = #all_args - arg_start + 1
 
     local placeholder_count, wrong_style
-
     if is_printf then
-        placeholder_count = #printf_positions
-        -- Any {} in a printf context is wrong (pure or mixed)
-        wrong_style = #slf4j_positions > 0 and "slf4j_in_printf" or false
+        placeholder_count = #printf_pos
+        wrong_style = #slf4j_pos > 0 and "slf4j_in_printf" or false
     elseif is_slf4j then
-        placeholder_count = #slf4j_positions
-        -- Any %s in a SLF4J context is wrong (pure or mixed)
-        wrong_style = #printf_positions > 0 and "printf_in_slf4j" or false
+        placeholder_count = #slf4j_pos
+        wrong_style = #printf_pos > 0 and "printf_in_slf4j" or false
     else
         return nil
     end
@@ -190,43 +262,33 @@ local function classify_invocation(node, bufnr)
         kind = is_printf and "printf" or "slf4j",
         fmt_node = fmt_node,
         content = content,
-        printf_positions = printf_positions,
-        slf4j_positions = slf4j_positions,
+        quote_len = quote_len,
+        printf_pos = printf_pos,
+        slf4j_pos = slf4j_pos,
         placeholder_count = placeholder_count,
-        arg_count = #format_arg_nodes,
-        arg_nodes = format_arg_nodes,
+        arg_count = arg_count,
+        arg_start = arg_start,
+        all_args = all_args,
         wrong_style = wrong_style,
     }
 end
 
 -- ---------------------------------------------------------------------------
---  Per-placeholder highlighting + diagnostics
+--  Buffer-position mapping
 -- ---------------------------------------------------------------------------
 
---- Map a content offset to buffer (row, col) for a format string node.
---- For string_literal (single-line): simple column offset.
---- For text_block (multi-line): walks content tracking newlines.
-local function content_offset_to_bufpos(fmt_node, content, content_offset)
-    local sr, sc = fmt_node:range()
-    local node_type = fmt_node:type()
-
-    if node_type == "string_literal" then
-        -- Single-line: col = node_start_col + 1 (opening quote) + offset
-        return sr, sc + 1 + content_offset
+--- Map a content byte-offset to buffer (row, col) for a format string node.
+--- For string_literal: single-line, pure arithmetic.
+--- For text_block: walks content bytes up to the offset (rare path).
+local function content_to_bufpos(sr, sc, node_type, content, quote_len, offset)
+    if node_type ~= "text_block" then
+        return sr, sc + quote_len + offset
     end
-
-    -- text_block: opening """ is on start row, content starts after first newline
-    local raw_text = vim.treesitter.get_node_text(fmt_node, 0)
-    local first_nl = raw_text:find("\n", 4)
-    if not first_nl then
-        return sr, sc + 3 + content_offset
-    end
-
-    -- Count newlines in content up to the offset to find the row
-    local row = sr + 1 -- content starts one line after """
+    -- text_block multi-line: count newlines before the offset
+    local row = sr + 1 -- content starts one line after opening """
     local col = 0
-    for i = 1, content_offset do
-        if content:byte(i) == 10 then
+    for i = 1, offset do
+        if content:byte(i) == BYTE_NL then
             row = row + 1
             col = 0
         else
@@ -236,34 +298,59 @@ local function content_offset_to_bufpos(fmt_node, content, content_offset)
     return row, col
 end
 
---- Process a single format call: set extmarks and collect diagnostics.
+-- ---------------------------------------------------------------------------
+--  Per-placeholder highlighting + diagnostic emission
+-- ---------------------------------------------------------------------------
+
+--- Emit a single diagnostic entry at (row, col)→(row, end_col).
+local function emit_diag(diagnostics, row, col, end_col, msg)
+    diagnostics[#diagnostics + 1] = {
+        lnum = row,
+        col = col,
+        end_lnum = row,
+        end_col = end_col,
+        severity = WARN,
+        message = msg,
+        source = "java-format",
+    }
+end
+
+--- Set a highlight extmark at the given range.
+local function set_hl(bufnr, row, col, end_col, hl_group)
+    buf_set_extmark(bufnr, NS_HL, row, col, {
+        end_row = row,
+        end_col = end_col,
+        hl_group = hl_group,
+    })
+end
+
+--- Process one classified format call: set extmarks and collect diagnostics.
 local function process_result(bufnr, result, diagnostics)
-    local has_wrong_style = result.wrong_style and result.wrong_style ~= false
+    local has_wrong = result.wrong_style and result.wrong_style ~= false
+    local sr, sc = result.fmt_node:range()
+    local node_type = result.fmt_node:type()
+    local content = result.content
+    local ql = result.quote_len
 
-    -- Determine which positions to highlight and how
-    local correct_positions, wrong_positions
+    -- Choose correct-kind and wrong-kind position lists
+    local correct_pos, wrong_pos
     if result.kind == "printf" then
-        correct_positions = result.printf_positions
-        wrong_positions = #result.slf4j_positions > 0 and result.slf4j_positions or nil
+        correct_pos = result.printf_pos
+        wrong_pos = #result.slf4j_pos > 0 and result.slf4j_pos or nil
     else
-        correct_positions = result.slf4j_positions
-        wrong_positions = #result.printf_positions > 0 and result.printf_positions or nil
+        correct_pos = result.slf4j_pos
+        wrong_pos = #result.printf_pos > 0 and result.printf_pos or nil
     end
-    local all_wrong = has_wrong_style and #correct_positions == 0
+    local all_wrong = has_wrong and #correct_pos == 0
 
-    -- Build diagnostic message (one per call, placed on first bad placeholder)
+    -- Build diagnostic message (at most one per call)
     local msg
-    if has_wrong_style then
-        if result.wrong_style == "slf4j_in_printf" then
-            msg = "String.format uses %s/%d placeholders, not {}"
-        else
-            msg = "SLF4J log uses {} placeholders, not %s/%d"
-        end
+    if has_wrong then
+        msg = result.wrong_style == "slf4j_in_printf" and "String.format uses %s/%d placeholders, not {}"
+            or "SLF4J log uses {} placeholders, not %s/%d"
     elseif result.arg_count ~= result.placeholder_count then
-        -- SLF4J throwable exception
-        if result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1 then
-            msg = nil
-        else
+        -- SLF4J throwable tolerance: last arg may be a Throwable
+        if not (result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1) then
             msg = string.format(
                 "format string expects %d argument(s) but %d provided",
                 result.placeholder_count,
@@ -272,82 +359,51 @@ local function process_result(bufnr, result, diagnostics)
         end
     end
 
-    local diag_emitted = false
+    local diag_done = false
 
-    -- Highlight wrong-style placeholders (all red)
-    if wrong_positions then
-        for _, pos in ipairs(wrong_positions) do
-            local row, col = content_offset_to_bufpos(result.fmt_node, result.content, pos.offset)
-            local end_col = col + pos.length
-            vim.api.nvim_buf_set_extmark(bufnr, NS_HL, row, col, {
-                end_row = row,
-                end_col = end_col,
-                hl_group = "JavaFormatBad",
-            })
-            if msg and not diag_emitted then
-                diagnostics[#diagnostics + 1] = {
-                    lnum = row,
-                    col = col,
-                    end_lnum = row,
-                    end_col = end_col,
-                    severity = vim.diagnostic.severity.WARN,
-                    message = msg,
-                    source = "java-format",
-                }
-                diag_emitted = true
+    -- 1. Wrong-kind placeholders → always red
+    if wrong_pos then
+        for _, pos in ipairs(wrong_pos) do
+            local row, col = content_to_bufpos(sr, sc, node_type, content, ql, pos.offset)
+            local ec = col + pos.length
+            set_hl(bufnr, row, col, ec, "JavaFormatBad")
+            if msg and not diag_done then
+                emit_diag(diagnostics, row, col, ec, msg)
+                diag_done = true
             end
         end
     end
 
-    -- Highlight correct-style placeholders: green if matched, red if excess
-    for i, pos in ipairs(correct_positions) do
-        local is_matched = i <= result.arg_count
-        local hl_group = is_matched and "JavaFormatOk" or "JavaFormatBad"
-        local row, col = content_offset_to_bufpos(result.fmt_node, result.content, pos.offset)
-        local end_col = col + pos.length
-        vim.api.nvim_buf_set_extmark(bufnr, NS_HL, row, col, {
-            end_row = row,
-            end_col = end_col,
-            hl_group = hl_group,
-        })
-        if hl_group == "JavaFormatBad" and msg and not diag_emitted then
-            diagnostics[#diagnostics + 1] = {
-                lnum = row,
-                col = col,
-                end_lnum = row,
-                end_col = end_col,
-                severity = vim.diagnostic.severity.WARN,
-                message = msg,
-                source = "java-format",
-            }
-            diag_emitted = true
+    -- 2. Correct-kind placeholders → green if matched, red if excess
+    for i, pos in ipairs(correct_pos) do
+        local matched = i <= result.arg_count
+        local hl = matched and "JavaFormatOk" or "JavaFormatBad"
+        local row, col = content_to_bufpos(sr, sc, node_type, content, ql, pos.offset)
+        local ec = col + pos.length
+        set_hl(bufnr, row, col, ec, hl)
+        if not matched and msg and not diag_done then
+            emit_diag(diagnostics, row, col, ec, msg)
+            diag_done = true
         end
     end
 
-    -- Too many args: placeholders are all green, highlight extra arg nodes red.
-    -- Skip when all placeholders are wrong-kind (args aren't extra, style is just wrong).
-    -- SLF4J exception: last arg may be a Throwable (+1 tolerance), skip entirely.
-    local is_slf4j_throwable = result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1
-    if not all_wrong and not is_slf4j_throwable and result.arg_count > result.placeholder_count then
-        for i = result.placeholder_count + 1, #result.arg_nodes do
-            local arg_node = result.arg_nodes[i]
-            local sr, sc, er, ec = arg_node:range()
-            vim.api.nvim_buf_set_extmark(bufnr, NS_HL, sr, sc, {
-                end_row = er,
-                end_col = ec,
+    -- 3. Too many args → highlight extra arg nodes red
+    --    Skip when all placeholders are wrong-kind (the style is wrong, args aren't truly extra).
+    --    SLF4J throwable tolerance: +1 arg is okay.
+    local is_throwable = result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1
+    if not all_wrong and not is_throwable and result.arg_count > result.placeholder_count then
+        local first_extra = result.arg_start + result.placeholder_count
+        for i = first_extra, #result.all_args do
+            local arg_node = result.all_args[i]
+            local asr, asc, aer, aec = arg_node:range()
+            buf_set_extmark(bufnr, NS_HL, asr, asc, {
+                end_row = aer,
+                end_col = aec,
                 hl_group = "JavaFormatBad",
             })
-            if msg and not diag_emitted then
-                diagnostics[#diagnostics + 1] = {
-                    lnum = sr,
-                    col = sc,
-                    end_lnum = er,
-                    end_col = ec,
-                    severity = vim.diagnostic.severity.WARN,
-                    message = msg,
-                    source = "java-format",
-                }
-                diag_emitted = true
+            if msg and not diag_done then
+                emit_diag(diagnostics, asr, asc, aec, msg)
+                diag_done = true
             end
         end
     end
@@ -358,7 +414,7 @@ end
 -- ---------------------------------------------------------------------------
 
 local function scan_and_highlight(bufnr)
-    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    local ok, parser = pcall(ts.get_parser, bufnr, "java")
     if not ok or not parser then
         return {}
     end
@@ -368,25 +424,14 @@ local function scan_and_highlight(bufnr)
     end
     local root = trees[1]:root()
 
-    local ok2, query = pcall(vim.treesitter.query.parse, "java", QUERY_STR)
-    if not ok2 or not query then
-        return {}
-    end
-
-    local call_id
-    for i, name in ipairs(query.captures) do
-        if name == "call" then
-            call_id = i
-            break
-        end
-    end
-    if not call_id then
+    local query, cid = get_query()
+    if not query then
         return {}
     end
 
     local diagnostics = {}
-    for id, node, _ in query:iter_captures(root, bufnr, 0, -1) do
-        if id == call_id then
+    for id, node in query:iter_captures(root, bufnr, 0, -1) do
+        if id == cid then
             local result = classify_invocation(node, bufnr)
             if result then
                 process_result(bufnr, result, diagnostics)
@@ -401,18 +446,17 @@ end
 -- ---------------------------------------------------------------------------
 
 function M.apply(bufnr)
-    bufnr = bufnr or vim.api.nvim_get_current_buf()
-    if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
+    bufnr = bufnr or api.nvim_get_current_buf()
+    if not buf_is_valid(bufnr) or not buf_is_loaded(bufnr) then
         return
     end
-    -- Clear previous highlights and diagnostics
-    vim.api.nvim_buf_clear_namespace(bufnr, NS_HL, 0, -1)
-    vim.diagnostic.set(NS, bufnr, scan_and_highlight(bufnr))
+    api.nvim_buf_clear_namespace(bufnr, NS_HL, 0, -1)
+    diag_set(NS, bufnr, scan_and_highlight(bufnr))
 end
 
 function M.setup()
-    vim.api.nvim_create_autocmd("BufWritePost", {
-        group = vim.api.nvim_create_augroup("java_format_check", { clear = true }),
+    api.nvim_create_autocmd("BufWritePost", {
+        group = api.nvim_create_augroup("java_format_check", { clear = true }),
         pattern = "*.java",
         callback = function(ev)
             M.apply(ev.buf)
