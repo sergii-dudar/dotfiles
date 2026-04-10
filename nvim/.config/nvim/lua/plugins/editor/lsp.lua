@@ -12,6 +12,8 @@ vim.diagnostic.config({
 
 local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
 local java_arg_highlight = require("utils.java.java-arg-highlight")
+local java_format_checker = require("utils.java.java-format-checker")
+java_format_checker.setup()
 vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
     -- if result and result.uri then
     --     local path = result.uri
@@ -41,6 +43,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
         local bufnr = vim.uri_to_bufnr(result.uri)
         vim.schedule(function()
             java_arg_highlight.apply(bufnr, java_diags)
+            java_format_checker.apply(bufnr)
         end)
     end
     return original_publish(err, result, ctx, config)
