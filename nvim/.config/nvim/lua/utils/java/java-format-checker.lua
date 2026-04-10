@@ -5,8 +5,8 @@ local NS = vim.api.nvim_create_namespace("java_format_check")
 local NS_HL = vim.api.nvim_create_namespace("java_format_check_hl")
 
 -- Highlight groups (default = true → user can override)
-vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
-vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
+-- vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
+-- vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
 
 -- ---------------------------------------------------------------------------
 --  Constants & cached state
