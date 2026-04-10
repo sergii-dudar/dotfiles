@@ -176,18 +176,12 @@ local function classify_invocation(node, bufnr)
 
     if is_printf then
         placeholder_count = #printf_positions
-        if #slf4j_positions > 0 and #printf_positions == 0 then
-            wrong_style = "slf4j_in_printf"
-        else
-            wrong_style = false
-        end
+        -- Any {} in a printf context is wrong (pure or mixed)
+        wrong_style = #slf4j_positions > 0 and "slf4j_in_printf" or false
     elseif is_slf4j then
         placeholder_count = #slf4j_positions
-        if #printf_positions > 0 and #slf4j_positions == 0 then
-            wrong_style = "printf_in_slf4j"
-        else
-            wrong_style = false
-        end
+        -- Any %s in a SLF4J context is wrong (pure or mixed)
+        wrong_style = #printf_positions > 0 and "printf_in_slf4j" or false
     else
         return nil
     end
@@ -250,15 +244,12 @@ local function process_result(bufnr, result, diagnostics)
     local correct_positions, wrong_positions
     if result.kind == "printf" then
         correct_positions = result.printf_positions
-        if has_wrong_style then
-            wrong_positions = result.slf4j_positions
-        end
+        wrong_positions = #result.slf4j_positions > 0 and result.slf4j_positions or nil
     else
         correct_positions = result.slf4j_positions
-        if has_wrong_style then
-            wrong_positions = result.printf_positions
-        end
+        wrong_positions = #result.printf_positions > 0 and result.printf_positions or nil
     end
+    local all_wrong = has_wrong_style and #correct_positions == 0
 
     -- Build diagnostic message (one per call, placed on first bad placeholder)
     local msg
@@ -310,7 +301,7 @@ local function process_result(bufnr, result, diagnostics)
 
     -- Highlight correct-style placeholders: green if matched, red if excess
     for i, pos in ipairs(correct_positions) do
-        local is_matched = (not has_wrong_style) and (i <= result.arg_count)
+        local is_matched = i <= result.arg_count
         local hl_group = is_matched and "JavaFormatOk" or "JavaFormatBad"
         local row, col = content_offset_to_bufpos(result.fmt_node, result.content, pos.offset)
         local end_col = col + pos.length
@@ -334,9 +325,10 @@ local function process_result(bufnr, result, diagnostics)
     end
 
     -- Too many args: placeholders are all green, highlight extra arg nodes red.
+    -- Skip when all placeholders are wrong-kind (args aren't extra, style is just wrong).
     -- SLF4J exception: last arg may be a Throwable (+1 tolerance), skip entirely.
     local is_slf4j_throwable = result.kind == "slf4j" and result.arg_count == result.placeholder_count + 1
-    if not has_wrong_style and not is_slf4j_throwable and result.arg_count > result.placeholder_count then
+    if not all_wrong and not is_slf4j_throwable and result.arg_count > result.placeholder_count then
         for i = result.placeholder_count + 1, #result.arg_nodes do
             local arg_node = result.arg_nodes[i]
             local sr, sc, er, ec = arg_node:range()
