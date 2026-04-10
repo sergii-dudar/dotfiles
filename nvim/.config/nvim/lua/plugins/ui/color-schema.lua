@@ -70,6 +70,13 @@ return {
             vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { underline = true, sp = "#d8a657" })
             vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { underline = true, sp = "#7daea3" })
             vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { underline = true, sp = "#a9b665" })
+
+            -- Highlight groups: users can override via nvim_set_hl before this module loads.
+            -- vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
+            vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "Grey" })
+            vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
+            -- vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#89b4fa", bold = true })
+            -- vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#f38ba8", bold = true })
         end,
     },
     -- {

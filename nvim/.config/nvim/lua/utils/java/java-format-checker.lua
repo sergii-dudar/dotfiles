@@ -7,10 +7,6 @@ local NS_HL = vim.api.nvim_create_namespace("java_format_check_hl")
 
 local LOG_METHODS = { debug = true, info = true, warn = true, error = true, trace = true }
 
--- Highlight groups: users can override via nvim_set_hl before this module loads.
-vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
-vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
-
 -- Treesitter query: find method_invocation nodes with relevant method names.
 local QUERY_STR = [[
     (method_invocation
