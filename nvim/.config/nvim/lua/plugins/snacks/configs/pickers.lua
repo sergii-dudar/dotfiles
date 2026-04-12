@@ -126,6 +126,17 @@ M.picker = {
                 reverse = false,
             },
         },
+        buffers = {
+            current = false,
+            win = {
+                input = {
+                    keys = {
+                        ["ii"] = { "confirm", mode = { "n", "i" } },
+                    },
+                },
+                list = { keys = { ["ii"] = "confirm" } },
+            },
+        },
     },
     toggles = {
         hidden = "󱞞",

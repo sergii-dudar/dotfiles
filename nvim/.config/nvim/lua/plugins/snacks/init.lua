@@ -75,6 +75,14 @@ return {
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
                 scratch = { enabled = true },
+                lazygit = {
+                    enabled = true,
+                    win = {
+                        style = "lazygit",
+                        width = 0, -- 0.6,
+                        height = 0, -- 0.6,
+                    },
+                },
             })
         end,
         -- stylua: ignore
@@ -99,7 +107,7 @@ return {
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
-            { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
+            -- { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
             -- { "<leader>ghb", function() Snacks.git.blame_line() end, desc = "Blame Line (Snacks)" },
             { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
             { "<leader>fd", function() require("plugins.snacks.configs.find-dir").pick() end, desc = "Find Directories" },

@@ -45,11 +45,15 @@ vim.opt.backup = false
 -- vim.opt.autowriteall = true
 
 -- clipboard
-vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default register
+-- vim.opt.clipboard:append("unnamedplus") -- use system clipboard as default register
 --vim.opt.clipboard = 'unnamedplus'
 --vim.opt.clipboard = ''
+-- Sync clipboard between OS and Neovim.
+vim.schedule(function()
+    vim.opt.clipboard = "unnamedplus"
+end)
 
--- Preview substitutions
+-- Preview substitutions live, as you type!
 vim.opt.inccommand = "split"
 
 -- Session
