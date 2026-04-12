@@ -172,18 +172,19 @@ function set_winbar(filetype)
         return
     end
 
-    vim.wo.winbar = "%{%v:lua.require'utils.nvim.winbar-util'.eval()%}"
+    vim.wo.winbar = require("utils.nvim.winbar-util").eval()
 end
+
+local winbar_group = vim.api.nvim_create_augroup("WinBar", { clear = true })
 
 vim.api.nvim_create_autocmd("BufWinEnter", {
     pattern = "*",
     callback = function(event)
-        -- local filetype = vim.bo.filetype
         local filetype = vim.bo[event.buf].filetype
         set_wrap(filetype)
         set_winbar(filetype)
     end,
-    group = vim.api.nvim_create_augroup("WinBar", { clear = true }),
+    group = winbar_group,
 })
 
 -------------------------------------------------------
