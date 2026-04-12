@@ -240,6 +240,62 @@ function _ai_search() {
 }
 alias '?'='noglob _ai_search'
 
+# Stack Overflow search — fetches the top-voted answer for your question
+function _so_search() {
+    if [[ -z "$1" ]]; then
+        echo -e "${RED}Usage: ?? <question>${RESET}"
+        return 1
+    fi
+
+    local query
+    query=$(printf '%s' "$*" | jq -sRr @uri)
+
+    local search_result
+    search_result=$(curl -s --compressed \
+        "https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${query}&site=stackoverflow&answers=1&pagesize=1")
+
+    local question_id
+    question_id=$(printf '%s' "$search_result" | jq -r '.items[0].question_id // empty')
+
+    if [[ -z "$question_id" ]]; then
+        echo -e "${RED}No results found on Stack Overflow${RESET}"
+        return 1
+    fi
+
+    local title
+    title=$(printf '%s' "$search_result" | jq -r '.items[0].title // empty')
+
+    local answer_result
+    answer_result=$(curl -s --compressed \
+        "https://api.stackexchange.com/2.3/questions/${question_id}/answers?order=desc&sort=votes&site=stackoverflow&filter=withbody&pagesize=1")
+
+    local answer_body
+    answer_body=$(printf '%s' "$answer_result" | jq -r '.items[0].body // empty')
+
+    if [[ -z "$answer_body" ]]; then
+        echo -e "${RED}No answers found${RESET}"
+        return 1
+    fi
+
+    local score
+    score=$(printf '%s' "$answer_result" | jq -r '.items[0].score // "0"')
+
+    echo -e "${BOLD_BLUE}Q: ${title}${RESET}"
+    echo -e "${YELLOW}▲ ${score} | https://stackoverflow.com/q/${question_id}${RESET}"
+    echo ""
+
+    if command -v w3m &>/dev/null; then
+        printf '%s' "$answer_body" | w3m -dump -T text/html
+    elif command -v lynx &>/dev/null; then
+        printf '%s' "$answer_body" | lynx -stdin -dump -nolist
+    else
+        printf '%s' "$answer_body" \
+            | sed 's/<pre><code>/\n```\n/g; s/<\/code><\/pre>/\n```\n/g; s/<code>/`/g; s/<\/code>/`/g; s/<[^>]*>//g' \
+            | sed 's/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g; s/&quot;/"/g; s/&#39;/'"'"'/g'
+    fi
+}
+alias '??'='noglob _so_search'
+
 function colors256() {
     for i in {0..255}; do
         printf "\e[48;5;%sm %3s \e[0m" "$i" "$i"
