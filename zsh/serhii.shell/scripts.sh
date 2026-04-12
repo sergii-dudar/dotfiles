@@ -197,6 +197,49 @@ function y() {
     rm -f -- "$tmp"
 }
 
+# Free AI search via OpenAI-compatible API (default: Groq free tier)
+# Configure: AI_API_URL, AI_API_KEY (or GROQ_API_KEY), AI_MODEL
+function _ai_search() {
+    if [[ -z "$1" ]]; then
+        echo -e "${RED}Usage: ? <question>${RESET}"
+        return 1
+    fi
+
+    local query="$*"
+    local api_url="${AI_API_URL:-https://api.groq.com/openai/v1/chat/completions}"
+    local api_key="${AI_API_KEY:-$GROQ_API_KEY}"
+    local model="${AI_MODEL:-llama-3.3-70b-versatile}"
+
+    if [[ -z "$api_key" ]]; then
+        echo -e "${RED}Error: Set AI_API_KEY or GROQ_API_KEY env variable${RESET}"
+        echo -e "${YELLOW}Get a free key at: https://console.groq.com${RESET}"
+        return 1
+    fi
+
+    local payload
+    payload=$(jq -n --arg model "$model" --arg content "$query" \
+        '{model: $model, messages: [{role: "user", content: $content}]}')
+
+    local response
+    response=$(curl -s "$api_url" \
+        -H "Authorization: Bearer $api_key" \
+        -H "Content-Type: application/json" \
+        -d "$payload")
+
+    local answer
+    answer=$(printf '%s' "$response" | jq -r '.choices[0].message.content // empty')
+
+    if [[ -z "$answer" ]]; then
+        local error
+        error=$(printf '%s' "$response" | jq -r '.error.message // empty')
+        echo -e "${RED}Error: ${error:-Unknown error}${RESET}"
+        return 1
+    fi
+
+    echo "$answer"
+}
+alias '?'='noglob _ai_search'
+
 function colors256() {
     for i in {0..255}; do
         printf "\e[48;5;%sm %3s \e[0m" "$i" "$i"
