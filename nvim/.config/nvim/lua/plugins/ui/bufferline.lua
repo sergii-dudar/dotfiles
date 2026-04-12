@@ -2,6 +2,7 @@ return {
     { "tiagovla/scope.nvim", config = true }, -- relying on stevearc/resession.nvim
     {
         "akinsho/bufferline.nvim",
+        enabled = false, -- TODO: testing if can works without tabs
         keys = {
             { "<Tab>", "<Cmd>BufferLineCycleNext<CR>", desc = "Next tab" },
             { "<S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", desc = "Prev tab" },

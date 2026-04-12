@@ -154,7 +154,7 @@ source "$ZSH/oh-my-zsh.sh"
 # https://github.com/eza-community/eza
 # https://github.com/dalance/procs
 # https://github.com/starship/starship
-# https://github.com/fastfetch-cli/fastfetch
+# https://github.com/fastfqetch-cli/fastfetch
 
 if command -v /home/linuxbrew/.linuxbrew/bin/brew >/dev/null 2>&1; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
@@ -164,6 +164,7 @@ fi
 source "$HOME/serhii.shell/scripts.sh"
 source "$HOME/serhii.shell/variables.sh"
 source "$HOME/serhii.shell/aliases.sh"
+source "$HOME/serhii.shell/fzf-git.sh"
 source "$HOME/serhii.shell/fzf.scripts.sh"
 # source "$HOME/serhii.shell/tv.scripts.sh"
 source "$HOME/serhii.shell/tmux.scripts.sh"

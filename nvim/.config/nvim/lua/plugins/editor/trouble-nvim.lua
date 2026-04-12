@@ -12,11 +12,18 @@ return {
         --     size = { width = 0.3, height = 0.3 },
         --     zindex = 200,
         -- },
+        -- preview = {
+        --     type = "split",
+        --     relative = "win",
+        --     position = "right",
+        --     size = 0.4,
+        -- },
         preview = {
-            type = "split",
-            relative = "win",
-            position = "right",
-            size = 0.4,
+            type = "main",
+            -- when a buffer is not yet loaded, the preview window will be created
+            -- in a scratch buffer with only syntax highlighting enabled.
+            -- Set to false, if you want the preview to always be a real loaded buffer.
+            scratch = true,
         },
         modes = {
             lsp = {

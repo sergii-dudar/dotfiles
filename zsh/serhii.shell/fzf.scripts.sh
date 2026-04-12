@@ -231,6 +231,25 @@ function grept_in() {
 }
 
 # ==================================================
+# ================= fzf git ========================
+
+function gitr() {
+  _fzf_git_remotes --no-multi | xargs git checkout
+}
+
+function gitt() {
+  _fzf_git_tags --no-multi | xargs git checkout
+}
+
+function gitb() {
+  _fzf_git_branches --no-multi | xargs git checkout
+}
+
+function gite {
+  _fzf_git_each_ref --no-multi | xargs git checkout
+}
+
+# ==================================================
 # ================= searching file content \ replace
 
 # legacy
