@@ -29,8 +29,13 @@ function split_str_by_src(str)
 end
 
 function M.eval()
+    -- vim.notify("test")
     --local file_path = vim.api.nvim_eval_statusline('%f', {}).str
     local file_path = split_str_by_src(vim.api.nvim_eval_statusline("%f", {}).str)
+    local ext = vim.fn.fnamemodify(file_path, ":e")
+    local filename = vim.fn.fnamemodify(file_path, ":t")
+    local dev_icon, _ = require("nvim-web-devicons").get_icon(filename, ext)
+    dev_icon = (dev_icon and " " .. dev_icon .. " " or "")
 
     local has_modified = vim.api.nvim_eval_statusline("%m", {}).str == "[+]"
     local modified_status = has_modified and "  " or ""
@@ -43,6 +48,7 @@ function M.eval()
         .. "%*"
         .. "%#WinBarPath#"
         .. file_path
+        .. dev_icon
         .. "%*"
         .. "%#WinBarContentModified#"
         .. modified_status
