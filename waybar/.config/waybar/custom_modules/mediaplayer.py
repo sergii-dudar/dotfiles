@@ -113,15 +113,17 @@ class PlayerManager:
         player_name = player.props.player_name
         artist = player.get_artist()
         title = player.get_title()
-        title = title.replace("&", "&amp;")
 
         track_info = ""
         if player_name == "spotify" and "mpris:trackid" in metadata.keys() and ":ad:" in player.props.metadata["mpris:trackid"]:
             track_info = "Advertisement"
         elif artist is not None and title is not None:
             track_info = f"{artist} - {title}"
-        else:
+        elif title is not None:
             track_info = title
+
+        if track_info:
+            track_info = track_info.replace("&", "&amp;")
 
 
 
