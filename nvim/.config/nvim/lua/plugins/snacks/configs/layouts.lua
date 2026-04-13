@@ -29,6 +29,42 @@ M.custom_explorer = {
     },
 }
 
+M.custom_buffers = {
+    cycle = false,
+    reverse = false,
+    layout = {
+        backdrop = false,
+        width = 0.5,
+        height = 0.7,
+        box = "vertical",
+        border = "none",
+        {
+            box = "vertical",
+            border = true,
+            title = "{title} 󰐰",
+            title_pos = "center",
+            {
+                win = "input",
+                height = 1,
+                border = "bottom",
+            },
+            {
+                win = "list",
+                title = " Results ",
+                title_pos = "center",
+                border = "none",
+            },
+        },
+        {
+            win = "preview",
+            title = "{preview:Preview}",
+            height = 0.4,
+            border = true,
+            title_pos = "center",
+        },
+    },
+}
+
 -- vertical telescope based style with bottom input
 M.custom_vertical = {
     cycle = false,

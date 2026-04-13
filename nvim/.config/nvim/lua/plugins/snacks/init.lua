@@ -96,6 +96,7 @@ return {
             -- explorer
             { '<leader>"', function() Snacks.explorer({ cwd = LazyVim.root() }) end, desc = "Explorer Snacks (root dir)", },
             { "<leader>'", function() Snacks.explorer() end, desc = "Explorer Snacks (cwd)", },
+            -- { "<leader>;", function() Snacks.picker.smart() end, desc = "Smart Picker (Snacks)", },
             -- pickets
             { "<leader>.", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },

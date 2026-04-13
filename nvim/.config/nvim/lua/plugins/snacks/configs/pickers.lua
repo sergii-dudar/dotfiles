@@ -129,6 +129,15 @@ M.picker = {
         },
         buffers = {
             current = false,
+            -- layout = layouts.custom_vertical,
+            layout = layouts.custom_buffers,
+            -- layout = {
+            --     preset = "custom_vertical",
+            --     layout = {
+            --         width = 0.5,
+            --         height = 0.6,
+            --     },
+            -- },
             win = {
                 input = {
                     keys = {
