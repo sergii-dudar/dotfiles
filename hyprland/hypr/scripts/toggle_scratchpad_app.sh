@@ -18,7 +18,7 @@ case "$APP" in
     "music")
         class="com.scratchpad.music"
         # cmd="ghostty --class=com.scratchpad.music -e rmpc"
-        cmd="alacritty --class=com.scratchpad.music -e rmpc"
+        cmd="alacritty --class=com.scratchpad.music -e ~/.cargo/bin/rmpc"
         notify="🎹 MPD-RMPC"
         ;;
     "nautilus")
