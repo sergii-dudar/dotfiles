@@ -17,7 +17,8 @@ case "$1" in
         # xprop WM_CLASS: WM_CLASS(STRING) = "ghostty", "com.ghostty.group01"
         instance_name="ghostty"
         class_name="com.scratchpad.yazi"
-        run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        # run_cmd="ghostty --class=com.scratchpad.yazi -e yazi"
+        run_cmd="alacritty --class=com.scratchpad.yazi -e yazi"
         notify_msg="📂 Yazi File Manager"
         ;;
     "nautilus")

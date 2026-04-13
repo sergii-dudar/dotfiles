@@ -5,17 +5,20 @@ APP="$1"
 case "$APP" in
     "yazi")
         class="com.scratchpad.yazi"
-        cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        # cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify="📂 Yazi Manager"
         ;;
     "mini_terminal")
         class="com.scratchpad.mini_terminal"
-        cmd="ghostty --class=com.scratchpad.mini_terminal"
+        # cmd="ghostty --class=com.scratchpad.mini_terminal"
+        cmd="alacritty --class=com.scratchpad.mini_terminal"
         notify="🧑🏻‍💻 Mini Terminal"
         ;;
     "music")
         class="com.scratchpad.music"
-        cmd="ghostty --class=com.scratchpad.music -e rmpc"
+        # cmd="ghostty --class=com.scratchpad.music -e rmpc"
+        cmd="alacritty --class=com.scratchpad.music -e rmpc"
         notify="🎹 MPD-RMPC"
         ;;
     "nautilus")
