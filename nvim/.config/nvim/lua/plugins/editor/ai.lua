@@ -74,20 +74,22 @@ return {
             -- provider = "anthropic", -- "anthropic" | "copilot" | "deepseek" | "gemini" | "grok" | "ollama" | "openai",
             provider = "copilot",
             providers = {
-                anthropic = {
-                    url = "https://genai-sbox.rbi.tech/v1/messages",
-                    api_key = function()
-                        local claude_env = os.getenv("HOME") .. "/.claude/.env"
-                        return require("utils.envs-util").load_env_file_variable(claude_env, "ANTHROPIC_API_KEY")
-                    end,
-                    -- model_id = "claude-opus-4-6",
-                    model_id = "claude-sonnet-4-6",
-                },
+                -- anthropic = {
+                --     url = "https://genai-sbox.rbi.tech/v1/messages",
+                --     api_key = function()
+                --         local claude_env = os.getenv("HOME") .. "/.claude/.env"
+                --         return require("utils.envs-util").load_env_file_variable(claude_env, "ANTHROPIC_API_KEY")
+                --     end,
+                --     -- model_id = "claude-opus-4-6",
+                --     model_id = "claude-sonnet-4-6",
+                -- },
                 copilot = {
                     -- model_id = "gpt-5.1",
                     -- model_id = "gpt-5.2",
                     -- model_id = "gpt-5.4", -- not yet accessible by api
-                    model_id = "claude-sonnet-4.6",
+                    -- model_id = "claude-haiku-4.5",
+                    model_id = "claude-sonnet-4.5",
+                    -- model_id = "claude-sonnet-4.6",
                     -- model_id = "claude-opus-4.6",
                 },
             },

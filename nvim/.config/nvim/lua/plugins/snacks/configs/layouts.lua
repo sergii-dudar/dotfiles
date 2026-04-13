@@ -36,12 +36,14 @@ M.custom_buffers = {
         backdrop = false,
         width = 0.5,
         height = 0.7,
+        min_width = 85,
+        min_height = 35,
         box = "vertical",
         border = "none",
         {
             box = "vertical",
             border = true,
-            title = "{title} 󰐰",
+            title = "{title} ",
             title_pos = "center",
             {
                 win = "input",
