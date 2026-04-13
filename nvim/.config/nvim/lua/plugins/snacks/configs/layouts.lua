@@ -30,7 +30,7 @@ M.custom_explorer = {
 }
 
 M.custom_buffers = {
-    cycle = false,
+    cycle = true,
     reverse = false,
     layout = {
         backdrop = false,
