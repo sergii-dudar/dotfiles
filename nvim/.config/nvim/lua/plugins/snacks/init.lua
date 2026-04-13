@@ -103,11 +103,11 @@ return {
             -- { "<leader><space>", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader>m", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
-            { "<leader><space>", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu" },
+            -- { "<leader><space>", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu" },
+            { "<leader><space>", function() Snacks.picker.buffers() end, desc = "Buffers" },
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
-            -- { "<leader>,", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu", },
             -- { "<leader>ghb", function() Snacks.git.blame_line() end, desc = "Blame Line (Snacks)" },
             { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
             { "<leader>fd", function() require("plugins.snacks.configs.find-dir").pick() end, desc = "Find Directories" },

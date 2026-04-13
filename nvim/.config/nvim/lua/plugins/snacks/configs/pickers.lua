@@ -59,7 +59,8 @@ M.picker = {
         file = {
             filename_first = true, -- display filename before the file path
             filename_only = false, -- only show the filename
-            truncate = 250, -- truncate the file path to (roughly) this length
+            min_width = 150, -- truncate the file path to (roughly) this length
+            truncate = "left", -- "left"|"center"|"right"
         },
     },
     -- matcher = {

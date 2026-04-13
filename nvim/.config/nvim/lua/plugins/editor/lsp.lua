@@ -41,6 +41,9 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
         end
         result.diagnostics = filtered
         local bufnr = vim.uri_to_bufnr(result.uri)
+        if vim.bo[bufnr].filetype ~= "java" then
+            return original_publish(err, result, ctx, config)
+        end
         vim.schedule(function()
             java_arg_highlight.apply(bufnr, java_diags)
             java_format_checker.apply(bufnr)

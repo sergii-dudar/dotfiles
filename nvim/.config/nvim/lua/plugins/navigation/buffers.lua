@@ -1,6 +1,7 @@
 return {
     {
         "leath-dub/snipe.nvim",
+        enabled = false,
         -- replaced in snasks
         -- stylua: ignore
         keys = {
