@@ -73,8 +73,11 @@ return {
 
             -- Highlight groups: users can override via nvim_set_hl before this module loads.
             -- vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
-            vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "Grey" })
-            vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
+            -- vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "Grey" })
+            -- vim.api.nvim_set_hl(0, "JavaFormatBad", { default = true, link = "DiagnosticError" })
+            vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#808080", bold = true, default = true, italic = true })
+            vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#ea6962", bold = true, default = true, italic = true })
+
             -- vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#89b4fa", bold = true })
             -- vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#f38ba8", bold = true })
         end,

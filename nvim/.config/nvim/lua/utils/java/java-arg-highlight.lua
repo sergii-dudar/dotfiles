@@ -2,6 +2,7 @@ local M = {}
 
 -- Dedicated namespace so we never stomp on jdtls diagnostics
 local NS = vim.api.nvim_create_namespace("java_arg_mismatch")
+local HL_NS = vim.api.nvim_create_namespace("java_arg_mismatch_hl")
 
 -- Matches JDTLS "not applicable for the arguments" messages, e.g.:
 --   The method foo(String, Integer) in the type Bar is not applicable for the arguments (String, String)
@@ -187,7 +188,17 @@ function M.apply(bufnr, lsp_diagnostics)
     if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
         return
     end
-    vim.diagnostic.set(NS, bufnr, build_arg_diags(bufnr, lsp_diagnostics))
+    local diags = build_arg_diags(bufnr, lsp_diagnostics)
+    vim.diagnostic.set(NS, bufnr, diags)
+
+    vim.api.nvim_buf_clear_namespace(bufnr, HL_NS, 0, -1)
+    for _, d in ipairs(diags) do
+        vim.api.nvim_buf_set_extmark(bufnr, HL_NS, d.lnum, d.col, {
+            end_row = d.end_lnum,
+            end_col = d.end_col,
+            hl_group = "JavaFormatBad",
+        })
+    end
 end
 
 return M
