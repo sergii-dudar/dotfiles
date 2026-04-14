@@ -45,7 +45,9 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
             return original_publish(err, result, ctx, config)
         end
         vim.schedule(function()
-            java_arg_highlight.apply(bufnr, java_diags)
+            if not vim.tbl_isempty(java_diags) then
+                java_arg_highlight.apply(bufnr, java_diags)
+            end
             java_format_checker.apply(bufnr)
         end)
     end
