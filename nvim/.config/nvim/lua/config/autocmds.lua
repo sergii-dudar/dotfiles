@@ -172,7 +172,11 @@ function set_winbar(filetype)
         return
     end
 
-    vim.wo.winbar = require("utils.nvim.winbar-util").eval()
+    -- vim.wo.winbar = require("utils.nvim.winbar-util").eval()
+    local success, value = pcall(require("utils.nvim.winbar-util").eval)
+    if success then
+        vim.wo.winbar = value
+    end
 end
 
 local winbar_group = vim.api.nvim_create_augroup("WinBar", { clear = true })
@@ -182,7 +186,9 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
     callback = function(event)
         local filetype = vim.bo[event.buf].filetype
         set_wrap(filetype)
-        set_winbar(filetype)
+        if not is_virtual_buf(vim.api.nvim_buf_get_name(event.buf)) then
+            set_winbar(filetype)
+        end
     end,
     group = winbar_group,
 })
