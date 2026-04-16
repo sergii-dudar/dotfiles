@@ -43,6 +43,7 @@ return {
             -- haskell
             "fourmolu",
             "prettier",
+            "prettierd",
             "sqlfluff",
 
             -- CLI
