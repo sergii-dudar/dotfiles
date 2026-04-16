@@ -47,7 +47,15 @@ return {
                     errorHighlight = "ErrorMsg",
                 },
             },
-            global_keymaps = true,
+            lsp = {
+                on_attach = function(_, bufnr)
+                    vim.schedule(function()
+                        -- stylua: ignore
+                        vim.keymap.set("n","K","8kzz",{ buffer = bufnr, desc = "Hover", silent = true, nowait = true })
+                    end)
+                end,
+            },
+            global_keymaps = false,
         },
     },
     {

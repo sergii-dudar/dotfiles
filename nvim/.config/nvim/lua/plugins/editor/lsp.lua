@@ -189,7 +189,13 @@ return {
                         { "K", false },
                         { "<C-k>", false, mode = "i" }, -- disable if favor of blink.cmp
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
-                        { "<leader>k", function() require("pretty_hover").hover() end, desc = "Pretty hover" },
+                        { "<leader>k", function() 
+                            if vim.bo.filetype == "http" then
+                                vim.lsp.buf.hover({ border = "rounded" })
+                            else
+                                require("pretty_hover").hover()
+                            end
+                        end, desc = "Pretty hover" },
                         -- override default preveiw mapping
                         -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                         -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
