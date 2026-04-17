@@ -28,22 +28,7 @@
 tmp=./klogs/tmp-$(date +%s).json
 RG_PREFIX="rg --no-filename --no-line-number --no-heading --color=always --smart-case {q} ./klogs/**/*.log"
 INITIAL_QUERY="${1:-}"
-REFRESH="${2:-3}"  # auto-reload interval in seconds, 0 to disable
-
-PORT=$((10000 + RANDOM % 50000))
-RELOAD_PID=""
-
-if [[ "$REFRESH" -gt 0 ]] 2>/dev/null; then
-    (last_mtime=""; while sleep "$REFRESH"; do
-        cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
-        [[ "$cur_mtime" == "$last_mtime" ]] && continue
-        last_mtime="$cur_mtime"
-        curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
-    done) &
-    RELOAD_PID=$!
-fi
-
-selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUERY" \
+selected=$(fzf --ansi --disabled --multi --query "$INITIAL_QUERY" \
         --bind "start:reload:$RG_PREFIX" \
         --bind "change:reload:sleep 0.1; $RG_PREFIX || true" \
         --bind "ctrl-r:reload:$RG_PREFIX" \
@@ -53,8 +38,7 @@ selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUER
         --prompt 'Filter ❯ ' \
         --wrap-sign '' \
         --delimiter : \
-    --border-label '   Filter Logs ' ) || { [[ -n "$RELOAD_PID" ]] && kill "$RELOAD_PID" 2>/dev/null; exit 0; }
-[[ -n "$RELOAD_PID" ]] && kill "$RELOAD_PID" 2>/dev/null
+    --border-label '   Filter Logs ' ) || exit 0
 
 echo "$selected" | gsed 's/^[^{]*//' | jq -s . > "$tmp" \
     && LIMITED=Y nvim -R -c 'setfiletype json' "$tmp"

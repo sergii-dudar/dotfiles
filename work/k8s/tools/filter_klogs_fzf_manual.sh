@@ -34,11 +34,8 @@ PORT=$((10000 + RANDOM % 50000))
 RELOAD_PID=""
 
 if [[ "$REFRESH" -gt 0 ]] 2>/dev/null; then
-    (last_mtime=""; while sleep "$REFRESH"; do
-        cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
-        [[ "$cur_mtime" == "$last_mtime" ]] && continue
-        last_mtime="$cur_mtime"
-        curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
+    (while sleep "$REFRESH"; do
+            curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
     done) &
     RELOAD_PID=$!
 fi

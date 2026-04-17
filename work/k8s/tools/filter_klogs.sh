@@ -13,7 +13,14 @@
     #     | LIMITED=Y nvim -R -c 'setfiletype json' -
 
 
-pattern=$1
+query="${1:-}"
 tmp=./klogs/tmp-$(date +%s).json
-rg --color never --no-filename "$pattern" ./klogs/**/*.log \
-    | jq -s . > "$tmp" && LIMITED=Y nvim -R "$tmp"; rm "$tmp"
+
+results=$(rg --color never --no-filename --no-line-number "$query" ./klogs/**/*.log) || {
+    echo "No results found for: $query"
+    exit 0
+}
+
+echo "$results" | jq -s . > "$tmp" \
+    && LIMITED=Y nvim -R "$tmp"
+rm -f "$tmp"
