@@ -23,9 +23,9 @@ window="$(
         --no-sort --ansi --border-label " Tmux Window Manager " --prompt "${iwin} Windows: " \
         --header "[${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename}" \
         --bind 'tab:down,btab:up' \
-        --bind "ctrl-n:execute([ -n \"{q}\" ] && tmux new-window -n \"{q}\")+clear-query+reload($LIST_CMD)" \
+        --bind "ctrl-n:execute([ -n {q} ] && tmux new-window -n {q})+clear-query+reload($LIST_CMD)" \
         --bind "ctrl-d:execute(tmux kill-window -t :\$(echo {} | cut -d: -f1))+reload($LIST_CMD)" \
-        --bind "ctrl-r:execute([ -n \"{q}\" ] && tmux rename-window -t :\$(echo {} | cut -d: -f1) \"{q}\")+clear-query+reload($LIST_CMD)" \
+        --bind "ctrl-r:execute([ -n {q} ] && tmux rename-window -t :\$(echo {} | cut -d: -f1) {q})+clear-query+reload($LIST_CMD)" \
         --preview 'tmux capture-pane -e -p -t :$(echo {} | cut -d: -f1)' \
         --preview-window=down,75%
 )"
