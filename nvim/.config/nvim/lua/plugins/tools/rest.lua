@@ -30,6 +30,7 @@ return {
             -- { "<leader>rt", function() require('kulala').toggle_view() end, desc = "Toggle headers/body", ft = "http" },
         },
         opts = {
+            debug = false,
             ui = {
                 winbar = true,
                 pickers = {

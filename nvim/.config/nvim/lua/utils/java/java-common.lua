@@ -279,6 +279,10 @@ end
 
 local is_java_project_loc = nil
 function M.is_java_project()
+    if global.is_limited then
+        return false
+    end
+
     if is_java_project_loc ~= nil then
         return is_java_project_loc
     end

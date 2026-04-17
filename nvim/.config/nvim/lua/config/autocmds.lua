@@ -136,7 +136,7 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
                 vim.api.nvim_buf_delete(buf, { force = true })
             end
         end
-        require("resession").save(vim.fn.getcwd(), { dir = "dirsession", notify = false })
+        -- require("resession").save(vim.fn.getcwd(), { dir = "dirsession", notify = false })
     end,
 })
 -- vim.api.nvim_create_autocmd("StdinReadPre", {

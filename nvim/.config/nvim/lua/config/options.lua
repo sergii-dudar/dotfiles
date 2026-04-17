@@ -57,11 +57,11 @@ end)
 vim.opt.inccommand = "split"
 
 -- Session
-vim.opt.sessionoptions = {
-    "buffers",
-    "tabpages",
-    "globals",
-}
+-- vim.opt.sessionoptions = {
+--     "buffers",
+--     "tabpages",
+--     "globals",
+-- }
 
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
@@ -120,14 +120,18 @@ function open_tree_on_start()
         -- restore current proj session
         --if vim.fn.argc(-1) == 0 and not vim.g.using_stdin then
         -- Save these to a different directory, so our manual sessions don't get polluted
-        require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
+        -- require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
+        if global.is_not_limited then
+            require("persistence").load()
+        end
         vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
-        --end
 
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
-        vim.schedule(function()
-            vim.cmd("Neotree filesystem reveal left")
-        end)
+        if global.is_not_limited then
+            vim.schedule(function()
+                vim.cmd("Neotree filesystem reveal left")
+            end)
+        end
         -- Snacks.picker.explorer()
     end
 end

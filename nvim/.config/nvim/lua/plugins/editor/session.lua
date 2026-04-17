@@ -1,7 +1,8 @@
 return {
-    { "folke/persistence.nvim", enabled = false },
+    { "folke/persistence.nvim" },
     {
         "stevearc/resession.nvim",
+        enabled = false,
         lazy = false,
         dependencies = {
             {

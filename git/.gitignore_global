@@ -1,6 +1,9 @@
 DevAppRunner.java
 TestDevAppRunner.java
 **/dev.application.properties.env
+**/LocalEnvRunner.java
+**/application-localenv.yaml
+**/dev_http_requests
 application-work.yaml
 **/local/dev/**
 .gitignore

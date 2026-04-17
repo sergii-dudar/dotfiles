@@ -1,5 +1,5 @@
 return {
-    { "tiagovla/scope.nvim", config = true }, -- relying on stevearc/resession.nvim
+    { "tiagovla/scope.nvim", config = true, enabled = false }, -- relying on stevearc/resession.nvim
     {
         "akinsho/bufferline.nvim",
         enabled = false, -- TODO: testing if can works without tabs
