@@ -10,11 +10,11 @@ y=$'\033[33m'  # yellow
 
 sep="${s}${n}"
 
-iwin=$'\033[38;5;4m\033[0m'
+iwin=$'\033[38;5;4m󱂬\033[0m'
 
-inew=$'\033[38;5;32m\033[0m'
-ikill=$'\033[38;5;1m\033[0m'
-irename=$'\033[38;5;214m󰏫\033[0m'
+inew=$'\033[38;5;32m\033[0m'
+ikill=$'\033[38;5;1m\033[0m'
+irename=$'\033[38;5;214m󰑕\033[0m'
 
 LIST_CMD='tmux list-windows -F "#{window_index}: #{window_name}"'
 
