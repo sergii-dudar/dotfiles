@@ -12,6 +12,18 @@ local clients_lsp = function()
     end
     return "\u{f085} " .. table.concat(c, " | \u{f085} ")
 end
+local kulala = function()
+    -- local bufnr = vim.api.nvim_get_current_buf()
+    -- vim.bo[bufnr].filetype
+    if vim.bo.filetype ~= "http" then
+        return ""
+    end
+
+    local env = require("kulala").get_selected_env()
+
+    -- return "\u{f085} " .. table.concat(c, " | \u{f085} ")
+    return "\u{f173f} " .. env
+end
 local get_filename = function()
     -- print(vim.fn.expand("%:p"):match("^.+/(.+)$"))
     local path = vim.api.nvim_eval_statusline("%f", {}).str
@@ -58,6 +70,7 @@ return {
                 --{ get_filename, color = { gui = "bold" } },
             },
             lualine_y = {
+                -- { kulala, color = { fg = "#cdb996", bg = "#3a3a3a" } },
                 { "progress", separator = " ", padding = { left = 1, right = 1 } },
                 { "location", padding = { left = 0, right = 1 } },
                 --{ clients_lsp, color = { fg = "black", bg = "#676868", gui = "bold" } },

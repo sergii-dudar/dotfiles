@@ -31,6 +31,7 @@ return {
         },
         opts = {
             debug = false,
+            default_env = "uat",
             ui = {
                 winbar = true,
                 pickers = {
