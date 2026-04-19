@@ -202,7 +202,8 @@ function M.extract_static_member(text)
         return field
     end
     -- Enum constant: ALL_CAPS at start of trimmed line, terminated by , ; ( (constructor) or { (body)
-    local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;({]")
+    -- local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;({]")
+    local enum_const = text:match("%s*([%u_][%u%d_]+)%s*[,;({]")
     if enum_const then
         return enum_const
     end
@@ -305,7 +306,13 @@ function M.parse_rg_results(stdout, import_mode)
 
     for _, line in ipairs(lines) do
         local file, lnum_str, text = line:match("^(.-):(%d+):(.*)")
-        if file and text and not text:match("return%s") and not text:match("private%s") and not text:match("protected%s") then
+        if
+            file
+            and text
+            and not text:match("return%s")
+            and not text:match("private%s")
+            and not text:match("protected%s")
+        then
             local fqcn = java_util.file_to_fqcn(file, tonumber(lnum_str))
             if fqcn then
                 local member = M.extract_static_member(text)
