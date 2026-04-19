@@ -326,6 +326,7 @@ local function get_enclosing_classes(content, line_num)
     local class_types = {
         class_declaration = true, interface_declaration = true,
         enum_declaration = true,  record_declaration = true,
+        annotation_type_declaration = true,
     }
 
     local classes = {}

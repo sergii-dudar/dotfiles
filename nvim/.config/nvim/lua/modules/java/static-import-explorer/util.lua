@@ -201,8 +201,8 @@ function M.extract_static_member(text)
     if field then
         return field
     end
-    -- Enum constant: ALL_CAPS at start of trimmed line, terminated by , ; or ( (constructor)
-    local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;(]")
+    -- Enum constant: ALL_CAPS at start of trimmed line, terminated by , ; ( (constructor) or { (body)
+    local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;({]")
     if enum_const then
         return enum_const
     end
@@ -261,8 +261,8 @@ function M.build_search(word, starts_with)
         local suffix = starts_with and "[A-Z0-9_]*[\\s]*[=;]" or "[\\s]*[=;]"
         -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
         local field_pattern = "\\w+[\\s]+" .. word .. suffix
-        -- Enum constant — ALL_CAPS at start of line (no type prefix), terminated by , ; or ( (constructor args)
-        local enum_suffix = starts_with and "[A-Z0-9_]*[\\s]*[,;(]" or "[\\s]*[,;(]"
+        -- Enum constant — ALL_CAPS at start of line (no type prefix), terminated by , ; ( (constructor) or { (body)
+        local enum_suffix = starts_with and "[A-Z0-9_]*[\\s]*[,;({]" or "[\\s]*[,;({]"
         local enum_pattern = "^[\\s]*" .. word .. enum_suffix
         return field_pattern .. "|" .. enum_pattern
     else
