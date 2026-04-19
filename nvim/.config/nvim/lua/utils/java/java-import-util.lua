@@ -51,7 +51,8 @@ local function import_class_and_replace()
 
     local full_class_name = remove_all_part .. "." .. simple_class_name
 
-    local import_statement = "import " .. full_class_name .. ";"
+    local is_static = simple_class_name:match("^[A-Z_][A-Z0-9_]*$") ~= nil
+    local import_statement = (is_static and "import static " or "import ") .. full_class_name .. ";"
 
     replace_full_to_simple_class_name(full_class_name, simple_class_name)
     insert_import(import_statement)

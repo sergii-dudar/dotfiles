@@ -192,16 +192,16 @@ function M.get_search_dirs(state, settings)
 end
 
 --- Extract static member name from a matched grep line.
+--- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
 --- For methods: identifier before '('
---- For fields: ALL_CAPS identifier before '='
 function M.extract_static_member(text)
+    local field = text:match("([%u_][%u%d_]+)%s*[=;]")
+    if field then
+        return field
+    end
     local method = text:match("([%a_][%w_]*)%s*%(")
     if method and not vim.tbl_contains({ "if", "for", "while", "switch", "catch" }, method) then
         return method
-    end
-    local field = text:match("([%u_][%u%d_]+)%s*=")
-    if field then
-        return field
     end
     return nil
 end
