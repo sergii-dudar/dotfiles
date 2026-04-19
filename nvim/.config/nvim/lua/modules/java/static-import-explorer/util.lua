@@ -305,7 +305,7 @@ function M.parse_rg_results(stdout, import_mode)
 
     for _, line in ipairs(lines) do
         local file, lnum_str, text = line:match("^(.-):(%d+):(.*)")
-        if file and text and not text:match("private%s") and not text:match("protected%s") then
+        if file and text and not text:match("return%s") and not text:match("private%s") and not text:match("protected%s") then
             local fqcn = java_util.file_to_fqcn(file, tonumber(lnum_str))
             if fqcn then
                 local member = M.extract_static_member(text)

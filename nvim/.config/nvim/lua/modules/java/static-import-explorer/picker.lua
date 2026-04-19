@@ -117,6 +117,10 @@ local picker_keys = {
     ["<C-w>"] = { "toggle_starts_with", mode = { "n", "i" }, desc = "Toggle full match / starts with" },
 }
 
+local function is_excluded_line(text)
+    return text:match("return%s") or text:match("private%s") or text:match("protected%s")
+end
+
 ---@param settings table
 ---@param state table
 ---@param glob? string
@@ -129,6 +133,11 @@ function M.open(settings, state, glob)
         title = "Static Import Search",
         format = format_item,
         confirm = make_confirm(settings, state),
+        transform = function(item)
+            if is_excluded_line(item.text or "") then
+                return false
+            end
+        end,
         actions = build_actions(settings, state),
         win = {
             input = { keys = picker_keys },
