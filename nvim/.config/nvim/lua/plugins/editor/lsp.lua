@@ -102,75 +102,6 @@ vim.lsp.buf_request_all = function(bufnr, method, params, handler)
 end
 
 return {
-    -- A Neovim plugin for displaying inline diagnostic messages with customizable styles and icons.
-    {
-        "rachartier/tiny-inline-diagnostic.nvim",
-        event = "VeryLazy",
-        priority = 1000,
-        -- stylua: ignore
-        keys = {
-            { "<leader>xdt", "<cmd>TinyInlineDiag toggle<cr>", { desc = "[D]iagnostics [T]oggle" } }
-        },
-        opts = {
-            preset = "modern", -- Available: "modern", "classic", "minimal", "powerline", "ghost", "simple", "nonerdfont", "amongus"
-            transparent_bg = false,
-            -- hi = {
-            --     error = "DiagnosticError", -- Highlight for error diagnostics
-            --     warn = "DiagnosticWarn", -- Highlight for warning diagnostics
-            --     info = "DiagnosticInfo", -- Highlight for info diagnostics
-            --     hint = "DiagnosticHint", -- Highlight for hint diagnostics
-            --     arrow = "NonText", -- Highlight for the arrow pointing to diagnostic
-            --     background = "CursorLine", -- Background highlight for diagnostics
-            --     mixing_color = "Normal", -- Color to blend background with (or "None")
-            -- },
-            options = {
-                use_icons_from_diagnostic = false,
-                multilines = {
-                    enabled = true, -- Enable support for multiline diagnostic messages
-                    always_show = true, -- Always show messages on all lines of multiline diagnostics
-                    trim_whitespaces = false, -- Remove leading/trailing whitespace from each line
-                },
-                show_source = { -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
-                    enabled = true, -- Enable showing source names
-                    if_many = true, -- Only show source if multiple sources exist for the same diagnostic
-                },
-                -- Only show diagnostics when the cursor is directly over them, no fallback to line diagnostics
-                show_diags_only_under_cursor = false,
-            },
-        },
-    },
-    -- teswt
-    -- Show diagnostics and lsp info inside a custom window
-    -- {
-    --     "soulis-1256/eagle.nvim",
-    --     config = function()
-    --         require("eagle").setup({
-    --             keyboard_mode = true,
-    --         })
-    --         vim.keymap.set("n", "<Tab>", ":EagleWin<CR>", { noremap = true, silent = true })
-    --     end,
-    -- },
-    -- Fully customizable previewer for LSP code actions.
-    -- {
-    --     "aznhe21/actions-preview.nvim",
-    --     config = function()
-    --         require("actions-preview").setup({
-    --             highlight_command = {
-    --                 require("actions-preview.highlight").delta(),
-    --                 -- require("actions-preview.highlight").diff_so_fancy(),
-    --                 -- require("actions-preview.highlight").diff_highlight(),
-    --             },
-    --             backend = { "snacks" },
-    --             snacks = {
-    --                 layout = {
-    --                     preset = function()
-    --                         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
-    --                     end,
-    --                 },
-    --             },
-    --         })
-    --     end,
-    -- },
     {
         "neovim/nvim-lspconfig",
         dependencies = {
@@ -198,33 +129,11 @@ return {
                         end, desc = "Pretty hover" },
                         -- override default preveiw mapping
                         -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
-                        -- { "<F1>", function() return vim.lsp.buf.hover() end, desc = "Hover", },
-                        -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
-                        { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
-                        { "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, desc = "Resolve imports [jdtls]", },
-                        { "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, desc = "Context Apply First Code Action [jdtls]", }
                     },
                 },
             },
         },
     },
-    -- Nvim plugin for nvim-lspconfig: stop idle servers & restart upon focus; keep your RAM usage low
-    -- {
-    --     "hinell/lsp-timeout.nvim",
-    --     dependencies = { "neovim/nvim-lspconfig" },
-    -- },
-    -- LSP diagnostics in virtual text at the top right of your screen
-    -- {
-    --     "dgagn/diagflow.nvim",
-    --     -- event = 'LspAttach', This is what I use personnally and it works great
-    --     opts = {
-    --         show_borders = true,
-    --     },
-    --     config = function()
-    --         require("diagflow").setup()
-    --     end,
-    -- },
-    -- A small Neovim plugin for previewing definitions using floating windows.
     {
         "rmagatti/goto-preview",
         event = "BufEnter",
@@ -268,6 +177,60 @@ return {
             })
         end,
     },
+    -- A Neovim plugin for displaying inline diagnostic messages with customizable styles and icons.
+    {
+        "rachartier/tiny-inline-diagnostic.nvim",
+        event = "VeryLazy",
+        priority = 1000,
+        -- stylua: ignore
+        keys = {
+            { "<leader>xdt", "<cmd>TinyInlineDiag toggle<cr>", { desc = "[D]iagnostics [T]oggle" } }
+        },
+        opts = {
+            preset = "modern", -- Available: "modern", "classic", "minimal", "powerline", "ghost", "simple", "nonerdfont", "amongus"
+            transparent_bg = false,
+            -- hi = {
+            --     error = "DiagnosticError", -- Highlight for error diagnostics
+            --     warn = "DiagnosticWarn", -- Highlight for warning diagnostics
+            --     info = "DiagnosticInfo", -- Highlight for info diagnostics
+            --     hint = "DiagnosticHint", -- Highlight for hint diagnostics
+            --     arrow = "NonText", -- Highlight for the arrow pointing to diagnostic
+            --     background = "CursorLine", -- Background highlight for diagnostics
+            --     mixing_color = "Normal", -- Color to blend background with (or "None")
+            -- },
+            options = {
+                use_icons_from_diagnostic = false,
+                multilines = {
+                    enabled = true, -- Enable support for multiline diagnostic messages
+                    always_show = true, -- Always show messages on all lines of multiline diagnostics
+                    trim_whitespaces = false, -- Remove leading/trailing whitespace from each line
+                },
+                show_source = { -- Display the source of diagnostics (e.g., "lua_ls", "pyright")
+                    enabled = true, -- Enable showing source names
+                    if_many = true, -- Only show source if multiple sources exist for the same diagnostic
+                },
+                -- Only show diagnostics when the cursor is directly over them, no fallback to line diagnostics
+                show_diags_only_under_cursor = false,
+            },
+        },
+    },
+    -- Nvim plugin for nvim-lspconfig: stop idle servers & restart upon focus; keep your RAM usage low
+    -- {
+    --     "hinell/lsp-timeout.nvim",
+    --     dependencies = { "neovim/nvim-lspconfig" },
+    -- },
+    -- LSP diagnostics in virtual text at the top right of your screen
+    -- {
+    --     "dgagn/diagflow.nvim",
+    --     -- event = 'LspAttach', This is what I use personnally and it works great
+    --     opts = {
+    --         show_borders = true,
+    --     },
+    --     config = function()
+    --         require("diagflow").setup()
+    --     end,
+    -- },
+    -- A small Neovim plugin for previewing definitions using floating windows.
     --{
     --    "ray-x/lsp_signature.nvim",
     --    event = "VeryLazy",
@@ -276,4 +239,36 @@ return {
     --        require('lsp_signature').setup(opts)
     --    end
     --},
+    --    -- teswt
+    -- Show diagnostics and lsp info inside a custom window
+    -- {
+    --     "soulis-1256/eagle.nvim",
+    --     config = function()
+    --         require("eagle").setup({
+    --             keyboard_mode = true,
+    --         })
+    --         vim.keymap.set("n", "<Tab>", ":EagleWin<CR>", { noremap = true, silent = true })
+    --     end,
+    -- },
+    -- Fully customizable previewer for LSP code actions.
+    -- {
+    --     "aznhe21/actions-preview.nvim",
+    --     config = function()
+    --         require("actions-preview").setup({
+    --             highlight_command = {
+    --                 require("actions-preview.highlight").delta(),
+    --                 -- require("actions-preview.highlight").diff_so_fancy(),
+    --                 -- require("actions-preview.highlight").diff_highlight(),
+    --             },
+    --             backend = { "snacks" },
+    --             snacks = {
+    --                 layout = {
+    --                     preset = function()
+    --                         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
+    --                     end,
+    --                 },
+    --             },
+    --         })
+    --     end,
+    -- },
 }

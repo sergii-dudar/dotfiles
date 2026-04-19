@@ -250,7 +250,7 @@ function M.build_search(word, starts_with)
     end
     if word:match("^[A-Z_][A-Z0-9_]*$") then
         -- Static field (ALL_CAPS) — no public/static required (covers interface fields)
-        local suffix = starts_with and "[A-Z0-9_]*[\\s]*=" or "[\\s]*="
+        local suffix = starts_with and "[A-Z0-9_]*[\\s]*[=;]" or "[\\s]*[=;]"
         -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
         return "\\w+[\\s]+" .. word .. suffix
     else

@@ -110,17 +110,6 @@ require("utils.indent-util").activate({ cinoptions = "j1,+2s" })
 -- Auto Cmd
 --------------------------------------------------------------------
 
-local java_group = vim.api.nvim_create_augroup("JavaGroup", { clear = true })
-
--- Setup user command for testing
-local mapstruct = require("modules.java.mapstruct")
-vim.keymap.set("n", "<leader>pm", function()
-    mapstruct.goto_path_definition({ is_open_as_floating_win = true })
-end, { desc = "Go to definition (MapStruct) Float" })
-vim.keymap.set("n", "<leader>pM", function()
-    mapstruct.goto_path_definition()
-end, { desc = "Go to definition (MapStruct)" })
-
 -- Highlight pattern in terminal output
 -- vim.api.nvim_create_autocmd("TermOpen", {
 --     group = java_group,

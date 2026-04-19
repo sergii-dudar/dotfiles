@@ -19,6 +19,14 @@ return {
     opts = {
         servers = {
             lemminx = {
+                on_exit = function(code, signal, client_id)
+                    if code ~= 0 then
+                        vim.notify("lemminx crashed (code " .. code .. "), restarting...", vim.log.levels.WARN)
+                        vim.defer_fn(function()
+                            vim.cmd("LspStart lemminx")
+                        end, 1000)
+                    end
+                end,
                 -- capabilities = {
                 --     workspace = {
                 --         didChangeConfiguration = {

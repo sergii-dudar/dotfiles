@@ -1,3 +1,7 @@
+if global.is_limited then
+    return {}
+end
+
 return {
     { "folke/persistence.nvim" },
     {
