@@ -193,12 +193,20 @@ end
 
 --- Extract static member name from a matched grep line.
 --- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
+--- For enum constants: ALL_CAPS at start of trimmed line before ',' ';' or '(' (constructor args)
 --- For methods: identifier before '('
 function M.extract_static_member(text)
+    -- Field: ALL_CAPS with explicit type prefix (e.g. `static final Instant FOO = ...` or `WireMockServer BAR;`)
     local field = text:match("([%u_][%u%d_]+)%s*[=;]")
     if field then
         return field
     end
+    -- Enum constant: ALL_CAPS at start of trimmed line, terminated by , ; or ( (constructor)
+    local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;(]")
+    if enum_const then
+        return enum_const
+    end
+    -- Method: camelCase identifier before (
     local method = text:match("([%a_][%w_]*)%s*%(")
     if method and not vim.tbl_contains({ "if", "for", "while", "switch", "catch" }, method) then
         return method
@@ -252,7 +260,11 @@ function M.build_search(word, starts_with)
         -- Static field (ALL_CAPS) — no public/static required (covers interface fields)
         local suffix = starts_with and "[A-Z0-9_]*[\\s]*[=;]" or "[\\s]*[=;]"
         -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
-        return "\\w+[\\s]+" .. word .. suffix
+        local field_pattern = "\\w+[\\s]+" .. word .. suffix
+        -- Enum constant — ALL_CAPS at start of line (no type prefix), terminated by , ; or ( (constructor args)
+        local enum_suffix = starts_with and "[A-Z0-9_]*[\\s]*[,;(]" or "[\\s]*[,;(]"
+        local enum_pattern = "^[\\s]*" .. word .. enum_suffix
+        return field_pattern .. "|" .. enum_pattern
     else
         -- Static method (camelCase) — requires static, public optional (covers interface methods)
         local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
