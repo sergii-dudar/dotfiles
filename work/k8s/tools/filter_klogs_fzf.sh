@@ -27,6 +27,7 @@
 
 tmp=./klogs/tmp-$(date +%s).json
 RG_PREFIX="rg --no-filename --no-line-number --no-heading --color=always --smart-case {q} ./klogs/**/*.log"
+RG_PREFIX_NOCOL="rg --no-filename --no-line-number --no-heading --color=never --smart-case {q} ./klogs/**/*.log"
 INITIAL_QUERY="${1:-}"
 REFRESH="${2:-3}"  # auto-reload interval in seconds, 0 to disable
 
@@ -35,22 +36,38 @@ RELOAD_PID=""
 
 if [[ "$REFRESH" -gt 0 ]] 2>/dev/null; then
     (last_mtime=""; while sleep "$REFRESH"; do
-        cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
-        [[ "$cur_mtime" == "$last_mtime" ]] && continue
-        last_mtime="$cur_mtime"
-        curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
+            cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
+            [[ "$cur_mtime" == "$last_mtime" ]] && continue
+            last_mtime="$cur_mtime"
+            curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
     done) &
     RELOAD_PID=$!
 fi
 
+sep="\033[0;35m\033[0m"
+function _klabel() {
+    echo -e "[\033[0;32m\033[1m$1\033[0m]:"
+}
+function _klabels() {
+    echo -e " ${sep} [\033[0;32m\033[1m$1\033[0m]:"
+}
+
+invim=$'\033[38;5;32m\033[0m'
+iselect=$'\033[38;5;135m\033[0m'
+ihist=$'\033[38;5;32m\033[0m'
+
+
+_fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} "
 selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUERY" \
+        --header "$_fzf_header" \
         --bind "start:reload:$RG_PREFIX" \
         --bind "change:reload:sleep 0.1; $RG_PREFIX || true" \
         --bind "ctrl-r:reload:$RG_PREFIX" \
-        --bind 'enter:select-all+accept' \
+        --bind "enter:execute($RG_PREFIX_NOCOL | gsed 's/^[^{]*//' | jq -s . > $tmp && LIMITED=Y nvim -R -c 'setfiletype json' $tmp; rm -f $tmp)" \
+        --bind 'ctrl-q:select-all+accept' \
         --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
         --color 'hl:-1:underline,hl+:-1:underline:reverse' \
-        --prompt 'Filter ❯ ' \
+        --prompt 'Filter k8s logs ❯ ' \
         --wrap-sign '' \
         --delimiter : \
     --border-label '   Filter Logs ' ) || { [[ -n "$RELOAD_PID" ]] && kill "$RELOAD_PID" 2>/dev/null; exit 0; }
@@ -59,5 +76,4 @@ selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUER
 echo "$selected" | gsed 's/^[^{]*//' | jq -s . > "$tmp" \
     && LIMITED=Y nvim -R -c 'setfiletype json' "$tmp"
 rm -f "$tmp"
-
 
