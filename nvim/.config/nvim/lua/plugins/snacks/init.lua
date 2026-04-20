@@ -80,6 +80,18 @@ return {
                         width = 0.7,
                         height = 0.9,
                     },
+                    -- unique key for the scratch file is based on:
+                    -- * name
+                    -- * ft
+                    -- * vim.v.count1 (useful for keymaps)
+                    -- * cwd (optional)
+                    -- * branch (optional)
+                    filekey = {
+                        id = nil, ---@type string? unique id used instead of name for the filename hash
+                        cwd = true, -- use current working directory
+                        branch = false, -- use current branch name
+                        count = false, -- use vim.v.count1
+                    },
                 },
                 lazygit = {
                     enabled = true,

@@ -21,8 +21,10 @@ function M.openStackTraceScratch()
         win = {
             keys = {
                 ["parse_trace"] = {
-                    "<leader>p",
+                    -- "<leader>p",
+                    "<cr>",
                     function(self)
+                        -- normalize_trace_buffer(self.buf)
                         local java_trace = require("utils.java.java-trace")
                         local common = require("utils.common-util")
                         local stack_trace = common.get_current_buffer_text()
