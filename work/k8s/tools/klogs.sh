@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ── Platform detection ─────────────────────────────────────────────────────────
+OS="$(uname -s)"
+case "$OS" in
+    Darwin)
+        command -v gsed &>/dev/null || { echo "ERROR: gsed is required on macOS (brew install gnu-sed)" >&2; exit 1; }
+        SED="gsed"
+        ;;
+    Linux)
+        SED="sed"
+        ;;
+    *)
+        echo "ERROR: Unsupported platform: $OS" >&2; exit 1
+        ;;
+esac
+
 # ── Defaults ──────────────────────────────────────────────────────────────────
 NAMESPACE=""
 CONTEXT=""
@@ -310,7 +325,7 @@ collect_logs() {
 
     # Helper: pipe kubectl logs through cleanup filters
     filter_json() {
-        gsed -u -E -e "$ts_pattern" -e "$ansi_pattern" | awk "$join_json"
+        $SED -u -E -e "$ts_pattern" -e "$ansi_pattern" | awk "$join_json"
     }
 
     # ── Mode: -p -f  (previous + current + follow) ───────────────────────

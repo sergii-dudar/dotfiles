@@ -8,6 +8,21 @@ set -euo pipefail
 #       be picked up automatically — restart the script if that happens.
 # ──────────────────────────────────────────────────────────────────────────────
 
+# ── Platform detection ─────────────────────────────────────────────────────────
+OS="$(uname -s)"
+case "$OS" in
+    Darwin)
+        command -v gsed &>/dev/null || { echo "ERROR: gsed is required on macOS (brew install gnu-sed)" >&2; exit 1; }
+        SED="gsed"
+        ;;
+    Linux)
+        SED="sed"
+        ;;
+    *)
+        echo "ERROR: Unsupported platform: $OS" >&2; exit 1
+        ;;
+esac
+
 # ── Defaults ──────────────────────────────────────────────────────────────────
 NAMESPACE=""
 CONTEXT=""
@@ -18,26 +33,27 @@ LIVE=false
 DEPLOYMENTS=()
 
 # ── Colors (8 distinct, cycle if more) ────────────────────────────────────────
+# Using $'...' so variables hold actual escape bytes (safe in sed replacement)
 PALETTE=(
-    '\033[0;36m'   # cyan
-    '\033[0;33m'   # yellow
-    '\033[0;32m'   # green
-    '\033[0;35m'   # magenta
-    '\033[0;34m'   # blue
-    '\033[1;31m'   # bold red
-    '\033[1;33m'   # bold yellow
-    '\033[1;36m'   # bold cyan
+    $'\033[0;36m'   # cyan
+    $'\033[0;33m'   # yellow
+    $'\033[0;32m'   # green
+    $'\033[0;35m'   # magenta
+    $'\033[0;34m'   # blue
+    $'\033[1;31m'   # bold red
+    $'\033[1;33m'   # bold yellow
+    $'\033[1;36m'   # bold cyan
 )
-NC='\033[0m'
-RED='\033[0;31m'
-BOLD='\033[1m'
-CYAN='\033[0;36m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
+NC=$'\033[0m'
+RED=$'\033[0;31m'
+BOLD=$'\033[1m'
+CYAN=$'\033[0;36m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
 
-info()  { echo -e "${CYAN}[INFO]${NC} $*" >&2; }
-warn()  { echo -e "${YELLOW}[WARN]${NC} $*" >&2; }
-error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+info()  { printf '%s\n' "${CYAN}[INFO]${NC} $*" >&2; }
+warn()  { printf '%s\n' "${YELLOW}[WARN]${NC} $*" >&2; }
+error() { printf '%s\n' "${RED}[ERROR]${NC} $*" >&2; }
 die()   { error "$@"; exit 1; }
 
 # ── Usage ─────────────────────────────────────────────────────────────────────
@@ -83,7 +99,8 @@ parse_args() {
             -n|--namespace)  NAMESPACE="$2"; shift 2 ;;
             --context)       CONTEXT="$2"; shift 2 ;;
             -c|--container)  CONTAINER="$2"; shift 2 ;;
-            --tail)          TAIL_LINES="$2"; shift 2 ;;
+            --tail)          TAIL_LINES="$2"; shift 2
+                             [[ "$TAIL_LINES" =~ ^[0-9]+$ ]] || die "--tail must be a non-negative integer, got: '$TAIL_LINES'" ;;
             --live)          LIVE=true; TAIL_LINES=0; shift ;;
             --no-color)      NO_COLOR=true; shift ;;
             -h|--help)       usage ;;
@@ -262,11 +279,7 @@ stream_logs() {
         tail_flag=(--tail="$TAIL_LINES")
     fi
 
-    # Determine sed command (gsed on macOS, sed on Linux)
-    local SED="sed"
-    if command -v gsed &>/dev/null; then
-        SED="gsed"
-    fi
+    # SED determined at script start (gsed on macOS, sed on Linux)
 
     local reset=""
     [[ "$NO_COLOR" == false ]] && reset="$NC"
@@ -292,14 +305,14 @@ stream_logs() {
 }
 
 cleanup() {
+    # Prevent re-entry from EXIT after INT/TERM
+    trap '' INT TERM EXIT
     echo "" >&2
     info "Stopping all log streams..."
     for pid in "${PIDS[@]}"; do
         kill "$pid" 2>/dev/null || true
     done
-    # Wait briefly for children to terminate
     sleep 0.2
-    # Kill any remaining children
     for pid in "${PIDS[@]}"; do
         kill -9 "$pid" 2>/dev/null || true
     done
@@ -326,7 +339,7 @@ main() {
     fi
     echo "" >&2
 
-    trap cleanup INT TERM
+    trap cleanup INT TERM EXIT
 
     stream_logs
     wait "${PIDS[@]}" 2>/dev/null || true
