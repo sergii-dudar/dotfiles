@@ -11,6 +11,7 @@ if java_util.is_java_project() then
     vim.keymap.set("n", "<leader>jtp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "[J]ava buffer [t]race [p]arse to qflist" })
     vim.keymap.set("n", "<leader>jtl", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "[J]ava [t]race current [l]ine parse to qflist" })
     vim.keymap.set("n", "<leader>jtb", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "[J]ava [t]race current line open in [b]uffer" })
+    vim.keymap.set("n", "<leader>jts", function() Snacks.scratch({ name = "Trace", ft = "log" }) end, { desc = "[J]ava [t]race [s]cratch buffer" })
     -- map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
     -- map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
