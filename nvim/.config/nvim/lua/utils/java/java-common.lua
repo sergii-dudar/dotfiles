@@ -122,6 +122,69 @@ end
 -- local src_dir = root .. "/src/main/java/"
 -- local test_dir = root .. "/src/test/java/"
 
+--- Check if a Java class path contains abbreviated package segments.
+--- Single-char lowercase segments are treated as abbreviated (e.g., "u" for "ua", "r" for "reactor").
+---@param class_path string e.g. "u.r.paymentchargecalculation.core.service.MaskExtractor"
+---@return boolean
+function M.has_abbreviated_segments(class_path)
+    local parts = vim.split(class_path, ".", { plain = true })
+    for i = 1, #parts - 1 do
+        if #parts[i] == 1 and parts[i]:match("^%l$") then
+            return true
+        end
+    end
+    return false
+end
+
+--- Check if an abbreviated package path matches a full package path.
+--- Each segment of the abbreviated path must be a prefix of the corresponding full segment.
+---@param abbreviated string e.g. "r.c.p"
+---@param full string e.g. "reactor.core.publisher"
+---@return boolean
+function M.abbreviated_package_matches(abbreviated, full)
+    local abbr_parts = vim.split(abbreviated, ".", { plain = true })
+    local full_parts = vim.split(full, ".", { plain = true })
+    if #abbr_parts > #full_parts then
+        return false
+    end
+    for i, abbr in ipairs(abbr_parts) do
+        if not vim.startswith(full_parts[i], abbr) then
+            return false
+        end
+    end
+    return true
+end
+
+--- Build a glob pattern for local file lookup from an abbreviated class path.
+--- Expands abbreviated segments to wildcards (e.g., "u" → "u*").
+---@param classname string e.g. "u.r.paymentchargecalculation.core.service.MaskExtractor"
+---@return string glob tail e.g. "u*/r*/paymentchargecalculation/core/service/MaskExtractor.java"
+local function build_abbreviated_glob(classname)
+    local base = vim.split(classname, "%$")[1]
+    local parts = vim.split(base, ".", { plain = true })
+    for i = 1, #parts - 1 do
+        if #parts[i] == 1 and parts[i]:match("^%l$") then
+            parts[i] = parts[i] .. "*"
+        end
+    end
+    return table.concat(parts, "/") .. ".java"
+end
+
+--- Build a JDTLS workspace/symbol query from an abbreviated class path.
+--- Expands abbreviated segments to wildcards (e.g., "r.c.p" → "r*.c*.p*").
+---@param class_path string e.g. "r.c.p.FluxFilterFuseable"
+---@return string query e.g. "r*.c*.p*.FluxFilterFuseable"
+function M.build_abbreviated_query(class_path)
+    local base = vim.split(class_path, "%$")[1]
+    local parts = vim.split(base, ".", { plain = true })
+    for i = 1, #parts - 1 do
+        if #parts[i] == 1 and parts[i]:match("^%l$") then
+            parts[i] = parts[i] .. "*"
+        end
+    end
+    return table.concat(parts, ".")
+end
+
 function M.java_class_to_proj_path(classname)
     local relative_path = classname:gsub("%.", "/") .. ".java"
     local file_path = vim.fn.glob("*/**/" .. relative_path)
@@ -131,6 +194,14 @@ function M.java_class_to_proj_path(classname)
 
     if file_path ~= nil and #file_path ~= 0 then
         return file_path
+    end
+
+    -- Fallback: try with abbreviated segment expansion
+    if M.has_abbreviated_segments(classname) then
+        file_path = vim.fn.glob("*/**/" .. build_abbreviated_glob(classname))
+        if file_path ~= nil and #file_path ~= 0 then
+            return file_path
+        end
     end
 
     return nil

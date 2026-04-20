@@ -7,6 +7,7 @@ local util = require("utils.common-util")
 local lsp_util = require("utils.lsp-util")
 local string_util = require("utils.string-util")
 local cache_util = require("utils.cache-util")
+local java_common = require("utils.java.java-common")
 local nio = require("nio")
 
 local function last_segment(str)
@@ -176,6 +177,10 @@ function M.jdt_load_unique_class_list(class_names, handler)
         -- vim.lsp.buf_request(0, "workspace/symbol", { query = class_name }, function(err, result, _, _)
 
         local class_name_query = vim.split(class_name, "%$")[1] -- we need only top level class, to position we have linenumber
+        -- For abbreviated class paths, expand abbreviated segments to wildcards for JDTLS query
+        if java_common.has_abbreviated_segments(class_name_query) then
+            class_name_query = java_common.build_abbreviated_query(class_name_query)
+        end
         -- vim.notify("requesting " .. class_name_query)
         jdtls_client:request("workspace/symbol", { query = class_name_query }, function(err, result, ctx)
             pending = pending - 1
@@ -200,7 +205,8 @@ function M.jdt_load_unique_class_list(class_names, handler)
                 local class_package, simple_class_name = string_util.split_by_last_dot(class_name)
 
                 local single_result = list_util.findFirst(result, function(item)
-                    return string_util.starts_with(item.containerName, class_package) and item.name == simple_class_name
+                    return java_common.abbreviated_package_matches(class_package, item.containerName)
+                        and item.name == simple_class_name
                 end)
 
                 if single_result then
