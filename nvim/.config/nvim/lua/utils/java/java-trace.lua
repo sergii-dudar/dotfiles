@@ -87,31 +87,26 @@ local parse_java_stack_trace = function(trace, result_callback)
 
     if vim.tbl_isempty(jdt_classes) then
         local loc_result_items = {}
-        local trace_number = 1
-        for i = #parsed_trace, 1, -1 do
-            local parsed = parsed_trace[i]
+        for i, parsed in ipairs(parsed_trace) do
             local loc_item = loc_result_items_map[i]
             if loc_item then
-                loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
+                loc_item.text = string.format("( %s ) %s", i, parsed.method)
                 table.insert(loc_result_items, loc_item)
             end
-            trace_number = trace_number + 1
         end
         result_callback(loc_result_items)
     else
         jdtls_util.jdt_load_unique_class_list(jdt_classes, function(jdt_results_items_map)
-            local trace_number = 1
             local all_result_items = {}
-            for i = #parsed_trace, 1, -1 do
-                local parsed = parsed_trace[i]
+            for i, parsed in ipairs(parsed_trace) do
                 local loc_item = loc_result_items_map[i]
                 local jdt_sym_loc_item = jdt_results_items_map[parsed.class_path]
                 if loc_item then
-                    loc_item.text = string.format("( %s ) %s", trace_number, parsed.method)
+                    loc_item.text = string.format("( %s ) %s", i, parsed.method)
                     table.insert(all_result_items, loc_item)
                 elseif jdt_sym_loc_item then
                     local jdt_item = vim.lsp.util.symbols_to_items({ jdt_sym_loc_item }, 0)[1]
-                    jdt_item.text = string.format("( %s ) %s.%s", trace_number, parsed.class_path, parsed.method)
+                    jdt_item.text = string.format("( %s ) %s.%s", i, parsed.class_path, parsed.method)
                     jdt_item.lnum = parsed.class_line_number
                     jdt_item.end_lnum = parsed.class_line_number
                     -- dd(jdt_item)
@@ -119,7 +114,6 @@ local parse_java_stack_trace = function(trace, result_callback)
                 else
                     vim.notify(string.format("⚠️ class %s was not found", parsed.class_path))
                 end
-                trace_number = trace_number + 1
             end
             -- dd(all_result_items)
             result_callback(all_result_items)
