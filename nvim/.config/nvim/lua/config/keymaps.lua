@@ -138,22 +138,4 @@ vim.api.nvim_set_keymap("v", "<leader>R", '"hy:%s/<C-r>h//gc<Left><Left><Left>',
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
 
-if require("utils.java.java-common").is_java_project() then
-    -- java parse trace
-    map("v", "<leader>xp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-    map("n", "<leader>xp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "Parse trace to quick fix list" })
-    map("n", "<leader>xP", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "Parse current line trace to quick fix list" })
-    map("n", "<leader>xo", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "Parse current line trace and open in buffer" })
-    map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
-    map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
-
-    -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
-    map("n", "gj", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "[G]o to [J]dt First Line Link" })
-    map("n", "<leader>jda", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "[G]o to [J]dt All Link Links" })
-    map("n", "<leader>jdc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "[G]o to [J]dt Link Under Cursor" })
-    --[[ if require("utils.java.java-common").is_java_project() then
-        map("n", "gf", function() require("utils.java.java-common").edit_java_resourse_file() end, { desc = "[J]ava [G]o to [F]ile Link Under Cursor" })
-    end ]]
-end
-
 -- stylua: ignore end

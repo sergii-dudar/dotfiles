@@ -4,7 +4,36 @@ local java_util = require("utils.java.java-common")
 -- local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
+-- stylua: ignore
+if java_util.is_java_project() then
+    -- java parse trace
+    vim.keymap.set("v", "<leader>jtp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "[J]ava selected [t]race [p]arse to qflist" })
+    vim.keymap.set("n", "<leader>jtp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "[J]ava buffer [t]race [p]arse to qflist" })
+    vim.keymap.set("n", "<leader>jtl", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "[J]ava [t]race current [l]ine parse to qflist" })
+    vim.keymap.set("n", "<leader>jtb", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "[J]ava [t]race current line open in [b]uffer" })
+    -- map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
+    -- map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
+
+    -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
+    vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "Open [j]dt [l]inks [a]ll" })
+    vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
+    vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
+end
+
 return {
+    {
+        "folke/which-key.nvim",
+        optional = true,
+        opts = {
+            spec = {
+                { "<leader>j", group = "+java" },
+                { "<leader>jt", group = "+java traces" },
+                { "<leader>jl", group = "+jdtls links" },
+                { "<leader>jc", group = "+jdtls code/compile" },
+                { "<leader>jd", group = "+jdtls data control" },
+            },
+        },
+    },
     -- JDTLS config based on LazyVim with Spring-Boot Tools LS support
     {
         "mfussenegger/nvim-jdtls",
