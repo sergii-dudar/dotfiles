@@ -130,7 +130,7 @@ function M.show_stack_trace_qflist(stack_trace)
     parse_java_stack_trace(stack_trace, function(trace_items)
         -- dd(trace_items)
         vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
-        vim.cmd("Trouble qflist toggle")
+        vim.cmd("Trouble qflist toggle sort={}")
     end)
 end
 
