@@ -74,7 +74,10 @@ return {
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
-                scratch = { enabled = true },
+                scratch = {
+                    enabled = true,
+                    win = { width = 0.7, height = 0.9 },
+                },
                 lazygit = {
                     enabled = true,
                     win = {
