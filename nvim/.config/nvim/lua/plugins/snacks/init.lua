@@ -33,7 +33,6 @@ return {
             -- end)
             local pickers = require("plugins.snacks.configs.pickers")
             local dashboards = require("plugins.snacks.configs.dashboards")
-            local scratch = require("plugins.snacks.configs.scratch")
             return vim.tbl_deep_extend("force", opts or {}, {
                 zen = {
                     win = { style = "zen", width = 0.85 },
@@ -75,7 +74,13 @@ return {
                 quickfile = { enabled = true },
                 statuscolumn = { enabled = true },
                 words = { enabled = true },
-                scratch = scratch.config,
+                scratch = {
+                    enabled = true,
+                    win = {
+                        width = 0.7,
+                        height = 0.9,
+                    },
+                },
                 lazygit = {
                     enabled = true,
                     win = {
@@ -91,7 +96,7 @@ return {
             -- { "<leader>S", desc = "Scratch ..." },
             -- { "<leader>SS", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
             { "<leader>S", function() Snacks.scratch() end, desc = "Toggle Scratch Buffer", },
-            { "<leader>fS", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },
+            { "<leader>fs", function() Snacks.scratch.select() end, desc = "Select Scratch Buffer", },
             -- explorer
             { '<leader>"', function() Snacks.explorer({ cwd = LazyVim.root() }) end, desc = "Explorer Snacks (root dir)", },
             { "<leader>'", function() Snacks.explorer() end, desc = "Explorer Snacks (cwd)", },

@@ -109,6 +109,10 @@ end, { desc = "Personal Vim Cheat Sheet" })
 -- Snacks
 Snacks.toggle.zen():map("<leader>zz")
 
+vim.keymap.set("n", "<leader>N", function()
+    Snacks.scratch({ name = "CWD Notes", ft = "txt" })
+end, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J to 6jzz
+
 --move selected block
 --vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 --vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
