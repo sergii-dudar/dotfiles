@@ -1,5 +1,6 @@
 local fname = vim.api.nvim_buf_get_name(0)
-if not fname:match("/openapi/") then
+local first_line = vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] or ""
+if not fname:match("/openapi/") and not first_line:match("^openapi:") then
     return
 end
 
