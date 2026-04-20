@@ -8,8 +8,9 @@
 syn match LogBracketContent display '\[.\{-}\]'
 hi def link LogBracketContent LogGreen
 
-" Match ua.raiffeisen package paths
+" Match ua.raiffeisen package paths (full and abbreviated)
 syn match LogRaiffeisen display 'ua\.raiffeisen[[:alnum:]._$]\+'
+syn match LogRaiffeisen display 'u\.r\.[[:alnum:]._$]\+'
 hi def link LogRaiffeisen LogLvDebug
 
 
@@ -19,7 +20,7 @@ hi def link LogRaiffeisen LogLvDebug
 syn match LogJavaTrace display '\vat [[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
 hi def link LogJavaTrace LogLvDebug
 
-syn match LogJavaTraceCustom display '\vat (ua\.serhii\.application\.util2|ua\.raiffeisen\.|ua\.aval\.)[[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
+syn match LogJavaTraceCustom display '\vat (ua\.serhii\.application\.util2|ua\.raiffeisen\.|ua\.aval\.|u\.r\.|u\.s\.a\.u\.|u\.a\.)[[:alnum:]._$]+\([[:alnum:]._$]+\.java:\d+\)'
 hi def link LogJavaTraceCustom LogBlue
 
 " ========================================

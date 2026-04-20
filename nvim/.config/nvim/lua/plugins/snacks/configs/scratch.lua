@@ -35,6 +35,7 @@ M.config = {
                 "<leader>n",
                 function(self)
                     normalize_trace_buffer(self.buf)
+                    -- vim.bo[self.buf].filetype = "log"
                 end,
                 desc = "Normalize Trace",
                 mode = "n",
