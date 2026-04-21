@@ -286,6 +286,9 @@ function M.process(report_dir, filetype)
             else
                 spinner.stop(true, total .. " Tests Passed", sp)
             end
+
+            -- Refresh tree view if open
+            require("modules.java.test-report.junit-report-view").refresh_if_open(M.get_report_snapshot())
         end)
 
         nio.scheduler()

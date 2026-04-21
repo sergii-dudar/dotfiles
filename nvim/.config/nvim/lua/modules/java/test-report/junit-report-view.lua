@@ -240,19 +240,12 @@ local function render()
 
     -- Header
     local summary_parts = { { "JUnit Test Report", "Title" }, { "  ·  " } }
-    table.insert(summary_parts, { tostring(total) .. " tests" })
-    if passed > 0 then
-        table.insert(summary_parts, { "  " })
-        table.insert(summary_parts, { " " .. tostring(passed), "DiagnosticOk" })
-    end
-    if failed > 0 then
-        table.insert(summary_parts, { "  " })
-        table.insert(summary_parts, { " " .. tostring(failed), "DiagnosticError" })
-    end
-    if skipped > 0 then
-        table.insert(summary_parts, { "  " })
-        table.insert(summary_parts, { " " .. tostring(skipped), "DiagnosticWarn" })
-    end
+    table.insert(summary_parts, { tostring(total) .. " tests: " })
+    table.insert(summary_parts, { tostring(passed), "DiagnosticOk" })
+    table.insert(summary_parts, { "/", "DiagnosticInfo" })
+    table.insert(summary_parts, { tostring(failed), "DiagnosticError" })
+    table.insert(summary_parts, { "/", "DiagnosticInfo" })
+    table.insert(summary_parts, { tostring(skipped), "DiagnosticWarn" })
     table.insert(summary_parts, { string.format("  ·  %.2fs", total_time), "Comment" })
 
     local header_text, header_hls = format_line(summary_parts)
@@ -598,6 +591,18 @@ function M.toggle(snapshot)
         return
     end
     M.open(snapshot)
+end
+
+--- Refresh the tree view with new data if it is currently open.
+---@param snapshot report_view.Snapshot
+function M.refresh_if_open(snapshot)
+    if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
+        return
+    end
+    state.snapshot = snapshot
+    state.tree = build_tree(snapshot)
+    refresh()
+    log.info("tree view refreshed")
 end
 
 return M
