@@ -318,7 +318,7 @@ local function render()
 
     -- Help footer
     add_line("", { type = "blank" })
-    local help = "cr:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab:fold 󱋱 q:close"
+    local help = "cr:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab:fold 󱋱 g:refresh 󱋱 q:close"
     add_line(help, { type = "help" }, { { 0, #help, "Comment" } })
 
     return lines, line_map, all_hls
@@ -502,6 +502,24 @@ local function action_rerun(is_debug)
     end
 end
 
+--- Reload the tree from the current full snapshot (discards accumulated state).
+local function action_full_refresh()
+    local snapshot = require("modules.java.test-report").get_report_snapshot()
+    if vim.tbl_isempty(snapshot.results) then
+        vim.notify("test-report: no test results available", vim.log.levels.WARN)
+        return
+    end
+    state.snapshot = {
+        results = vim.deepcopy(snapshot.results),
+        positions = snapshot.positions,
+        class_files = vim.deepcopy(snapshot.class_files),
+        filetype = snapshot.filetype,
+    }
+    state.tree = build_tree(state.snapshot)
+    refresh()
+    log.info("tree view full refresh")
+end
+
 ---@param buf integer
 local function setup_keymaps(buf)
     local function map(lhs, fn, desc)
@@ -518,6 +536,7 @@ local function setup_keymaps(buf)
         action_rerun(true)
     end, "Debug test")
     map("<Tab>", action_toggle_fold, "Toggle fold")
+    map("g", action_full_refresh, "Full refresh")
     map("q", function()
         M.close()
     end, "Close")
@@ -535,8 +554,14 @@ end
 --- Open the tree view with the given report snapshot.
 ---@param snapshot report_view.Snapshot
 function M.open(snapshot)
-    state.snapshot = snapshot
-    state.tree = build_tree(snapshot)
+    -- Deep copy results and class_files so the tree owns its accumulated state
+    state.snapshot = {
+        results = vim.deepcopy(snapshot.results),
+        positions = snapshot.positions,
+        class_files = vim.deepcopy(snapshot.class_files),
+        filetype = snapshot.filetype,
+    }
+    state.tree = build_tree(state.snapshot)
     state.prev_winid = vim.api.nvim_get_current_win()
 
     state.bufnr = vim.api.nvim_create_buf(false, true)
@@ -593,16 +618,151 @@ function M.toggle(snapshot)
     M.open(snapshot)
 end
 
---- Refresh the tree view with new data if it is currently open.
+--- Update existing tree nodes in-place from the merged snapshot.
+--- Preserves the current sort order. Appends any new classes/packages at the end.
+---@param tree report_view.PackageNode[]
+---@param snapshot report_view.Snapshot
+local function update_tree_in_place(tree, snapshot)
+    -- Index: classname -> { method_name -> { result, id } }
+    local result_by_class = {}
+    for id, result in pairs(snapshot.results) do
+        local classname, method_name = id:match("^(.+)#(.+)$")
+        if classname and method_name then
+            if not result_by_class[classname] then
+                result_by_class[classname] = {}
+            end
+            result_by_class[classname][method_name] = { result = result, id = id }
+        end
+    end
+
+    local seen_classes = {}
+
+    for _, pkg in ipairs(tree) do
+        for _, cls in ipairs(pkg.classes) do
+            seen_classes[cls.classname] = true
+            local cls_data = result_by_class[cls.classname]
+            if not cls_data then
+                goto next_class
+            end
+
+            -- Update existing methods
+            local seen_methods = {}
+            for _, meth in ipairs(cls.methods) do
+                seen_methods[meth.name] = true
+                local new_data = cls_data[meth.name]
+                if new_data then
+                    meth.status = new_data.result.status
+                    meth.time = new_data.result.time
+                    meth.result = new_data.result
+                    meth.id = new_data.id
+                end
+            end
+
+            -- Append new methods
+            for method_name, new_data in pairs(cls_data) do
+                if not seen_methods[method_name] then
+                    table.insert(cls.methods, {
+                        name = method_name,
+                        status = new_data.result.status,
+                        time = new_data.result.time,
+                        result = new_data.result,
+                        id = new_data.id,
+                    })
+                end
+            end
+
+            -- Recompute class aggregate
+            cls.time = 0
+            local statuses = {}
+            for _, meth in ipairs(cls.methods) do
+                table.insert(statuses, meth.status)
+                cls.time = cls.time + (meth.time or 0)
+            end
+            cls.status = aggregate_status(statuses)
+
+            if snapshot.class_files and snapshot.class_files[cls.classname] then
+                cls.file_path = snapshot.class_files[cls.classname]
+            end
+
+            ::next_class::
+        end
+
+        -- Recompute package aggregate
+        pkg.status = aggregate_status(vim.tbl_map(function(c)
+            return c.status
+        end, pkg.classes))
+    end
+
+    -- Append new classes/packages not yet in the tree
+    for classname, cls_data in pairs(result_by_class) do
+        if not seen_classes[classname] then
+            local pkg_name = classname:match("^(.+)%.") or "(default)"
+            local simple_class = classname:match("([^%.]+)$")
+
+            -- Find or create package
+            local target_pkg
+            for _, pkg in ipairs(tree) do
+                if pkg.name == pkg_name then
+                    target_pkg = pkg
+                    break
+                end
+            end
+            if not target_pkg then
+                target_pkg = { name = pkg_name, classes = {}, expanded = true, status = "passed" }
+                table.insert(tree, target_pkg)
+            end
+
+            local new_cls = {
+                name = simple_class,
+                classname = classname,
+                file_path = snapshot.class_files and snapshot.class_files[classname],
+                methods = {},
+                expanded = true,
+                time = 0,
+            }
+            for method_name, new_data in pairs(cls_data) do
+                table.insert(new_cls.methods, {
+                    name = method_name,
+                    status = new_data.result.status,
+                    time = new_data.result.time,
+                    result = new_data.result,
+                    id = new_data.id,
+                })
+                new_cls.time = new_cls.time + (new_data.result.time or 0)
+            end
+            new_cls.status = aggregate_status(vim.tbl_map(function(m)
+                return m.status
+            end, new_cls.methods))
+            table.insert(target_pkg.classes, new_cls)
+
+            target_pkg.status = aggregate_status(vim.tbl_map(function(c)
+                return c.status
+            end, target_pkg.classes))
+        end
+    end
+end
+
+--- Incrementally merge new results into the tree view if it is currently open.
+--- Updates nodes in-place to preserve the current sort order.
 ---@param snapshot report_view.Snapshot
 function M.refresh_if_open(snapshot)
     if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
         return
     end
-    state.snapshot = snapshot
-    state.tree = build_tree(snapshot)
+    -- Merge results into accumulated snapshot
+    for id, result in pairs(snapshot.results) do
+        state.snapshot.results[id] = result
+    end
+    for classname, file_path in pairs(snapshot.class_files or {}) do
+        state.snapshot.class_files[classname] = file_path
+    end
+    for file_path, positions in pairs(snapshot.positions or {}) do
+        state.snapshot.positions[file_path] = positions
+    end
+    -- Update existing tree in-place (stable order)
+    update_tree_in_place(state.tree, state.snapshot)
     refresh()
-    log.info("tree view refreshed")
+    log.info("tree view refreshed (incremental)")
 end
 
 return M
