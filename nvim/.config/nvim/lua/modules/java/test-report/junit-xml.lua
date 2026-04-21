@@ -1,44 +1,62 @@
 local xml = require("lib.xml")
 local file = require("lib.file")
-local log = require("utils.logging-util").new({ name = "test-report-xml", filename = "test-report.log", level = vim.log.levels.DEBUG })
+local log = require("utils.logging-util").new({
+    name = "test-report-xml",
+    filename = "test-report.log",
+    level = vim.log.levels.DEBUG,
+})
 
 local M = {}
+
+---@param report_dir string
+---@return string[]
+function M.list_report_files(report_dir)
+    log.debug("list_report_files: " .. report_dir)
+    local files = vim.fn.glob(report_dir .. "/TEST-*.xml", false, true)
+    log.debug("found " .. #files .. " XML files")
+    if #files == 0 then
+        vim.notify("No JUnit XML reports found in: " .. report_dir, vim.log.levels.WARN)
+    end
+    return files
+end
+
+---@param filepath string
+---@return table<string, test_report.TestResult>
+function M.parse_file(filepath)
+    local results = {}
+    log.debug("parsing: " .. filepath)
+    local content = file.read_file(filepath)
+    if content then
+        log.debug("file content length: " .. #content)
+        local ok, parsed = pcall(xml.parse, content)
+        if ok and parsed and parsed.testsuite then
+            log.debug("XML parsed OK, processing testsuite")
+            M._process_testsuite(parsed.testsuite, results)
+        elseif not ok then
+            log.error("XML parse error: " .. tostring(parsed))
+            vim.notify("test-report: failed to parse XML: " .. filepath, vim.log.levels.ERROR)
+        else
+            log.warn("parsed OK but no testsuite key found")
+            vim.notify("test-report: no testsuite in XML: " .. filepath, vim.log.levels.ERROR)
+        end
+    else
+        log.error("could not read file: " .. filepath)
+        vim.notify("test-report: could not read file: " .. filepath, vim.log.levels.ERROR)
+    end
+    log.debug("parse_file done, " .. vim.tbl_count(results) .. " results")
+    return results
+end
 
 ---@param report_dir string
 ---@return table<string, test_report.TestResult>
 function M.parse_report_dir(report_dir)
     local results = {}
     log.debug("parse_report_dir: " .. report_dir)
-
-    local files = vim.fn.glob(report_dir .. "/TEST-*.xml", false, true)
-    log.debug("found " .. #files .. " XML files")
-    if #files == 0 then
-        vim.notify("No JUnit XML reports found in: " .. report_dir, vim.log.levels.WARN)
-        return results
-    end
-
-    for _, filepath in ipairs(files) do
-        log.debug("parsing: " .. filepath)
-        local content = file.read_file(filepath)
-        if content then
-            log.debug("file content length: " .. #content)
-            local ok, parsed = pcall(xml.parse, content)
-            if ok and parsed and parsed.testsuite then
-                log.debug("XML parsed OK, processing testsuite")
-                M._process_testsuite(parsed.testsuite, results)
-            elseif not ok then
-                log.error("XML parse error: " .. tostring(parsed))
-                vim.notify("test-report: failed to parse XML: " .. filepath, vim.log.levels.ERROR)
-            else
-                log.warn("parsed OK but no testsuite key found")
-                vim.notify("test-report: no testsuite in XML: " .. filepath, vim.log.levels.ERROR)
-            end
-        else
-            log.error("could not read file: " .. filepath)
-            vim.notify("test-report: could not read file: " .. filepath, vim.log.levels.ERROR)
+    for _, filepath in ipairs(M.list_report_files(report_dir)) do
+        for id, r in pairs(M.parse_file(filepath)) do
+            results[id] = r
         end
     end
-
     log.debug("parse_report_dir done, " .. vim.tbl_count(results) .. " results")
     return results
 end
