@@ -77,9 +77,10 @@ ${BOLD}EXAMPLES${NC}
     klogs-multi --clean api-gateway          # clean old logs first
 
 ${BOLD}OUTPUT${NC}
-    Logs are saved to ./klogs/<deployments>-<timestamp>/<pod>.log (one file per pod)
+    Logs are saved to ./klogs/<deploy>/<pod>.log
+    Each deployment gets its own subdirectory with per-pod log files.
     With -p -f: previous logs in <pod>.previous.log, current in <pod>.log
-    Search across all pods: rg --color=never '"ERROR"' ./klogs/*/*.log | jq .
+    Search across all pods: rg --color=never '"ERROR"' ./klogs/**/*.log | jq .
 EOF
     exit 0
 }
@@ -266,7 +267,9 @@ select_deployments() {
 }
 
 # ── Pod discovery ─────────────────────────────────────────────────────────────
+# Parallel arrays: ALL_PODS[i] belongs to POD_DEPLOY[i]
 ALL_PODS=()
+POD_DEPLOY=()
 
 get_pods() {
     for dep in "${DEPLOYMENTS[@]}"; do
@@ -288,6 +291,7 @@ get_pods() {
         for pod in "${pods[@]}"; do
             [[ -z "$pod" ]] && continue
             ALL_PODS+=("$pod")
+            POD_DEPLOY+=("$dep")
         done
     done
 
@@ -307,19 +311,19 @@ setup_output() {
     if [[ -n "$OUTPUT" ]]; then
         OUTDIR="$OUTPUT"
     else
-        local name
-        name=$(IFS=-; echo "${DEPLOYMENTS[*]}")
-        OUTDIR="./klogs/${name}-${TIMESTAMP}"
+        OUTDIR="./klogs"
     fi
     mkdir -p "$OUTDIR"
 }
 
 pod_file() {
-    local pod="$1" suffix="${2:-}"
+    local dep="$1" pod="$2" suffix="${3:-}"
+    local dir="$OUTDIR/$dep"
+    mkdir -p "$dir"
     if [[ -n "$suffix" ]]; then
-        echo "$OUTDIR/${pod}.${suffix}.log"
+        echo "$dir/${pod}.${suffix}.log"
     else
-        echo "$OUTDIR/${pod}.log"
+        echo "$dir/${pod}.log"
     fi
 }
 
@@ -353,18 +357,20 @@ collect_logs() {
     # ── Mode: -p -f  (previous + current + follow) ───────────────────────
     if [[ "$PREVIOUS" == true && "$FOLLOW" == true ]]; then
         info "Dumping previous container logs..."
-        for pod in "${ALL_PODS[@]}"; do
+        for i in "${!ALL_PODS[@]}"; do
+            local pod="${ALL_PODS[$i]}" dep="${POD_DEPLOY[$i]}"
             local outfile
-            outfile=$(pod_file "$pod" "previous")
-            info "  [previous] ${BOLD}$pod${NC} → $outfile"
+            outfile=$(pod_file "$dep" "$pod" "previous")
+            info "  [previous] ${BOLD}$dep/$pod${NC} → $outfile"
             { kctl logs "$pod" "${container_flag[@]}" --previous 2>/dev/null || true; } \
                 | filter_json > "$outfile"
         done
         info "Dumping current logs + following... Press ${BOLD}Ctrl+C${NC} to stop"
-        for pod in "${ALL_PODS[@]}"; do
+        for i in "${!ALL_PODS[@]}"; do
+            local pod="${ALL_PODS[$i]}" dep="${POD_DEPLOY[$i]}"
             local outfile
-            outfile=$(pod_file "$pod")
-            info "  [follow] ${BOLD}$pod${NC} → $outfile"
+            outfile=$(pod_file "$dep" "$pod")
+            info "  [follow] ${BOLD}$dep/$pod${NC} → $outfile"
             { kctl logs "$pod" "${container_flag[@]}" -f 2>/dev/null || true; } \
                 | filter_json > "$outfile" &
             pids+=($!)
@@ -374,10 +380,11 @@ collect_logs() {
     # ── Mode: --live  (only new logs, no history) ─────────────────────────
     elif [[ "$LIVE" == true ]]; then
         info "Following new logs only... Press ${BOLD}Ctrl+C${NC} to stop"
-        for pod in "${ALL_PODS[@]}"; do
+        for i in "${!ALL_PODS[@]}"; do
+            local pod="${ALL_PODS[$i]}" dep="${POD_DEPLOY[$i]}"
             local outfile
-            outfile=$(pod_file "$pod")
-            info "  [live] ${BOLD}$pod${NC} → $outfile"
+            outfile=$(pod_file "$dep" "$pod")
+            info "  [live] ${BOLD}$dep/$pod${NC} → $outfile"
             { kctl logs "$pod" "${container_flag[@]}" -f --tail=0 2>/dev/null || true; } \
                 | filter_json > "$outfile" &
             pids+=($!)
@@ -387,10 +394,11 @@ collect_logs() {
     # ── Mode: -f  (current from start + follow) ──────────────────────────
     elif [[ "$FOLLOW" == true ]]; then
         info "Following logs... Press ${BOLD}Ctrl+C${NC} to stop"
-        for pod in "${ALL_PODS[@]}"; do
+        for i in "${!ALL_PODS[@]}"; do
+            local pod="${ALL_PODS[$i]}" dep="${POD_DEPLOY[$i]}"
             local outfile
-            outfile=$(pod_file "$pod")
-            info "  [follow] ${BOLD}$pod${NC} → $outfile"
+            outfile=$(pod_file "$dep" "$pod")
+            info "  [follow] ${BOLD}$dep/$pod${NC} → $outfile"
             { kctl logs "$pod" "${container_flag[@]}" -f 2>/dev/null || true; } \
                 | filter_json > "$outfile" &
             pids+=($!)
@@ -401,10 +409,11 @@ collect_logs() {
     else
         local extra_flags=()
         [[ "$PREVIOUS" == true ]] && extra_flags+=(--previous)
-        for pod in "${ALL_PODS[@]}"; do
+        for i in "${!ALL_PODS[@]}"; do
+            local pod="${ALL_PODS[$i]}" dep="${POD_DEPLOY[$i]}"
             local outfile
-            outfile=$(pod_file "$pod")
-            info "  Collecting ${BOLD}$pod${NC} → $outfile"
+            outfile=$(pod_file "$dep" "$pod")
+            info "  Collecting ${BOLD}$dep/$pod${NC} → $outfile"
             { kctl logs "$pod" "${container_flag[@]}" "${extra_flags[@]}" 2>/dev/null || true; } \
                 | filter_json > "$outfile"
         done
@@ -419,18 +428,24 @@ print_summary() {
     echo -e "${GREEN}${BOLD}Done!${NC}"
     echo -e "  Dir: ${BOLD}$OUTDIR/${NC}"
     local total=0
-    for f in "$OUTDIR"/*.log; do
-        [[ -f "$f" ]] || continue
-        local lines size name
-        lines=$(wc -l < "$f" | tr -d ' ')
-        size=$(du -h "$f" | cut -f1 | tr -d ' ')
-        name=$(basename "$f")
-        echo -e "  ${name}: ${lines} lines (${size})"
-        total=$((total + lines))
+    for dep_dir in "$OUTDIR"/*/; do
+        [[ -d "$dep_dir" ]] || continue
+        local dep_name
+        dep_name=$(basename "$dep_dir")
+        echo -e "  ${BOLD}$dep_name/${NC}"
+        for f in "$dep_dir"*.log; do
+            [[ -f "$f" ]] || continue
+            local lines size name
+            lines=$(wc -l < "$f" | tr -d ' ')
+            size=$(du -h "$f" | cut -f1 | tr -d ' ')
+            name=$(basename "$f")
+            echo -e "    ${name}: ${lines} lines (${size})"
+            total=$((total + lines))
+        done
     done
     echo -e "  Total: ${BOLD}$total${NC} lines"
     echo ""
-    echo -e "  Search: ${CYAN}rg --color=never '\"ERROR\"' $OUTDIR/*.log | jq .${NC}"
+    echo -e "  Search: ${CYAN}rg --color=never '\"ERROR\"' $OUTDIR/**/*.log | jq .${NC}"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
