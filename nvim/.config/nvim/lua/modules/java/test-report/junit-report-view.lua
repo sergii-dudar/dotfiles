@@ -325,7 +325,7 @@ local function render()
 
     -- Help footer
     add_line("", { type = "blank" })
-    local help = "  [<CR>]:goto 󱋱 [o]:output 󱋱 [r]:run 󱋱 [R]:debug 󱋱 [<Tab>]:fold 󱋱 [q]:close"
+    local help = "cr:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab:fold 󱋱 q:close"
     add_line(help, { type = "help" }, { { 0, #help, "Comment" } })
 
     return lines, line_map, all_hls
