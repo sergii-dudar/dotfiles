@@ -1,5 +1,6 @@
 local junit_xml = require("modules.java.test-report.junit-xml")
 local constants = require("utils.constants")
+local spinner = require("utils.ui.spinner")
 local nio = require("nio")
 local log = require("utils.logging-util").new({
     name = "test-report",
@@ -65,8 +66,8 @@ function M.process(report_dir, filetype)
 
     nio.run(function()
         nio.scheduler()
-        local notify_id = "junit_report"
-        vim.notify("📋 Processing JUnit Report…", vim.log.levels.INFO, { id = notify_id })
+        local sp = { id = "junit_report", title = "JUnit Report" }
+        spinner.start("Processing JUnit Report…", sp)
 
         local ok, pcall_err = pcall(function()
             local dirs = type(report_dir) == "table" and report_dir or { report_dir }
@@ -100,7 +101,7 @@ function M.process(report_dir, filetype)
                     return
                 end
                 if total_files > 1 then
-                    vim.notify("📋 Parsing reports… " .. i .. "/" .. total_files, vim.log.levels.INFO, { id = notify_id })
+                    spinner.update("Parsing reports… " .. i .. "/" .. total_files, sp)
                 end
             end
 
@@ -141,11 +142,7 @@ function M.process(report_dir, filetype)
                 end
                 class_idx = class_idx + 1
                 if total_classes > 1 then
-                    vim.notify(
-                        "📋 Processing classes… " .. class_idx .. "/" .. total_classes,
-                        vim.log.levels.INFO,
-                        { id = notify_id }
-                    )
+                    spinner.update("Processing classes… " .. class_idx .. "/" .. total_classes, sp)
                 end
 
                 local file_path
@@ -280,13 +277,13 @@ function M.process(report_dir, filetype)
                 end
             end
             if failed > 0 then
-                vim.notify(
-                    "🚫 Tests Finished with failed " .. failed .. "/" .. total .. " tests",
-                    vim.log.levels.WARN,
-                    { id = notify_id }
+                spinner.stop(
+                    false,
+                    "Tests Finished with failed " .. failed .. "/" .. total .. " tests",
+                    sp
                 )
             else
-                vim.notify("🚀 " .. total .. " Tests Passed", vim.log.levels.INFO, { id = notify_id })
+                spinner.stop(true, total .. " Tests Passed", sp)
             end
         end)
 
@@ -297,7 +294,7 @@ function M.process(report_dir, filetype)
 
         if not ok then
             log.error("process error: " .. tostring(pcall_err))
-            vim.notify("❌ JUnit Report processing failed", vim.log.levels.ERROR, { id = notify_id })
+            spinner.stop(false, "JUnit Report processing failed", sp)
         end
         log.info("process complete")
     end)
@@ -322,6 +319,7 @@ end
 
 function M.clear()
     process_generation = process_generation + 1
+    spinner.cancel({ id = "junit_report" })
     log.info("clear")
     -- Clear sign extmarks
     for bufnr, _ in pairs(signed_buffers) do

@@ -1,67 +1,51 @@
 local M = {}
 
 -- stylua: ignore
-local spinners = {
-    -- spinner1 = { "⠁","⠂","⠄","⡀","⢀","⠠","⠐","⠈" },
-    spinner2 = { "⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏" },
-    -- spinner3 = { "⠋","⠙","⠚","⠒","⠂","⠂","⠒","⠲","⠴","⠦","⠖","⠒","⠐","⠐","⠒","⠓","⠋" },
-    -- spinner4 = { "⠁","⠉","⠙","⠚","⠒","⠂","⠂","⠒","⠲","⠴","⠤","⠄","⠄","⠤","⠴","⠲","⠒","⠂","⠂","⠒","⠚","⠙","⠉","⠁" },
-    -- spinner5 = { "◐","◓","◑","◒" },
-    -- spinner6 = { "◴","◷","◶","◵" },
-    -- spinner7 = { "▖","▘","▝","▗" },
-    -- spinner8 = { "▌","▀","▐","▄" },
-    -- spinner9 = { "←","↖","↑","↗","→","↘","↓","↙" },
-    -- spinner10 = { "⣾","⣽","⣻","⢿","⡿","⣟","⣯","⣷" },
-    -- spinner11 = { "🭑","🭓","🭕","🭒" },
-    -- spinner12 = { "🌝", "🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘", "🌚" },
-    -- spinner13 = { "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█" },
-    -- spinner14 = { "🕛", "🕧", "🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦" },
-}
+local spinner_frames = { "⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏" }
 
-local spinner_frames = spinners.spinner2
-
-local spinner_timer = nil
-local spinner_index = 1
-local spinner_message = ""
--- local spinner_ns = vim.api.nvim_create_namespace("job_spinner")
-
-function M.start(msg)
-    spinner_message = msg or "Running…"
-    spinner_index = 1
-
-    if spinner_timer then
-        spinner_timer:stop()
-        spinner_timer:close()
-    end
-
-    spinner_timer = vim.loop.new_timer()
-    spinner_timer:start(
-        0,
-        100,
-        vim.schedule_wrap(function()
-            local frame = spinner_frames[spinner_index]
-            spinner_index = (spinner_index % #spinner_frames) + 1
-
-            vim.api.nvim_echo({ { frame .. " " .. spinner_message, "ModeMsg" } }, false, {})
-        end)
-    )
+---@param msg string
+---@param opts? { id?: string, title?: string }
+function M.start(msg, opts)
+    opts = opts or {}
+    local id = opts.id or "spinner"
+    local title = opts.title or ""
+    vim.notify(msg, "info", {
+        id = id,
+        title = title,
+        timeout = false,
+        opts = function(notif)
+            notif.icon = spinner_frames[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner_frames + 1]
+        end,
+    })
 end
 
-function M.stop(success, msg)
-    if spinner_timer then
-        spinner_timer:stop()
-        spinner_timer:close()
-        spinner_timer = nil
-    end
+---@param msg string
+---@param opts? { id?: string, title?: string }
+function M.update(msg, opts)
+    M.start(msg, opts)
+end
 
-    -- local icon = success and "✔" or "✘"
-    local icon = success and "✅🎉" or "❌"
-    if msg then
-        msg = msg .. (success and " successfully finished" or " failed")
-    end
-    local text = msg or (success and "Done" or "Failed")
+---@param success boolean
+---@param msg string
+---@param opts? { id?: string, title?: string }
+function M.stop(success, msg, opts)
+    opts = opts or {}
+    local id = opts.id or "spinner"
+    local title = opts.title or ""
+    local icon = success and "✅" or "❌"
+    local level = success and "info" or "error"
+    vim.notify(msg, level, {
+        id = id,
+        title = title,
+        icon = icon,
+    })
+end
 
-    vim.api.nvim_echo({ { icon .. " " .. text, success and "DiffAdded" or "DiffRemoved" } }, false, {})
+---@param opts? { id?: string }
+function M.cancel(opts)
+    opts = opts or {}
+    local id = opts.id or "spinner"
+    Snacks.notifier.hide(id)
 end
 
 return M
