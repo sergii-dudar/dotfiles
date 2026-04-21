@@ -226,7 +226,7 @@ local function ensure_server_running(callback)
             log.info("Server started successfully")
             callback(true)
         end
-        spinner.stop(success, "Starting MapStruct")
+        spinner.stop(success, success and "MapStruct started" or "MapStruct failed to start")
     end)
 end
 

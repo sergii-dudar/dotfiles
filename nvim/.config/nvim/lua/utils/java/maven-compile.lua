@@ -51,7 +51,7 @@ local function run_maven_compile(cmd_args)
 
         -- if next(qf) == nil then
         vim.schedule(function()
-            spinner.stop(res.code == 0, "Maven compile")
+            spinner.stop(res.code == 0, res.code == 0 and "Maven compile finished" or "Maven compile failed")
             if res.code == 0 then
                 -- vim.notify("✅🎉 Maven OK", vim.log.levels.INFO)
                 -- vim.fn.qflist({})

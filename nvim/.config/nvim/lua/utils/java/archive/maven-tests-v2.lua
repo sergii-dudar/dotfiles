@@ -201,7 +201,7 @@ local function run_mvn_test_cmd(cmd_args)
         on_stdout = process_test_cmd_output(diagnostics),
         on_stderr = process_test_cmd_output(diagnostics),
         on_exit = function(_, code)
-            spinner.stop(code == 0, "Maven tests")
+            spinner.stop(code == 0, code == 0 and "Maven tests finished" or "Maven tests failed")
             -- local all = table.concat(output, "\n")
             -- all = util.strip_ansi(all)
             -- vim.notify(all, vim.log.levels.INFO)

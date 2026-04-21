@@ -26,7 +26,7 @@ function M.update(msg, opts)
 end
 
 ---@param success boolean
----@param msg string
+---@param msg? string
 ---@param opts? { id?: string, title?: string }
 function M.stop(success, msg, opts)
     opts = opts or {}
@@ -34,7 +34,8 @@ function M.stop(success, msg, opts)
     local title = opts.title or ""
     local icon = success and "✅" or "❌"
     local level = success and "info" or "error"
-    vim.notify(msg, level, {
+    local text = msg or (success and "Done" or "Failed")
+    vim.notify(text, level, {
         id = id,
         title = title,
         icon = icon,

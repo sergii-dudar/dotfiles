@@ -57,7 +57,7 @@ local function run_cmd(cmd_args, on_success_callback)
             else
                 log.error("Java refactoring failed with exit code:", code)
             end
-            spinner.stop(code == 0, "Java refactoring")
+            spinner.stop(code == 0, code == 0 and "Java refactoring finished" or "Java refactoring failed")
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
                 -- Call success callback if provided
