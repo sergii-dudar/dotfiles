@@ -318,7 +318,7 @@ local function render()
 
     -- Help footer
     add_line("", { type = "blank" })
-    local help = "cr:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab:fold 󱋱 g:refresh 󱋱 q:close"
+    local help = "cr/LMB:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab/MMB:fold 󱋱 g:refresh 󱋱 q:close"
     add_line(help, { type = "help" }, { { 0, #help, "Comment" } })
 
     return lines, line_map, all_hls
@@ -540,6 +540,16 @@ local function setup_keymaps(buf)
     map("q", function()
         M.close()
     end, "Close")
+
+    -- Mouse: left click → goto, right click → fold/unfold
+    map("<LeftRelease>", action_goto, "Go to test source (mouse)")
+    map("<MiddleMouse>", function()
+        local pos = vim.fn.getmousepos()
+        if pos.line > 0 then
+            vim.api.nvim_win_set_cursor(0, { pos.line, 0 })
+            action_toggle_fold()
+        end
+    end, "Toggle fold (mouse)")
 end
 
 --- Close the tree view window.
