@@ -127,6 +127,12 @@ return {
                                 require("pretty_hover").hover()
                             end
                         end, desc = "Pretty hover" },
+                        -- code extensions
+                        { "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, desc = "[I]mport fqn class package and apply simple name", },
+                        -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
+                        { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
+                        { "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, desc = "Resolve imports [jdtls]", },
+                        { "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, desc = "Context Apply First Code Action [jdtls]", },
                         -- override default preveiw mapping
                         -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
                     },

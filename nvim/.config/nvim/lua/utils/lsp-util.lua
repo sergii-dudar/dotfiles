@@ -171,6 +171,7 @@ local LspCodeAction = function()
         -- end,
         resolve_context = function()
             local action_match_names = {
+                "Add all missing imports",
                 "Convert to static import",
                 "Correct package declaration",
                 "Rename type to",
@@ -178,7 +179,6 @@ local LspCodeAction = function()
                 "Convert to lambda expression",
                 "Create method '",
                 "Add unimplemented methods",
-                -- "Add all missing imports",
             }
             local is_match_found = false
             vim.lsp.buf.code_action({

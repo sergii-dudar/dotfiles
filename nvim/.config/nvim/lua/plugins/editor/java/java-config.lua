@@ -77,12 +77,6 @@ return {
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
             { "<leader>ji", function() require("modules.java.static-import-explorer").find_quick() end, desc = "Static Import Quick" },
             { "<leader>jI", function() require("modules.java.static-import-explorer").find() end, desc = "Static Import Search" },
-            -- code extensions
-            { "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, desc = "[I]mport fqn class package and apply simple name", },
-            -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", },
-            { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]", },
-            { "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, desc = "Resolve imports [jdtls]", },
-            { "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, desc = "Context Apply First Code Action [jdtls]", },
             -- Mapstruct
             { "<leader>jm", function() require("modules.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true }) end, desc = "Go to definition (MapStruct) Float" },
             { "<leader>jM", function() require("modules.java.mapstruct").goto_path_definition() end, desc = "Go to definition (MapStruct)" },
