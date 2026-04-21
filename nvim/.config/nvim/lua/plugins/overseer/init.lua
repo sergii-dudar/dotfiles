@@ -103,6 +103,7 @@ return {
             { "<leader>to", function() require("modules.java.test-report").show_test_output() end, desc = "Toggle Test Output" },
             { "<leader>tO", function() require("modules.java.test-report").hide_test_output() end, desc = "Hide Test Output" },
             { "<leader>tL", function() require("modules.java.test-report").load_existing() end, desc = "Load Last Test Report" },
+            { "<leader>tv", function() require("modules.java.test-report").open_tree_view() end, desc = "Test Report Tree View" },
             { "<leader>txx", "<cmd>Trouble junit_diagnostics toggle<cr>", desc = "Tests junit diagnostics trouble" },
             { "<leader>txd", function()
                 Snacks.picker.diagnostics({

@@ -55,6 +55,8 @@ local signed_buffers = {}
 -- Store last results for output viewing
 local last_results = {} -- { [classname#method] = TestResult }
 local last_positions = {} -- { [file_path] = { [method_name] = 0-indexed line } }
+local last_class_files = {} -- { [classname] = file_path }
+local last_filetype = nil -- filetype used to process results
 local output_bufnr = nil -- scratch buffer for test output
 local output_method = nil -- method name currently shown in output buffer
 
@@ -114,6 +116,8 @@ function M.process(report_dir, filetype)
             log.info("parsed " .. vim.tbl_count(results) .. " test results")
             last_results = results
             last_positions = {}
+            last_class_files = {}
+            last_filetype = filetype
             for id, r in pairs(results) do
                 log.debug("  " .. id .. " -> " .. r.status)
             end
@@ -158,6 +162,7 @@ function M.process(report_dir, filetype)
                     -- Normalize to absolute path
                     file_path = vim.fn.fnamemodify(file_path, ":p")
                     log.debug("absolute path: " .. file_path)
+                    last_class_files[classname] = file_path
 
                     local test_positions, class_line = adapter.find_test_positions(file_path)
                     last_positions[file_path] = test_positions
@@ -277,11 +282,7 @@ function M.process(report_dir, filetype)
                 end
             end
             if failed > 0 then
-                spinner.stop(
-                    false,
-                    "Tests Finished with failed " .. failed .. "/" .. total .. " tests",
-                    sp
-                )
+                spinner.stop(false, "Tests Finished with failed " .. failed .. "/" .. total .. " tests", sp)
             else
                 spinner.stop(true, total .. " Tests Passed", sp)
             end
@@ -333,6 +334,8 @@ function M.clear()
     -- Clear stored results
     last_results = {}
     last_positions = {}
+    last_class_files = {}
+    last_filetype = nil
     -- Close output buffer if open
     if output_bufnr and vim.api.nvim_buf_is_valid(output_bufnr) then
         for _, win in ipairs(vim.api.nvim_list_wins()) do
@@ -486,6 +489,35 @@ end
 
 function M.hide_test_output()
     close_output_win()
+end
+
+--- Show test output for a specific method and result (used by tree view).
+---@param method_name string
+---@param result test_report.TestResult
+function M.show_output_for(method_name, result)
+    close_output_win()
+    open_output(method_name, result)
+end
+
+--- Return a snapshot of the last processed results for the tree view.
+---@return { results: table, positions: table, class_files: table, filetype: string|nil }
+function M.get_report_snapshot()
+    return {
+        results = last_results,
+        positions = last_positions,
+        class_files = last_class_files,
+        filetype = last_filetype,
+    }
+end
+
+--- Open or toggle the test report tree view.
+function M.open_tree_view()
+    local snapshot = M.get_report_snapshot()
+    if vim.tbl_isempty(snapshot.results) then
+        vim.notify("test-report: no test results available. Run tests first.", vim.log.levels.WARN)
+        return
+    end
+    require("modules.java.test-report.junit-report-view").toggle(snapshot)
 end
 
 return M
