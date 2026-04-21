@@ -31,12 +31,12 @@ return {
 
             on_reset = function(self, task)
                 log.debug("on_reset")
-                test_report.clear()
+                test_report.cancel()
             end,
 
             on_dispose = function(self, task)
                 log.debug("on_dispose")
-                test_report.clear()
+                test_report.cancel()
             end,
         }
     end,

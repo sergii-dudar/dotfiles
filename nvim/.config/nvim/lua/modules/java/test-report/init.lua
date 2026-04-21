@@ -63,7 +63,9 @@ local output_method = nil -- method name currently shown in output buffer
 ---@param report_dir string|string[]
 ---@param filetype string
 function M.process(report_dir, filetype)
-    M.clear()
+    -- Cancel any in-flight processing but don't wipe accumulated state
+    process_generation = process_generation + 1
+    spinner.cancel({ id = "junit_report" })
     local my_gen = process_generation
 
     nio.run(function()
@@ -114,19 +116,31 @@ function M.process(report_dir, filetype)
             end
 
             log.info("parsed " .. vim.tbl_count(results) .. " test results")
-            last_results = results
-            last_positions = {}
-            last_class_files = {}
+            -- Merge new results into accumulated state (incremental)
+            for id, r in pairs(results) do
+                last_results[id] = r
+            end
             last_filetype = filetype
             for id, r in pairs(results) do
                 log.debug("  " .. id .. " -> " .. r.status)
             end
 
-            -- Group results by classname
+            -- Determine which classes were affected by this run
+            local affected_classes = {}
+            for id, _ in pairs(results) do
+                local classname = id:match("^(.+)#.+$")
+                if classname then
+                    affected_classes[classname] = true
+                end
+            end
+
+            -- Build by_class from merged last_results for affected classes only.
+            -- This ensures that when we clear a buffer and re-set diagnostics,
+            -- we restore ALL accumulated results for that class (not just current run).
             local by_class = {}
-            for id, result in pairs(results) do
+            for id, result in pairs(last_results) do
                 local classname, method = id:match("^(.+)#(.+)$")
-                if classname and method then
+                if classname and method and affected_classes[classname] then
                     if not by_class[classname] then
                         by_class[classname] = {}
                     end
@@ -177,6 +191,10 @@ function M.process(report_dir, filetype)
                         vim.notify("test-report: buffer not found for: " .. file_path, vim.log.levels.ERROR)
                         goto continue
                     end
+
+                    -- Clear signs and diagnostics only for this buffer before re-placing
+                    vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, 0, -1)
+                    vim.diagnostic.reset(ns_diag, bufnr)
 
                     local has_failure = false
 
@@ -265,11 +283,19 @@ function M.process(report_dir, filetype)
                 return
             end
 
-            if #qf_entries > 0 then
-                -- vim.fn.setqflist(qf_entries, "r")
-                log.debug("set " .. #qf_entries .. " quickfix entries")
-                -- vim.cmd("Trouble qflist open")
-                require("overseer").close()
+            -- Close overseer output; reopen Trouble only if failures remain
+            require("overseer").close()
+
+            -- Check if any accumulated diagnostics remain (not just current run)
+            local has_any_failures = false
+            for _, r in pairs(last_results) do
+                if r.status == "failed" then
+                    has_any_failures = true
+                    break
+                end
+            end
+
+            if has_any_failures then
                 vim.cmd("Trouble junit_diagnostics open")
             end
 
@@ -347,6 +373,17 @@ function M.clear()
             end
         end
     end
+end
+
+--- Cancel in-flight processing without wiping accumulated state.
+--- Used by overseer component lifecycle hooks (on_reset, on_dispose) so that
+--- rerunning a subset of tests preserves diagnostics from previous runs.
+function M.cancel()
+    process_generation = process_generation + 1
+    spinner.cancel({ id = "junit_report" })
+    -- Close Trouble diagnostics at test start so only overseer output is visible during the run
+    vim.cmd("Trouble junit_diagnostics close")
+    log.info("cancel (preserving accumulated state)")
 end
 
 local function close_output_win()
