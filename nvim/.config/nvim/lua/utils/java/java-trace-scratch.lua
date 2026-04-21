@@ -31,8 +31,18 @@ function M.openStackTraceScratch()
                         self:close()
                         java_trace.show_stack_trace_qflist(stack_trace)
                     end,
-                    desc = "Trace to QF",
+                    desc = "Buf trace to QF",
                     mode = "n",
+                },
+                ["parse_selected_trace"] = {
+                    "<leader>v",
+                    function(self)
+                        local java_trace = require("utils.java.java-trace")
+                        java_trace.parse_selected_trace_to_qflist()
+                        self:close()
+                    end,
+                    desc = "Selected trace to QF",
+                    mode = "v",
                 },
                 ["normalize_trace"] = {
                     "<leader>n",
