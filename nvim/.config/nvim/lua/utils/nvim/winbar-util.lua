@@ -33,7 +33,11 @@ function M.eval()
     local dev_icon, hl = require("nvim-web-devicons").get_icon(filename, ext)
     dev_icon = (dev_icon and " " .. dev_icon .. " " or "")
 
-    file_path = " " .. file_path:gsub("/", " ❯ ")
+    if ext == "java" then
+        file_path = " " .. file_path:gsub("/", "."):gsub("%.java", "")
+    else
+        file_path = " " .. file_path:gsub("/", " ❯ ")
+    end
 
     return "%#WinBarSeparator#"
         .. "%*"
