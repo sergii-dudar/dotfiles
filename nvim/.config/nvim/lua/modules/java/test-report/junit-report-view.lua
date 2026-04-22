@@ -403,7 +403,7 @@ local function render()
     add_line(sep, { type = "separator" }, { { 0, #sep, "Comment" } })
 
     -- Blank line
-    add_line("", { type = "blank" })
+    -- add_line("", { type = "blank" })
 
     -- Pre-compute running state for classes and packages (bubbles up from method IDs)
     local is_running_cls = {}
