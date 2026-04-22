@@ -86,11 +86,6 @@ local function aggregate_status(statuses)
             return "failed"
         end
     end
-    for _, s in ipairs(statuses) do
-        if s == "skipped" then
-            return "skipped"
-        end
-    end
     return "passed"
 end
 
