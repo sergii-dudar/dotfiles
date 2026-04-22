@@ -760,16 +760,31 @@ local function action_jump_failed(direction)
     end
     local cur = vim.api.nvim_win_get_cursor(0)[1]
     local total = #state.line_map
+
+    local function is_failed_method(idx)
+        local info = state.line_map[idx]
+        return info and info.type == "method" and info.node and info.node.status == "failed"
+    end
+
+    -- Search from cursor in direction
     local i = cur + direction
     while i >= 1 and i <= total do
-        local info = state.line_map[i]
-        if info and info.node and info.node.status == "failed" then
+        if is_failed_method(i) then
             vim.api.nvim_win_set_cursor(0, { i, 0 })
             return
         end
         i = i + direction
     end
-    vim.notify("No more failed tests", vim.log.levels.INFO)
+
+    -- Wrap around
+    i = direction == 1 and 1 or total
+    while i ~= cur do
+        if is_failed_method(i) then
+            vim.api.nvim_win_set_cursor(0, { i, 0 })
+            return
+        end
+        i = i + direction
+    end
 end
 
 -- stylua: ignore start
@@ -780,7 +795,7 @@ local help_entries = {
     { "r",        "Re-run test" },
     { "R",        "Debug test" },
     { "Tab / MMB","Toggle fold" },
-    { "g",        "Full refresh" },
+    { "<leader>G","Full refresh" },
     { "]d",       "Next failed test" },
     { "[d",       "Prev failed test" },
     { "<leader>?","Show this help" },
@@ -808,7 +823,7 @@ local function action_show_help()
         vim.api.nvim_buf_add_highlight(help_buf, help_ns, hl[4], hl[1], hl[2], hl[3])
     end
 
-    local width = 30
+    local width = 42
     local height = #lines
     local win_opts = {
         relative = "win",
@@ -848,7 +863,7 @@ local function setup_keymaps(buf)
         action_rerun(true)
     end, "Debug test")
     map("<Tab>", action_toggle_fold, "Toggle fold")
-    map("g", action_full_refresh, "Full refresh")
+    map("<leader>G", action_full_refresh, "Full refresh")
     map("]d", function()
         action_jump_failed(1)
     end, "Next failed test")
