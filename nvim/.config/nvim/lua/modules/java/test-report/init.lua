@@ -71,6 +71,7 @@ function M.process(report_dir, filetype)
     nio.run(function()
         nio.scheduler()
         local sp = { id = "junit_report", title = "JUnit Report" }
+        local sp_stop = vim.tbl_extend("force", sp, { timeout = 1500 })
         spinner.start("Processing JUnit Report…", sp)
 
         local ok, pcall_err = pcall(function()
@@ -94,18 +95,11 @@ function M.process(report_dir, filetype)
             end
             local total_files = #all_files
 
-            -- Parse XML reports, yielding between files for UI responsiveness
+            -- Parse XML reports
             local results = {}
             for i, filepath in ipairs(all_files) do
                 for id, r in pairs(junit_xml.parse_file(filepath)) do
                     results[id] = r
-                end
-                nio.scheduler()
-                if process_generation ~= my_gen then
-                    return
-                end
-                if total_files > 1 then
-                    spinner.update("Parsing reports… " .. i .. "/" .. total_files, sp)
                 end
             end
 
@@ -153,15 +147,7 @@ function M.process(report_dir, filetype)
             local class_idx = 0
 
             for classname, methods in pairs(by_class) do
-                -- Yield between classes to keep UI responsive
-                nio.scheduler()
-                if process_generation ~= my_gen then
-                    return
-                end
                 class_idx = class_idx + 1
-                if total_classes > 1 then
-                    spinner.update("Processing classes… " .. class_idx .. "/" .. total_classes, sp)
-                end
 
                 local file_path
                 for _, dir in ipairs(dirs) do
@@ -308,9 +294,9 @@ function M.process(report_dir, filetype)
                 end
             end
             if failed > 0 then
-                spinner.stop(false, "Tests Finished with failed " .. failed .. "/" .. total .. " tests", sp)
+                spinner.stop(false, "Tests Finished with failed " .. failed .. "/" .. total .. " tests", sp_stop)
             else
-                spinner.stop(true, total .. " Tests Passed", sp)
+                spinner.stop(true, total .. " Tests Passed", sp_stop)
             end
 
             -- Refresh tree view if open
@@ -324,7 +310,7 @@ function M.process(report_dir, filetype)
 
         if not ok then
             log.error("process error: " .. tostring(pcall_err))
-            spinner.stop(false, "JUnit Report processing failed", sp)
+            spinner.stop(false, "JUnit Report processing failed", sp_stop)
         end
         log.info("process complete")
     end)

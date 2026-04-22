@@ -24,10 +24,10 @@ local running_icon = ""
 local running_hl = "DiagnosticInfo"
 
 -- Tree drawing characters
-local BRANCH = "├─ "
-local BRANCH_LAST = "└─ "
-local CONTINUATION = "│  "
-local INDENT = "   "
+local BRANCH = "├─"
+local BRANCH_LAST = "└─"
+local CONTINUATION = "│ "
+local INDENT = "  "
 
 local ns = vim.api.nvim_create_namespace("junit_report_view")
 
