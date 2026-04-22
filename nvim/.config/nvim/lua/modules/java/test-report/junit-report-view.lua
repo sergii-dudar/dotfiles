@@ -537,11 +537,6 @@ local function render()
         end
     end
 
-    -- Help footer
-    add_line("", { type = "blank" })
-    local help = "cr/LMB:goto 󱋱 o:output 󱋱 r:run 󱋱 R:debug 󱋱 tab/MMB:fold 󱋱 g:refresh 󱋱 q:close"
-    add_line(help, { type = "help" }, { { 0, #help, "Comment" } })
-
     return lines, line_map, all_hls
 end
 
@@ -777,6 +772,66 @@ local function action_jump_failed(direction)
     vim.notify("No more failed tests", vim.log.levels.INFO)
 end
 
+-- stylua: ignore start
+local help_entries = {
+    { "cr / LMB", "Go to test source" },
+    { "gd",       "Go to test source" },
+    { "o",        "Show test output" },
+    { "r",        "Re-run test" },
+    { "R",        "Debug test" },
+    { "Tab / MMB","Toggle fold" },
+    { "g",        "Full refresh" },
+    { "]d",       "Next failed test" },
+    { "[d",       "Prev failed test" },
+    { "<leader>?","Show this help" },
+    { "q",        "Close" },
+}
+-- stylua: ignore end
+
+local function action_show_help()
+    local lines = {}
+    local hls = {}
+    for _, entry in ipairs(help_entries) do
+        local key, desc = entry[1], entry[2]
+        local line = string.format("  %-12s %s", key, desc)
+        table.insert(lines, line)
+        table.insert(hls, { #lines - 1, 2, 2 + #key, "Special" })
+    end
+
+    local help_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(help_buf, 0, -1, false, lines)
+    vim.bo[help_buf].modifiable = false
+    vim.bo[help_buf].bufhidden = "wipe"
+
+    local help_ns = vim.api.nvim_create_namespace("junit_report_help")
+    for _, hl in ipairs(hls) do
+        vim.api.nvim_buf_add_highlight(help_buf, help_ns, hl[4], hl[1], hl[2], hl[3])
+    end
+
+    local width = 30
+    local height = #lines
+    local win_opts = {
+        relative = "win",
+        win = state.winid,
+        width = width,
+        height = height,
+        row = 1,
+        col = 2,
+        style = "minimal",
+        border = "rounded",
+        title = " Keybindings ",
+        title_pos = "center",
+    }
+    local help_win = vim.api.nvim_open_win(help_buf, true, win_opts)
+    vim.wo[help_win].cursorline = false
+
+    vim.keymap.set("n", "q", function()
+        if vim.api.nvim_win_is_valid(help_win) then
+            vim.api.nvim_win_close(help_win, true)
+        end
+    end, { buffer = help_buf, silent = true, nowait = true })
+end
+
 ---@param buf integer
 local function setup_keymaps(buf)
     local function map(lhs, fn, desc)
@@ -800,6 +855,7 @@ local function setup_keymaps(buf)
     map("[d", function()
         action_jump_failed(-1)
     end, "Prev failed test")
+    map("<leader>?", action_show_help, "Show keybindings")
     map("q", function()
         M.close()
     end, "Close")
