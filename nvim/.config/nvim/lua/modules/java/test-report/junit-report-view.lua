@@ -29,6 +29,11 @@ local BRANCH_LAST = "└─"
 local CONTINUATION = "│ "
 local INDENT = "  "
 
+local arrow_right = "▶"
+local arrow_down = "▼"
+-- local arrow_right = "󰜴"
+-- local arrow_down = "󰜮"
+
 local ns = vim.api.nvim_create_namespace("junit_report_view")
 
 ---@class report_view.Snapshot
@@ -450,7 +455,7 @@ local function render()
 
             if item.kind == "class" then
                 local cls = item.cls
-                local cls_fold = cls.expanded and "▼" or "▶"
+                local cls_fold = cls.expanded and arrow_down or arrow_right
                 local cls_running = is_running_cls[cls.classname]
                 local cls_icon = cls_running and running_icon or result_icon[cls.status]
                 local cls_icon_hl = cls_running and running_hl or result_hl[cls.status]
@@ -490,7 +495,7 @@ local function render()
                 end
             else
                 local child = item.child
-                local fold_char = child.expanded and "▼" or "▶"
+                local fold_char = child.expanded and arrow_down or arrow_right
                 local child_running = is_running_pkg[child.full_path]
                 local child_icon = child_running and running_icon or result_icon[child.status]
                 local child_icon_hl = child_running and running_hl or result_hl[child.status]
@@ -515,7 +520,7 @@ local function render()
         local pkg_running = is_running_pkg[pkg.full_path]
         local icon = pkg_running and running_icon or result_icon[pkg.status]
         local icon_hl = pkg_running and running_hl or result_hl[pkg.status]
-        local fold_char = pkg.expanded and "▼" or "▶"
+        local fold_char = pkg.expanded and arrow_down or arrow_right
         local pkg_text, pkg_hls = format_line({
             { fold_char .. " ", "Comment" },
             { pkg.name, "Directory" },
