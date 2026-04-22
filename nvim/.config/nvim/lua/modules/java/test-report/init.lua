@@ -74,6 +74,17 @@ function M.process(report_dir, filetype)
         local sp_stop = vim.tbl_extend("force", sp, { timeout = 1500 })
         spinner.start("Processing JUnit Report…", sp)
 
+        -- Suspend which-key triggers during processing to prevent rapid
+        -- nio.scheduler() yields from disrupting the leader key state machine.
+        local wk_triggers = require("which-key.triggers")
+        local wk_buf = require("which-key.buf")
+        local wk_mode = wk_buf.get()
+        if wk_mode then
+            wk_triggers.suspended[wk_mode] = true
+            wk_triggers.detach(wk_mode)
+            wk_triggers.timer:stop()
+        end
+
         local ok, pcall_err = pcall(function()
             local dirs = type(report_dir) == "table" and report_dir or { report_dir }
             log.info("process: dirs=" .. vim.inspect(dirs) .. " ft=" .. tostring(filetype))
@@ -95,11 +106,18 @@ function M.process(report_dir, filetype)
             end
             local total_files = #all_files
 
-            -- Parse XML reports
+            -- Parse XML reports, yielding between files for UI responsiveness
             local results = {}
             for i, filepath in ipairs(all_files) do
                 for id, r in pairs(junit_xml.parse_file(filepath)) do
                     results[id] = r
+                end
+                nio.scheduler()
+                if process_generation ~= my_gen then
+                    return
+                end
+                if total_files > 1 then
+                    spinner.update("Parsing reports… " .. i .. "/" .. total_files, sp)
                 end
             end
 
@@ -147,7 +165,15 @@ function M.process(report_dir, filetype)
             local class_idx = 0
 
             for classname, methods in pairs(by_class) do
+                -- Yield between classes to keep UI responsive
+                nio.scheduler()
+                if process_generation ~= my_gen then
+                    return
+                end
                 class_idx = class_idx + 1
+                if total_classes > 1 then
+                    spinner.update("Processing classes… " .. class_idx .. "/" .. total_classes, sp)
+                end
 
                 local file_path
                 for _, dir in ipairs(dirs) do
@@ -312,6 +338,13 @@ function M.process(report_dir, filetype)
             log.error("process error: " .. tostring(pcall_err))
             spinner.stop(false, "JUnit Report processing failed", sp_stop)
         end
+
+        -- Re-enable which-key triggers after processing
+        if wk_mode then
+            wk_triggers.suspended[wk_mode] = nil
+            wk_triggers.attach(wk_mode)
+        end
+
         log.info("process complete")
     end)
 end
