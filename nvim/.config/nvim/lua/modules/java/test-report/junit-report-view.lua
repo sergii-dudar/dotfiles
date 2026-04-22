@@ -28,6 +28,7 @@ local BRANCH = "├─"
 local BRANCH_LAST = "└─"
 local CONTINUATION = "│ "
 local INDENT = "  "
+local INITIAL_INDENT = " "
 
 local arrow_right = "▶"
 local arrow_down = "▼"
@@ -386,14 +387,17 @@ local function render()
     end
 
     -- Header
-    local summary_parts = { { "JUnit Test Report", "Title" }, { "  ·  " } }
-    table.insert(summary_parts, { tostring(total) .. " tests: " })
+    local summary_parts = { { " Test Report", "Title" } }
+    table.insert(summary_parts, { " | ", "GrenBold" })
+    table.insert(summary_parts, { tostring(total), "PurpleBold" })
+    table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(passed), "DiagnosticOk" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(failed), "DiagnosticError" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(skipped), "DiagnosticWarn" })
-    table.insert(summary_parts, { string.format("  ·  %.2fs", total_time), "Comment" })
+    table.insert(summary_parts, { " | ", "GrenBold" })
+    table.insert(summary_parts, { string.format("(%.2fs)", total_time), "Comment" })
 
     local header_text, header_hls = format_line(summary_parts)
     add_line(header_text, { type = "header" }, header_hls)
@@ -522,14 +526,14 @@ local function render()
         local icon_hl = pkg_running and running_hl or result_hl[pkg.status]
         local fold_char = pkg.expanded and arrow_down or arrow_right
         local pkg_text, pkg_hls = format_line({
-            { fold_char .. " ", "Comment" },
+            { INITIAL_INDENT .. fold_char .. " ", "Comment" },
             { pkg.name, "Directory" },
             { " " .. icon, icon_hl },
         })
         add_line(pkg_text, { type = "package", node = pkg }, pkg_hls)
 
         if pkg.expanded then
-            render_children(pkg, "")
+            render_children(pkg, INITIAL_INDENT)
         end
 
         if pkg_idx < #tree then
