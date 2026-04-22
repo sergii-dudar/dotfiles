@@ -198,6 +198,14 @@ The tree view **deep-copies** `results` and `class_files` on open so it owns its
 ---@field id string                      -- "classname#method"
 ```
 
+### Running Indicator
+
+When a test/class/package is rerun from the tree view, a running icon (U+F046E `󰑮`, `DiagnosticInfo` highlight) replaces the status icon for all affected methods, classes, and packages. The `state.running` field holds a set of method IDs (`classname#method`) that are currently in flight.
+
+- **Set**: `action_rerun()` populates `state.running` with affected method IDs and calls `refresh()`
+- **Bubble up**: `render()` pre-computes `is_running_cls` and `is_running_pkg` by checking if any descendant method is in `state.running`
+- **Clear**: `refresh_if_open()` and `action_full_refresh()` set `state.running = nil` before rebuild, since new results replace the running state
+
 ### Keymaps (buffer-local)
 
 | Key | Action | Description |

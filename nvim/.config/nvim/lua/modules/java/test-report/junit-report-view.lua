@@ -19,6 +19,10 @@ local result_hl = {
     skipped = "DiagnosticWarn",
 }
 
+-- Running indicator (shown during test rerun)
+local running_icon = ""
+local running_hl = "DiagnosticInfo"
+
 -- Tree drawing characters
 local BRANCH = "├─ "
 local BRANCH_LAST = "└─ "
@@ -71,6 +75,7 @@ local state = {
     tree = nil, ---@type report_view.PackageNode[]|nil
     line_map = nil, ---@type report_view.LineInfo[]|nil
     snapshot = nil, ---@type report_view.Snapshot|nil
+    running = nil, ---@type table<string, boolean>|nil  -- set of method IDs currently being rerun
 }
 
 ---@param statuses string[]
@@ -259,6 +264,20 @@ local function find_first_class(pkg)
     return nil
 end
 
+--- Recursively collect all method IDs from a package subtree.
+---@param pkg report_view.PackageNode
+---@param ids table<string, boolean>
+local function collect_method_ids(pkg, ids)
+    for _, cls in ipairs(pkg.classes) do
+        for _, meth in ipairs(cls.methods) do
+            ids[meth.id] = true
+        end
+    end
+    for _, child in ipairs(pkg.children) do
+        collect_method_ids(child, ids)
+    end
+end
+
 --- Collect expansion state from the tree keyed by full_path/classname.
 ---@param tree report_view.PackageNode[]
 ---@return table<string, boolean>
@@ -386,6 +405,36 @@ local function render()
     -- Blank line
     add_line("", { type = "blank" })
 
+    -- Pre-compute running state for classes and packages (bubbles up from method IDs)
+    local is_running_cls = {}
+    local is_running_pkg = {}
+    if state.running then
+        local function compute_running(pkgs)
+            for _, pkg in ipairs(pkgs) do
+                local pkg_running = false
+                for _, cls in ipairs(pkg.classes) do
+                    for _, meth in ipairs(cls.methods) do
+                        if state.running[meth.id] then
+                            is_running_cls[cls.classname] = true
+                            pkg_running = true
+                            break
+                        end
+                    end
+                end
+                compute_running(pkg.children)
+                for _, child in ipairs(pkg.children) do
+                    if is_running_pkg[child.full_path] then
+                        pkg_running = true
+                    end
+                end
+                if pkg_running then
+                    is_running_pkg[pkg.full_path] = true
+                end
+            end
+        end
+        compute_running(tree)
+    end
+
     -- Recursive rendering of package children (sub-packages + classes)
     ---@param pkg report_view.PackageNode
     ---@param prefix string
@@ -407,14 +456,16 @@ local function render()
             if item.kind == "class" then
                 local cls = item.cls
                 local cls_fold = cls.expanded and "▼" or "▶"
-                local cls_icon = result_icon[cls.status]
+                local cls_running = is_running_cls[cls.classname]
+                local cls_icon = cls_running and running_icon or result_icon[cls.status]
+                local cls_icon_hl = cls_running and running_hl or result_hl[cls.status]
                 local time_str = cls.time and string.format(" (%.2fs)", cls.time) or ""
 
                 local cls_text, cls_hls = format_line({
                     { prefix .. branch, "Comment" },
                     { cls_fold .. " ", "Comment" },
                     { cls.name, "Type" },
-                    { " " .. cls_icon, result_hl[cls.status] },
+                    { " " .. cls_icon, cls_icon_hl },
                     { time_str, "Comment" },
                 })
                 add_line(cls_text, { type = "class", node = cls, package_node = pkg }, cls_hls)
@@ -423,14 +474,16 @@ local function render()
                     for meth_idx, meth in ipairs(cls.methods) do
                         local is_last_meth = meth_idx == #cls.methods
                         local meth_branch = is_last_meth and BRANCH_LAST or BRANCH
-                        local meth_icon = result_icon[meth.status]
+                        local meth_running = state.running and state.running[meth.id]
+                        local meth_icon = meth_running and running_icon or result_icon[meth.status]
+                        local meth_icon_hl = meth_running and running_hl or result_hl[meth.status]
                         local meth_time = meth.time and string.format(" (%.3fs)", meth.time) or ""
 
                         local meth_text, meth_hls = format_line({
                             { prefix .. cont, "Comment" },
                             { meth_branch, "Comment" },
                             { meth.name },
-                            { " " .. meth_icon, result_hl[meth.status] },
+                            { " " .. meth_icon, meth_icon_hl },
                             { meth_time, "Comment" },
                         })
                         add_line(
@@ -443,13 +496,15 @@ local function render()
             else
                 local child = item.child
                 local fold_char = child.expanded and "▼" or "▶"
-                local child_icon = result_icon[child.status]
+                local child_running = is_running_pkg[child.full_path]
+                local child_icon = child_running and running_icon or result_icon[child.status]
+                local child_icon_hl = child_running and running_hl or result_hl[child.status]
 
                 local child_text, child_hls = format_line({
                     { prefix .. branch, "Comment" },
                     { fold_char .. " ", "Comment" },
                     { child.name, "Directory" },
-                    { " " .. child_icon, result_hl[child.status] },
+                    { " " .. child_icon, child_icon_hl },
                 })
                 add_line(child_text, { type = "package", node = child }, child_hls)
 
@@ -462,12 +517,14 @@ local function render()
 
     -- Packages
     for pkg_idx, pkg in ipairs(tree) do
-        local icon = result_icon[pkg.status]
+        local pkg_running = is_running_pkg[pkg.full_path]
+        local icon = pkg_running and running_icon or result_icon[pkg.status]
+        local icon_hl = pkg_running and running_hl or result_hl[pkg.status]
         local fold_char = pkg.expanded and "▼" or "▶"
         local pkg_text, pkg_hls = format_line({
             { fold_char .. " ", "Comment" },
             { pkg.name, "Directory" },
-            { " " .. icon, result_hl[pkg.status] },
+            { " " .. icon, icon_hl },
         })
         add_line(pkg_text, { type = "package", node = pkg }, pkg_hls)
 
@@ -636,6 +693,8 @@ local function action_rerun(is_debug)
                 is_debug = is_debug,
             })
         end)
+        state.running = { [info.node.id] = true }
+        refresh()
     elseif info.type == "class" then
         local file_path = info.node.file_path
         if not file_path then
@@ -650,6 +709,12 @@ local function action_rerun(is_debug)
                 is_debug = is_debug,
             })
         end)
+        local ids = {}
+        for _, meth in ipairs(info.node.methods) do
+            ids[meth.id] = true
+        end
+        state.running = ids
+        refresh()
     elseif info.type == "package" then
         local first_class = find_first_class(info.node)
         if not first_class or not first_class.file_path then
@@ -666,6 +731,10 @@ local function action_rerun(is_debug)
                 package_name = pkg_name,
             })
         end)
+        local ids = {}
+        collect_method_ids(info.node, ids)
+        state.running = ids
+        refresh()
     end
 end
 
@@ -682,6 +751,7 @@ local function action_full_refresh()
         class_files = vim.deepcopy(snapshot.class_files),
         filetype = snapshot.filetype,
     }
+    state.running = nil
     state.tree = build_tree(state.snapshot)
     refresh()
     log.info("tree view full refresh")
@@ -812,6 +882,8 @@ function M.refresh_if_open(snapshot)
     for file_path, positions in pairs(snapshot.positions or {}) do
         state.snapshot.positions[file_path] = positions
     end
+    -- Clear running indicators now that new results have arrived
+    state.running = nil
     -- Rebuild tree preserving expansion state
     state.tree = rebuild_tree(state.tree, state.snapshot)
     refresh()
