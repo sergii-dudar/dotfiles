@@ -124,19 +124,27 @@ Uses a custom Trouble source `junit_diagnostics` (not quickfix). The `vim.fn.set
 
 ### Hierarchy
 
+Packages are grouped into a **compacted trie**: subpackages sharing a common prefix are nested under a single parent node. Single-child intermediate nodes with no classes are collapsed (e.g. `ua.raiffeisen.paymentchargecalculation` becomes one node when all tests share that prefix).
+
 ```
 JUnit Test Report  ·  42 tests: 40/2/0  ·  12.34s
 ────────────────────────────────────────────────────
 
-▼ com.example.service        ✘    3.21s
-  ▼ UserServiceTest          ✘    2.10s
-    ├── testCreate           ✔    0.50s
-    ├── testDelete           ✘    1.20s
-    └── testUpdate           ✔    0.40s
-  ▼ OrderServiceTest         ✔    1.11s
-    ├── testPlace            ✔    0.55s
-    └── testCancel           ✔    0.56s
+▼ com.example
+├── ▼ service
+│   ├── ▼ UserServiceTest          ✘    2.10s
+│   │   ├── testCreate             ✔    0.50s
+│   │   ├── testDelete             ✘    1.20s
+│   │   └── testUpdate             ✔    0.40s
+│   └── ▼ OrderServiceTest         ✔    1.11s
+│       ├── testPlace              ✔    0.55s
+│       └── testCancel             ✔    0.56s
+└── ▼ api
+    └── ▼ HealthCheckTest          ✔    0.10s
+        └── testPing               ✔    0.10s
 ```
+
+Within each package, **classes are rendered first**, then **sub-packages**. Both classes and sub-packages are siblings using tree branch characters (`├──`/`└──`), with `is_last` computed across the combined list to ensure correct continuation lines.
 
 ### Icons
 
@@ -166,9 +174,11 @@ The tree view **deep-copies** `results` and `class_files` on open so it owns its
 
 ```lua
 ---@class report_view.PackageNode
----@field name string                    -- e.g. "com.example.service"
----@field status "passed"|"failed"|"skipped"  -- aggregate of all classes
+---@field name string                    -- display name (may be compacted, e.g. "ua.raiffeisen.core")
+---@field full_path string               -- full dotted path from root (for expansion state tracking)
+---@field status "passed"|"failed"|"skipped"  -- aggregate of all classes + children
 ---@field classes report_view.ClassNode[]
+---@field children report_view.PackageNode[]  -- nested sub-packages
 ---@field expanded boolean
 
 ---@class report_view.ClassNode
@@ -205,25 +215,28 @@ The tree view **deep-copies** `results` and `class_files` on open so it owns its
 Rerun navigates to the source file first, positions cursor, then triggers the existing test runner via `overseer-util.run_test()`. This avoids reinventing classpath/JVM-signature resolution:
 - **Method**: opens file, positions cursor at method → `task.test_type.CURRENT_TEST`
 - **Class**: opens file → `task.test_type.FILE_TESTS`
-- **Package**: opens first class in package → `task.test_type.ALL_DIR_TESTS`
+- **Package**: opens first class in package subtree (recursive) → `task.test_type.ALL_DIR_TESTS`
 
 ### Sorting
 
-`build_tree()` sorts: packages failed-first, classes failed-first within packages, methods failed-first within classes. This only runs on initial open and on `g` (full refresh).
+`build_tree()` sorts at every level: packages failed-first, classes failed-first within packages, methods failed-first within classes. Uses `failed_first_cmp()` shared comparator. This runs on initial open, on `g` (full refresh), and on incremental refresh (rebuild).
+
+### Package Trie Compaction
+
+`build_tree()` constructs a trie from dotted package names, then compacts single-child chains with no classes. For example, if all packages start with `ua.raiffeisen.paymentchargecalculation`, that prefix becomes one top-level node. Each `PackageNode` stores `full_path` (the complete dotted path from root) for expansion state tracking across rebuilds.
 
 ### Incremental vs Full Refresh
 
 | Mode | Trigger | What happens |
 |---|---|---|
-| **Incremental** | `refresh_if_open(snapshot)` — called from `init.lua` after `process()` | Merges new results into `state.snapshot`, calls `update_tree_in_place()` (preserves sort order), then re-renders |
-| **Full** | `g` keymap → `action_full_refresh()` | Replaces snapshot from `init.lua`'s live state, calls `build_tree()` (re-sorts), then re-renders |
+| **Incremental** | `refresh_if_open(snapshot)` — called from `init.lua` after `process()` | Merges new results into `state.snapshot`, calls `rebuild_tree()` (preserves expansion state via `full_path`/`classname` keys), then re-renders |
+| **Full** | `g` keymap → `action_full_refresh()` | Replaces snapshot from `init.lua`'s live state, calls `build_tree()` (fresh tree, all expanded), then re-renders |
 
-`update_tree_in_place()`:
-1. Updates existing method nodes with new results
-2. Appends new methods to existing classes
-3. Appends new classes to existing packages (or creates new packages)
-4. Recomputes aggregate statuses for classes and packages
-5. Does NOT re-sort — preserves the user's current view order
+`rebuild_tree()`:
+1. Collects expansion state from old tree (keyed by `pkg:full_path` and `cls:classname`)
+2. Rebuilds the complete tree via `build_tree()` (re-sorts, re-compacts trie)
+3. Restores expansion state onto new tree nodes that match by key
+4. Handles trie structure changes gracefully (new nodes default to expanded)
 
 ---
 

@@ -20,10 +20,10 @@ local result_hl = {
 }
 
 -- Tree drawing characters
-local BRANCH = "├── "
-local BRANCH_LAST = "└── "
-local CONTINUATION = "│   "
-local INDENT = "    "
+local BRANCH = "├─ "
+local BRANCH_LAST = "└─ "
+local CONTINUATION = "│  "
+local INDENT = "   "
 
 local ns = vim.api.nvim_create_namespace("junit_report_view")
 
@@ -51,8 +51,10 @@ local ns = vim.api.nvim_create_namespace("junit_report_view")
 
 ---@class report_view.PackageNode
 ---@field name string
+---@field full_path string
 ---@field status "passed"|"failed"|"skipped"
 ---@field classes report_view.ClassNode[]
+---@field children report_view.PackageNode[]
 ---@field expanded boolean
 
 ---@class report_view.LineInfo
@@ -87,35 +89,58 @@ local function aggregate_status(statuses)
     return "passed"
 end
 
+--- Sort comparator: failed first, then alphabetical by name.
+---@param a { status: string, name: string }
+---@param b { status: string, name: string }
+---@return boolean
+local function failed_first_cmp(a, b)
+    if a.status ~= b.status then
+        if a.status == "failed" then
+            return true
+        end
+        if b.status == "failed" then
+            return false
+        end
+    end
+    return a.name < b.name
+end
+
 --- Build hierarchical tree from flat `classname#method` results.
+--- Groups packages into a compacted trie: single-child intermediate nodes with no classes are collapsed.
 ---@param snapshot report_view.Snapshot
 ---@return report_view.PackageNode[]
 local function build_tree(snapshot)
-    local pkg_map = {}
+    -- Step 1: Collect classes grouped by package
+    local pkg_classes = {} ---@type table<string, report_view.ClassNode[]>
 
     for id, result in pairs(snapshot.results) do
         local classname, method_name = id:match("^(.+)#(.+)$")
         if classname and method_name then
             local pkg_name = classname:match("^(.+)%.") or "(default)"
-            local simple_class = classname:match("([^%.]+)$")
-
-            if not pkg_map[pkg_name] then
-                pkg_map[pkg_name] = { name = pkg_name, class_map = {}, expanded = true }
+            if not pkg_classes[pkg_name] then
+                pkg_classes[pkg_name] = {}
             end
 
-            local pkg = pkg_map[pkg_name]
-            if not pkg.class_map[classname] then
-                pkg.class_map[classname] = {
-                    name = simple_class,
+            -- Find or create class entry
+            local cls
+            for _, c in ipairs(pkg_classes[pkg_name]) do
+                if c.classname == classname then
+                    cls = c
+                    break
+                end
+            end
+            if not cls then
+                cls = {
+                    name = classname:match("([^%.]+)$"),
                     classname = classname,
                     file_path = snapshot.class_files and snapshot.class_files[classname],
                     methods = {},
                     expanded = true,
                     time = 0,
                 }
+                table.insert(pkg_classes[pkg_name], cls)
             end
 
-            local cls = pkg.class_map[classname]
             table.insert(cls.methods, {
                 name = method_name,
                 status = result.status,
@@ -127,59 +152,162 @@ local function build_tree(snapshot)
         end
     end
 
-    -- Convert maps to sorted arrays, compute aggregate statuses
-    local packages = {}
-    for _, pkg in pairs(pkg_map) do
-        local classes = {}
-        for _, cls in pairs(pkg.class_map) do
-            table.sort(cls.methods, function(a, b)
-                if a.status ~= b.status then
-                    if a.status == "failed" then
-                        return true
-                    end
-                    if b.status == "failed" then
-                        return false
-                    end
-                end
-                return a.name < b.name
-            end)
+    -- Sort methods and compute class statuses
+    for _, cls_list in pairs(pkg_classes) do
+        for _, cls in ipairs(cls_list) do
+            table.sort(cls.methods, failed_first_cmp)
             cls.status = aggregate_status(vim.tbl_map(function(m)
                 return m.status
             end, cls.methods))
-            table.insert(classes, cls)
         end
-        table.sort(classes, function(a, b)
-            if a.status ~= b.status then
-                if a.status == "failed" then
-                    return true
-                end
-                if b.status == "failed" then
-                    return false
-                end
-            end
-            return a.name < b.name
-        end)
-        pkg.classes = classes
-        pkg.class_map = nil
-        pkg.status = aggregate_status(vim.tbl_map(function(c)
-            return c.status
-        end, classes))
-        table.insert(packages, pkg)
+        table.sort(cls_list, failed_first_cmp)
     end
 
-    table.sort(packages, function(a, b)
-        if a.status ~= b.status then
-            if a.status == "failed" then
-                return true
+    -- Step 2: Build trie from package names
+    local trie_root = { children_map = {}, classes = {} }
+    for pkg_name, classes in pairs(pkg_classes) do
+        if pkg_name == "(default)" then
+            for _, cls in ipairs(classes) do
+                table.insert(trie_root.classes, cls)
             end
-            if b.status == "failed" then
-                return false
+        else
+            local segments = vim.split(pkg_name, ".", { plain = true })
+            local node = trie_root
+            for _, seg in ipairs(segments) do
+                if not node.children_map[seg] then
+                    node.children_map[seg] = { children_map = {}, classes = {} }
+                end
+                node = node.children_map[seg]
             end
+            node.classes = classes
         end
-        return a.name < b.name
-    end)
+    end
+
+    -- Step 3: Compact trie and convert to PackageNode[]
+    -- Collapses single-child chains with no classes into one node (e.g. "ua.raiffeisen.core")
+    local function compact(node, parent_path)
+        local result = {}
+        for seg, child in pairs(node.children_map) do
+            local name_parts = { seg }
+            local current = child
+            while vim.tbl_count(current.children_map) == 1 and #current.classes == 0 do
+                local next_seg, next_child = next(current.children_map)
+                table.insert(name_parts, next_seg)
+                current = next_child
+            end
+            local compacted_name = table.concat(name_parts, ".")
+            local full_path = parent_path ~= "" and (parent_path .. "." .. compacted_name) or compacted_name
+            local pkg_node = {
+                name = compacted_name,
+                full_path = full_path,
+                status = "passed",
+                classes = current.classes or {},
+                children = {},
+                expanded = true,
+            }
+            pkg_node.children = compact(current, full_path)
+            local statuses = {}
+            for _, cls in ipairs(pkg_node.classes) do
+                table.insert(statuses, cls.status)
+            end
+            for _, child_pkg in ipairs(pkg_node.children) do
+                table.insert(statuses, child_pkg.status)
+            end
+            if #statuses > 0 then
+                pkg_node.status = aggregate_status(statuses)
+            end
+            table.insert(result, pkg_node)
+        end
+        table.sort(result, failed_first_cmp)
+        return result
+    end
+
+    local packages = compact(trie_root, "")
+
+    -- Handle default package classes
+    if #trie_root.classes > 0 then
+        table.sort(trie_root.classes, failed_first_cmp)
+        local default_pkg = {
+            name = "(default)",
+            full_path = "(default)",
+            status = aggregate_status(vim.tbl_map(function(c)
+                return c.status
+            end, trie_root.classes)),
+            classes = trie_root.classes,
+            children = {},
+            expanded = true,
+        }
+        table.insert(packages, 1, default_pkg)
+    end
 
     return packages
+end
+
+--- Recursively find the first class in a package subtree.
+---@param pkg report_view.PackageNode
+---@return report_view.ClassNode|nil
+local function find_first_class(pkg)
+    if #pkg.classes > 0 then
+        return pkg.classes[1]
+    end
+    for _, child in ipairs(pkg.children) do
+        local cls = find_first_class(child)
+        if cls then
+            return cls
+        end
+    end
+    return nil
+end
+
+--- Collect expansion state from the tree keyed by full_path/classname.
+---@param tree report_view.PackageNode[]
+---@return table<string, boolean>
+local function collect_expansion_state(tree)
+    local exp = {}
+    local function walk(packages)
+        for _, pkg in ipairs(packages) do
+            exp["pkg:" .. pkg.full_path] = pkg.expanded
+            for _, cls in ipairs(pkg.classes) do
+                exp["cls:" .. cls.classname] = cls.expanded
+            end
+            walk(pkg.children)
+        end
+    end
+    walk(tree)
+    return exp
+end
+
+--- Restore expansion state onto a rebuilt tree.
+---@param tree report_view.PackageNode[]
+---@param exp table<string, boolean>
+local function restore_expansion_state(tree, exp)
+    local function walk(packages)
+        for _, pkg in ipairs(packages) do
+            local key = "pkg:" .. pkg.full_path
+            if exp[key] ~= nil then
+                pkg.expanded = exp[key]
+            end
+            for _, cls in ipairs(pkg.classes) do
+                local cls_key = "cls:" .. cls.classname
+                if exp[cls_key] ~= nil then
+                    cls.expanded = exp[cls_key]
+                end
+            end
+            walk(pkg.children)
+        end
+    end
+    walk(tree)
+end
+
+--- Rebuild tree from snapshot, preserving expansion state from previous tree.
+---@param old_tree report_view.PackageNode[]
+---@param snapshot report_view.Snapshot
+---@return report_view.PackageNode[]
+local function rebuild_tree(old_tree, snapshot)
+    local exp = collect_expansion_state(old_tree)
+    local new_tree = build_tree(snapshot)
+    restore_expansion_state(new_tree, exp)
+    return new_tree
 end
 
 --- Build a line from parts, tracking highlight byte ranges.
@@ -258,27 +386,32 @@ local function render()
     -- Blank line
     add_line("", { type = "blank" })
 
-    -- Packages
-    for pkg_idx, pkg in ipairs(tree) do
-        local icon = result_icon[pkg.status]
-        local fold_char = pkg.expanded and "▼" or "▶"
-        local pkg_text, pkg_hls = format_line({
-            { fold_char .. " ", "Comment" },
-            { pkg.name, "Directory" },
-            { " " .. icon, result_hl[pkg.status] },
-        })
-        add_line(pkg_text, { type = "package", node = pkg }, pkg_hls)
+    -- Recursive rendering of package children (sub-packages + classes)
+    ---@param pkg report_view.PackageNode
+    ---@param prefix string
+    local function render_children(pkg, prefix)
+        -- Combined child list: classes first, then sub-packages
+        local items = {}
+        for _, cls in ipairs(pkg.classes) do
+            table.insert(items, { kind = "class", cls = cls })
+        end
+        for _, child in ipairs(pkg.children) do
+            table.insert(items, { kind = "package", child = child })
+        end
 
-        if pkg.expanded then
-            for cls_idx, cls in ipairs(pkg.classes) do
-                local is_last_cls = cls_idx == #pkg.classes
-                local cls_branch = is_last_cls and BRANCH_LAST or BRANCH
-                local cls_icon = result_icon[cls.status]
+        for i, item in ipairs(items) do
+            local is_last = i == #items
+            local branch = is_last and BRANCH_LAST or BRANCH
+            local cont = is_last and INDENT or CONTINUATION
+
+            if item.kind == "class" then
+                local cls = item.cls
                 local cls_fold = cls.expanded and "▼" or "▶"
+                local cls_icon = result_icon[cls.status]
                 local time_str = cls.time and string.format(" (%.2fs)", cls.time) or ""
 
                 local cls_text, cls_hls = format_line({
-                    { cls_branch, "Comment" },
+                    { prefix .. branch, "Comment" },
                     { cls_fold .. " ", "Comment" },
                     { cls.name, "Type" },
                     { " " .. cls_icon, result_hl[cls.status] },
@@ -287,7 +420,6 @@ local function render()
                 add_line(cls_text, { type = "class", node = cls, package_node = pkg }, cls_hls)
 
                 if cls.expanded then
-                    local cont = is_last_cls and INDENT or CONTINUATION
                     for meth_idx, meth in ipairs(cls.methods) do
                         local is_last_meth = meth_idx == #cls.methods
                         local meth_branch = is_last_meth and BRANCH_LAST or BRANCH
@@ -295,7 +427,7 @@ local function render()
                         local meth_time = meth.time and string.format(" (%.3fs)", meth.time) or ""
 
                         local meth_text, meth_hls = format_line({
-                            { cont, "Comment" },
+                            { prefix .. cont, "Comment" },
                             { meth_branch, "Comment" },
                             { meth.name },
                             { " " .. meth_icon, result_hl[meth.status] },
@@ -308,7 +440,39 @@ local function render()
                         )
                     end
                 end
+            else
+                local child = item.child
+                local fold_char = child.expanded and "▼" or "▶"
+                local child_icon = result_icon[child.status]
+
+                local child_text, child_hls = format_line({
+                    { prefix .. branch, "Comment" },
+                    { fold_char .. " ", "Comment" },
+                    { child.name, "Directory" },
+                    { " " .. child_icon, result_hl[child.status] },
+                })
+                add_line(child_text, { type = "package", node = child }, child_hls)
+
+                if child.expanded then
+                    render_children(child, prefix .. cont)
+                end
             end
+        end
+    end
+
+    -- Packages
+    for pkg_idx, pkg in ipairs(tree) do
+        local icon = result_icon[pkg.status]
+        local fold_char = pkg.expanded and "▼" or "▶"
+        local pkg_text, pkg_hls = format_line({
+            { fold_char .. " ", "Comment" },
+            { pkg.name, "Directory" },
+            { " " .. icon, result_hl[pkg.status] },
+        })
+        add_line(pkg_text, { type = "package", node = pkg }, pkg_hls)
+
+        if pkg.expanded then
+            render_children(pkg, "")
         end
 
         if pkg_idx < #tree then
@@ -388,8 +552,9 @@ local function action_goto()
     elseif info.type == "class" then
         file_path = info.node.file_path
     elseif info.type == "package" then
-        if info.node.classes and #info.node.classes > 0 then
-            file_path = info.node.classes[1].file_path
+        local cls = find_first_class(info.node)
+        if cls then
+            file_path = cls.file_path
         end
     end
 
@@ -486,7 +651,7 @@ local function action_rerun(is_debug)
             })
         end)
     elseif info.type == "package" then
-        local first_class = info.node.classes and info.node.classes[1]
+        local first_class = find_first_class(info.node)
         if not first_class or not first_class.file_path then
             vim.notify("test-report: cannot resolve file for package rerun", vim.log.levels.WARN)
             return
@@ -628,132 +793,8 @@ function M.toggle(snapshot)
     M.open(snapshot)
 end
 
---- Update existing tree nodes in-place from the merged snapshot.
---- Preserves the current sort order. Appends any new classes/packages at the end.
----@param tree report_view.PackageNode[]
----@param snapshot report_view.Snapshot
-local function update_tree_in_place(tree, snapshot)
-    -- Index: classname -> { method_name -> { result, id } }
-    local result_by_class = {}
-    for id, result in pairs(snapshot.results) do
-        local classname, method_name = id:match("^(.+)#(.+)$")
-        if classname and method_name then
-            if not result_by_class[classname] then
-                result_by_class[classname] = {}
-            end
-            result_by_class[classname][method_name] = { result = result, id = id }
-        end
-    end
-
-    local seen_classes = {}
-
-    for _, pkg in ipairs(tree) do
-        for _, cls in ipairs(pkg.classes) do
-            seen_classes[cls.classname] = true
-            local cls_data = result_by_class[cls.classname]
-            if not cls_data then
-                goto next_class
-            end
-
-            -- Update existing methods
-            local seen_methods = {}
-            for _, meth in ipairs(cls.methods) do
-                seen_methods[meth.name] = true
-                local new_data = cls_data[meth.name]
-                if new_data then
-                    meth.status = new_data.result.status
-                    meth.time = new_data.result.time
-                    meth.result = new_data.result
-                    meth.id = new_data.id
-                end
-            end
-
-            -- Append new methods
-            for method_name, new_data in pairs(cls_data) do
-                if not seen_methods[method_name] then
-                    table.insert(cls.methods, {
-                        name = method_name,
-                        status = new_data.result.status,
-                        time = new_data.result.time,
-                        result = new_data.result,
-                        id = new_data.id,
-                    })
-                end
-            end
-
-            -- Recompute class aggregate
-            cls.time = 0
-            local statuses = {}
-            for _, meth in ipairs(cls.methods) do
-                table.insert(statuses, meth.status)
-                cls.time = cls.time + (meth.time or 0)
-            end
-            cls.status = aggregate_status(statuses)
-
-            if snapshot.class_files and snapshot.class_files[cls.classname] then
-                cls.file_path = snapshot.class_files[cls.classname]
-            end
-
-            ::next_class::
-        end
-
-        -- Recompute package aggregate
-        pkg.status = aggregate_status(vim.tbl_map(function(c)
-            return c.status
-        end, pkg.classes))
-    end
-
-    -- Append new classes/packages not yet in the tree
-    for classname, cls_data in pairs(result_by_class) do
-        if not seen_classes[classname] then
-            local pkg_name = classname:match("^(.+)%.") or "(default)"
-            local simple_class = classname:match("([^%.]+)$")
-
-            -- Find or create package
-            local target_pkg
-            for _, pkg in ipairs(tree) do
-                if pkg.name == pkg_name then
-                    target_pkg = pkg
-                    break
-                end
-            end
-            if not target_pkg then
-                target_pkg = { name = pkg_name, classes = {}, expanded = true, status = "passed" }
-                table.insert(tree, target_pkg)
-            end
-
-            local new_cls = {
-                name = simple_class,
-                classname = classname,
-                file_path = snapshot.class_files and snapshot.class_files[classname],
-                methods = {},
-                expanded = true,
-                time = 0,
-            }
-            for method_name, new_data in pairs(cls_data) do
-                table.insert(new_cls.methods, {
-                    name = method_name,
-                    status = new_data.result.status,
-                    time = new_data.result.time,
-                    result = new_data.result,
-                    id = new_data.id,
-                })
-                new_cls.time = new_cls.time + (new_data.result.time or 0)
-            end
-            new_cls.status = aggregate_status(vim.tbl_map(function(m)
-                return m.status
-            end, new_cls.methods))
-            table.insert(target_pkg.classes, new_cls)
-
-            target_pkg.status = aggregate_status(vim.tbl_map(function(c)
-                return c.status
-            end, target_pkg.classes))
-        end
-    end
-end
-
 --- Incrementally merge new results into the tree view if it is currently open.
---- Updates nodes in-place to preserve the current sort order.
+--- Rebuilds the tree preserving expansion state.
 ---@param snapshot report_view.Snapshot
 function M.refresh_if_open(snapshot)
     if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
@@ -769,8 +810,8 @@ function M.refresh_if_open(snapshot)
     for file_path, positions in pairs(snapshot.positions or {}) do
         state.snapshot.positions[file_path] = positions
     end
-    -- Update existing tree in-place (stable order)
-    update_tree_in_place(state.tree, state.snapshot)
+    -- Rebuild tree preserving expansion state
+    state.tree = rebuild_tree(state.tree, state.snapshot)
     refresh()
     log.info("tree view refreshed (incremental)")
 end
