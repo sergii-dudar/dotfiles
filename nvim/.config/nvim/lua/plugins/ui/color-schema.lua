@@ -78,6 +78,8 @@ return {
             vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#808080", bold = true, default = true, italic = true })
             vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#ea6962", bold = true, default = true, italic = true })
 
+            vim.api.nvim_set_hl(0, "GrayBold", { fg = "#808080", bold = true, default = true })
+
             -- vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#89b4fa", bold = true })
             -- vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#f38ba8", bold = true })
         end,

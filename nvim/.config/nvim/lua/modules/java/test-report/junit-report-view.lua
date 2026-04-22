@@ -387,24 +387,28 @@ local function render()
     end
 
     -- Header
-    local summary_parts = { { " Test Report", "Title" } }
-    table.insert(summary_parts, { " | ", "GrenBold" })
-    table.insert(summary_parts, { tostring(total), "PurpleBold" })
+    local summary_parts = {
+        { " ❮❮❮", "GrayBold" },
+        -- { "   Test Report", "Title" },
+        -- { " · ", "GrenBold" }
+    }
+    table.insert(summary_parts, { " " .. tostring(total), "PurpleBold" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(passed), "DiagnosticOk" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(failed), "DiagnosticError" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
     table.insert(summary_parts, { tostring(skipped), "DiagnosticWarn" })
-    table.insert(summary_parts, { " | ", "GrenBold" })
+    table.insert(summary_parts, { " · ", "GrenBold" })
     table.insert(summary_parts, { string.format("(%.2fs)", total_time), "Comment" })
+    table.insert(summary_parts, { " ❯❯❯", "GrayBold" })
 
     local header_text, header_hls = format_line(summary_parts)
     add_line(header_text, { type = "header" }, header_hls)
 
     -- Separator
-    local sep = string.rep("─", math.max(#header_text, 60))
-    add_line(sep, { type = "separator" }, { { 0, #sep, "Comment" } })
+    -- local sep = string.rep("─", math.max(#header_text, 60))
+    -- add_line(sep, { type = "separator" }, { { 0, #sep, "Comment" } })
 
     -- Blank line
     -- add_line("", { type = "blank" })
