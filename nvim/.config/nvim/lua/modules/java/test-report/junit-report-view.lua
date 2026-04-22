@@ -757,6 +757,26 @@ local function action_full_refresh()
     log.info("tree view full refresh")
 end
 
+--- Jump to next or previous failed test line.
+---@param direction 1|-1
+local function action_jump_failed(direction)
+    if not state.line_map then
+        return
+    end
+    local cur = vim.api.nvim_win_get_cursor(0)[1]
+    local total = #state.line_map
+    local i = cur + direction
+    while i >= 1 and i <= total do
+        local info = state.line_map[i]
+        if info and info.node and info.node.status == "failed" then
+            vim.api.nvim_win_set_cursor(0, { i, 0 })
+            return
+        end
+        i = i + direction
+    end
+    vim.notify("No more failed tests", vim.log.levels.INFO)
+end
+
 ---@param buf integer
 local function setup_keymaps(buf)
     local function map(lhs, fn, desc)
@@ -774,6 +794,12 @@ local function setup_keymaps(buf)
     end, "Debug test")
     map("<Tab>", action_toggle_fold, "Toggle fold")
     map("g", action_full_refresh, "Full refresh")
+    map("]d", function()
+        action_jump_failed(1)
+    end, "Next failed test")
+    map("[d", function()
+        action_jump_failed(-1)
+    end, "Prev failed test")
     map("q", function()
         M.close()
     end, "Close")
