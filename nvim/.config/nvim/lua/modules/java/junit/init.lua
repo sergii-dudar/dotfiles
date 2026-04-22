@@ -80,8 +80,8 @@ local test_selector_resolver = {
         local test_classes = module_path .. "/target/test-classes"
         return "--scan-class-path=" .. test_classes
     end,
-    [task.test_type.ALL_DIR_TESTS] = function()
-        local test_package = java_ts.get_class_package()
+    [task.test_type.ALL_DIR_TESTS] = function(context)
+        local test_package = context and context.package_name or java_ts.get_class_package()
         if test_package == nil then
             vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
             return nil
@@ -305,7 +305,7 @@ function build_junit_tests_cmd(context)
         return { cmd = { "echo", type .. " is not supported to toggle last run cmd" } }
     end
 
-    local test_selector = test_selector_resolver[type]()
+    local test_selector = test_selector_resolver[type](context)
     if test_selector == nil then
         return { cmd = { "echo", "Wrong test selector context!" } }
     end

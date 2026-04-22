@@ -658,10 +658,12 @@ local function action_rerun(is_debug)
         end
         vim.api.nvim_set_current_win(win)
         vim.cmd("edit " .. vim.fn.fnameescape(first_class.file_path))
+        local pkg_name = info.node.full_path
         nio_util.run(function()
             require("plugins.overseer.overseer-util").run_test({
                 test_type = task.test_type.ALL_DIR_TESTS,
                 is_debug = is_debug,
+                package_name = pkg_name,
             })
         end)
     end
