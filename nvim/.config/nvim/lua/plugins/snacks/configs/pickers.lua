@@ -71,62 +71,66 @@ local function relativize_to_dirs(abs_path, base_dirs)
     return abs_path
 end
 
----Open a file picker scoped to context-aware resource directories.
----For Java modules: scoped to src/main/resources (and src/test/resources for test files).
----For everything else: falls back to default file picker from CWD.
+---Open a file picker scoped to context-aware directories.
+---For Java: scoped to module resource dirs. For other registered types: their resolver.
+---Fallback: project CWD. Enter pastes the relative path at cursor.
 function M.pick_resource_path()
     local resolver = require("utils.resource-cwd-resolver")
     local result = resolver.resolve()
 
+    local resource_dirs, title
     if result then
-        local resource_dirs = result.dirs
-
-        local function copy_res_path(picker, item)
-            local abs_path = item and Snacks.picker.util.path(item)
-            if abs_path then
-                local rel = relativize_to_dirs(abs_path, resource_dirs)
-                vim.fn.setreg("+", rel)
-                Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
-            end
-        end
-
-        local function paste_res_path(picker, item)
-            local abs_path = item and Snacks.picker.util.path(item)
-            if abs_path then
-                local rel = relativize_to_dirs(abs_path, resource_dirs)
-                picker:close()
-                vim.schedule(function()
-                    vim.api.nvim_paste(rel, true, -1)
-                end)
-            end
-        end
-
-        Snacks.picker.files({
-            dirs = resource_dirs,
-            title = result.title,
-            actions = {
-                copy_resource_path = copy_res_path,
-                paste_resource_path = paste_res_path,
-            },
-            confirm = "paste_resource_path",
-            win = {
-                input = {
-                    keys = {
-                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                    },
-                },
-                list = {
-                    keys = {
-                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                    },
-                },
-            },
-        })
+        resource_dirs = result.dirs
+        title = result.title
     else
-        Snacks.picker.files()
+        local cwd = vim.fn.getcwd()
+        resource_dirs = { cwd }
+        title = "Files [" .. vim.fn.fnamemodify(cwd, ":t") .. "]"
     end
+
+    local function copy_res_path(picker, item)
+        local abs_path = item and Snacks.picker.util.path(item)
+        if abs_path then
+            local rel = relativize_to_dirs(abs_path, resource_dirs)
+            vim.fn.setreg("+", rel)
+            Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
+        end
+    end
+
+    local function paste_res_path(picker, item)
+        local abs_path = item and Snacks.picker.util.path(item)
+        if abs_path then
+            local rel = relativize_to_dirs(abs_path, resource_dirs)
+            picker:close()
+            vim.schedule(function()
+                vim.api.nvim_paste(rel, true, -1)
+            end)
+        end
+    end
+
+    Snacks.picker.files({
+        dirs = resource_dirs,
+        title = title,
+        confirm = "paste_resource_path",
+        actions = {
+            copy_resource_path = copy_res_path,
+            paste_resource_path = paste_res_path,
+        },
+        win = {
+            input = {
+                keys = {
+                    ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                    ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                },
+            },
+            list = {
+                keys = {
+                    ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                    ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                },
+            },
+        },
+    })
 end
 
 M.picker = {

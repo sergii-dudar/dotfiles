@@ -8,26 +8,26 @@ local uv = vim.uv or vim.loop
 
 ---@alias ResourceResolver fun(bufnr: integer): ResourceResolveResult|nil
 
----@type ResourceResolver[]
+---@type table<string, ResourceResolver>
 local resolvers = {}
 
---- Register a resolver. Resolvers are tried in registration order;
---- the first non-nil result wins.
+--- Register a resolver for a specific filetype.
+---@param ft string filetype (e.g. "java", "python")
 ---@param resolver ResourceResolver
-function M.register(resolver)
-    resolvers[#resolvers + 1] = resolver
+function M.register(ft, resolver)
+    resolvers[ft] = resolver
 end
 
---- Resolve resource directories for the given buffer.
+--- Resolve resource directories for the given buffer based on its filetype.
+--- Returns nil when no resolver is registered for the current filetype.
 ---@param bufnr? integer
 ---@return ResourceResolveResult|nil
 function M.resolve(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
-    for _, resolver in ipairs(resolvers) do
-        local result = resolver(bufnr)
-        if result then
-            return result
-        end
+    local ft = vim.bo[bufnr].filetype
+    local resolver = resolvers[ft]
+    if resolver then
+        return resolver(bufnr)
     end
     return nil
 end
@@ -42,18 +42,10 @@ local function existing_dirs(dirs)
 end
 
 -- Java resolver: detect Maven/Gradle module layout and return resource dirs.
--- Works regardless of buffer filetype — inspects the buffer path for Java module structure.
-M.register(function(bufnr)
+M.register("java", function(bufnr)
     local java_common = require("utils.java.java-common")
     local module_root = java_common.get_buffer_project_path(bufnr)
     if not module_root then
-        return nil
-    end
-
-    -- Verify this is actually a Java module (has src/main or src/test)
-    local src_main = module_root .. "/src/main"
-    local src_test = module_root .. "/src/test"
-    if uv.fs_stat(src_main) == nil and uv.fs_stat(src_test) == nil then
         return nil
     end
 
