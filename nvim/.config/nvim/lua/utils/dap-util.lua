@@ -58,7 +58,7 @@ function M.show_logs()
 
     local prev_win = vim.api.nvim_get_current_win()
     require("utils.buffer-util").open_scratch_split(log_bufnr, { max_height = 10 })
-    vim.cmd("normal! G")
+    -- vim.cmd("normal! G")
     -- and back
     if prev_win and vim.api.nvim_win_is_valid(prev_win) then
         vim.api.nvim_set_current_win(prev_win)

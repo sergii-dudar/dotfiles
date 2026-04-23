@@ -70,6 +70,7 @@ function M.open_scratch_split(bufnr, opts)
     local constants = require("utils.constants")
     local max_height = opts.max_height or constants.output.height_rows
     local prev_win = vim.api.nvim_get_current_win()
+    local prev_cursor = vim.api.nvim_win_get_cursor(prev_win)
 
     vim.bo[bufnr].buftype = "nofile"
     vim.bo[bufnr].bufhidden = "wipe"
@@ -77,17 +78,20 @@ function M.open_scratch_split(bufnr, opts)
     vim.bo[bufnr].modifiable = false
 
     vim.cmd("botright split")
-    vim.api.nvim_win_set_buf(0, bufnr)
+    local split_win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(split_win, bufnr)
 
     local line_count = vim.api.nvim_buf_line_count(bufnr)
-    -- dd({ "output height " .. math.min(line_count + 1, max_height) })
-    vim.api.nvim_win_set_height(bufnr, math.min(line_count + 1, max_height))
+    vim.api.nvim_win_set_height(split_win, math.min(line_count + 1, max_height))
 
-    vim.wo.wrap = true
+    vim.wo[split_win].wrap = true
     vim.keymap.set("n", "q", function()
-        vim.api.nvim_win_close(0, true)
+        if vim.api.nvim_win_is_valid(split_win) then
+            vim.api.nvim_win_close(split_win, true)
+        end
         if vim.api.nvim_win_is_valid(prev_win) then
             vim.api.nvim_set_current_win(prev_win)
+            pcall(vim.api.nvim_win_set_cursor, prev_win, prev_cursor)
         end
     end, { buffer = bufnr, silent = true })
 
