@@ -72,8 +72,10 @@ return {
             dap.listeners.before.event_terminated["dapui_config"] = function()
                 dapui.close({})
                 vim.schedule(function()
-                    dap_util.show_logs()
                     vim.cmd("Neotree filesystem reveal left action=show")
+                    vim.schedule(function()
+                        dap_util.show_logs()
+                    end)
                     -- dap_util.show_logs()
                 end)
             end

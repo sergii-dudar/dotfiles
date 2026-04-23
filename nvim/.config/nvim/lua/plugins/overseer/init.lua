@@ -1,5 +1,6 @@
 local constants = require("utils.constants")
 local nio_util = require("utils.nio-util")
+local window_util = require("utils.nvim.window-util")
 -- local overseer_group = vim.api.nvim_create_augroup("myOverseerGroup", { clear = true })
 
 _G.task = {}
@@ -35,6 +36,7 @@ task.last_test = {
 ---@return function
 local build_run_test = function(type, is_debug)
     return function()
+        window_util.save_position()
         nio_util.run(function()
             require("plugins.overseer.overseer-util").run_test({ test_type = type, is_debug = is_debug })
         end)
@@ -139,7 +141,8 @@ return {
                     -- vim.keymap.set("n", "q", "<cmd>OverseerClose<cr>", { buffer = event.buf, silent = true })
                     vim.keymap.set("n", "q", function()
                         vim.cmd("OverseerClose")
-                        require("utils.buffer-util").focus_right_if_neotree()
+                        window_util.restore_position()
+                        -- require("utils.buffer-util").focus_right_if_neotree()
                     end, { buffer = event.buf, silent = true })
 
                     -- apply log-highlight.nvim to output buffer

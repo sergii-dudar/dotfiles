@@ -1,3 +1,4 @@
+local window_util = require("utils.nvim.window-util")
 local M = {}
 
 local work_buffer_types = {
@@ -69,8 +70,7 @@ function M.open_scratch_split(bufnr, opts)
     opts = opts or {}
     local constants = require("utils.constants")
     local max_height = opts.max_height or constants.output.height_rows
-    local prev_win = vim.api.nvim_get_current_win()
-    local prev_cursor = vim.api.nvim_win_get_cursor(prev_win)
+    -- window_util.save_position()
 
     vim.bo[bufnr].buftype = "nofile"
     vim.bo[bufnr].bufhidden = "wipe"
@@ -89,10 +89,7 @@ function M.open_scratch_split(bufnr, opts)
         if vim.api.nvim_win_is_valid(split_win) then
             vim.api.nvim_win_close(split_win, true)
         end
-        if vim.api.nvim_win_is_valid(prev_win) then
-            vim.api.nvim_set_current_win(prev_win)
-            pcall(vim.api.nvim_win_set_cursor, prev_win, prev_cursor)
-        end
+        window_util.restore_position()
     end, { buffer = bufnr, silent = true })
 
     return prev_win
