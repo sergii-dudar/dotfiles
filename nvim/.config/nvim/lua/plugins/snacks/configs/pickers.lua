@@ -26,6 +26,109 @@ local function diff_selected(picker)
     end)
 end
 
+---Copy the selected item's file path to the system clipboard.
+---@param picker snacks.Picker
+---@param item snacks.picker.Item?
+local function copy_path(picker, item)
+    local path = item and Snacks.picker.util.path(item) or picker:dir()
+    if path then
+        path = vim.fn.fnamemodify(path, ":p:~:.")
+        vim.fn.setreg("+", path)
+        Snacks.notify("Copied to clipboard:\n" .. path, { title = "Snacks Picker" })
+    end
+end
+
+---Insert the selected item's file path at the current cursor position.
+---@param picker snacks.Picker
+---@param item snacks.picker.Item?
+local function paste_path(picker, item)
+    local path = item and Snacks.picker.util.path(item) or picker:dir()
+    if path then
+        path = vim.fn.fnamemodify(path, ":p:~:.")
+        picker:close()
+        vim.schedule(function()
+            vim.api.nvim_paste(path, true, -1)
+        end)
+    end
+end
+
+---Relativize an absolute path against a list of base directories.
+---Returns the shortest relative match, or the original path if no match.
+---@param abs_path string
+---@param base_dirs string[]
+---@return string
+local function relativize_to_dirs(abs_path, base_dirs)
+    abs_path = vim.fs.normalize(abs_path)
+    for _, dir in ipairs(base_dirs) do
+        dir = vim.fs.normalize(dir)
+        if not dir:match("/$") then
+            dir = dir .. "/"
+        end
+        if abs_path:sub(1, #dir) == dir then
+            return abs_path:sub(#dir + 1)
+        end
+    end
+    return abs_path
+end
+
+---Open a file picker scoped to context-aware resource directories.
+---For Java modules: scoped to src/main/resources (and src/test/resources for test files).
+---For everything else: falls back to default file picker from CWD.
+function M.pick_resource_path()
+    local resolver = require("utils.resource-cwd-resolver")
+    local result = resolver.resolve()
+
+    if result then
+        local resource_dirs = result.dirs
+
+        local function copy_res_path(picker, item)
+            local abs_path = item and Snacks.picker.util.path(item)
+            if abs_path then
+                local rel = relativize_to_dirs(abs_path, resource_dirs)
+                vim.fn.setreg("+", rel)
+                Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
+            end
+        end
+
+        local function paste_res_path(picker, item)
+            local abs_path = item and Snacks.picker.util.path(item)
+            if abs_path then
+                local rel = relativize_to_dirs(abs_path, resource_dirs)
+                picker:close()
+                vim.schedule(function()
+                    vim.api.nvim_paste(rel, true, -1)
+                end)
+            end
+        end
+
+        Snacks.picker.files({
+            dirs = resource_dirs,
+            title = result.title,
+            actions = {
+                copy_resource_path = copy_res_path,
+                paste_resource_path = paste_res_path,
+            },
+            confirm = "paste_resource_path",
+            win = {
+                input = {
+                    keys = {
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+                list = {
+                    keys = {
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+            },
+        })
+    else
+        Snacks.picker.files()
+    end
+end
+
 M.picker = {
     -- layout = {
     --     cycle = false,
@@ -70,6 +173,8 @@ M.picker = {
     actions = {
         diff_selected = diff_selected,
         toggle_layout = toggle_layout,
+        copy_path = copy_path,
+        paste_path = paste_path,
     },
     win = {
         input = {
@@ -77,6 +182,8 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
+                ["<c-s>y"] = { "copy_path", mode = { "i", "n" } },
+                ["<c-s>p"] = { "paste_path", mode = { "i", "n" } },
             },
         },
         list = {
@@ -84,6 +191,8 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "n" } },
+                ["<c-s>y"] = { "copy_path", mode = { "i", "n" } },
+                ["<c-s>p"] = { "paste_path", mode = { "i", "n" } },
             },
         },
     },
