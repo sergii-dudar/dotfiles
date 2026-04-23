@@ -261,7 +261,7 @@ function M.build_search(word, starts_with)
         -- Static field (ALL_CAPS) — no public/static required (covers interface fields)
         local suffix = starts_with and "[A-Z0-9_]*[\\s]*[=;]" or "[\\s]*[=;]"
         -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
-        local field_pattern = "\\w+[\\s]+" .. word .. suffix
+        local field_pattern = "[^\\s]+[\\s]+" .. word .. suffix
         -- Enum constant — ALL_CAPS at start of line (no type prefix), terminated by , ; ( (constructor) or { (body)
         local enum_suffix = starts_with and "[A-Z0-9_]*[\\s]*[,;({]" or "[\\s]*[,;({]"
         local enum_pattern = "^[\\s]*" .. word .. enum_suffix

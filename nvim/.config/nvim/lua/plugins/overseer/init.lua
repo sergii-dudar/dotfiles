@@ -93,7 +93,8 @@ return {
                 end)
             end, desc = "Toggle Debug of Last Test Cmd", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
-            { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },
+            { "<leader>tF", build_run_test(task.test_type.FILE_TESTS, true), desc = "Run File Tests", },
+            -- { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },
             { "<leader>ta", build_run_test(task.test_type.ALL_TESTS), desc = "Run All Tests", },
             { "<leader>tp", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST), desc = "Run Current Parametrized Single Test", },
             { "<leader>tP", build_run_test(task.test_type.CURRENT_PARAMETRIZED_NUM_TEST, true), desc = "Debug Current Parametrized Single Test", },

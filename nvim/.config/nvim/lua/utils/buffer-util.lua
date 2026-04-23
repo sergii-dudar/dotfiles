@@ -80,7 +80,8 @@ function M.open_scratch_split(bufnr, opts)
     vim.api.nvim_win_set_buf(0, bufnr)
 
     local line_count = vim.api.nvim_buf_line_count(bufnr)
-    vim.api.nvim_win_set_height(0, math.min(line_count + 1, max_height))
+    -- dd({ "output height " .. math.min(line_count + 1, max_height) })
+    vim.api.nvim_win_set_height(bufnr, math.min(line_count + 1, max_height))
 
     vim.wo.wrap = true
     vim.keymap.set("n", "q", function()
