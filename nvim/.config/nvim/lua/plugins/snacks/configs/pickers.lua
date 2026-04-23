@@ -26,32 +26,6 @@ local function diff_selected(picker)
     end)
 end
 
----Copy the selected item's file path to the system clipboard.
----@param picker snacks.Picker
----@param item snacks.picker.Item?
-local function copy_path(picker, item)
-    local path = item and Snacks.picker.util.path(item) or picker:dir()
-    if path then
-        path = vim.fn.fnamemodify(path, ":p:~:.")
-        vim.fn.setreg("+", path)
-        Snacks.notify("Copied to clipboard:\n" .. path, { title = "Snacks Picker" })
-    end
-end
-
----Insert the selected item's file path at the current cursor position.
----@param picker snacks.Picker
----@param item snacks.picker.Item?
-local function paste_path(picker, item)
-    local path = item and Snacks.picker.util.path(item) or picker:dir()
-    if path then
-        path = vim.fn.fnamemodify(path, ":p:~:.")
-        picker:close()
-        vim.schedule(function()
-            vim.api.nvim_paste(path, true, -1)
-        end)
-    end
-end
-
 M.picker = {
     -- layout = {
     --     cycle = false,
@@ -96,8 +70,6 @@ M.picker = {
     actions = {
         diff_selected = diff_selected,
         toggle_layout = toggle_layout,
-        copy_path = copy_path,
-        paste_path = paste_path,
     },
     win = {
         input = {
@@ -105,8 +77,6 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
-                ["<c-s>y"] = { "copy_path", mode = { "i", "n" } },
-                ["<c-s>p"] = { "paste_path", mode = { "i", "n" } },
             },
         },
         list = {
@@ -114,8 +84,6 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "n" } },
-                ["<c-s>y"] = { "copy_path", mode = { "i", "n" } },
-                ["<c-s>p"] = { "paste_path", mode = { "i", "n" } },
             },
         },
     },
