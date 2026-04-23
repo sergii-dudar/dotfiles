@@ -4,7 +4,7 @@
 - Practice the most common operations: navigation, insertion, deletion, and saving
 - Use **:help** extensively - Vim's built-in documentation is excellent
 
-usefull links:
+useful links:
 
 - [good basic motions advises](https://github.com/unblevable/quick-scope?tab=readme-ov-file#other-motions)
 
@@ -126,6 +126,9 @@ usefull links:
 | `Ctrl+b` | Page up           |
 | `Ctrl+d` | Half page down    |
 | `Ctrl+u` | Half page up      |
+| `Ctrl+e` | Scroll one line down (cursor stays) |
+| `Ctrl+y` | Scroll one line up (cursor stays)   |
+| `Ctrl+g` | Show file info (name, position, %)  |
 
 ### Screen position from Cursor
 
@@ -146,6 +149,7 @@ usefull links:
 | `g,`     | Go to next change position                   |
 | `` `. `` | Go to last change in current buffer          |
 | `` `^ `` | Go to last position of cursor in insert mode |
+| `Ctrl+^`  | Toggle alternate (last) buffer               |
 
 ### Character Motions
 
@@ -174,6 +178,10 @@ usefull links:
 | `cw`        | Change word               |
 | `cc` or `S` | Change line               |
 | `r`         | Replace character         |
+| `J`         | Join lines                |
+| `gJ`        | Join lines without space  |
+| `R`         | Replace mode (overtype)   |
+| `~`         | Toggle case under cursor  |
 
 ### Copy & Paste
 
@@ -203,7 +211,9 @@ usefull links:
 | -------- | ----------------- |
 | `u`      | Undo              |
 | `Ctrl+r` | Redo              |
-| `U`      | Undo line changes |
+| `U`      | Undo line changes           |
+| `:earlier 5m` | Undo to 5 minutes ago |
+| `:later 5m`   | Redo to 5 minutes later |
 
 ## ============================== Indent ==============================
 
@@ -276,7 +286,6 @@ usefull links:
 | `=G`    | Auto-indent to end       |
 | `diw`   | Delete inner word        |
 | `dis`   | Delete inner sentence    |
-| `di"`   | Delete in quotes         |
 | `da"`   | Delete around quotes     |
 | `dip`   | Delete a paragraph       |
 | ``      |                          |
@@ -332,7 +341,7 @@ usefull links:
 | `:s/old/new/`     | Replace first on line             |
 | `s/old/new/i`     | Ignore case replace first on line |
 | `:s/old/new/g`    | Replace all on line               |
-| `:s/old/new/gc`   | Replace all on line (Configm)     |
+| `:s/old/new/gc`   | Replace all on line (Confirm)     |
 | `:s/\vold/new/g`  | Replace all with regex            |
 | `:2,6s/old/new/g` | Replace between lines 2-6         |
 | ``                |                                   |
@@ -419,7 +428,7 @@ usefull links:
 | `:g/pattern/m$`       | Move matching lines to end                          |
 | `:g/pattern/p`        | Print matching lines                                |
 | `:g/pattern/#`        | Print with line numbers                             |
-| `:g/pattern/norm ...` | Exucute normal mode command                         |
+| `:g/pattern/norm ...` | Execute normal mode command                         |
 | ``                    |                                                     |
 | `:v/foo/d`            | Delete lines not containing foo (also: `:g!/foo/d`) |
 
@@ -430,7 +439,7 @@ usefull links:
 | `:w`           | Save file                                                            |
 | `:w filename`  | Save as                                                              |
 | `:q`           | Quit                                                                 |
-| `:q!` or `ZQ`  | Force quit (wihtout saving)                                          |
+| `:q!` or `ZQ`  | Force quit (without saving)                                          |
 | `:wq` or `ZZ`  | Save and quit                                                        |
 | `:x`           | Save and quit                                                        |
 | `:e filename`  | Open file                                                            |
@@ -439,7 +448,7 @@ usefull links:
 | `:vs filename` | Vertical split open                                                  |
 | ``             |                                                                      |
 | `gf`           | Open file under cursor (absolute or relative - check `vim.opt.path`) |
-| `gx`           | Open link under curson                                               |
+| `gx`           | Open link under cursor                                               |
 | ``             |                                                                      |
 
 ## ============================== Shell Commands ==============================
@@ -485,7 +494,7 @@ usefull links:
 | `v`      | Character-wise selection                                           |
 | `V`      | Line-wise selection                                                |
 | `Ctrl+v` | Block-wise selection                                               |
-| `o`      | Go to other end (for example to chanche start of visual selection) |
+| `o`      | Go to other end (for example to change start of visual selection) |
 | `O`      | Go to other corner                                                 |
 | `gv`     | Reselect last selection                                            |
 | `vi"`    | Select inner quotes                                                |
@@ -611,8 +620,22 @@ usefull links:
 
 | Command    | Description           |
 | ---------- | --------------------- |
-| `Ctrl+w p` | Go to prev window     |
-| `Ctrl+w x` | Swap window with next |
+| `Ctrl+w p` | Go to prev window       |
+| `Ctrl+w x` | Swap window with next   |
+| `Ctrl+w T` | Move window to new tab  |
+| `Ctrl+w r` | Rotate windows down     |
+| `Ctrl+w R` | Rotate windows up       |
+| `Ctrl+w H` | Move window to far left   |
+| `Ctrl+w J` | Move window to far bottom |
+| `Ctrl+w K` | Move window to far top    |
+| `Ctrl+w L` | Move window to far right  |
+
+### Command & Search History
+
+| Command | Description                  |
+| ------- | ---------------------------- |
+| `q:`    | Open command history window  |
+| `q/`    | Open search history window   |
 
 ## ============================== Advanced ==============================
 
@@ -684,8 +707,8 @@ usefull links:
 | ---------- | ---------------------------------------------------- |
 | `Ctrl+a`   | Increase number                                      |
 | `Ctrl+x`   | Decrease number                                      |
-| `g Ctrl+a` | Step increase visualy selected column numbers number |
-| `g Ctrl+x` | Step decrease visualy selected column numbers number |
+| `g Ctrl+a` | Step increase visually selected column numbers number |
+| `g Ctrl+x` | Step decrease visually selected column numbers number |
 | ``         |                                                      |
 
 ### Tabs
