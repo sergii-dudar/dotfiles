@@ -58,6 +58,7 @@ return {
             { "<leader>dwf", function() require("utils.dap-util").eval_to_file() end, desc = "Eval to File" },
             { "<leader>dwf", function() require("utils.dap-util").selection_eval_to_file() end, desc = "Eval Selection to File", mode = "x" },
             { "<leader>dww", function() require("utils.dap-util").selection_to_file() end, desc = "Selection to File", mode = "x" },
+            { "<leader>do", function() require("utils.dap-util").show_logs() end, desc = "Dap log output" },
         },
         config = function(_, opts)
             local dap = require("dap")
@@ -72,19 +73,14 @@ return {
             dap.listeners.before.event_terminated["dapui_config"] = function()
                 dapui.close({})
                 vim.schedule(function()
-                    dap_util.show_logs()
+                    vim.cmd("Neotree filesystem reveal left action=show")
                     -- vim.schedule(function()
-                    --     vim.cmd("Neotree filesystem reveal left action=show")
+                    --     dap_util.show_logs()
                     -- end)
-                    -- dap_util.show_logs()
                 end)
             end
             dap.listeners.before.event_exited["dapui_config"] = function()
                 dapui.close({})
-                -- vim.schedule(function()
-                --     vim.cmd("Neotree filesystem reveal left action=show")
-                --     -- dap_util.show_logs()
-                -- end)
             end
         end,
     },

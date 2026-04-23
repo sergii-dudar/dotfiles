@@ -549,6 +549,7 @@ end
 
 function M.hide_test_output()
     close_output_win()
+    require("utils.dap-util").reset()
 end
 
 --- Show test output for a specific method and result (used by tree view).
