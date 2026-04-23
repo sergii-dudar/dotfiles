@@ -36,7 +36,7 @@ task.last_test = {
 ---@return function
 local build_run_test = function(type, is_debug)
     return function()
-        window_util.save_position()
+        -- window_util.save_position()
         nio_util.run(function()
             require("plugins.overseer.overseer-util").run_test({ test_type = type, is_debug = is_debug })
         end)
@@ -88,7 +88,7 @@ return {
             { "<leader>tt", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
             { "<leader>tD", function()
-                window_util.save_position()
+                -- window_util.save_position()
                 task.last_test.is_debug = not task.last_test.is_debug
                 nio_util.run(function()
                     require("plugins.overseer.overseer-util").run_test({ test_type = task.test_type.TOGGLE_LAST_DEBUG, is_debug = task.last_test.is_debug })

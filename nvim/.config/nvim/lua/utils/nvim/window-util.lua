@@ -24,9 +24,9 @@ function M.restore_position()
 end
 
 function M.bot_split()
-    if not data.prev_win or not data.prev_view then
-        M.save_position()
-    end
+    -- if not data.prev_win or not data.prev_view then
+    M.save_position()
+    -- end
     vim.cmd("botright split")
     M.preserve_cursor()
 end

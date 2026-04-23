@@ -297,7 +297,7 @@ function M.process(report_dir, filetype)
 
             -- Close overseer output; reopen Trouble only if failures remain
             require("overseer").close()
-            require("utils.nvim.window-util").restore_position()
+            -- require("utils.nvim.window-util").restore_position()
 
             -- Check if any accumulated diagnostics remain (not just current run)
             local has_any_failures = false

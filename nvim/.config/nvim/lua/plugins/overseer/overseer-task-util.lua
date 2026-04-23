@@ -92,7 +92,7 @@ function M.run_last_task(opts)
     local last_task = tasks[1]
     overseer.run_action(last_task, "restart")
     if opts.is_open_output then
-        window_util.overseer_open()
+        window_util.overseer_open({ enter = false })
     end
 end
 
