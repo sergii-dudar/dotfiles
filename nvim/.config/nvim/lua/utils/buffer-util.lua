@@ -77,7 +77,8 @@ function M.open_scratch_split(bufnr, opts)
     vim.bo[bufnr].filetype = opts.filetype or "log"
     vim.bo[bufnr].modifiable = false
 
-    vim.cmd("botright split")
+    window_util.bot_split()
+
     local split_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(split_win, bufnr)
 
@@ -91,8 +92,6 @@ function M.open_scratch_split(bufnr, opts)
         end
         window_util.restore_position()
     end, { buffer = bufnr, silent = true })
-
-    return prev_win
 end
 
 return M

@@ -6,6 +6,14 @@ function M.save_position()
     data.prev_view = vim.fn.winsaveview()
 end
 
+function M.preserve_cursor()
+    if data.prev_win and data.prev_view then
+        vim.api.nvim_win_call(data.prev_win, function()
+            vim.fn.winrestview(data.prev_view)
+        end)
+    end
+end
+
 function M.restore_position()
     if data.prev_win and data.prev_view and vim.api.nvim_win_is_valid(data.prev_win) then
         vim.api.nvim_set_current_win(data.prev_win)
@@ -13,6 +21,19 @@ function M.restore_position()
         data.prev_win = nil
         data.prev_view = nil
     end
+end
+
+function M.bot_split()
+    M.save_position()
+    vim.cmd("botright split")
+    M.preserve_cursor()
+end
+
+---@param opts nil|overseer.WindowOpts
+function M.overseer_open(opts)
+    M.save_position()
+    require("overseer").open(opts)
+    M.preserve_cursor()
 end
 
 return M

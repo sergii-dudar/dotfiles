@@ -1,5 +1,6 @@
 local overseer = require("overseer")
 local task_list = require("overseer.task_list")
+local window_util = require("utils.nvim.window-util")
 
 local M = {}
 
@@ -44,7 +45,7 @@ function M.run_task(opts)
         if task then
             task:start()
             if opts.is_open_output then
-                overseer.open({ enter = false })
+                window_util.overseer_open({ enter = false })
             end
             if opts.on_complete then
                 task:subscribe("on_complete", function(t, status)
@@ -91,7 +92,7 @@ function M.run_last_task(opts)
     local last_task = tasks[1]
     overseer.run_action(last_task, "restart")
     if opts.is_open_output then
-        overseer.open()
+        window_util.overseer_open()
     end
 end
 

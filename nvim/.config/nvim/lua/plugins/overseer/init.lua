@@ -36,7 +36,7 @@ task.last_test = {
 ---@return function
 local build_run_test = function(type, is_debug)
     return function()
-        window_util.save_position()
+        -- window_util.save_position()
         nio_util.run(function()
             require("plugins.overseer.overseer-util").run_test({ test_type = type, is_debug = is_debug })
         end)
@@ -77,9 +77,9 @@ return {
             { "<leader>rr", function() require("plugins.overseer.overseer-util").run_current() end, desc = "Run Current", },
             { "<leader>rd", function() require("plugins.overseer.overseer-util").debug_current() end, desc = "Debug Current", },
             { "<leader>rl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
-            { "<leader>rD", function() vim.notify("Not implemented", vim.log.levels.WARN) end, desc = "Toggle Debug of Last Run Cmd", }, -- TODO:
+            { "<leader>rD", function() vim.notify("Not implemented", vim.log.levels.WARN) end, desc = "Toggle Debug of Last Run Cmd", },
             { "<leader>rr", function() Snacks.debug.run() end, desc = "Run Selected Lua", mode = "v", },
-            { "<leader>ro", "<cmd>OverseerToggle<cr>", desc = "Task list" },
+            { "<leader>ro", function() window_util.overseer_open() end, desc = "Task list" },
             { "<leader>rt", "<cmd>OverseerTaskAction<cr>", desc = "Task action" },
             { "<leader>rs", function() require("plugins.overseer.overseer-util").stop_all() end, desc = "Stop All" },
             { "<leader>do", function() require("utils.dap-util").show_logs() end, desc = "Dap log output" },
