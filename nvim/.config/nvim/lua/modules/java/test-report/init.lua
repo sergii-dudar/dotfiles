@@ -433,7 +433,25 @@ local function find_method_at_cursor(file_path, cursor_line)
     return best_method
 end
 
-local function find_result_for_method(method_name)
+local function find_classname_for_file(file_path)
+    for classname, path in pairs(last_class_files) do
+        if path == file_path then
+            return classname
+        end
+    end
+    return nil
+end
+
+local function find_result_for_method(file_path, method_name)
+    -- Precise lookup: resolve classname from file, then use full key
+    local classname = find_classname_for_file(file_path)
+    if classname then
+        local key = classname .. "#" .. method_name
+        if last_results[key] then
+            return last_results[key]
+        end
+    end
+    -- Fallback: match by method name only (e.g. classname lookup failed)
     for id, r in pairs(last_results) do
         local _, method = id:match("^(.+)#(.+)$")
         if method == method_name then
@@ -505,7 +523,6 @@ local function open_output(method_name, result)
 
     require("overseer").close()
     output_bufnr = vim.api.nvim_create_buf(false, true)
-    output_method = method_name
     vim.api.nvim_buf_set_lines(output_bufnr, 0, -1, false, lines)
     for _, entry in ipairs(highlights) do
         vim.api.nvim_buf_set_extmark(output_bufnr, ns_output, entry[1], 0, {
@@ -523,8 +540,9 @@ function M.show_test_output()
 
     local best_method = find_method_at_cursor(file_path, cursor_line)
 
-    -- If output is visible, close it; if same method, just toggle off
-    if close_output_win() and output_method == best_method then
+    -- If output is visible, close it; if same method in same file, just toggle off
+    local output_key = file_path .. "#" .. (best_method or "")
+    if close_output_win() and output_method == output_key then
         return
     end
 
@@ -538,13 +556,14 @@ function M.show_test_output()
         return
     end
 
-    local result = find_result_for_method(best_method)
+    local result = find_result_for_method(file_path, best_method)
     if not result then
         vim.notify("test-report: no output for " .. best_method, vim.log.levels.WARN)
         return
     end
 
     open_output(best_method, result)
+    output_method = output_key
 end
 
 function M.hide_test_output()
