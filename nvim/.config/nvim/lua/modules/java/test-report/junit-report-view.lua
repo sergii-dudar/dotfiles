@@ -487,10 +487,11 @@ local function render()
                         local meth_icon_hl = meth_running and running_hl or result_hl[meth.status]
                         local meth_time = meth.time and string.format(" (%.3fs)", meth.time) or ""
 
+                        local meth_name_hl = meth.status == "failed" and "DiagnosticError" or nil
                         local meth_text, meth_hls = format_line({
                             { prefix .. cont, "Comment" },
                             { meth_branch, "Comment" },
-                            { meth.name },
+                            { meth.name, meth_name_hl },
                             { " " .. meth_icon, meth_icon_hl },
                             { meth_time, "Comment" },
                         })
