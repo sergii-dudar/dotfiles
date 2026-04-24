@@ -62,6 +62,10 @@ vim.keymap.set({ "n", "x" }, "J", "8jzz", { noremap = true, silent = true }) -- 
 vim.keymap.set({ "n", "x" }, "H", "^", { noremap = true, silent = true }) -- Mapping K to 6kzz
 vim.keymap.set({ "n", "x" }, "L", "$", { noremap = true, silent = true }) -- Mapping J to 6jzz
 
+-- TODO:
+-- vim.keymap.set({ "n", "x" }, "]]", "]]zz", { silent = true }) -- Mapping K to 6kzz
+-- vim.keymap.set({ "n", "x" }, "[[", "[[zz", { silent = true }) -- Mapping J to 6jzz
+
 -- move cursor in insert mode, convenient in case need move in brackets or parentheses without leaving insert mode
 vim.keymap.set("i", "<C-l>", "<Right>", { noremap = true })
 vim.keymap.set("i", "<C-h>", "<Left>", { noremap = true })
