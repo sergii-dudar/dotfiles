@@ -115,6 +115,41 @@ local function paste_res_path(ctx, picker, item)
     end
 end
 
+---Handle explorer item: toggle directory or delegate to file action.
+---@param ctx PickContext
+---@param action fun(ctx: PickContext, picker: snacks.Picker, item: snacks.picker.Item)
+---@param picker snacks.Picker
+---@param item snacks.picker.explorer.Item
+local function explorer_dir_or_action(ctx, action, picker, item)
+    if not item then
+        return
+    end
+    if item.dir then
+        local Tree = require("snacks.explorer.tree")
+        Tree:toggle(item.file)
+        require("snacks.explorer.actions").update(picker, { refresh = true })
+        return
+    end
+    action(ctx, picker, item)
+end
+
+---Recursively expand all directories under cwd in the explorer tree.
+---@param cwd string
+local function expand_all_dirs(cwd)
+    local Tree = require("snacks.explorer.tree")
+    Tree:refresh(cwd)
+    local has_new = true
+    while has_new do
+        has_new = false
+        Tree:get(cwd, function(node)
+            if node.dir and not node.open then
+                node.open = true
+                has_new = true
+            end
+        end)
+    end
+end
+
 ---Open a file picker scoped to context-aware directories.
 ---For Java: scoped to module resource dirs. For other registered types: their resolver.
 ---Fallback: project CWD. Enter pastes the relative path at cursor.
@@ -177,43 +212,65 @@ function M.pick(opts)
         replace_range = replace_range,
     }
 
-    local actions = {
-        copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
-        paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
-    }
-    local win = {
-        input = {
-            keys = {
-                ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-            },
-        },
-        list = {
-            keys = {
-                ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-            },
-        },
-    }
-
     if picker_type == "explorer" then
+        local cwd = resource_dirs[1]
+        expand_all_dirs(cwd)
+
         Snacks.picker.explorer({
-            cwd = resource_dirs[1],
+            cwd = cwd,
             title = title,
             auto_close = true,
             follow_file = false,
-            focus = "list",
-            confirm = "paste_resource_path",
-            actions = actions,
-            win = win,
+            focus = "input",
+            actions = {
+                paste_resource_path = function(picker, item)
+                    explorer_dir_or_action(ctx, paste_res_path, picker, item)
+                end,
+                copy_resource_path = function(picker, item)
+                    explorer_dir_or_action(ctx, copy_res_path, picker, item)
+                end,
+            },
+            win = {
+                input = {
+                    keys = {
+                        ["<CR>"] = { "paste_resource_path", mode = { "i", "n" } },
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+                list = {
+                    keys = {
+                        ["<CR>"] = "paste_resource_path",
+                        ["l"] = "paste_resource_path",
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+            },
         })
     else
         Snacks.picker.files({
             dirs = resource_dirs,
             title = title,
             confirm = "paste_resource_path",
-            actions = actions,
-            win = win,
+            actions = {
+                copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
+                paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
+            },
+            win = {
+                input = {
+                    keys = {
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+                list = {
+                    keys = {
+                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                    },
+                },
+            },
         })
     end
 end
