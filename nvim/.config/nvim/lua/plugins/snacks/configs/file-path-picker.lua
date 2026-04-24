@@ -213,39 +213,57 @@ function M.pick(opts)
     }
 
     if picker_type == "explorer" then
-        local cwd = resource_dirs[1]
+        local dir_index = opts._dir_index or 1
+        local cwd = resource_dirs[dir_index] or resource_dirs[1]
         expand_all_dirs(cwd)
+
+        local explorer_title = title
+        if #resource_dirs > 1 then
+            explorer_title = title .. " [" .. dir_index .. "/" .. #resource_dirs .. "]:tab"
+        end
+
+        local actions = {
+            paste_resource_path = function(picker, item)
+                explorer_dir_or_action(ctx, paste_res_path, picker, item)
+            end,
+            copy_resource_path = function(picker, item)
+                explorer_dir_or_action(ctx, copy_res_path, picker, item)
+            end,
+        }
+        local input_keys = {
+            ["<CR>"] = { "paste_resource_path", mode = { "i", "n" } },
+            ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+            ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+        }
+        local list_keys = {
+            ["<CR>"] = "paste_resource_path",
+            ["l"] = "paste_resource_path",
+            ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+            ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+        }
+
+        if #resource_dirs > 1 then
+            actions.rotate_cwd = function(picker, _)
+                picker:close()
+                local next_index = (dir_index % #resource_dirs) + 1
+                vim.schedule(function()
+                    M.pick(vim.tbl_extend("force", opts, { _dir_index = next_index }))
+                end)
+            end
+            input_keys["<Tab>"] = { "rotate_cwd", mode = { "i", "n" } }
+            list_keys["<Tab>"] = "rotate_cwd"
+        end
 
         Snacks.picker.explorer({
             cwd = cwd,
-            title = title,
+            title = explorer_title,
             auto_close = true,
             follow_file = false,
             focus = "input",
-            actions = {
-                paste_resource_path = function(picker, item)
-                    explorer_dir_or_action(ctx, paste_res_path, picker, item)
-                end,
-                copy_resource_path = function(picker, item)
-                    explorer_dir_or_action(ctx, copy_res_path, picker, item)
-                end,
-            },
+            actions = actions,
             win = {
-                input = {
-                    keys = {
-                        ["<CR>"] = { "paste_resource_path", mode = { "i", "n" } },
-                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                    },
-                },
-                list = {
-                    keys = {
-                        ["<CR>"] = "paste_resource_path",
-                        ["l"] = "paste_resource_path",
-                        ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                        ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                    },
-                },
+                input = { keys = input_keys },
+                list = { keys = list_keys },
             },
         })
     else
