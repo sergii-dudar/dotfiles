@@ -135,6 +135,12 @@ return {
                         { "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, desc = "Context Apply First Code Action [jdtls]", },
                         -- override default preveiw mapping
                         -- { "<leader>ca", function() require("actions-preview").code_actions() end, desc = "Code Action (With Preview)", mode = { "n", "x" }, has = "codeAction", },
+                        { "]]", function() Snacks.words.jump(vim.v.count1, true)
+                            vim.cmd("normal! zz") end, has = "documentHighlight", desc = "Next Reference" },
+                        { "[[", function() Snacks.words.jump(-vim.v.count1, true)
+                            vim.cmd("normal! zz") end, has = "documentHighlight", desc = "Prev Reference" },
+                        -- { "<a-n>", function() Snacks.words.jump(vim.v.count1, true) end, has = "documentHighlight", desc = "Next Reference" },
+                        -- { "<a-p>", function() Snacks.words.jump(-vim.v.count1, true) end, has = "documentHighlight", desc = "Prev Reference" },
                     },
                 },
             },
