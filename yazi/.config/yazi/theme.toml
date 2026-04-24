@@ -98,7 +98,7 @@ current = { reversed = true }
 preview = { underline = true }
 # padding = { open = "", close = "" }
 # padding = { open = "█", close = "█" }
-padding = { open = "", close = "" }
+padding = { open = "▇", close = "▇" }
 
 # : }}}
 
