@@ -61,6 +61,60 @@ local function get_visual_selection()
     return { text = text, start_row = sr, start_col = sc, end_row = er, end_col = ec }
 end
 
+---@class PickContext
+---@field resource_dirs string[]
+---@field dirs_narrowed boolean
+---@field dir_prefix string
+---@field replace_range { text: string, start_row: integer, start_col: integer, end_row: integer, end_col: integer }|nil
+
+---@param ctx PickContext
+---@param abs_path string
+---@return string
+local function make_rel_path(ctx, abs_path)
+    local rel = relativize_to_dirs(abs_path, ctx.resource_dirs)
+    if ctx.dirs_narrowed then
+        rel = ctx.dir_prefix .. rel
+    end
+    return rel
+end
+
+---@param ctx PickContext
+---@param _ snacks.Picker
+---@param item snacks.picker.Item
+local function copy_res_path(ctx, _, item)
+    local abs_path = item and Snacks.picker.util.path(item)
+    if abs_path then
+        local rel = make_rel_path(ctx, abs_path)
+        vim.fn.setreg("+", rel)
+        Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
+    end
+end
+
+---@param ctx PickContext
+---@param picker snacks.Picker
+---@param item snacks.picker.Item
+local function paste_res_path(ctx, picker, item)
+    local abs_path = item and Snacks.picker.util.path(item)
+    if abs_path then
+        local rel = make_rel_path(ctx, abs_path)
+        picker:close()
+        vim.schedule(function()
+            if ctx.replace_range then
+                vim.api.nvim_buf_set_text(
+                    0,
+                    ctx.replace_range.start_row,
+                    ctx.replace_range.start_col,
+                    ctx.replace_range.end_row,
+                    ctx.replace_range.end_col,
+                    { rel }
+                )
+            else
+                vim.api.nvim_paste(rel, true, -1)
+            end
+        end)
+    end
+end
+
 ---Open a file picker scoped to context-aware directories.
 ---For Java: scoped to module resource dirs. For other registered types: their resolver.
 ---Fallback: project CWD. Enter pastes the relative path at cursor.
@@ -114,52 +168,21 @@ function M.pick(opts)
         title = title .. " > " .. context.text
     end
 
-    local function make_rel_path(abs_path)
-        local rel = relativize_to_dirs(abs_path, resource_dirs)
-        if dirs_narrowed then
-            rel = dir_prefix .. rel
-        end
-        return rel
-    end
-
-    local function copy_res_path(picker, item)
-        local abs_path = item and Snacks.picker.util.path(item)
-        if abs_path then
-            local rel = make_rel_path(abs_path)
-            vim.fn.setreg("+", rel)
-            Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
-        end
-    end
-
-    local function paste_res_path(picker, item)
-        local abs_path = item and Snacks.picker.util.path(item)
-        if abs_path then
-            local rel = make_rel_path(abs_path)
-            picker:close()
-            vim.schedule(function()
-                if replace_range then
-                    vim.api.nvim_buf_set_text(
-                        0,
-                        replace_range.start_row,
-                        replace_range.start_col,
-                        replace_range.end_row,
-                        replace_range.end_col,
-                        { rel }
-                    )
-                else
-                    vim.api.nvim_paste(rel, true, -1)
-                end
-            end)
-        end
-    end
+    ---@type PickContext
+    local ctx = {
+        resource_dirs = resource_dirs,
+        dirs_narrowed = dirs_narrowed,
+        dir_prefix = dir_prefix,
+        replace_range = replace_range,
+    }
 
     Snacks.picker.files({
         dirs = resource_dirs,
         title = title,
         confirm = "paste_resource_path",
         actions = {
-            copy_resource_path = copy_res_path,
-            paste_resource_path = paste_res_path,
+            copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
+            paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
         },
         win = {
             input = {
