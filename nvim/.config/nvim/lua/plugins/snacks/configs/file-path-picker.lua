@@ -120,9 +120,10 @@ end
 ---Fallback: project CWD. Enter pastes the relative path at cursor.
 ---In normal mode: detects enclosing string literal via treesitter, narrows by dir prefix, replaces on confirm.
 ---In visual mode: uses selection as partial path, narrows by dir prefix, replaces selection on confirm.
----@param opts? { mode: "n"|"v" }
+---@param opts? { mode: "n"|"v", picker: "files"|"explorer" }
 function M.pick(opts)
     opts = opts or {}
+    local picker_type = opts.picker or "files"
     local uv = vim.uv or vim.loop
     local resolver = require("utils.resource-cwd-resolver")
     local result = resolver.resolve()
@@ -176,29 +177,45 @@ function M.pick(opts)
         replace_range = replace_range,
     }
 
-    Snacks.picker.files({
-        dirs = resource_dirs,
-        title = title,
-        confirm = "paste_resource_path",
-        actions = {
-            copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
-            paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
-        },
-        win = {
-            input = {
-                keys = {
-                    ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                    ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                },
-            },
-            list = {
-                keys = {
-                    ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
-                    ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
-                },
+    local actions = {
+        copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
+        paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
+    }
+    local win = {
+        input = {
+            keys = {
+                ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
             },
         },
-    })
+        list = {
+            keys = {
+                ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
+                ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+            },
+        },
+    }
+
+    if picker_type == "explorer" then
+        Snacks.picker.explorer({
+            cwd = resource_dirs[1],
+            title = title,
+            auto_close = true,
+            follow_file = false,
+            focus = "list",
+            confirm = "paste_resource_path",
+            actions = actions,
+            win = win,
+        })
+    else
+        Snacks.picker.files({
+            dirs = resource_dirs,
+            title = title,
+            confirm = "paste_resource_path",
+            actions = actions,
+            win = win,
+        })
+    end
 end
 
 return M
