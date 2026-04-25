@@ -32,7 +32,7 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 - X11 compositor: [picom][40]
 - Tiling WM: macos - [aerospace][41] + [sketchybar][42] + [janky-borders][43]
 - Neovim: [LazyVim][44] based [configuration][15]. It's my main editor as Software Engineer, and it's oriented to many languages I'm using professionally (java, c#, js, bash, python... but mostly as java backend dev right now), or as hobby (lua, c/c++, rust, haskell...).
-- Neotim Theme - customized `gruvbox-material` or `everforest`, bd - `hard` (the most eyes comfortable themes I ever used for very long working sessions!), also I'm a big fan of `catppuccin-mocha` but my eyes not very like it to work 24/7 (too much blue for me) 😺
+- Neotim Theme - customized `gruvbox-material` or `everforest`, bd - `hard` (the most eyes comfortable themes I ever used for very long working sessions!)
 - Keyboard OS level tools: kanata [linux][45] and [macos][46] configs (in previous: macos - [karabiner][47], linux - [keyd][48] / [kmonad][49]
 - HotKeys launchers daemon: macos - using [aerospace][41] support, X11 - [sxhkd][50]
 - Launchers (Wayland, X11): [rofi][51] by using [fork with wayland support][52]

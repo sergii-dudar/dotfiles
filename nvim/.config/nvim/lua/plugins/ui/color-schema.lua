@@ -64,12 +64,16 @@ return {
             -- unblevable/quick-scope
             vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
             vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
-
-            -- INFO: undercurl = true is not working with alacritty + tmux well
-            vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { underline = true, sp = "#ea6962" })
-            vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { underline = true, sp = "#d8a657" })
-            vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { underline = true, sp = "#7daea3" })
-            vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { underline = true, sp = "#a9b665" })
+            --
+            -- -- INFO: undercurl = true is not working with alacritty + tmux well
+            -- vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { underline = true, sp = "#ea6962" })
+            -- vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { underline = true, sp = "#d8a657" })
+            -- vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { underline = true, sp = "#7daea3" })
+            -- vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { underline = true, sp = "#a9b665" })
+            vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#ea6962" })
+            vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#d8a657" })
+            vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#7daea3" })
+            vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#a9b665" })
 
             -- Highlight groups: users can override via nvim_set_hl before this module loads.
             -- vim.api.nvim_set_hl(0, "JavaFormatOk", { default = true, link = "DiagnosticOk" })
