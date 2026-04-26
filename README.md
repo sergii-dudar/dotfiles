@@ -20,7 +20,7 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 
 ## My current tool preferences
 
-- Terminal: [alacritty][4], [ghostty][5], [kitty][6], [wezterm][7]
+- Terminal: [alacritty][4], [foot][87] [ghostty][5], [kitty][6], [wezterm][7]
 - Multiplexer: [tmux][8] + [tmux-powerline][9], [sesh][10] (as sessions manager + own customizations based on it and tmux api)
 - SHELL: [zsh][11] + [ohmyz][12] + [starship][13] + [fastfetch][14] and so on
 - Code: [nvim][15], [intellij][16] (only for specific working tasks, mostly because of existing some useful plugins, where I have not found decent alternative in neovim, driven by [.ideavimrc][16]. But need to say that in free time, I'm trying to replicate some very important intellij functionality (for me and my work) in my neovim config (like [java-refactor][17], [junit][18], [blink-java-mapstruct][19]), and it's reason why my nvim config quite huge, especially [nvim/utils][20], maybe some day I will extract most of main implementations to separate plugins, will see)
@@ -156,3 +156,4 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 [84]: rofi/.config/rofi/README.md
 [85]: yazi/.config/yazi/README.md
 [86]: ranger/.config/ranger/README.md
+[87]: https://codeberg.org/dnkl/foot
