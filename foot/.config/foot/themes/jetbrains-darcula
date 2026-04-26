@@ -4,8 +4,10 @@
 
 [colors-dark]
 cursor=202020 ffffff
-background=202020
+#background=202020
 foreground=adadad
+#foreground=c9c9c9
+background=141414
 regular0=000000  # black
 regular1=fa5355  # red
 regular2=126e00  # green

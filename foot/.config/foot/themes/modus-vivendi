@@ -5,8 +5,10 @@
 #
 
 [colors-dark]
-background=000000
+#background=000000
 foreground=ffffff
+#foreground=c9c9c9
+background=141414
 regular0=000000
 regular1=ff8059
 regular2=44bc44
