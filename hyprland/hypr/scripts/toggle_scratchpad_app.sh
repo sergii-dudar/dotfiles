@@ -6,19 +6,22 @@ case "$APP" in
     "yazi")
         class="com.scratchpad.yazi"
         # cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
-        cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        # cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        cmd="foot --app-id=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify="📂 Yazi Manager"
         ;;
     "mini_terminal")
         class="com.scratchpad.mini_terminal"
         # cmd="ghostty --class=com.scratchpad.mini_terminal"
-        cmd="alacritty --class=com.scratchpad.mini_terminal"
+        # cmd="alacritty --class=com.scratchpad.mini_terminal"
+        cmd="foot --app-id=com.scratchpad.mini_terminal"
         notify="🧑🏻‍💻 Mini Terminal"
         ;;
     "music")
         class="com.scratchpad.music"
         # cmd="ghostty --class=com.scratchpad.music -e rmpc"
-        cmd="alacritty --class=com.scratchpad.music -e ~/.cargo/bin/rmpc"
+        # cmd="alacritty --class=com.scratchpad.music -e ~/.cargo/bin/rmpc"
+        cmd="foot --app-id=com.scratchpad.music -e ~/.cargo/bin/rmpc"
         notify="🎹 MPD-RMPC"
         ;;
     "nautilus")

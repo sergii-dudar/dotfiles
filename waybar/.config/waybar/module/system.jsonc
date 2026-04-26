@@ -19,19 +19,22 @@
     "cpu": {
         "format": "<span color='#8caaee'> </span> {usage:02}<span color='#6272a4'>%</span>",
         "tooltip": false,
-        "on-click": "gnome-system-monitor"
+        // "on-click": "gnome-system-monitor"
+        "on-click": "foot --app-id=com.term.float.htop_info -e btop",
     },
     "memory": {
         "format": "<span color='#a6e3a1'> </span> {percentage:02}<span color='#6272a4'>%</span>",
         // "on-click": "ghostty --class=com.term.float.htop_info -e btop",
-        "on-click": "alacritty --class=com.term.float.htop_info -e btop",
+        // "on-click": "alacritty --class=com.term.float.htop_info -e btop",
+        "on-click": "foot --app-id=com.term.float.htop_info -e btop",
     },
     "disk": {
         "interval": 600,
         "format": "<span color='#e5c890'> </span> {percentage_used:02}<span color='#6272a4'>% SSD</span>",
         "path": "/",
         // "on-click": "ghostty --class=com.term.float.disc_ugd -e gdu ~"
-        "on-click": "alacritty --class=com.term.float.disc_ugd -e gdu ~"
+        // "on-click": "alacritty --class=com.term.float.disc_ugd -e gdu ~"
+        "on-click": "foot --app-id=com.term.float.disc_ugd -e gdu ~"
     },
     "temperature": {
         "thermal-zone": 0,

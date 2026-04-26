@@ -65,6 +65,7 @@
             "^Alacritty(.*)": " 🧑‍💻 <span color='#928374'>Alacritty: [</span> $1 <span color='#928374'>]</span>",
             "^foot(.*)": " 🧑‍💻 <span color='#928374'>Foot: [</span> $1 <span color='#928374'>]</span>",
             "^com.alacritty.group01(.*)": " 🧑‍💻 <span color='#928374'>Alacritty: [</span> $1 <span color='#928374'>]</span>",
+            "^com.term.group01(.*)": " 🧑‍💻 <span color='#928374'>Foot: [</span> $1 <span color='#928374'>]</span>",
             "^xterm(.*)": " 🧑‍💻 <span color='#928374'>xterm: [</span> $1 <span color='#928374'>]</span>",
             "^kitty(.*)": " 🐱 <span color='#928374'>Kitty: [</span> $1 <span color='#928374'>]</span>",
             "^org.wezfurlong.wezterm(.*)": " 🔮 <span color='#928374'>Wezterm [</span> $1 <span color='#928374'>]</span>",

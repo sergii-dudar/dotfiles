@@ -27,7 +27,8 @@ case "$wm_name" in
         # ghostty --class=com.ghostty.group01 &
 
         # (sleep 0.4 && ghostty --class=com.ghostty.group01) &
-        (sleep 0.4 && alacritty --class=com.alacritty.group01) &
+        # (sleep 0.4 && alacritty --class=com.alacritty.group01) &
+        (sleep 0.4 && foot --app-id=com.term.group01) &
         # (sleep 0.7 && brave --force-device-scale-factor=1.2) &
         (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
 
@@ -36,7 +37,8 @@ case "$wm_name" in
         # systemctl --user --now enable hyprpolkitagent
 
         # ghostty --class=com.ghostty.group01 &
-        alacritty --class=com.alacritty.group01 &
+        # alacritty --class=com.alacritty.group01 &
+        foot --app-id=com.term.group01 &
         # brave --force-device-scale-factor=1.2 &
         ~/dotfiles/bin/start-browserw &
 

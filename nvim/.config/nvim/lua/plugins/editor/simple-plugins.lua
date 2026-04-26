@@ -14,6 +14,18 @@ return {
             })
         end,
     },
+    -- search/replace in multiple files
+    {
+        "MagicDuck/grug-far.nvim",
+        opts = {
+            headerMaxWidth = 80,
+            engines = {
+                ripgrep = {
+                    extraArgs = "--hidden",
+                },
+            },
+        },
+    },
     {
         "fei6409/log-highlight.nvim",
         opts = {

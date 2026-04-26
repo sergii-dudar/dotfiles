@@ -8,14 +8,16 @@ case "$1" in
         shell="xdg_shell"
         app_id="com.scratchpad.yazi"
         # run_cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
-        run_cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        # run_cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        run_cmd="foot --app-id=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify_msg="📂 Yazi Manager"
         ;;
     "music")
         shell="xdg_shell"
         app_id="com.scratchpad.music"
         # run_cmd="ghostty --class=com.scratchpad.music -e rmpc"
-        run_cmd="alacritty --class=com.scratchpad.music -e ~/.cargo/bin/rmpc"
+        # run_cmd="alacritty --class=com.scratchpad.music -e ~/.cargo/bin/rmpc"
+        run_cmd="foot --app-id=com.scratchpad.music -e ~/.cargo/bin/rmpc"
         notify_msg="🎹 MPD-RMPC"
         ;;
     "nautilus")
