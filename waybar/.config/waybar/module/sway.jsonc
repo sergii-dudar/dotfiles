@@ -63,6 +63,7 @@
             "^com.ghostty.group01(.*)": " 🧑‍💻 <span color='#928374'>Ghostty: [</span> $1 <span color='#928374'>]</span>",
             "^com.mitchellh.ghostty(.*)": " 🧑‍💻 <span color='#928374'>Ghostty: [</span> $1 <span color='#928374'>]</span>",
             "^Alacritty(.*)": " 🧑‍💻 <span color='#928374'>Alacritty: [</span> $1 <span color='#928374'>]</span>",
+            "^foot(.*)": " 🧑‍💻 <span color='#928374'>Foot: [</span> $1 <span color='#928374'>]</span>",
             "^com.alacritty.group01(.*)": " 🧑‍💻 <span color='#928374'>Alacritty: [</span> $1 <span color='#928374'>]</span>",
             "^xterm(.*)": " 🧑‍💻 <span color='#928374'>xterm: [</span> $1 <span color='#928374'>]</span>",
             "^kitty(.*)": " 🐱 <span color='#928374'>Kitty: [</span> $1 <span color='#928374'>]</span>",
