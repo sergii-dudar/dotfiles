@@ -15,6 +15,33 @@ local function toggle_layout(picker)
     picker:set_layout(Snacks.picker.config.layout({ layout = next_name }))
 end
 
+---Grep within selected files from the files picker.
+---Use <Tab> to multi-select files, then trigger this action.
+---Falls back to the current item if nothing is multi-selected.
+---@param picker snacks.Picker
+local function grep_selected_files(picker)
+    local selected = picker:selected({ fallback = true })
+    if not selected or #selected == 0 then
+        vim.notify("No files selected", vim.log.levels.WARN)
+        return
+    end
+    local files = {}
+    for _, item in ipairs(selected) do
+        if item.file then
+            local path = item.cwd and (item.cwd .. "/" .. item.file) or item.file
+            table.insert(files, path)
+        end
+    end
+    if #files == 0 then
+        vim.notify("No file paths found in selection", vim.log.levels.WARN)
+        return
+    end
+    picker:close()
+    vim.schedule(function()
+        Snacks.picker.grep({ dirs = files, title = "Search in selected" })
+    end)
+end
+
 ---Diff two selected files in a new tab.
 ---Use <Tab> to multi-select exactly 2 files, then trigger this action.
 ---@param picker snacks.Picker
@@ -70,6 +97,7 @@ M.picker = {
     actions = {
         diff_selected = diff_selected,
         toggle_layout = toggle_layout,
+        grep_selected_files = grep_selected_files,
     },
     win = {
         input = {
@@ -105,6 +133,18 @@ M.picker = {
             --     "--ignore-case",
             --     "--full-path"
             -- },
+            win = {
+                input = {
+                    keys = {
+                        ["<c-g>"] = { "grep_selected_files", mode = { "i", "n" } },
+                    },
+                },
+                list = {
+                    keys = {
+                        ["<c-g>"] = { "grep_selected_files", mode = { "i", "n" } },
+                    },
+                },
+            },
         },
         grep = {
             hidden = true, -- Show hidden files
