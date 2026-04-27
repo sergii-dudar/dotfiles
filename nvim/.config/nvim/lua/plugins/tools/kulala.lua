@@ -10,11 +10,11 @@ return {
         -- stylua: ignore
         keys = {
             { "<leader>R", "", desc = "+Rest" },
-            { "<leader>Rb", function() require('kulala').scratchpad() end, desc = "Open scratchpad" },
-            { "<leader>Rr", function() require('kulala').replay() end, desc = "Replay the last request" },
-            { "<leader>r", "", desc = "+Rest", ft = "http" },
-            { "<leader>rr", function() require('kulala').run() end, desc = "Send the request", ft = "http" },
-            { "<leader>rl", function() require('kulala').replay() end, desc = "Replay the last request", ft = "http" },
+            { "<leader>Rb", function() require('kulala').scratchpad() end, desc = "Open scratchpad (http)" },
+            { "<leader>Rr", function() require('kulala').replay() end, desc = "Replay the last request (http)" },
+            { "<leader>r", "", desc = "+Rest", ft = {"http", "json"} },
+            { "<leader>rr", function() require('kulala').run() end, desc = "Send the request (http)", ft = "http" },
+            { "<leader>rl", function() require('kulala').replay() end, desc = "Replay the last request (http)", ft = {"http", "json"} },
 
             -- already defined as global_keymaps by default
             -- https://neovim.getkulala.net/docs/getting-started/default-keymaps

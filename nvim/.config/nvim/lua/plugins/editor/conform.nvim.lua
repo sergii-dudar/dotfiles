@@ -2,13 +2,15 @@ return {
     {
         "stevearc/conform.nvim",
         opts = function(_, opts)
-            opts.formatters = {
+            --[[ opts.formatters = {
                 kulala = {
                     command = "kulala-fmt",
                     args = { "format", "$FILENAME" },
                     stdin = false,
+                    exit_codes = { 0, 1 },
                 },
             }
+            opts.formatters_by_ft.http = { "kulala" } ]]
 
             --opts.formatters_by_ft.xml = { "xmlformatter" }
             opts.formatters_by_ft.kotlin = { "ktfmt" }
@@ -24,7 +26,6 @@ return {
             -- opts.formatters_by_ft.cs = { "csharpier" }
             opts.formatters_by_ft.css = { "prettier" }
 
-            opts.formatters_by_ft.http = { "kulala" }
             -- require("conform").format({ async = true }, function(err, did_edit) dd(err) end)
 
             --opts.formatters_by_ft.java = { "google-java-format" }
