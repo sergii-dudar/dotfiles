@@ -121,6 +121,18 @@ M.picker = {
             layout = vim.tbl_extend("force", layouts.custom_default, { reverse = false }),
             auto_close = true,
             focus = "input", -- input|list
+            win = {
+                input = {
+                    keys = {
+                        ["<c-g>"] = { "grep_selected_files", mode = { "i", "n" } },
+                    },
+                },
+                list = {
+                    keys = {
+                        ["<c-g>"] = { "grep_selected_files", mode = { "i", "n" } },
+                    },
+                },
+            },
         },
         files = {
             -- cmd = "fd", -- "fd"| "rg"| "find" command to use. Leave empty to auto-detect
