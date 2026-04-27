@@ -2,6 +2,14 @@ return {
     {
         "stevearc/conform.nvim",
         opts = function(_, opts)
+            opts.formatters = {
+                kulala = {
+                    command = "kulala-fmt",
+                    args = { "format", "$FILENAME" },
+                    stdin = false,
+                },
+            }
+
             --opts.formatters_by_ft.xml = { "xmlformatter" }
             opts.formatters_by_ft.kotlin = { "ktfmt" }
             opts.formatters_by_ft.sh = { "beautysh" }
@@ -15,6 +23,9 @@ return {
             opts.formatters_by_ft.cs = {} -- disable default `csharpier` formatter, to use lsp omnisharp formatter
             -- opts.formatters_by_ft.cs = { "csharpier" }
             opts.formatters_by_ft.css = { "prettier" }
+
+            opts.formatters_by_ft.http = { "kulala" }
+            -- require("conform").format({ async = true }, function(err, did_edit) dd(err) end)
 
             --opts.formatters_by_ft.java = { "google-java-format" }
             --opts.formatters_by_ft.java = { "spotless_custom" }
