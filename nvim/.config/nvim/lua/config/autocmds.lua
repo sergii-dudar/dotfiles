@@ -292,3 +292,32 @@ end, {})
 vim.api.nvim_create_user_command("LastRun", function()
     require("dap").run_last()
 end, {})
+
+-- Convert Java toString() output to JSON (works with visual selection)
+vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
+    local start_line = opts.line1
+    local end_line = opts.line2
+    local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+    local input = table.concat(lines, "\n")
+
+    local parser = require("utils.java-tostring-parser")
+    local result, err = parser.parse(input)
+    if not result then
+        vim.notify("Failed to parse Java toString: " .. (err or "unknown error"), vim.log.levels.ERROR)
+        return
+    end
+
+    local json_str = vim.json.encode(result)
+
+    -- Format with jq if available
+    local jq_result = vim.fn.system("echo " .. vim.fn.shellescape(json_str) .. " | jq .", "")
+    if vim.v.shell_error == 0 and jq_result and jq_result ~= "" then
+        json_str = jq_result
+    end
+
+    -- Replace selected lines with formatted JSON
+    local new_lines = vim.split(json_str, "\n", { trimempty = true })
+    vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, new_lines)
+end, { range = true })
+
+vim.keymap.set("v", "<leader>cJ", ":'<,'>JavaToStringToJson<CR>", { desc = "Convert Java toString to JSON" })
