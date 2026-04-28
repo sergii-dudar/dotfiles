@@ -168,6 +168,11 @@ function Parser:parse_lombok_value()
         return self:parse_lombok_object()
     end
 
+    -- Bare record object ((key=value, ...))
+    if self:peek() == "(" then
+        return self:parse_bare_lombok_object()
+    end
+
     -- null / true / false
     local keyword = self:try_keyword_lombok()
     if keyword ~= nil then
