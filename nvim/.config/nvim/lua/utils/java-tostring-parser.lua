@@ -94,6 +94,8 @@ function Parser:parse_root_value()
         return self:parse_bare_object()
     elseif self:match_ahead("%u[%w_%.]*%(") then
         return self:parse_lombok_object()
+    elseif self:peek() == "(" then
+        return self:parse_bare_lombok_object()
     elseif self:peek() == "[" then
         return self:parse_auto_array()
     else
@@ -106,11 +108,20 @@ end
 
 --------------------------------------------------------------------------------
 -- Lombok format: ClassName(key=value, key2=value2)
+-- Also supports bare format: (key=value, key2=value2)
 --------------------------------------------------------------------------------
 
 function Parser:parse_lombok_object()
     -- Skip class name
     self:read_until("(")
+    return self:parse_lombok_object_body()
+end
+
+function Parser:parse_bare_lombok_object()
+    return self:parse_lombok_object_body()
+end
+
+function Parser:parse_lombok_object_body()
     self:advance() -- skip '('
     self:skip_ws()
 
