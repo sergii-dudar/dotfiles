@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-namespace=payments-uat
-context=aws-avalaunch-dev
+namespace=payments-prod
+context=aws-avalaunch-prod
 
 mapfile -t deployments < <(kubectl get deployments -n "$namespace" --context "$context" -o jsonpath='{.items[*].metadata.name}' \
     | tr ' ' '\n' | fzf --multi --header="TAB=select  ENTER=confirm  ESC=cancel")

@@ -32,6 +32,14 @@ return {
         opts = {
             debug = false,
             default_env = "uat",
+            custom_dynamic_variables = {
+                ["$cwd"] = function()
+                    return vim.fn.getcwd()
+                end,
+                ["$env"] = function()
+                    return require("kulala").get_selected_env()
+                end,
+            },
             ui = {
                 winbar = true,
                 pickers = {
