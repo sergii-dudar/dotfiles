@@ -307,7 +307,7 @@ vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
         return
     end
 
-    local json_str = vim.json.encode(result)
+    local json_str = parser.to_json(result)
 
     -- Format with jq if available
     local jq_result = vim.fn.system("echo " .. vim.fn.shellescape(json_str) .. " | jq .", "")
@@ -319,5 +319,3 @@ vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
     local new_lines = vim.split(json_str, "\n", { trimempty = true })
     vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, new_lines)
 end, { range = true })
-
-vim.keymap.set("v", "<leader>cJ", ":'<,'>JavaToStringToJson<CR>", { desc = "Convert Java toString to JSON" })

@@ -1,5 +1,7 @@
 local M = {}
 
+local RAW_NUM_SENTINEL = "%%__RAWNUM__%%"
+
 -- Recursive descent parser for Java toString() output.
 -- Supports two formats:
 --   1. Lombok: ClassName(key=value, key2=NestedClass(k=v), arr=[Item(k=v)])
@@ -463,11 +465,19 @@ function Parser:interpret_primitive(str)
     if str == "" then
         return str
     end
-    -- Number: integer or decimal (possibly negative)
+    -- Number: integer or decimal (possibly negative) — preserve original precision
     if str:match("^-?%d+%.?%d*$") then
-        return tonumber(str)
+        return RAW_NUM_SENTINEL .. str
     end
     return str
+end
+
+--- Encode parsed result to JSON string, preserving original number precision.
+function M.to_json(result)
+    local json_str = vim.json.encode(result)
+    -- Replace quoted sentinels with raw number literals: "%%__RAWNUM__%%100.00" → 100.00
+    json_str = json_str:gsub('"' .. RAW_NUM_SENTINEL:gsub("%%", "%%%%") .. '([^"]-)"', "%1")
+    return json_str
 end
 
 return M
