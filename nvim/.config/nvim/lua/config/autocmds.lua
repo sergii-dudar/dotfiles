@@ -293,7 +293,9 @@ vim.api.nvim_create_user_command("LastRun", function()
     require("dap").run_last()
 end, {})
 
--- Convert Java toString() output to JSON (works with visual selection)
+--------------------------------------------------------------------------------------------------------
+---------------- Convert Java toString() output to JSON (works with visual selection) ------------------
+
 vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
     local start_line = opts.line1
     local end_line = opts.line2
