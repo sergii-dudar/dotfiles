@@ -1,0 +1,47 @@
+{
+    "custom/runner-power": {
+        "format": "<span color='#d35f5e'> </span>",
+        "on-click": "~/.config/rofi/scripts/powermenu_t1"
+    },
+    "group/group-runners": {
+        "orientation": "inherit",
+        "drawer": {
+            "transition-duration": 500,
+            "children-class": "not-power",
+            "transition-left-to-right": true,
+        },
+        "modules": [
+            "custom/runner-arch", // First element is the "group leader" and won't ever be hidden
+            "custom/runner-wallpapers",
+            "custom/runner-viber",
+            "custom/runner-settings",
+            "custom/runner-color-picker",
+            "custom/runner-evince",
+            "custom/runner-qbittorrent",
+        ]
+    },
+    "custom/runner-arch": {
+        "format": "<span color='#61afef'> </span>",
+        "on-click": "~/.config/rofi/scripts/launcher_t1"
+    },
+    "custom/runner-viber": {
+        "format": "<span color='#7765f2'> </span>",
+        "on-click": "env QT_SCREEN_SCALE_FACTORS=1.75 viber"
+    },
+    "custom/runner-settings": {
+        "format": "<span color='#3071db'> </span>",
+        "on-click": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
+    },
+    "custom/runner-color-picker": {
+        "format": "<span color='#a6e3a1'>󰸱 </span>",
+        "on-click": "hyprpicker --autocopy"
+    },
+    "custom/runner-evince": {
+        "format": "<span color='#7FBBB3#d35f5e'> </span>",
+        "on-click": "evince"
+    },
+    "custom/runner-qbittorrent": {
+        "format": "<span color='#1093F5'>󱑤 </span>",
+        "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent"
+    }
+}

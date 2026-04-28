@@ -1,3 +1,4 @@
+// looks waybar stopped working with some types of images, disabled for not in favor of runners2 based on nerd fonts
 {
     "image#runner-power": {
         "path": "/home/serhii/.config/waybar/resources/power.png",
