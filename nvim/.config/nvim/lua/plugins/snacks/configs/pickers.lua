@@ -90,6 +90,13 @@ M.picker = {
             truncate = "left", -- "left"|"center"|"right"
         },
     },
+    previewers = {
+        diff = {
+            wo = {
+                wrap = false,
+            },
+        },
+    },
     -- matcher = {
     --     smartcase = false, -- use smartcase
     --     -- ignorecase = true, -- use ignorecase

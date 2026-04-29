@@ -143,6 +143,12 @@ vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silen
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
 
 -- convert Java toString() to JSON
-vim.keymap.set("v", "<leader>cJ", ":'<,'>JavaToStringToJson<CR>", { desc = "Convert Java toString to JSON" })
+vim.keymap.set("v", "<leader>cJ", ":'<,'>JavaToStringToJson<CR>", { desc = "Convert Java toString to JSON (replace)" })
+vim.keymap.set(
+    "v",
+    "<leader>cyJ",
+    ":'<,'>JavaToStringToJson!<CR>",
+    { desc = "Convert Java toString to JSON (clipboard)" }
+)
 
 -- stylua: ignore end

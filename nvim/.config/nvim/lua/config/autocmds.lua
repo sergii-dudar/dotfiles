@@ -317,7 +317,13 @@ vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
         json_str = jq_result
     end
 
-    -- Replace selected lines with formatted JSON
-    local new_lines = vim.split(json_str, "\n", { trimempty = true })
-    vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, new_lines)
-end, { range = true })
+    if opts.bang then
+        -- Copy to system clipboard
+        vim.fn.setreg("+", json_str)
+        vim.notify("JSON copied to clipboard", vim.log.levels.INFO)
+    else
+        -- Replace selected lines with formatted JSON
+        local new_lines = vim.split(json_str, "\n", { trimempty = true })
+        vim.api.nvim_buf_set_lines(0, start_line - 1, end_line, false, new_lines)
+    end
+end, { range = true, bang = true })

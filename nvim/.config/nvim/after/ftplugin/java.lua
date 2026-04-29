@@ -21,6 +21,7 @@ vim.opt.shiftwidth = 4
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
+vim.opt.wrap = false
 
 -- Set shift width
 --vim.opt.shiftwidth = 8
