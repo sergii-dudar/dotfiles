@@ -20,8 +20,7 @@
         "modules-center": [
             "clock#date",
             "sway/workspaces",
-            "clock",
-            "custom/power",
+            "clock"
         ],
         "modules-right": [
             // "mpd",
@@ -70,7 +69,7 @@
         ],
         "modules-right": [
             "clock",
-            "clock#date",
+            "clock#date"
         ],
         "include": [
             "~/.config/waybar/module/sway.jsonc",
@@ -78,7 +77,8 @@
             "~/.config/waybar/module/system.jsonc",
             "~/.config/waybar/module/custom.jsonc",
             "~/.config/waybar/module/other.jsonc",
-            "~/.config/waybar/module/runners.jsonc",
+            // "~/.config/waybar/module/runners.jsonc",
+            "~/.config/waybar/module/runners2.jsonc",
             "~/.config/waybar/module/simple.jsonc"
         ]
     }
