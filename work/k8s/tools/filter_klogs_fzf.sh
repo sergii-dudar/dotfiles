@@ -33,13 +33,16 @@ REFRESH="${2:-3}"  # auto-reload interval in seconds, 0 to disable
 
 PORT=$((10000 + RANDOM % 50000))
 RELOAD_PID=""
+SCROLL_FLAG="/tmp/fzf-klogs-scroll-$$"
+touch "$SCROLL_FLAG"  # auto-scroll enabled by default
+trap 'rm -f "$SCROLL_FLAG"' EXIT
 
 if [[ "$REFRESH" -gt 0 ]] 2>/dev/null; then
     (last_mtime=""; while sleep "$REFRESH"; do
             cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
             [[ "$cur_mtime" == "$last_mtime" ]] && continue
             last_mtime="$cur_mtime"
-            curl -s -XPOST "localhost:$PORT" -d "reload($RG_PREFIX)+last" 2>/dev/null || break
+            curl -s -XPOST "localhost:$PORT" -d "reload($RG_PREFIX)+transform([[ -f $SCROLL_FLAG ]] && echo last)" 2>/dev/null || break
     done) &
     RELOAD_PID=$!
 fi
@@ -55,15 +58,18 @@ function _klabels() {
 invim=$'\033[38;5;32m\033[0m'
 iselect=$'\033[38;5;135m\033[0m'
 ihist=$'\033[38;5;32m\033[0m'
+iscroll=$'\033[38;5;32m󰁪\033[0m'
 
 
-_fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} "
+
+_fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} $(_klabels '^s')Autoscroll ${iscroll} "
 selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUERY" \
         --layout=reverse \
         --header "$_fzf_header" \
         --bind "start:reload($RG_PREFIX)+last" \
-        --bind "change:reload(sleep 0.1; $RG_PREFIX || true)+last" \
-        --bind "ctrl-r:reload($RG_PREFIX)+last" \
+        --bind "change:reload(sleep 0.1; $RG_PREFIX || true)+transform([[ -f $SCROLL_FLAG ]] && echo last)" \
+        --bind "ctrl-r:reload($RG_PREFIX)+transform([[ -f $SCROLL_FLAG ]] && echo last)" \
+        --bind "ctrl-s:transform([[ -f $SCROLL_FLAG ]] && rm $SCROLL_FLAG && echo 'change-prompt(Filter k8s logs ❯ )' || (touch $SCROLL_FLAG && echo 'change-prompt(Filter k8s logs  ❯ )'))" \
         --bind "enter:execute($RG_PREFIX_NOCOL | gsed 's/^[^{]*//' | jq -s . > $tmp && LIMITED=Y nvim -R -c 'setfiletype json' $tmp; rm -f $tmp)" \
         --bind 'ctrl-q:select-all+accept' \
         --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
