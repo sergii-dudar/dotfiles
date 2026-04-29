@@ -313,7 +313,7 @@ vim.api.nvim_create_user_command("JavaToStringToJson", function(opts)
     local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
     local input = table.concat(lines, "\n")
 
-    local parser = require("utils.java-tostring-parser")
+    local parser = require("utils.java.java-tostring-parser")
     local result, err = parser.parse(input)
     if not result then
         vim.notify("Failed to parse Java toString: " .. (err or "unknown error"), vim.log.levels.ERROR)
