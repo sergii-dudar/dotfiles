@@ -39,7 +39,7 @@ if [[ "$REFRESH" -gt 0 ]] 2>/dev/null; then
             cur_mtime=$(stat -f %m ./klogs/**/*.log 2>/dev/null | sort -rn | head -1)
             [[ "$cur_mtime" == "$last_mtime" ]] && continue
             last_mtime="$cur_mtime"
-            curl -s -XPOST "localhost:$PORT" -d "reload:$RG_PREFIX" 2>/dev/null || break
+            curl -s -XPOST "localhost:$PORT" -d "reload($RG_PREFIX)+last" 2>/dev/null || break
     done) &
     RELOAD_PID=$!
 fi
@@ -59,10 +59,11 @@ ihist=$'\033[38;5;32m\033[0m'
 
 _fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} "
 selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUERY" \
+        --layout=reverse \
         --header "$_fzf_header" \
-        --bind "start:reload:$RG_PREFIX" \
-        --bind "change:reload:sleep 0.1; $RG_PREFIX || true" \
-        --bind "ctrl-r:reload:$RG_PREFIX" \
+        --bind "start:reload($RG_PREFIX)+last" \
+        --bind "change:reload(sleep 0.1; $RG_PREFIX || true)+last" \
+        --bind "ctrl-r:reload($RG_PREFIX)+last" \
         --bind "enter:execute($RG_PREFIX_NOCOL | gsed 's/^[^{]*//' | jq -s . > $tmp && LIMITED=Y nvim -R -c 'setfiletype json' $tmp; rm -f $tmp)" \
         --bind 'ctrl-q:select-all+accept' \
         --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
@@ -76,4 +77,3 @@ selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUER
 echo "$selected" | gsed 's/^[^{]*//' | jq -s . > "$tmp" \
     && LIMITED=Y nvim -R -c 'setfiletype json' "$tmp"
 rm -f "$tmp"
-
