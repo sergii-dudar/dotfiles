@@ -133,6 +133,7 @@
     // },
     "custom/runner-wallpapers": {
         "format": "<span color='#b4befe'> </span>",
-        "on-click": "~/.config/waypaper/toggle.sh sway"
+        "on-click": "~/.config/waypaper/toggle.sh sway",
+        "tooltip": false
     },
 }

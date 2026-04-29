@@ -5,6 +5,19 @@
     color: #94928f;
 }
 
+#custom-runner-power,
+#custom-runner-arch {
+    margin: 0;
+    padding: 0 3px 0 9px;
+    background-color: #2e3440;
+    color: #94928f;
+}
+/* #custom-runner-power { */
+/*     padding: 0 3 0 9; */
+/*     background-color: #2e3440; */
+/*     color: #94928f; */
+/* } */
+
 #image.runner-settings,
 #image.runner-kitty,
 #image.runner-ghostty,
@@ -22,6 +35,20 @@
     /* border-radius: 0px; */
 }
 
+#group-group-runners,
+#custom-runner-viber,
+#custom-runner-settings,
+#custom-runner-color-picker,
+#custom-runner-evince,
+#custom-runner-qbittorrent,
+#custom-runner-wallpapers {
+    /* margin-left: 3; */
+    margin: 0 1px 0 1px;
+    padding: 0 5px 0 12px;
+    background-color: #2e3440;
+    color: #94928f;
+}
+
 #image.runner-settings:hover,
 #image.runner-kitty:hover,
 #image.runner-ghostty:hover,
@@ -32,6 +59,15 @@
 #image.runner-evince:hover,
 #image.runner-wallpapers:hover,
 #image.runner-color-picker:hover,
-#image.runner-qbittorrent:hover {
+#image.runner-qbittorrent:hover,
+#custom-runner-power:hover,
+#group-group-runners:hover,
+#custom-runner-arch:hover,
+#custom-runner-viber:hover,
+#custom-runner-settings:hover,
+#custom-runner-color-picker:hover,
+#custom-runner-evince:hover,
+#custom-runner-qbittorrent:hover,
+#custom-runner-wallpapers:hover {
     background-color: #282a36;
 }

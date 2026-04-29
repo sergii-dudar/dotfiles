@@ -1,7 +1,8 @@
 {
     "custom/runner-power": {
         "format": "<span color='#d35f5e'> </span>",
-        "on-click": "~/.config/rofi/scripts/powermenu_t1"
+        "on-click": "~/.config/rofi/scripts/powermenu_t1",
+        "tooltip": false
     },
     "group/group-runners": {
         "orientation": "inherit",
@@ -22,26 +23,32 @@
     },
     "custom/runner-arch": {
         "format": "<span color='#61afef'> </span>",
-        "on-click": "~/.config/rofi/scripts/launcher_t1"
+        "on-click": "~/.config/rofi/scripts/launcher_t1",
+        "tooltip": false
     },
     "custom/runner-viber": {
         "format": "<span color='#7765f2'> </span>",
-        "on-click": "env QT_SCREEN_SCALE_FACTORS=1.75 viber"
+        "on-click": "env QT_SCREEN_SCALE_FACTORS=1.75 viber",
+        "tooltip": false
     },
     "custom/runner-settings": {
         "format": "<span color='#3071db'> </span>",
-        "on-click": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
+        "on-click": "XDG_CURRENT_DESKTOP=GNOME gnome-control-center",
+        "tooltip": false
     },
     "custom/runner-color-picker": {
         "format": "<span color='#a6e3a1'>󰸱 </span>",
-        "on-click": "hyprpicker --autocopy"
+        "on-click": "hyprpicker --autocopy",
+        "tooltip": false
     },
     "custom/runner-evince": {
-        "format": "<span color='#7FBBB3#d35f5e'> </span>",
-        "on-click": "evince"
+        "format": "<span color='#7FBBB3'> </span>",
+        "on-click": "evince",
+        "tooltip": false
     },
     "custom/runner-qbittorrent": {
         "format": "<span color='#1093F5'>󱑤 </span>",
-        "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent"
+        "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent",
+        "tooltip": false
     }
 }
