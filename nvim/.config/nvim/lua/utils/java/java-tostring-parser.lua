@@ -496,4 +496,45 @@ function M.to_json(result)
     return json_str
 end
 
+--- Convert visual selection to JSON (replace or clipboard).
+--- @param to_clipboard boolean if true, copy to clipboard; otherwise replace selection
+function M.convert_selection(to_clipboard)
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+    local start_row = start_pos[2] - 1
+    local start_col = start_pos[3] - 1
+    local end_row = end_pos[2] - 1
+    local end_col = end_pos[3]
+
+    -- Handle end of line ($) selection
+    if end_col >= 2147483647 then
+        end_col = #vim.api.nvim_buf_get_lines(0, end_row, end_row + 1, false)[1]
+    end
+
+    local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+    local input = table.concat(lines, "\n")
+
+    local result, err = M.parse(input)
+    if not result then
+        vim.notify("Failed to parse Java toString: " .. (err or "unknown error"), vim.log.levels.ERROR)
+        return
+    end
+
+    local json_str = M.to_json(result)
+
+    -- Format with jq if available
+    local jq_result = vim.fn.system("echo " .. vim.fn.shellescape(json_str) .. " | jq .", "")
+    if vim.v.shell_error == 0 and jq_result and jq_result ~= "" then
+        json_str = jq_result
+    end
+
+    if to_clipboard then
+        vim.fn.setreg("+", json_str)
+        vim.notify("JSON copied to clipboard", vim.log.levels.INFO)
+    else
+        local new_lines = vim.split(json_str, "\n", { trimempty = true })
+        vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, new_lines)
+    end
+end
+
 return M

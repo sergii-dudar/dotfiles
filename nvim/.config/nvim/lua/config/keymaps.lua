@@ -141,14 +141,23 @@ vim.api.nvim_set_keymap("v", "<leader>R", '"hy:%s/<C-r>h//gc<Left><Left><Left>',
 -- mouse horisontal scrolling
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
-
--- convert Java toString() to JSON
-vim.keymap.set("v", "<leader>Cjj", ":'<,'>JavaToStringToJson<CR>", { desc = "Convert Java toString to JSON (replace)" })
-vim.keymap.set(
-    "v",
-    "<leader>Cjy",
-    ":'<,'>JavaToStringToJson!<CR>",
-    { desc = "Convert Java toString to JSON (clipboard)" }
-)
-
 -- stylua: ignore end
+
+------------------------------------------------------------
+-------------- convert Java toString() to JSON -------------
+
+vim.keymap.set("v", "<leader>Cjj", function()
+    -- Exit visual mode to set '< '> marks
+    local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+    vim.api.nvim_feedkeys(esc, "x", false)
+    require("utils.java.java-tostring-parser").convert_selection(false)
+end, { desc = "Convert Java toString to JSON (replace)" })
+vim.keymap.set("v", "<leader>Cjy", function()
+    local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+    vim.api.nvim_feedkeys(esc, "x", false)
+    require("utils.java.java-tostring-parser").convert_selection(true)
+end, { desc = "Convert Java toString to JSON (clipboard)" })
+vim.keymap.set("n", "<leader>Cjn", function()
+    require("utils.json.normalize").normalize_buffer()
+end, { desc = "Convert json to normalized" })
+
