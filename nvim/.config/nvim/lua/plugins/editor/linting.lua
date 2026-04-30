@@ -9,7 +9,7 @@ return {
                 --sh = { "shellcheck" },
                 python = { "ruff" },
                 markdown = {},
-                http = { "kulala_fmt" },
+                -- http = { "kulala_fmt" },
                 --lua = { "luacheck" },
                 -- Use the "*" filetype to run linters on all filetypes.
                 -- ['*'] = { 'global linter' },
@@ -30,7 +30,7 @@ return {
                 --     return vim.fs.find({ "selene.toml" }, { path = ctx.filename, upward = true })[1]
                 --   end,
                 -- },
-                kulala_fmt = require("utils.linter.kulala-linter").linter,
+                -- kulala_fmt = require("utils.linter.kulala-linter").linter,
             },
         },
     },

@@ -33,11 +33,18 @@ function build_java_cmd(is_debug)
     end
 
     if not is_debug then
-        return { java_bin, "-cp", classpath, class_name }
+        return {
+            java_bin,
+            "--enable-native-access=ALL-UNNAMED",
+            "-cp",
+            classpath,
+            class_name,
+        }
     end
 
     return {
         java_bin,
+        "--enable-native-access=ALL-UNNAMED",
         "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005",
         "-cp",
         classpath,
