@@ -14,6 +14,11 @@ wl-paste --type text --watch cliphist store & # Stores only text data
 
 # Global config of wm
 case "$wm_name" in
+    dwl)
+        /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+        (sleep 0.4 && foot --app-id=com.term.group01) &
+        (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
+        ;;
     sway)
         /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
         # killall sxhkd; sxhkd -c ~/.config/sxhkd/i3/sxhkdrc &

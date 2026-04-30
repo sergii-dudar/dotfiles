@@ -5,3 +5,6 @@ sudo rm /usr/share/wayland-sessions/sway.desktop ; \
 
 sudo rm /usr/share/wayland-sessions/hyprland.desktop ; \
     sudo cp ~/dotfiles/bin/desc/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop
+
+sudo rm /usr/share/wayland-sessions/dwl.desktop ; \
+    sudo cp ~/dotfiles/bin/desc/dwl.desktop /usr/share/wayland-sessions/dwl.desktop

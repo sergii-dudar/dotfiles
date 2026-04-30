@@ -5,8 +5,9 @@ return {
     -- cond = require("utils.project-util").is_multifile_proj,
     keys = {
         -- same as default, just swapped [ <leader>E ] with [ <leader>e]
-        { "<leader>E", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
-        { "<leader>e", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
+        -- { "<leader>E", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
+        { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
+        { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
     },
     opts = {
         source_selector = {
@@ -64,7 +65,7 @@ return {
                 },
             },
             follow_current_file = {
-                enabled = true, -- This will find and focus the file in the active buffer every time
+                enabled = false, -- This will find and focus the file in the active buffer every time
                 --               -- the current file is changed while the tree is open.
                 leave_dirs_open = true, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },

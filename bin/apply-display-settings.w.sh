@@ -2,6 +2,10 @@ wm_name="${1:-}"
 
 if $( bat /proc/acpi/button/lid/*/state | grep -q closed ); then
     case "$wm_name" in
+        dwl)
+            # wlr-randr --output eDP-1 --on && wlr-randr --output eDP-1 --off
+            wlr-randr --output eDP-1 --off
+            ;;
         sway)
             swaymsg output eDP-1 disable
             ;;
