@@ -52,7 +52,7 @@ return {
                             enabled = true, -- Enable/disable XML formatting
                             insertSpaces = true, -- indent using spaces
                             tabSize = 4, -- amount of spaces to indent by if insertSpaces == true
-                            maxLineWidth = 9999, -- Max line width for formatting (Not supported by legacy formatter)
+                            maxLineWidth = 0, -- Disable line-width-based content wrapping (0 disables the feature)
                             spaceBeforeEmptyCloseTag = false, -- Insert space before end of self-closing tags
                             preserveAttributeLineBreaks = true, -- Preserve line breaks before and after attributes
                             preserveEmptyContent = true, -- Preserve empty whitespace content (Legacy formatter only)
