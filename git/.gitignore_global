@@ -20,3 +20,4 @@ application-work.yaml
 *.iml
 target
 .claude
+/update_tag_versions*.sh
