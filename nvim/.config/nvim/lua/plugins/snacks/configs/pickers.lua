@@ -59,10 +59,10 @@ M.picker = {
     -- },
     layout = layouts.custom_default,
     hidden = true, -- Include hidden files in grep
-    ignored = true, -- Exclude git-ignored files
+    ignored = false, -- Exclude git-ignored files
     exclude = {
-        "**/target/classes",
-        "**/target/test-classes",
+        -- "**/target/classes",
+        -- "**/target/test-classes",
         "**/target/maven-*",
         "**/target/surefire-reports",
         "**/target/failsafe-reports",
@@ -112,6 +112,11 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
+                -- remap
+                -- ["<a-h>"] = "toggle_hidden",
+                -- ["<a-i>"] = "toggle_ignored",
+                -- ["<a-m>"] = "toggle_maximize",
+                -- ["<a-p>"] = "toggle_preview",
             },
         },
         list = {
@@ -145,7 +150,7 @@ M.picker = {
             -- cmd = "fd", -- "fd"| "rg"| "find" command to use. Leave empty to auto-detect
             cmd = "fd",
             hidden = true, -- Show hidden files
-            ignored = true, -- Exclude git-ignored files
+            ignored = false, -- Exclude git-ignored files
             -- exclude = { "node_modules/*", "*.pyc", "*.log" }, -- Exclude patterns
             -- preview = false, -- Enable file preview in picker
             -- args = {

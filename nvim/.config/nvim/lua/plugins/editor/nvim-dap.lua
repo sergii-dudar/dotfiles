@@ -46,13 +46,13 @@ return {
                         { id = "console", size = 0.8, },
                     },
                     position = "bottom",
-                    size = 10,
+                    size = 12,
                 },
             },
         },
         -- stylua: ignore
         keys = {
-      { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+      { "<leader>du", function() require("dapui").toggle({ reset = true }) end, desc = "Dap UI" },
             -- { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
             { "<leader>de", function() require("dapui").eval(nil, { enter = true }) end, desc = "Eval", mode = {"n", "x"} },
             { "<leader>dwf", function() require("utils.dap-util").eval_to_file() end, desc = "Eval to File" },
@@ -68,7 +68,7 @@ return {
             dap.listeners.after.event_initialized["dapui_config"] = function()
                 vim.cmd("Neotree close")
                 dap_util.reset()
-                dapui.open({})
+                dapui.open({ reset = true })
             end
             dap.listeners.before.event_terminated["dapui_config"] = function()
                 dapui.close({})
