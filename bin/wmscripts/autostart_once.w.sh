@@ -15,6 +15,9 @@ wl-paste --type text --watch cliphist store & # Stores only text data
 # Global config of wm
 case "$wm_name" in
     dwl)
+        # Clean stale somebar FIFOs so someblocks connects to the fresh somebar-0
+        rm -f "$XDG_RUNTIME_DIR"/somebar-*
+        someblocks &
         /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
         (sleep 0.4 && foot --app-id=com.term.group01) &
         (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
