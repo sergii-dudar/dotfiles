@@ -12,7 +12,7 @@
 #include "timer.h"
 #include "util.h"
 #include "watcher.h"
-#include "x11.h"
+#include "output.h"
 
 static int init_blocks(block *const blocks, const unsigned short block_count) {
     for (unsigned short i = 0; i < block_count; ++i) {
@@ -78,7 +78,7 @@ static int refresh_callback(block *const blocks,
 
 static int event_loop(block *const blocks, const unsigned short block_count,
                       const bool is_debug_mode,
-                      x11_connection *const connection,
+                      output_connection *const connection,
                       signal_handler *const signal_handler) {
     timer timer = timer_new(blocks, block_count);
 
@@ -123,7 +123,7 @@ int main(const int argc, const char *const argv[]) {
         return 1;
     }
 
-    x11_connection *const connection = x11_connection_open();
+    output_connection *const connection = output_connection_open();
     if (connection == NULL) {
         return 1;
     }
@@ -137,7 +137,7 @@ int main(const int argc, const char *const argv[]) {
     int status = 0;
     if (init_blocks(blocks, block_count) != 0) {
         status = 1;
-        goto x11_close;
+        goto close_output;
     }
 
     signal_handler signal_handler = signal_handler_new(
@@ -161,8 +161,8 @@ deinit_blocks:
         status = 1;
     }
 
-x11_close:
-    x11_connection_close(connection);
+close_output:
+    output_connection_close(connection);
 
     return status;
 }

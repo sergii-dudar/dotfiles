@@ -7,7 +7,7 @@
 #include "block.h"
 #include "config.h"
 #include "util.h"
-#include "x11.h"
+#include "output.h"
 
 static bool has_status_changed(const status *const status) {
     return strcmp(status->current, status->previous) != 0;
@@ -64,13 +64,13 @@ bool status_update(status *const status) {
 }
 
 int status_write(const status *const status, const bool is_debug_mode,
-                 x11_connection *const connection) {
+                 output_connection *const connection) {
     if (is_debug_mode) {
         (void)printf("%s\n", status->current);
         return 0;
     }
 
-    if (x11_set_root_name(connection, status->current) != 0) {
+    if (output_set_status(connection, status->current) != 0) {
         return 1;
     }
 
