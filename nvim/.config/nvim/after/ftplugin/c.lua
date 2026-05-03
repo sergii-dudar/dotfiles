@@ -15,6 +15,7 @@ local ignore_dirs = {
     "dwl",
     --"myforks/my%-dwm",
     "suckless",
+    "myforks",
     -- Add more directories as needed
 }
 if list_util.any_match(current_file, ignore_dirs) then
