@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+case $BLOCK_BUTTON in
+    1) setsid --fork $1 ;;
+esac
+
+# . "$HOME"/dotfiles/bin/dwl/colorscheme
+
+echo "^fg(${3#\#})$2"
