@@ -87,12 +87,26 @@ static int event_loop(block *const blocks, const unsigned short block_count,
         return 1;
     }
 
+    // Wait for all initial blocks to complete before entering the loop.
+    for (unsigned short i = 0; i < block_count; ++i) {
+        if (blocks[i].fork_pid != -1) {
+            (void)block_update(&blocks[i]);
+        }
+    }
+
     watcher watcher;
     if (watcher_init(&watcher, blocks, block_count, signal_handler->fd) != 0) {
         return 1;
     }
 
     status status = status_new(blocks, block_count);
+
+    // Write initial status immediately so bar is fully populated on startup.
+    (void)status_update(&status);
+    if (status_write(&status, is_debug_mode, connection) != 0) {
+        return 1;
+    }
+
     bool is_alive = true;
     while (is_alive) {
         if (watcher_poll(&watcher, -1) != 0) {
