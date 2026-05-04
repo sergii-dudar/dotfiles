@@ -1,0 +1,15 @@
+export BG_COLOR="242933" #"#2E3440"
+export FG_COLOR="94928F"
+# "" --  󰇝  󰮾 󱋱
+# export SPLIT="^fg(7f849c) 󱋱 ^fg()^bg()"
+# export SPLIT_LEFT="^fg(7f849c) 󱋱^fg()^bg()"
+#
+# export SPLIT="^bg(c965bf) ^fg()^bg()"
+# export SPLIT="^bg(232634) ^fg()^bg()"
+
+# Thin Space 
+# export SPLIT="^bg(1c1e29) ^fg()^bg()"
+
+# Hair Space
+export SPLIT="^bg(1c1e29) ^fg()^bg()"
+export SPLIT_LEFT=$SPLIT
