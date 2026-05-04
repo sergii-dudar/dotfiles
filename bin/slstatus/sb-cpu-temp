@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display disk usage for both `/` and `/home`.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 temp=$(sensors | awk '/Core 0/ {print $3}' | sed 's/[^0-9]*\([0-9]*\)\..*/\1/')
 

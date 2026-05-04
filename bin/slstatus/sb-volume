@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display volume levels.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 if [ "$(pamixer --get-mute)" == "true" ]; then
     notify-send --expire-time=1000 "Volume Muted 🔇"

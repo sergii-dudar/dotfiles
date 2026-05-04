@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 . "$HOME"/dotfiles/bin/wmscripts/status-bar/shared-openweather.cached
 
 # echo "^fg(6272a4)$weather_title ^fg($icon_color)$icon ^fg($FG_COLOR)${temperature}^fg(6272a4)°C$SPLIT"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display the current battery status.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 if [ ! -d "/sys/class/power_supply/BAT0" ]; then
     # Battery directory exists.

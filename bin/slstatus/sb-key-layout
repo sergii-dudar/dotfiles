@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 declare -A lmap
 lmap["Ukrainian"]="UA"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display volume levels.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 # awk '/^cpu / {
 #   total=0;

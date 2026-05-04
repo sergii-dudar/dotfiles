@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display RAM usage in %.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 used_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f3)"
 total_mib="$(free --mebi | grep '^Mem:' | tr -s ' ' | cut -d' ' -f2)"

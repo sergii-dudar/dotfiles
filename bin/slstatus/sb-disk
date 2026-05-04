@@ -11,7 +11,7 @@
 #     echo "${used_gibs}G" "$color"
 # }
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 disk_usage=$(df -B 1K | grep '/home' | tr -s ' ' | cut -d' ' -f5 | tr -d '%')
 
 echo " ^fg(e5c890) ^fg($FG_COLOR) $disk_usage^fg(6272a4)% ^fg(6272a4)SSD $SPLIT"

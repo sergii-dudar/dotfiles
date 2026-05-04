@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Display the current time in HH:MM:SS.
 
-. "$HOME"/dotfiles/bin/dwl/colorscheme
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
 time_icon_color="bd93f9"
 date_icon_color="7c8377"
 
