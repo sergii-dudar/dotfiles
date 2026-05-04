@@ -19,7 +19,6 @@ slstatus
 
 if [ ! -d "/sys/class/power_supply/BAT0" ]; then
     # Battery directory exists.
-    echo ""
     exit 0
 fi
 

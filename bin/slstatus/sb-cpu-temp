@@ -6,7 +6,7 @@
 case $BLOCK_BUTTON in
     1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)" ;;
     2) setsid --fork kitty -e htop ;;
-    3) notify-send "🖥 CPU module " "\- Shows CPU temperature.
+        3) notify-send "🖥 CPU module " "\- Shows CPU temperature.
 - Click to show intensive processes.
         - Middle click to open htop." ;;
     6) setsid --fork ghostty -e nvim "$0" ;;
