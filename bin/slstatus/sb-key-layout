@@ -2,17 +2,14 @@
 
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
-case "$BLOCK_BUTTON" in
-    1 | 3) "$HOME"/dotfiles/bin/change_language.sh ;;
-    6) setsid --fork ghostty -e nvim "$0" ;;
-        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
-esac
-
 declare -A lmap
+lmap["Ukrainian"]="UA"
+lmap["English (US)"]="US"
 lmap["ua"]="UA"
 lmap["us"]="US"
 
 k_layout_icon=" "
-k_layout=$(setxkbmap -query | grep layout | awk '{print $NF}')
+k_layout=$(cat /tmp/dwl-keymap 2>/dev/null)
+k_display="${lmap[$k_layout]:-$k_layout}"
 
-echo " ^fg(8caaee)$k_layout_icon ^fg(cba6f7)${lmap[$k_layout]}^fg()^bg()  $SPLIT"
+echo " ^fg(8caaee)$k_layout_icon ^fg(cba6f7)${k_display}^fg()^bg()  $SPLIT"

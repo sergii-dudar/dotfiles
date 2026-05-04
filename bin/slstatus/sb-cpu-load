@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 # Display volume levels.
 
-case "$BLOCK_BUTTON" in
-    1) setsid --fork gnome-system-monitor ;;
-    6) setsid --fork ghostty -e nvim "$0" ;;
-        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
-esac
-
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
 # awk '/^cpu / {

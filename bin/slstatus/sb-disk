@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 # Display disk usage for both `/` and `/home`.
 
-case $BLOCK_BUTTON in
-    1) setsid --fork kitty --name disc_ugd -e gdu ;;
-    6) setsid --fork ghostty -e nvim "$0" ;;
-        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
-esac
-
 # disk_usage() {
 #     used_bytes="$(df --output=avail "$1" | tail -n 1)"
 #     used_gibs="$(echo "scale=1; $used_bytes / 1024 / 1024" | bc)"
