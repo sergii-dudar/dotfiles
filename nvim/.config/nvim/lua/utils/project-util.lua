@@ -11,7 +11,7 @@ function M.is_multifile_proj()
         ".tmux",
         "personal",
         "serhii.home",
-        "myforks/my%-dwm",
+        "myforks",
         "tools",
     }
     -- vim.notify("result: " .. tostring(list_util.any_match(current_file, open_if_dir_contains)), vim.log.levels.INFO)
@@ -22,6 +22,20 @@ function M.is_multifile_proj()
 
     -- log_table(vim.fn.argv())
     -- print(vim.fn.argc())
+
+    return list_util.any_match(current_file, multifile_projs_dirs) and vim.fn.argc() == 0
+end
+
+function M.is_init_open_neotree()
+    local current_file = vim.fn.getcwd() -- vim.fn.expand("%:p")
+    local list_util = require("utils.list-util")
+    local multifile_projs_dirs = {
+        "dotfiles",
+        "work",
+        "nvim",
+        "personal",
+        "serhii.home",
+    }
 
     return list_util.any_match(current_file, multifile_projs_dirs) and vim.fn.argc() == 0
 end

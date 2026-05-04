@@ -116,7 +116,8 @@ if vim.o.diff then
 end
 
 function open_tree_on_start()
-    if require("utils.project-util").is_multifile_proj() then
+    local project_util = require("utils.project-util")
+    if project_util.is_multifile_proj() then
         -- restore current proj session
         --if vim.fn.argc(-1) == 0 and not vim.g.using_stdin then
         -- Save these to a different directory, so our manual sessions don't get polluted
@@ -127,7 +128,7 @@ function open_tree_on_start()
         vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
 
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
-        if global.is_not_limited then
+        if global.is_not_limited and project_util.is_init_open_neotree() then
             vim.schedule(function()
                 vim.cmd("Neotree filesystem reveal left")
             end)

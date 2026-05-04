@@ -20,7 +20,7 @@
 #define BLOCKS(X) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-date",          10,     1) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-key-layout",    0,      2) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-volume",        10,      3) \
+    X("", "/home/serhii/dotfiles/bin/slstatus/sb-volume",        10,     3) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-battery",       300,    4) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-memory",        30,     5) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-load",      30,     6) \
@@ -29,7 +29,7 @@
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-weather",       1200,   9)
 #endif  // CONFIG_H
 
-// update from sh: kill -(34 + signal) $(pidof dwmblocks)
+// update from sh: kill -(34 + signal) $(pidof dwlblocks)
 // to update sb-key-layout: kill -(34 + 1) $(pidof dwmblocks)
 //
 //  X("", "/home/serhii/dotfiles/bin/dwl/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '󰣇' '#bd93f9'",          0, 14) 

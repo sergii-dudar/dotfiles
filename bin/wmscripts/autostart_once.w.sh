@@ -20,9 +20,9 @@ case "$wm_name" in
         # someblocks &
         /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
         (sleep 0.4 && foot --app-id=com.term.group01) &
-        # (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
-        (sleep 1.1 && foot -e "yazi") &
-        (sleep 1.2 && foot -e "yazi") &
+        (sleep 0.7 && ~/dotfiles/bin/start-browserw) &
+        # (sleep 1.1 && foot -e "yazi") &
+        # (sleep 1.2 && foot -e "yazi") &
         ;;
     sway)
         /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
