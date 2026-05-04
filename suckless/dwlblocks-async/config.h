@@ -8,7 +8,7 @@
 #define MAX_BLOCK_OUTPUT_LENGTH 200 
 
 // Control whether blocks are clickable.
-#define CLICKABLE_BLOCKS 1
+#define CLICKABLE_BLOCKS 0
 
 // Control whether a leading delimiter should be prepended to the status.
 #define LEADING_DELIMITER 0
@@ -20,7 +20,7 @@
 #define BLOCKS(X) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-date",          10,     1) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-key-layout",    0,      2) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-volume",        0,      3) \
+    X("", "/home/serhii/dotfiles/bin/slstatus/sb-volume",        10,      3) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-battery",       300,    4) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-memory",        30,     5) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-load",      30,     6) \
