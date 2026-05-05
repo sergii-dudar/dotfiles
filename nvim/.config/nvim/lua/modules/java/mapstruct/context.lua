@@ -18,8 +18,10 @@ local type_source_cache = {}
 -- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
 local method_params_cache = {}
 
--- Cache for wildcard import resolution: typeName -> FQN
-local wildcard_resolution_cache = {}
+-- Cache of FQNs verified to exist via JDTLS workspace/symbol.
+-- Key is the FQN itself (e.g. "com.example.Foo"), so entries are safe to share across
+-- buffers with different imports. Stores { last_used = ts } for TTL cleanup.
+local verified_fqn_cache = {}
 
 -- Timer handle for cleanup scheduler
 local cleanup_timer = nil
@@ -45,7 +47,7 @@ end
 local function cleanup_all_caches()
     cleanup_cache(type_source_cache, "type_source")
     cleanup_cache(method_params_cache, "method_params")
-    cleanup_cache(wildcard_resolution_cache, "wildcard_resolution")
+    cleanup_cache(verified_fqn_cache, "verified_fqn")
 end
 
 -- Start automatic cache cleanup timer
@@ -88,17 +90,17 @@ function M.clear_method_params_cache()
     log.info("Method parameters cache cleared")
 end
 
--- Clear the wildcard resolution cache
+-- Clear the verified FQN cache
 function M.clear_wildcard_cache()
-    wildcard_resolution_cache = {}
-    log.info("Wildcard resolution cache cleared")
+    verified_fqn_cache = {}
+    log.info("Verified FQN cache cleared")
 end
 
 -- Clear all caches
 function M.clear_all_caches()
     type_source_cache = {}
     method_params_cache = {}
-    wildcard_resolution_cache = {}
+    verified_fqn_cache = {}
     log.info("All caches cleared")
 end
 
@@ -696,7 +698,6 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
                 local inner_suffix = table.concat(parts, ".", 2)
                 local full_fqn = outer_fqn .. "." .. inner_suffix
                 log.debug("Resolved inner class type:", base_type, "->", full_fqn)
-                wildcard_resolution_cache[base_type] = full_fqn
                 return full_fqn .. generics .. array_brackets
             end
         end
@@ -707,23 +708,18 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
         return type_name
     end
 
-    -- Check cache first
-    if wildcard_resolution_cache[base_type] then
-        log.debug("Wildcard resolution cache hit for:", base_type)
-        return wildcard_resolution_cache[base_type] .. generics .. array_brackets
-    end
-
-    -- Check direct imports
+    -- Direct imports are authoritative per-file; they must win over any global cache.
+    -- Previously this lived after a simple-name-keyed cache check, which caused
+    -- cross-file pollution (e.g. a different file's same-package fallback getting
+    -- returned for a file that has a direct import of the same simple name).
     if direct_imports[base_type] then
         log.debug("Found in direct imports:", base_type, "->", direct_imports[base_type])
-        wildcard_resolution_cache[base_type] = direct_imports[base_type]
         return direct_imports[base_type] .. generics .. array_brackets
     end
 
     -- Check java.lang types (implicit import)
     if JAVA_LANG_TYPES[base_type] then
         log.debug("Found in java.lang mapping:", base_type, "->", JAVA_LANG_TYPES[base_type])
-        wildcard_resolution_cache[base_type] = JAVA_LANG_TYPES[base_type]
         return JAVA_LANG_TYPES[base_type] .. generics .. array_brackets
     end
 
@@ -740,6 +736,15 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
 
     for _, package in ipairs(wildcard_imports) do
         local candidate_fqn = package .. "." .. base_type
+        -- Cache is keyed by candidate FQN (globally unambiguous), so hits are
+        -- safe to share across buffers with different imports.
+        local cached = verified_fqn_cache[candidate_fqn]
+        if cached then
+            log.debug("Verified FQN cache hit:", candidate_fqn)
+            cached.last_used = os.time()
+            return candidate_fqn .. generics .. array_brackets
+        end
+
         log.debug("Trying wildcard import:", candidate_fqn)
 
         local result = jdtls_client:request_sync("workspace/symbol", { query = candidate_fqn }, 5000, bufnr)
@@ -761,7 +766,7 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
                 -- Check for exact match
                 if symbol_fqn == candidate_fqn or symbol.name == base_type and symbol.containerName == package then
                     log.debug("Exact match found via wildcard import:", candidate_fqn)
-                    wildcard_resolution_cache[base_type] = candidate_fqn
+                    verified_fqn_cache[candidate_fqn] = { last_used = os.time() }
                     return candidate_fqn .. generics .. array_brackets
                 end
             end
@@ -775,12 +780,13 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
         end
     end
 
-    -- Check in same package as current file (only if JDTLS is available but didn't find the type in wildcard imports)
+    -- Same-package fallback. Not cached: the result is per-file (depends on the
+    -- current buffer's package) so caching it under any file-independent key
+    -- would pollute resolution in other buffers.
     local package_name, _ = get_mapper_class_info(bufnr)
     if package_name then
         local same_package_fqn = package_name .. "." .. base_type
         log.debug("Assuming same package:", same_package_fqn)
-        wildcard_resolution_cache[base_type] = same_package_fqn
         return same_package_fqn .. generics .. array_brackets
     end
 

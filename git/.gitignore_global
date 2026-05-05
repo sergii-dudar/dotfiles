@@ -21,3 +21,4 @@ application-work.yaml
 target
 .claude
 /update_tag_versions*.sh
+/gh-push.sh
