@@ -12,4 +12,10 @@ k_layout_icon=" "
 k_layout=$(cat /tmp/dwl-keymap 2>/dev/null)
 k_display="${lmap[$k_layout]:-$k_layout}"
 
+if [ "$k_layout" == "Ukrainian" ]; then
+    notify-send "Lang: UA ""🇺🇦" -t 700
+else
+    notify-send "Lang: US ""🇺🇸" -t 700
+fi
+
 echo " ^fg(8caaee)$k_layout_icon ^fg(cba6f7)${k_display}^fg()^bg()  $SPLIT"

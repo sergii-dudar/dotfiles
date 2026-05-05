@@ -73,7 +73,7 @@ M.picker = {
         "**/target/*.jar",
         "**/target/*.war",
         "**/target/*.ear",
-        "**/bin",
+        -- "**/bin",
         ".git",
         ".settings",
         ".idea",
