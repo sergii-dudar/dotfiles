@@ -45,9 +45,10 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
             return original_publish(err, result, ctx, config)
         end
         vim.schedule(function()
-            if not vim.tbl_isempty(java_diags) then
-                java_arg_highlight.apply(bufnr, java_diags)
-            end
+            -- Always call apply() — even with empty java_diags — so that stale
+            -- per-arg warnings/highlights from a previous publish get cleared
+            -- when jdtls no longer reports the underlying diagnostic.
+            java_arg_highlight.apply(bufnr, java_diags)
             java_format_checker.apply(bufnr)
         end)
     end
