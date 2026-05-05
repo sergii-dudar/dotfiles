@@ -33,7 +33,7 @@ if isMacOs; then
     alias brewua="brew update && brew upgrade && yaziu"
     alias brave="/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser"
     # alias move_cursor='bash -c "cd ~/dotfiles/work/python && pipenv run python mouse_cursor.py > /dev/null 2>&1"'
-    alias move_cursor='bash -c "cd ~/dotfiles/work/python && python3 mouse_cursor.py > /dev/null 2>&1"'
+    alias move_cursor='bash -c "cd ~/dotfiles/work/python && source serhiienv/bin/activate && python3 mouse_cursor.py > /dev/null 2>&1"'
     # alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head_\$(date +%y%d%m).bundle HEAD --not --remotes=origin"
     alias dots_bundle="cd ~/dotfiles && git bundle create dotfiles_head.bundle HEAD --not --remotes=origin"
 else
