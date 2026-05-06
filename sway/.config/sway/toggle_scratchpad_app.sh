@@ -12,6 +12,14 @@ case "$1" in
         run_cmd="foot --app-id=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         notify_msg="📂 Yazi Manager"
         ;;
+    "wallpapers")
+        shell="xdg_shell"
+        app_id="com.scratchpad.wallpapers"
+        # run_cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        # run_cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
+        run_cmd="foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"
+        notify_msg="🌆 Wallpapers"
+        ;;
     "music")
         shell="xdg_shell"
         app_id="com.scratchpad.music"
