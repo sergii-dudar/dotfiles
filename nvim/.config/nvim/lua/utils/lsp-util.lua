@@ -158,6 +158,12 @@ local LspCodeAction = function()
         --     request_and_apply_first(opts.actions, opts.fallback)
         -- end,
         resolve_imports = function()
+            local word = vim.fn.expand("<cword>")
+            local import_util = require("utils.java.java-import-util")
+            if word ~= "" and (import_util.static_import_exists(word, 0) or import_util.import_exists(word, 0)) then
+                vim.notify("[Import] Already imported: " .. word, vim.log.levels.INFO)
+                return
+            end
             resolve_first()
         end,
         -- resolve_context = function()

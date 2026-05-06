@@ -1,7 +1,44 @@
+local M = {}
+
 -- Function to check if the import already exists
 local function import_exists(import_statement)
     for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
         if line:match(import_statement) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Check if an explicit static import for `member` already exists in the buffer.
+--- Matches `import static <fqcn>.<member>;` — wildcard imports are not
+--- inspected (we can't know which members they pull in without resolution).
+---@param member string
+---@param bufnr integer
+---@return boolean
+function M.static_import_exists(member, bufnr)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local pattern = "^import%s+static%s+.+%." .. vim.pesc(member) .. "%s*;%s*$"
+    for _, line in ipairs(lines) do
+        if line:match(pattern) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Check if a regular (non-static) type import for `class_name` already
+--- exists. Matches `import <fqcn>.<class_name>;`. Static imports are excluded
+--- because the FQCN segment is matched as `[%w%.]+`, which cannot span the
+--- whitespace between `static` and the package.
+---@param class_name string
+---@param bufnr integer
+---@return boolean
+function M.import_exists(class_name, bufnr)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local pattern = "^import%s+[%w%.]+%." .. vim.pesc(class_name) .. "%s*;%s*$"
+    for _, line in ipairs(lines) do
+        if line:match(pattern) then
             return true
         end
     end
@@ -37,7 +74,7 @@ local function replace_full_to_simple_class_name(full_class, simple_class)
 end
 
 -- Import java class name under cursor, and apply simple class name in all buffer
-local function import_class_and_replace()
+function M.import_class_and_replace()
     local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
 
@@ -58,6 +95,4 @@ local function import_class_and_replace()
     insert_import(import_statement)
 end
 
-local M = {}
-M.import_class_and_replace = import_class_and_replace
 return M

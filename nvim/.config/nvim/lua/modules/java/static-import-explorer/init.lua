@@ -2,6 +2,7 @@ local util = require("modules.java.static-import-explorer.util")
 local picker = require("modules.java.static-import-explorer.picker")
 local dep_search = require("modules.java.dependencies-search")
 local java_util = require("utils.java.java-common")
+local java_import_util = require("utils.java.java-import-util")
 
 local M = {}
 
@@ -182,6 +183,11 @@ function M.quick_import()
         vim.notify("[Static Import] No word under cursor", vim.log.levels.WARN)
         return
     end
+
+    -- if java_import_util.static_import_exists(word, state.source_bufnr) then
+    --     vim.notify("[Static Import] Already imported: " .. word, vim.log.levels.INFO)
+    --     return
+    -- end
 
     local pattern = util.build_search(word, true)
     if not pattern then
