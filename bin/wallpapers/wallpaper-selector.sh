@@ -39,14 +39,14 @@ detect_monitors() {
         linux)
             if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
                 if command -v swaymsg &>/dev/null; then
-                    swaymsg -t get_outputs 2>/dev/null | jq -r '.[].name'
+                    swaymsg -t get_outputs 2>/dev/null | jq -r '.[] | select(.active) | .name'
                 elif command -v hyprctl &>/dev/null; then
-                    hyprctl monitors -j 2>/dev/null | jq -r '.[].name'
+                    hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.disabled | not) | .name'
                 elif command -v wlr-randr &>/dev/null; then
-                    wlr-randr 2>/dev/null | awk '/^[A-Z]/{print $1}'
+                    wlr-randr 2>/dev/null | awk '/^[A-Z]/{name=$1} /Enabled: yes/{print name}'
                 fi
             elif [[ -n "${DISPLAY:-}" ]]; then
-                xrandr --query | grep " connected" | awk '{print $1}'
+                xrandr --query | grep " connected" | grep -v "disconnected" | awk '{print $1}'
             fi
             ;;
     esac

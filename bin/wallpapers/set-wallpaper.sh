@@ -54,7 +54,7 @@ apply_x11() {
         else
             images+=("$IMAGE_PATH")
         fi
-    done < <(xrandr --query | grep " connected" | awk '{print $1}')
+    done < <(xrandr --query | grep " connected" | grep -v "disconnected" | awk '{print $1}')
 
     if [[ ${#images[@]} -gt 0 ]]; then
         feh --bg-fill "${images[@]}"
