@@ -59,6 +59,11 @@ if [[ ${#MONITORS[@]} -eq 0 ]]; then
     exit 1
 fi
 
+# Write monitors to temp file for rofi menu
+MONITORS_FILE=$(mktemp /tmp/wallpaper-monitors.XXXXXX)
+printf '%s\n' "${MONITORS[@]}" > "$MONITORS_FILE"
+trap "rm -f '$MONITORS_FILE'" EXIT
+
 # Header & bindings — style matching fzf.scripts.sh
 RESET=$'\033[0m'
 GREEN=$'\033[32m'
@@ -67,21 +72,26 @@ MAGENTA=$'\033[35m'
 
 sep="${MAGENTA}│${RESET}"
 iwall=$'\033[38;5;214m󰸉\033[0m'
+iapply=$'\033[38;5;32m\033[0m'
 
-header_parts=""
+header_parts="[${GREEN}${BOLD}enter${RESET}]: Apply ${iapply}"
 bind_args=()
 
 for i in "${!MONITORS[@]}"; do
     key_num=$((i + 1))
     monitor="${MONITORS[$i]}"
 
-    if [[ -n "$header_parts" ]]; then
-        header_parts+=" ${sep} "
-    fi
-    header_parts+="[${GREEN}${BOLD}alt-${key_num}${RESET}]: ${monitor} ${iwall}"
+    header_parts+=" ${sep} [${GREEN}${BOLD}alt-${key_num}${RESET}]: ${monitor} ${iwall}"
 
     bind_args+=(--bind "alt-${key_num}:execute-silent(${SET_WALLPAPER_CMD} ${monitor} {})")
 done
+
+# Enter binding: single monitor → apply directly, multiple → rofi picker
+if [[ ${#MONITORS[@]} -eq 1 ]]; then
+    bind_args+=(--bind "enter:execute-silent(${SET_WALLPAPER_CMD} ${MONITORS[0]} {})")
+else
+    bind_args+=(--bind "enter:execute-silent(MONITOR=\$(rofi -dmenu -i -p 'Select Monitor' < ${MONITORS_FILE}) && [[ -n \$MONITOR ]] && ${SET_WALLPAPER_CMD} \$MONITOR {})")
+fi
 
 header=" ${header_parts} "
 

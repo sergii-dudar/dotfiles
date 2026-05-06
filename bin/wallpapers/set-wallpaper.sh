@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-STATE_DIR="${HOME}/.config/wallpapers"
+STATE_DIR="${HOME}/dotfiles/bin/wallpapers/selected"
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: set-wallpaper.sh <monitor_name> <image_path>"
@@ -62,7 +62,7 @@ apply_x11() {
 }
 
 apply_wayland() {
-    local pid_file="${STATE_DIR}/${MONITOR_NAME}.pid"
+    local pid_file="/tmp/wallpaper-${MONITOR_NAME}.pid"
 
     if [[ -f "$pid_file" ]]; then
         local old_pid
