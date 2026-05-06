@@ -90,7 +90,7 @@ done
 if [[ ${#MONITORS[@]} -eq 1 ]]; then
     bind_args+=(--bind "enter:execute-silent(${SET_WALLPAPER_CMD} ${MONITORS[0]} {})")
 else
-    bind_args+=(--bind "enter:execute-silent(MONITOR=\$(rofi -dmenu -i -p 'Select Monitor' < ${MONITORS_FILE}) && [[ -n \$MONITOR ]] && ${SET_WALLPAPER_CMD} \$MONITOR {})")
+    bind_args+=(--bind "enter:execute-silent(MONITOR=\$(/home/serhii/dotfiles/rofi/.config/rofi/menu/menu_launcher.sh < ${MONITORS_FILE}) && [[ -n \$MONITOR ]] && ${SET_WALLPAPER_CMD} \$MONITOR {})")
 fi
 
 header=" ${header_parts} "
@@ -99,10 +99,10 @@ cd "$WALLPAPER_DIR"
 
 fd --type f -e jpg -e jpeg -e png -e gif -e bmp -e webp -e tiff . | \
     fzf --exact \
-        --border-label ' 󰸉 Wallpaper Selector ' \
-        --prompt '󰸉 Wallpaper ❯ ' \
-        --header "$header" \
-        --header-first \
-        --preview "${PREVIEW_CMD} {}" \
-        --preview-window 'right,60%' \
-        "${bind_args[@]}"
+    --border-label ' 󰸉 Wallpaper Selector ' \
+    --prompt '󰸉 Wallpaper ❯ ' \
+    --header "$header" \
+    --header-first \
+    --preview "${PREVIEW_CMD} {}" \
+    --preview-window 'right,60%' \
+    "${bind_args[@]}"
