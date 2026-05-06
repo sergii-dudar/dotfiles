@@ -27,17 +27,39 @@ local process_generation = 0
 ---@field time? number
 ---@field invocations test_report.Invocation[]
 
+---@class test_report.FindOpts
+---@field silent? boolean If true (default), load buffer without firing autocmds (fast, no LSP/highlight). If false, full bufload triggering FileType cascade.
+
 ---@class test_report.LangAdapter
 ---@field classname_to_file fun(classname: string, report_dir: string): string|nil
----@field find_test_positions fun(file_path: string): table<string, number>, number|nil
+---@field find_test_positions fun(file_path: string, opts?: test_report.FindOpts): table<string, number>, number|nil
 ---@field extract_error_line fun(classname: string, stacktrace: string): number|nil
 ---@field get_test_report_dir fun(): string
+---@field clear_cache? fun()
 
 local lang_adapters = {
     java = function()
         return require("modules.java.test-report.lang.java")
     end,
 }
+
+-- Adapters that have been loaded this session (for cache invalidation in M.clear)
+local loaded_adapters = {}
+
+---@class test_report.Config
+---@field load_buffers boolean Load every test-class buffer with full autocmds (FileType -> LSP attach -> highlight). Slower but ready to navigate without rescue.
+---@field load_only_buffers_with_error boolean Load only buffers containing failed tests with full autocmds. Other classes load silently.
+
+---@type test_report.Config
+local config = {
+    load_buffers = false,
+    load_only_buffers_with_error = false,
+}
+
+---@param opts? test_report.Config
+function M.setup(opts)
+    config = vim.tbl_extend("force", config, opts or {})
+end
 
 local ns_diag = vim.api.nvim_create_namespace("overseer_test_report_diag")
 local ns_signs = vim.api.nvim_create_namespace("overseer_test_report_signs")
@@ -70,20 +92,16 @@ function M.process(report_dir, filetype)
 
     nio.run(function()
         nio.scheduler()
+        if process_generation ~= my_gen then
+            return
+        end
+
         local sp = { id = "junit_report", title = "JUnit Report" }
         local sp_stop = vim.tbl_extend("force", sp, { timeout = 1500 })
         spinner.start("Processing JUnit Report…", sp)
 
-        -- Suspend which-key triggers during processing to prevent rapid
-        -- nio.scheduler() yields from disrupting the leader key state machine.
-        local wk_triggers = require("which-key.triggers")
-        local wk_buf = require("which-key.buf")
-        local wk_mode = wk_buf.get()
-        if wk_mode then
-            wk_triggers.suspended[wk_mode] = true
-            wk_triggers.detach(wk_mode)
-            wk_triggers.timer:stop()
-        end
+        local hr = vim.uv.hrtime
+        local t_start = hr()
 
         local ok, pcall_err = pcall(function()
             local dirs = type(report_dir) == "table" and report_dir or { report_dir }
@@ -96,30 +114,21 @@ function M.process(report_dir, filetype)
                 return
             end
             local adapter = adapter_fn()
+            loaded_adapters[filetype] = adapter
 
-            -- Collect all XML files across directories
             local all_files = {}
             for _, dir in ipairs(dirs) do
-                for _, filepath in ipairs(junit_xml.list_report_files(dir)) do
-                    table.insert(all_files, filepath)
-                end
+                vim.list_extend(all_files, junit_xml.list_report_files(dir))
             end
-            local total_files = #all_files
 
-            -- Parse XML reports, yielding between files for UI responsiveness
+            local t_list = hr()
             local results = {}
-            for i, filepath in ipairs(all_files) do
+            for _, filepath in ipairs(all_files) do
                 for id, r in pairs(junit_xml.parse_file(filepath)) do
                     results[id] = r
                 end
-                nio.scheduler()
-                if process_generation ~= my_gen then
-                    return
-                end
-                if total_files > 1 then
-                    spinner.update("Parsing reports… " .. i .. "/" .. total_files, sp)
-                end
             end
+            local t_parse = hr()
 
             if vim.tbl_isempty(results) then
                 log.warn("no results from XML parsing")
@@ -128,53 +137,38 @@ function M.process(report_dir, filetype)
             end
 
             log.info("parsed " .. vim.tbl_count(results) .. " test results")
-            -- Merge new results into accumulated state (incremental)
             for id, r in pairs(results) do
                 last_results[id] = r
             end
             last_filetype = filetype
-            for id, r in pairs(results) do
-                log.debug("  " .. id .. " -> " .. r.status)
-            end
 
-            -- Determine which classes were affected by this run
             local affected_classes = {}
-            for id, _ in pairs(results) do
+            for id in pairs(results) do
                 local classname = id:match("^(.+)#.+$")
                 if classname then
                     affected_classes[classname] = true
                 end
             end
 
-            -- Build by_class from merged last_results for affected classes only.
-            -- This ensures that when we clear a buffer and re-set diagnostics,
-            -- we restore ALL accumulated results for that class (not just current run).
+            -- Build by_class from merged last_results so reruns restore ALL accumulated
+            -- results for affected classes (not just the current subset).
             local by_class = {}
             for id, result in pairs(last_results) do
                 local classname, method = id:match("^(.+)#(.+)$")
                 if classname and method and affected_classes[classname] then
-                    if not by_class[classname] then
-                        by_class[classname] = {}
+                    local methods = by_class[classname]
+                    if not methods then
+                        methods = {}
+                        by_class[classname] = methods
                     end
-                    by_class[classname][method] = result
+                    methods[method] = result
                 end
             end
 
-            local qf_entries = {}
+            local t_byclass = hr()
             local total_classes = vim.tbl_count(by_class)
-            local class_idx = 0
 
             for classname, methods in pairs(by_class) do
-                -- Yield between classes to keep UI responsive
-                nio.scheduler()
-                if process_generation ~= my_gen then
-                    return
-                end
-                class_idx = class_idx + 1
-                if total_classes > 1 then
-                    spinner.update("Processing classes… " .. class_idx .. "/" .. total_classes, sp)
-                end
-
                 local file_path
                 for _, dir in ipairs(dirs) do
                     file_path = adapter.classname_to_file(classname, dir)
@@ -182,124 +176,107 @@ function M.process(report_dir, filetype)
                         break
                     end
                 end
-                log.debug("classname_to_file: " .. classname .. " -> " .. tostring(file_path))
 
-                if file_path then
-                    -- Normalize to absolute path
-                    file_path = vim.fn.fnamemodify(file_path, ":p")
-                    log.debug("absolute path: " .. file_path)
-                    last_class_files[classname] = file_path
-
-                    local test_positions, class_line = adapter.find_test_positions(file_path)
-                    last_positions[file_path] = test_positions
-                    log.debug("test_positions: ", test_positions)
-                    log.debug("class_line: " .. tostring(class_line))
-
-                    -- Resolve buffer number (find_test_positions ensures buffer is loaded)
-                    local bufnr = vim.fn.bufnr(file_path)
-                    log.debug("bufnr: " .. bufnr)
-                    if bufnr == -1 then
-                        log.error("buffer not found for: " .. file_path)
-                        vim.notify("test-report: buffer not found for: " .. file_path, vim.log.levels.ERROR)
-                        goto continue
-                    end
-
-                    -- Clear signs and diagnostics only for this buffer before re-placing
-                    vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, 0, -1)
-                    vim.diagnostic.reset(ns_diag, bufnr)
-
-                    local has_failure = false
-
-                    for method_name, result in pairs(methods) do
-                        local line = test_positions[method_name]
-                        log.debug("method=" .. method_name .. " status=" .. result.status .. " line=" .. tostring(line))
-                        if line ~= nil then
-                            if result.status == "failed" then
-                                has_failure = true
-                            end
-
-                            -- Place gutter sign + virtual text via extmark
-                            local sign = sign_config[result.status]
-                            if sign then
-                                local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
-                                    sign_text = sign.text,
-                                    sign_hl_group = sign.hl,
-                                    virt_text = { { " " .. sign.text, sign.hl } },
-                                    virt_text_pos = "eol",
-                                    priority = 20,
-                                })
-                                signed_buffers[bufnr] = true
-                                log.debug(
-                                    "placed extmark id=" .. mark_id .. " sign='" .. sign.text .. "' at line " .. line
-                                )
-                            end
-
-                            -- Set diagnostics and quickfix for failures
-                            if result.status == "failed" and result.errors then
-                                local diagnostics = {}
-                                for _, e in ipairs(result.errors) do
-                                    local err_line = e.line and (e.line - 1) or line
-                                    table.insert(diagnostics, {
-                                        lnum = err_line,
-                                        col = 0,
-                                        message = e.message,
-                                        severity = vim.diagnostic.severity.ERROR,
-                                        source = "junit",
-                                    })
-
-                                    table.insert(qf_entries, {
-                                        filename = file_path,
-                                        lnum = (e.line or (line + 1)),
-                                        col = 1,
-                                        text = method_name .. ": " .. e.message,
-                                        type = "E",
-                                    })
-                                end
-
-                                local existing = vim.diagnostic.get(bufnr, { namespace = ns_diag })
-                                vim.list_extend(existing, diagnostics)
-                                vim.diagnostic.set(ns_diag, bufnr, existing)
-                                log.debug("set " .. #diagnostics .. " diagnostics for bufnr=" .. bufnr)
-                            end
-                        else
-                            log.warn("no treesitter position found for method: " .. method_name)
-                        end
-                    end
-
-                    -- Place class-level mark (aggregate: fail if any failed, pass if all passed)
-                    if class_line ~= nil then
-                        local class_status = has_failure and "failed" or "passed"
-                        local class_sign = sign_config[class_status]
-                        if class_sign then
-                            vim.api.nvim_buf_set_extmark(bufnr, ns_signs, class_line, 0, {
-                                sign_text = class_sign.text,
-                                sign_hl_group = class_sign.hl,
-                                virt_text = { { " " .. class_sign.text, class_sign.hl } },
-                                virt_text_pos = "eol",
-                                priority = 20,
-                            })
-                            signed_buffers[bufnr] = true
-                            log.debug("placed class mark: " .. class_status .. " at line " .. class_line)
-                        end
-                    end
-
-                    ::continue::
-                else
+                if not file_path then
                     log.error("classname_to_file returned nil for: " .. classname)
-                    vim.notify("test-report: could not resolve file for class: " .. classname, vim.log.levels.ERROR)
+                    vim.notify(
+                        "test-report: could not resolve file for class: " .. classname,
+                        vim.log.levels.ERROR
+                    )
+                    goto continue
                 end
+
+                file_path = vim.fn.fnamemodify(file_path, ":p")
+                last_class_files[classname] = file_path
+
+                local class_has_failure = false
+                for _, r in pairs(methods) do
+                    if r.status == "failed" then
+                        class_has_failure = true
+                        break
+                    end
+                end
+                local silent = not (config.load_buffers or (config.load_only_buffers_with_error and class_has_failure))
+
+                local test_positions, class_line = adapter.find_test_positions(file_path, { silent = silent })
+                last_positions[file_path] = test_positions
+
+                local bufnr = vim.fn.bufnr(file_path)
+                if bufnr == -1 then
+                    log.error("buffer not found for: " .. file_path)
+                    vim.notify("test-report: buffer not found for: " .. file_path, vim.log.levels.ERROR)
+                    goto continue
+                end
+
+                vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, 0, -1)
+                vim.diagnostic.reset(ns_diag, bufnr)
+
+                local has_failure = false
+                local diagnostics = {}
+
+                for method_name, result in pairs(methods) do
+                    local line = test_positions[method_name]
+                    if line == nil then
+                        log.warn("no treesitter position for method: " .. method_name)
+                        goto next_method
+                    end
+
+                    if result.status == "failed" then
+                        has_failure = true
+                    end
+
+                    local sign = sign_config[result.status]
+                    if sign then
+                        vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
+                            sign_text = sign.text,
+                            sign_hl_group = sign.hl,
+                            virt_text = { { " " .. sign.text, sign.hl } },
+                            virt_text_pos = "eol",
+                            priority = 20,
+                        })
+                        signed_buffers[bufnr] = true
+                    end
+
+                    if result.status == "failed" and result.errors then
+                        for _, e in ipairs(result.errors) do
+                            diagnostics[#diagnostics + 1] = {
+                                lnum = e.line and (e.line - 1) or line,
+                                col = 0,
+                                message = e.message,
+                                severity = vim.diagnostic.severity.ERROR,
+                                source = "junit",
+                            }
+                        end
+                    end
+
+                    ::next_method::
+                end
+
+                if #diagnostics > 0 then
+                    vim.diagnostic.set(ns_diag, bufnr, diagnostics)
+                end
+
+                if class_line ~= nil then
+                    local class_sign = sign_config[has_failure and "failed" or "passed"]
+                    if class_sign then
+                        vim.api.nvim_buf_set_extmark(bufnr, ns_signs, class_line, 0, {
+                            sign_text = class_sign.text,
+                            sign_hl_group = class_sign.hl,
+                            virt_text = { { " " .. class_sign.text, class_sign.hl } },
+                            virt_text_pos = "eol",
+                            priority = 20,
+                        })
+                        signed_buffers[bufnr] = true
+                    end
+                end
+
+                ::continue::
             end
 
-            nio.scheduler()
-            if process_generation ~= my_gen then
-                return
-            end
+            local t_classloop = hr()
 
-            -- Close overseer output; reopen Trouble only if failures remain
             require("overseer").close()
-            -- require("utils.nvim.window-util").restore_position()
 
-            -- Check if any accumulated diagnostics remain (not just current run)
             local has_any_failures = false
             for _, r in pairs(last_results) do
                 if r.status == "failed" then
@@ -307,12 +284,10 @@ function M.process(report_dir, filetype)
                     break
                 end
             end
-
             if has_any_failures then
                 vim.cmd("Trouble junit_diagnostics open")
             end
 
-            -- Summary notification
             local total = vim.tbl_count(results)
             local failed = 0
             for _, r in pairs(results) do
@@ -326,24 +301,25 @@ function M.process(report_dir, filetype)
                 spinner.stop(true, total .. " Tests Passed", sp_stop)
             end
 
-            -- Refresh tree view if open
             require("modules.java.test-report.junit-report-view").refresh_if_open(M.get_report_snapshot())
-        end)
 
-        nio.scheduler()
-        if process_generation ~= my_gen then
-            return
-        end
+            log.info(
+                string.format(
+                    "[perf process] total=%.1fms list=%.1fms parse=%.1fms(%d files) byclass=%.1fms classloop=%.1fms(%d classes)",
+                    (hr() - t_start) / 1e6,
+                    (t_list - t_start) / 1e6,
+                    (t_parse - t_list) / 1e6,
+                    #all_files,
+                    (t_byclass - t_parse) / 1e6,
+                    (t_classloop - t_byclass) / 1e6,
+                    total_classes
+                )
+            )
+        end)
 
         if not ok then
             log.error("process error: " .. tostring(pcall_err))
             spinner.stop(false, "JUnit Report processing failed", sp_stop)
-        end
-
-        -- Re-enable which-key triggers after processing
-        if wk_mode then
-            wk_triggers.suspended[wk_mode] = nil
-            wk_triggers.attach(wk_mode)
         end
 
         log.info("process complete")
@@ -385,6 +361,12 @@ function M.clear()
     last_positions = {}
     last_class_files = {}
     last_filetype = nil
+    -- Drop per-adapter caches (class index, etc.) so a fresh scan happens next run
+    for _, adapter in pairs(loaded_adapters) do
+        if adapter.clear_cache then
+            adapter.clear_cache()
+        end
+    end
     -- Close output buffer if open
     if output_bufnr and vim.api.nvim_buf_is_valid(output_bufnr) then
         for _, win in ipairs(vim.api.nvim_list_wins()) do

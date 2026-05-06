@@ -194,6 +194,31 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
     group = winbar_group,
 })
 
+-------------------------------------------
+------------ filetype rescue --------------
+-- Buffers loaded silently (e.g. junit test-report uses `:noautocmd call bufload`
+-- to skip the JDTLS attach + highlight cascade during processing) end up with no
+-- filetype set — so syntax/LSP are missing when the user later opens them via
+-- Trouble, picker, or `gd`. On window entry, detect and set the filetype so the
+-- FileType autocmd fires its usual cascades. Cost shifts to user-visible open,
+-- where it would have been paid anyway.
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    group = general_group,
+    callback = function(ev)
+        if vim.bo[ev.buf].filetype ~= "" or vim.bo[ev.buf].buftype ~= "" then
+            return
+        end
+        local name = vim.api.nvim_buf_get_name(ev.buf)
+        if name == "" or is_virtual_buf(name) then
+            return
+        end
+        local ft = vim.filetype.match({ buf = ev.buf })
+        if ft then
+            vim.bo[ev.buf].filetype = ft
+        end
+    end,
+})
+
 -------------------------------------------------------
 --------------- project roots commands ----------------
 

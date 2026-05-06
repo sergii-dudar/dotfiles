@@ -24,14 +24,20 @@ end
 ---@return table<string, test_report.TestResult>
 function M.parse_file(filepath)
     local results = {}
+    local hr = vim.uv.hrtime
+    local t0 = hr()
     log.debug("parsing: " .. filepath)
     local content = file.read_file(filepath)
+    local t_read = hr()
+    local t_parse, t_process
     if content then
         log.debug("file content length: " .. #content)
         local ok, parsed = pcall(xml.parse, content)
+        t_parse = hr()
         if ok and parsed and parsed.testsuite then
             log.debug("XML parsed OK, processing testsuite")
             M._process_testsuite(parsed.testsuite, results)
+            t_process = hr()
         elseif not ok then
             log.error("XML parse error: " .. tostring(parsed))
             vim.notify("test-report: failed to parse XML: " .. filepath, vim.log.levels.ERROR)
@@ -44,6 +50,18 @@ function M.parse_file(filepath)
         vim.notify("test-report: could not read file: " .. filepath, vim.log.levels.ERROR)
     end
     log.debug("parse_file done, " .. vim.tbl_count(results) .. " results")
+    log.info(
+        string.format(
+            "[perf parse_file] %s size=%.1fKB read=%.1fms xml.parse=%.1fms process=%.1fms total=%.1fms cases=%d",
+            vim.fn.fnamemodify(filepath, ":t"),
+            content and (#content / 1024) or 0,
+            (t_read - t0) / 1e6,
+            (t_parse and (t_parse - t_read) or 0) / 1e6,
+            (t_process and t_parse and (t_process - t_parse) or 0) / 1e6,
+            (hr() - t0) / 1e6,
+            vim.tbl_count(results)
+        )
+    )
     return results
 end
 
@@ -200,6 +218,34 @@ function M._extract_text(node)
     return nil
 end
 
+--- Recover the assertion message from a stacktrace string. Used when the XML
+--- parser fails to extract the `<failure message="...">` attribute — lib.xml
+--- mishandles raw `>` inside attribute values, which JUnit Jupiter produces
+--- (e.g. `message="expected: &lt;2> but was: &lt;1>"`). The stacktrace's first
+--- exception line (`<FQCN>(Error|Exception|Throwable): <msg>`) is reliable
+--- even when attribute parsing produced garbage. AssertJ encodes `>` as `&gt;`
+--- so its attributes parse fine; this fallback covers the Jupiter case.
+---@param stacktrace string
+---@return string|nil
+local function message_from_stacktrace(stacktrace)
+    if not stacktrace or stacktrace == "" then
+        return nil
+    end
+    for _, suffix in ipairs({ "Error", "Exception", "Throwable" }) do
+        local line = stacktrace:match("[%w%._%$]+" .. suffix .. "[^\n:]*:[^\n]+")
+        if line then
+            return line
+        end
+    end
+    -- Fallback: first non-stack-frame line
+    for line in stacktrace:gmatch("[^\n]+") do
+        if not line:match("^%s*at%s") and line:match("%S") then
+            return line
+        end
+    end
+    return nil
+end
+
 ---@param classname string
 ---@param failure_node table|string
 ---@return { message: string, line: number|nil }[], string
@@ -221,12 +267,22 @@ function M._extract_errors(classname, failure_node)
             if f._attr then
                 message = f._attr.message or f._attr.type or ""
             end
-            -- The text content of the failure element is the stacktrace
+            -- Text content of the failure element is the stacktrace.
+            -- When attribute parsing breaks (Jupiter `&lt;X>` case), f[1] is the
+            -- garbage from mangled attrs and f[2] is the real CDATA content;
+            -- concatenate so message_from_stacktrace can still find the exception line.
             if f[1] and type(f[1]) == "string" then
                 stacktrace = f[1]
             end
+            if f[2] and type(f[2]) == "string" then
+                stacktrace = stacktrace .. f[2]
+            end
         elseif type(f) == "string" then
             stacktrace = f
+        end
+
+        if message == "" then
+            message = message_from_stacktrace(stacktrace) or ""
         end
 
         if stacktrace ~= "" then
