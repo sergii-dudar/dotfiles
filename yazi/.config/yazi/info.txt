@@ -1,6 +1,6 @@
 update plugins:
-    - ya pack --migrate
-    - ya pack --upgrade
+    - ya pkg migrate
+    - ya pkg upgrade
 
 latest presets: https://github.com/sxyazi/yazi/tree/main/yazi-config/preset
 https://github.com/sxyazi/yazi/tree/shipped/yazi-config/preset
