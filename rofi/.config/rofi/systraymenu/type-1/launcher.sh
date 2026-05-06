@@ -15,6 +15,9 @@ dir="$HOME/.config/rofi/systraymenu/type-1"
 theme='style-5'
 
 ## Run
-rofi \
-    -show drun \
-    -theme ${dir}/${theme}.rasi
+if [ ! -t 0 ]; then
+    # stdin is piped — use dmenu mode
+    rofi -dmenu -theme ${dir}/${theme}.rasi "$@"
+else
+    rofi -show drun -theme ${dir}/${theme}.rasi "$@"
+fi

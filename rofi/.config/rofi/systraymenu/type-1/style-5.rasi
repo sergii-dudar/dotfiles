@@ -9,14 +9,9 @@
 
 /*****----- Configuration -----*****/
 configuration {
-	modi:                       "drun,run,filebrowser,window";
     show-icons:                 true;
-    display-drun:               "";
-    display-run:                "";
-    display-filebrowser:        "";
-    display-window:             "";
+    display:                    "󰮫";
 	drun-display-format:        "{name}";
-	window-format:              "{w} · {c} · {t}";
     kb-mode-next: "Shift+Right,Tab";
     kb-mode-previous: "Control+Tab";
     kb-screenshot: "Alt+s";
@@ -60,7 +55,7 @@ window {
     location:                    north east;
     anchor:                      north east;
     fullscreen:                  false;
-    width:                       1000px;
+    width:                       500px;
     x-offset:                    -10px;
     y-offset:                    10px;
 
