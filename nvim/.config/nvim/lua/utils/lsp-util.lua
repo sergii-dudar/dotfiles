@@ -144,7 +144,7 @@ end
 
 local resolve_first = function(list_actions)
     request_and_apply_first(list_actions, function()
-        require("modules.java.static-import-explorer").find_quick()
+        require("modules.java.static-import-explorer").quick_import()
     end)
 end
 

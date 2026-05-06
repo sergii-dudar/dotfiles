@@ -75,7 +75,7 @@ return {
             { "<leader>j.", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
-            { "<leader>ji", function() require("modules.java.static-import-explorer").find_quick() end, desc = "Static Import Quick" },
+            { "<leader>ji", function() require("modules.java.static-import-explorer").quick_import() end, desc = "Static Import Quick" },
             { "<leader>jI", function() require("modules.java.static-import-explorer").find() end, desc = "Static Import Search" },
             -- Mapstruct
             { "<leader>jm", function() require("modules.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true }) end, desc = "Go to definition (MapStruct) Float" },

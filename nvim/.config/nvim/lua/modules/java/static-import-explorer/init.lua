@@ -138,6 +138,16 @@ local function run_search(word, pattern)
     )
 end
 
+--- Open the interactive Snacks picker for browsing/selecting static imports.
+--- Seeds the prompt with the word under cursor and searches the module source
+--- dirs plus preferred dependency dirs (scope-aware: main vs test). The picker
+--- exposes toggles for including filtered/all dependency sources and for
+--- starts-with vs substring matching. Selected entries are inserted as
+--- `import static` lines via `util.add_import_to_buffer`.
+---
+--- When to use: exploratory lookup — you don't know the exact member name, want
+--- to fuzzy-search across many candidates, or need to widen the search to all
+--- dependencies via the picker's toggles.
 function M.find()
     state.source_bufnr = vim.api.nvim_get_current_buf()
     state.current_word = vim.fn.expand("<cword>")
@@ -151,7 +161,20 @@ function M.find()
     picker.open(settings, state)
 end
 
-function M.find_quick()
+--- One-shot static import resolver for the identifier under the cursor.
+--- Builds a starts-with regex (field/enum-constant for ALL_CAPS, method for
+--- camelCase) and runs `rg` across module src + preferred dependency dirs
+--- (loading dep sources first if needed). Behaviour by match count:
+---   • 0 matches  -> falls back to the full picker via `fallback_to_find`
+---     (which expands the search to all dependencies)
+---   • 1 match    -> auto-applied when `settings.auto_apply_single` is set
+---   • N matches  -> shown via `vim.ui.select`; cancelling falls back to find
+--- Intended as the fast keymap path; `M.find` is the explicit/explorer entry.
+---
+--- When to use: cursor sits on a known unresolved static reference (e.g.
+--- `assertThat`, `MAX_VALUE`, `mock`) and you want a single keystroke to import
+--- it without leaving the buffer.
+function M.quick_import()
     state.source_bufnr = vim.api.nvim_get_current_buf()
     local word = vim.fn.expand("<cword>")
 
