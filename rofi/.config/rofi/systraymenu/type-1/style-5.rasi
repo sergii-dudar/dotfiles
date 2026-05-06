@@ -16,6 +16,9 @@ configuration {
     kb-mode-previous: "Control+Tab";
     kb-screenshot: "Alt+s";
     kb-element-next: "";
+    /* accept by single mouse click */
+    me-select-entry: "";
+    me-accept-entry: "MousePrimary";
 }
 
 /*****----- Global Properties -----*****/
@@ -56,6 +59,7 @@ window {
     anchor:                      north east;
     fullscreen:                  false;
     width:                       500px;
+    height:                      400px;
     x-offset:                    -10px;
     y-offset:                    10px;
 
@@ -112,12 +116,22 @@ prompt {
     text-color:                  inherit;
 }
 textbox-prompt-colon {
+    // enabled:                     true;
+    // padding:                     5px 0px;
+    // expand:                      false;
+    // str:                         " ";
+    // background-color:            inherit;
+    // text-color:                  inherit;
+
+
     enabled:                     true;
-    padding:                     5px 0px;
     expand:                      false;
-    str:                         " ";
-    background-color:            inherit;
-    text-color:                  inherit;
+    str:                         "";
+    padding:                     10px 11px 10px 11px;
+    border-radius:               10px;
+    background-color:            @urgent;
+    text-color:                  @background;
+    width:                       50px;
 }
 entry {
     enabled:                     true;
@@ -125,7 +139,7 @@ entry {
     background-color:            inherit;
     text-color:                  inherit;
     cursor:                      text;
-    placeholder:                 "Search...";
+    placeholder:                 "Tray...";
     placeholder-color:           inherit;
 }
 num-filtered-rows {
