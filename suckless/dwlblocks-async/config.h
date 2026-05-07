@@ -26,7 +26,8 @@
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-load",      30,     6) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-temp",      120,    7) \
     X("", "/home/serhii/dotfiles/bin/slstatus/sb-disk",          1200,   8) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-weather",       1200,   9)
+    X("", "/home/serhii/dotfiles/bin/slstatus/sb-weather",       1200,   9) \
+    X("", "/home/serhii/dotfiles/bin/slstatus/sb-mediaplayer",   0,      10)
 #endif  // CONFIG_H
 
 // update from sh: kill -(34 + signal) $(pidof dwlblocks)
