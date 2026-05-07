@@ -1,16 +1,32 @@
 #!/usr/bin/env bash
 # Applies a wallpaper to a specific monitor and saves the state.
 # Usage: set-wallpaper.sh <monitor_name> <image_path>
+#        set-wallpaper.sh --reload
 #
-# State files are saved to ~/.config/wallpapers/<monitor_name>.txt
-# Supports: macOS (TODO), Linux X11 (feh), Linux Wayland (swaybg)
+# State files are saved to ~/dotfiles/bin/wallpapers/selected/<monitor_name>.txt
+# Supports: macOS (osascript), Linux X11 (feh), Linux Wayland (swaybg)
+#
+# --reload: re-applies every saved state file (used by the macOS reload key).
 
 set -euo pipefail
 
 STATE_DIR="${HOME}/dotfiles/bin/wallpapers/selected"
 
+if [[ "${1:-}" == "--reload" ]]; then
+    shopt -s nullglob
+    for state_file in "$STATE_DIR"/*.txt; do
+        monitor=$(basename "$state_file" .txt)
+        image=$(cat "$state_file")
+        if [[ -f "$image" ]]; then
+            "${BASH_SOURCE[0]}" "$monitor" "$image"
+        fi
+    done
+    exit 0
+fi
+
 if [[ $# -lt 2 ]]; then
     echo "Usage: set-wallpaper.sh <monitor_name> <image_path>"
+    echo "       set-wallpaper.sh --reload"
     exit 1
 fi
 
@@ -61,6 +77,20 @@ apply_x11() {
     fi
 }
 
+apply_macos() {
+    # Monitor names are in `D<index>-<resolution>` form; the index maps directly
+    # to AppleScript's `desktop N`.
+    local desktop_index="${MONITOR_NAME#D}"
+    desktop_index="${desktop_index%%-*}"
+
+    if ! [[ "$desktop_index" =~ ^[0-9]+$ ]]; then
+        echo "Error: Cannot derive desktop index from monitor name: $MONITOR_NAME"
+        exit 1
+    fi
+
+    osascript -e "tell application \"System Events\" to tell desktop ${desktop_index} to set picture to \"${IMAGE_PATH}\""
+}
+
 apply_wayland() {
     local pid_file="/tmp/wallpaper-${MONITOR_NAME}.pid"
 
@@ -78,8 +108,7 @@ apply_wayland() {
 OS=$(detect_os)
 case "$OS" in
     macos)
-        # TODO: macOS wallpaper support will be added later
-        echo "macOS wallpaper support not yet implemented"
+        apply_macos
         ;;
     linux)
         DISPLAY_SERVER=$(detect_display_server)

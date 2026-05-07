@@ -32,9 +32,18 @@ detect_monitors() {
 
     case "$os" in
         macos)
-            # TODO: improve macOS monitor detection
+            # Label monitors as D<index>-<WxH>; index matches `desktop N` in osascript.
             system_profiler SPDisplaysDataType 2>/dev/null \
-                | awk '/^ +[^ ]/{name=$0} /Resolution:/{gsub(/^ +| +$/,"",name); gsub(/:$/,"",name); print name}'
+                | awk '
+                    /Resolution:/ {
+                        i++
+                        if (match($0, /[0-9]+ x [0-9]+/)) {
+                            res=substr($0, RSTART, RLENGTH)
+                            gsub(/ /,"",res)
+                            print "D" i "-" res
+                        }
+                    }
+                '
             ;;
         linux)
             if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
@@ -52,6 +61,7 @@ detect_monitors() {
     esac
 }
 
+OS=$(detect_os)
 mapfile -t MONITORS < <(detect_monitors)
 
 if [[ ${#MONITORS[@]} -eq 0 ]]; then
@@ -85,6 +95,11 @@ for i in "${!MONITORS[@]}"; do
 
     bind_args+=(--bind "alt-${key_num}:execute-silent(${SET_WALLPAPER_CMD} ${monitor} {})")
 done
+
+if [[ "$OS" == "macos" ]]; then
+    header_parts+=" ${sep} [${GREEN}${BOLD}ctrl-r${RESET}]: Reload ${iapply}"
+    bind_args+=(--bind "ctrl-r:execute-silent(${SET_WALLPAPER_CMD} --reload)")
+fi
 
 # Enter binding: single monitor → apply directly, multiple → rofi picker
 if [[ ${#MONITORS[@]} -eq 1 ]]; then
