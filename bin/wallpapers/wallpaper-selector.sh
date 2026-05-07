@@ -91,9 +91,10 @@ for i in "${!MONITORS[@]}"; do
     key_num=$((i + 1))
     monitor="${MONITORS[$i]}"
 
-    header_parts+=" ${sep} [${GREEN}${BOLD}alt-${key_num}${RESET}]: ${monitor} ${iwall}"
+    header_parts+=" ${sep} [${GREEN}${BOLD}alt-${key_num}${RESET}/${GREEN}${BOLD}f${key_num}${RESET}]: ${monitor} ${iwall}"
 
     bind_args+=(--bind "alt-${key_num}:execute-silent(${SET_WALLPAPER_CMD} ${monitor} {})")
+    bind_args+=(--bind "f${key_num}:execute-silent(${SET_WALLPAPER_CMD} ${monitor} {})")
 done
 
 if [[ "$OS" == "macos" ]]; then
