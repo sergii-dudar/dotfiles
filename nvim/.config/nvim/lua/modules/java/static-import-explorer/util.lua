@@ -195,14 +195,28 @@ end
 --- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
 --- For enum constants: ALL_CAPS at start of trimmed line before ',' ';' or '(' (constructor args)
 --- For methods: identifier before '('
-function M.extract_static_member(text)
+---@param word? string the searched identifier — resolves the correct member in inline declarations like "NONE, DEBTOR, CREDITOR;"
+function M.extract_static_member(text, word)
+    -- When the searched word is known, find it directly first. Without this, an inline enum
+    -- like "    NONE, DEBTOR, CREDITOR;" returns CREDITOR (matched by the field pattern below)
+    -- regardless of whether the user searched for NONE, DEBTOR, or CREDITOR.
+    if word and word ~= "" then
+        local escaped = vim.pesc(word)
+        local found = text:match("^%s*(" .. escaped .. "[%u%d_]*)%s*[,;({=]")
+            or text:match("[^%u%d_](" .. escaped .. "[%u%d_]*)%s*[,;({=]")
+            -- Trailing-whitespace-only: last enum constant with no terminator on this line.
+            or text:match("^%s*(" .. escaped .. "[%u%d_]*)%s*$")
+            or text:match("[^%u%d_](" .. escaped .. "[%u%d_]*)%s*$")
+        if found then
+            return found
+        end
+    end
     -- Field: ALL_CAPS with explicit type prefix (e.g. `static final Instant FOO = ...` or `WireMockServer BAR;`)
     local field = text:match("([%u_][%u%d_]+)%s*[=;]")
     if field then
         return field
     end
     -- Enum constant: ALL_CAPS at start of trimmed line, terminated by , ; ( (constructor) or { (body)
-    -- local enum_const = text:match("^%s*([%u_][%u%d_]+)%s*[,;({]")
     local enum_const = text:match("%s*([%u_][%u%d_]+)%s*[,;({]")
     if enum_const then
         return enum_const
@@ -258,22 +272,20 @@ function M.build_search(word, starts_with)
         return nil
     end
     if word:match("^[A-Z_][A-Z0-9_]*$") then
-        -- Static field (ALL_CAPS) — no public/static required (covers interface fields)
-        local suffix = starts_with and "[A-Z0-9_]*[\\s]*[=;]" or "[\\s]*[=;]"
-        -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- not supported statics declared in `interface`
+        -- Static field (ALL_CAPS) — no public/static required (covers interface fields).
+        -- Also incidentally catches inline enum constants when terminator is ',' or ';'.
+        local suffix = starts_with and "[A-Z0-9_]*[\\s]*[,=;]" or "[\\s]*[,=;]"
         local field_pattern = "[^\\s]+[\\s]+" .. word .. suffix
-        -- Enum constant — ALL_CAPS at start of line (no type prefix), terminated by , ; ( (constructor) or { (body)
-        local enum_suffix = starts_with and "[A-Z0-9_]*[\\s]*[,;({]" or "[\\s]*[,;({]"
-        local enum_pattern = "^[\\s]*" .. word .. enum_suffix
+        -- Enum constant — at start of trimmed line OR after a comma; terminated by , ; ( { or end of line.
+        -- End-of-line terminator covers the last constant in vertical layout (";" / "}" on next line).
+        local enum_tail = starts_with and "[A-Z0-9_]*" or ""
+        local enum_pattern = "(?:^|,)[\\s]*" .. word .. enum_tail .. "[\\s]*(?:[,;({]|$)"
         return field_pattern .. "|" .. enum_pattern
     else
         -- Static method (camelCase) — requires static, public optional (covers interface methods)
         local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
-        -- return "public[\\s]+static.*[\\s]+" .. word .. suffix -- in `interface`
         return "static[\\s]+.*[\\s]+" .. word .. suffix
     end
-    -- rg -P '^(?!.*\b(?:private|protected)\b).*\w+\s+WORD[A-Z0-9_]*\s*=' --glob '*.java'
-    -- rg -P '^(?!.*\b(?:private|protected)\b).*static\s+.*\s+word[a-zA-Z0-9_]*\(' --glob '*.java'
 end
 
 --- Derive FQCN from Java file path (no I/O, uses path structure).
@@ -298,8 +310,9 @@ end
 --- Parse rg output lines into deduplicated import items.
 ---@param stdout string
 ---@param import_mode string
+---@param word? string the searched identifier — passed to extract_static_member to resolve inline declarations
 ---@return { name: string, fqcn: string, member: string|nil }[]
-function M.parse_rg_results(stdout, import_mode)
+function M.parse_rg_results(stdout, import_mode, word)
     local lines = vim.split(stdout, "\n", { trimempty = true })
     local seen = {}
     local items = {}
@@ -315,7 +328,7 @@ function M.parse_rg_results(stdout, import_mode)
         then
             local fqcn = java_util.file_to_fqcn(file, tonumber(lnum_str))
             if fqcn then
-                local member = M.extract_static_member(text)
+                local member = M.extract_static_member(text, word)
                 local import_str = M.build_import_line(fqcn, member, import_mode)
                 if not seen[import_str] then
                     seen[import_str] = true
@@ -327,6 +340,18 @@ function M.parse_rg_results(stdout, import_mode)
                 end
             end
         end
+    end
+
+    -- Rank exact `member == word` matches above prefix matches; alphabetical within each tier.
+    if word and word ~= "" then
+        table.sort(items, function(a, b)
+            local a_exact = a.member == word
+            local b_exact = b.member == word
+            if a_exact ~= b_exact then
+                return a_exact
+            end
+            return (a.member or "") < (b.member or "")
+        end)
     end
 
     return items

@@ -23,7 +23,7 @@ local function make_confirm(settings, state)
         end
         local member = nil
         if settings.import_mode == "explicit" then
-            member = util.extract_static_member(item.text or "")
+            member = util.extract_static_member(item.text or "", state.current_word)
             if not member then
                 vim.notify("[Static Import] Could not extract member, falling back to wildcard", vim.log.levels.WARN)
             end
@@ -33,21 +33,23 @@ local function make_confirm(settings, state)
     end
 end
 
-local function format_item(item)
-    local lnum = item.pos and item.pos[1] or nil
-    local fqcn = java_util.file_to_fqcn(item.file or "", lnum)
-    local member = util.extract_static_member(item.text or "")
-    local class_name = fqcn:match("([^%.]+)$") or fqcn
-    local pkg = fqcn:match("^(.+)%.") or ""
+local function make_format_item(state)
+    return function(item)
+        local lnum = item.pos and item.pos[1] or nil
+        local fqcn = java_util.file_to_fqcn(item.file or "", lnum)
+        local member = util.extract_static_member(item.text or "", state.current_word)
+        local class_name = fqcn:match("([^%.]+)$") or fqcn
+        local pkg = fqcn:match("^(.+)%.") or ""
 
-    local display = class_name .. "." .. (member or "?")
-    local ret = {
-        { display, "Function" },
-    }
-    if pkg ~= "" then
-        table.insert(ret, { "  " .. pkg, "Comment" })
+        local display = class_name .. "." .. (member or "?")
+        local ret = {
+            { display, "Function" },
+        }
+        if pkg ~= "" then
+            table.insert(ret, { "  " .. pkg, "Comment" })
+        end
+        return ret
     end
-    return ret
 end
 
 local function ensure_deps_loaded(state, callback)
@@ -131,7 +133,7 @@ function M.open(settings, state, glob)
         search = search,
         glob = glob or state.default_glob,
         title = "Static Import Search",
-        format = format_item,
+        format = make_format_item(state),
         confirm = make_confirm(settings, state),
         transform = function(item)
             if is_excluded_line(item.text or "") then

@@ -95,7 +95,7 @@ local function on_rg_result(result, pattern, word)
         return
     end
 
-    local items = util.parse_rg_results(result.stdout, settings.import_mode)
+    local items = util.parse_rg_results(result.stdout, settings.import_mode, word)
     if #items == 0 then
         vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
         fallback_to_find(word)

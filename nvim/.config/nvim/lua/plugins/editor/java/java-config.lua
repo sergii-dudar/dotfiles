@@ -69,6 +69,8 @@ return {
                 vim.notify("Cleared: " .. dir)
                 require("jdtls").update_project_config()
             end, desc = "Clear generated-sources and refresh JDTLS" },
+            -- pkill -f jdtls; pkill -f 'org.eclipse.equinox.launcher'   # kill all JDTLS java procs
+            -- rm -rf ~/.cache/nvim/jdtls/<project>                       # then wipe
             { "<leader>tg", function() require("jdtls.tests"):generate() end, desc = "[G]enerate Tests (jdtls)", },
             { "<leader>tj", function() require("jdtls.tests").goto_subjects() end, desc = "[J]ump to tests (jdtls)", },
             -- Proj Dependency Search: 
