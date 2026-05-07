@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Display currently playing media with status icons.
 # Replicates waybar custom/media (mediaplayer.py) behavior for dwlblocks.
+# Dependencies: sudo pacman -S playerctl
 
 . "$HOME"/dotfiles/bin/slstatus/colorscheme
 

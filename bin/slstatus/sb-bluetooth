@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Display bluetooth status and connected device.
+# Based on waybar bluetooth module.
+# Dependencies: sudo pacman -S bluez-utils
+
+. "$HOME"/dotfiles/bin/slstatus/colorscheme
+
+# Check if bluetoothctl is available
+command -v bluetoothctl &>/dev/null || exit 0
+
+# Check if bluetooth controller is powered on
+powered="$(bluetoothctl show 2>/dev/null | grep -i 'Powered:' | awk '{print $2}')"
+
+if [ "$powered" != "yes" ]; then
+    echo " ^fg(6272a4)󰂲^fg() $SPLIT"
+    exit 0
+fi
+
+# Get connected devices
+connected_devices="$(bluetoothctl devices Connected 2>/dev/null)"
+
+if [ -z "$connected_devices" ]; then
+    echo " ^fg(51afef)󰂯^fg() $SPLIT"
+    exit 0
+fi
+
+# Show first connected device name
+# device_alias="$(echo "$connected_devices" | head -1 | cut -d' ' -f3-)"
+
+# Truncate long device names
+# if [ "${#device_alias}" -gt 15 ]; then
+#     device_alias="${device_alias:0:12}..."
+# fi
+
+# echo " ^fg(4db5bd)󰂱^fg() ^fg(5699af)${device_alias}^fg() $SPLIT"
+echo "   ^fg(4db5bd)󰂱^fg() $SPLIT"
