@@ -4,7 +4,7 @@
 # Uses fzf-image-preview.sh for preview.
 #
 # Usage: wallpaper-selector.sh [wallpaper_directory]
-# Dependencies: fzf, fd, jq (wayland)
+# Dependencies: fzf, fd, jq (macOS, wayland)
 
 set -euo pipefail
 
@@ -32,16 +32,23 @@ detect_monitors() {
 
     case "$os" in
         macos)
-            # Label monitors as D<index>-<WxH>; index matches `desktop N` in osascript.
-            system_profiler SPDisplaysDataType 2>/dev/null \
-                | awk '
-                    /Resolution:/ {
+            # Native panel pixels + orientation. Index matches `desktop N` in osascript.
+            # Use _spdisplays_pixels (true panel resolution), not the configured "looks like" value.
+            system_profiler SPDisplaysDataType -json 2>/dev/null \
+                | jq -r '
+                    .SPDisplaysDataType[].spdisplays_ndrvs[]?
+                    | select(.spdisplays_online == "spdisplays_yes")
+                    | "\(._name)\t\(._spdisplays_pixels)"
+                ' \
+                | awk -F'\t' '
+                    {
+                        mon = $1
+                        gsub(/[ \/]+/, "-", mon)
+                        split($2, p, " ")
+                        w = p[1] + 0; h = p[3] + 0
+                        ori = (h > w) ? "portrait" : "landscape"
                         i++
-                        if (match($0, /[0-9]+ x [0-9]+/)) {
-                            res=substr($0, RSTART, RLENGTH)
-                            gsub(/ /,"",res)
-                            print "D" i "-" res
-                        }
+                        print "D" i "-" mon "-" ori
                     }
                 '
             ;;
