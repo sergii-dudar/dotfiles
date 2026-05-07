@@ -10,6 +10,19 @@ local function import_exists(import_statement)
     return false
 end
 
+-- Find FQCN for a class from existing regular imports in the buffer
+local function find_import_fqcn(class_name)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local pattern = "^import%s+([%w%.]+%." .. vim.pesc(class_name) .. ")%s*;%s*$"
+    for _, line in ipairs(lines) do
+        local fqcn = line:match(pattern)
+        if fqcn then
+            return fqcn
+        end
+    end
+    return nil
+end
+
 --- Check if an explicit static import for `member` already exists in the buffer.
 --- Matches `import static <fqcn>.<member>;` — wildcard imports are not
 --- inspected (we can't know which members they pull in without resolution).
@@ -78,21 +91,55 @@ function M.import_class_and_replace()
     local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
 
-    --local remove_all_part = full_name_under_cursor:match("^(.*)%." .. simple_class_name)
-    local remove_all_part = full_name_under_cursor:match("^([%a%.]+)%." .. simple_class_name .. "%(?")
+    local remove_all_part = full_name_under_cursor:match("^([%w%.]+)%." .. simple_class_name .. "%(?")
 
     if not remove_all_part then
         vim.notify("class '" .. simple_class_name .. "' already was imported!", vim.log.levels.INFO)
         return
     end
 
-    local full_class_name = remove_all_part .. "." .. simple_class_name
+    -- Determine if this is a "convert to static import" case:
+    -- 1. Prefix has no dots and starts with uppercase (e.g., "BooleanUtils.and") → class already imported
+    -- 2. Prefix has dots and last segment starts with uppercase (e.g., "org...BooleanUtils.and") → FQCN static
+    local is_static_import = false
+    local class_name_for_static = nil
+    local fqcn_for_static = nil
 
-    local is_static = simple_class_name:match("^[A-Z_][A-Z0-9_]*$") ~= nil
-    local import_statement = (is_static and "import static " or "import ") .. full_class_name .. ";"
+    if not remove_all_part:find("%.") then
+        if remove_all_part:match("^[A-Z]") then
+            is_static_import = true
+            class_name_for_static = remove_all_part
+            fqcn_for_static = find_import_fqcn(class_name_for_static)
+        end
+    else
+        local last_segment = remove_all_part:match("%.([^%.]+)$")
+        if last_segment and last_segment:match("^[A-Z]") then
+            is_static_import = true
+            class_name_for_static = last_segment
+            fqcn_for_static = remove_all_part
+        end
+    end
 
-    replace_full_to_simple_class_name(full_class_name, simple_class_name)
-    insert_import(import_statement)
+    if is_static_import then
+        if not fqcn_for_static then
+            vim.notify(
+                "Cannot find import for '" .. (class_name_for_static or simple_class_name) .. "'",
+                vim.log.levels.WARN
+            )
+            return
+        end
+        local static_import = "import static " .. fqcn_for_static .. "." .. simple_class_name .. ";"
+        replace_full_to_simple_class_name(remove_all_part .. "." .. simple_class_name, simple_class_name)
+        insert_import(static_import)
+    else
+        local full_class_name = remove_all_part .. "." .. simple_class_name
+
+        local is_constant = simple_class_name:match("^[A-Z_][A-Z0-9_]*$") ~= nil
+        local import_statement = (is_constant and "import static " or "import ") .. full_class_name .. ";"
+
+        replace_full_to_simple_class_name(full_class_name, simple_class_name)
+        insert_import(import_statement)
+    end
 end
 
 return M
