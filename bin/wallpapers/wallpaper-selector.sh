@@ -97,8 +97,15 @@ header=" ${header_parts} "
 
 cd "$WALLPAPER_DIR"
 
+# --preview-border=none
 fd --type f -e jpg -e jpeg -e png -e gif -e bmp -e webp -e tiff . | \
     fzf --exact \
+    --ansi --height 100% --layout reverse \
+    --border --style minimal \
+    --info=inline-right \
+    --highlight-line --cycle \
+    --no-separator \
+    --bind 'ctrl-h:toggle-preview' \
     --border-label ' 󰸉 Wallpaper Selector ' \
     --prompt '󰸉 Wallpaper ❯ ' \
     --header "$header" \
