@@ -144,8 +144,8 @@ return {
                 local name = vim.fn.fnamemodify(path, ":t:r")
                 Snacks.picker.grep({ cwd = path, title = "Grep in: " .. name })
             end, desc = "Grep (Root of buffer)" },
-            { "<leader>br", function() require("plugins.snacks.configs.file-path-picker").pick({ mode = "n", picker = 'explorer' }) end, desc = "Pick Resource Path" },
-            { "<leader>br", ":<C-u>lua require('plugins.snacks.configs.file-path-picker').pick({ mode = 'v', picker = 'explorer' })<CR>", desc = "Pick Resource Path", mode = "x" },
+            { "<leader>fp", function() require("plugins.snacks.configs.file-path-picker").pick({ mode = "n", picker = 'explorer' }) end, desc = "[F]ind File [P]ath (copy or paste)" },
+            { "<leader>fp", ":<C-u>lua require('plugins.snacks.configs.file-path-picker').pick({ mode = 'v', picker = 'explorer' })<CR>", desc = "[F]ind File [P]ath (copy or v paste)", mode = "x" },
 
             -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
             -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },

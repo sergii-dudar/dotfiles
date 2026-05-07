@@ -32,7 +32,7 @@ local function get_string_at_cursor()
             local sr, sc, er, ec = node:range()
             local text = vim.treesitter.get_node_text(node, 0)
             -- Strip surrounding quotes
-            if text:match('^["\']') and #text >= 2 then
+            if text:match("^[\"']") and #text >= 2 then
                 text = text:sub(2, -2)
                 sc = sc + 1
                 ec = ec - 1
@@ -66,6 +66,7 @@ end
 ---@field dirs_narrowed boolean
 ---@field dir_prefix string
 ---@field replace_range { text: string, start_row: integer, start_col: integer, end_row: integer, end_col: integer }|nil
+---@field use_absolute boolean
 
 ---@param ctx PickContext
 ---@param abs_path string
@@ -79,14 +80,24 @@ local function make_rel_path(ctx, abs_path)
 end
 
 ---@param ctx PickContext
+---@param abs_path string
+---@return string
+local function resolve_path(ctx, abs_path)
+    if ctx.use_absolute then
+        return vim.fs.normalize(abs_path)
+    end
+    return make_rel_path(ctx, abs_path)
+end
+
+---@param ctx PickContext
 ---@param _ snacks.Picker
 ---@param item snacks.picker.Item
 local function copy_res_path(ctx, _, item)
     local abs_path = item and Snacks.picker.util.path(item)
     if abs_path then
-        local rel = make_rel_path(ctx, abs_path)
-        vim.fn.setreg("+", rel)
-        Snacks.notify("Copied to clipboard:\n" .. rel, { title = "Snacks Picker" })
+        local path = resolve_path(ctx, abs_path)
+        vim.fn.setreg("+", path)
+        Snacks.notify("Copied to clipboard:\n" .. path, { title = "Snacks Picker" })
     end
 end
 
@@ -96,7 +107,7 @@ end
 local function paste_res_path(ctx, picker, item)
     local abs_path = item and Snacks.picker.util.path(item)
     if abs_path then
-        local rel = make_rel_path(ctx, abs_path)
+        local path = resolve_path(ctx, abs_path)
         picker:close()
         vim.schedule(function()
             if ctx.replace_range then
@@ -106,13 +117,22 @@ local function paste_res_path(ctx, picker, item)
                     ctx.replace_range.start_col,
                     ctx.replace_range.end_row,
                     ctx.replace_range.end_col,
-                    { rel }
+                    { path }
                 )
             else
-                vim.api.nvim_paste(rel, true, -1)
+                vim.api.nvim_paste(path, true, -1)
             end
         end)
     end
+end
+
+---Toggle between relative and absolute path mode.
+---@param ctx PickContext
+---@param picker snacks.Picker
+local function toggle_absolute_path(ctx, picker)
+    ctx.use_absolute = not ctx.use_absolute
+    local mode = ctx.use_absolute and "absolute" or "relative"
+    Snacks.notify("Path mode: " .. mode, { title = "Snacks Picker" })
 end
 
 ---Handle explorer item: toggle directory or delegate to file action.
@@ -188,14 +208,17 @@ function M.pick(opts)
     local replace_range = context
 
     if context then
-        local last_slash = context.text:match(".*()/" )
+        local last_slash = context.text:match(".*()/")
         if last_slash then
             dir_prefix = context.text:sub(1, last_slash)
-            local narrowed = vim.tbl_filter(function(d)
-                return uv.fs_stat(d) ~= nil
-            end, vim.tbl_map(function(d)
-                return vim.fs.normalize(d .. "/" .. dir_prefix)
-            end, base_dirs))
+            local narrowed = vim.tbl_filter(
+                function(d)
+                    return uv.fs_stat(d) ~= nil
+                end,
+                vim.tbl_map(function(d)
+                    return vim.fs.normalize(d .. "/" .. dir_prefix)
+                end, base_dirs)
+            )
             if #narrowed > 0 then
                 resource_dirs = narrowed
                 dirs_narrowed = true
@@ -210,6 +233,7 @@ function M.pick(opts)
         dirs_narrowed = dirs_narrowed,
         dir_prefix = dir_prefix,
         replace_range = replace_range,
+        use_absolute = false,
     }
 
     if picker_type == "explorer" then
@@ -229,17 +253,22 @@ function M.pick(opts)
             copy_resource_path = function(picker, item)
                 explorer_dir_or_action(ctx, copy_res_path, picker, item)
             end,
+            toggle_absolute_path = function(picker, _)
+                toggle_absolute_path(ctx, picker)
+            end,
         }
         local input_keys = {
             ["<CR>"] = { "paste_resource_path", mode = { "i", "n" } },
             ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
             ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+            ["<c-t>"] = { "toggle_absolute_path", mode = { "i", "n" } },
         }
         local list_keys = {
             ["<CR>"] = "paste_resource_path",
             ["l"] = "paste_resource_path",
             ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
             ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+            ["<c-t>"] = { "toggle_absolute_path", mode = { "i", "n" } },
         }
 
         if #resource_dirs > 1 then
@@ -272,20 +301,29 @@ function M.pick(opts)
             title = title,
             confirm = "paste_resource_path",
             actions = {
-                copy_resource_path = function(picker, item) copy_res_path(ctx, picker, item) end,
-                paste_resource_path = function(picker, item) paste_res_path(ctx, picker, item) end,
+                copy_resource_path = function(picker, item)
+                    copy_res_path(ctx, picker, item)
+                end,
+                paste_resource_path = function(picker, item)
+                    paste_res_path(ctx, picker, item)
+                end,
+                toggle_absolute_path = function(picker, _)
+                    toggle_absolute_path(ctx, picker)
+                end,
             },
             win = {
                 input = {
                     keys = {
                         ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
                         ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                        ["<c-t>"] = { "toggle_absolute_path", mode = { "i", "n" } },
                     },
                 },
                 list = {
                     keys = {
                         ["<c-s>y"] = { "copy_resource_path", mode = { "i", "n" } },
                         ["<c-s>p"] = { "paste_resource_path", mode = { "i", "n" } },
+                        ["<c-t>"] = { "toggle_absolute_path", mode = { "i", "n" } },
                     },
                 },
             },
