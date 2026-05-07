@@ -12,6 +12,14 @@ set -euo pipefail
 
 STATE_DIR="${HOME}/dotfiles/bin/wallpapers/selected"
 
+# macOS-only: maps the fzf button index (D1, D2, ... shown by wallpaper-selector)
+# to AppleScript's `desktop N`. Override here if the order system_profiler reports
+# does not match how you physically arranged your displays.
+# Example for two reversed displays — alt-1 should drive desktop 2, alt-2 drives desktop 1:
+#   declare -A MONITOR_MAP=( [1]=2 [2]=1 )
+# Any index not listed falls back to identity.
+declare -A MONITOR_MAP=( [1]=2 [2]=1 )
+
 if [[ "${1:-}" == "--reload" ]]; then
     shopt -s nullglob
     for state_file in "$STATE_DIR"/*.txt; do
@@ -78,15 +86,17 @@ apply_x11() {
 }
 
 apply_macos() {
-    # Monitor names are in `D<index>-<resolution>` form; the index maps directly
-    # to AppleScript's `desktop N`.
-    local desktop_index="${MONITOR_NAME#D}"
-    desktop_index="${desktop_index%%-*}"
+    # Monitor names are in `D<index>-...` form; <index> is the button index from
+    # the fzf selector. MONITOR_MAP (above) translates that to AppleScript desktop N.
+    local button_index="${MONITOR_NAME#D}"
+    button_index="${button_index%%-*}"
 
-    if ! [[ "$desktop_index" =~ ^[0-9]+$ ]]; then
-        echo "Error: Cannot derive desktop index from monitor name: $MONITOR_NAME"
+    if ! [[ "$button_index" =~ ^[0-9]+$ ]]; then
+        echo "Error: Cannot derive button index from monitor name: $MONITOR_NAME"
         exit 1
     fi
+
+    local desktop_index="${MONITOR_MAP[$button_index]:-$button_index}"
 
     osascript -e "tell application \"System Events\" to tell desktop ${desktop_index} to set picture to \"${IMAGE_PATH}\""
 }
