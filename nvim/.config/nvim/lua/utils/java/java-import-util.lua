@@ -160,9 +160,16 @@ function M.import_class_and_replace()
         end
 
         for _, member in ipairs(members_in_order) do
-            local static_import = "import static " .. fqcn_for_static .. "." .. member .. ";"
+            -- PascalCase member (starts upper, has lowercase) → nested class → regular import.
+            -- Lowercase or ALL_CAPS member → static method / constant → static import.
+            local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
+            local stmt = (is_nested_class and "import " or "import static ")
+                .. fqcn_for_static
+                .. "."
+                .. member
+                .. ";"
             replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
-            insert_import(static_import)
+            insert_import(stmt)
         end
     else
         local full_class_name = remove_all_part .. "." .. simple_class_name
