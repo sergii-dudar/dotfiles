@@ -91,10 +91,25 @@ function M.import_class_and_replace()
     local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
 
-    local remove_all_part = full_name_under_cursor:match("^([%w%.]+)%." .. simple_class_name .. "%(?")
+    -- Don't anchor with `^` — the qualifier is often wrapped in punctuation
+    -- (e.g., `((Something.generate()))`, `caller(Something.generate(), ...)`),
+    -- so an anchored match would miss it and the user would see a bogus
+    -- "already imported" notification while nothing got rewritten.
+    local remove_all_part = full_name_under_cursor:match("([%w%.]+)%." .. simple_class_name .. "%(?")
 
     if not remove_all_part then
         vim.notify("class '" .. simple_class_name .. "' already was imported!", vim.log.levels.INFO)
+        return
+    end
+
+    -- Bare lowercase identifier (e.g., `someVar.method()`) is an instance
+    -- access, not a class qualifier — bail out instead of fabricating an
+    -- import like `import someVar.method;`.
+    if not remove_all_part:find("%.") and not remove_all_part:match("^[A-Z]") then
+        vim.notify(
+            "'" .. remove_all_part .. "' is not a class qualifier — nothing to import",
+            vim.log.levels.INFO
+        )
         return
     end
 
