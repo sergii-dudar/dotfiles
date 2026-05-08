@@ -128,9 +128,42 @@ function M.import_class_and_replace()
             )
             return
         end
-        local static_import = "import static " .. fqcn_for_static .. "." .. simple_class_name .. ";"
-        replace_full_to_simple_class_name(remove_all_part .. "." .. simple_class_name, simple_class_name)
-        insert_import(static_import)
+
+        -- Collect every `ClassName.member` referenced in the buffer so a single
+        -- invocation converts all usages of the class to static imports, not
+        -- only the one under the cursor.
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        local members_in_order = {}
+        local seen = {}
+        local class_pesc = vim.pesc(class_name_for_static)
+        for _, line in ipairs(lines) do
+            local idx = 1
+            while true do
+                local s, e, member = line:find(class_pesc .. "%.([%w_]+)", idx)
+                if not s then
+                    break
+                end
+                -- Reject when ClassName is part of a longer identifier or FQCN.
+                local prev = s > 1 and line:sub(s - 1, s - 1) or ""
+                if prev ~= "." and not prev:match("[%w_]") then
+                    if not seen[member] then
+                        seen[member] = true
+                        table.insert(members_in_order, member)
+                    end
+                end
+                idx = e + 1
+            end
+        end
+
+        if not seen[simple_class_name] then
+            table.insert(members_in_order, simple_class_name)
+        end
+
+        for _, member in ipairs(members_in_order) do
+            local static_import = "import static " .. fqcn_for_static .. "." .. member .. ";"
+            replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
+            insert_import(static_import)
+        end
     else
         local full_class_name = remove_all_part .. "." .. simple_class_name
 

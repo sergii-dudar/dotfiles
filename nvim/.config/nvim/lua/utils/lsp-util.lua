@@ -178,7 +178,8 @@ local LspCodeAction = function()
         resolve_context = function()
             local action_match_names = {
                 "Add all missing imports",
-                "Convert to static import",
+                "Convert to static import %(replace all occurrences%)",
+                -- "Convert to static import",
                 "Correct package declaration",
                 "Rename type to",
                 "Convert to method reference",

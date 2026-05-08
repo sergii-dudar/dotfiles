@@ -4,12 +4,6 @@ local M = {}
 local NS = vim.api.nvim_create_namespace("java_arg_mismatch")
 local HL_NS = vim.api.nvim_create_namespace("java_arg_mismatch_hl")
 
--- Matches JDTLS "not applicable for the arguments" messages, e.g.:
---   The method foo(String, Integer) in the type Bar is not applicable for the arguments (String, String)
-local METHOD_PATTERN =
-    "The method [%w_]+%((.-)%) in the type [%w_<>%[%]%.,%%$]+ is not applicable for the arguments %((.-)%)"
-local APPLICABLE_NEEDLE = "is not applicable for the arguments"
-
 -- Parse a comma-separated type list while respecting generic angle brackets.
 -- Uses position tracking (no string concatenation in the loop).
 -- e.g. "String, Map<String, Integer>, BigDecimal" -> {"String", "Map<String, Integer>", "BigDecimal"}
@@ -42,11 +36,25 @@ local function parse_type_list(s)
     return types
 end
 
--- Strip generics and package prefix to get a simple class name.
--- e.g. "java.util.List<String>" -> "List"
+-- Strip generics, array suffix, and package prefix (lowercase segments) but KEEP
+-- nested-class qualifiers (uppercase segments) so a nested class is not collapsed
+-- to its inner name and falsely treated as equal to a top-level class.
+--   "java.util.List<String>"     -> "List"
+--   "ChargesInformation.Charge"  -> "ChargesInformation.Charge"
+--   "java.util.Map.Entry"        -> "Map.Entry"
 local function simple_name(t)
     local base = t:match("^([%w_%.%[%]]+)") or t
-    return base:match("[^%.]+$") or base
+    local parts = {}
+    for seg in base:gmatch("[^%.]+") do
+        parts[#parts + 1] = seg
+    end
+    for i, p in ipairs(parts) do
+        local c = p:sub(1, 1)
+        if c >= "A" and c <= "Z" then
+            return table.concat(parts, ".", i)
+        end
+    end
+    return base
 end
 
 local function types_differ(expected, provided)
@@ -54,6 +62,52 @@ local function types_differ(expected, provided)
         return false
     end
     return simple_name(expected) ~= simple_name(provided)
+end
+
+-- ---------------------------------------------------------------------------
+-- Diagnostic message handlers
+--
+-- Each handler pulls expected/provided type lists out of a specific JDTLS
+-- diagnostic message. To support a new message format, add a new entry.
+--
+--   needle: cheap literal substring used for fast pre-filtering
+--   match:  function(msg) -> (expected_types, provided_types) | nil
+-- ---------------------------------------------------------------------------
+local HANDLERS = {
+    -- "The method foo(A, B) in the type Bar is not applicable for the arguments (A, C)"
+    {
+        needle = "is not applicable for the arguments",
+        match = function(msg)
+            local expected, provided = msg:match(
+                "The method [%w_]+%((.-)%) in the type [%w_<>%[%]%.,%%$]+ is not applicable for the arguments %((.-)%)"
+            )
+            if not expected then
+                return nil
+            end
+            return parse_type_list(expected), parse_type_list(provided)
+        end,
+    },
+}
+
+local function diag_matches_any_handler(msg)
+    for _, h in ipairs(HANDLERS) do
+        if msg:find(h.needle, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+local function extract_types(msg)
+    for _, h in ipairs(HANDLERS) do
+        if msg:find(h.needle, 1, true) then
+            local expected, provided = h.match(msg)
+            if expected then
+                return expected, provided
+            end
+        end
+    end
+    return nil
 end
 
 -- Walk UP the treesitter tree from (row, col) until we find a method_invocation
@@ -91,17 +145,14 @@ end
 -- appending any per-argument highlights to `out`.
 local function process_diag(root, diag, out)
     local msg = diag.message
-    if not msg or not msg:find(APPLICABLE_NEEDLE, 1, true) then
+    if not msg then
         return
     end
 
-    local expected_str, provided_str = msg:match(METHOD_PATTERN)
-    if not expected_str then
+    local expected, provided = extract_types(msg)
+    if not expected then
         return
     end
-
-    local expected = parse_type_list(expected_str)
-    local provided = parse_type_list(provided_str)
 
     -- Nothing to highlight when fewer args are provided than expected
     -- (can't pinpoint which ones are wrong without overload resolution)
@@ -156,7 +207,7 @@ local function build_arg_diags(bufnr, lsp_diagnostics)
     -- Pre-scan: bail out before touching treesitter if no matching diagnostics
     local has_match = false
     for _, diag in ipairs(lsp_diagnostics) do
-        if diag.message and diag.message:find(APPLICABLE_NEEDLE, 1, true) then
+        if diag.message and diag_matches_any_handler(diag.message) then
             has_match = true
             break
         end
