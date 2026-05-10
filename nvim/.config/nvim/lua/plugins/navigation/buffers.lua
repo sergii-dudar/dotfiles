@@ -54,7 +54,7 @@ return {
         event = "VeryLazy",
         opts = {
             -- If a buffer has been inactive for this many minutes, close it.
-            retirementAgeMins = 5, -- 20,
+            retirementAgeMins = 30,
 
             -- Filetypes to ignore.
             ignoredFiletypes = {},
@@ -69,7 +69,7 @@ return {
             -- by setting this to 4, no auto-closing will take place when you have 3
             -- or fewer open buffers. Note that this plugin never closes the currently
             -- active buffer, so a number < 2 will effectively disable this setting.
-            minimumBufferNum = 5,
+            minimumBufferNum = 10,
 
             -- Ignore buffers with unsaved changes. If false, the buffers will
             -- automatically be written and then closed.

@@ -191,8 +191,16 @@ M.jdtls_settings = {
                 "org.mockito.Mockito.never",
                 "org.springframework.http.HttpHeaders.*",
                 "org.springframework.http.HttpStatus.*",
+                "java.time.temporal.ChronoUnit.*",
+                "org.apache.commons.collections4.CollectionUtils",
+                "org.apache.commons.collections4.IterableUtils",
+                "org.apache.commons.collections4.ComparatorUtils",
+                "org.apache.commons.collections4.EnumerationUtils",
+                "org.apache.commons.collections4.ArrayUtils",
+                "org.apache.commons.collections4.ListUtils",
+                "org.apache.commons.collections4.MapUtils",
+                "org.apache.commons.collections4.SetUtils",
             },
-            -- Defines the type filters. All types whose fully qualified name matches
             -- the selected filter strings will be ignored in content assist or quick
             -- fix proposals and when organizing imports. For example 'java.awt.*' will
             -- hide all types from the awt packages.
@@ -203,6 +211,9 @@ M.jdtls_settings = {
                 "org.graalvm.*",
                 "jdk.*",
                 "sun.*",
+                "org.glassfish.jaxb.*",
+                "com.nimbusds.oauth2.*",
+                "org.apache.el.*",
             },
             -- Defines the sorting order of import statements. A package or type name prefix (e.g. 'org.eclipse') is a valid entry.
             -- An import is always added to the most specific group. As a result, the empty string (e.g. '') can be used to group all other imports.
@@ -261,7 +272,7 @@ M.jdtls_settings = {
         -- ====================================================================
         saveActions = {
             -- Setup automatical package import oranization on file save
-            organizeImports = true,
+            organizeImports = true, -- sometime anoying during working with raw code during complex development
             -- cleanup = true, -- little buggy in v1.57.0, disabled for now
         },
         cleanup = {

@@ -36,78 +36,44 @@ local function parse_type_list(s)
     return types
 end
 
--- Strip generics, array suffix, and package prefix (lowercase segments) but KEEP
--- nested-class qualifiers (uppercase segments) so a nested class is not collapsed
--- to its inner name and falsely treated as equal to a top-level class.
---   "java.util.List<String>"     -> "List"
---   "ChargesInformation.Charge"  -> "ChargesInformation.Charge"
---   "java.util.Map.Entry"        -> "Map.Entry"
+-- Strip generics and package prefix to get a simple class name.
+-- e.g. "java.util.List<String>" -> "List"
 local function simple_name(t)
     local base = t:match("^([%w_%.%[%]]+)") or t
-    local parts = {}
+    return base:match("[^%.]+$") or base
+end
+
+-- Count uppercase-starting segments (class name depth) after stripping generics.
+-- Distinguishes a top-level class from a nested class with the same inner name:
+--   "Charge"                    -> 1
+--   "ChargesInformation.Charge" -> 2  (different from top-level Charge)
+--   "java.util.List"            -> 1
+local function class_depth(t)
+    local base = t:match("^([%w_%.%[%]]+)") or t
+    local count = 0
+    local started = false
     for seg in base:gmatch("[^%.]+") do
-        parts[#parts + 1] = seg
-    end
-    for i, p in ipairs(parts) do
-        local c = p:sub(1, 1)
-        if c >= "A" and c <= "Z" then
-            return table.concat(parts, ".", i)
+        local c = seg:sub(1, 1)
+        if not started and c >= "A" and c <= "Z" then
+            started = true
+        end
+        if started then
+            count = count + 1
         end
     end
-    return base
+    return count
 end
 
 local function types_differ(expected, provided)
     if expected == provided then
         return false
     end
-    return simple_name(expected) ~= simple_name(provided)
-end
-
--- ---------------------------------------------------------------------------
--- Diagnostic message handlers
---
--- Each handler pulls expected/provided type lists out of a specific JDTLS
--- diagnostic message. To support a new message format, add a new entry.
---
---   needle: cheap literal substring used for fast pre-filtering
---   match:  function(msg) -> (expected_types, provided_types) | nil
--- ---------------------------------------------------------------------------
-local HANDLERS = {
-    -- "The method foo(A, B) in the type Bar is not applicable for the arguments (A, C)"
-    {
-        needle = "is not applicable for the arguments",
-        match = function(msg)
-            local expected, provided = msg:match(
-                "The method [%w_]+%((.-)%) in the type [%w_<>%[%]%.,%%$]+ is not applicable for the arguments %((.-)%)"
-            )
-            if not expected then
-                return nil
-            end
-            return parse_type_list(expected), parse_type_list(provided)
-        end,
-    },
-}
-
-local function diag_matches_any_handler(msg)
-    for _, h in ipairs(HANDLERS) do
-        if msg:find(h.needle, 1, true) then
-            return true
-        end
+    if simple_name(expected) ~= simple_name(provided) then
+        return true
     end
-    return false
-end
-
-local function extract_types(msg)
-    for _, h in ipairs(HANDLERS) do
-        if msg:find(h.needle, 1, true) then
-            local expected, provided = h.match(msg)
-            if expected then
-                return expected, provided
-            end
-        end
-    end
-    return nil
+    -- Same simple name but different nesting depth means different types
+    -- (e.g. top-level "Charge" vs nested "ChargesInformation.Charge")
+    return class_depth(expected) ~= class_depth(provided)
 end
 
 -- Walk UP the treesitter tree from (row, col) until we find a method_invocation
@@ -141,63 +107,125 @@ local function collect_arg_nodes(arg_list)
     return args
 end
 
--- Process a single diagnostic against a pre-parsed tree root,
--- appending any per-argument highlights to `out`.
+-- ---------------------------------------------------------------------------
+-- Diagnostic message handlers
+--
+-- Each handler describes how to produce per-argument highlights from a specific
+-- JDTLS diagnostic message. To support a new message format, add a new entry.
+--
+--   needle:   cheap literal substring used for fast pre-filtering
+--   process:  function(root, diag, out) — appends highlight entries to `out`
+-- ---------------------------------------------------------------------------
+local HANDLERS = {
+    -- "The method foo(A, B) in the type Bar is not applicable for the arguments (A, C)"
+    {
+        needle = "is not applicable for the arguments",
+        process = function(root, diag, out)
+            local msg = diag.message
+            local expected_str, provided_str = msg:match(
+                "The method [%w_]+%((.-)%) in the type [%w_<>%[%]%.,%%$]+ is not applicable for the arguments %((.-)%)"
+            )
+            if not expected_str then
+                return
+            end
+
+            local expected = parse_type_list(expected_str)
+            local provided = parse_type_list(provided_str)
+
+            -- Nothing to highlight when fewer args are provided than expected
+            -- (can't pinpoint which ones are wrong without overload resolution)
+            if #provided < #expected then
+                return
+            end
+
+            local row = diag.range and diag.range.start and diag.range.start.line or 0
+            local col = diag.range and diag.range.start and diag.range.start.character or 0
+
+            local arg_list = find_argument_list(root, row, col)
+            if not arg_list then
+                return
+            end
+
+            local arg_nodes = collect_arg_nodes(arg_list)
+
+            -- Highlight type-mismatched args in the expected range
+            for i = 1, math.min(#expected, #arg_nodes) do
+                if types_differ(expected[i], provided[i]) then
+                    local sr, sc, er, ec = arg_nodes[i]:range()
+                    out[#out + 1] = {
+                        lnum = sr,
+                        col = sc,
+                        end_lnum = er,
+                        end_col = ec,
+                        severity = vim.diagnostic.severity.WARN,
+                        message = string.format("arg %d: expected %s, got %s", i, expected[i], provided[i]),
+                        source = "jdtls-arg",
+                    }
+                end
+            end
+
+            -- Highlight extra arguments beyond what the method accepts
+            for i = #expected + 1, #arg_nodes do
+                local sr, sc, er, ec = arg_nodes[i]:range()
+                out[#out + 1] = {
+                    lnum = sr,
+                    col = sc,
+                    end_lnum = er,
+                    end_col = ec,
+                    severity = vim.diagnostic.severity.WARN,
+                    message = string.format("extra argument: %s", provided[i] or "?"),
+                    source = "jdtls-arg",
+                }
+            end
+        end,
+    },
+
+    -- "Amount cannot be resolved to a type" — missing import, highlight the token
+    {
+        needle = "cannot be resolved to a type",
+        process = function(_, diag, out)
+            local type_name = diag.message:match("^([%w_%.]+) cannot be resolved to a type")
+            if not type_name then
+                return
+            end
+
+            local row = diag.range and diag.range.start and diag.range.start.line or 0
+            local col = diag.range and diag.range.start and diag.range.start.character or 0
+            local end_row = diag.range and diag.range["end"] and diag.range["end"].line or row
+            local end_col = diag.range and diag.range["end"] and diag.range["end"].character or (col + #type_name)
+
+            out[#out + 1] = {
+                lnum = row,
+                col = col,
+                end_lnum = end_row,
+                end_col = end_col,
+                severity = vim.diagnostic.severity.WARN,
+                message = string.format("need explicitly import %s", type_name),
+                source = "jdtls-arg",
+            }
+        end,
+    },
+}
+
+local function diag_matches_any_handler(msg)
+    for _, h in ipairs(HANDLERS) do
+        if msg:find(h.needle, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Dispatch a single diagnostic to every matching handler.
 local function process_diag(root, diag, out)
     local msg = diag.message
     if not msg then
         return
     end
-
-    local expected, provided = extract_types(msg)
-    if not expected then
-        return
-    end
-
-    -- Nothing to highlight when fewer args are provided than expected
-    -- (can't pinpoint which ones are wrong without overload resolution)
-    if #provided < #expected then
-        return
-    end
-
-    local row = diag.range and diag.range.start and diag.range.start.line or 0
-    local col = diag.range and diag.range.start and diag.range.start.character or 0
-
-    local arg_list = find_argument_list(root, row, col)
-    if not arg_list then
-        return
-    end
-
-    local arg_nodes = collect_arg_nodes(arg_list)
-
-    -- Highlight type-mismatched args in the expected range
-    for i = 1, math.min(#expected, #arg_nodes) do
-        if types_differ(expected[i], provided[i]) then
-            local sr, sc, er, ec = arg_nodes[i]:range()
-            out[#out + 1] = {
-                lnum = sr,
-                col = sc,
-                end_lnum = er,
-                end_col = ec,
-                severity = vim.diagnostic.severity.WARN,
-                message = string.format("arg %d: expected %s, got %s", i, expected[i], provided[i]),
-                source = "jdtls-arg",
-            }
+    for _, h in ipairs(HANDLERS) do
+        if msg:find(h.needle, 1, true) then
+            h.process(root, diag, out)
         end
-    end
-
-    -- Highlight extra arguments beyond what the method accepts
-    for i = #expected + 1, #arg_nodes do
-        local sr, sc, er, ec = arg_nodes[i]:range()
-        out[#out + 1] = {
-            lnum = sr,
-            col = sc,
-            end_lnum = er,
-            end_col = ec,
-            severity = vim.diagnostic.severity.WARN,
-            message = string.format("extra argument: %s", provided[i] or "?"),
-            source = "jdtls-arg",
-        }
     end
 end
 
