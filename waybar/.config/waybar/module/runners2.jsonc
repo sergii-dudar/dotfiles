@@ -50,5 +50,10 @@
         "format": "<span color='#1093F5'>󱑤 </span>",
         "on-click": "env QT_SCALE_FACTOR=1.4 qbittorrent",
         "tooltip": false
+    },
+    "custom/runner-wallpapers": {
+        "format": "<span color='#b4befe'> </span>",
+        "tooltip": false,
+        "on-click": "foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"
     }
 }
