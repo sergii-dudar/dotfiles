@@ -157,8 +157,10 @@ M.jdtls_settings = {
         -- CODE COMPLETION
         -- ====================================================================
         completion = {
+            maxResults = 0, -- Set to 0 to remove truncation limit, to rely on blink.cmp frizbee (fuzzy like) filtering
             enabled = true,
             engine = "dom", -- "ecj"|"dom"
+            -- matchCase = "off", -- "firstLetter" | "off"
             -- Defines a list of static members or types with static members. Content
             -- assist will propose those static members even if the import is missing.
             favoriteStaticMembers = {
@@ -214,6 +216,7 @@ M.jdtls_settings = {
                 "org.glassfish.jaxb.*",
                 "com.nimbusds.oauth2.*",
                 "org.apache.el.*",
+                "io.grpc.*",
             },
             -- Defines the sorting order of import statements. A package or type name prefix (e.g. 'org.eclipse') is a valid entry.
             -- An import is always added to the most specific group. As a result, the empty string (e.g. '') can be used to group all other imports.

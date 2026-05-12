@@ -87,6 +87,9 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.ai.sidekick" },
         -- { import = "lazyvim.plugins.extras.ai.copilot" },
 
+        -- ========= git/gh ==========
+        -- { import = "lazyvim.plugins.extras.util.octo" },
+
         -- ========= import/override with your plugins =========
         { import = "plugins.ui" },
         { import = "plugins.navigation" },
