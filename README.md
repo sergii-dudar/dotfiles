@@ -23,7 +23,7 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 - Terminal: [alacritty][4], [foot][87], [ghostty][5], [kitty][6], [wezterm][7]
 - Multiplexer: [tmux][8] + [tmux-powerline][9], [sesh][10] (as sessions manager + own customizations based on it and tmux api)
 - SHELL: [zsh][11] + [ohmyz][12] + [starship][13] + [fastfetch][14] and so on
-- Code: [nvim][15], [intellij][16] (only for specific working tasks, mostly because of existing some useful plugins, where I have not found decent alternative in neovim, driven by [.ideavimrc][16]. But need to say that in free time, I'm trying to replicate some very important intellij functionality (for me and my work) in my neovim config (like [java-refactor][17], [junit][18], [blink-java-mapstruct][19]), and it's reason why my nvim config quite huge, especially [nvim/utils][20], maybe some day I will extract most of main implementations to separate plugins, will see)
+- Code: [nvim][15] (very hard patched to working with java (as it's one of my main professional area now), with a lot of my own solutions). hard user of [intellij][16] in previous
 - Nerd-Fonts: [CascadiaCode][21], [hack][22], [FiraCode][23], [JetBrainsMono][24]
 - File Manager: [yazi][25], [ranger][26]
 - OS: linux (arch, ubuntu), macos
@@ -40,7 +40,7 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 - Screen color temperature: X11 - [redshift][56], sway -[gammastep][57], hyprland - [hyprsunset][58]
 - Cron tasks: [cronie][59]
 - Music & Players: [rmpc][60], [mpd-linux][61], [mpd-macos][62], [mpv][63], [ncmpcpp][64], [cmus][65]
-- Other tools: [btop][66], [fastfetch][14], [k9s][67], [lazygit][68], [zellij][69] - but in 99% of time I'm using tmux only
+- Other tools: [btop][66], [fastfetch][14], [k9s][67], [lazygit][68]
 
 ## Configs readme with config screenshots
 
