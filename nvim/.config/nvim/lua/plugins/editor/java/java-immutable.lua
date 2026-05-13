@@ -215,7 +215,22 @@ return {
                         vim.fn.glob("$MASON/share/java-debug-adapter/com.microsoft.java.debug.plugin-*jar", false, true)
                     -- java-test also depends on java-debug-adapter.
                     if opts.test and mason_registry.is_installed("java-test") then
-                        vim.list_extend(bundles, vim.fn.glob("$MASON/share/java-test/*.jar", false, true))
+                        -- vim.list_extend(bundles, vim.fn.glob("$MASON/share/java-test/*.jar", false, true))
+
+                        -- ============== >>> Recover JDTLS start (1)
+                        -- Filter out non-OSGi runtime jars. JDTLS init fails the
+                        -- entire bundle list if any entry is not a valid bundle
+                        -- (CoreException: Failed to load extension bundles).
+                        -- The test runner jar and jacoco agent jar are runtime
+                        -- payloads injected into test JVMs, not JDTLS bundles.
+                        for _, jar in ipairs(vim.fn.glob("$MASON/share/java-test/*.jar", false, true)) do
+                            local name = vim.fn.fnamemodify(jar, ":t")
+                            -- TODO: better testings
+                            if name ~= "jacocoagent.jar" and not name:match("%-jar%-with%-dependencies%.jar$") then
+                                table.insert(bundles, jar)
+                            end
+                        end
+                        -- ============== <<< Recover JDTLS end (1)
                     end
                 end
             end
@@ -423,41 +438,15 @@ return {
             -- Avoid race condition by calling attach the first time, since the autocmd won't fire.
             attach_jdtls()
 
-            -- Auto-restart JDTLS after macOS sleep kills the Java process.
-            -- When the system sleeps, macOS may SIGKILL the JVM due to memory pressure.
-            -- On wake, Neovim detects the broken pipe and cleans up the client,
-            -- but nothing re-attaches JDTLS to the Java buffers.
-            local restart_pending = false
-            vim.api.nvim_create_autocmd({ "VimResume", "FocusGained" }, {
-                group = vim.api.nvim_create_augroup("jdtls_auto_restart", { clear = true }),
-                callback = function()
-                    if restart_pending then
-                        return
-                    end
-                    restart_pending = true
-                    vim.defer_fn(function()
-                        restart_pending = false
-                        -- Collect Java buffers missing a JDTLS client, grouped by root
-                        local roots_restarted = {}
-                        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                            if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "java" then
-                                local clients = vim.lsp.get_clients({ bufnr = buf, name = "jdtls" })
-                                if #clients == 0 then
-                                    local fname = vim.api.nvim_buf_get_name(buf)
-                                    local root = opts.root_dir(fname)
-                                    if root and not roots_restarted[root] then
-                                        roots_restarted[root] = true
-                                        vim.api.nvim_buf_call(buf, attach_jdtls)
-                                    end
-                                end
-                            end
-                        end
-                        if next(roots_restarted) then
-                            vim.notify("♻️ JDTLS restarted after sleep", vim.log.levels.INFO)
-                        end
-                    end, 2000) -- 2s delay for Neovim to process EOF from dead JVM
-                end,
-            })
+            -- ============== >>> Recover JDTLS start (2)
+            -- Recover JDTLS after macOS sleep. VimResume does not fire on system
+            -- sleep and FocusGained is unreliable in tmux, so detection is done
+            -- via wall-clock gap on cheap idle events. See module for details.
+            require("utils.java.jdtls-recovery").setup(function(_)
+                -- TODO: better testings
+                attach_jdtls()
+            end, vim.lsp.config.jdtls.root_markers)
+            -- ============== <<< Recover JDTLS end (2)
         end,
     },
 }
