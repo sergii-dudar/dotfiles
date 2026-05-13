@@ -51,7 +51,7 @@ M.jdtls_settings = {
                 },
                 -- [Experimental] Specify whether to enable Javac-based compilation in the language server. Requires running this extension with Java 25
                 javac = {
-                    enabled = "on", -- "on"|"off"
+                    enabled = "off", -- "on"|"off"
                 },
             },
         },
@@ -128,10 +128,10 @@ M.jdtls_settings = {
                 "**/META-INF/maven/**",
                 "**/.git/**",
                 "**/build/**",
-                "**/target/classes/**",
-                "**/target/test-classes/**",
-                -- "**/target/**",
-                -- "**/build/**",
+                -- "**/target/classes/**",
+                -- "**/target/test-classes/**",
+                "**/target/**",
+                "**/build/**",
             },
             maven = {
                 enabled = true,
