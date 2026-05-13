@@ -19,6 +19,7 @@
      java: static import - add ability to import static members from inner classes
      java: highlight parameters of String.format, "".formatted, log.(info|warn|debug|error)("")
      new line indent, in case shiwf with more that 4, like:
+     DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
