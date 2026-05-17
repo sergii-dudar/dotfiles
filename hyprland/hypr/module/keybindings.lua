@@ -50,11 +50,11 @@ hl.bind(join(mainMod, "B"), hl.dsp.exec_cmd("killall -SIGUSR1 waybar"))
 ----- Navigation ----
 ---------------------
 
--- Move focus with mainMod + arrow keys
-hl.bind(join(mainMod, vleft), movefocus, l)
-hl.bind(join(mainMod, vright), movefocus, r)
--- hl.bind("mainMod, $vup, movefocus, u
--- hl.bind("mainMod, $vdown, movefocus, d
+-- Move focus with mainMod + vim keys
+hl.bind(join(mainMod, vleft), hl.dsp.focus({ direction = "left" }))
+hl.bind(join(mainMod, vright), hl.dsp.focus({ direction = "right" }))
+-- hl.bind(join(mainMod, vup), hl.dsp.focus({ direction = "up" }))
+-- hl.bind(join(mainMod, vdown), hl.dsp.focus({ direction = "down" }))
 hl.bind(join(mainMod, vup), cyclenext, prev)
 hl.bind(join(mainMod, vdown), cyclenext)
 
