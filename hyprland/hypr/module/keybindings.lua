@@ -1,0 +1,246 @@
+########################################################
+###################### Variables #######################
+########################################################
+# See https://wiki.hyprland.org/Configuring/Keywords/
+
+# Set programs that you use
+# $terminal = ghostty
+# $terminal = alacritty
+$terminal = foot
+$fileManager = nautilus
+$menu = ~/.config/rofi/scripts/launcher_t1
+$qmenu = ~/.config/rofi/scripts/powermenu_t1
+$clipmenu = ~/.config/rofi/cliphist/cliphist-menu
+$killmenu = ~/.config/rofi/killmenu/kill-menu
+
+# See https://wiki.hyprland.org/Configuring/Keywords/
+$mod = SUPER # Sets "Windows" key as main modifier
+$alt = ALT
+$shift = SHIFT
+$ctrl = Control_L # Control
+$tab = tab
+
+$vleft = h
+$vdown = j
+$vup = k
+$vright = l
+
+#####################################################
+###################### Basics #######################
+#####################################################
+
+# Kill focused window
+bind = $mod+$shift, C, killactive
+bind = $mod+$ctrl, C, exec, $killmenu
+
+# Start your launcher
+bind = $alt, SPACE, exec, $menu
+bind = $mod, Q, exec, $qmenu
+bind = $mod, V, exec, $clipmenu
+
+# Other
+# bind = $ctrl+$alt, Q, exec, ~/dotfiles/bin/screen-lockw
+bind = $ctrl+$alt, Q, exec, hyprlock
+bind = $mod, SPACE, exec, ~/.config/waybar/module/shell/change_language.sh hyprland
+bind = $mod+$shift, R, exec, hyprctl reload
+
+# toggle waybar visibility
+bind = $mod, B, exec, killall -SIGUSR1 waybar
+
+##########################################################
+###################### Navigation ########################
+##########################################################
+
+# Move focus with mainMod + arrow keys
+bind = $mod, $vleft, movefocus, l
+bind = $mod, $vright, movefocus, r
+# bind = $mod, $vup, movefocus, u
+# bind = $mod, $vdown, movefocus, d
+bind = $mod, $vup, cyclenext, prev
+bind = $mod, $vdown, cyclenext
+
+# bind = $alt, Tab, cyclenext, next tiled hist        # change focus to another window
+# bind = $alt, Tab, bringactivetotop,    # bring it to the top
+bind = $alt, $tab, exec, ~/.config/hypr/scripts/alt_tab_global.sh
+
+######################################
+
+bind = $mod+$shift, $vleft, movewindow, l
+bind = $mod+$shift, $vright, movewindow, r
+# bind = $mod+$shift, $vup, movewindow, u
+# bind = $mod+$shift, $vdown, movewindow, d
+bind = $mod+$shift, $vup, swapnext, prev
+bind = $mod+$shift, $vdown, swapnext
+
+# Monitors
+bind = $mod, Period, focusmonitor, +1
+bind = $mod, Comma, focusmonitor, -1
+
+# Scroll through existing workspaces with mainMod + scroll
+# bind = $mod, mouse_down, workspace, e+1
+# bind = $mod, mouse_up, workspace, e-1
+
+# Move/resize windows with mainMod + LMB/RMB and dragging
+bindm = $mod, mouse:272, movewindow
+bindm = $mod, mouse:273, resizewindow
+
+####################################################
+###################### Resize ######################
+####################################################
+
+binde = $ctrl+$mod, $vright, resizeactive, 100 0
+binde = $ctrl+$mod, $vleft, resizeactive, -100 0
+binde = $ctrl+$mod, $vup, resizeactive, 0 -100
+binde = $ctrl+$mod, $vdown, resizeactive, 0 100
+
+####################################################
+###################### Apps ########################
+####################################################
+
+# Start a terminal
+bind = $mod, RETURN, exec, $terminal
+
+# open/close gnome-control-center
+bind = $alt+$shift, G, exec, kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+bind = $alt+$shift, W, exec, ~/.config/waypaper/toggle.sh hyprland
+bind = $alt+$shift, B, exec, ~/dotfiles/bin/start-browserw
+
+bind = , Print, exec, ~/dotfiles/bin/screenshot.w.sh
+bind = , Pause, exec, ~/dotfiles/bin/screenshot.w.sh
+
+######################################################
+###################### Layouts #######################
+######################################################
+
+#bind = $alt, S, togglefloating,
+#bind = $mod+$shift, P, exec, hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
+# bind = $alt, S, exec, hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
+bind = $mod, P, pseudo, # dwindle
+bind = $mod, S, layoutmsg, togglesplit # dwindle
+bind = $alt, S, layoutmsg, swapsplit
+
+# bind = $mod, F, fullscreen, 1 # monocle
+bind = $mod, F, togglegroup # tabbed
+bind = $mod, code:49, focuscurrentorlast # b - back, f - forward, or index start at 1
+bind = $mod, code:59, changegroupactive, b # b - back, f - forward, or index start at 1
+bind = $mod, code:60, changegroupactive, f # b - back, f - forward, or index start at 1
+bind = $mod+$shift, code:59, moveintogroup, l # Moves the active window into a group left
+bind = $mod+$shift, code:60, moveintogroup, r # Moves the active window into a group right
+
+bind = $mod+$shift, F, fullscreen, 0
+
+# bind = $mod, Tab, exec, ~/.config/hypr/shell/toggle_layout.sh
+bind = $mod, Tab, fullscreen, 1
+
+####################################################
+###################### Games #######################
+####################################################
+
+bind = $mod, F1, exec, ~/.config/hypr/scripts/gamemode.sh
+
+####################################################
+###################### Media #######################
+####################################################
+
+# Laptop multimedia keys for volume and LCD brightness
+# bindel = ,XF86MonBrightnessUp, exec, brightnessctl -e4 -n2 set 5%+
+# bindel = ,XF86MonBrightnessDown, exec, brightnessctl -e4 -n2 set 5%-
+
+# bind = $mod, code:20, exec, ddcutil setvcp 10 - 10
+# bind = $mod, code:21, exec, ddcutil setvcp 10 + 10
+# bind = $mod, minus, exec, ddcutil setvcp 10 - 10
+# bind = $mod, equal, exec, ddcutil setvcp 10 + 10
+
+# monitor brightness controll
+bind = $mod, Page_Up, exec, echo '+' > /tmp/waybar-ddc-module-rx
+bind = $mod, Page_Down, exec, echo '-' > /tmp/waybar-ddc-module-rx
+bind = $mod+$shift, Page_Down, exec, echo '=' > /tmp/waybar-ddc-module-rx
+
+# monitor color temperature controll
+bind = $mod, Home, exec, ~/.config/waybar/module/shell/module.hyprsunset + ; pkill -RTMIN+4 waybar
+bind = $mod, End, exec, ~/.config/waybar/module/shell/module.hyprsunset - ; pkill -RTMIN+4 waybar
+bind = $mod+$shift, Home, exec, ~/.config/waybar/module/shell/module.hyprsunset = ; pkill -RTMIN+4 waybar
+bind = $mod+$shift, End, exec, ~/.config/waybar/module/shell/module.hyprsunset bblock ; pkill -RTMIN+4 waybar
+
+# sudo ddcutil getvcp 10
+# ddcutil getvcp 10 --display 1 #VCP code 0x10 (Brightness): current value = 40, max value = 100 
+# ddcutil getvcp 10 --display 2 #VCP code 0x10 (Brightness): current value = 56, max value = 100
+
+bind = $mod, left, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bind = $mod, right, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
+bind = $mod, down, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+#bindel = ,XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+
+bind = $mod+$shift, deft, exec, playerctl previous
+bind = $mod+$shift, right, exec, playerctl next
+bind = $mod+$shift, down, exec, playerctl play-pause
+
+bind = $mod+$ctrl, down, exec, mpc toggle
+bind = $mod+$ctrl, up, exec, mpc stop
+bind = $mod+$ctrl, right, exec, mpc next
+bind = $mod+$ctrl, left, exec, mpc prev
+
+####################################################
+#################### Workspace #####################
+####################################################
+
+# Switch workspaces with mainMod + [0-9]
+bind = $mod, 1, workspace, 1
+bind = $mod, 2, workspace, 2
+bind = $mod, 3, workspace, 3
+bind = $mod, 4, workspace, 4
+bind = $mod, 5, workspace, 5
+bind = $mod, 6, workspace, 6
+bind = $mod, 7, workspace, 7
+bind = $mod, 8, workspace, 8
+bind = $mod, 9, workspace, 9
+
+# Move active window to a workspace with mainMod + SHIFT + [0-9]
+bind = $mod SHIFT, 1, movetoworkspace, 1
+bind = $mod SHIFT, 2, movetoworkspace, 2
+bind = $mod SHIFT, 3, movetoworkspace, 3
+bind = $mod SHIFT, 4, movetoworkspace, 4
+bind = $mod SHIFT, 5, movetoworkspace, 5
+bind = $mod SHIFT, 6, movetoworkspace, 6
+bind = $mod SHIFT, 7, movetoworkspace, 7
+bind = $mod SHIFT, 8, movetoworkspace, 8
+bind = $mod SHIFT, 9, movetoworkspace, 9
+
+# Example special workspace (scratchpad)
+# bind = $mod, O, togglespecialworkspace, scratchpad
+# bind = $mod SHIFT, O, movetoworkspace, special:scratchpad
+bind = $mod SHIFT, S, togglespecialworkspace, scratchpad
+
+####################################################
+###################### Submap ######################
+####################################################
+
+# will switch to a submap called resize
+bind = ALT, R, submap, resize
+
+# will start a submap called "resize"
+submap = resize
+
+# sets repeatable binds for resizing the active window
+binde = , right, resizeactive, 10 0
+binde = , left, resizeactive, -10 0
+binde = , up, resizeactive, 0 -10
+binde = , down, resizeactive, 0 10
+
+# use reset to go back to the global submap
+bind = , escape, submap, reset
+
+# will reset the submap, which will return to the global submap
+submap = reset
+
+####################################################
+####################### Zoom #######################
+####################################################
+
+bind = $mod, equal, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 1.1}')
+bind = $mod, minus, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 0.9}')
+bind = $mod+$shift, minus, exec, hyprctl -q keyword cursor:zoom_factor 1
+
+####################################################
+###################### ...... ######################
+####################################################
