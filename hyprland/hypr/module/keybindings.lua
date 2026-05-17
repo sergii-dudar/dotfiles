@@ -1,246 +1,237 @@
-########################################################
-###################### Variables #######################
-########################################################
-# See https://wiki.hyprland.org/Configuring/Keywords/
+-----------------------
+------ Variables ------
+-----------------------
 
-# Set programs that you use
-# $terminal = ghostty
-# $terminal = alacritty
-$terminal = foot
-$fileManager = nautilus
-$menu = ~/.config/rofi/scripts/launcher_t1
-$qmenu = ~/.config/rofi/scripts/powermenu_t1
-$clipmenu = ~/.config/rofi/cliphist/cliphist-menu
-$killmenu = ~/.config/rofi/killmenu/kill-menu
+local terminal = "foot" -- "ghostty", "alacritty"
+local fileManager = "nautilus"
+local menu = "~/.config/rofi/scripts/launcher_t1"
+local qmenu = "~/.config/rofi/scripts/powermenu_t1"
+local clipmenu = "~/.config/rofi/cliphist/cliphist-menu"
+local killmenu = "~/.config/rofi/killmenu/kill-menu"
 
-# See https://wiki.hyprland.org/Configuring/Keywords/
-$mod = SUPER # Sets "Windows" key as main modifier
-$alt = ALT
-$shift = SHIFT
-$ctrl = Control_L # Control
-$tab = tab
+local mainMod = "SUPER" -- Sets "Windows" key as main modifier
+local alt = "ALT"
+local shift = "SHIFT"
+local ctrl = "Control_L" -- Control
+local tab = "tab"
 
-$vleft = h
-$vdown = j
-$vup = k
-$vright = l
+local vleft = "h"
+local vdown = "j"
+local vup = "k"
+local vright = "l"
 
-#####################################################
-###################### Basics #######################
-#####################################################
+function join(...)
+    return table.concat({...}, " + ")
+end
 
-# Kill focused window
-bind = $mod+$shift, C, killactive
-bind = $mod+$ctrl, C, exec, $killmenu
+---------------------
+------- Basics ------
+---------------------
 
-# Start your launcher
-bind = $alt, SPACE, exec, $menu
-bind = $mod, Q, exec, $qmenu
-bind = $mod, V, exec, $clipmenu
+-- Kill focused window
+hl.bind(join(mainMod, shift, "C"), hl.dsp.window.kill())
+hl.bind(join(mainMod, ctrl, "C"), hl.dsp.exec_cmd(killmenu))
 
-# Other
-# bind = $ctrl+$alt, Q, exec, ~/dotfiles/bin/screen-lockw
-bind = $ctrl+$alt, Q, exec, hyprlock
-bind = $mod, SPACE, exec, ~/.config/waybar/module/shell/change_language.sh hyprland
-bind = $mod+$shift, R, exec, hyprctl reload
+-- Start your launcher
+hl.bind(join(alt, "SPACE"), hl.dsp.exec_cmd(menu))
+hl.bind(join(mainMod, "Q"), hl.dsp.exec_cmd(qmenu))
+hl.bind(join(mainMod, "V"), hl.dsp.exec_cmd(clipmenu))
 
-# toggle waybar visibility
-bind = $mod, B, exec, killall -SIGUSR1 waybar
+-- Other
+-- hl.bind("$ctrl+$alt, "Q", hl.dsp.exec_cmd(~/dotfiles/bin/screen-lockw
+hl.bind(join(ctrl, alt, "Q"), hl.dsp.exec_cmd("hyprlock"))
+hl.bind(join(mainMod, "SPACE"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/change_language.sh hyprland"))
+hl.bind(join(mainMod, shift, "R"), hl.dsp.exec_cmd("hyprctl reload"))
 
-##########################################################
-###################### Navigation ########################
-##########################################################
+-- toggle waybar visibility
+hl.bind(join(mainMod, "B"), hl.dsp.exec_cmd("killall -SIGUSR1 waybar"))
 
-# Move focus with mainMod + arrow keys
-bind = $mod, $vleft, movefocus, l
-bind = $mod, $vright, movefocus, r
-# bind = $mod, $vup, movefocus, u
-# bind = $mod, $vdown, movefocus, d
-bind = $mod, $vup, cyclenext, prev
-bind = $mod, $vdown, cyclenext
+---------------------
+----- Navigation ----
+---------------------
 
-# bind = $alt, Tab, cyclenext, next tiled hist        # change focus to another window
-# bind = $alt, Tab, bringactivetotop,    # bring it to the top
-bind = $alt, $tab, exec, ~/.config/hypr/scripts/alt_tab_global.sh
+-- Move focus with mainMod + arrow keys
+hl.bind(join(mainMod, vleft), movefocus, l)
+hl.bind(join(mainMod, vright), movefocus, r)
+-- hl.bind("mainMod, $vup, movefocus, u
+-- hl.bind("mainMod, $vdown, movefocus, d
+hl.bind(join(mainMod, vup), cyclenext, prev)
+hl.bind(join(mainMod, vdown), cyclenext)
 
-######################################
+-- hl.bind("$alt, Tab, cyclenext, next tiled hist        # change focus to another window
+-- hl.bind("$alt, Tab, bringactivetotop,    # bring it to the top
+hl.bind(join(alt, tab), hl.dsp.exec_cmd("~/.config/hypr/scripts/alt_tab_global.sh"))
 
-bind = $mod+$shift, $vleft, movewindow, l
-bind = $mod+$shift, $vright, movewindow, r
-# bind = $mod+$shift, $vup, movewindow, u
-# bind = $mod+$shift, $vdown, movewindow, d
-bind = $mod+$shift, $vup, swapnext, prev
-bind = $mod+$shift, $vdown, swapnext
+--------------------------------------
 
-# Monitors
-bind = $mod, Period, focusmonitor, +1
-bind = $mod, Comma, focusmonitor, -1
+hl.bind(join(mainMod, shift, vleft), movewindow, l)
+hl.bind(join(mainMod, shift, vright), movewindow, r)
+-- hl.bind(join("mainMod+$shift, $vup, movewindow, u
+-- hl.bind(join("mainMod+$shift, $vdown, movewindow, d
+hl.bind(join(mainMod, shift, vup), swapnext, prev)
+hl.bind(join(mainMod, shift, vdown), swapnext)
 
-# Scroll through existing workspaces with mainMod + scroll
-# bind = $mod, mouse_down, workspace, e+1
-# bind = $mod, mouse_up, workspace, e-1
+-- Monitors
+hl.bind(join(mainMod, "Period"), focusmonitor, +1)
+hl.bind(join(mainMod, "Comma"), focusmonitor, -1)
 
-# Move/resize windows with mainMod + LMB/RMB and dragging
-bindm = $mod, mouse:272, movewindow
-bindm = $mod, mouse:273, resizewindow
+-- Scroll through existing workspaces with mainMod + scroll
+-- hl.bind(join("mainMod, mouse_down, workspace, e+1
+-- hl.bind(join("mainMod, mouse_up, workspace, e-1
 
-####################################################
-###################### Resize ######################
-####################################################
+-- Move/resize windows with mainMod + LMB/RMB and dragging
+bindm = mainMod, mouse:272, movewindow
+bindm = mainMod, mouse:273, resizewindow
 
-binde = $ctrl+$mod, $vright, resizeactive, 100 0
-binde = $ctrl+$mod, $vleft, resizeactive, -100 0
-binde = $ctrl+$mod, $vup, resizeactive, 0 -100
-binde = $ctrl+$mod, $vdown, resizeactive, 0 100
+---------------------
+------- Resize ------
+---------------------
 
-####################################################
-###################### Apps ########################
-####################################################
+binde = $ctrl+mainMod, $vright, resizeactive, 100 0
+binde = $ctrl+mainMod, $vleft, resizeactive, -100 0
+binde = $ctrl+mainMod, $vup, resizeactive, 0 -100
+binde = $ctrl+mainMod, $vdown, resizeactive, 0 100
 
-# Start a terminal
-bind = $mod, RETURN, exec, $terminal
+---------------------
+-------- Apps -------
+---------------------
 
-# open/close gnome-control-center
-bind = $alt+$shift, G, exec, kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
-bind = $alt+$shift, W, exec, ~/.config/waypaper/toggle.sh hyprland
-bind = $alt+$shift, B, exec, ~/dotfiles/bin/start-browserw
+-- Start a terminal
+hl.bind(join(mainMod, "RETURN"), hl.dsp.exec_cmd(terminal))
 
-bind = , Print, exec, ~/dotfiles/bin/screenshot.w.sh
-bind = , Pause, exec, ~/dotfiles/bin/screenshot.w.sh
+-- open/close gnome-control-center
+hl.bind(join(alt, shift, "G"), hl.dsp.exec_cmd("kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"))
+hl.bind(join(alt, shift, "W"), hl.dsp.exec_cmd("~/.config/waypaper/toggle.sh hyprland"))
+hl.bind(join(alt, shift, "B"), hl.dsp.exec_cmd("~/dotfiles/bin/start-browserw"))
 
-######################################################
-###################### Layouts #######################
-######################################################
+hl.bind("Print", hl.dsp.exec_cmd("~/dotfiles/bin/screenshot.w.sh"))
 
-#bind = $alt, S, togglefloating,
-#bind = $mod+$shift, P, exec, hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
-# bind = $alt, S, exec, hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
-bind = $mod, P, pseudo, # dwindle
-bind = $mod, S, layoutmsg, togglesplit # dwindle
-bind = $alt, S, layoutmsg, swapsplit
+---------------------
+------ Layouts ------
+---------------------
 
-# bind = $mod, F, fullscreen, 1 # monocle
-bind = $mod, F, togglegroup # tabbed
-bind = $mod, code:49, focuscurrentorlast # b - back, f - forward, or index start at 1
-bind = $mod, code:59, changegroupactive, b # b - back, f - forward, or index start at 1
-bind = $mod, code:60, changegroupactive, f # b - back, f - forward, or index start at 1
-bind = $mod+$shift, code:59, moveintogroup, l # Moves the active window into a group left
-bind = $mod+$shift, code:60, moveintogroup, r # Moves the active window into a group right
+-- hl.bind("$alt, S, togglefloating,
+-- hl.bind("mainMod+$shift, P, hl.dsp.exec_cmd(hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
+-- hl.bind("$alt, S, hl.dsp.exec_cmd(hyprctl dispatch togglefloating && hyprctl dispatch centerwindow
+hl.bind(join(mainMod, "P"), pseudo) -- dwindle
+hl.bind(join(mainMod, "S"), layoutmsg, togglesplit) -- dwindle
+hl.bind(join(alt, "S"), layoutmsg, swapsplit)
 
-bind = $mod+$shift, F, fullscreen, 0
+-- hl.bind("mainMod, F, fullscreen, 1 # monocle
+hl.bind(join(mainMod, "F"), togglegroup -- tabbed
+hl.bind("mainMod, code:49, focuscurrentorlast) -- b - back, f - forward, or index start at 1
+hl.bind("mainMod, code:59, changegroupactive, b) -- b - back, f - forward, or index start at 1
+hl.bind("mainMod, code:60, changegroupactive, f) -- b - back, f - forward, or index start at 1
+hl.bind("mainMod+$shift, code:59, moveintogroup, l) -- Moves the active window into a group left
+hl.bind("mainMod+$shift, code:60, moveintogroup, r) -- Moves the active window into a group right
 
-# bind = $mod, Tab, exec, ~/.config/hypr/shell/toggle_layout.sh
-bind = $mod, Tab, fullscreen, 1
+hl.bind(join(mainMod, shift, "F"), fullscreen, 0)
 
-####################################################
-###################### Games #######################
-####################################################
+-- hl.bind("mainMod, "Tab", hl.dsp.exec_cmd(~/.config/hypr/shell/toggle_layout.sh
+hl.bind(join(mainMod, "Tab"), fullscreen, 1)
 
-bind = $mod, F1, exec, ~/.config/hypr/scripts/gamemode.sh
+---------------------
+------- Games -------
+---------------------
 
-####################################################
-###################### Media #######################
-####################################################
+hl.bind(join(mainMod, "F1"), hl.dsp.exec_cmd("~/.config/hypr/scripts/gamemode.sh"))
 
-# Laptop multimedia keys for volume and LCD brightness
-# bindel = ,XF86MonBrightnessUp, exec, brightnessctl -e4 -n2 set 5%+
-# bindel = ,XF86MonBrightnessDown, exec, brightnessctl -e4 -n2 set 5%-
+---------------------
+------- Media -------
+---------------------
 
-# bind = $mod, code:20, exec, ddcutil setvcp 10 - 10
-# bind = $mod, code:21, exec, ddcutil setvcp 10 + 10
-# bind = $mod, minus, exec, ddcutil setvcp 10 - 10
-# bind = $mod, equal, exec, ddcutil setvcp 10 + 10
+-- Laptop multimedia keys for volume and LCD brightness
+-- bindel = ,XF86MonBrightnessUp, hl.dsp.exec_cmd(brightnessctl -e4 -n2 set 5%+
+-- bindel = ,XF86MonBrightnessDown, hl.dsp.exec_cmd(brightnessctl -e4 -n2 set 5%-
 
-# monitor brightness controll
-bind = $mod, Page_Up, exec, echo '+' > /tmp/waybar-ddc-module-rx
-bind = $mod, Page_Down, exec, echo '-' > /tmp/waybar-ddc-module-rx
-bind = $mod+$shift, Page_Down, exec, echo '=' > /tmp/waybar-ddc-module-rx
+-- hl.bind("mainMod, code:20, hl.dsp.exec_cmd(ddcutil setvcp 10 - 10
+-- hl.bind("mainMod, code:21, hl.dsp.exec_cmd(ddcutil setvcp 10 + 10
+-- hl.bind("mainMod, minus, hl.dsp.exec_cmd(ddcutil setvcp 10 - 10
+-- hl.bind("mainMod, equal, hl.dsp.exec_cmd(ddcutil setvcp 10 + 10
 
-# monitor color temperature controll
-bind = $mod, Home, exec, ~/.config/waybar/module/shell/module.hyprsunset + ; pkill -RTMIN+4 waybar
-bind = $mod, End, exec, ~/.config/waybar/module/shell/module.hyprsunset - ; pkill -RTMIN+4 waybar
-bind = $mod+$shift, Home, exec, ~/.config/waybar/module/shell/module.hyprsunset = ; pkill -RTMIN+4 waybar
-bind = $mod+$shift, End, exec, ~/.config/waybar/module/shell/module.hyprsunset bblock ; pkill -RTMIN+4 waybar
+-- monitor brightness controll
+hl.bind(join(mainMod, "Page_Up"), hl.dsp.exec_cmd("echo '+' > /tmp/waybar-ddc-module-rx")
+hl.bind(join(mainMod, "Page_Down"), hl.dsp.exec_cmd("echo '-' > /tmp/waybar-ddc-module-rx")
+hl.bind(join(mainMod, shift, "Page_Down"), hl.dsp.exec_cmd("echo '=' > /tmp/waybar-ddc-module-rx")
 
-# sudo ddcutil getvcp 10
-# ddcutil getvcp 10 --display 1 #VCP code 0x10 (Brightness): current value = 40, max value = 100 
-# ddcutil getvcp 10 --display 2 #VCP code 0x10 (Brightness): current value = 56, max value = 100
+-- monitor color temperature controll
+hl.bind(join(mainMod, "Home"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset + ; pkill -RTMIN+4 waybar")
+hl.bind(join(mainMod, "End"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset - ; pkill -RTMIN+4 waybar")
+hl.bind(join(mainMod, shift, "Home"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset = ; pkill -RTMIN+4 waybar")
+hl.bind(join(mainMod, shift, "End"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset bblock ; pkill -RTMIN+4 waybar")
 
-bind = $mod, left, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
-bind = $mod, right, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
-bind = $mod, down, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
-#bindel = ,XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+-- sudo ddcutil getvcp 10
+-- ddcutil getvcp 10 --display 1 #VCP code 0x10 (Brightness): current value = 40, max value = 100 
+-- ddcutil getvcp 10 --display 2 #VCP code 0x10 (Brightness): current value = 56, max value = 100
 
-bind = $mod+$shift, deft, exec, playerctl previous
-bind = $mod+$shift, right, exec, playerctl next
-bind = $mod+$shift, down, exec, playerctl play-pause
+hl.bind(join(mainMod, "left"), hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+hl.bind(join(mainMod, "right"), hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+")
+hl.bind(join(mainMod, "down"), hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+-- bindel = ,XF86AudioMicMute, hl.dsp.exec_cmd(wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
 
-bind = $mod+$ctrl, down, exec, mpc toggle
-bind = $mod+$ctrl, up, exec, mpc stop
-bind = $mod+$ctrl, right, exec, mpc next
-bind = $mod+$ctrl, left, exec, mpc prev
+hl.bind(join(mainMod, shift, "deft"), hl.dsp.exec_cmd("playerctl previous")
+hl.bind(join(mainMod, shift, "right"), hl.dsp.exec_cmd("playerctl next")
+hl.bind(join(mainMod, shift, "down"), hl.dsp.exec_cmd("playerctl play-pause")
 
-####################################################
-#################### Workspace #####################
-####################################################
+hl.bind(join(mainMod, ctrl, "down"), hl.dsp.exec_cmd("mpc toggle"))
+hl.bind(join(mainMod, ctrl, "up"), hl.dsp.exec_cmd("mpc stop"))
+hl.bind(join(mainMod, ctrl, "right"), hl.dsp.exec_cmd("mpc next"))
+hl.bind(join(mainMod, ctrl, "left"), hl.dsp.exec_cmd("mpc prev"))
 
-# Switch workspaces with mainMod + [0-9]
-bind = $mod, 1, workspace, 1
-bind = $mod, 2, workspace, 2
-bind = $mod, 3, workspace, 3
-bind = $mod, 4, workspace, 4
-bind = $mod, 5, workspace, 5
-bind = $mod, 6, workspace, 6
-bind = $mod, 7, workspace, 7
-bind = $mod, 8, workspace, 8
-bind = $mod, 9, workspace, 9
+---------------------
+----- Workspace -----
+---------------------
 
-# Move active window to a workspace with mainMod + SHIFT + [0-9]
-bind = $mod SHIFT, 1, movetoworkspace, 1
-bind = $mod SHIFT, 2, movetoworkspace, 2
-bind = $mod SHIFT, 3, movetoworkspace, 3
-bind = $mod SHIFT, 4, movetoworkspace, 4
-bind = $mod SHIFT, 5, movetoworkspace, 5
-bind = $mod SHIFT, 6, movetoworkspace, 6
-bind = $mod SHIFT, 7, movetoworkspace, 7
-bind = $mod SHIFT, 8, movetoworkspace, 8
-bind = $mod SHIFT, 9, movetoworkspace, 9
+-- Switch workspaces with mainMod + [0-9]
+-- Move active window to a workspace with mainMod + SHIFT + [0-9]
+local ws_number = 9
+for i = 1, ws_number do
+    local key = i % ws_number -- ws_number maps to key 0
+    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+end
 
-# Example special workspace (scratchpad)
-# bind = $mod, O, togglespecialworkspace, scratchpad
-# bind = $mod SHIFT, O, movetoworkspace, special:scratchpad
-bind = $mod SHIFT, S, togglespecialworkspace, scratchpad
+-- Example special workspace (scratchpad)
+hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("scratchpad"))
+-- hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratchpad" }))
 
-####################################################
-###################### Submap ######################
-####################################################
+-- Scroll through existing workspaces with mainMod + scroll
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 
-# will switch to a submap called resize
-bind = ALT, R, submap, resize
+-- Move/resize windows with mainMod + LMB/RMB and dragging
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
-# will start a submap called "resize"
-submap = resize
+---------------------
+------- Submap ------
+---------------------
 
-# sets repeatable binds for resizing the active window
-binde = , right, resizeactive, 10 0
-binde = , left, resizeactive, -10 0
-binde = , up, resizeactive, 0 -10
-binde = , down, resizeactive, 0 10
+-- Switch to a submap called `resize`.
+hl.bind("ALT + R", hl.dsp.submap("resize"))
 
-# use reset to go back to the global submap
-bind = , escape, submap, reset
+-- Start a submap called "resize".
+hl.define_submap("resize", function()
 
-# will reset the submap, which will return to the global submap
-submap = reset
+    -- Set repeating binds for resizing the active window.
+    hl.bind("right", hl.dsp.window.resize({ x = 10, y = 0, relative = true}), { repeating = true })
+    hl.bind("left", hl.dsp.window.resize({ x = -10, y = 0, relative = true}), { repeating = true })
+    hl.bind("up", hl.dsp.window.resize({ x = 0, y = 10, relative = true}), { repeating = true })
+    hl.bind("down", hl.dsp.window.resize({ x = 0, y = -10, relative = true}), { repeating = true })
 
-####################################################
-####################### Zoom #######################
-####################################################
+    -- Use `reset` to go back to the global submap
+    hl.bind("escape", hl.dsp.submap("reset"))
 
-bind = $mod, equal, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 1.1}')
-bind = $mod, minus, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 0.9}')
-bind = $mod+$shift, minus, exec, hyprctl -q keyword cursor:zoom_factor 1
+end)
 
-####################################################
-###################### ...... ######################
-####################################################
+---------------------
+-------- Zoom -------
+---------------------
+
+-- bind = $mod, equal, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 1.1}')
+-- bind = $mod, minus, exec, hyprctl -q keyword cursor:zoom_factor $(hyprctl getoption cursor:zoom_factor | awk '/^float.*/ {print $2 * 0.9}')
+-- bind = $mod+$shift, minus, exec, hyprctl -q keyword cursor:zoom_factor 1
+
+---------------------
+---- ........... ----
+---------------------
