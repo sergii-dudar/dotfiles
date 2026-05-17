@@ -62,6 +62,13 @@ vim.keymap.set({ "n", "x" }, "J", "8jzz", { noremap = true, silent = true }) -- 
 vim.keymap.set({ "n", "x" }, "H", "^", { noremap = true, silent = true }) -- Mapping K to 6kzz
 vim.keymap.set({ "n", "x" }, "L", "$", { noremap = true, silent = true }) -- Mapping J to 6jzz
 
+-- replace currently selected text with default register without yanking it
+vim.keymap.set({ "v" }, "<leader>p", '"_dP', { silent = true })
+
+-- paste from 0 register (where always live last yanked text, which is immune to being overwritten by deletions.)
+-- INFO: using `c` (change) in exchange is the key.
+vim.keymap.set({ "i" }, "<C-r>", "<C-r>0", { noremap = true, silent = true })
+
 -- move cursor in insert mode, convenient in case need move in brackets or parentheses without leaving insert mode
 vim.keymap.set("i", "<C-l>", "<Right>", { noremap = true })
 vim.keymap.set("i", "<C-h>", "<Left>", { noremap = true })
@@ -160,4 +167,3 @@ end, { desc = "Convert Java toString to JSON (clipboard)" })
 vim.keymap.set("n", "<leader>Cjn", function()
     require("utils.json.normalize").normalize_buffer()
 end, { desc = "Convert json to normalized" })
-

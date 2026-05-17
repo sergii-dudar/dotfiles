@@ -7,6 +7,7 @@
 useful links:
 
 - [good basic motions advises](https://github.com/unblevable/quick-scope?tab=readme-ov-file#other-motions)
+- `imap` to discover exists mapping, like (`imap` <C-r>)
 
 `h Ex-commands`
 
@@ -37,17 +38,45 @@ useful links:
 
 ### Insert Mode Operations
 
-| Command  | Description                                                                |
-| -------- | -------------------------------------------------------------------------- |
-| `Ctrl+h` | Delete the character before the cursor during insert mode                  |
-| `Ctrl+w` | Delete word before the cursor during insert mode                           |
-| `Ctrl+j` | Add a line break at the cursor position during insert mode                 |
-| `Ctrl+t` | Indent (move right) line one shiftwidth during insert mode                 |
-| `Ctrl+d` | De-indent (move left) line one shiftwidth during insert mode               |
-| `Ctrl+n` | Insert (auto-complete) next match before the cursor during insert mode     |
-| `Ctrl+p` | Insert (auto-complete) previous match before the cursor during insert mode |
-| `Ctrl+o` | Temporarily enter normal mode to issue one normal-mode command             |
-| ``       |                                                                            |
+| Command      | Description                                                                |
+| ------------ | -------------------------------------------------------------------------- |
+| `Ctrl+h`     | Delete the character before the cursor during insert mode                  |
+| `Ctrl+w`     | Delete word before the cursor during insert mode                           |
+| `Ctrl+j`     | Add a line break at the cursor position during insert mode                 |
+| `Ctrl+t`     | Indent (move right) line one shiftwidth during insert mode                 |
+| `Ctrl+d`     | De-indent (move left) line one shiftwidth during insert mode               |
+| `Ctrl+n`     | Insert (auto-complete) next match before the cursor during insert mode     |
+| `Ctrl+p`     | Insert (auto-complete) previous match before the cursor during insert mode |
+| `Ctrl+o`     | Temporarily enter normal mode to issue one normal-mode command             |
+| `Ctrl+r {r}` | Insert contents of register `{r}` (e.g. `<C-r>0` pastes last yank)         |
+| ``           |                                                                            |
+
+#### `<C-r>` — paste from register while in insert mode:
+
+- `<C-r>0` — paste from yank register (last `y`, unaffected by deletes)
+- `<C-r>"` — paste from unnamed register (last `y`/`d`/`c`)
+- `<C-r>a` — paste from named register `a`
+- `<C-r>+` — paste from system clipboard
+- `<C-r>/` — paste last search pattern
+- `<C-r>:` — paste last command
+
+#### Replace text with yanked text (repeatable with `.`):
+
+- `yiw` — yank a word (saved in register `0`)
+- navigate to target word, then for example `ciw<C-r>0<Esc>` — replace inner word with yanked text
+- `.` — repeat the replacement on the next target
+
+Other motion examples:
+
+- `ci(<C-r>0<Esc>` — replace inside parentheses with yanked text
+- `c$<C-r>0<Esc>` — replace to end of line with yanked text
+- `yy` then `cc<C-r>0<Esc>` — replace entire line with yanked line
+
+Visually selected V-BLOCK examples:
+
+- `yiw` — yank a word (saved in register `0`)
+- <C-v>{motion} or <C-q>{motion} to select v-block
+- Press `c` to change all block, and press <C-r>0<Esc>
 
 ### Other Editing
 
@@ -115,17 +144,17 @@ useful links:
 
 ### File Navigation
 
-| Command  | Description       |
-| -------- | ----------------- |
-| `gg`     | Go to top         |
-| `G`      | Go to bottom      |
-| `[N]gg`  | Go to line number |
-| `[N]G`   | Go to line number |
-| `:N`     | Go to line number |
-| `Ctrl+f` | Page down         |
-| `Ctrl+b` | Page up           |
-| `Ctrl+d` | Half page down    |
-| `Ctrl+u` | Half page up      |
+| Command  | Description                         |
+| -------- | ----------------------------------- |
+| `gg`     | Go to top                           |
+| `G`      | Go to bottom                        |
+| `[N]gg`  | Go to line number                   |
+| `[N]G`   | Go to line number                   |
+| `:N`     | Go to line number                   |
+| `Ctrl+f` | Page down                           |
+| `Ctrl+b` | Page up                             |
+| `Ctrl+d` | Half page down                      |
+| `Ctrl+u` | Half page up                        |
 | `Ctrl+e` | Scroll one line down (cursor stays) |
 | `Ctrl+y` | Scroll one line up (cursor stays)   |
 | `Ctrl+g` | Show file info (name, position, %)  |
@@ -149,7 +178,7 @@ useful links:
 | `g,`     | Go to next change position                   |
 | `` `. `` | Go to last change in current buffer          |
 | `` `^ `` | Go to last position of cursor in insert mode |
-| `Ctrl+^`  | Toggle alternate (last) buffer               |
+| `Ctrl+^` | Toggle alternate (last) buffer               |
 
 ### Character Motions
 
@@ -207,12 +236,12 @@ useful links:
 
 ### Undo & Redo
 
-| Command  | Description       |
-| -------- | ----------------- |
-| `u`      | Undo              |
-| `Ctrl+r` | Redo              |
-| `U`      | Undo line changes           |
-| `:earlier 5m` | Undo to 5 minutes ago |
+| Command       | Description             |
+| ------------- | ----------------------- |
+| `u`           | Undo                    |
+| `Ctrl+r`      | Redo                    |
+| `U`           | Undo line changes       |
+| `:earlier 5m` | Undo to 5 minutes ago   |
 | `:later 5m`   | Redo to 5 minutes later |
 
 ## ============================== Indent ==============================
@@ -325,14 +354,24 @@ useful links:
 
 ### Searching
 
-| Command    | Description                     |
-| ---------- | ------------------------------- |
-| `/pattern` | Search forward                  |
-| `?pattern` | Search backward                 |
-| `n`        | Next match                      |
-| `N`        | Previous match                  |
-| `*`        | Search word under cursor        |
-| `#`        | Search word under cursor (back) |
+| Command    | Description                                |
+| ---------- | ------------------------------------------ |
+| `/pattern` | Search forward                             |
+| `?pattern` | Search backward                            |
+| `n`        | Next match                                 |
+| `N`        | Previous match                             |
+| `*`        | Search word under cursor                   |
+| `#`        | Search word under cursor (back)            |
+| `cgn`      | Change next search match (repeat with `.`) |
+
+#### `cgn` workflow — search & replace with dot repeat:
+
+- Search for a pattern: `/word`
+- `cgn` — changes the match (under cursor) and drops into insert mode
+- Type the replacement, then `Escape`
+- `.` — change this match and advance to next
+- `n` — **skip** this match and advance to next
+- Powerful alternative to `:%s/.../...` with per-match control
 
 ### Replacing / Substitute :[range]s/{pattern}/{str}/[flags] | :[range]s/{pattern}/{str}/[flags]
 
@@ -489,22 +528,22 @@ useful links:
 
 ### Visual Selection
 
-| Command  | Description                                                        |
-| -------- | ------------------------------------------------------------------ |
-| `v`      | Character-wise selection                                           |
-| `V`      | Line-wise selection                                                |
-| `Ctrl+v` | Block-wise selection                                               |
+| Command  | Description                                                       |
+| -------- | ----------------------------------------------------------------- |
+| `v`      | Character-wise selection                                          |
+| `V`      | Line-wise selection                                               |
+| `Ctrl+v` | Block-wise selection                                              |
 | `o`      | Go to other end (for example to change start of visual selection) |
-| `O`      | Go to other corner                                                 |
-| `gv`     | Reselect last selection                                            |
-| `vi"`    | Select inner quotes                                                |
-| `va"`    | Select around quotes                                               |
-| `vi[`    | Select inner brackets                                              |
-| `va[`    | Select around brackets                                             |
-| `viw`    | Select inner word                                                  |
-| `vip`    | Select inner paragraph                                             |
-| `vipip`  | Select more paragraph                                              |
-| ``       |                                                                    |
+| `O`      | Go to other corner                                                |
+| `gv`     | Reselect last selection                                           |
+| `vi"`    | Select inner quotes                                               |
+| `va"`    | Select around quotes                                              |
+| `vi[`    | Select inner brackets                                             |
+| `va[`    | Select around brackets                                            |
+| `viw`    | Select inner word                                                 |
+| `vip`    | Select inner paragraph                                            |
+| `vipip`  | Select more paragraph                                             |
+| ``       |                                                                   |
 
 ### Operations on Selection
 
@@ -618,13 +657,13 @@ useful links:
 
 ### Window Other Useful
 
-| Command    | Description           |
-| ---------- | --------------------- |
-| `Ctrl+w p` | Go to prev window       |
-| `Ctrl+w x` | Swap window with next   |
-| `Ctrl+w T` | Move window to new tab  |
-| `Ctrl+w r` | Rotate windows down     |
-| `Ctrl+w R` | Rotate windows up       |
+| Command    | Description               |
+| ---------- | ------------------------- |
+| `Ctrl+w p` | Go to prev window         |
+| `Ctrl+w x` | Swap window with next     |
+| `Ctrl+w T` | Move window to new tab    |
+| `Ctrl+w r` | Rotate windows down       |
+| `Ctrl+w R` | Rotate windows up         |
 | `Ctrl+w H` | Move window to far left   |
 | `Ctrl+w J` | Move window to far bottom |
 | `Ctrl+w K` | Move window to far top    |
@@ -632,10 +671,10 @@ useful links:
 
 ### Command & Search History
 
-| Command | Description                  |
-| ------- | ---------------------------- |
-| `q:`    | Open command history window  |
-| `q/`    | Open search history window   |
+| Command | Description                 |
+| ------- | --------------------------- |
+| `q:`    | Open command history window |
+| `q/`    | Open search history window  |
 
 ## ============================== Advanced ==============================
 
@@ -703,13 +742,13 @@ useful links:
 
 ### Increase \ Decrease
 
-| Command    | Description                                          |
-| ---------- | ---------------------------------------------------- |
-| `Ctrl+a`   | Increase number                                      |
-| `Ctrl+x`   | Decrease number                                      |
+| Command    | Description                                           |
+| ---------- | ----------------------------------------------------- |
+| `Ctrl+a`   | Increase number                                       |
+| `Ctrl+x`   | Decrease number                                       |
 | `g Ctrl+a` | Step increase visually selected column numbers number |
 | `g Ctrl+x` | Step decrease visually selected column numbers number |
-| ``         |                                                      |
+| ``         |                                                       |
 
 ### Tabs
 

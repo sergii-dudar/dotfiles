@@ -44,10 +44,18 @@ return {
             end
         end, { silent = true })
 
-        vim.keymap.set({ "i", "s" }, "<C-R>", function()
+        vim.keymap.set({ "i", "s" }, "<C-S-E>", function()
             if ls.choice_active() then
                 require("luasnip.extras.select_choice")()
             end
         end, { silent = true })
+
+        -- vim.keymap.set({ "i", "s" }, "<C-R>", function()
+        --     if ls.choice_active() then
+        --         require("luasnip.extras.select_choice")()
+        --     else
+        --         return "<C-R>"
+        --     end
+        -- end, { silent = true, expr = true })
     end,
 }
