@@ -66,6 +66,8 @@ hl.window_rule({
 ------------------------------------------------------------
 ------- Open specific applications in floating mode --------
 ------------------------------------------------------------
+-- #4db5bd #c678dd #A3BE8C #81A1C1 #B48EAD #88C0D0 #4C566A #A3BE8C #81A1C1
+-- #B48EAD #8FBCBB #458588 #689d6a #a89984 #928374 #83a598 #8ec07c
 
 local float_border_color = "rgb(81A1C1)"
 
@@ -93,11 +95,7 @@ local ghostty_tui_apps = "("
     .. "com.term.float.disc_ugd"
     .. ")"
 
-local float_small_apps = "("
-    .. "org.pulseaudio.pavucontrol|"
-    .. "xdg-desktop-portal-gtk|"
-    .. "waypaper"
-    .. ")"
+local float_small_apps = "(" .. "org.pulseaudio.pavucontrol|" .. "xdg-desktop-portal-gtk|" .. "waypaper" .. ")"
 
 hl.window_rule({
     name = "float_apps_role",

@@ -2,26 +2,31 @@
 ------------------- Scratchpad bindings --------------------
 ------------------------------------------------------------
 
--- Uses variables from keybindings.lua
+local scratchpad = require("scripts/toggle_scratchpad_app")
+
 local mod = "SUPER"
 local alt = "ALT"
 local shift = "SHIFT"
 
-hl.bind(mod .. " + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh telegram"))
-hl.bind(mod .. " + " .. shift .. " + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh mini_terminal"))
-hl.bind(mod .. " + Y", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh yazi"))
-hl.bind(mod .. " + N", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh youtube_music"))
-hl.bind(mod .. " + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh music"))
-hl.bind(mod .. " + G", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh google_chat"))
-hl.bind(mod .. " + U", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh monkey_type"))
-hl.bind(mod .. " + E", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh nautilus"))
-hl.bind(alt .. " + " .. shift .. " + V", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle_scratchpad_app.sh vim_hero"))
+local function keys(...)
+    return table.concat({ ... }, " + ")
+end
+
+hl.bind(keys(mod, "T"), function() scratchpad.toggle("telegram") end)
+hl.bind(keys(mod, shift, "T"), function() scratchpad.toggle("mini_terminal") end)
+hl.bind(keys(mod, "Y"), function() scratchpad.toggle("yazi") end)
+hl.bind(keys(mod, "N"), function() scratchpad.toggle("youtube_music") end)
+hl.bind(keys(mod, "M"), function() scratchpad.toggle("music") end)
+hl.bind(keys(mod, "G"), function() scratchpad.toggle("google_chat") end)
+hl.bind(keys(mod, "U"), function() scratchpad.toggle("monkey_type") end)
+hl.bind(keys(mod, "E"), function() scratchpad.toggle("nautilus") end)
+hl.bind(keys(alt, shift, "V"), function() scratchpad.toggle("vim_hero") end)
 
 ------------------------------------------------------------
---------------------- Scratchpad rules ---------------------
+--------------------- Scratchpad Rules ---------------------
 ------------------------------------------------------------
 
-local scratchpad_apps = "("
+local scratchpad_class_regex = "("
     .. "com.scratchpad.yazi|"
     .. "com.scratchpad.music|"
     .. "org.telegram.desktop|"
@@ -32,17 +37,17 @@ local scratchpad_apps = "("
     .. "brave-beifkklpdmlhanbkafbcldldbgnglbpn-Default"
     .. ")"
 
--- Scratchpads (to apply float as soon as appear, also for when app running not as scratchpad)
+-- Tag scratchpad windows for identification
 hl.window_rule({
     name = "scratchpad_rule",
-    match = { class = scratchpad_apps },
+    match = { class = scratchpad_class_regex },
     tag = "+scratchpad",
-    -- opacity = "0.97",
+    -- opacity = 0.97
 })
 
 -------------- special
 
--- Open telegram media viewer on current workspace (where toggled telegram) instead of scratchpad ws
+-- Open telegram media viewer on current workspace instead of scratchpad ws
 hl.window_rule({
     name = "telegram_viewer",
     match = {
