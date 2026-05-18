@@ -1,4 +1,5 @@
 local gamemode = require("utils.gamemode")
+local alt_tab = require("utils.alt_tab_global")
 local keys = require("utils.common-util").keys
 
 --------------------------------------------------------
@@ -63,10 +64,7 @@ hl.bind(keys(mainMod, vup), hl.dsp.window.cycle_next({ next = false }))
 hl.bind(keys(mainMod, vdown), hl.dsp.window.cycle_next())
 
 -- hl.bind(keys(alt, "Tab"), hl.dsp.exec_cmd("..."))
-local alt_tab = require("utils.alt_tab_global")
-hl.bind(keys(alt, "tab"), function()
-    alt_tab.switch()
-end)
+hl.bind(keys(alt, "tab"), alt_tab.switch)
 
 --------------------------------------
 
@@ -142,9 +140,7 @@ hl.bind(keys(mainMod, "Tab"), hl.dsp.window.fullscreen({ mode = "maximized" }))
 ----------------------- Games ----------------------
 ----------------------------------------------------
 
--- stylua: ignore start
-hl.bind(keys(mainMod, "F1"), function() gamemode.toggle() end)
--- stylua: ignore end
+hl.bind(keys(mainMod, "F1"), gamemode.toggle)
 
 ----------------------------------------------------
 ----------------------- Media ----------------------
