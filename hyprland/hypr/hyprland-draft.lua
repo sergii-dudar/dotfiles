@@ -1,8 +1,0 @@
-require("module.monitors")
-require("module.autostart")
-require("module.general")
-require("module.input")
-require("module.keybindings")
-require("module.rules")
-require("module.scratchpad")
-require("module.env")

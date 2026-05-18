@@ -1,8 +1,7 @@
--------------
---- INPUT ---
--------------
+---------------
+---- INPUT ----
+---------------
 
--- https://wiki.hypr.land/Configuring/Basics/Variables/#input
 hl.config({
     input = {
         kb_layout = "us,ua",
@@ -24,7 +23,6 @@ hl.config({
     },
 })
 
--- https://wiki.hypr.land/Configuring/Basics/Variables/#gestures
 -- hl.gesture({
 --     fingers = 3,
 --     direction = "horizontal",
@@ -32,7 +30,7 @@ hl.config({
 -- })
 
 -- Example per-device config
--- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Devices/
+-- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Devices/ for more
 hl.device({
     name = "epic-mouse-v1",
     sensitivity = -0.5,

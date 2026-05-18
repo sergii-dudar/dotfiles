@@ -63,18 +63,24 @@ esac
 
 function set_scratch_app_roles() {
     addr="$1"
-    scratch_border_color="rgb(AB9DF2)"
 
-    hyprctl --batch "\
-        dispatch setfloating address:$addr ;\
-        dispatch resizeactive exact 75% 80% address:$addr ; \
-        dispatch centerwindow address:$addr ;\
-        dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
-        dispatch setprop address:$addr bordersize 5 ;\
-        dispatch setprop address:$addr alpha 0.95 ;\
-        dispatch setprop address:$addr dim_around on ;\
-        dispatch setprop address:$addr opacity 0.97 ;\
-        dispatch setprop address:$addr animationstyle 0"
+    # Calculate 75% x 80% of focused monitor resolution
+    eval "$(hyprctl monitors -j | jq -r '
+        map(select(.focused == true)) | .[0] |
+        "mon_w=\(.width / .scale | floor) mon_h=\((.height - .reserved[1] - .reserved[3]) / .scale | floor)"
+    ')"
+    win_w=$((mon_w * 75 / 100))
+    win_h=$((mon_h * 80 / 100))
+
+    hyprctl eval "
+        hl.dispatch(hl.dsp.window.float({ action = 'on', window = 'address:$addr' }))
+        hl.dispatch(hl.dsp.window.resize({ x = $win_w, y = $win_h, window = 'address:$addr' }))
+        hl.dispatch(hl.dsp.window.center('address:$addr'))
+        hl.dispatch(hl.dsp.window.set_prop({ prop = 'active_border_color', value = 'rgb(AB9DF2)', window = 'address:$addr' }))
+        hl.dispatch(hl.dsp.window.set_prop({ prop = 'border_size', value = '5', window = 'address:$addr' }))
+        hl.dispatch(hl.dsp.window.set_prop({ prop = 'dim_around', value = '1', window = 'address:$addr' }))
+        hl.dispatch(hl.dsp.window.set_prop({ prop = 'opacity', value = '0.97', window = 'address:$addr' }))
+    "
 }
 
 function is_app_running() {
@@ -109,7 +115,7 @@ function is_app_floating() {
 function move_app_to_scratchpad() {
     addr=$(get_window_address)
     if [ -n "$addr" ]; then
-        hyprctl dispatch movetoworkspacesilent special:scratchpad,address:"$addr"
+        hyprctl eval "hl.dispatch(hl.dsp.window.move({ workspace = 'special:scratchpad', window = 'address:$addr', follow = false }))"
     fi
 }
 
@@ -140,24 +146,32 @@ function move_app_to_current_workspace_and_focus() {
 
 
     if is_app_floating "$addr"; then
-        hyprctl --batch "\
-            dispatch movetoworkspacesilent $current_ws, address:$addr ;\
-            dispatch focuswindow address:$addr ;\
-            dispatch centerwindow"
+        hyprctl eval "
+            hl.dispatch(hl.dsp.window.move({ workspace = '$current_ws', window = 'address:$addr', follow = false }))
+            hl.dispatch(hl.dsp.focus({ window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.center('address:$addr'))
+        "
         set_scratch_app_roles "$addr"
     else
-        # combline to make is as smoth and fast as possible
-        scratch_border_color="rgb(AB9DF2)"
-        hyprctl --batch "\
-            dispatch setfloating address:$addr ;\
-            dispatch movetoworkspacesilent $current_ws, address:$addr ;\
-            dispatch focuswindow address:$addr ;\
-            dispatch resizeactive exact 75% 80% address:$addr ; \
-            dispatch centerwindow address:$addr ;\
-            dispatch setprop address:$addr activebordercolor $scratch_border_color ;\
-            dispatch setprop address:$addr bordersize 5 ;\
-            dispatch setprop address:$addr alpha 0.95 ;\
-            dispatch setprop address:$addr animationstyle 0"
+        # Calculate 75% x 80% of focused monitor resolution
+        eval "$(hyprctl monitors -j | jq -r '
+            map(select(.focused == true)) | .[0] |
+            "mon_w=\(.width / .scale | floor) mon_h=\((.height - .reserved[1] - .reserved[3]) / .scale | floor)"
+        ')"
+        win_w=$((mon_w * 75 / 100))
+        win_h=$((mon_h * 80 / 100))
+
+        # combine to make it as smooth and fast as possible
+        hyprctl eval "
+            hl.dispatch(hl.dsp.window.float({ action = 'on', window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.move({ workspace = '$current_ws', window = 'address:$addr', follow = false }))
+            hl.dispatch(hl.dsp.focus({ window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.resize({ x = $win_w, y = $win_h, window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.center('address:$addr'))
+            hl.dispatch(hl.dsp.window.set_prop({ prop = 'active_border_color', value = 'rgb(AB9DF2)', window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.set_prop({ prop = 'border_size', value = '5', window = 'address:$addr' }))
+            hl.dispatch(hl.dsp.window.set_prop({ prop = 'opacity', value = '0.97', window = 'address:$addr' }))
+        "
     fi
 }
 
@@ -167,7 +181,7 @@ function hide_all_other_scratchpads() {
         select(.tags[]? | test("^scratchpad")) |
         select(.class != "'"$class"'") |
     .address' | while read -r addr; do
-        hyprctl dispatch movetoworkspacesilent special:scratchpad, address:"$addr"
+        hyprctl eval "hl.dispatch(hl.dsp.window.move({ workspace = 'special:scratchpad', window = 'address:$addr', follow = false }))"
     done
 }
 

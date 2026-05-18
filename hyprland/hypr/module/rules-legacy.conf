@@ -1,0 +1,236 @@
+##############################################
+########### WINDOWS AND WORKSPACES ###########
+##############################################
+
+# See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
+# See https://wiki.hyprland.org/Configuring/Workspace-Rules/ for workspace rules
+
+### Examples:
+# windowrule = float, class:org.pulseaudio.pavucontrol
+# windowrule = size 75% 80%, class:org.pulseaudio.pavucontrol
+# windowrule = size 40% 40%, class:org.pulseaudio.pavucontrol
+# windowrule = center, class:org.pulseaudio.pavucontrol
+# windowrule = workspace 4, class:org.pulseaudio.pavucontrol
+# windowrule = workspace 4 silent, class:org.pulseaudio.pavucontrol
+
+# windowrule = float,class:^(kitty)$,title:^(kitty)$
+# windowrule = tile,class:^(kitty)$
+
+# Ignore maximize requests from apps. You'll probably like this.
+windowrule {
+    # Ignore maximize requests from all apps. You'll probably like this.
+    name = suppress-maximize-events
+    match:class = .*
+    suppress_event = maximize
+    # group = set always
+}
+
+# Fix some dragging issues with XWayland
+windowrule {
+    # Fix some dragging issues with XWayland
+    name = fix-xwayland-drags
+    match:class = ^$
+    match:title = ^$
+    match:xwayland = true
+    match:float = true
+    match:fullscreen = false
+    match:pin = false
+    no_focus = true
+}
+
+# Hyprland-run windowrule
+windowrule {
+    name = move-hyprland-run
+    match:class = hyprland-run
+    move = 20 monitor_h-120
+    float = yes
+}
+
+############################################################
+######## Open applications on specific workspaces ##########
+############################################################
+
+windowrule {
+    name = wk1
+    match:class = (com.ghostty.group01|org.wezfurlong.wezterm|com.alacritty.group01|com.term.group01)
+    workspace = 1 silent
+}
+windowrule {
+    name = wk2
+    match:class = (jetbrains-idea|Code)
+    workspace = 2 silent
+}
+windowrule {
+    name = wk3
+    match:class = (brave-browser)
+    workspace = 2 silent
+}
+windowrule {
+    name = wk4
+    match:class = (kitty)
+    workspace = 4 silent
+}
+
+############################################################
+####### Open specific applications in floating mode ########
+############################################################
+
+# #4db5bd
+# #c678dd
+# #A3BE8C
+# #81A1C1
+# #B48EAD
+# #88C0D0
+# #4C566A
+# #A3BE8C
+# #81A1C1
+# #B48EAD
+# #8FBCBB
+# #458588
+# #689d6a
+# #a89984
+# #928374
+# #83a598
+# #8ec07c
+
+$float_border_color=rgb(81A1C1)
+
+$float_apps=(\
+org.qbittorrent.qBittorrent|\
+org.gnome.Settings|\
+nm-connection-editor|\
+com.viber.Viber|\
+vlc|\
+org.gnome.Calculator|\
+org.gnome.Snapshot|\
+org.gnome.clocks|\
+org.gnome.Calendar|\
+org.gnome.Weather|\
+org.gnome.DiskUtility|\
+org.gnome.SystemMonitor|\
+com.term.float.htop_info|\
+com.term.float.disc_ugd\
+)
+
+$ghostty_tui_apps=(\
+com.scratchpad.yazi|\
+com.scratchpad.music|\
+com.term.float.htop_info|\
+com.term.float.disc_ugd\
+)
+
+# for_window [app_id=""] floating enable; resize set 45ppt 50ppt; move position center
+$float_small_apps=(\
+org.pulseaudio.pavucontrol|\
+xdg-desktop-portal-gtk|\
+waypaper\
+)
+
+windowrule {
+    name = float_apps_role
+    match:class = $float_apps
+    float = yes
+    size = (monitor_w*0.65) (monitor_h*0.8)
+    center = yes
+    border_color = $float_border_color
+    opacity = 0.97
+    # dim_around = yes
+} 
+
+# ## windowrule = size 75% 80%, $float_apps
+# windowrule = size 85% 90%, $float_apps
+# windowrule = center, $float_apps
+# windowrule = $float_border_color, $float_apps
+# windowrule = opacity 0.97, $float_apps
+# ## windowrule = bordersize 6, $float_apps
+
+windowrule {
+    name = float_small_apps_role
+    match:class = $float_small_apps
+    float = yes
+    size = (monitor_w*0.45) (monitor_h*0.5)
+    center = yes
+    border_color = $float_border_color
+    opacity = 0.97
+} 
+
+# windowrule = float, $float_small_apps
+# windowrule = size 45% 50%, $float_small_apps
+# windowrule = center, $float_small_apps
+# windowrule = $float_border_color, $float_small_apps
+# windowrule = opacity 0.97, $float_small_apps
+# # windowrule = bordersize 6, $float_small_apps
+
+# windowrule = opacity 0.90, $ghostty_tui_apps
+# # windowrule = bordersize 6, $ghostty_tui_apps
+
+windowrule {
+    name = ghostty_tui_apps_role
+    opacity = 0.90
+} 
+
+# alacritty (xdg_shell)
+# alacritty --class=com.term.float.htop_info -e htop
+# alacritty --class=com.term.float.disc_ugd -e gdu ~
+
+# for_window [app_id="gpick"] floating enable; resize set 75ppt 80ppt; move position center
+# for_window [app_id="org.gnome.Characters"] floating enable; resize set 75ppt 80ppt; move position center
+
+########################################################
+##################### Dynamic roles ####################
+########################################################
+
+# stop hypridle when fullscreen (except 1 - monocle)
+# windowrule = idleinhibit focus, class:mpv
+# windowrule = idleinhibit fullscreen, fullscreenstate:* 2
+# # windowrule = idleinhibit fullscreen, fullscreenstate:* 1
+
+windowrule {
+    name = idleinhibit_mpv
+    idle_inhibit = focus
+    match:class = mpv
+    fullscreen_state = 2
+}
+
+windowrule {
+    name = idleinhibit_fullscreen
+    idle_inhibit = fullscreen
+    fullscreen_state = 1
+}
+
+########################################################
+################### Workspace roles ####################
+########################################################
+
+########## smart borders
+# workspace = w[tv1]
+# workspace = f[1]
+# windowrule = bordersize 0, floating:0, onworkspace:w[tv1]
+# windowrule = bordersize 0, floating:0, onworkspace:f[1]
+
+# workspace = w[tv1], gapsout:0, gapsin:0
+# workspace = f[1], gapsout:0, gapsin:0
+workspace = w[tv1]
+workspace = f[1]
+windowrule = border_size 0, match:float 0, match:workspace w[tv1]
+windowrule = rounding 0, match:float 0, match:workspace w[tv1]
+windowrule = border_size 0, match:float 0, match:workspace f[1]
+windowrule = rounding 0, match:float 0, match:workspace f[1]
+
+########## smart borders & smart gaps
+# workspace = w[tv1], gapsout:0, gapsin:0
+# workspace = f[1], gapsout:0, gapsin:0
+# windowrule = bordersize 0, floating:0, onworkspace:w[tv1]
+# windowrule = rounding 0, floating:0, onworkspace:w[tv1]
+# windowrule = bordersize 0, floating:0, onworkspace:f[1]
+# windowrule = rounding 0, floating:0, onworkspace:f[1]
+
+########################################################
+###################### Games roles #####################
+########################################################
+
+windowrule {
+    name = dota_win_rule
+    match:class = ^(dota2)$
+    immediate = yes
+}

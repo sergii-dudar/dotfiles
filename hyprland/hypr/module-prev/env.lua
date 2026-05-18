@@ -1,7 +1,6 @@
------------------------------
---- ENVIRONMENT VARIABLES ---
------------------------------
-
+-------------------------------
+---- ENVIRONMENT VARIABLES ----
+-------------------------------
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
 
 hl.env("XCURSOR_SIZE", "30")
@@ -10,7 +9,7 @@ hl.env("HYPRCURSOR_SIZE", "30")
 hl.env("HYPRCURSOR_THEME", "elementary")
 hl.env("QT_QPA_PLATFORMTHEME", "qt5ct") -- change to qt6ct if you have that
 
--- Unscale XWayland
+-- unscale XWayland
 hl.config({
     xwayland = {
         force_zero_scaling = true,
@@ -18,5 +17,5 @@ hl.config({
 })
 
 -- toolkit-specific scale
--- hl.env("GDK_SCALE", "1")
+-- env = GDK_SCALE,1
 hl.env("XCURSOR_SIZE", "24")
