@@ -63,7 +63,10 @@ hl.bind(keys(mainMod, vup), hl.dsp.window.cycle_next({ next = false }))
 hl.bind(keys(mainMod, vdown), hl.dsp.window.cycle_next())
 
 -- hl.bind(keys(alt, "Tab"), hl.dsp.exec_cmd("..."))
-hl.bind(keys(alt, "tab"), hl.dsp.exec_cmd("~/.config/hypr/scripts/alt_tab_global.sh"))
+local alt_tab = require("utils.alt_tab_global")
+hl.bind(keys(alt, "tab"), function()
+    alt_tab.switch()
+end)
 
 --------------------------------------
 
