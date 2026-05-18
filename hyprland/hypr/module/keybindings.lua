@@ -1,6 +1,8 @@
 local gamemode = require("utils.gamemode")
 local alt_tab = require("utils.alt_tab_global")
-local keys = require("utils.common-util").keys
+local common_util = require("utils.common-util")
+local keys = common_util.keys
+local log = require("utils.logs-util").log
 
 --------------------------------------------------------
 ----------------------- Variables ----------------------
@@ -60,10 +62,31 @@ hl.bind(keys(mainMod, vleft), hl.dsp.focus({ direction = "l" }))
 hl.bind(keys(mainMod, vright), hl.dsp.focus({ direction = "r" }))
 -- hl.bind(keys(mod, vup), hl.dsp.focus({ direction = "u" }))
 -- hl.bind(keys(mod, vdown), hl.dsp.focus({ direction = "d" }))
-hl.bind(keys(mainMod, vup), hl.dsp.window.cycle_next({ next = false }))
-hl.bind(keys(mainMod, vdown), hl.dsp.window.cycle_next())
+-- hl.bind(keys(mainMod, vup), hl.dsp.window.cycle_next({ next = false }))
+-- hl.bind(keys(mainMod, vdown), hl.dsp.window.cycle_next())
 
--- hl.bind(keys(alt, "Tab"), hl.dsp.exec_cmd("..."))
+local full_mode_names = {
+    [1] = "maximized",
+    [2] = "fullscreen",
+}
+local function cycle_next(prev)
+    return function()
+        local win = hl.get_active_window()
+        local lay_index = win and win.fullscreen or 0
+        if prev then
+            hl.dispatch(hl.dsp.window.cycle_next({ next = false }))
+        else
+            hl.dispatch(hl.dsp.window.cycle_next())
+        end
+        local full_mode_name = full_mode_names[lay_index]
+        if full_mode_name then
+            hl.dispatch(hl.dsp.window.fullscreen({ mode = full_mode_name }))
+        end
+    end
+end
+hl.bind(keys(mainMod, vup), cycle_next(true))
+hl.bind(keys(mainMod, vdown), cycle_next(false))
+
 hl.bind(keys(alt, "tab"), alt_tab.switch)
 
 --------------------------------------
@@ -119,22 +142,22 @@ hl.bind("Pause", hl.dsp.exec_cmd("~/dotfiles/bin/screenshot.w.sh"))
 
 -- hl.bind(keys(alt, "S"), hl.dsp.window.float({ action = "toggle" }))
 -- hl.bind(keys(mod, shift, "P"), hl.dsp.exec_cmd("hyprctl dispatch togglefloating && hyprctl dispatch centerwindow"))
-hl.bind(keys(mainMod, "P"), hl.dsp.window.pseudo()) -- dwindle
-hl.bind(keys(mainMod, "S"), hl.dsp.layout("togglesplit")) -- dwindle
+
+-- Dwindle
+hl.bind(keys(mainMod, "P"), hl.dsp.window.pseudo()) -- (floating centered)
+hl.bind(keys(mainMod, "S"), hl.dsp.layout("togglesplit")) -- (toggle vertical\horisontal)
 hl.bind(keys(alt, "S"), hl.dsp.layout("swapsplit"))
 
--- hl.bind(keys(mod, "F"), hl.dsp.window.fullscreen({ mode = "maximized" })) -- monocle
-hl.bind(keys(mainMod, "F"), hl.dsp.group.toggle()) -- tabbed
-hl.bind(keys(mainMod, "code:49"), hl.dsp.focus({ last = true })) -- focuscurrentorlast
-hl.bind(keys(mainMod, "code:59"), hl.dsp.group.prev()) -- b - back
-hl.bind(keys(mainMod, "code:60"), hl.dsp.group.next()) -- f - forward
-hl.bind(keys(mainMod, shift, "code:59"), hl.dsp.window.move({ into_group = "l" })) -- Moves the active window into a group left
-hl.bind(keys(mainMod, shift, "code:60"), hl.dsp.window.move({ into_group = "r" })) -- Moves the active window into a group right
-
-hl.bind(keys(mainMod, shift, "F"), hl.dsp.window.fullscreen({ mode = "fullscreen" }))
-
--- hl.bind(keys(mod, "Tab"), hl.dsp.exec_cmd("~/.config/hypr/shell/toggle_layout.sh"))
 hl.bind(keys(mainMod, "Tab"), hl.dsp.window.fullscreen({ mode = "maximized" }))
+hl.bind(keys(mainMod, "F"), hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+
+-- Tabbed
+-- hl.bind(keys(mainMod, "F"), hl.dsp.group.toggle()) -- tabbed
+-- hl.bind(keys(mainMod, "code:49"), hl.dsp.focus({ last = true })) -- focuscurrentorlast
+-- hl.bind(keys(mainMod, "code:59"), hl.dsp.group.prev()) -- b - back
+-- hl.bind(keys(mainMod, "code:60"), hl.dsp.group.next()) -- f - forward
+-- hl.bind(keys(mainMod, shift, "code:59"), hl.dsp.window.move({ into_group = "l" })) -- Moves the active window into a group left
+-- hl.bind(keys(mainMod, shift, "code:60"), hl.dsp.window.move({ into_group = "r" })) -- Moves the active window into a group right
 
 ----------------------------------------------------
 ----------------------- Games ----------------------
