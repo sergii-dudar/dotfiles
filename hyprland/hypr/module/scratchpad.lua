@@ -9,6 +9,7 @@ local mod = "SUPER"
 local alt = "ALT"
 local shift = "SHIFT"
 
+-- stylua: ignore start
 hl.bind(keys(mod, "T"), function() scratchpad.toggle("telegram") end)
 hl.bind(keys(mod, shift, "T"), function() scratchpad.toggle("mini_terminal") end)
 hl.bind(keys(mod, "Y"), function() scratchpad.toggle("yazi") end)
@@ -18,6 +19,7 @@ hl.bind(keys(mod, "G"), function() scratchpad.toggle("google_chat") end)
 hl.bind(keys(mod, "U"), function() scratchpad.toggle("monkey_type") end)
 hl.bind(keys(mod, "E"), function() scratchpad.toggle("nautilus") end)
 hl.bind(keys(alt, shift, "V"), function() scratchpad.toggle("vim_hero") end)
+-- stylua: ignore end
 
 ------------------------------------------------------------
 --------------------- Scratchpad Rules ---------------------

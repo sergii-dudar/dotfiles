@@ -88,6 +88,7 @@ local float_apps = "("
     .. "com.term.float.disc_ugd"
     .. ")"
 
+-- stylua: ignore start
 local ghostty_tui_apps = "("
     .. "com.scratchpad.yazi|"
     .. "com.scratchpad.music|"
@@ -95,7 +96,12 @@ local ghostty_tui_apps = "("
     .. "com.term.float.disc_ugd"
     .. ")"
 
-local float_small_apps = "(" .. "org.pulseaudio.pavucontrol|" .. "xdg-desktop-portal-gtk|" .. "waypaper" .. ")"
+local float_small_apps = "(" 
+    .. "org.pulseaudio.pavucontrol|" 
+    .. "xdg-desktop-portal-gtk|" 
+    .. "waypaper" 
+    .. ")"
+-- stylua: ignore end
 
 hl.window_rule({
     name = "float_apps_role",

@@ -103,7 +103,9 @@ hl.bind(keys(ctrl, mainMod, vdown), hl.dsp.window.resize({ x = 0, y = 100, relat
 hl.bind(keys(mainMod, "RETURN"), hl.dsp.exec_cmd(terminal))
 
 -- Open/close gnome-control-center
+-- stylua: ignore start
 hl.bind(keys(alt, shift, "G"), hl.dsp.exec_cmd("kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"))
+-- stylua: ignore end
 hl.bind(keys(alt, shift, "W"), hl.dsp.exec_cmd("~/.config/waypaper/toggle.sh hyprland"))
 hl.bind(keys(alt, shift, "B"), hl.dsp.exec_cmd("~/dotfiles/bin/start-browserw"))
 
@@ -137,8 +139,9 @@ hl.bind(keys(mainMod, "Tab"), hl.dsp.window.fullscreen({ mode = "maximized" }))
 ----------------------- Games ----------------------
 ----------------------------------------------------
 
-
+-- stylua: ignore start
 hl.bind(keys(mainMod, "F1"), function() gamemode.toggle() end)
+-- stylua: ignore end
 
 ----------------------------------------------------
 ----------------------- Media ----------------------
@@ -150,13 +153,15 @@ hl.bind(keys(mainMod, "Page_Down"), hl.dsp.exec_cmd("echo '-' > /tmp/waybar-ddc-
 hl.bind(keys(mainMod, shift, "Page_Down"), hl.dsp.exec_cmd("echo '=' > /tmp/waybar-ddc-module-rx"))
 
 -- Monitor color temperature control
+-- stylua: ignore start
 hl.bind(keys(mainMod, "Home"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset + ; pkill -RTMIN+4 waybar"))
 hl.bind(keys(mainMod, "End"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset - ; pkill -RTMIN+4 waybar"))
 hl.bind(keys(mainMod, shift, "Home"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset = ; pkill -RTMIN+4 waybar"))
 hl.bind(keys(mainMod, shift, "End"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/module.hyprsunset bblock ; pkill -RTMIN+4 waybar"))
+-- stylua: ignore end
 
 -- sudo ddcutil getvcp 10
--- ddcutil getvcp 10 --display 1 #VCP code 0x10 (Brightness): current value = 40, max value = 100 
+-- ddcutil getvcp 10 --display 1 #VCP code 0x10 (Brightness): current value = 40, max value = 100
 -- ddcutil getvcp 10 --display 2 #VCP code 0x10 (Brightness): current value = 56, max value = 100
 
 -- Volume control
