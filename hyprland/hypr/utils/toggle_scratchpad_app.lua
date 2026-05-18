@@ -1,7 +1,3 @@
--- Scratchpad toggle module for Hyprland Lua config
--- Usage: local scratchpad = require("scripts/toggle_scratchpad_app")
---        scratchpad.toggle("yazi")
-
 local M = {}
 
 ------------------------------------------------------------

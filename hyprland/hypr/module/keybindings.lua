@@ -1,3 +1,6 @@
+local gamemode = require("utils.gamemode")
+local keys = require("utils.common-util").keys
+
 --------------------------------------------------------
 ----------------------- Variables ----------------------
 --------------------------------------------------------
@@ -24,10 +27,6 @@ local vleft = "h"
 local vdown = "j"
 local vup = "k"
 local vright = "l"
-
-local function keys(...)
-    return table.concat({ ... }, " + ")
-end
 
 -----------------------------------------------------
 ----------------------- Basics ----------------------
@@ -138,7 +137,8 @@ hl.bind(keys(mainMod, "Tab"), hl.dsp.window.fullscreen({ mode = "maximized" }))
 ----------------------- Games ----------------------
 ----------------------------------------------------
 
-hl.bind(keys(mainMod, "F1"), hl.dsp.exec_cmd("~/.config/hypr/scripts/gamemode.sh"))
+
+hl.bind(keys(mainMod, "F1"), function() gamemode.toggle() end)
 
 ----------------------------------------------------
 ----------------------- Media ----------------------

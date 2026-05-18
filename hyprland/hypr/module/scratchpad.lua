@@ -1,16 +1,13 @@
+local scratchpad = require("utils.toggle_scratchpad_app")
+local keys = require("utils.common-util").keys
+
 ------------------------------------------------------------
 ------------------- Scratchpad bindings --------------------
 ------------------------------------------------------------
 
-local scratchpad = require("scripts/toggle_scratchpad_app")
-
 local mod = "SUPER"
 local alt = "ALT"
 local shift = "SHIFT"
-
-local function keys(...)
-    return table.concat({ ... }, " + ")
-end
 
 hl.bind(keys(mod, "T"), function() scratchpad.toggle("telegram") end)
 hl.bind(keys(mod, shift, "T"), function() scratchpad.toggle("mini_terminal") end)
