@@ -53,6 +53,29 @@ local function diff_selected(picker)
     end)
 end
 
+local exclude_common = {
+    -- "**/target/classes",
+    -- "**/target/test-classes",
+    "**/target/maven-*",
+    "**/target/surefire-reports",
+    "**/target/failsafe-reports",
+    "**/target/junit-report",
+    "**/target/jacoco-output",
+    "**/target/site",
+    "**/target/.cache",
+    "**/target/*.jar",
+    "**/target/*.war",
+    "**/target/*.ear",
+    -- "**/bin",
+    ".git",
+    ".settings",
+    ".idea",
+    ".mvn",
+    "**/.classpath",
+    "**/.factorypath",
+    "**/.project",
+}
+
 M.picker = {
     -- layout = {
     --     cycle = false,
@@ -60,28 +83,7 @@ M.picker = {
     layout = layouts.custom_default,
     hidden = true, -- Include hidden files in grep
     ignored = false, -- Exclude git-ignored files
-    exclude = {
-        -- "**/target/classes",
-        -- "**/target/test-classes",
-        "**/target/maven-*",
-        "**/target/surefire-reports",
-        "**/target/failsafe-reports",
-        "**/target/junit-report",
-        "**/target/jacoco-output",
-        "**/target/site",
-        "**/target/.cache",
-        "**/target/*.jar",
-        "**/target/*.war",
-        "**/target/*.ear",
-        -- "**/bin",
-        ".git",
-        ".settings",
-        ".idea",
-        ".mvn",
-        "**/.classpath",
-        "**/.factorypath",
-        "**/.project",
-    },
+    exclude = exclude_common,
     formatters = {
         file = {
             filename_first = true, -- display filename before the file path
@@ -172,7 +174,7 @@ M.picker = {
         },
         grep = {
             hidden = true, -- Show hidden files
-            ignored = true, -- Exclude git-ignored files
+            ignored = false, -- Exclude git-ignored files
             -- args = {
             --     "--ignore-case",
             -- },

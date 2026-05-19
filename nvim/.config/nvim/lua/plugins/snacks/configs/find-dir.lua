@@ -53,10 +53,18 @@ function M.pick()
             },
         },
         confirm = function(picker, item)
+            local selected = picker:selected()
+            if #selected == 0 and item then
+                selected = { item }
+            end
             picker:close()
-            if item then
-                -- Snacks.picker.files({ cwd = item.text })
-                Snacks.picker.grep({ cwd = item.text, title = "Search: " .. item.text })
+            if #selected > 1 then
+                local dirs = vim.tbl_map(function(i)
+                    return i.text
+                end, selected)
+                Snacks.picker.grep({ dirs = dirs, title = "Search: [" .. #dirs .. " dirs]" })
+            elseif #selected == 1 then
+                Snacks.picker.grep({ cwd = selected[1].text, title = "Search: " .. selected[1].text })
             end
         end,
     })
