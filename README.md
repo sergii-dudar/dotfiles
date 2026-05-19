@@ -67,11 +67,6 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 - [Yazi][85]
 - [Ranger][86]
 
-### TODO LIST:
-
-    - dwl + somebar + someblocks
-    - convert hyprland config to lua format
-
 ## Links
 
 [0]: screenshots/hyprland/hyprland-minterm-scrat.png

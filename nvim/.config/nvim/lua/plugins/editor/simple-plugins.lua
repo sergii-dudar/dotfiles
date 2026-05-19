@@ -3,16 +3,16 @@ return {
     {
         -- "norcalli/nvim-colorizer.lua",
         "catgoose/nvim-colorizer.lua", -- fork with support of AARRGGBB and another color formats
-        config = function()
-            require("colorizer").setup({
-                options = {
-                    parsers = {
+        opts = {
+            options = {
+                parsers = {
+                    hex = {
                         rrggbbaa = true, -- #RRGGBBAA hex codes
                         aarrggbb = true, -- 0xAARRGGBB hex codes
                     },
                 },
-            })
-        end,
+            },
+        },
     },
     -- PlantUML viewer for Neovim
     {
