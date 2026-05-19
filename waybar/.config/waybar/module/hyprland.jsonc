@@ -85,6 +85,7 @@
             "^com.scratchpad.yazi(.*)": " 📂 $1",
             "^com.scratchpad.music(.*)": "🎶 <span color='#928374'>Mpd: [</span> $1 <span color='#928374'>]</span>",
             "^com.scratchpad.mini_terminal(.*)": " 🧑‍💻 <span color='#928374'>Ghostty: [</span> $1 <span color='#928374'>]</span>",
+            "^com.scratchpad.wallpapers(.*)": " 🌆 <span color='#928374'>Wallpapers [</span> $1 <span color='#928374'>]</span>",
             "^code(.*)": " 📝 $1",
             "^jetbrains-idea(.*)": " ☕ $1",
             "^com-intellij-updater-Runner(.*)": " ☕ $1",

@@ -20,6 +20,11 @@ M.apps = {
         cmd = "foot --app-id=com.scratchpad.music -e ~/.cargo/bin/rmpc",
         notify = "🎹 MPD-RMPC",
     },
+    wallpapers = {
+        class = "com.scratchpad.wallpapers",
+        cmd = "foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/bin/wallpapers/wallpaper-selector.sh",
+        notify = "🌆 Wallpapers",
+    },
     nautilus = {
         class = "org.gnome.Nautilus",
         cmd = "nautilus",

@@ -4,7 +4,16 @@
 # Uses fzf-image-preview.sh for preview.
 #
 # Usage: wallpaper-selector.sh [wallpaper_directory]
-# Dependencies: fzf, fd, jq (macOS, wayland)
+#
+# Dependencies:
+#   Required: fzf, fd
+#   Preview:  kitty/chafa/imgcat (see fzf-image-preview.sh)
+#   Terminals: kitty, ghostty, wezterm, foot
+#   Wayland:  jq + one of: hyprctl (Hyprland), swaymsg (Sway), wlr-randr (dwl/wlroots)
+#   X11:      xrandr
+#   macOS:    system_profiler, jq
+#   Apply:    set-wallpaper.sh (Wayland: swaybg, X11: feh)
+#   Multi-monitor enter: rofi
 
 set -euo pipefail
 
@@ -54,10 +63,10 @@ detect_monitors() {
             ;;
         linux)
             if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
-                if command -v swaymsg &>/dev/null; then
-                    swaymsg -t get_outputs 2>/dev/null | jq -r '.[] | select(.active) | .name'
-                elif command -v hyprctl &>/dev/null; then
+                if command -v hyprctl &>/dev/null && hyprctl monitors -j &>/dev/null; then
                     hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.disabled | not) | .name'
+                elif command -v swaymsg &>/dev/null && swaymsg -t get_outputs &>/dev/null; then
+                    swaymsg -t get_outputs 2>/dev/null | jq -r '.[] | select(.active) | .name'
                 elif command -v wlr-randr &>/dev/null; then
                     wlr-randr 2>/dev/null | awk '/^[A-Z]/{name=$1} /Enabled: yes/{print name}'
                 fi
