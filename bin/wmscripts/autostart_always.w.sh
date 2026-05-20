@@ -13,7 +13,9 @@ case "$wm_name" in
         # swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill &
         # swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill &
         # swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill &
-        swaybg -i ~/wallpapers/jpg/Wall147.jpg -m fill &
+        swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt) -m fill &
+        swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt) -m fill &
+        swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt) -m fill &
         ;;
     sway)
         ;;

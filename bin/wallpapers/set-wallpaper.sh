@@ -104,13 +104,14 @@ apply_macos() {
 apply_wayland() {
     local pid_file="/tmp/wallpaper-${MONITOR_NAME}.pid"
 
-    if [[ -f "$pid_file" ]]; then
-        local old_pid
-        old_pid=$(cat "$pid_file")
-        kill "$old_pid" 2>/dev/null || true
-    fi
+    notify-send "$MONITOR_NAME" -t 700
 
-    swaybg -i "$IMAGE_PATH" -m fill -o "$MONITOR_NAME" &
+    # Kill any swaybg process already running for this monitor (regardless of origin)
+    while IFS= read -r pid; do
+        kill "$pid" 2>/dev/null || true
+    done < <(pgrep -f "swaybg.*-o[[:space:]]+${MONITOR_NAME}" 2>/dev/null || true)
+
+    setsid swaybg -o "$MONITOR_NAME" -i "$IMAGE_PATH" -m fill &
     echo $! > "$pid_file"
     disown
 }
