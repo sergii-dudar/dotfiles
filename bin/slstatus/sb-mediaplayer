@@ -5,7 +5,7 @@
 
 . "$HOME"/dotfiles/bin/slstatus/colorscheme
 
-player_args=(--player=spotify,mpv,%any)
+player_args=(--player=mpd,spotify,mpv,%any)
 
 status="$(playerctl "${player_args[@]}" status 2>/dev/null)" || exit 0
 
