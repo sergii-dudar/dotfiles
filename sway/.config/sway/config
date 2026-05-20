@@ -10,7 +10,6 @@ exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DE
 #exec --no-startup-id /usr/lib/xdg-desktop-portal -r
 exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh sway
 exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.w.sh sway
-exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
 exec_always --no-startup-id ~/.config/waybar/sway-waybar-run
 
 seat seat0 xcursor_theme elementary 30
@@ -43,9 +42,10 @@ output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
 # exec --no-startup-id "swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
 # exec --no-startup-id "swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
 # exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
-exec --no-startup-id "swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt) -m fill"
-exec --no-startup-id "swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt) -m fill"
-exec --no-startup-id "swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt) -m fill"
+# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-1 && swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt) -m fill"
+# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-2 && swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt) -m fill"
+# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-3 && swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt) -m fill"
+exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
 
 # output "HDMI-A-1" scale 1.4
 # output "HDMI-A-1" transform 90

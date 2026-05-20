@@ -8,14 +8,15 @@
 #
 wm_name="${1:-}"
 
+~/dotfiles/bin/monitor-exists.sh HDMI-A-1 && swaybg -o HDMI-A-1 -i "$(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt)" -m fill &
+~/dotfiles/bin/monitor-exists.sh HDMI-A-2 && swaybg -o HDMI-A-2 -i "$(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt)" -m fill &
+~/dotfiles/bin/monitor-exists.sh HDMI-A-3 && swaybg -o HDMI-A-3 -i "$(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt)" -m fill &
+
 case "$wm_name" in
     dwl)
         # swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill &
         # swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill &
         # swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill &
-        swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt) -m fill &
-        swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt) -m fill &
-        swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt) -m fill &
         ;;
     sway)
         ;;
