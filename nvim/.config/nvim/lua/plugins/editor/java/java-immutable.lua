@@ -446,9 +446,8 @@ return {
             -- sleep and FocusGained is unreliable in tmux, so detection is done
             -- via wall-clock gap on cheap idle events. See module for details.
             require("utils.java.jdtls-recovery").setup(function(_)
-                -- TODO: better testings
                 attach_jdtls()
-            end, vim.lsp.config.jdtls.root_markers)
+            end)
             -- ============== <<< Recover JDTLS end (2)
         end,
     },

@@ -153,6 +153,7 @@ M.picker = {
             cmd = "fd",
             hidden = true, -- Show hidden files
             ignored = false, -- Exclude git-ignored files
+            layout = layouts.custom_vertical,
             -- exclude = { "node_modules/*", "*.pyc", "*.log" }, -- Exclude patterns
             -- preview = false, -- Enable file preview in picker
             -- args = {
@@ -175,9 +176,17 @@ M.picker = {
         grep = {
             hidden = true, -- Show hidden files
             ignored = false, -- Exclude git-ignored files
+            layout = layouts.custom_vertical,
             -- args = {
             --     "--ignore-case",
             -- },
+        },
+        recent = {
+            layout = layouts.custom_vertical,
+        },
+        smart = {
+            layout = layouts.custom_vertical,
+            -- multi = { "buffers", "recent", "files" },
         },
         projects = {
             dev = {

@@ -171,6 +171,7 @@ M.custom_default = {
         return vim.o.columns >= 120 and "custom_horizontal" or "custom_vertical"
     end,
 }
+all_layouts.custom_default = M.custom_default
 
 -- all_layouts.custom_horizontal_exp = vim.tbl_extend("force", M.custom_horizontal, { reverse = false })
 -- all_layouts.custom_vertical_exp = vim.tbl_extend("force", M.custom_vertical, { reverse = false })
