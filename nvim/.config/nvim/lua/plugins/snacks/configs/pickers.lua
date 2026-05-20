@@ -188,6 +188,14 @@ M.picker = {
             layout = layouts.custom_vertical,
             -- multi = { "buffers", "recent", "files" },
         },
+        git_files = { layout = layouts.custom_vertical },
+        git_branches = { layout = layouts.custom_vertical },
+        git_log = { layout = layouts.custom_vertical },
+        git_log_line = { layout = layouts.custom_vertical },
+        git_status = { layout = layouts.custom_vertical },
+        git_stash = { layout = layouts.custom_vertical },
+        git_diff = { layout = layouts.custom_vertical },
+        git_log_file = { layout = layouts.custom_vertical },
         projects = {
             dev = {
                 "~/serhii.home/work/git.work",
