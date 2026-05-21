@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 # Display volume levels.
 
+case "$BLOCK_BUTTON" in
+    1) setsid --fork gnome-system-monitor ;;
+    2) setsid --fork foot -e nvim "$0" ;;
+    3) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+    4) pactl set-sink-volume @DEFAULT_SINK@ +5% ;;
+    5) pactl set-sink-volume @DEFAULT_SINK@ -5% ;;
+    6) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+# case $BLOCK_BUTTON in
+#      1) playerctl play-pause ;;   # left click
+#      2) foot -e rmpc ;;           # middle click
+#      3) notify-send "Now Playing" "$(playerctl metadata title)" ;; # right click
+#  esac
+
 . "$HOME"/dotfiles/bin/slstatus/colorscheme
 
 # awk '/^cpu / {
