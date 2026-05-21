@@ -1,7 +1,7 @@
 #:schema https://github.com/joshmedeski/sesh/raw/main/sesh.schema.json
 
 # support regex https://github.com/joshmedeski/sesh/pull/239
-blacklist = [".*_popup"]
+# blacklist = [".*_popup"]
 
 sort_order = [
     "tmux",
@@ -32,7 +32,8 @@ preview_command = "eza --tree --icons --level=1 --color=always --group-directori
 # preview_command = "bat --color=always ~/dotfiles/tmux/.tmux.conf"
 
 [[session]]
-name = "k9s  "
+# name = "k9s  "
+name = "k9s"
 path = "~/serhii.home/work/docs"
 disable_startup_command = true
 windows = [ "explorer", "work.explorer" ]

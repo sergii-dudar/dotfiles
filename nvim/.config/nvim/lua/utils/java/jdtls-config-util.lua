@@ -202,6 +202,8 @@ M.jdtls_settings = {
                 "org.apache.commons.collections4.ListUtils",
                 "org.apache.commons.collections4.MapUtils",
                 "org.apache.commons.collections4.SetUtils",
+                -- project
+                "ua.raiffeisen.payments.infra.test.wiremock.util.MockUtil",
             },
             -- the selected filter strings will be ignored in content assist or quick
             -- fix proposals and when organizing imports. For example 'java.awt.*' will

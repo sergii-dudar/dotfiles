@@ -25,17 +25,17 @@ function M.snippets()
     -- local conds_expand = require("luasnip.extras.conditions.expand")
 
     local function extract_builder_type(context)
-        return context:match("(%u%w+)%s+%w+%s*=%s*$")
+        return context:match("(%u[%w_]*)%s+[%w_]+%s*=%s*$")
     end
 
     local function show_builder_context(line_to_cursor)
         -- Strip the partial trigger word being typed to check the preceding context
-        local context = line_to_cursor:match("^(.-)%w*$")
+        local context = line_to_cursor:match("^(.-)[%w_]*$")
         return context ~= nil and extract_builder_type(context) ~= nil
     end
 
     local function is_builder_context(line_to_cursor)
-        return line_to_cursor:match("%u%w+%s+%w+%s*=%s*build$") ~= nil
+        return line_to_cursor:match("%u[%w_]*%s+[%w_]+%s*=%s*build$") ~= nil
     end
 
     return {
@@ -46,7 +46,7 @@ function M.snippets()
             t({ "throw new NotImplementedException();" }),
         }),
         s({
-            trig = "build",
+            trig = "buildsnip",
             dscr = "Type.builder().<methods>.build();",
             docstring = "Type.builder().$1.build();",
             resolveExpandParams = function(_, line_to_cursor, matched_trigger, _)

@@ -185,6 +185,8 @@ local LspCodeAction = function()
                 -- "Rename type to",
                 "Convert to method reference",
                 "Convert to lambda expression",
+                "Change body block to expression",
+                "Change body expression to block",
                 "Create method '",
                 "Add unimplemented methods",
             }
