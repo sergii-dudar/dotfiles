@@ -3,6 +3,16 @@
 # Replicates waybar custom/media (mediaplayer.py) behavior for dwlblocks.
 # Dependencies: sudo pacman -S playerctl
 
+case "$BLOCK_BUTTON" in
+    1) playerctl play-pause ;;
+    2) playerctl stop ;;
+    3) setsid --fork foot --app-id com.scratchpad.music /home/serhii/.cargo/bin/rmpc ;;
+    4) playerctl next ;;
+    5) playerctl previous ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
 player_args=(--player=mpd,spotify,mpv,%any)
