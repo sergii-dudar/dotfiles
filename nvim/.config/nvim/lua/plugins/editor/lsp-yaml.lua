@@ -8,6 +8,7 @@ return {
                         format = {
                             printWidth = 300,
                         },
+                        validate = false, -- temp disabled because of issues with schemas for application.yml [ Property ... is not allowed ]
                     },
                 },
             },
