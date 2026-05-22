@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # Display disk usage for both `/` and `/home`.
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+case "$BLOCK_BUTTON" in
+    1) setsid --fork foot --app-id=com.term.float.htop_info -e btop ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 temp=$(sensors | awk '/Core 0/ {print $3}' | sed 's/[^0-9]*\([0-9]*\)\..*/\1/')
 

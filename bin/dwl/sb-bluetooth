@@ -3,7 +3,7 @@
 # Based on waybar bluetooth module.
 # Dependencies: sudo pacman -S bluez-utils
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 # Check if bluetoothctl is available
 command -v bluetoothctl &>/dev/null || exit 0

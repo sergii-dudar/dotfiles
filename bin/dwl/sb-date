@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
 # Display the current time in HH:MM:SS.
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+notify() {
+    notify-send --icon=office-calendar-symbolic \
+        --expire-time=2000 \
+        --hint=string:x-canonical-private-synchronous:"$1" "$@"
+}
+
+case $BLOCK_BUTTON in
+    1) setsid --fork gnome-clocks ;;
+    2) notify " Date: " "$(date '+%A, %b %d')" ;;
+    3) setsid --fork gnome-calendar ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 time_icon_color="bd93f9"
 date_icon_color="7c8377"
 

@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+case $BLOCK_BUTTON in
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 declare -A lmap
 lmap["Ukrainian"]="UA"

@@ -3,7 +3,7 @@
 # Based on waybar network module icons and colors.
 # Dependencies: sudo pacman -S iproute2 iw wireless_tools
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 # Check ethernet first
 eth_iface="$(ip -o link show | awk -F': ' '/^[0-9]+: (en|eth)/{print $2}' | head -1)"

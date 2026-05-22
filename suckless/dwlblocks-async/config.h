@@ -18,18 +18,18 @@
 
 // Define blocks for the status feed as X(icon, cmd, interval, signal).
 #define BLOCKS(X) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-date",          10,     1) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-key-layout",    0,      2) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-volume",        10,     3) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-battery",       300,    4) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-memory",        30,     5) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-load",      30,     6) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-cpu-temp",      120,    7) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-disk",          1200,   8) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-weather",       1200,   9) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-mediaplayer",   0,      10) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-network",       30,     11) \
-    X("", "/home/serhii/dotfiles/bin/slstatus/sb-bluetooth",     30,     12)
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-date",          10,     1) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-key-layout",    0,      2) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-volume",        10,     3) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-battery",       300,    4) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-memory",        30,     5) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-cpu-load",      30,     6) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-cpu-temp",      120,    7) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-disk",          1200,   8) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-weather",       1200,   9) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-mediaplayer",   0,      10) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-network",       30,     11) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-bluetooth",     30,     12)
 #endif  // CONFIG_H
 
 // update from sh: kill -(34 + signal) $(pidof dwlblocks)

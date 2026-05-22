@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
 # Display the current battery status.
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+notify() {
+    notify-send \
+        --icon=battery-good-symbolic \
+        --expire-time=4000 \
+        --hint=string:x-canonical-private-synchronous:battery \
+        "🔋 Battery" "$1"
+}
+
+case "$BLOCK_BUTTON" in
+    1) notify "$(acpi -b | awk -F ': |, ' '{printf "%s\n%s\n", $2, $4}')" ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 if [ ! -d "/sys/class/power_supply/BAT0" ]; then
     # Battery directory exists.

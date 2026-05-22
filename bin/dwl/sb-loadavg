@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Display the average CPU load.
 
+case "$BLOCK_BUTTON" in
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
 THRESHOLD=5
 
 load=$(cut -d' ' -f1 /proc/loadavg)

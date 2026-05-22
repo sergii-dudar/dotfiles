@@ -3,7 +3,7 @@
 # Replicates waybar custom/media (mediaplayer.py) behavior for dwlblocks.
 # Dependencies: sudo pacman -S playerctl
 
-. "$HOME"/dotfiles/bin/slstatus/colorscheme
+. "$HOME"/dotfiles/bin/dwl/colorscheme
 
 player_args=(--player=mpd,spotify,mpv,%any)
 
