@@ -39,4 +39,12 @@ fi
 # fi
 
 # echo " ^fg(4db5bd)󰂱^fg() ^fg(5699af)${device_alias}^fg() $SPLIT"
-echo "   ^fg(4db5bd)󰂱^fg() $SPLIT"
+# echo " ^fg(4db5bd)󰂱^fg() $SPLIT"
+
+battery="$(bluetoothctl info 2>/dev/null | grep "Battery Percentage" | awk -F '[()]' '{print $2}')"
+if [ -n "$battery" ]; then
+    # echo " ^fg(4db5bd)󰂱^fg() ^fg(5699af)${battery}%^fg() $SPLIT"
+    echo " ^fg(8caaee)󰂱^fg() ^fg($FG_COLOR)$battery^fg(6272a4)% $SPLIT"
+else
+    echo " ^fg(4db5bd)󰂱^fg() $SPLIT"
+fi
