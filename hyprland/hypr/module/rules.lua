@@ -85,15 +85,17 @@ local float_apps = "("
     .. "org.gnome.DiskUtility|"
     .. "org.gnome.SystemMonitor|"
     .. "com.term.float.htop_info|"
-    .. "com.term.float.disc_ugd"
+    .. "com.term.float.disc_ugd|"
+    .. "com.term.float.bluetooth"
     .. ")"
 
 -- stylua: ignore start
-local ghostty_tui_apps = "("
+local term_tui_apps = "("
     .. "com.scratchpad.yazi|"
     .. "com.scratchpad.music|"
     .. "com.term.float.htop_info|"
-    .. "com.term.float.disc_ugd"
+    .. "com.term.float.disc_ugd|"
+    .. "com.term.float.bluetooth"
     .. ")"
 
 local float_small_apps = "(" 
@@ -126,7 +128,7 @@ hl.window_rule({
 
 hl.window_rule({
     name = "ghostty_tui_apps_role",
-    match = { class = ghostty_tui_apps },
+    match = { class = term_tui_apps },
     opacity = "0.90",
 })
 

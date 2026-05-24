@@ -35,11 +35,12 @@
             "temperature",
             "disk",
             // "custom/pacman-updates",
-            "privacy",
             "network",
+            "bluetooth",
             "tray",
             // "image#runner-power"
-            "custom/runner-power"
+            "custom/runner-power",
+            "privacy"
         ],
         "include": [
             "~/.config/waybar/module/hyprland.jsonc",

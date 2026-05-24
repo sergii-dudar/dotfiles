@@ -118,6 +118,7 @@
             "^org.gnome.Settings(.*)": " ⚙️ $1",
             "^com.term.float.htop_info(.*)": " 🔍 Btop",
             "^com.term.float.disc_ugd(.*)": " 💽 Disk",
+            "^com.term.float.bluetooth(.*)": "🛜 Bluetooth",
             "^org.gnome.Calendar(.*)": " 📅 $1",
             "^htop_info(.*)": " 🚀 $1",
             "^disc_usage_info(.*)": " 🚀 $1",
