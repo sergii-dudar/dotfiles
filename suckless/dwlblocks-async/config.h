@@ -29,7 +29,8 @@
     X("", "/home/serhii/dotfiles/bin/dwl/sb-weather",       1200,   9) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-mediaplayer",   0,      10) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-network",       30,     11) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-bluetooth",     30,     12)
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-bluetooth",     30,     12) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-mic",           30,     13)
 #endif  // CONFIG_H
 
 // update from sh: kill -(34 + signal) $(pidof dwlblocks)

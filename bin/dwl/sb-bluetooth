@@ -3,6 +3,12 @@
 # Based on waybar bluetooth module.
 # Dependencies: sudo pacman -S bluez-utils
 
+case "$BLOCK_BUTTON" in
+    1) setsid --fork foot --app-id=com.term.float.bluetooth -e bluetui ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
 # Check if bluetoothctl is available
