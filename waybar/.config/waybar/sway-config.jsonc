@@ -34,11 +34,12 @@
             "disk",
             "custom/updates",
             // "custom/pacman-updates",
-            "privacy",
             "network",
+            "bluetooth",
             "tray",
             // "image#runner-power"
-            "custom/runner-power"
+            "custom/runner-power",
+            "privacy",
         ],
         "include": [
             "~/.config/waybar/module/sway.jsonc",

@@ -3,6 +3,12 @@
 # Based on waybar network module icons and colors.
 # Dependencies: sudo pacman -S iproute2 iw wireless_tools
 
+case "$BLOCK_BUTTON" in
+    1) setsid --fork env XDG_CURRENT_DESKTOP=GNOME gnome-control-center ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
 # Check ethernet first

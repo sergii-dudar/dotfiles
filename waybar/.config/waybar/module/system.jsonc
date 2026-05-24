@@ -60,11 +60,17 @@
         "format-muted": "{icon} {volume:02}<span color='#6272a4'>%</span>",
         "format-icons": {
             "headphone": "<span color='#ca9ee6'> </span>",
-            "hands-free": "",
-            "headset": "",
-            "phone": "",
-            "portable": "",
-            "car": "",
+            "hands-free": "<span color='#ca9ee6'> </span>",
+            "headset": "<span color='#ca9ee6'> </span>",
+            "phone": "<span color='#ca9ee6'> </span>",
+            "portable": "<span color='#ca9ee6'> </span>",
+            "car": "<span color='#ca9ee6'> </span>",
+            "headphone-muted": "<span color='#d35f5e'> </span>",
+            "hands-free-muted": "<span color='#d35f5e'> </span>",
+            "headset-muted": "<span color='#d35f5e'> </span>",
+            "phone-muted": "<span color='#d35f5e'> </span>",
+            "portable-muted": "<span color='#d35f5e'> </span>",
+            "car-muted": "<span color='#d35f5e'> </span>",
             "default-muted": "<span color='#d35f5e'> </span>",
             "default": [
                 "<span color='#ca9ee6'> </span>",
@@ -112,6 +118,18 @@
     "battery#bat2": {
         "bat": "BAT2"
     },
+    "bluetooth": {
+        // "controller": "controller1", // specify the alias of the controller if there are more than 1 on the system
+        "format": "<span color='#8caaee'></span>",
+        "format-connected": "<span color='#8caaee'>󰂱</span> {num_connections}",
+        "format-disabled": "󰂲", // an empty format will hide the module
+        "format-connected-battery": "<span color='#8caaee'>󰂱</span> {device_battery_percentage}%",
+        // "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device
+        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
+    }
     // "pulseaudio": {
     //     // "scroll-step": 1, // %, can be a float
     //     "format": "{volume}% {icon} {format_source}",
