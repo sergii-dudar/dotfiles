@@ -83,7 +83,8 @@ hl.bind(keys(c.mainMod, "RETURN"), hl.dsp.exec_cmd(c.terminal))
 -- stylua: ignore start
 hl.bind(keys(c.alt, c.shift, "G"), hl.dsp.exec_cmd("kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"))
 -- stylua: ignore end
-hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("~/.config/waypaper/toggle.sh hyprland"))
+-- hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("~/.config/waypaper/toggle.sh hyprland"))
+hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"))
 hl.bind(keys(c.alt, c.shift, "B"), hl.dsp.exec_cmd("~/dotfiles/bin/start-browserw"))
 
 hl.bind("Print", hl.dsp.exec_cmd("~/dotfiles/bin/screenshot.w.sh"))

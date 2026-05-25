@@ -156,7 +156,8 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
      
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
-    bindsym $alt+Shift+w exec ~/.config/waypaper/toggle.sh sway
+    # bindsym $alt+Shift+w exec ~/.config/waypaper/toggle.sh sway
+    bindsym $alt+Shift+w exec foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh
     bindsym $alt+Shift+b exec ~/dotfiles/bin/start-browserw
     
     # ---------- Audio Keybindings ------------- #
