@@ -15,12 +15,13 @@ esac
 
 . "$HOME"/dotfiles/bin/dwl/colorscheme
 
-player_args=(--player=mpd,spotify,mpv,%any)
-
-status="$(playerctl "${player_args[@]}" status 2>/dev/null)" || exit 0
-
-artist="$(playerctl "${player_args[@]}" metadata artist 2>/dev/null)"
-title="$(playerctl "${player_args[@]}" metadata title 2>/dev/null)"
+# player_args=(--player=mpd,spotify,mpv,%any)
+# status="$(playerctl "${player_args[@]}" status 2>/dev/null)" || exit 0
+# artist="$(playerctl "${player_args[@]}" metadata artist 2>/dev/null)"
+# title="$(playerctl "${player_args[@]}" metadata title 2>/dev/null)"
+status="$(playerctl status 2>/dev/null)" || exit 0
+artist="$(playerctl metadata artist 2>/dev/null)"
+title="$(playerctl metadata title 2>/dev/null)"
 
 [ -z "$title" ] && exit 0
 

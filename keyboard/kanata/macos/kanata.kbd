@@ -137,6 +137,10 @@
   tmuxsnt (macro C-f $tmux-delay S-0) ;; tmux next session
   tmuxslt (macro C-f $tmux-delay l) ;; tmux prev session
   tmuxs (tap-hold $tap-time $hold-time @tmuxslt @tmuxsnt)
+
+  tmuxsnt2 (macro C-f $tmux-delay C-q) ;; tmux next session
+  tmuxslt2 (macro C-f $tmux-delay C-a) ;; tmux prev session 
+
   ;; tmuxsls (macro C-f $tmux-delay t) ;; tmux fzf session
   ;; tmuxs (tap-hold $tap-time $hold-time (tap-dance 200 (@tmuxlts @tmuxsls)) @tmuxnts)
 
@@ -222,7 +226,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    XX    XX    XX @tmuxsvi XX @tmuxptb @tmuxptp XX XX    XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    XX    XX    XX @tmuxsvi XX @tmuxptb @tmuxptp @tmuxslt2 @tmuxsnt2 XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
