@@ -1,7 +1,8 @@
 return {
     "mason-org/mason.nvim",
-    opts = {
-        ensure_installed = {
+    opts = function(_, opts)
+        opts.ensure_installed = opts.ensure_installed or {}
+        vim.list_extend(opts.ensure_installed, {
             -- LSP
             "bash-language-server",
             "lemminx",
@@ -37,7 +38,6 @@ return {
             -- ~/.local/share/nvim/mason/packages/beautysh/venv/bin/python -m pip install setuptools
             "beautysh",
             --"black",
-            "ruff",
             "stylua",
             "shellharden",
             -- haskell
@@ -53,6 +53,21 @@ return {
             -- MasonInstall lua-language-server@3.15.0
             -- "lua-language-server",
             "lua-language-server",
-        },
-    },
+        })
+    end,
+    config = function(plugin, opts)
+        -- Monkey-patch Package.install to skip if already installing
+        -- Fixes race between ensure_installed and LazyVim LSP refresh
+        local Package = require("mason-core.package")
+        local orig_install = Package.install
+        ---@diagnostic disable-next-line: duplicate-set-field
+        Package.install = function(self, ...)
+            if self:is_installing() then
+                return
+            end
+            return orig_install(self, ...)
+        end
+
+        require("mason").setup(opts)
+    end,
 }

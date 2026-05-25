@@ -239,6 +239,97 @@ function M.setup(attach_fn)
             end)
         end
     end, { desc = "Probe JDTLS health without restarting" })
+
+    -- Print detailed jdtls state to :messages.
+    vim.api.nvim_create_user_command("JdtlsDiag", function()
+        local lines = {}
+        local cur = vim.api.nvim_get_current_buf()
+        local cur_name = vim.api.nvim_buf_get_name(cur)
+        table.insert(lines, "=== JDTLS Diag ===")
+        table.insert(lines, "cwd: " .. vim.fn.getcwd())
+        table.insert(lines, string.format("current buf: %d (%s, ft=%s)", cur, cur_name, vim.bo[cur].filetype))
+
+        local cur_clients = vim.lsp.get_clients({ bufnr = cur, name = "jdtls" })
+        table.insert(lines, "jdtls clients on current buf: " .. #cur_clients)
+
+        local all = vim.lsp.get_clients({ name = "jdtls" })
+        table.insert(lines, "")
+        table.insert(lines, "Total jdtls clients: " .. #all)
+        for _, c in ipairs(all) do
+            local cap = c.server_capabilities or {}
+            local cp = cap.completionProvider
+            local bufs = vim.lsp.get_buffers_by_client_id(c.id)
+            table.insert(
+                lines,
+                string.format(
+                    "  client %d  initialized=%s  root=%s  bufs=%d  completionProvider=%s",
+                    c.id,
+                    tostring(c.initialized),
+                    tostring(c.config and c.config.root_dir or "?"),
+                    #bufs,
+                    cp and "yes" or "no"
+                )
+            )
+            if cp and cp.triggerCharacters then
+                table.insert(lines, "    triggerCharacters: " .. table.concat(cp.triggerCharacters, " "))
+            end
+        end
+
+        table.insert(lines, "")
+        table.insert(lines, "Loaded Java buffers:")
+        for _, b in ipairs(java_buffers()) do
+            local cs = vim.lsp.get_clients({ bufnr = b, name = "jdtls" })
+            table.insert(lines, string.format("  buf %d  jdtls=%d  %s", b, #cs, vim.api.nvim_buf_get_name(b)))
+        end
+
+        for _, l in ipairs(lines) do
+            print(l)
+        end
+        vim.notify("JdtlsDiag printed to :messages", vim.log.levels.INFO)
+    end, { desc = "Show JDTLS attachment / capability state in :messages" })
+
+    -- Wipe the workspace cache and restart. Slower than :JdtlsRestart (full
+    -- workspace re-index, ~30-90s) but bypasses any corruption in the cache
+    -- that survives ordinary restarts.
+    vim.api.nvim_create_user_command("JdtlsHardRestart", function()
+        local cache_dir = vim.fn.stdpath("cache") .. "/jdtls"
+
+        -- Capture root_dirs BEFORE stopping clients (after stop, config is gone).
+        local roots = {}
+        for _, c in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+            if c.config and c.config.root_dir then
+                local name = vim.fs.basename(c.config.root_dir)
+                roots[name] = true
+            end
+        end
+
+        -- Now stop clients so the cache is not in use.
+        for _, client in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+            pcall(vim.lsp.stop_client, client.id, true)
+        end
+
+        vim.defer_fn(function()
+            local wiped = {}
+            for project_name in pairs(roots) do
+                local p = cache_dir .. "/" .. project_name
+                if vim.fn.isdirectory(p) == 1 then
+                    vim.fn.delete(p, "rf")
+                    table.insert(wiped, project_name)
+                end
+            end
+            if #wiped == 0 then
+                -- Fallback: nuke entire jdtls cache if we couldn't pin down a project.
+                if vim.fn.isdirectory(cache_dir) == 1 then
+                    vim.fn.delete(cache_dir, "rf")
+                    table.insert(wiped, "<all jdtls cache>")
+                end
+            end
+            vim.notify("JDTLS hard restart: wiped cache for " .. table.concat(wiped, ", "), vim.log.levels.INFO)
+            state.recovering = false
+            state.last_action_at = 0
+            restart_all_jdtls("hard restart")
+        end, 500)
+    end, { desc = "Wipe JDTLS workspace cache and restart (slow, fixes cache corruption)" })
 end
 
 return M
