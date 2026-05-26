@@ -32,8 +32,8 @@ if isMacOs; then
     # to use from brew, just comment it.
     # cargo install --locked yazi-fm yazi-cli
     export PATH=$HOME/.cargo/bin:$PATH
-
     export PATH=$HOME/go/bin:$PATH
+    export PATH=/Users/iuada144/.sdkman/candidates/java/current/bin:$PATH
 
     # Haskell
     export PATH=$PATH:$HOME/.ghcup/bin

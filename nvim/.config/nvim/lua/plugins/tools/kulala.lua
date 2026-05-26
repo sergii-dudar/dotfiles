@@ -6,6 +6,8 @@ vim.filetype.add({
 return {
     {
         "mistweaverco/kulala.nvim",
+        -- tag = "v5.3.4",
+        -- tag = "v6.1.0",
         ft = "http",
         -- stylua: ignore
         keys = {
