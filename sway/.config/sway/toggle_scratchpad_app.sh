@@ -42,8 +42,10 @@ case "$1" in
         ;;
     "youtube_music")
         shell="xdg_shell"
-        app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
-        run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
+        # app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
+        # run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
+        app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default--app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        run_cmd="brave --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
         notify_msg="💽 Music"
         ;;
     "google_chat")
