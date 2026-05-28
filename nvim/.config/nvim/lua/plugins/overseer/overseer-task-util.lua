@@ -40,6 +40,7 @@ function M.run_task(opts)
     end
     if opts.env and not vim.tbl_isempty(opts.env) then
         task_opts.env = opts.env
+        -- dd(task_opts.env)
     end
     overseer.run_task(task_opts, function(task)
         if task then

@@ -614,6 +614,104 @@ function M.connect_jdtls_and_search_symbol_under_cursor()
     })
 end
 
+--- FQN pattern: sequence of dot-separated identifiers (e.g., "ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor")
+local FQN_PATTERN = "[%w_]+%.[%w_%.%$]+"
+
+--- Extract a Java FQN from the given text.
+--- Handles formats like:
+---   bare FQN line (e.g. in .imports / spring.factories)
+---   YAML value: "name: com.example.MyClass"
+---   properties value: "key=com.example.MyClass"
+---   comma-separated lists: "com.A,com.B" (picks first match or closest to col)
+---@param text string
+---@param col number|nil  cursor column (1-based) to pick closest match
+---@return string|nil
+local function extract_fqn_from_text(text, col)
+    if not text or text == "" then
+        return nil
+    end
+
+    -- Collect all FQN matches with their positions
+    local matches = {}
+    for start_pos, fqn in text:gmatch("()(" .. FQN_PATTERN .. ")") do
+        -- Validate: must contain at least one segment starting with uppercase (class name)
+        local last_segment_match = fqn:match("([^%.%$]+)$")
+        if last_segment_match and last_segment_match:match("^[A-Z]") then
+            table.insert(matches, { fqn = fqn, start_pos = start_pos, end_pos = start_pos + #fqn - 1 })
+        end
+    end
+
+    if #matches == 0 then
+        return nil
+    end
+
+    -- If col provided, pick the match whose range contains (or is closest to) cursor
+    if col and #matches > 1 then
+        for _, m in ipairs(matches) do
+            if col >= m.start_pos and col <= m.end_pos then
+                return m.fqn
+            end
+        end
+        -- Fallback: closest start_pos to cursor
+        table.sort(matches, function(a, b)
+            return math.abs(a.start_pos - col) < math.abs(b.start_pos - col)
+        end)
+    end
+
+    return matches[1].fqn
+end
+
+--- Open class by FQN extracted from the current line under cursor.
+--- Works with various file formats: .imports, spring.factories, YAML, properties, etc.
+--- After opening, scrolls to the class name declaration.
+-- lua require("utils.java.jdtls-util").open_fqn_under_cursor()
+function M.open_fqn_under_cursor()
+    M.open_fqn_under_cursor_with_handler(nil)
+end
+
+--- Open class by FQN extracted from the current line, with a custom handler receiving the LSP result.
+--- @param handler function(result) called with the workspace/symbol result after resolution
+-- lua require("utils.java.jdtls-util").open_fqn_under_cursor_with_handler(function(r) dd(r) end)
+function M.open_fqn_under_cursor_with_handler(handler)
+    local line = vim.api.nvim_get_current_line()
+    local _, col = unpack(vim.api.nvim_win_get_cursor(0))
+    col = col + 1
+
+    local fqn = extract_fqn_from_text(line, col)
+    if not fqn then
+        vim.notify("⚠️ No Java FQN found on current line", vim.log.levels.WARN)
+        return
+    end
+
+    M.jdt_load_unique_class(fqn, function(result)
+        if not result then
+            vim.notify("⚠️ Could not resolve class: " .. fqn, vim.log.levels.WARN)
+            return
+        end
+        -- Open the file and jump to class declaration
+        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
+
+        -- Scroll to class name declaration
+        vim.defer_fn(function()
+            local simple_name = fqn:match("([^%.%$]+)$")
+            -- Search for class/interface/enum/record declaration
+            local search_pattern = "\\<\\(class\\|interface\\|enum\\|record\\|@interface\\)\\s\\+"
+                .. vim.fn.escape(simple_name, "\\")
+                .. "\\>"
+            local found = vim.fn.search(search_pattern, "cw")
+            if found > 0 then
+                -- Position cursor on the class name itself
+                vim.fn.search("\\<" .. vim.fn.escape(simple_name, "\\") .. "\\>", "c", found)
+                vim.cmd("normal! zz")
+            end
+        end, 50)
+
+        if handler then
+            handler(result)
+        end
+    end)
+end
+
 --- Convert markdown text by moving links to bottom using link.vim plugin
 --- @param markdown_text string
 --- @return string|nil

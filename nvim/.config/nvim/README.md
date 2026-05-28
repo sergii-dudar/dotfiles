@@ -19,7 +19,11 @@
      java: static import - add ability to import static members from inner classes
      java: highlight parameters of String.format, "".formatted, log.(info|warn|debug|error)("")
      new line indent, in case shiwf with more that 4, like:
-     DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
+      DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
+      ability to goto class by classpath (like in spring.factories, org.springframework.boot.autoconfigure.AutoConfiguration.imports) like:
+        org.springframework.boot.EnvironmentPostProcessor=ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor
+        ua.raiffeisen.apigov.metrics.micrometer.ssl.config.SslMetricsAutoConfiguration
+        ...
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
