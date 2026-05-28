@@ -1,3 +1,15 @@
+-- Java treesitter utilities: extract class/method/package info from AST.
+--
+-- • get_class_name — simple class name at cursor
+-- • get_class_name_with_abstract — class name + abstract flag
+-- • get_class_package — full package name
+-- • get_root_class_with_abstract — top-level class name + abstract
+-- • get_method_name_only — method name at cursor
+-- • get_method_signature — method name with descriptor
+-- • get_full_method — package.Class.method
+-- • get_full_method_with_params — full method with parameter types
+-- • get_full_method_with_params_and_abstract — full method + abstract class info
+
 local M = {}
 
 -- Modern Neovim Treesitter API
@@ -23,6 +35,7 @@ end
 -- ---------------------------------------------------------
 --  GET CLASS NAME
 -- ---------------------------------------------------------
+--- Get the fully qualified class name at the cursor.
 function M.get_class_name()
     local node = node_at_cursor()
     if not node then
@@ -57,6 +70,7 @@ end
 -- ---------------------------------------------------------
 --  GET CLASS NAME WITH ABSTRACT FLAG
 -- ---------------------------------------------------------
+--- Get the class name at the cursor with abstract status.
 function M.get_class_name_with_abstract()
     local node = node_at_cursor()
     if not node then
@@ -94,6 +108,7 @@ end
 -- ---------------------------------------------------------
 --  GET PACKAGE NAME (public)
 -- ---------------------------------------------------------
+--- Get the package name of the current Java file.
 function M.get_class_package()
     local tree = vim.treesitter.get_parser(0, "java"):parse()[1]
     if not tree then
@@ -105,6 +120,7 @@ end
 -- ---------------------------------------------------------
 --  GET ROOT CLASS FQN (first class in file, cursor-independent)
 -- ---------------------------------------------------------
+--- Get the top-level class name with abstract status.
 function M.get_root_class_with_abstract()
     local tree = vim.treesitter.get_parser(0, "java"):parse()[1]
     if not tree then
@@ -154,6 +170,7 @@ local function get_method_node()
     return node
 end
 
+--- Get the method name at the cursor.
 function M.get_method_name_only()
     local m = get_method_node()
     if not m then
@@ -204,6 +221,7 @@ end
 -- ---------------------------------------------------------
 --  GET FULL METHOD SIGNATURE
 -- ---------------------------------------------------------
+--- Get the method signature at the cursor.
 function M.get_method_signature()
     local m = get_method_node()
     if not m then
@@ -220,6 +238,7 @@ end
 -- ---------------------------------------------------------
 --  GET FULL METHOD WITH CLASS + PACKAGE
 -- ---------------------------------------------------------
+--- Get the fully qualified method name at the cursor.
 function M.get_full_method(delimiter)
     delimiter = delimiter or "."
     local class = M.get_class_name()
@@ -233,6 +252,7 @@ end
 -- ---------------------------------------------------------
 --  GET FULL METHOD WITH CLASS + PACKAGE + PARAMS
 -- ---------------------------------------------------------
+--- Get the fully qualified method name with parameter types.
 function M.get_full_method_with_params(delimiter)
     delimiter = delimiter or "."
     local class = M.get_class_name()
@@ -255,6 +275,7 @@ end
 -- ---------------------------------------------------------
 --  GET FULL METHOD WITH CLASS + PACKAGE + PARAMS + ABSTRACT FLAG
 -- ---------------------------------------------------------
+--- Get the fully qualified method with params and abstract status.
 function M.get_full_method_with_params_and_abstract(delimiter)
     delimiter = delimiter or "."
     local class_info = M.get_class_name_with_abstract()

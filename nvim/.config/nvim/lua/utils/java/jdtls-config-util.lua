@@ -1,3 +1,5 @@
+-- JDTLS server configuration: builds the jdtls launch config (cmd, settings, capabilities, handlers).
+
 local java_util = require("utils.java.java-common")
 local home = os.getenv("HOME")
 -- local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")

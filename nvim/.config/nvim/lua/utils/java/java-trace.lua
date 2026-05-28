@@ -1,3 +1,14 @@
+-- Java stack trace utilities: parse, highlight, and navigate stack traces.
+-- Supports visual selection, buffer-wide, and single-line trace parsing to quickfix list.
+--
+-- • highlight_java_test_trace_lines — highlight trace lines in buffer with extmarks
+-- • highlight_java_test_trace_text / _current_buf / _selected — highlight variants
+-- • show_stack_trace_qflist — display parsed trace entries in quickfix
+-- • parse_selected_trace_to_qflist — parse visual selection trace to qflist
+-- • parse_buffer_trace_to_qflist — parse full buffer trace to qflist
+-- • parse_current_line_trace_to_qflist — parse single line trace to qflist
+-- • parse_trace_under_cursor_and_open_in_buffer — open trace class via JDTLS
+
 local M = {}
 
 local stacktrace_ns = vim.api.nvim_create_namespace("StackTraceNs")
@@ -19,6 +30,7 @@ vim.api.nvim_set_hl(0, "TraceNonProjectClassHl", {
     bold = true,
 })
 
+--- Highlight stack trace class references in the given lines.
 function M.highlight_java_test_trace_lines(lines, trace_selected_line)
     trace_selected_line = (trace_selected_line and trace_selected_line - 1) or 0
     -- vim.notify("selected_line: " .. trace_selected_line)
@@ -48,6 +60,7 @@ function M.highlight_java_test_trace_text(text, selected_line)
     M.highlight_java_test_trace_lines(lines, selected_line)
 end
 
+--- Highlight stack trace references in a buffer.
 function M.highlight_java_test_trace(buffer)
     if vim.api.nvim_buf_is_valid(buffer) then
         local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
@@ -55,10 +68,12 @@ function M.highlight_java_test_trace(buffer)
     end
 end
 
+--- Highlight stack trace references in the current buffer.
 function M.highlight_java_test_trace_current_buf()
     M.highlight_java_test_trace(vim.api.nvim_get_current_buf())
 end
 
+--- Highlight stack trace references in the visual selection.
 function M.highlight_java_trace_selected()
     local stack_trace = common.get_visual_selection()
     M.highlight_java_test_trace_text(stack_trace, vim.fn.getpos("v")[2])
@@ -126,6 +141,7 @@ local parse_java_stack_trace = function(trace, result_callback)
     end
 end
 
+--- Show parsed stack trace entries in the quickfix list.
 function M.show_stack_trace_qflist(stack_trace)
     parse_java_stack_trace(stack_trace, function(trace_items)
         -- dd(trace_items)
@@ -134,16 +150,19 @@ function M.show_stack_trace_qflist(stack_trace)
     end)
 end
 
+--- Parse the selected stack trace into the quickfix list.
 function M.parse_selected_trace_to_qflist()
     local stack_trace = common.get_visual_selection()
     M.show_stack_trace_qflist(stack_trace)
 end
 
+--- Parse the current buffer stack trace into the quickfix list.
 function M.parse_buffer_trace_to_qflist()
     local stack_trace = common.get_current_buffer_text()
     M.show_stack_trace_qflist(stack_trace)
 end
 
+--- Parse the current line stack trace into the quickfix list.
 function M.parse_current_line_trace_to_qflist()
     local stack_trace = common.get_line_under_cursor()
     M.show_stack_trace_qflist(stack_trace)
@@ -164,6 +183,7 @@ local function find_edit_win()
     return nil
 end
 
+--- Open the trace entry under the cursor in a buffer.
 function M.parse_trace_under_cursor_and_open_in_buffer()
     local trace_line = common.get_line_under_cursor()
     local parsed = java_util.parse_java_class_trace_line(trace_line)

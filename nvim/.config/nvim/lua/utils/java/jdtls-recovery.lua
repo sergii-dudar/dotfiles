@@ -1,5 +1,7 @@
 -- JDTLS recovery after macOS sleep.
 --
+-- • setup — register sleep-detection autocmds and attach recovery probing
+--
 -- Detection: wall-clock gap between BufEnter/FocusGained events. macOS sleep
 -- does not fire VimResume; FocusGained is unreliable in tmux. CursorMoved /
 -- InsertEnter only update the tick (no gap check) so reading code for >2 min

@@ -1,3 +1,9 @@
+-- Parser for Java toString() output: converts Lombok/Swagger formatted strings to JSON.
+--
+-- • parse — parse toString text into a Lua table
+-- • to_json — convert parsed table to formatted JSON string
+-- • convert_selection — parse visual selection and replace with JSON
+
 local M = {}
 
 local RAW_NUM_SENTINEL = "%%__RAWNUM__%%"
@@ -71,6 +77,7 @@ end
 -- Entry point
 --------------------------------------------------------------------------------
 
+--- Parse Java toString() text into a Lua table.
 function M.parse(input)
     if not input or input == "" then
         return nil, "empty input"

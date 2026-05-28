@@ -1,3 +1,7 @@
+-- Project name resolver: determines Maven/Gradle module name from project directory.
+--
+-- • resolve_project_name — resolve module name by project type (maven/gradle)
+
 local logging = require("utils.logging-util")
 local log = logging.new({ name = "module_resolver", filename = "project_name_resolver.log", logging })
 log.set_level(vim.log.levels.DEBUG)

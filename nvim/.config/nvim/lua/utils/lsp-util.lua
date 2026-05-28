@@ -1,3 +1,8 @@
+-- LSP client lookup helpers.
+--
+-- • get_client_by_name — get LSP client instance by name (e.g. "jdtls")
+-- • get_client_id_by_name — get LSP client ID by name
+
 local M = {}
 
 ---@return vim.lsp.Client|nil

@@ -1,3 +1,10 @@
+-- Terminal spinner widget: animated progress indicator for async operations.
+--
+-- • start — create and start a spinner with title
+-- • update — update spinner message text
+-- • stop — stop spinner with success message
+-- • cancel — stop spinner with cancellation message
+
 local M = {}
 
 -- stylua: ignore

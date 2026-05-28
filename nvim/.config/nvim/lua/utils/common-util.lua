@@ -1,5 +1,20 @@
+-- General-purpose editor helpers: cursor/buffer text extraction, file checks, ANSI stripping, timing.
+--
+-- • get_line_under_cursor — current line text
+-- • get_token_under_cursor — text token between separators at cursor
+-- • get_visual_selection — last visual selection text
+-- • get_buffer_text / get_current_buffer_text — full buffer content as string
+-- • get_file_with_line / get_file_with_no_ext — current filename helpers
+-- • strip_ansi — remove ANSI escape codes from string
+-- • is_file_exists / is_dir / is_file — filesystem checks
+-- • close_window_if_exists — safely close a window by handle
+-- • load_optional_module — pcall require with fallback
+-- • edit_file — open file in editor
+-- • timewatch / now_datetime — timing utilities
+
 local M = {}
 
+--- Return the current line text.
 function M.get_line_under_cursor()
     return vim.api.nvim_get_current_line()
 end
@@ -9,6 +24,7 @@ function M.get_token_under_cursor(edges_separator_pattern)
     return M.get_token_under_cursor_sides(edges_separator_pattern, edges_separator_pattern)
 end
 
+--- Return the token under the cursor using custom separators.
 function M.get_token_under_cursor_sides(left_edges_separator_pattern, right_edges_separator_pattern)
     left_edges_separator_pattern = left_edges_separator_pattern or "%s" -- space by defaule
     right_edges_separator_pattern = right_edges_separator_pattern or "%s"
@@ -33,6 +49,7 @@ function M.get_token_under_cursor_sides(left_edges_separator_pattern, right_edge
     return line:sub(start_col, end_col - 1)
 end
 
+--- Return the last visual selection text.
 function M.get_visual_selection()
     vim.cmd('noau normal! "vy"')
     local text = vim.fn.getreg("v")
@@ -40,6 +57,7 @@ function M.get_visual_selection()
     return text
 end
 
+--- Return all buffer text as a single string.
 function M.get_buffer_text(buf_id)
     -- Get all lines from the current buffer
     local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
@@ -48,10 +66,12 @@ function M.get_buffer_text(buf_id)
     return table.concat(lines, "\n")
 end
 
+--- Return all text from the current buffer.
 function M.get_current_buffer_text()
     return M.get_buffer_text(vim.api.nvim_get_current_buf())
 end
 
+--- Return the current filename with line number.
 function M.get_file_with_line()
     -- Get the text under the cursor (assuming it's a file and line number)
     local cursor_word = vim.fn.expand("<cfile>")
@@ -68,11 +88,13 @@ function M.get_file_with_line()
     return file
 end
 
+--- Return the current filename without its extension.
 function M.get_file_with_no_ext()
     local fileName = M.get_file_with_line()
     return string.match(fileName, "([^.]+)")
 end
 
+--- Remove ANSI escape codes from a string.
 function M.strip_ansi(s)
     if not s then
         return s
@@ -82,24 +104,29 @@ function M.strip_ansi(s)
     return s:gsub("\27%[[0-9;]*[A-Za-z]", "")
 end
 
+--- Check whether the path exists.
 function M.is_file_exists(filepath)
     return vim.fn.filereadable(filepath) == 1
 end
 
+--- Check whether the path is a directory.
 function M.is_dir(path)
     return vim.fn.isdirectory(path) == 1
 end
 
+--- Check whether the path is a regular file.
 function M.is_file(path)
     return vim.fn.filereadable(path) == 1
 end
 
+--- Close the window if the handle is valid.
 function M.close_window_if_exists(win_id)
     if win_id and vim.api.nvim_win_is_valid(win_id) then
         vim.api.nvim_win_close(win_id, true)
     end
 end
 
+--- Load an optional Lua module from a file path.
 function M.load_optional_module(path)
     local chunk, err = loadfile(path)
     if not chunk then
@@ -115,11 +142,13 @@ function M.load_optional_module(path)
     return mod or {}
 end
 
+--- Open a file in the editor.
 function M.edit_file(url)
     local path = vim.uri_to_fname(url)
     vim.cmd.edit(vim.fn.fnameescape(path))
 end
 
+--- Measure and notify the execution time of a function.
 function M.timewatch(callback, msg_pref)
     local start_handling = vim.fn.reltime()
 
@@ -131,6 +160,7 @@ function M.timewatch(callback, msg_pref)
     return result
 end
 
+--- Return the current date-time as a formatted string.
 function M.now_datetime()
     -- Get current date/time table
     local date_table = os.date("*t")

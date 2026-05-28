@@ -1,3 +1,7 @@
+-- Custom winbar rendering: displays Java file path with highlighted module/root/package segments.
+--
+-- • eval — evaluate winbar expression for current buffer (returns statusline-style string)
+
 local M = {}
 
 local existing_win_bar_hi = vim.api.nvim_get_hl(0, { name = "WinBar", link = false })
@@ -26,6 +30,7 @@ function split_str_by_src(str)
     return #parts == 2 and parts[2] or str
 end
 
+--- Evaluate the winbar expression for the current buffer.
 function M.eval()
     local file_path = split_str_by_src(vim.api.nvim_eval_statusline("%f", {}).str)
     local ext = vim.fn.fnamemodify(file_path, ":e")

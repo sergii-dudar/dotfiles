@@ -1,3 +1,10 @@
+-- Async nvim-nio wrappers: bridging Snacks pickers and vim.ui to coroutine-based flow.
+--
+-- • select — async single-item picker (wraps Snacks.picker.select)
+-- • input — async text input (wraps Snacks.input)
+-- • multi_select — async multi-select picker with tab-toggle
+-- • run — run an async function in a new nio coroutine
+
 local nio = require("nio")
 
 local M = {}

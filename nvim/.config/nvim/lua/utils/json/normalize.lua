@@ -1,3 +1,7 @@
+-- JSON normalization: clean up stringified/escaped JSON in the current buffer.
+--
+-- • normalize_buffer — remove escaping, unwrap quoted objects/arrays in current buffer
+
 local M = {}
 
 --- Normalize stringified JSON in the current buffer:

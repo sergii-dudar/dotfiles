@@ -1,4 +1,7 @@
 -- Utility to get Maven project artifactId
+--
+-- • get_artifact_id — parse pom.xml to extract top-level artifactId
+
 local M = {}
 
 ---@param project_dir string

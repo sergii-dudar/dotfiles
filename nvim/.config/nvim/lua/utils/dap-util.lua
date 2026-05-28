@@ -1,3 +1,11 @@
+-- DAP debugging helpers: export console output, evaluate expressions to file, reset state.
+--
+-- • show_logs — open DAP log file in split
+-- • reset — clear DAP breakpoints and close UI
+-- • eval_to_file — evaluate expression and write result to temp file
+-- • selection_eval_to_file — evaluate visual selection to file
+-- • selection_to_file — write visual selection directly to file
+
 local M = {}
 
 local log_bufnr = nil

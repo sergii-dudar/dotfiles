@@ -2,6 +2,8 @@
 -- (no $/progress events for IDLE_MS following ServiceReady), it dispatches
 -- update_projects_config to force m2e to re-run APT processors (MapStruct etc.).
 --
+-- • setup — patch a JDTLS client with the workspace watcher (idempotent)
+--
 -- Why this is needed: m2e configurator wipes target/generated-sources/annotations
 -- on project import. JDT's GeneratedFileManager state thinks impls already exist,
 -- so a normal full build skips APT for them. Only update_projects_config resets
@@ -21,6 +23,7 @@ local log = require("utils.logging-util").new({
 
 local M = {}
 
+--- Attach the JDTLS workspace watcher patch to the client.
 function M.setup(client)
     if not client or client.name ~= "jdtls" then
         return
@@ -45,7 +48,7 @@ function M.setup(client)
         fired = true
         idle_timer:stop()
         idle_timer:close()
-        log.fmt_info("idle %dms after ServiceReady — dispatching update_projects_config", IDLE_MS)  -- INFO #2 (per session)
+        log.fmt_info("idle %dms after ServiceReady — dispatching update_projects_config", IDLE_MS) -- INFO #2 (per session)
         vim.notify("🏄 JDTLS settled — refreshing project config")
         require("jdtls").update_projects_config({ select_mode = "all" })
     end)
@@ -59,17 +62,13 @@ function M.setup(client)
 
     local prev_status = client.handlers["language/status"] or vim.lsp.handlers["language/status"]
     client.handlers["language/status"] = function(err, result, ctx)
-        log.fmt_debug(
-            "STATUS type=%s message=%s",
-            result and result.type or "nil",
-            result and result.message or "nil"
-        )
+        log.fmt_debug("STATUS type=%s message=%s", result and result.type or "nil", result and result.message or "nil")
         if prev_status then
             prev_status(err, result, ctx)
         end
         if not service_ready and result and result.type == "ServiceReady" then
             service_ready = true
-            log.info("ServiceReady — starting idle debounce")  -- INFO #1 (per session)
+            log.info("ServiceReady — starting idle debounce") -- INFO #1 (per session)
             arm_idle_timer()
         end
     end

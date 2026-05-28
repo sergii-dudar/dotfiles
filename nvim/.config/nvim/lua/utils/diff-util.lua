@@ -1,6 +1,10 @@
+-- Diff utilities: open two files in a side-by-side diff view.
+--
+-- • diff_files — open diff for two absolute file paths
+-- • diff_selected — open diff for two picker-selected items
+
 local M = {}
 
----Resolve an absolute file path from an item with `file` and optional `cwd` fields.
 ---@param item { file?: string, cwd?: string }
 ---@return string?
 local resolve_path = function(item)

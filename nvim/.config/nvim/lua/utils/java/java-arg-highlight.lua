@@ -1,3 +1,8 @@
+-- Java argument mismatch highlighter: show inline type annotations on method call arguments.
+-- Parses LSP "applicable method" diagnostics and overlays expected vs actual types.
+--
+-- • apply — parse diagnostics and render argument type highlights for a buffer
+
 local M = {}
 
 -- Dedicated namespace so we never stomp on jdtls diagnostics
@@ -263,6 +268,7 @@ local function build_arg_diags(bufnr, lsp_diagnostics)
 end
 
 -- Entry point: call from publishDiagnostics handler with pre-filtered Java diagnostics.
+--- Render argument type highlights from diagnostics.
 function M.apply(bufnr, lsp_diagnostics)
     if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
         return

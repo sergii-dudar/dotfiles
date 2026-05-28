@@ -1,3 +1,9 @@
+-- Per-filetype resource directory resolver for pickers (find_files, grep).
+-- Allows plugins to register custom cwd logic based on buffer filetype.
+--
+-- • register(ft, resolver) — register a resolver function for a filetype
+-- • resolve(bufnr) — resolve resource dirs and title for current buffer
+
 local M = {}
 
 local uv = vim.uv or vim.loop

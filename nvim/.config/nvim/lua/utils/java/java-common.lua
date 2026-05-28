@@ -1,3 +1,17 @@
+-- Core Java helpers: trace line parsing, maven output parsing, path/FQN resolution, project detection.
+--
+-- • parse_java_class_trace_line — parse "at com.Foo.bar(Foo.java:10)" into components
+-- • parse_mvn_compile_java_line / _text — parse maven compile error lines
+-- • parse_java_mvn_run_class_text — extract class from maven run output
+-- • has_abbreviated_segments / abbreviated_package_matches / build_abbreviated_query — abbreviated FQN matching
+-- • java_class_to_proj_path — convert FQN to project file path
+-- • if_java_file_outside — check if file is outside project sources
+-- • get_root_src_main_package / get_root_src_test_package — resolve src root paths
+-- • get_buffer_project_path — get maven/gradle project root for current buffer
+-- • detect_project_type / is_java_project — project type detection
+-- • file_to_fqcn — convert file path to fully qualified class name
+-- • is_test_file — check if buffer is a test file
+
 local M = {}
 
 local uv = vim.loop
@@ -185,6 +199,7 @@ function M.build_abbreviated_query(class_path)
     return table.concat(parts, ".")
 end
 
+--- Convert a Java class name to a project file path.
 function M.java_class_to_proj_path(classname)
     local relative_path = classname:gsub("%.", "/") .. ".java"
     local file_path = vim.fn.glob("*/**/" .. relative_path)
@@ -234,6 +249,7 @@ end
     end
 end ]]
 
+--- Check whether the current Java file is outside the cwd.
 function M.if_java_file_outside()
     local fname = vim.api.nvim_buf_get_name(0)
     local cwd = vim.fn.getcwd()
@@ -285,10 +301,12 @@ local root_src_package_cache = {} ]]
     return result
 end
 
+--- Get the src/main/java root package.
 function M.get_root_src_main_package()
     return M.get_root_src_package("src/main/java")
 end
 
+--- Get the src/test/java root package.
 function M.get_root_src_test_package()
     return M.get_root_src_package("src/test/java")
 end ]]
@@ -318,6 +336,7 @@ function M.get_buffer_project_path(bufnr)
 end
 
 local project_type_loc = nil
+--- Detect the current Java project build tool.
 function M.detect_project_type()
     if project_type_loc ~= nil then
         return project_type_loc
@@ -349,6 +368,7 @@ function M.detect_project_type()
 end
 
 local is_java_project_loc = nil
+--- Check whether the current workspace is a Java project.
 function M.is_java_project()
     if global.is_limited then
         return false

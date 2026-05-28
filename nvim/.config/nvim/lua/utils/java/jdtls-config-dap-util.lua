@@ -1,3 +1,9 @@
+-- JDTLS DAP configuration: attach to remote JVM, run/rerun main class with debug.
+--
+-- • rerun_last — re-execute last DAP configuration
+-- • run_current_main_class — launch main class in current buffer with DAP
+-- • attach_to_remote — attach debugger to remote JVM port
+
 local home = os.getenv("HOME")
 local java_dir = vim.fn.glob(home .. "/.sdkman/candidates/java/current")
 local java_bin = java_dir .. "/bin/java"
@@ -23,6 +29,7 @@ local run_main_class_config = function(dap_config)
     require("dap").run(dap_config)
 end
 
+--- Rerun the last DAP configuration.
 function M.rerun_last()
     --[[ if not last_runned_dap_config then
         vim.notify("❌ There no any previous DAP config to run", vim.log.levels.WARN)
@@ -32,6 +39,7 @@ function M.rerun_last()
     require("dap").run_last()
 end
 
+--- Debug the current main class.
 function M.run_current_main_class()
     local class_name = java_ts_util.get_class_name()
     if not class_name then

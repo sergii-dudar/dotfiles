@@ -1,6 +1,13 @@
+-- List/table searching and filtering utilities.
+--
+-- • findFirst — find first element matching predicate
+-- • findAll — collect all elements matching predicate
+-- • any_match — check if target string contains any substring from list
+-- • find_by — find element by key-value match
+-- • to_unique_list — deduplicate a list
+
 local M = {}
 
---- Find first by filter function
 ---@param tbl [table]
 ---@param predicate function(table)
 ---@return table|nil
@@ -27,6 +34,7 @@ function M.findAll(tbl, predicate)
     return result
 end
 
+--- Check whether the target string matches any value in the list.
 function M.any_match(target_string, match_table)
     -- vim.notify(
     --     "input: " .. target_string .. " --- " .. require("utils.common-util").table_to_string(match_table),
@@ -40,6 +48,7 @@ function M.any_match(target_string, match_table)
     return false
 end
 
+--- Find the first element whose key matches the value.
 function M.find_by(tbl, key, value)
     for _, subtable in ipairs(tbl) do
         if subtable[key] == value then
@@ -48,6 +57,7 @@ function M.find_by(tbl, key, value)
     end
 end
 
+--- Return a deduplicated copy of a list.
 function M.to_unique_list(tbl)
     local seen_map = {}
     local unique = {}

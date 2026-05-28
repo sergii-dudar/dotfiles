@@ -1,4 +1,9 @@
 -- Utility to get Gradle project name (equivalent to Maven's artifactId)
+--
+-- • get_project_name — resolve project name (tries gradle cmd, then settings.gradle, then path)
+-- • get_project_name_from_gradle — run gradle properties command to get name
+-- • get_project_name_from_path — fallback: derive name from directory path
+
 local M = {}
 
 ---@param project_dir string

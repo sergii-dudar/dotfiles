@@ -1,3 +1,9 @@
+-- Maven compile integration: run mvn compile, parse errors into diagnostics, auto-compile on save.
+--
+-- • toggle_auto_compile — enable/disable auto-compile on BufWritePost
+-- • compile — run mvn compile and publish diagnostics
+-- • clean_compile — run mvn clean compile and publish diagnostics
+
 local M = {}
 
 local maven_util = require("utils.java.maven-util")
@@ -82,6 +88,7 @@ local function run_maven_compile(cmd_args)
     end)
 end
 
+--- Toggle automatic Maven compilation on save.
 function M.toggle_auto_compile(key)
     key = key or "toggle_compile"
     if compile_autocmds[key] then
@@ -105,11 +112,13 @@ function M.toggle_auto_compile(key)
     end
 end
 
+--- Run Maven compile and publish diagnostics.
 function M.compile()
     run_maven_compile({ "-q", "compile", "test-compile" })
     -- run_maven({ "compile" })
 end
 
+--- Run Maven clean compile and publish diagnostics.
 function M.clean_compile()
     run_maven_compile({ "-q", "clean", "compile", "test-compile" })
     -- run_maven({ "clean", "compile" })

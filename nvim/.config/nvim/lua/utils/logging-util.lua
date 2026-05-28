@@ -1,5 +1,14 @@
 -- Logging utility inspired by tj's vlog.nvim
 -- Provides file-based logging with configurable log levels
+--
+-- • level_to_string — convert numeric level to name
+-- • level_to_number — convert level name to number
+-- • new — create a new logger instance with name and file
+-- • get_logger — get or create a cached logger by name
+-- • clear_log — delete a log file
+-- • set_level — set global log level
+-- • use_console — enable/disable console output
+-- • use_file — enable/disable file output
 
 --  Available levels:
 --  - TRACE (0) - Most verbose

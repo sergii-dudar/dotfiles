@@ -1,3 +1,9 @@
+-- Environment variable loading from .env files and private secrets.
+--
+-- • load_env_file — parse a .env file into a key-value table
+-- • load_env_file_variable — load a single variable from a .env file
+-- • load_private_var — load a variable from the private .env file
+
 local M = {}
 
 ---@param env_file string - path to env file
@@ -21,6 +27,7 @@ function M.load_env_file(env_file)
     return envs
 end
 
+--- Load a single variable from an env file.
 function M.load_env_file_variable(env_file, key)
     local envs_table = M.load_env_file(env_file)
     return envs_table[key]

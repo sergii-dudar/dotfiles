@@ -1,3 +1,7 @@
+-- Javap bytecode inspection: resolve parametrized test method signatures from compiled classes.
+--
+-- • resolve_parametrized_method_signature — run javap to extract method descriptor for parametrized tests
+
 local M = {}
 
 local cache_util = require("utils.cache-util")

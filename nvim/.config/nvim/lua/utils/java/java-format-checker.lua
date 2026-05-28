@@ -1,3 +1,9 @@
+-- Java format checker: compare JDTLS-formatted vs current buffer, highlight differences.
+-- Shows green/red inline diagnostics for formatting deviations.
+--
+-- • apply — run format check on a buffer and show diagnostics
+-- • setup — register autocmd to run format check on BufWritePost
+
 local M = {}
 
 -- Namespaces: diagnostics (messages) and highlight extmarks (green/red coloring)
@@ -445,6 +451,7 @@ end
 --  Public API
 -- ---------------------------------------------------------------------------
 
+--- Run the format check and publish buffer diagnostics.
 function M.apply(bufnr)
     bufnr = bufnr or api.nvim_get_current_buf()
     if not buf_is_valid(bufnr) or not buf_is_loaded(bufnr) then
@@ -454,6 +461,7 @@ function M.apply(bufnr)
     diag_set(NS, bufnr, scan_and_highlight(bufnr))
 end
 
+--- Register the format check autocmd for Java buffers.
 function M.setup()
     api.nvim_create_autocmd("BufWritePost", {
         group = api.nvim_create_augroup("java_format_check", { clear = true }),

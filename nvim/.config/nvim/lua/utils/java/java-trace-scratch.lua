@@ -1,3 +1,7 @@
+-- Java stack trace scratch buffer: open a Snacks scratch pad for pasting and navigating traces.
+--
+-- • openStackTraceScratch — open a scratch buffer with trace normalization and navigation keymaps
+
 local M = {}
 
 --- Replace literal escape sequences (\n, \t, \r) with actual newlines,
@@ -14,6 +18,7 @@ function normalize_trace_buffer(buf)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, new_lines)
 end
 
+--- Open a scratch buffer for stack trace navigation.
 function M.openStackTraceScratch()
     Snacks.scratch({
         name = "Stack Trace Scratch",

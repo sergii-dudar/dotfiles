@@ -1,12 +1,22 @@
 -- JDTLS Classpath Utility
 -- Handles classpath resolution from jdtls and project structure
 -- Can be used by any plugin that needs Java classpath information
+--
+-- • set_log_level — configure logging verbosity for this module
+-- • is_jdtls_ready — check if JDTLS is attached and ready for a buffer
+-- • get_classpath — resolve classpath for current project
+-- • get_classpath_for_main_method_table — classpath as table for main class execution
+-- • get_classpath_for_main_method — classpath as string for main class execution
+-- • get_all_project_modules — list all maven/gradle modules in workspace
+-- • get_classpath_for_module_uri — resolve classpath for a specific module URI
+-- • clear_cache — clear cached classpath data
 
 local log = require("utils.logging-util").new({ name = "Java.Classpath", filename = "java-classpath.log" })
 
 local M = {}
 
 -- Set log level for this module
+--- Set the log level for this module.
 function M.set_log_level(level)
     log.set_level(level)
 end
@@ -26,6 +36,7 @@ local jdtls_ready_cache = {
 local READY_CACHE_TTL_MS = 5000 -- 5 seconds cache (conservative)
 
 -- Check if jdtls is ready and can provide classpath
+--- Check whether JDTLS is ready for the buffer.
 function M.is_jdtls_ready(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
@@ -284,6 +295,7 @@ end
 
 -- Get classpath with caching
 -- opts: { use_cache = true, bufnr = nil }
+--- Resolve the project classpath with caching.
 function M.get_classpath(opts)
     opts = opts or {}
     local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
@@ -496,6 +508,7 @@ function M.get_classpath_for_module_uri(module_uri, opts)
 end
 
 -- Clear cache
+--- Clear cached JDTLS classpath state.
 function M.clear_cache()
     classpath_cache.classpath = nil
     classpath_cache.timestamp = 0

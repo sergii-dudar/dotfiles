@@ -1,3 +1,12 @@
+-- Buffer management utilities: list active buffers, open/close/focus by path.
+--
+-- • get_active_ls_buffers — list loaded work-filetype buffers (like :ls)
+-- • find_buf_by_path — find buffer number by file path
+-- • close_buffer_by_path — close a buffer matching a path
+-- • open_buffer_by_path — open or focus a buffer by path
+-- • focus_right_if_neotree — move focus right when neo-tree is active
+-- • open_scratch_split — open a scratch split buffer with given content
+
 local window_util = require("utils.nvim.window-util")
 local M = {}
 
@@ -7,6 +16,7 @@ local work_buffer_types = {
 }
 
 -- get loaded bufferIds list, same as by `:ls` command or telescope buffers
+--- Return loaded buffers with work filetypes.
 function M.get_active_ls_buffers()
     local buffers = vim.api.nvim_list_bufs()
     local active_buffers = {}
@@ -40,6 +50,7 @@ function M.find_buf_by_path(path)
     return nil
 end
 
+--- Close the buffer matching the given path.
 function M.close_buffer_by_path(path)
     local buf = M.find_buf_by_path(path)
     if buf then
@@ -49,10 +60,12 @@ function M.close_buffer_by_path(path)
     return false
 end
 
+--- Open or switch to the buffer at the given path.
 function M.open_buffer_by_path(path)
     vim.cmd.edit(path)
 end
 
+--- Move focus right if neo-tree is active.
 function M.focus_right_if_neotree()
     local buff_name = vim.fn.expand("%") -- neo-tree filesystem [1]
     if require("utils.string-util").starts_with(buff_name, "neo-tree filesystem") then

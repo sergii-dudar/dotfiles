@@ -1,3 +1,5 @@
+-- Kulala HTTP file linter: parses kulala-fmt check output into Neovim diagnostics.
+
 local M = {}
 
 local function parse_check_output(output, bufnr)

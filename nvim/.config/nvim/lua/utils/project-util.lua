@@ -1,5 +1,11 @@
+-- Project detection: determine if cwd is a multi-file project (for neo-tree auto-open).
+--
+-- • is_multifile_proj — check if cwd matches known project directories
+-- • is_init_open_neotree — decide if neo-tree should open on startup
+
 local M = {}
 
+--- Check whether the current directory is a known multi-file project.
 function M.is_multifile_proj()
     local current_file = vim.fn.getcwd() -- vim.fn.expand("%:p")
     local list_util = require("utils.list-util")
@@ -26,6 +32,7 @@ function M.is_multifile_proj()
     return list_util.any_match(current_file, multifile_projs_dirs) and vim.fn.argc() == 0
 end
 
+--- Check whether neo-tree should open on startup.
 function M.is_init_open_neotree()
     local current_file = vim.fn.getcwd() -- vim.fn.expand("%:p")
     local list_util = require("utils.list-util")

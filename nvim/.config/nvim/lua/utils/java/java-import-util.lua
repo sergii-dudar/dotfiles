@@ -1,3 +1,9 @@
+-- Java import management: check existence of imports and add new ones.
+--
+-- • static_import_exists — check if a static import for a member exists
+-- • import_exists — check if a class import exists
+-- • import_class_and_replace — import class under cursor and replace with simple name
+
 local M = {}
 
 -- Function to check if the import already exists
@@ -87,6 +93,7 @@ local function replace_full_to_simple_class_name(full_class, simple_class)
 end
 
 -- Import java class name under cursor, and apply simple class name in all buffer
+--- Import the class under the cursor and replace usages.
 function M.import_class_and_replace()
     local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
@@ -106,10 +113,7 @@ function M.import_class_and_replace()
     -- access, not a class qualifier — bail out instead of fabricating an
     -- import like `import someVar.method;`.
     if not remove_all_part:find("%.") and not remove_all_part:match("^[A-Z]") then
-        vim.notify(
-            "'" .. remove_all_part .. "' is not a class qualifier — nothing to import",
-            vim.log.levels.INFO
-        )
+        vim.notify("'" .. remove_all_part .. "' is not a class qualifier — nothing to import", vim.log.levels.INFO)
         return
     end
 
@@ -178,11 +182,7 @@ function M.import_class_and_replace()
             -- PascalCase member (starts upper, has lowercase) → nested class → regular import.
             -- Lowercase or ALL_CAPS member → static method / constant → static import.
             local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
-            local stmt = (is_nested_class and "import " or "import static ")
-                .. fqcn_for_static
-                .. "."
-                .. member
-                .. ";"
+            local stmt = (is_nested_class and "import " or "import static ") .. fqcn_for_static .. "." .. member .. ";"
             replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
             insert_import(stmt)
         end

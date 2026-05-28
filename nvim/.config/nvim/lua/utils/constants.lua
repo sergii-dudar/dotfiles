@@ -1,3 +1,5 @@
+-- Shared constants: diagnostic source names, junit paths, UI dimensions.
+
 local M = {}
 
 M.java = {

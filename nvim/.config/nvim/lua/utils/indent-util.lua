@@ -1,6 +1,9 @@
 --- Reusable chain-aware indentation for languages with method chaining
 --- (Java, Rust, C#, Kotlin, TypeScript, etc.)
 ---
+--- • chain_indentexpr — indentexpr function that detects chaining and adjusts indent
+--- • activate — set up chain-aware indentation for current buffer
+---
 --- Usage in after/ftplugin/<lang>.lua:
 ---
 ---   -- Java (with anonymous class + continuation indent options for cindent fallback)

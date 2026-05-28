@@ -1,6 +1,23 @@
-local M = {}
+-- JDTLS workspace/symbol operations: open classes, parse jdt:// links, find implementations.
+--
+-- • jdt_load_workspace_symbol_sync_nio — resolve symbol FQN via workspace/symbol (nio async)
+-- • jdt_load_unique_class_list — batch-resolve multiple classes via JDTLS
+-- • jdt_load_unique_class — resolve a single class name to its location
+-- • jdt_open_class — open a class by name and optionally jump to line
+-- • parse_jdt_link — decode an encoded jdt:// URI to class + line
+-- • extract_and_open_first_jdt_link — open first jdt link from text
+-- • extract_and_open_all_jdt_link — open all jdt links from text
+-- • extract_and_open_current_line_first_jdt_link — open first jdt link on current line
+-- • extract_and_open_current_line_all_jdt_link — open all jdt links on current line
+-- • extract_and_open_cursor_position_jdt_link — open jdt link at cursor
+-- • jdt_find_implementations_sync / _nio / (async) — find implementations of abstract class
+-- • connect_jdtls_and_search_symbol_under_cursor — attach JDTLS and search symbol
+-- • open_fqn_under_cursor — open Java FQN from current line
+-- • open_fqn_under_cursor_with_handler — open FQN with custom result handler
+-- • convert_markdown_links_to_references — convert inline markdown links to reference style
+-- • fix_hover_links / fix_hover_contents — fix jdt links in hover documentation
 
--- Split class name and line number (e.g., "java.util.List:50")
+local M = {}
 -- local class_name, line_number = arg:match("([^:]+):?(%d*)")
 local list_util = require("utils.list-util")
 local util = require("utils.common-util")
@@ -242,6 +259,7 @@ function M.jdt_load_unique_class(class_name, handler)
     end)
 end
 
+--- Open a class with JDTLS and optionally jump to a line.
 function M.jdt_open_class(class_name, line_number)
     if not class_name or class_name == "" then
         vim.notify("Please provide a class name.", vim.log.levels.WARN)
@@ -269,6 +287,7 @@ function M.jdt_open_class(class_name, line_number)
     end)
 end
 
+--- Parse an encoded jdt:// link into class and line data.
 function M.parse_jdt_link(encoded_jdt_link)
     if not encoded_jdt_link then
         return nil, nil
@@ -306,6 +325,7 @@ local extract_jdt_all_links = function(jdt_link_text)
     return results
 end
 
+--- Extract and open the first jdt link from text.
 function M.extract_and_open_first_jdt_link(line)
     local extracted = extract_jdt_first_link(line)
     if not extracted then
@@ -316,6 +336,7 @@ function M.extract_and_open_first_jdt_link(line)
     M.jdt_open_class(extracted.class_name, extracted.line_number)
 end
 
+--- Extract and open all jdt links from text.
 function M.extract_and_open_all_jdt_link(line)
     local extracted = extract_jdt_all_links(line)
     if not extracted or vim.tbl_isempty(extracted) then
@@ -328,16 +349,19 @@ function M.extract_and_open_all_jdt_link(line)
     end
 end
 
+--- Open the first jdt link on the current line.
 function M.extract_and_open_current_line_first_jdt_link()
     local current_line = util.get_line_under_cursor()
     M.extract_and_open_first_jdt_link(current_line)
 end
 
+--- Open all jdt links on the current line.
 function M.extract_and_open_current_line_all_jdt_link()
     local current_line = util.get_line_under_cursor()
     M.extract_and_open_all_jdt_link(current_line)
 end
 
+--- Open the jdt link under the cursor.
 function M.extract_and_open_cursor_position_jdt_link()
     if vim.bo.filetype == "markdown" then -- qadzek/link.vim
         vim.cmd("LinkJump")
@@ -765,6 +789,7 @@ function M.convert_markdown_links_to_references(markdown_text)
     return converted_text
 end
 
+--- Fix malformed jdt links in hover text.
 function M.fix_hover_links(text)
     if not text then
         return text
@@ -775,6 +800,7 @@ function M.fix_hover_links(text)
     end)
 end
 
+--- Fix jdt links inside hover contents.
 function M.fix_hover_contents(contents)
     if type(contents) == "string" then
         return M.fix_hover_links(contents)

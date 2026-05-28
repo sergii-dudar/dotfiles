@@ -1,3 +1,5 @@
+-- Scratch/experimental file: Snacks picker explorer test (not a module, not required anywhere).
+
 Snacks.picker.explorer({
     auto_close = true,
     follow_file = false,

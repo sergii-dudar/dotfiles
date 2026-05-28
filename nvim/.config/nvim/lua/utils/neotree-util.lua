@@ -1,3 +1,10 @@
+-- Neo-tree shared clipboard: cross-instance copy/paste via filesystem-backed clipboard directory.
+--
+-- • copy_to_shared_clipboard — copy file/dir to shared clipboard
+-- • paste_from_shared_clipboard — paste from shared clipboard into neo-tree target
+-- • shared_copy / shared_copy_visual — copy current/selected buffer lines to clipboard file
+-- • shared_paste — paste from clipboard file into current buffer
+
 local M = {}
 
 local clipboard_dir = vim.fn.stdpath("data") .. "/neo-tree-clipboard"
@@ -20,6 +27,7 @@ local function get_folder_for_node(node)
     return vim.fn.fnamemodify(node:get_id(), ":h")
 end
 
+--- Copy files or directories to the shared clipboard.
 function M.copy_to_shared_clipboard(paths)
     clear_clipboard_dir()
     local copied = {}
@@ -36,6 +44,7 @@ function M.copy_to_shared_clipboard(paths)
     vim.notify("Copied to shared clipboard:\n" .. table.concat(copied, "\n"), vim.log.levels.INFO)
 end
 
+--- Paste shared clipboard contents into the target directory.
 function M.paste_from_shared_clipboard(dest_dir)
     if vim.fn.isdirectory(clipboard_dir) == 0 then
         vim.notify("Shared clipboard is empty", vim.log.levels.WARN)
@@ -72,6 +81,7 @@ function M.paste_from_shared_clipboard(dest_dir)
     vim.notify("Pasted from shared clipboard:\n" .. table.concat(pasted, "\n"), vim.log.levels.INFO)
 end
 
+--- Copy the current neo-tree node to the shared clipboard.
 function M.shared_copy(state)
     local node = state.tree:get_node()
     if node and node.type ~= "message" then
@@ -80,6 +90,7 @@ function M.shared_copy(state)
     end
 end
 
+--- Copy the selected neo-tree nodes to the shared clipboard.
 function M.shared_copy_visual(state, selected_nodes)
     local paths = {}
     for _, node in ipairs(selected_nodes) do
@@ -93,6 +104,7 @@ function M.shared_copy_visual(state, selected_nodes)
     end
 end
 
+--- Paste shared clipboard contents into the current neo-tree target.
 function M.shared_paste(state)
     local node = state.tree:get_node()
     if not node then

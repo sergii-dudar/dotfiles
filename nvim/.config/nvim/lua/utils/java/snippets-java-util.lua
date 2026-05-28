@@ -1,5 +1,12 @@
+-- Java snippet helpers: resolve current package/filename, manage imports for snippet expansion.
+--
+-- • current_java_package — derive package name from current buffer path
+-- • current_java_file_name — current Java filename without extension
+-- • add_imports — insert import statements at top of file
+
 local M = {}
 
+--- Get the current Java package declaration.
 function M.current_java_package()
     local file = vim.api.nvim_buf_get_name(0)
     -- local file =
@@ -19,6 +26,7 @@ function M.current_java_package()
     return ""
 end
 
+--- Get the current Java filename without extension.
 function M.current_java_file_name()
     local file = vim.api.nvim_buf_get_name(0)
     local name = vim.fn.fnamemodify(file, ":t:r")
@@ -30,6 +38,7 @@ function M.current_java_file_name()
     return name .. " "
 end
 
+--- Insert missing imports at the top of the file.
 function M.add_imports(imports)
     local skip_on_first = 0
     return function()

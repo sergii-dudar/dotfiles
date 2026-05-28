@@ -1,3 +1,10 @@
+-- Maven settings resolution and diagnostic parsing helpers.
+--
+-- • get_maven_settings — resolve path to active Maven settings.xml
+-- • is_pom_file — check if a file path is a pom.xml
+-- • to_severity — map maven severity string to vim diagnostic severity
+-- • dedupe_file_diagnstics — deduplicate diagnostics for a file
+
 local M = {}
 
 local function maven_settings()
@@ -10,10 +17,12 @@ local function maven_settings()
     end
 end
 
+--- Resolve the active Maven settings.xml path.
 function M.get_maven_settings()
     return vim.env["MAVEN_SETTINGS_XML"] or maven_settings()
 end
 
+--- Check whether the path points to a pom.xml file.
 function M.is_pom_file(file)
     return vim.endswith(file, "pom.xml")
 end
@@ -25,11 +34,13 @@ local severity_map = {
     HINT = "HINT",
 }
 
+--- Map a severity string to a vim diagnostic severity.
 function M.to_severity(log_level)
     local key = severity_map[log_level:upper()] or "ERROR"
     return vim.diagnostic.severity[key]
 end
 
+--- Remove duplicate diagnostics for a file.
 function M.dedupe_file_diagnstics(file_diadnostics)
     local seen = {}
     local out = {}
