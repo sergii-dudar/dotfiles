@@ -23,7 +23,7 @@
         org.springframework.boot.EnvironmentPostProcessor=ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor
         ua.raiffeisen.apigov.metrics.micrometer.ssl.config.SslMetricsAutoConfiguration
         ...
-     stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
+      stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
