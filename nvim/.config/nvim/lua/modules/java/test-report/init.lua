@@ -103,6 +103,7 @@ function M.process(report_dir, filetype)
         local hr = vim.uv.hrtime
         local t_start = hr()
 
+        local spinner_resolved = false
         local ok, pcall_err = pcall(function()
             local dirs = type(report_dir) == "table" and report_dir or { report_dir }
             log.info("process: dirs=" .. vim.inspect(dirs) .. " ft=" .. tostring(filetype))
@@ -111,6 +112,8 @@ function M.process(report_dir, filetype)
             if not adapter_fn then
                 log.error("no adapter for filetype: " .. tostring(filetype))
                 vim.notify("test-report: no adapter for filetype: " .. filetype, vim.log.levels.ERROR)
+                spinner_resolved = true
+                spinner.stop(false, "No adapter for filetype: " .. tostring(filetype), sp_stop)
                 return
             end
             local adapter = adapter_fn()
@@ -133,6 +136,8 @@ function M.process(report_dir, filetype)
             if vim.tbl_isempty(results) then
                 log.warn("no results from XML parsing")
                 vim.notify("test-report: no results from XML parsing in: " .. vim.inspect(dirs), vim.log.levels.ERROR)
+                spinner_resolved = true
+                spinner.stop(false, "No results from XML parsing", sp_stop)
                 return
             end
 
@@ -300,6 +305,7 @@ function M.process(report_dir, filetype)
             else
                 spinner.stop(true, total .. " Tests Passed", sp_stop)
             end
+            spinner_resolved = true
 
             require("modules.java.test-report.junit-report-view").refresh_if_open(M.get_report_snapshot())
 
@@ -320,6 +326,9 @@ function M.process(report_dir, filetype)
         if not ok then
             log.error("process error: " .. tostring(pcall_err))
             spinner.stop(false, "JUnit Report processing failed", sp_stop)
+        elseif not spinner_resolved then
+            log.warn("process exited without resolving spinner")
+            spinner.cancel(sp)
         end
 
         log.info("process complete")
