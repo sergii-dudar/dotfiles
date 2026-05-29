@@ -132,8 +132,33 @@ end
 -- Use GNU sed on both platforms for consistent behavior
 -- macOS: gsed (installed via brew install gnu-sed)
 -- Linux: sed (already GNU sed)
-local sed = vim.loop.os_uname().sysname == "Darwin" and "gsed" or "sed"
-log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed command:", sed)
+local is_macos = vim.loop.os_uname().sysname == "Darwin"
+local sed = is_macos and "gsed" or "sed"
+-- macOS xargs doesn't need -r (default behavior), Linux GNU xargs needs -r to skip empty input
+local xargs = is_macos and "xargs" or "xargs -r"
+log.debug("Detected OS:", vim.loop.os_uname().sysname, "- using sed command:", sed, "xargs:", xargs)
+
+-- Helper to escape single quotes in paths for safe shell interpolation
+local function shell_escape(s)
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+-- Sed boundary patterns for matching Java type names.
+-- Leading boundary: characters that can precede a type name (includes @ for annotations, ^ for line start)
+-- Trailing boundary: characters that can follow a type name
+local LEADING_BOUNDARY = "(^|[[:space:],;(}<@])"
+local TRAILING_BOUNDARY = "([[:space:],;(}\\.>@])"
+
+-- Build a double-pass sed substitution command for type symbol replacement.
+-- Double-pass is needed because sed's global flag doesn't handle overlapping matches:
+-- e.g., "Map<OldType, OldType>" - the comma consumed by first match is lost for second match.
+---@param old_name string
+---@param new_name string
+---@return string sed_expression
+local function build_type_replace_expr(old_name, new_name)
+    local single_pass = string.format("s/%s%s%s/\\1%s\\2/g", LEADING_BOUNDARY, old_name, TRAILING_BOUNDARY, new_name)
+    return single_pass .. "; " .. single_pass
+end
 
 ---@class RefactorOperation
 ---@field type "shell"|"lua"
@@ -219,6 +244,22 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         description = "Fix type declaration: " .. old_type_name .. " -> " .. new_type_name,
     })
 
+    -- 1.1. fix constructor names in the moved file (needed for cross-package move+rename)
+    if old_type_name ~= new_type_name then
+        local fix_constructor_cmd = string.format(
+            "%s -i -E 's/(public|protected|private)([[:space:]]+)%s([[:space:]]*(\\(|\\{))/\\1\\2%s\\3/g' %s",
+            sed,
+            old_type_name,
+            new_type_name,
+            dst
+        )
+        table.insert(result_cmds, {
+            type = "shell",
+            command = fix_constructor_cmd,
+            description = "Fix constructor: " .. old_type_name .. " -> " .. new_type_name,
+        })
+    end
+
     -- ==========================================================================
     -- ==========================================================================
     -- 2. fix type symbols (simple java name) where type is imported or accessible
@@ -236,21 +277,30 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         local test_package_dir = package_dir:gsub("src/main/java", "src/test/java")
         local test_dir_clause = ""
         if test_package_dir ~= package_dir and vim.fn.isdirectory(test_package_dir) == 1 then
-            test_dir_clause = string.format("; fd -e java . '%s'", test_package_dir)
+            test_dir_clause = string.format("; fd -e java . %s", shell_escape(test_package_dir))
             log.debug("Including test directory for same-package rename:", test_package_dir)
+        end
+
+        -- Also include corresponding main directory if this is a test file
+        local main_package_dir = package_dir:gsub("src/test/java", "src/main/java")
+        local main_dir_clause = ""
+        if main_package_dir ~= package_dir and vim.fn.isdirectory(main_package_dir) == 1 then
+            main_dir_clause = string.format("; fd -e java . %s", shell_escape(main_package_dir))
+            log.debug("Including main directory for same-package rename:", main_package_dir)
         end
 
         local fix_type_symbols_same_package = string.format(
             "(rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
-                .. "'%s'"
-                .. " || true; fd -e java . '%s'%s) | sort -u | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+                .. "%s"
+                .. " || true; fd -e java . %s%s%s) | sort -u | %s %s -i -E '%s' || echo 'skipped'",
             package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
-            search_root, -- Use module path instead of project root
-            package_dir, -- Include all files in same directory (main)
+            shell_escape(search_root), -- Use module path instead of project root
+            shell_escape(package_dir), -- Include all files in same directory (main)
             test_dir_clause, -- Also include test directory if it exists
+            main_dir_clause, -- Also include main directory if this is a test file
+            xargs,
             sed,
-            old_type_name,
-            new_type_name
+            build_type_replace_expr(old_type_name, new_type_name)
         )
         table.insert(result_cmds, {
             type = "shell",
@@ -259,15 +309,35 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         })
     else
         -- For package moves, search for explicit imports AND wildcard imports
+        -- ALSO include files from the OLD package directory — they use the type without import
+        -- (same-package access) and now need updating since the type moved away
+        local old_package_dir = src:match("(.+)/[^/]+$") -- Directory where the file WAS
+
+        -- Also include corresponding test/main directory of the old package
+        local old_counterpart_dir = ""
+        if old_package_dir then
+            local counterpart
+            if string.find(old_package_dir, "src/main/java/") then
+                counterpart = old_package_dir:gsub("src/main/java/", "src/test/java/")
+            elseif string.find(old_package_dir, "src/test/java/") then
+                counterpart = old_package_dir:gsub("src/test/java/", "src/main/java/")
+            end
+            if counterpart and counterpart ~= old_package_dir and vim.fn.isdirectory(counterpart) == 1 then
+                old_counterpart_dir = string.format("; fd -e java . %s", shell_escape(counterpart))
+            end
+        end
+
         local fix_type_symbols_where_imported = string.format(
-            "rg --color=never -l 'import\\s+%s([;.]|\\*;)' "
-                .. "'%s'"
-                .. " | xargs %s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' || echo 'skipped'",
+            "(rg --color=never -l 'import\\s+%s([;.]|\\*;)' %s || true"
+                .. "; fd -e java . %s%s"
+                .. ") | sort -u | %s %s -i -E '%s' || echo 'skipped'",
             package_declaration_src:gsub("%.", "\\."), -- Match package with explicit or wildcard import
-            search_root, -- Use module path instead of project root
+            shell_escape(search_root), -- Use module path instead of project root
+            shell_escape(old_package_dir), -- Include all files from old package dir (same-package access)
+            old_counterpart_dir, -- Include test/main counterpart of old dir
+            xargs,
             sed,
-            old_type_name,
-            new_type_name
+            build_type_replace_expr(old_type_name, new_type_name)
         )
         table.insert(result_cmds, {
             type = "shell",
@@ -315,17 +385,16 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
     -- ==========================================================================
     -- ==========================================================================
-    -- 3. fix type full qualified names (acroll all files - java,yaml,properties etc)
+    -- 3. fix type full qualified names (across all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = string.format(
-        "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.$\"]|$)/%s\\1/g' || echo 'skipped'",
-        -- sed -i -E 's/ServiceEmployee([^[:alnum:]_]|$)/ServiceEmployeeUser\1/g'
+        "rg --color=never -l '%s' %s | %s %s -i -E 's/%s([;.$\"[:space:]()><,@]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
-        search_root, -- Use module path instead of project root
+        shell_escape(search_root),
+        xargs,
         sed,
         package_src_classpath_escaped,
         package_dst_classpath
     )
-    -- vim.notify(fix_type_symbols_where_imported)
     table.insert(result_cmds, {
         type = "shell",
         command = fix_type_full_qualified_names,
@@ -355,9 +424,11 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- ==========================================================================
         -- ==========================================================================
         -- 4.1. Remove imports from the same package (they're unnecessary)
+        -- Only match direct class imports (uppercase after last dot, no more dots before semicolon)
+        -- This avoids deleting subpackage imports like: import com.example.service.impl.SomeClass;
         local package_declaration_dst_escaped = package_declaration_dst:gsub("%.", "\\.")
         local remove_same_package_imports =
-            string.format("%s -i '/^import %s\\./d' %s", sed, package_declaration_dst_escaped, dst)
+            string.format("%s -i '/^import %s\\.[A-Z][^.]*;$/d' %s", sed, package_declaration_dst_escaped, dst)
         table.insert(result_cmds, {
             type = "shell",
             command = remove_same_package_imports,
@@ -409,18 +480,18 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- ==========================================================================
         -- 6. fix file path/resources path
 
-        local fix_file_paht_declaration = string.format(
-            "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.\"]|$)/%s\\1/g' || echo 'skipped'",
+        local fix_file_path_declaration = string.format(
+            "rg --color=never -l '%s' %s | %s %s -i -E 's/%s([;.\"[:space:])><,]|$)/%s\\1/g' || echo 'skipped'",
             package_src_path_escaped,
-            search_root, -- Use module path instead of project root
+            shell_escape(search_root),
+            xargs,
             sed,
             package_src_path_escaped,
             package_dst_path_escaped
         )
-        -- vim.notify(fix_file_paht_declaration)
         table.insert(result_cmds, {
             type = "shell",
-            command = fix_file_paht_declaration,
+            command = fix_file_path_declaration,
             description = "Fix file path/resources path",
         })
     else
@@ -490,15 +561,15 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     --   - import ua.raiffeisen.paymentinitiation.adapter.ClassName; (import)
     --   - import ua.raiffeisen.paymentinitiation.adapter.cisaod.ClassName; (import from subpackage)
     --   - "ua.raiffeisen.paymentinitiation.adapter" (string literal)
-    -- Solution: Match ([;$"[:space:].]|$) - includes dot for subpackages
+    --   - @com.example.Annotation (annotation with FQN)
+    -- Solution: Match ([;$"[:space:].,()><@]|$) - includes dot for subpackages
     --   - The dot allows matching subpackages during directory moves
     --   - The \1 in replacement preserves whatever was captured
     local fix_package_full_qualified_names = string.format(
-        "rg --color=never -l '%s' "
-            .. "'%s'"
-            .. " | xargs %s -i -E 's/%s([;$\"[:space:].]|$)/%s\\1/g' || echo 'skipped'",
+        "rg --color=never -l '%s' %s" .. " | %s %s -i -E 's/%s([;$\"[:space:].,()><@]|$)/%s\\1/g' || echo 'skipped'",
         package_src_classpath_escaped,
-        search_root, -- Use module path instead of project root
+        shell_escape(search_root),
+        xargs,
         sed,
         package_src_classpath_escaped,
         package_dst_classpath
@@ -513,17 +584,18 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- ==========================================================================
     -- ==========================================================================
     -- 2. fix package path/resources path
-    local fix_file_paht_declaration = string.format(
-        "rg --color=never -l '%s' " .. "'%s'" .. " | xargs %s -i -E 's/%s([;.\"\\/]|$)/%s\\1/g' || echo 'skipped'",
+    local fix_file_path_declaration = string.format(
+        "rg --color=never -l '%s' %s | %s %s -i -E 's/%s([;.\"\\/:space:]|$)/%s\\1/g' || echo 'skipped'",
         package_src_path_escaped,
-        search_root, -- Use module path instead of project root
+        shell_escape(search_root),
+        xargs,
         sed,
         package_src_path_escaped,
         package_dst_path_escaped
     )
     table.insert(result_cmds, {
         type = "shell",
-        command = fix_file_paht_declaration,
+        command = fix_file_path_declaration,
         description = "Fix package path/resources path",
     })
 end
@@ -634,7 +706,7 @@ function M.process_registerd_changes()
         if vim.fn.isdirectory(change.src) == 1 then
             -- Find all Java files in this directory
             log.debug("Scanning directory for open buffers:", change.src)
-            local handle = io.popen("fd -e java . '" .. change.src .. "'")
+            local handle = io.popen("fd -e java . " .. shell_escape(change.src))
             if handle then
                 local file_count = 0
                 for file_path in handle:lines() do
@@ -686,6 +758,122 @@ function M.process_registerd_changes()
     local test_mirrors = {}
     local test_mirror_dirs = {} -- Track unique test directories to mirror
 
+    -- CRITICAL: Correct destinations of directory changes using file-level changes as truth.
+    -- File managers (fyler.nvim) may emit intermediate directory events with WRONG destinations
+    -- (e.g., `payments → govern` instead of correct `payments → govern/test`).
+    -- We use file-level moves to determine the canonical path transformation,
+    -- then recompute correct destinations for all directory changes.
+    local canonical_old_prefix = nil
+    local canonical_new_prefix = nil
+    local canonical_root = nil
+
+    if #all_registered_changes > 1 then
+        -- Step 1: Find the canonical transformation from file-level changes
+        -- Compare a file's old dir vs new dir to find what prefix changed
+
+        for _, change in ipairs(all_registered_changes) do
+            if change.src:match("%.java$") then
+                -- Find matching root
+                local root_match = nil
+                for _, root in ipairs(package_roots) do
+                    if string_util.contains(change.src, root) and string_util.contains(change.dst, root) then
+                        root_match = root
+                        break
+                    end
+                end
+                if root_match then
+                    -- Strip root and filename to get directory parts
+                    local old_pkg = vim.split(change.src, root_match)[2]
+                    local new_pkg = vim.split(change.dst, root_match)[2]
+                    old_pkg = old_pkg:match("(.+)/[^/]+$") or ""
+                    new_pkg = new_pkg:match("(.+)/[^/]+$") or ""
+
+                    -- Find common suffix by comparing segments from the end
+                    local old_segs = vim.split(old_pkg, "/")
+                    local new_segs = vim.split(new_pkg, "/")
+                    local common_suffix_count = 0
+                    for k = 0, math.min(#old_segs, #new_segs) - 1 do
+                        if old_segs[#old_segs - k] == new_segs[#new_segs - k] then
+                            common_suffix_count = common_suffix_count + 1
+                        else
+                            break
+                        end
+                    end
+
+                    -- The changed part is everything before the common suffix
+                    local old_prefix_parts = {}
+                    for k = 1, #old_segs - common_suffix_count do
+                        table.insert(old_prefix_parts, old_segs[k])
+                    end
+                    local new_prefix_parts = {}
+                    for k = 1, #new_segs - common_suffix_count do
+                        table.insert(new_prefix_parts, new_segs[k])
+                    end
+
+                    local old_pref = table.concat(old_prefix_parts, "/")
+                    local new_pref = table.concat(new_prefix_parts, "/")
+
+                    if old_pref ~= "" and new_pref ~= "" then
+                        canonical_old_prefix = old_pref
+                        canonical_new_prefix = new_pref
+                        canonical_root = root_match
+                        log.info("Canonical transformation detected:", canonical_old_prefix, "->", canonical_new_prefix)
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Step 2: Use canonical transformation to correct directory change destinations
+        if canonical_old_prefix then
+            for _, change in ipairs(all_registered_changes) do
+                if not change.src:match("%.java$") then
+                    -- This is a directory change — verify and correct its destination
+                    local root_match = nil
+                    for _, root in ipairs(package_roots) do
+                        if string_util.contains(change.src, root) then
+                            root_match = root
+                            break
+                        end
+                    end
+                    if root_match then
+                        local src_pkg = vim.split(change.src, root_match)[2]
+                        if src_pkg then
+                            src_pkg = src_pkg:gsub("/$", "")
+                            -- Check if this directory starts with the old prefix
+                            if
+                                src_pkg == canonical_old_prefix
+                                or src_pkg:find("^" .. vim.pesc(canonical_old_prefix) .. "/")
+                            then
+                                -- Compute correct destination by replacing old prefix with new
+                                local suffix = ""
+                                if #src_pkg > #canonical_old_prefix then
+                                    suffix = src_pkg:sub(#canonical_old_prefix + 1)
+                                end
+                                local correct_dst_pkg = canonical_new_prefix .. suffix
+                                local base_path = vim.split(change.src, root_match)[1]
+                                local correct_dst = base_path .. root_match .. correct_dst_pkg
+
+                                if change.dst ~= correct_dst then
+                                    log.info(
+                                        "Correcting directory change destination:",
+                                        change.dst,
+                                        "->",
+                                        correct_dst,
+                                        "(src:",
+                                        change.src,
+                                        ")"
+                                    )
+                                    change.dst = correct_dst
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
     -- First, detect if we're doing a structural refactoring (e.g., adapter/* -> adapter/code/*)
     -- In this case, we need to move ALL test subdirectories, not just matching ones
     local structural_refactorings = {} -- { src_parent -> dst_parent }
@@ -693,7 +881,11 @@ function M.process_registerd_changes()
     -- Detect structural patterns: multiple directories moving from X/* to X/Y/*
     local dir_moves = {}
     for _, change in ipairs(all_registered_changes) do
-        if string_util.contains(change.src, "src/main/java/") and not change.src:match("%.java$") then
+        -- Detect structural moves in BOTH main and test trees
+        if
+            (string_util.contains(change.src, "src/main/java/") or string_util.contains(change.src, "src/test/java/"))
+            and not change.src:match("%.java$")
+        then
             -- Extract parent and subdirectory
             local src_parent = change.src:match("(.+)/[^/]+$")
             local dst_parent = change.dst:match("(.+)/[^/]+$")
@@ -727,72 +919,116 @@ function M.process_registerd_changes()
         end
     end
 
-    -- For structural refactorings, find ALL test subdirectories and mirror them
+    -- For structural refactorings, find ALL counterpart subdirectories and mirror them
+    -- Supports both src/main/java -> src/test/java AND src/test/java -> src/main/java
     for src_parent, dst_parent in pairs(structural_refactorings) do
-        local test_src_parent = src_parent:gsub("src/main/java/", "src/test/java/")
-        local test_dst_parent = dst_parent:gsub("src/main/java/", "src/test/java/")
+        local mirror_src_parent, mirror_dst_parent
+        if string_util.contains(src_parent, "src/main/java/") then
+            mirror_src_parent = src_parent:gsub("src/main/java/", "src/test/java/")
+            mirror_dst_parent = dst_parent:gsub("src/main/java/", "src/test/java/")
+        elseif string_util.contains(src_parent, "src/test/java/") then
+            mirror_src_parent = src_parent:gsub("src/test/java/", "src/main/java/")
+            mirror_dst_parent = dst_parent:gsub("src/test/java/", "src/main/java/")
+        else
+            goto continue_structural
+        end
 
-        log.debug("Checking for test subdirectories in:", test_src_parent)
-        if vim.fn.isdirectory(test_src_parent) == 1 then
-            -- Find ALL subdirectories in the test parent
-            local fd_cmd = "fd --max-depth 1 --type d . '" .. test_src_parent .. "'"
+        log.debug("Checking for counterpart subdirectories in:", mirror_src_parent)
+        if vim.fn.isdirectory(mirror_src_parent) == 1 then
+            -- Find ALL subdirectories in the counterpart parent
+            local fd_cmd = "fd --max-depth 1 --type d . " .. shell_escape(mirror_src_parent)
             log.debug("Running fd command:", fd_cmd)
             local handle = io.popen(fd_cmd)
             if handle then
                 local found_count = 0
-                for test_subdir in handle:lines() do
+                for subdir in handle:lines() do
                     -- Remove trailing slash if present
-                    test_subdir = test_subdir:gsub("/$", "")
-                    local subdir_name = test_subdir:match(".+/([^/]+)$")
-                    log.debug("Found test subdirectory:", test_subdir, "name:", subdir_name)
+                    subdir = subdir:gsub("/$", "")
+                    local subdir_name = subdir:match(".+/([^/]+)$")
+                    log.debug("Found counterpart subdirectory:", subdir, "name:", subdir_name)
 
                     -- Skip the destination directory itself (e.g., adapter/code)
-                    if
-                        subdir_name and not test_subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$")
-                    then
-                        local test_dst_subdir = test_dst_parent .. "/" .. subdir_name
+                    if subdir_name and not subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$") then
+                        local dst_subdir = mirror_dst_parent .. "/" .. subdir_name
 
-                        if not test_mirror_dirs[test_subdir] then
-                            test_mirror_dirs[test_subdir] = test_dst_subdir
-                            table.insert(test_mirrors, { src = test_subdir, dst = test_dst_subdir })
-                            log.info(
-                                "Auto-mirroring test subdirectory (structural):",
-                                test_subdir,
-                                "->",
-                                test_dst_subdir
-                            )
+                        if not test_mirror_dirs[subdir] then
+                            test_mirror_dirs[subdir] = dst_subdir
+                            table.insert(test_mirrors, { src = subdir, dst = dst_subdir })
+                            log.info("Auto-mirroring counterpart subdirectory (structural):", subdir, "->", dst_subdir)
                             found_count = found_count + 1
                         else
-                            log.debug("Test subdirectory already in mirror list, skipping:", test_subdir)
+                            log.debug("Subdirectory already in mirror list, skipping:", subdir)
                         end
                     else
-                        log.debug("Skipping destination directory:", test_subdir)
+                        log.debug("Skipping destination directory:", subdir)
                     end
                 end
                 handle:close()
-                log.info("Found", found_count, "test subdirectories for structural refactoring")
+                log.info("Found", found_count, "counterpart subdirectories for structural refactoring")
             else
                 log.error("Failed to execute fd command")
             end
         else
-            log.info("Test source parent does not exist:", test_src_parent)
+            log.info("Counterpart source parent does not exist:", mirror_src_parent)
         end
+        ::continue_structural::
     end
 
     -- Also handle individual directory/file moves (existing logic)
+    -- Supports BOTH directions: src/main/java <-> src/test/java
     for _, change in ipairs(all_registered_changes) do
-        -- Check if this is a main/java move
-        if string_util.contains(change.src, "src/main/java/") then
-            -- Calculate corresponding test path
-            local test_src = change.src:gsub("src/main/java/", "src/test/java/")
-            local test_dst = change.dst:gsub("src/main/java/", "src/test/java/")
+        -- CRITICAL: Skip directory changes that are PARENTS of the canonical old prefix.
+        -- These represent intermediate/partial filesystem events (e.g., `raiffeisen → obama`)
+        -- when the actual full transformation is deeper (e.g., `raiffeisen/payments → obama/govern/test/other`).
+        -- Mirroring a parent would only partially rename, leaving inner segments un-transformed.
+        if canonical_old_prefix and not change.src:match("%.java$") then
+            local root_match = nil
+            for _, root in ipairs(package_roots) do
+                if string_util.contains(change.src, root) then
+                    root_match = root
+                    break
+                end
+            end
+            if root_match then
+                local src_pkg = vim.split(change.src, root_match)[2]
+                if src_pkg then
+                    src_pkg = src_pkg:gsub("/$", "")
+                    -- Skip if this directory's package path is a STRICT parent of the canonical prefix
+                    if
+                        src_pkg ~= canonical_old_prefix
+                        and canonical_old_prefix:find("^" .. vim.pesc(src_pkg) .. "/")
+                    then
+                        log.info(
+                            "Skipping parent-of-canonical directory change (partial rename):",
+                            change.src,
+                            "->",
+                            change.dst
+                        )
+                        goto continue_mirror_loop
+                    end
+                end
+            end
+        end
 
+        local mirror_src, mirror_dst
+
+        if string_util.contains(change.src, "src/main/java/") then
+            -- Main -> mirror to test
+            mirror_src = change.src:gsub("src/main/java/", "src/test/java/")
+            mirror_dst = change.dst:gsub("src/main/java/", "src/test/java/")
+        elseif string_util.contains(change.src, "src/test/java/") then
+            -- Test -> mirror to main
+            mirror_src = change.src:gsub("src/test/java/", "src/main/java/")
+            mirror_dst = change.dst:gsub("src/test/java/", "src/main/java/")
+        end
+
+        if mirror_src and mirror_dst then
             -- For directory moves: mirror the directory directly (if not already handled by structural refactoring)
-            if vim.fn.isdirectory(test_src) == 1 then
-                if not test_mirror_dirs[test_src] then
-                    test_mirror_dirs[test_src] = test_dst
-                    table.insert(test_mirrors, { src = test_src, dst = test_dst })
-                    log.info("Auto-mirroring test directory:", test_src, "->", test_dst)
+            if vim.fn.isdirectory(mirror_src) == 1 then
+                if not test_mirror_dirs[mirror_src] then
+                    test_mirror_dirs[mirror_src] = mirror_dst
+                    table.insert(test_mirrors, { src = mirror_src, dst = mirror_dst })
+                    log.info("Auto-mirroring counterpart directory:", mirror_src, "->", mirror_dst)
                 end
             -- For file moves: infer directory-level mirror
             elseif change.src:match("%.java$") then
@@ -808,62 +1044,136 @@ function M.process_registerd_changes()
                         or src_dir:find("^" .. vim.pesc(dst_dir) .. "/")
 
                     if is_subdirectory_move then
-                        log.debug(
-                            "Skipping test mirror for subdirectory move (will process files individually):",
-                            src_dir,
-                            "->",
-                            dst_dir
-                        )
-                    else
-                        local test_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
-                        local test_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
+                        -- For subdirectory moves (e.g., service/X.java -> service/impl/X.java),
+                        -- we can't mirror the whole directory but we CAN mirror individual test/main files.
+                        -- Check if the counterpart FILE exists and move it individually.
+                        local mirror_file_src, mirror_file_dst
+                        if string_util.contains(change.src, "src/main/java/") then
+                            mirror_file_src = change.src:gsub("src/main/java/", "src/test/java/")
+                            mirror_file_dst = change.dst:gsub("src/main/java/", "src/test/java/")
+                        elseif string_util.contains(change.src, "src/test/java/") then
+                            mirror_file_src = change.src:gsub("src/test/java/", "src/main/java/")
+                            mirror_file_dst = change.dst:gsub("src/test/java/", "src/main/java/")
+                        end
 
-                        -- Only add if test directory exists and not already mirrored
-                        if vim.fn.isdirectory(test_src_dir) == 1 and not test_mirror_dirs[test_src_dir] then
-                            test_mirror_dirs[test_src_dir] = test_dst_dir
-                            table.insert(test_mirrors, { src = test_src_dir, dst = test_dst_dir })
+                        -- Mirror individual files that exist (e.g., UserServiceTest.java)
+                        if mirror_file_src and vim.fn.filereadable(mirror_file_src) == 1 then
+                            if not test_mirror_dirs[mirror_file_src] then
+                                test_mirror_dirs[mirror_file_src] = mirror_file_dst
+                                table.insert(test_mirrors, { src = mirror_file_src, dst = mirror_file_dst })
+                                log.info(
+                                    "Auto-mirroring counterpart file (subdirectory move):",
+                                    mirror_file_src,
+                                    "->",
+                                    mirror_file_dst
+                                )
+                            end
+                        else
+                            log.debug("No counterpart file for subdirectory move:", mirror_file_src or "nil")
+                        end
+                    else
+                        local mirror_src_dir, mirror_dst_dir
+                        if string_util.contains(src_dir, "src/main/java/") then
+                            mirror_src_dir = src_dir:gsub("src/main/java/", "src/test/java/")
+                            mirror_dst_dir = dst_dir:gsub("src/main/java/", "src/test/java/")
+                        elseif string_util.contains(src_dir, "src/test/java/") then
+                            mirror_src_dir = src_dir:gsub("src/test/java/", "src/main/java/")
+                            mirror_dst_dir = dst_dir:gsub("src/test/java/", "src/main/java/")
+                        end
+
+                        -- Only add if counterpart directory exists and not already mirrored
+                        if
+                            mirror_src_dir
+                            and vim.fn.isdirectory(mirror_src_dir) == 1
+                            and not test_mirror_dirs[mirror_src_dir]
+                        then
+                            test_mirror_dirs[mirror_src_dir] = mirror_dst_dir
+                            table.insert(test_mirrors, { src = mirror_src_dir, dst = mirror_dst_dir })
                             log.info(
-                                "Auto-mirroring test directory (inferred from file move):",
-                                test_src_dir,
+                                "Auto-mirroring counterpart directory (inferred from file move):",
+                                mirror_src_dir,
                                 "->",
-                                test_dst_dir
+                                mirror_dst_dir
                             )
                         end
                     end
                 else
-                    log.debug("Skipping test mirror for same-directory file rename")
+                    log.debug("Skipping mirror for same-directory file rename")
                 end
             end
         end
+        ::continue_mirror_loop::
     end
 
-    -- Physically move test files/directories to match main package structure
-    if #test_mirrors > 0 then
-        log.info("Physically moving", #test_mirrors, "test packages to match main structure")
+    -- CRITICAL: Deduplicate mirrors — keep only the SHALLOWEST mirror per branch.
+    -- After destination correction (Step 2 above), even shallow mirrors have correct destinations.
+    -- The shallowest mirror's physical move covers ALL files underneath in one operation.
+    -- Its package update sed also covers all subpackages (because `.` is in the boundary pattern).
+    -- Keeping deeper mirrors would either fail physically (parent already moved) or be redundant.
+    if #test_mirrors > 1 then
+        -- Sort by source path length ascending (shallowest first)
+        table.sort(test_mirrors, function(a, b)
+            return #a.src < #b.src
+        end)
 
-        -- Track opened test buffers before moving
+        local filtered_mirrors = {}
+        for _, mirror in ipairs(test_mirrors) do
+            local is_covered_by_shallower = false
+            for _, kept in ipairs(filtered_mirrors) do
+                -- Check if this mirror's src starts with an already-kept (shallower) mirror's src
+                if mirror.src:find("^" .. vim.pesc(kept.src) .. "/") then
+                    is_covered_by_shallower = true
+                    log.info(
+                        "Removing redundant child mirror:",
+                        mirror.src,
+                        "->",
+                        mirror.dst,
+                        "(covered by shallower:",
+                        kept.src,
+                        ")"
+                    )
+                    break
+                end
+            end
+            if not is_covered_by_shallower then
+                table.insert(filtered_mirrors, mirror)
+            end
+        end
+        test_mirrors = filtered_mirrors
+        -- Reset mirror_dirs tracking to match filtered mirrors
+        test_mirror_dirs = {}
+        for _, mirror in ipairs(test_mirrors) do
+            test_mirror_dirs[mirror.src] = mirror.dst
+        end
+    end
+
+    -- Physically move counterpart files/directories to match package structure
+    if #test_mirrors > 0 then
+        log.info("Physically moving", #test_mirrors, "counterpart packages to match structure")
+
+        -- Track opened counterpart buffers before moving
         for _, mirror in ipairs(test_mirrors) do
             if vim.fn.isdirectory(mirror.src) == 1 then
-                -- Find all Java files in this test directory
-                local handle = io.popen("fd -e java . '" .. mirror.src .. "'")
+                -- Find all Java files in this directory
+                local handle = io.popen("fd -e java . " .. shell_escape(mirror.src))
                 if handle then
                     for file_path in handle:lines() do
                         local buf_id = buffer_util.find_buf_by_path(file_path)
                         if buf_id then
-                            -- Calculate new path for this test file
+                            -- Calculate new path for this file
                             local new_path = file_path:gsub("^" .. vim.pesc(mirror.src), mirror.dst)
                             table.insert(opened_buffers_to_reopen, {
                                 old_path = file_path,
                                 new_path = new_path,
                                 buf_id = buf_id,
                             })
-                            log.info("Will reopen test buffer:", file_path, "->", new_path)
+                            log.info("Will reopen buffer:", file_path, "->", new_path)
                         end
                     end
                     handle:close()
                 end
             elseif mirror.src:match("%.java$") then
-                -- Single test file
+                -- Single file
                 local buf_id = buffer_util.find_buf_by_path(mirror.src)
                 if buf_id then
                     table.insert(opened_buffers_to_reopen, {
@@ -871,7 +1181,7 @@ function M.process_registerd_changes()
                         new_path = mirror.dst,
                         buf_id = buf_id,
                     })
-                    log.info("Will reopen test buffer:", mirror.src, "->", mirror.dst)
+                    log.info("Will reopen buffer:", mirror.src, "->", mirror.dst)
                 end
             end
         end
@@ -894,7 +1204,7 @@ function M.process_registerd_changes()
                     log.info("Moved test:", mirror.src, "->", mirror.dst)
                 else
                     -- Fallback to shell command for cross-device moves
-                    local cmd = string.format("mv '%s' '%s'", mirror.src, mirror.dst)
+                    local cmd = string.format("mv %s %s", shell_escape(mirror.src), shell_escape(mirror.dst))
                     local exit_code = os.execute(cmd)
                     if exit_code == 0 or exit_code == true then
                         log.info("Moved test (via shell):", mirror.src, "->", mirror.dst)
@@ -905,35 +1215,48 @@ function M.process_registerd_changes()
             end
         end
 
-        -- Clean up empty parent directories in test
-        log.info("Cleaning up empty test directories...")
+        -- Clean up ALL empty directories in the module's java source trees after mirroring.
+        -- This catches not just the immediate mirror source parents, but any orphaned empty
+        -- directories from this or previous operations (e.g., leftover from earlier renames).
+        -- Uses `find -type d -empty -delete` which works bottom-up (removes nested empties).
+        log.info("Cleaning up empty directories after mirroring...")
         local cleanup_count = 0
-        for _, mirror in ipairs(test_mirrors) do
-            local src_parent = mirror.src:match("(.+)/[^/]+$")
-            while src_parent and src_parent:match("src/test/java/") do
-                if vim.fn.isdirectory(src_parent) == 1 then
-                    -- Check if directory is empty
-                    local handle = io.popen("fd --max-depth 1 . '" .. src_parent .. "' | wc -l")
-                    local count = tonumber(handle:read("*all"))
-                    handle:close()
 
-                    if count == 0 then
-                        vim.fn.delete(src_parent, "d")
-                        log.info("Removed empty test directory:", src_parent)
-                        cleanup_count = cleanup_count + 1
-                        src_parent = src_parent:match("(.+)/[^/]+$")
-                    else
-                        break
-                    end
-                else
-                    break
+        -- Determine which java source roots to clean
+        local java_roots_to_clean = {}
+        local base_module = module_path or get_project_root()
+        for _, root in ipairs({ "src/main/java", "src/test/java" }) do
+            local full_root = base_module .. "/" .. root
+            if vim.fn.isdirectory(full_root) == 1 then
+                table.insert(java_roots_to_clean, full_root)
+            end
+        end
+
+        for _, java_root in ipairs(java_roots_to_clean) do
+            local handle = io.popen("find " .. shell_escape(java_root) .. " -type d -empty 2>/dev/null")
+            if handle then
+                local empty_dirs = {}
+                for dir in handle:lines() do
+                    table.insert(empty_dirs, dir)
+                end
+                handle:close()
+
+                -- Remove bottom-up (sort by depth descending so deepest dirs are removed first)
+                table.sort(empty_dirs, function(a, b)
+                    return #a > #b
+                end)
+                for _, dir in ipairs(empty_dirs) do
+                    vim.fn.delete(dir, "d")
+                    log.info("Removed empty directory:", dir)
+                    cleanup_count = cleanup_count + 1
                 end
             end
         end
+
         if cleanup_count > 0 then
-            log.info("Cleaned up", cleanup_count, "empty test directories")
+            log.info("Cleaned up", cleanup_count, "empty directories")
         else
-            log.info("No empty test directories to clean up")
+            log.info("No empty directories to clean up")
         end
     end
 
@@ -973,6 +1296,26 @@ function M.process_registerd_changes()
                     local package_path = vim.split(change.src, root_match)[2]
                     -- Remove trailing slash if present
                     package_path = package_path:gsub("/$", "")
+
+                    -- Skip directory changes that are PARENTS of the canonical old prefix.
+                    -- These represent partial filesystem events; the correct transformation
+                    -- is the canonical one at the deeper level.
+                    if canonical_old_prefix then
+                        if
+                            package_path ~= canonical_old_prefix
+                            and canonical_old_prefix:find("^" .. vim.pesc(package_path) .. "/")
+                        then
+                            log.info(
+                                "Skipping parent-of-canonical package move (partial rename):",
+                                package_path,
+                                "(canonical:",
+                                canonical_old_prefix,
+                                ")"
+                            )
+                            goto continue_pkg_loop
+                        end
+                    end
+
                     -- Calculate depth: com/example = 2 levels (1 slash + 1)
                     local slash_count = select(2, package_path:gsub("/", ""))
                     local package_depth = slash_count + 1
@@ -985,6 +1328,7 @@ function M.process_registerd_changes()
                 end
             end
         end
+        ::continue_pkg_loop::
     end
 
     -- ENHANCEMENT: Infer directory moves from file moves
@@ -1014,9 +1358,43 @@ function M.process_registerd_changes()
         log.info("No valid package moves found (all had depth < 2)")
     end
 
-    -- Sort by depth (shallowest first) for better readability in logs
+    -- CRITICAL: Deduplicate overlapping package moves.
+    -- After destination correction, the SHALLOWEST correct move per branch already covers
+    -- all deeper packages (because `.` is in the sed trailing boundary pattern).
+    -- E.g., sed for `payments.infra.metrics → govern.test.infra.metrics` also transforms
+    -- `payments.infra.metrics.micrometer → govern.test.infra.metrics.micrometer`.
+    -- Strategy: keep shallowest per branch, remove deeper ones covered by a shallower move.
+    if #valid_moves > 1 then
+        -- Sort by depth ascending (shallowest first)
+        table.sort(valid_moves, function(a, b)
+            return a.depth < b.depth
+        end)
+
+        local deduped_moves = {}
+        for _, move in ipairs(valid_moves) do
+            local is_covered = false
+            local src_pkg = move.package_path:gsub("/", ".")
+            for _, kept in ipairs(deduped_moves) do
+                local kept_pkg = kept.package_path:gsub("/", ".")
+                -- Check if current move is a child of an already-kept shallower move
+                if src_pkg:find("^" .. vim.pesc(kept_pkg) .. "%.") or src_pkg == kept_pkg then
+                    is_covered = true
+                    log.info("Removing redundant child package move:", src_pkg, "(already covered by:", kept_pkg, ")")
+                    break
+                end
+            end
+            if not is_covered then
+                table.insert(deduped_moves, move)
+            end
+        end
+        valid_moves = deduped_moves
+        log.info("After deduplication:", #valid_moves, "package moves remaining")
+    end
+
+    -- Sort by depth (deepest first) for processing — ensures no ordering issues
+    -- between sibling moves at different levels
     table.sort(valid_moves, function(a, b)
-        return a.depth < b.depth
+        return a.depth > b.depth
     end)
 
     -- Process all valid package moves or file changes
@@ -1074,23 +1452,30 @@ function M.process_registerd_changes()
     end
 
     log.info("Shell commands:", #shell_cmds, "| Lua operations:", #lua_operations)
-    local global_cmd_run = table.concat(shell_cmds, " && ")
+    -- Use '; ' to join commands so one failure doesn't abort all subsequent independent operations.
+    -- Each rg|xargs pipeline already has '|| echo skipped' for graceful failure handling.
+    local global_cmd_run = table.concat(shell_cmds, " ; ")
     log.debug("Full shell command chain length:", #global_cmd_run, "characters")
 
     -- In test mode, execute directly and return result
     if M.test_mode then
         log.info("Test mode: executing operations directly")
 
-        -- Execute shell commands first
+        -- Execute shell commands individually for better error reporting
         if #shell_cmds > 0 then
-            log.debug("Executing shell commands:", global_cmd_run)
-            local exit_code = os.execute(global_cmd_run)
-            if not (exit_code == 0 or exit_code == true) then
-                log.error("Shell command execution failed with exit code:", exit_code)
-                all_registered_changes = {}
-                return false
+            local failed_cmds = 0
+            for i, cmd in ipairs(shell_cmds) do
+                log.debug("Executing command", i, "of", #shell_cmds, ":", cmd)
+                local exit_code = os.execute(cmd)
+                if not (exit_code == 0 or exit_code == true) then
+                    log.error("Shell command failed (continuing):", cmd)
+                    failed_cmds = failed_cmds + 1
+                end
             end
-            log.info("Shell commands completed successfully")
+            if failed_cmds > 0 then
+                log.warn(failed_cmds, "of", #shell_cmds, "shell commands had non-zero exit")
+            end
+            log.info("Shell commands completed:", #shell_cmds - failed_cmds, "succeeded,", failed_cmds, "failed")
         end
 
         -- Execute Lua operations
@@ -1112,24 +1497,46 @@ function M.process_registerd_changes()
         return true
     end
 
-    -- ENHANCEMENT: Delete old buffers BEFORE applying changes
-    -- This prevents having buffers pointing to non-existent files during refactoring
+    -- ENHANCEMENT: Handle old buffers BEFORE applying changes
+    -- Strategy: For the current buffer (focused window), switch to new path immediately.
+    -- For other buffers, mark them for deletion and reopening after refactoring.
+    -- This ensures the user sees the renamed file in their active window.
     if #opened_buffers_to_reopen > 0 then
-        log.info("Deleting", #opened_buffers_to_reopen, "old buffers before applying changes...")
+        log.info("Processing", #opened_buffers_to_reopen, "old buffers before applying changes...")
+
+        local current_win = vim.api.nvim_get_current_win()
+        local current_buf = vim.api.nvim_get_current_buf()
+        log.debug("Current window:", current_win, "Current buffer:", current_buf)
 
         for i, buf_info in ipairs(opened_buffers_to_reopen) do
             log.debug("Processing buffer", i, "of", #opened_buffers_to_reopen)
             if vim.api.nvim_buf_is_valid(buf_info.buf_id) then
                 -- Store window ID BEFORE deleting buffer
                 buf_info.win_id = vim.fn.bufwinid(buf_info.buf_id)
-                log.debug("Buffer", buf_info.buf_id, "in window", buf_info.win_id)
+                buf_info.is_current = (buf_info.buf_id == current_buf)
+                log.debug("Buffer", buf_info.buf_id, "in window", buf_info.win_id, "is_current:", buf_info.is_current)
 
-                -- Delete old buffer
-                local success, err = pcall(vim.api.nvim_buf_delete, buf_info.buf_id, { force = false })
-                if success then
-                    log.info("Deleted old buffer:", buf_info.old_path, "(was in window", buf_info.win_id, ")")
+                if buf_info.is_current then
+                    -- For the CURRENT buffer: switch to a scratch buffer first, then delete old
+                    -- This prevents Neovim from auto-selecting a random buffer
+                    local scratch = vim.api.nvim_create_buf(false, true)
+                    vim.api.nvim_win_set_buf(current_win, scratch)
+                    local success, err = pcall(vim.api.nvim_buf_delete, buf_info.buf_id, { force = true })
+                    if success then
+                        log.info("Switched current window away from moved buffer:", buf_info.old_path)
+                    else
+                        log.warn("Failed to delete current buffer:", buf_info.old_path, "Error:", err)
+                    end
+                    -- Store scratch buffer to clean up later
+                    buf_info.scratch_buf = scratch
                 else
-                    log.warn("Failed to delete buffer:", buf_info.old_path, "Error:", err)
+                    -- For non-current buffers: just delete
+                    local success, err = pcall(vim.api.nvim_buf_delete, buf_info.buf_id, { force = true })
+                    if success then
+                        log.info("Deleted old buffer:", buf_info.old_path, "(was in window", buf_info.win_id, ")")
+                    else
+                        log.warn("Failed to delete buffer:", buf_info.old_path, "Error:", err)
+                    end
                 end
             else
                 log.debug("Buffer already invalid:", buf_info.old_path)
@@ -1137,10 +1544,8 @@ function M.process_registerd_changes()
         end
     end
 
-    -- Normal mode: use UI to apply refactoring changes
-
     -- ENHANCEMENT: Create composite callback that executes Lua operations then reopens buffers
-    -- This ensures proper execution order: shell commands -> Lua operations -> reopen buffers
+    -- This ensures proper execution order: shell commands -> Lua operations -> reopen buffers -> cleanup
     local composite_callback = function()
         -- Execute Lua operations after shell commands complete
         if #lua_operations > 0 then
@@ -1165,7 +1570,25 @@ function M.process_registerd_changes()
                 -- Open new buffer from new location
                 if vim.fn.filereadable(buf_info.new_path) == 1 then
                     log.debug("File exists at new location:", buf_info.new_path)
-                    if buf_info.win_id and buf_info.win_id ~= -1 and vim.api.nvim_win_is_valid(buf_info.win_id) then
+
+                    if buf_info.is_current then
+                        -- This was the focused buffer — open in the current window
+                        local target_win = vim.api.nvim_get_current_win()
+                        -- If we opened a terminal split (run_cmd), the current window might have changed.
+                        -- Use the original window if it's still valid.
+                        if buf_info.win_id and buf_info.win_id ~= -1 and vim.api.nvim_win_is_valid(buf_info.win_id) then
+                            target_win = buf_info.win_id
+                        end
+                        vim.api.nvim_win_call(target_win, function()
+                            vim.cmd("edit " .. vim.fn.fnameescape(buf_info.new_path))
+                            vim.cmd("filetype detect")
+                        end)
+                        -- Clean up scratch buffer
+                        if buf_info.scratch_buf and vim.api.nvim_buf_is_valid(buf_info.scratch_buf) then
+                            pcall(vim.api.nvim_buf_delete, buf_info.scratch_buf, { force = true })
+                        end
+                        log.info("Switched current window to new file:", buf_info.new_path)
+                    elseif buf_info.win_id and buf_info.win_id ~= -1 and vim.api.nvim_win_is_valid(buf_info.win_id) then
                         -- Buffer was displayed in a window, open new file in that window
                         log.debug("Reopening in window", buf_info.win_id)
                         vim.api.nvim_win_call(buf_info.win_id, function()
@@ -1184,6 +1607,39 @@ function M.process_registerd_changes()
                 end
             end
             log.info("Buffer reopening completed")
+        end
+
+        -- ENHANCEMENT: Clean up ALL empty directories in the module's java source trees.
+        -- This catches any orphaned empty directories from old packages after file moves.
+        -- Uses `find -type d -empty` and removes bottom-up (deepest first).
+        log.info("Cleaning up empty source directories after file moves...")
+        local cleanup_count = 0
+        local base_module = module_path or vim.fn.getcwd()
+        for _, root in ipairs({ "src/main/java", "src/test/java" }) do
+            local full_root = base_module .. "/" .. root
+            if vim.fn.isdirectory(full_root) == 1 then
+                local handle = io.popen("find " .. shell_escape(full_root) .. " -type d -empty 2>/dev/null")
+                if handle then
+                    local empty_dirs = {}
+                    for dir in handle:lines() do
+                        table.insert(empty_dirs, dir)
+                    end
+                    handle:close()
+
+                    -- Remove deepest first (sort by path length descending)
+                    table.sort(empty_dirs, function(a, b)
+                        return #a > #b
+                    end)
+                    for _, dir in ipairs(empty_dirs) do
+                        vim.fn.delete(dir, "d")
+                        log.info("Removed empty source directory:", dir)
+                        cleanup_count = cleanup_count + 1
+                    end
+                end
+            end
+        end
+        if cleanup_count > 0 then
+            log.info("Cleaned up", cleanup_count, "empty source directories")
         end
     end
 

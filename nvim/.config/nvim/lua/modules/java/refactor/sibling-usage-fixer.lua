@@ -15,6 +15,10 @@ local log = logging.new({ name = "sibling-usage-fixer", filename = "java-refacto
 -- Linux: sed (already GNU sed)
 local sed = vim.loop.os_uname().sysname == "Darwin" and "gsed" or "sed"
 
+-- Boundary patterns for matching Java type names (shared with init.lua logic)
+local LEADING_BOUNDARY = "(^|[[:space:],;(}<@])"
+local TRAILING_BOUNDARY = "([[:space:],;(}\\.>@])"
+
 -- Helper to execute command and get output
 local function exec_and_read(cmd)
     local handle = io.popen(cmd)
@@ -27,12 +31,30 @@ local function exec_and_read(cmd)
     return result
 end
 
+-- Helper to escape single quotes in paths for safe shell interpolation
+local function shell_escape(s)
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
-    -- Use GNU sed append command with literal newline
-    -- The key is \\\n which creates backslash + newline in the shell command
-    local sed_cmd = string.format("%s -i '%da\\\n%s' '%s'", sed, line_num, import_line, file_path)
+    -- First check if import already exists to avoid duplicates
+    local check_cmd = string.format(
+        "rg -q '^%s$' %s 2>/dev/null",
+        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
+        shell_escape(file_path)
+    )
+    local already_exists = os.execute(check_cmd)
 
+    if already_exists == 0 or already_exists == true then
+        log.debug("Import already exists, skipping:", import_line)
+        return true
+    end
+
+    -- Use GNU sed append command with literal newline
+    local sed_cmd = string.format("%s -i '%da\\\n%s' %s", sed, line_num, import_line, shell_escape(file_path))
+
+    log.debug("Sed command:", sed_cmd)
     local result = os.execute(sed_cmd)
     if not (result == 0 or result == true) then
         log.warn("Failed to add import:", import_line, "to", file_path)
@@ -65,9 +87,11 @@ function M.fix_sibling_usage(opts)
     -- Check if the file uses this type at all
     local uses_type = os.execute(
         string.format(
-            "rg -q '(^|[[:space:],;(}<])%s($|[[:space:],;(}\\.>])' '%s' 2>/dev/null",
+            "rg -q '%s%s%s' %s 2>/dev/null",
+            LEADING_BOUNDARY,
             opts.old_type_name,
-            opts.file_path
+            TRAILING_BOUNDARY,
+            shell_escape(opts.file_path)
         )
     )
 
@@ -85,7 +109,10 @@ function M.fix_sibling_usage(opts)
         log.debug("Using provided file package:", file_package)
     else
         local package_output = exec_and_read(
-            string.format("rg -m1 '^package ' '%s' 2>/dev/null | sed 's/package \\(.*\\);/\\1/'", opts.file_path)
+            string.format(
+                "rg -m1 '^package ' %s 2>/dev/null | sed 's/package \\(.*\\);/\\1/'",
+                shell_escape(opts.file_path)
+            )
         )
         file_package = package_output and package_output:gsub("%s+", "") or ""
         log.debug("Extracted file package:", file_package)
@@ -96,8 +123,9 @@ function M.fix_sibling_usage(opts)
         log.debug("Different package, adding import")
 
         -- Find last import line
-        local last_import_output =
-            exec_and_read(string.format("rg -n '^import ' '%s' 2>/dev/null | tail -n 1 | cut -d: -f1", opts.file_path))
+        local last_import_output = exec_and_read(
+            string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.file_path))
+        )
         local last_import_line = tonumber(last_import_output) or 2
         log.debug("Last import line:", last_import_line)
 
@@ -114,13 +142,16 @@ function M.fix_sibling_usage(opts)
     if opts.old_type_name ~= opts.new_type_name then
         log.info("Type name changed, updating references:", opts.old_type_name, "->", opts.new_type_name)
 
-        local sed_cmd = string.format(
-            "%s -i -E 's/([[:space:],;(}<])%s([[:space:],;(}\\.>])/\\1%s\\2/g' '%s'",
-            sed,
+        -- Double-pass sed for overlapping match handling
+        local replace_expr = string.format(
+            "s/%s%s%s/\\1%s\\2/g",
+            LEADING_BOUNDARY,
             opts.old_type_name,
-            opts.new_type_name,
-            opts.file_path
+            TRAILING_BOUNDARY,
+            opts.new_type_name
         )
+        local sed_cmd =
+            string.format("%s -i -E '%s; %s' %s", sed, replace_expr, replace_expr, shell_escape(opts.file_path))
 
         local result = os.execute(sed_cmd)
         if not (result == 0 or result == true) then
