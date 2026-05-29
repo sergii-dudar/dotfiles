@@ -34,6 +34,8 @@ local setting = {
     jvm_args = {
         "--enable-native-access=ALL-UNNAMED",
         "-Dspring.output.ansi.enabled=NEVER",
+        -- "-Djavax.net.ssl.trustStore=~/serhii.home/tools/kafka-keys-new/*.jks",
+        -- "-Djavax.net.ssl.trustStorePassword=secret",
         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
     report_dir = constants.java.junit_report_dir,
