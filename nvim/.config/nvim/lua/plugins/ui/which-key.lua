@@ -5,6 +5,12 @@ return {
         -- or leave it empty to use the default settings
         -- refer to the configuration section below
         preset = "modern", --classic, modern, helix
+        keys = {
+            -- scroll_down = "<c-f>",
+            -- scroll_up = "<c-b>",
+            scroll_up = "<c-p>",
+            scroll_down = "<c-n>",
+        },
     },
     keys = {
         --{

@@ -95,6 +95,12 @@ vim.api.nvim_set_keymap("n", "N", "Nzz", { noremap = true, silent = true }) -- M
 vim.api.nvim_set_keymap("n", "<leader>\\", ":vsplit | wincmd l<CR>", { noremap = true, silent = true, desc = "VSplit" })
 vim.api.nvim_set_keymap("n", "<leader>|", ":split | wincmd j<CR>", { noremap = true, silent = true, desc = "HSplit" })
 
+-- Window resize with bigger step (20)
+map("n", "<C-W>]", "<cmd>resize +20<cr>", { desc = "Increase height", noremap = true })
+map("n", "<C-W>[", "<cmd>resize -20<cr>", { desc = "Decrease height", noremap = true })
+map("n", "<C-W>.", "<cmd>vertical resize +20<cr>", { desc = "Increase width", noremap = true })
+map("n", "<C-W>,", "<cmd>vertical resize -20<cr>", { desc = "Decrease width", noremap = true })
+
 -- standard vim quickfix (ad default replaced to trouble.nvim)
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
