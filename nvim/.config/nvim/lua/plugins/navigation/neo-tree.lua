@@ -88,7 +88,10 @@ return {
                 --               -- the current file is changed while the tree is open.
                 leave_dirs_open = true, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
-            group_empty_dirs = false,
+            group_empty_dirs = true,
+            -- Neo-tree does not need to be manually refreshed.
+            -- manuall refresh if need: require("neo-tree.command").execute({ action = "refresh" })
+            use_libuv_file_watcher = true,
         },
         event_handlers = {
             -- add relativenumber to neo-tree buffer
