@@ -3,7 +3,11 @@
 -- For batch processing use: register_change() + process_registerd_changes()
 -- For single file use: process_single_file_change()
 --
--- Dependencies: ripgrep, fd (rust-based find), sed (gsed on macOS)
+-- Dependencies:
+--   ripgrep (rg) — search Java files for import/usage references
+--   fd           — fast file listing (java files, subdirectories)
+--   sed (gsed)   — in-place package/import replacements
+--   find         — locate empty directories (`-type d -empty`; fd lacks this flag)
 
 local M = {}
 

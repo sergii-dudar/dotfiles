@@ -336,7 +336,8 @@ local function perform_physical_moves(test_mirrors)
 end
 
 --- Clean up ALL empty directories in the module's java source trees.
---- Uses `find -type d -empty` and removes bottom-up (deepest first).
+--- Uses `find -type d -empty` (not fd — fd lacks an -empty flag for directories)
+--- and removes bottom-up (deepest first).
 ---@param module_path string|nil
 function M.cleanup_empty_dirs(module_path)
     log.info("Cleaning up empty directories...")
