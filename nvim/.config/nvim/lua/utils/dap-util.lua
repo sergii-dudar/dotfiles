@@ -56,6 +56,7 @@ end
 function M.show_logs()
     local lines = read_console()
     if not lines then
+        vim.notify("DAP console is empty or not initialized", vim.log.levels.WARN)
         return
     end
 
@@ -100,7 +101,16 @@ local function dap_eval(expr, callback)
             end)
             return
         end
-        local result = resp.result
+        local result = resp and resp.result
+        if type(result) ~= "string" then
+            vim.schedule(function()
+                vim.notify("DAP eval returned no result", vim.log.levels.WARN)
+            end)
+            return
+        end
+        -- Strip outer quotes and unescape (Java String / JSON-style escapes).
+        -- Order matters: \\ must be replaced LAST so prior passes don't
+        -- re-interpret backslashes produced by it.
         if result:match('^".*"$') then
             result = result:sub(2, -2)
             result = result:gsub('\\"', '"'):gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\\\", "\\")
@@ -122,14 +132,21 @@ local function prompt_eval_dap(callback)
     end)
 end
 
----Get visual selection lines.
+---Get visual selection lines. Reads from the last visual selection marks
+---(`'<` / `'>`) since lazy.nvim function-callback keybinds in mode "x"
+---exit visual mode before the callback runs.
 ---@return string[]
 local function get_visual_selection()
     local save = vim.fn.getreg("z")
     local save_type = vim.fn.getregtype("z")
-    vim.cmd('noautocmd normal! "zy')
-    local text = vim.fn.getreg("z")
+    -- Re-enter the previous visual selection, yank into 'z', then leave.
+    local ok = pcall(vim.cmd, 'noautocmd silent normal! gv"zy')
+    local text = ok and vim.fn.getreg("z") or ""
     vim.fn.setreg("z", save, save_type)
+
+    if text == "" then
+        return {}
+    end
 
     local lines = vim.split(text, "\n", { plain = true })
     if #lines > 0 and lines[#lines] == "" then
