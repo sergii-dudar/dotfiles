@@ -13,7 +13,8 @@ return {
             ---
             { "<F9>", function() require("dap").continue() end, desc = "Run/Continue", },
             { "<F10>", function() require("dap").run_to_cursor() end, desc = "Run to Cursor", },
-            { "<F12>", function() require("dap").terminate() require("dapui").toggle({}) end, desc = "Terminate", },
+            { "<F12>", function() require("dap").terminate() require("dapui").toggle({}) end, desc = "Toggle DapUI", },
+            -- { "<F12>", function() pcall(require("dap").terminate) pcall(require("dapui").close, {}) end, desc = "Terminate", },
         },
         opts = {
             -- defaults = {
@@ -52,9 +53,16 @@ return {
         },
         -- stylua: ignore
         keys = {
-      { "<leader>du", function() require("dapui").toggle({ reset = true }) end, desc = "Dap UI" },
+            { "<leader>du", function() require("dapui").toggle({ reset = true }) end, desc = "Dap UI" },
             -- { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
-            { "<leader>de", function() require("dapui").eval(nil, { enter = true }) end, desc = "Eval", mode = {"n", "x"} },
+            { "<leader>de", function()
+                require("dapui").eval(nil, { enter = true })
+                vim.schedule(function()
+                    vim.wo.wrap = true
+                    vim.wo.linebreak = true
+                    vim.wo.breakindent = true
+                end)
+            end, desc = "Eval", mode = {"n", "x"} },
             { "<leader>dwf", function() require("utils.dap-util").eval_to_file() end, desc = "Eval to File" },
             { "<leader>dwf", function() require("utils.dap-util").selection_eval_to_file() end, desc = "Eval Selection to File", mode = "x" },
             { "<leader>dww", function() require("utils.dap-util").selection_to_file() end, desc = "Selection to File", mode = "x" },
@@ -65,22 +73,43 @@ return {
             local dapui = require("dapui")
             local dap_util = require("utils.dap-util")
             dapui.setup(opts)
+
+            -- Track whether Neotree was open before the debug session so we
+            -- can restore it only when appropriate (avoid surprise reveal).
+            local neotree_was_open = false
+            local function is_neotree_open()
+                for _, win in ipairs(vim.api.nvim_list_wins()) do
+                    local buf = vim.api.nvim_win_get_buf(win)
+                    if vim.bo[buf].filetype == "neo-tree" then
+                        return true
+                    end
+                end
+                return false
+            end
+
             dap.listeners.after.event_initialized["dapui_config"] = function()
-                vim.cmd("Neotree close")
+                neotree_was_open = is_neotree_open()
+                if neotree_was_open then
+                    pcall(vim.cmd, "Neotree close")
+                end
                 dap_util.reset()
                 dapui.open({ reset = true })
             end
             dap.listeners.before.event_terminated["dapui_config"] = function()
-                dapui.close({})
-                vim.schedule(function()
-                    vim.cmd("Neotree filesystem reveal left action=show")
-                    -- vim.schedule(function()
-                    --     dap_util.show_logs()
-                    -- end)
-                end)
+                pcall(dapui.close, {})
+                if neotree_was_open then
+                    vim.schedule(function()
+                        local bufname = vim.api.nvim_buf_get_name(0)
+                        if bufname and bufname ~= "" and vim.fn.filereadable(bufname) == 1 then
+                            pcall(vim.cmd, "Neotree filesystem reveal left action=show")
+                        else
+                            pcall(vim.cmd, "Neotree filesystem left action=show")
+                        end
+                    end)
+                end
             end
             dap.listeners.before.event_exited["dapui_config"] = function()
-                dapui.close({})
+                pcall(dapui.close, {})
             end
         end,
     },
