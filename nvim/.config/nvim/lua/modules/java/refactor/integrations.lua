@@ -1,19 +1,17 @@
 -- File manager integrations for Java refactor module.
 -- Provides hooks for: neo-tree.nvim, oil.nvim, Snacks.rename
 -- Replaces sergii-dudar/java.nvim (simaxme-java) with our more powerful implementation.
+--
+-- Usage: require("modules.java.refactor.integrations").setup()
+-- Automatically detects available plugins via LazyVim.has() and sets up accordingly.
 
 local M = {}
 
 local java_util = require("utils.java.java-common")
 
---- Setup neo-tree.nvim integration.
---- Subscribes to FILE_RENAMED and FILE_MOVED events (fires for both files and directories).
-function M.setup_neotree()
-    local ok, events = pcall(require, "neo-tree.events")
-    if not ok then
-        return
-    end
-
+--- Neo-tree.nvim: subscribe to file_renamed/file_moved events.
+--- These fire for both files AND directories.
+local function setup_neotree()
     local java_refactor = require("modules.java.refactor")
 
     local handle_rename = function(data)
@@ -25,6 +23,7 @@ function M.setup_neotree()
         end)
     end
 
+    local events = require("neo-tree.events")
     events.subscribe({
         event = events.FILE_RENAMED,
         handler = handle_rename,
@@ -36,9 +35,8 @@ function M.setup_neotree()
     })
 end
 
---- Setup oil.nvim integration.
---- Subscribes to OilActionsPost autocmd for move actions.
-function M.setup_oil()
+--- Oil.nvim: subscribe to OilActionsPost autocmd for move actions.
+local function setup_oil()
     local java_refactor = require("modules.java.refactor")
 
     vim.api.nvim_create_autocmd("User", {
@@ -76,17 +74,40 @@ function M.snacks_rename_current()
     })
 end
 
---- Setup all integrations based on config.
----@param opts? { neotree?: boolean, oil?: boolean }
-function M.setup(opts)
-    opts = opts or { neotree = true, oil = true }
+--- Setup all available integrations.
+--- Detects installed plugins via LazyVim.has() and defers subscription until plugin loads.
+--- Safe to call multiple times — only runs once.
+function M.setup()
+    if M._setup_done then
+        return
+    end
+    M._setup_done = true
 
-    if opts.neotree ~= false then
-        M.setup_neotree()
+    if LazyVim.has("neo-tree.nvim") then
+        -- Defer neo-tree subscription until it actually loads (it's lazy-loaded by keys)
+        local function try_setup_neotree()
+            if package.loaded["neo-tree"] then
+                setup_neotree()
+                return true
+            end
+            return false
+        end
+
+        if not try_setup_neotree() then
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "LazyLoad",
+                callback = function(event)
+                    if event.data == "neo-tree.nvim" then
+                        setup_neotree()
+                        return true -- remove autocmd
+                    end
+                end,
+            })
+        end
     end
 
-    if opts.oil ~= false then
-        M.setup_oil()
+    if LazyVim.has("oil.nvim") then
+        setup_oil()
     end
 end
 

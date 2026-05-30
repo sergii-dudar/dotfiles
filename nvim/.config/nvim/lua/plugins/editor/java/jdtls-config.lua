@@ -441,6 +441,9 @@ return {
             -- Avoid race condition by calling attach the first time, since the autocmd won't fire.
             attach_jdtls()
 
+            -- Java refactor file manager integrations (neo-tree, oil.nvim, snacks rename)
+            require("modules.java.refactor.integrations").setup()
+
             -- ============== >>> Recover JDTLS start (2)
             -- Recover JDTLS after macOS sleep. VimResume does not fire on system
             -- sleep and FocusGained is unreliable in tmux, so detection is done
