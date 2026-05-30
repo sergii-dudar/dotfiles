@@ -132,16 +132,15 @@ local function prompt_eval_dap(callback)
     end)
 end
 
----Get visual selection lines. Reads from the last visual selection marks
----(`'<` / `'>`) since lazy.nvim function-callback keybinds in mode "x"
----exit visual mode before the callback runs.
+---Get current visual selection lines. Works because lazy.nvim's `mode="x"`
+---keybind callbacks fire while still in visual mode (via `<cmd>` mapping),
+---so a plain `"zy` yanks the active selection.
 ---@return string[]
 local function get_visual_selection()
     local save = vim.fn.getreg("z")
     local save_type = vim.fn.getregtype("z")
-    -- Re-enter the previous visual selection, yank into 'z', then leave.
-    local ok = pcall(vim.cmd, 'noautocmd silent normal! gv"zy')
-    local text = ok and vim.fn.getreg("z") or ""
+    pcall(vim.cmd, 'noautocmd silent normal! "zy')
+    local text = vim.fn.getreg("z")
     vim.fn.setreg("z", save, save_type)
 
     if text == "" then
@@ -236,6 +235,70 @@ function M.selection_to_file()
         return
     end
     pick_and_write(lines)
+end
+
+---Open `lines` in a centered floating scratch buffer with wrap enabled.
+---Closed with `q` or `<Esc>`. Useful for inspecting long single-line values
+---where dapui's hover collapses to a 1-row, unwrapped float.
+---@param lines string[]
+local function show_in_wrapped_float(lines)
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    vim.bo[buf].bufhidden = "wipe"
+    vim.bo[buf].filetype = "dap-eval"
+
+    local width = math.min(120, math.floor(vim.o.columns * 0.7))
+    -- Compute visual rows needed when wrapped at `width`.
+    local needed = 0
+    for _, l in ipairs(lines) do
+        local w = vim.fn.strdisplaywidth(l)
+        needed = needed + math.max(1, math.ceil(w / width))
+    end
+    local height = math.min(needed, math.floor(vim.o.lines * 0.7))
+
+    local win = vim.api.nvim_open_win(buf, true, {
+        relative = "editor",
+        row = math.floor((vim.o.lines - height) / 2) - 1,
+        col = math.floor((vim.o.columns - width) / 2),
+        width = width,
+        height = height,
+        style = "minimal",
+        border = "single",
+        title = " DAP eval ",
+        title_pos = "center",
+    })
+    vim.wo[win].wrap = true
+    vim.wo[win].linebreak = true
+    vim.wo[win].breakindent = true
+    vim.wo[win].cursorline = false
+
+    for _, key in ipairs({ "q", "<Esc>" }) do
+        vim.keymap.set("n", key, function()
+            if vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_win_close(win, true)
+            end
+        end, { buffer = buf, nowait = true, silent = true })
+    end
+end
+
+---Evaluate expression under cursor (`<cexpr>`) via DAP, show in wrapped float.
+function M.eval_popup()
+    local expr = vim.fn.expand("<cexpr>")
+    if not expr or expr == "" then
+        vim.notify("No expression under cursor", vim.log.levels.WARN)
+        return
+    end
+    dap_eval(expr, show_in_wrapped_float)
+end
+
+---Evaluate visual selection via DAP, show result in a wrapped float.
+function M.selection_eval_popup()
+    local lines = get_visual_selection()
+    if #lines == 0 then
+        vim.notify("No selection", vim.log.levels.WARN)
+        return
+    end
+    dap_eval(table.concat(lines, "\n"), show_in_wrapped_float)
 end
 
 return M

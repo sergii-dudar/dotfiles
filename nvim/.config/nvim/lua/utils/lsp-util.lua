@@ -192,6 +192,7 @@ local LspCodeAction = function()
                 "Convert to lambda expression",
                 "Change body block to expression",
                 "Change body expression to block",
+                "Change type of '",
                 "Create method '",
                 "Add unimplemented methods",
             }

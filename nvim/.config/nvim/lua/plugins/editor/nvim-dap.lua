@@ -50,19 +50,23 @@ return {
                     size = 12,
                 },
             },
+            -- Cap the floating hover/eval popup width so long single-line
+            -- results wrap (otherwise the float stretches to fit and `wrap`
+            -- has nothing to wrap against).
+            floating = {
+                max_width = 100,
+                -- max_height = 20,
+                border = "single",
+                mappings = { close = { "q", "<Esc>" } },
+            },
         },
         -- stylua: ignore
         keys = {
             { "<leader>du", function() require("dapui").toggle({ reset = true }) end, desc = "Dap UI" },
             -- { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
-            { "<leader>de", function()
-                require("dapui").eval(nil, { enter = true })
-                vim.schedule(function()
-                    vim.wo.wrap = true
-                    vim.wo.linebreak = true
-                    vim.wo.breakindent = true
-                end)
-            end, desc = "Eval", mode = {"n", "x"} },
+            { "<leader>dE", function() require("dapui").eval(nil, { enter = true }) end, desc = "Eval", mode = {"n", "x"} },
+            { "<leader>de", function() require("utils.dap-util").eval_popup() end, desc = "Eval (wrapped popup)" },
+            { "<leader>de", function() require("utils.dap-util").selection_eval_popup() end, desc = "Eval Selection (wrapped popup)", mode = "x" },
             { "<leader>dwf", function() require("utils.dap-util").eval_to_file() end, desc = "Eval to File" },
             { "<leader>dwf", function() require("utils.dap-util").selection_eval_to_file() end, desc = "Eval Selection to File", mode = "x" },
             { "<leader>dww", function() require("utils.dap-util").selection_to_file() end, desc = "Selection to File", mode = "x" },
