@@ -212,28 +212,34 @@ return {
         },
         config = true,
     },
-    -- Rename packages and imports also when renaming/moving files via nvim-tree (for Java)
+    -- Java refactor integrations: neo-tree, oil.nvim, snacks rename
+    -- Replaces sergii-dudar/java.nvim with our custom modules.java.refactor module
     {
-        -- "simaxme/java.nvim",
-        "sergii-dudar/java.nvim", -- my fork with [ neo-tree, oil.nvim, snacks rename ] support
+        "nvim-neo-tree/neo-tree.nvim",
+        optional = true,
         cond = java_util.is_java_project() and global.is_not_limited,
-        ft = "java",
         -- stylua: ignore
         keys = {
-            { "<leader>cR", function() require("simaxme-java").snacks.rename_current() end, desc = "Rename File (Java)" },
+            { "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, desc = "Rename File (Java)" },
         },
-        dependencies = {
-            "mfussenegger/nvim-jdtls",
-            "nvim-tree/nvim-tree.lua",
-        },
-        config = function()
-            require("simaxme-java").setup({
-                rename = {
-                    nvimtree = false,
-                    neotree = true,
-                    oilnvim = true,
-                },
-            })
+        opts = function(_, opts)
+            local integrations = require("modules.java.refactor.integrations")
+            -- Oil integration (autocmd-based, can be set up immediately)
+            integrations.setup_oil()
+            -- Neo-tree integration (event-based, append to event_handlers)
+            opts.event_handlers = opts.event_handlers or {}
+            local java_refactor = require("modules.java.refactor")
+            local java_common = require("utils.java.java-common")
+            local handle_rename = function(data)
+                if not java_common.is_java_project() then
+                    return
+                end
+                vim.schedule(function()
+                    java_refactor.process_single_file_change(data.source, data.destination)
+                end)
+            end
+            table.insert(opts.event_handlers, { event = "file_renamed", handler = handle_rename })
+            table.insert(opts.event_handlers, { event = "file_moved", handler = handle_rename })
         end,
     },
     -- Nice dependency tree viewers for Maven \ Gradle

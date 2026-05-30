@@ -69,7 +69,7 @@ return {
                 --               -- the current file is changed while the tree is open.
                 leave_dirs_open = true, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
-            group_empty_dirs = true,
+            group_empty_dirs = false,
         },
         event_handlers = {
             -- add relativenumber to neo-tree buffer
