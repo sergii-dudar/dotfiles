@@ -261,6 +261,9 @@ return {
                 vim.list_extend(bundles, require("spring_boot").java_extensions())
             end
 
+            -- Java refactor file manager integrations (neo-tree, oil.nvim, snacks rename)
+            require("modules.java.refactor.integrations").setup()
+
             opts.is_config_updated = false
             opts.on_attach = function(args)
                 if not opts.is_config_updated then
@@ -440,9 +443,6 @@ return {
 
             -- Avoid race condition by calling attach the first time, since the autocmd won't fire.
             attach_jdtls()
-
-            -- Java refactor file manager integrations (neo-tree, oil.nvim, snacks rename)
-            require("modules.java.refactor.integrations").setup()
 
             -- ============== >>> Recover JDTLS start (2)
             -- Recover JDTLS after macOS sleep. VimResume does not fire on system

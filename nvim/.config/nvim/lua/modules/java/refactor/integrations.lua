@@ -112,37 +112,21 @@ end
 
 --- Setup neo-tree and oil.nvim integrations.
 --- Called from: jdtls-config.lua (after plugins are loaded).
---- Safe to call multiple times — only runs once.
 function M.setup()
-    if M._setup_done then
-        return
-    end
-    M._setup_done = true
-
     if LazyVim.has("neo-tree.nvim") then
-        local function try_setup_neotree()
-            if package.loaded["neo-tree"] then
-                setup_neotree()
-                return true
-            end
-            return false
-        end
-
-        if not try_setup_neotree() then
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "LazyLoad",
-                callback = function(event)
-                    if event.data == "neo-tree.nvim" then
-                        setup_neotree()
-                        return true -- remove autocmd
-                    end
-                end,
-            })
-        end
+        -- vim.notify("Refactoring init neo-tree.nvim")
+        setup_neotree()
     end
 
     if LazyVim.has("oil.nvim") then
+        -- vim.notify("Refactoring init oil.nvim")
         setup_oil()
+    end
+
+    -- Fyler.nvim: process registered Java refactoring changes on buffer close
+    if LazyVim.has("fyler.nvim") then
+        -- vim.notify("Refactoring init fyler.nvim")
+        M.setup_fyler_autocmd()
     end
 end
 
