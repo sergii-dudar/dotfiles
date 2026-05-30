@@ -9,7 +9,6 @@ type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 -- type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
 type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
-type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
 type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
 
 local M = {}

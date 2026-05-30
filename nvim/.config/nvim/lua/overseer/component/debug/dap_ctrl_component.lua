@@ -52,25 +52,28 @@ end
 return {
     desc = "Pipe task output to DAP UI console",
     constructor = function(params)
-        local first_line_checked = false
+        local jdwp_port_attached = false
 
         return {
             on_start = function(self, task)
                 -- Clear console buffer when task starts
                 vim.schedule(clean_dapui_console)
-                first_line_checked = false
+                jdwp_port_attached = false
             end,
             on_output_lines = function(self, task, lines)
-                -- Check only the first line for debug port pattern
-                if not first_line_checked and lines and #lines > 0 then
-                    first_line_checked = true
-                    local first_line = lines[1]
-                    -- Match pattern: "Listening for transport dt_socket at address: <port>"
-                    local port = first_line:match("Listening for transport dt_socket at address: (%d+)")
-                    -- TODO: It's java specific, make language-agnostic by moving to overseer.tasks.lang.[lang]-runner.lua
-                    if port then
-                        vim.notify("Connecting to java dap port: " .. port)
-                        require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
+                -- Scan ALL provided lines (not just the first batch's first line)
+                -- until we find the JDWP listening banner. JVM/agents may print
+                -- other lines first.
+                -- TODO: It's java specific, make language-agnostic by moving to overseer.tasks.lang.[lang]-runner.lua
+                if not jdwp_port_attached and lines then
+                    for _, line in ipairs(lines) do
+                        local port = line and line:match("Listening for transport dt_socket at address: (%d+)")
+                        if port then
+                            jdwp_port_attached = true
+                            vim.notify("Connecting to java dap port: " .. port)
+                            require("utils.java.jdtls-config-dap-util").attach_to_remote(tonumber(port))
+                            break
+                        end
                     end
                 end
 

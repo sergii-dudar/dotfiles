@@ -233,7 +233,7 @@ local function build_multi_module_cmd(modules)
 
     if #cmds == 0 then
         vim.notify("No modules with test-classes found", vim.log.levels.WARN)
-        return nil
+        return { cmd = { "echo", "No modules with test-classes found" } }
     end
 
     local isParallelRun = false -- just for testing for now
@@ -275,12 +275,16 @@ function build_junit_tests_cmd(context)
                 return { cmd = { "echo", "No modules selected" } }
             end
         end
-        return build_multi_module_cmd(modules) or { "echo", "No testable modules found" }
+        return build_multi_module_cmd(modules) or { cmd = { "echo", "No testable modules found" } }
     end
 
     if type == task.test_type.TOGGLE_LAST_DEBUG then
         if not task.last_test.type then
-            return { cmd = { "echo", type .. " there no registered last run cmd" } }
+            return { cmd = { "echo", tostring(type) .. " there no registered last run cmd" } }
+        end
+        if not task.last_test.bufnr or not vim.api.nvim_buf_is_valid(task.last_test.bufnr) then
+            vim.notify("Last test buffer no longer valid", vim.log.levels.WARN)
+            return { cmd = { "echo", "Last test buffer no longer valid" } }
         end
         if
             task.last_test.type == task.test_type.CURRENT_TEST
@@ -291,6 +295,10 @@ function build_junit_tests_cmd(context)
                 bufnr = task.last_test.bufnr,
             })
             local module_path = java_util.get_buffer_project_path(task.last_test.bufnr)
+            if not module_path then
+                vim.notify("Could not resolve module for last test buffer", vim.log.levels.WARN)
+                return { cmd = { "echo", "Could not resolve module for last test buffer" } }
+            end
             local current_report_dir = module_path .. setting.report_dir
 
             return {
@@ -300,11 +308,11 @@ function build_junit_tests_cmd(context)
                     test_selector = task.last_test.test_selector,
                     is_debug = task.last_test.is_debug,
                 }),
-                report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
+                report_dir = current_report_dir,
             }
         end
-        vim.notify(type .. " is not supported to toggle last run cmd", vim.log.levels.WARN)
-        return { cmd = { "echo", type .. " is not supported to toggle last run cmd" } }
+        vim.notify(tostring(type) .. " is not supported to toggle last run cmd", vim.log.levels.WARN)
+        return { cmd = { "echo", tostring(type) .. " is not supported to toggle last run cmd" } }
     end
 
     local test_selector = test_selector_resolver[type](context)

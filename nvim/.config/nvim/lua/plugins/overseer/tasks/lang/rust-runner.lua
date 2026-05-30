@@ -33,12 +33,16 @@ local function get_rust_binary_info()
     local dir = vim.fn.expand("%:p:h")
     local cargo_metadata_cmd = string.format("cd %s && cargo metadata --format-version 1 --no-deps 2>/dev/null", dir)
     local handle = io.popen(cargo_metadata_cmd)
+    if not handle then
+        vim.notify("Failed to spawn cargo metadata", vim.log.levels.ERROR)
+        return nil
+    end
     local metadata_json = handle:read("*a")
     handle:close()
 
-    local metadata = vim.fn.json_decode(metadata_json)
-    if not metadata or not metadata.workspace_root then
-        vim.notify("Failed to get Cargo metadata", vim.log.levels.ERROR)
+    local ok, metadata = pcall(vim.fn.json_decode, metadata_json)
+    if not ok or type(metadata) ~= "table" or not metadata.workspace_root or not metadata.packages then
+        vim.notify("Failed to parse Cargo metadata", vim.log.levels.ERROR)
         return nil
     end
 
@@ -47,8 +51,8 @@ local function get_rust_binary_info()
     -- Find the first binary target
     local binary_name = nil
     for _, package in ipairs(metadata.packages) do
-        for _, target in ipairs(package.targets) do
-            if vim.tbl_contains(target.kind, "bin") then
+        for _, target in ipairs(package.targets or {}) do
+            if vim.tbl_contains(target.kind or {}, "bin") then
                 binary_name = target.name
                 break
             end

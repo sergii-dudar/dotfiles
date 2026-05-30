@@ -70,8 +70,30 @@ function M.stop_all_prev_tasks()
         },
         sort = task_list.sort_finished_recently,
     })
-    for _, task in ipairs(tasks) do
-        task:dispose(true) -- true = force kill
+    if vim.tbl_isempty(tasks) then
+        return
+    end
+
+    -- If any task is still RUNNING and a DAP session is attached, terminate
+    -- the session first to avoid orphan dap state when we force-kill the JVM.
+    local has_running = false
+    for _, t in ipairs(tasks) do
+        if t.status == overseer.STATUS.RUNNING then
+            has_running = true
+            break
+        end
+    end
+    if has_running then
+        local ok, dap = pcall(require, "dap")
+        if ok and dap.session() then
+            pcall(function()
+                dap.terminate()
+            end)
+        end
+    end
+
+    for _, t in ipairs(tasks) do
+        t:dispose(true) -- true = force kill
     end
 end
 

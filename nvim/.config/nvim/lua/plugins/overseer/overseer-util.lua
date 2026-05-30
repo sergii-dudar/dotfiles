@@ -5,6 +5,15 @@ local overseer = require("overseer")
 
 local M = {}
 
+-- Forward declarations so helpers are local (not implicit globals) and
+-- can still reference each other in any order.
+local debug_current_internal
+local restart_last_task
+local write_run_info
+local dap_after_session_clear
+
+local last_run_info = {}
+
 ---@param context task.lang.Context
 function M.run_test(context)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
@@ -14,6 +23,7 @@ function M.run_test(context)
     end
     if context.is_debug then
         overseer.close()
+        require("utils.dap-util").reset()
         dap_after_session_clear()
         overseer_task_util.run_task({
             task_name = "DEBUG_TESTS",
@@ -98,7 +108,6 @@ function M.restart_last()
     restart_last_task(type_resolver)
 end
 
-local last_run_info = {}
 ---@param runtype task.run_type|integer
 ---@param is_debug boolean
 function write_run_info(runtype, is_debug)
@@ -122,22 +131,17 @@ function restart_last_task(type_resolver)
 
             if type_resolver.dap_launch_rerun then
                 type_resolver.dap_launch_rerun()
-                -- vim.notify("dap_launch_rerun" .. vim.bo.filetype, vim.log.levels.WARN)
                 return
             end
 
             if type_resolver.dap_launch then
                 type_resolver.dap_launch()
-                -- vim.notify("dap_launch" .. vim.bo.filetype, vim.log.levels.WARN)
                 return
             end
 
             if type_resolver.build_debug_cmd then
                 require("dap").terminate()
-                -- vim.defer_fn(function()
                 overseer_task_util.run_last_task()
-                -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
-                -- end, 400)
                 return
             end
         else
@@ -146,10 +150,7 @@ function restart_last_task(type_resolver)
     elseif last_run_info.runtype == task.run_type.TEST then
         if last_run_info.is_debug then
             require("dap").terminate()
-            -- vim.defer_fn(function()
             overseer_task_util.run_last_task()
-            --     -- type_resolver.dap_attach_to_remote() -- moved to dap_ctrl_component
-            -- end, 400)
         else
             overseer_task_util.run_last_task({ is_open_output = true })
         end
@@ -157,9 +158,11 @@ function restart_last_task(type_resolver)
 end
 
 function dap_after_session_clear()
-    if last_run_info.runtype == "dap" then
-        require("dap").close()
-        require("dapui").close({})
+    if last_run_info.is_debug then
+        pcall(function()
+            require("dap").close()
+            require("dapui").close({})
+        end)
     end
 end
 

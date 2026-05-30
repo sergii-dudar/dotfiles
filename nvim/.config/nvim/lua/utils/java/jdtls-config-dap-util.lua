@@ -26,7 +26,7 @@ M.default_attach_config = default_attach_config
 local last_runned_dap_config = nil
 
 local run_main_class_config = function(dap_config)
-    require("dap").run(dap_config)
+    require("dap").run(vim.deepcopy(dap_config))
 end
 
 --- Rerun the last DAP configuration.
@@ -76,13 +76,14 @@ end
 ---@param delay_ms integer|nil
 function M.attach_to_remote(port, delay_ms)
     port = port or M.default_dap_port
+    local config = vim.deepcopy(default_attach_config)
+    config.port = port
     if delay_ms then
         vim.defer_fn(function()
-            require("dap").run(default_attach_config)
+            require("dap").run(config)
         end, delay_ms) -- 200 ms; increase if your JVM is slow to start
     else
-        -- TODO: forward passed port
-        require("dap").run(default_attach_config)
+        require("dap").run(config)
     end
 end
 
