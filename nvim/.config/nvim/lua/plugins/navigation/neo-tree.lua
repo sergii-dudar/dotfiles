@@ -44,6 +44,15 @@ return {
                     end,
                     desc = "Copy file/dir name to clipboard",
                 },
+                ["gd"] = {
+                    function(state)
+                        state.group_empty_dirs = not state.group_empty_dirs
+                        local manager = require("neo-tree.sources.manager")
+                        manager.refresh(state.name)
+                        vim.notify("group_empty_dirs: " .. tostring(state.group_empty_dirs))
+                    end,
+                    desc = "Toggle group empty dirs",
+                },
             },
             --position = "float",
             popup = { -- settings that apply to float position only
