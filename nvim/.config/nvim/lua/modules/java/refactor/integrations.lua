@@ -1,9 +1,12 @@
 -- File manager integrations for Java refactor module.
--- Provides hooks for: neo-tree.nvim, oil.nvim, Snacks.rename
+-- Provides hooks for: neo-tree.nvim, oil.nvim, fyler.nvim, Snacks.rename
 -- Replaces sergii-dudar/java.nvim (simaxme-java) with our more powerful implementation.
 --
--- Usage: require("modules.java.refactor.integrations").setup()
--- Automatically detects available plugins via LazyVim.has() and sets up accordingly.
+-- Call sites:
+--   autocmds.lua          → setup_fyler_autocmd()  (BufUnload processing)
+--   fyler-nvim.lua        → fyler_on_rename()      (on_rename hook)
+--   jdtls-config.lua      → setup()                (neo-tree, oil.nvim)
+--   java-config.lua       → snacks_rename_current() (keymap)
 
 local M = {}
 
@@ -62,8 +65,41 @@ local function setup_oil()
     })
 end
 
+-- ============================================================================
+-- Public API
+-- ============================================================================
+
+--- Fyler.nvim on_rename hook — registers change for batch processing (Java)
+--- or falls back to Snacks LSP rename for non-Java projects.
+--- Called from: fyler-nvim.lua opts.hooks.on_rename
+function M.fyler_on_rename(src, dst)
+    if java_util.is_java_project() then
+        require("modules.java.refactor").register_change(src, dst)
+    else
+        Snacks.rename.on_rename_file(src, dst)
+    end
+end
+
+--- Fyler.nvim BufUnload autocmd — processes all registered changes when fyler closes.
+--- Called from: autocmds.lua
+function M.setup_fyler_autocmd()
+    vim.api.nvim_create_autocmd({ "FileType" }, {
+        pattern = "fyler",
+        callback = function(ev)
+            vim.api.nvim_create_autocmd({ "BufUnload" }, {
+                buffer = ev.buf,
+                callback = function()
+                    vim.notify("Fyler: fixing after move is running...")
+                    require("modules.java.refactor").process_registerd_changes()
+                    vim.notify("Fyler: fixing after move was finished!")
+                end,
+            })
+        end,
+    })
+end
+
 --- Rename current file via Snacks.rename with Java refactoring.
---- Intended for keymap: `<leader>cR`
+--- Called from: java-config.lua keymap `<leader>cR`
 function M.snacks_rename_current()
     local java_refactor = require("modules.java.refactor")
 
@@ -74,8 +110,8 @@ function M.snacks_rename_current()
     })
 end
 
---- Setup all available integrations.
---- Detects installed plugins via LazyVim.has() and defers subscription until plugin loads.
+--- Setup neo-tree and oil.nvim integrations.
+--- Called from: jdtls-config.lua (after plugins are loaded).
 --- Safe to call multiple times — only runs once.
 function M.setup()
     if M._setup_done then
@@ -84,7 +120,6 @@ function M.setup()
     M._setup_done = true
 
     if LazyVim.has("neo-tree.nvim") then
-        -- Defer neo-tree subscription until it actually loads (it's lazy-loaded by keys)
         local function try_setup_neotree()
             if package.loaded["neo-tree"] then
                 setup_neotree()

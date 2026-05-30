@@ -2,7 +2,6 @@
 -- Default autocmds that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
 -- Add any additional autocmds here
 
-local java_util = require("utils.java.java-common")
 local augroup = vim.api.nvim_create_augroup
 local customBuffer = augroup("custom_buffer", { clear = true })
 local general_group = augroup("myCustomGroup", { clear = true })
@@ -222,24 +221,9 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 -------------------------------------------------------
 --------------- project roots commands ----------------
 
-if java_util.is_java_project() then
-    local java_refactor = require("modules.java.refactor")
-    vim.api.nvim_create_autocmd({ "FileType" }, {
-        group = general_group,
-        pattern = "fyler",
-        callback = function(ev)
-            -- BufLeave, BufHidden, BufUnload, WinLeave, BufWinLeave, BufDelete
-            vim.api.nvim_create_autocmd({ "BufUnload" }, {
-                group = general_group,
-                buffer = ev.buf,
-                callback = function()
-                    vim.notify("Fyler: fixing after move is running...")
-                    java_refactor.process_registerd_changes()
-                    vim.notify("Fyler: fixing after move was finished!")
-                end,
-            })
-        end,
-    })
+-- Fyler.nvim: process registered Java refactoring changes on buffer close
+if require("utils.java.java-common").is_java_project() then
+    require("modules.java.refactor.integrations").setup_fyler_autocmd()
 end
 
 -------------------------------------------------------
