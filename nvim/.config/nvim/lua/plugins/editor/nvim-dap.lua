@@ -91,13 +91,24 @@ return {
                 return false
             end
 
-            dap.listeners.after.event_initialized["dapui_config"] = function()
+            dap.listeners.after.event_initialized["dapui_config"] = function(session)
                 neotree_was_open = is_neotree_open()
                 if neotree_was_open then
                     pcall(vim.cmd, "Neotree close")
                 end
                 dap_util.reset()
                 dapui.open({ reset = true })
+
+                -- codelldb: switch REPL default from `commands` to `evaluate` so
+                -- bare expressions (e.g. `my_var`) are evaluated instead of being
+                -- parsed as LLDB commands (which produces errors like
+                -- `'just_string' is not a valid command`). Use `/cmd <cmd>` or
+                -- a backtick prefix to run an LLDB command from the REPL.
+                if session and session.config and session.config.type == "codelldb" then
+                    pcall(function()
+                        session:request("_adapterSettings", { consoleMode = "evaluate" })
+                    end)
+                end
             end
             dap.listeners.before.event_terminated["dapui_config"] = function()
                 pcall(dapui.close, {})

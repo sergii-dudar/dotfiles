@@ -90,10 +90,22 @@ local function dap_eval(expr, callback)
         return
     end
 
+    -- Context selection per adapter:
+    -- • codelldb (Rust/C/C++): REPL context routes to LLDB's command interpreter,
+    --   so bare identifiers fail (`'foo' is not a valid command`). Use `watch`
+    --   to go through codelldb's expression evaluator.
+    -- • Other adapters (jdtls/java, debugpy/python, ...): `repl` is more flexible
+    --   (allows statements, side-effecting method calls, language-specific helpers).
+    local context = "repl"
+    local adapter_type = session.config and session.config.type
+    if adapter_type == "codelldb" or adapter_type == "lldb" then
+        context = "watch"
+    end
+
     session:request("evaluate", {
         expression = expr,
         frameId = session.current_frame and session.current_frame.id,
-        context = "repl",
+        context = context,
     }, function(err, resp)
         if err then
             vim.schedule(function()

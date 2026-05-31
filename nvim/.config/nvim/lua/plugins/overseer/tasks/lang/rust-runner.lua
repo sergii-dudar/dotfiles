@@ -88,10 +88,20 @@ function M.dap_launch()
             request = "launch",
             program = binary_info.program,
             cwd = binary_info.workspace_root,
-            -- cwd = "${workspaceFolder}",
             stopOnEntry = false,
             args = {},
-            console = "integratedTerminal",
+            -- codelldb uses `terminal` (not `console`); values: console|integrated|external.
+            terminal = "integrated",
+            -- Enable Rust language features in LLDB (pretty-printing, traits, etc.).
+            sourceLanguages = { "rust" },
+            -- Tell codelldb to use its native expression evaluator (better Rust support
+            -- than the default `simple` evaluator).
+            expressions = "native",
+            -- Source map: rustc embeds the rustc commit hash in source paths for stdlib;
+            -- remap so stepping into std works if the user has rust-src installed.
+            initCommands = {
+                "settings set target.inline-breakpoint-strategy always",
+            },
         })
     end)
 end
