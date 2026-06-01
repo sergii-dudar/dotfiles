@@ -1,4 +1,5 @@
 local java_util = require("utils.java.java-common")
+local junit_xml = require("modules.java.test-report.junit-xml")
 local log = require("utils.logging-util").new({
     name = "test-report-java",
     filename = "test-report.log",
@@ -6,7 +7,37 @@ local log = require("utils.logging-util").new({
 })
 
 ---@type test_report.LangAdapter
-local M = {}
+local M = {
+    group_separator = ".",
+    diagnostic_source = "junit",
+    trouble_source = "junit_diagnostics",
+}
+
+---@param dirs string[]
+---@return table<string, test_report.TestResult>
+function M.parse_results(dirs)
+    local results = {}
+    for _, dir in ipairs(dirs) do
+        for _, filepath in ipairs(junit_xml.list_report_files(dir)) do
+            for id, r in pairs(junit_xml.parse_file(filepath)) do
+                results[id] = r
+            end
+        end
+    end
+    return results
+end
+
+---@param id string  Full test id "pkg.Class#method"
+---@return test_report.IdDisplay
+function M.id_to_display(id)
+    local container_id, member = id:match("^(.+)#(.+)$")
+    if not container_id then
+        return { container = id, member = "", group = nil }
+    end
+    local group = container_id:match("^(.+)%.[^%.]+$")
+    local container_name = container_id:match("([^%.]+)$") or container_id
+    return { container = container_name, member = member, group = group }
+end
 
 -- project_root -> { "com/foo/Bar.java" -> "/abs/path/to/com/foo/Bar.java" }
 local class_index_cache = {}
@@ -79,10 +110,11 @@ function M.clear_cache()
     _test_query = nil
 end
 
+--- Resolve a container_id (fully-qualified Java class name) to a source file path.
 ---@param classname string Fully-qualified Java class name (e.g., "com.example.MyTest")
 ---@param report_dir string Path to report directory (used to derive project root)
 ---@return string|nil
-function M.classname_to_file(classname, report_dir)
+function M.id_to_file(classname, report_dir)
     -- Inner classes (Outer$Inner) live in the outer class file
     local outer_class = classname:match("^([^%$]+)") or classname
     local relative_path = outer_class:gsub("%.", "/") .. ".java"

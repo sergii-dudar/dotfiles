@@ -8,6 +8,11 @@ M.java = {
     junit = "junit",
     junit_report_dir = "/target/junit-report",
 }
+M.rust = {
+    cargo_test = "cargo-test",
+    cargo_test_diagnostics_source = "cargo_test_diagnostics",
+    nextest_report_dir = "/target/nextest/default",
+}
 M.output = {
     height_rows = 10,
 }

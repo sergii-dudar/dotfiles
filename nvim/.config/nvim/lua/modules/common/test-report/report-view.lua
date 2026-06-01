@@ -1,6 +1,12 @@
+-- Generic tree view for the test-report module.
+-- Renders results grouped by group → container → member (e.g. package → class → method,
+-- or crate::module → submodule → test_fn). Language-specifics are looked up
+-- from the registry by snapshot.filetype.
+
+local registry = require("modules.common.test-report.registry")
 local nio_util = require("utils.nio-util")
 local log = require("utils.logging-util").new({
-    name = "junit-report-view",
+    name = "test-report-view",
     filename = "test-report.log",
     level = vim.log.levels.DEBUG,
 })
@@ -9,9 +15,9 @@ local M = {}
 
 -- Result icons placed after the name (signals pass/fail)
 local result_icon = {
-    passed = "",
-    failed = "",
-    skipped = "",
+    passed = "",
+    failed = "",
+    skipped = "",
 }
 local result_hl = {
     passed = "DiagnosticOk",
@@ -20,7 +26,7 @@ local result_hl = {
 }
 
 -- Running indicator (shown during test rerun)
-local running_icon = ""
+local running_icon = ""
 local running_hl = "DiagnosticInfo"
 
 -- Tree drawing characters
@@ -32,56 +38,49 @@ local INITIAL_INDENT = " "
 
 local arrow_right = "▶"
 local arrow_down = "▼"
--- local arrow_right = "󰜴"
--- local arrow_down = "󰜮"
 
-local ns = vim.api.nvim_create_namespace("junit_report_view")
+local ns = vim.api.nvim_create_namespace("test_report_view")
 
----@class report_view.Snapshot
----@field results table<string, test_report.TestResult>
----@field positions table<string, table<string, number>>
----@field class_files table<string, string>
----@field filetype string|nil
-
----@class report_view.MethodNode
+---@class report_view.MemberNode
 ---@field name string
 ---@field status "passed"|"failed"|"skipped"
 ---@field time number|nil
 ---@field result test_report.TestResult
 ---@field id string
 
----@class report_view.ClassNode
----@field name string
----@field classname string
+---@class report_view.ContainerNode
+---@field name string                Display name (e.g. last segment of class FQN).
+---@field container_id string        Full container identifier (e.g. "com.foo.Bar" or "crate::mod::tests").
 ---@field file_path string|nil
 ---@field status "passed"|"failed"|"skipped"
 ---@field time number
----@field methods report_view.MethodNode[]
+---@field members report_view.MemberNode[]
 ---@field expanded boolean
 
----@class report_view.PackageNode
----@field name string
----@field full_path string
+---@class report_view.GroupNode
+---@field name string                Display name (possibly compacted, e.g. "com.foo.svc").
+---@field full_path string           Full dotted/colon path from root (for expansion state tracking).
 ---@field status "passed"|"failed"|"skipped"
----@field classes report_view.ClassNode[]
----@field children report_view.PackageNode[]
+---@field containers report_view.ContainerNode[]
+---@field children report_view.GroupNode[]
 ---@field expanded boolean
 
 ---@class report_view.LineInfo
----@field type "header"|"separator"|"blank"|"help"|"package"|"class"|"method"
----@field node? report_view.PackageNode|report_view.ClassNode|report_view.MethodNode
----@field class_node? report_view.ClassNode
----@field package_node? report_view.PackageNode
+---@field type "header"|"separator"|"blank"|"help"|"group"|"container"|"member"
+---@field node? report_view.GroupNode|report_view.ContainerNode|report_view.MemberNode
+---@field container_node? report_view.ContainerNode
+---@field group_node? report_view.GroupNode
 
 -- View state (singleton — only one tree view at a time)
 local state = {
     bufnr = nil, ---@type integer|nil
     winid = nil, ---@type integer|nil
     prev_winid = nil, ---@type integer|nil
-    tree = nil, ---@type report_view.PackageNode[]|nil
+    tree = nil, ---@type report_view.GroupNode[]|nil
     line_map = nil, ---@type report_view.LineInfo[]|nil
-    snapshot = nil, ---@type report_view.Snapshot|nil
-    running = nil, ---@type table<string, boolean>|nil  -- set of method IDs currently being rerun
+    snapshot = nil, ---@type test_report.Snapshot|nil
+    running = nil, ---@type table<string, boolean>|nil
+    adapter = nil, ---@type test_report.LangAdapter|nil
 }
 
 ---@param statuses string[]
@@ -95,10 +94,6 @@ local function aggregate_status(statuses)
     return "passed"
 end
 
---- Sort comparator: failed first, then alphabetical by name.
----@param a { status: string, name: string }
----@param b { status: string, name: string }
----@return boolean
 local function failed_first_cmp(a, b)
     if a.status ~= b.status then
         if a.status == "failed" then
@@ -111,186 +106,186 @@ local function failed_first_cmp(a, b)
     return a.name < b.name
 end
 
---- Build hierarchical tree from flat `classname#method` results.
---- Groups packages into a compacted trie: single-child intermediate nodes with no classes are collapsed.
----@param snapshot report_view.Snapshot
----@return report_view.PackageNode[]
-local function build_tree(snapshot)
-    -- Step 1: Collect classes grouped by package
-    local pkg_classes = {} ---@type table<string, report_view.ClassNode[]>
+--- Build hierarchical tree from flat `container_id#member` results.
+--- Uses the adapter for id splitting + group separator (e.g. "." for java, "::" for rust).
+---@param snapshot test_report.Snapshot
+---@param adapter test_report.LangAdapter
+---@return report_view.GroupNode[]
+local function build_tree(snapshot, adapter)
+    local group_sep = adapter.group_separator or "."
+
+    -- Step 1: Collect containers grouped by group path
+    local group_containers = {} ---@type table<string, report_view.ContainerNode[]>
 
     for id, result in pairs(snapshot.results) do
-        local classname, method_name = id:match("^(.+)#(.+)$")
-        if classname and method_name then
-            local pkg_name = classname:match("^(.+)%.") or "(default)"
-            if not pkg_classes[pkg_name] then
-                pkg_classes[pkg_name] = {}
+        local container_id = id:match("^(.+)#(.+)$")
+        if container_id then
+            local display = adapter.id_to_display(id)
+            local group_name = display.group or "(default)"
+            if not group_containers[group_name] then
+                group_containers[group_name] = {}
             end
 
-            -- Find or create class entry
-            local cls
-            for _, c in ipairs(pkg_classes[pkg_name]) do
-                if c.classname == classname then
-                    cls = c
+            local cont
+            for _, c in ipairs(group_containers[group_name]) do
+                if c.container_id == container_id then
+                    cont = c
                     break
                 end
             end
-            if not cls then
-                cls = {
-                    name = classname:match("([^%.]+)$"),
-                    classname = classname,
-                    file_path = snapshot.class_files and snapshot.class_files[classname],
-                    methods = {},
+            if not cont then
+                cont = {
+                    name = display.container,
+                    container_id = container_id,
+                    file_path = snapshot.container_files and snapshot.container_files[container_id],
+                    members = {},
                     expanded = true,
                     time = 0,
                 }
-                table.insert(pkg_classes[pkg_name], cls)
+                table.insert(group_containers[group_name], cont)
             end
 
-            table.insert(cls.methods, {
-                name = method_name,
+            table.insert(cont.members, {
+                name = display.member,
                 status = result.status,
                 time = result.time,
                 result = result,
                 id = id,
             })
-            cls.time = (cls.time or 0) + (result.time or 0)
+            cont.time = (cont.time or 0) + (result.time or 0)
         end
     end
 
-    -- Sort methods and compute class statuses
-    for _, cls_list in pairs(pkg_classes) do
-        for _, cls in ipairs(cls_list) do
-            table.sort(cls.methods, failed_first_cmp)
-            cls.status = aggregate_status(vim.tbl_map(function(m)
+    -- Sort members and compute container statuses
+    for _, cont_list in pairs(group_containers) do
+        for _, cont in ipairs(cont_list) do
+            table.sort(cont.members, failed_first_cmp)
+            cont.status = aggregate_status(vim.tbl_map(function(m)
                 return m.status
-            end, cls.methods))
+            end, cont.members))
         end
-        table.sort(cls_list, failed_first_cmp)
+        table.sort(cont_list, failed_first_cmp)
     end
 
-    -- Step 2: Build trie from package names
-    local trie_root = { children_map = {}, classes = {} }
-    for pkg_name, classes in pairs(pkg_classes) do
-        if pkg_name == "(default)" then
-            for _, cls in ipairs(classes) do
-                table.insert(trie_root.classes, cls)
+    -- Step 2: Build trie from group names
+    local trie_root = { children_map = {}, containers = {} }
+    for group_name, containers in pairs(group_containers) do
+        if group_name == "(default)" then
+            for _, cont in ipairs(containers) do
+                table.insert(trie_root.containers, cont)
             end
         else
-            local segments = vim.split(pkg_name, ".", { plain = true })
+            local segments = vim.split(group_name, group_sep, { plain = true })
             local node = trie_root
             for _, seg in ipairs(segments) do
                 if not node.children_map[seg] then
-                    node.children_map[seg] = { children_map = {}, classes = {} }
+                    node.children_map[seg] = { children_map = {}, containers = {} }
                 end
                 node = node.children_map[seg]
             end
-            node.classes = classes
+            node.containers = containers
         end
     end
 
-    -- Step 3: Compact trie and convert to PackageNode[]
-    -- Collapses single-child chains with no classes into one node (e.g. "ua.raiffeisen.core")
+    -- Step 3: Compact trie and convert to GroupNode[]
     local function compact(node, parent_path)
         local result = {}
         for seg, child in pairs(node.children_map) do
             local name_parts = { seg }
             local current = child
-            while vim.tbl_count(current.children_map) == 1 and #current.classes == 0 do
+            while vim.tbl_count(current.children_map) == 1 and #current.containers == 0 do
                 local next_seg, next_child = next(current.children_map)
                 table.insert(name_parts, next_seg)
                 current = next_child
             end
-            local compacted_name = table.concat(name_parts, ".")
-            local full_path = parent_path ~= "" and (parent_path .. "." .. compacted_name) or compacted_name
-            local pkg_node = {
+            local compacted_name = table.concat(name_parts, group_sep)
+            local full_path = parent_path ~= "" and (parent_path .. group_sep .. compacted_name) or compacted_name
+            local group_node = {
                 name = compacted_name,
                 full_path = full_path,
                 status = "passed",
-                classes = current.classes or {},
+                containers = current.containers or {},
                 children = {},
                 expanded = true,
             }
-            pkg_node.children = compact(current, full_path)
+            group_node.children = compact(current, full_path)
             local statuses = {}
-            for _, cls in ipairs(pkg_node.classes) do
-                table.insert(statuses, cls.status)
+            for _, cont in ipairs(group_node.containers) do
+                table.insert(statuses, cont.status)
             end
-            for _, child_pkg in ipairs(pkg_node.children) do
-                table.insert(statuses, child_pkg.status)
+            for _, child_group in ipairs(group_node.children) do
+                table.insert(statuses, child_group.status)
             end
             if #statuses > 0 then
-                pkg_node.status = aggregate_status(statuses)
+                group_node.status = aggregate_status(statuses)
             end
-            table.insert(result, pkg_node)
+            table.insert(result, group_node)
         end
         table.sort(result, failed_first_cmp)
         return result
     end
 
-    local packages = compact(trie_root, "")
+    local groups = compact(trie_root, "")
 
-    -- Handle default package classes
-    if #trie_root.classes > 0 then
-        table.sort(trie_root.classes, failed_first_cmp)
-        local default_pkg = {
+    -- Handle default group containers
+    if #trie_root.containers > 0 then
+        table.sort(trie_root.containers, failed_first_cmp)
+        local default_group = {
             name = "(default)",
             full_path = "(default)",
             status = aggregate_status(vim.tbl_map(function(c)
                 return c.status
-            end, trie_root.classes)),
-            classes = trie_root.classes,
+            end, trie_root.containers)),
+            containers = trie_root.containers,
             children = {},
             expanded = true,
         }
-        table.insert(packages, 1, default_pkg)
+        table.insert(groups, 1, default_group)
     end
 
-    return packages
+    return groups
 end
 
---- Recursively find the first class in a package subtree.
----@param pkg report_view.PackageNode
----@return report_view.ClassNode|nil
-local function find_first_class(pkg)
-    if #pkg.classes > 0 then
-        return pkg.classes[1]
+--- Recursively find the first container in a group subtree.
+---@param group report_view.GroupNode
+---@return report_view.ContainerNode|nil
+local function find_first_container(group)
+    if #group.containers > 0 then
+        return group.containers[1]
     end
-    for _, child in ipairs(pkg.children) do
-        local cls = find_first_class(child)
-        if cls then
-            return cls
+    for _, child in ipairs(group.children) do
+        local cont = find_first_container(child)
+        if cont then
+            return cont
         end
     end
     return nil
 end
 
---- Recursively collect all method IDs from a package subtree.
----@param pkg report_view.PackageNode
+--- Recursively collect all member IDs from a group subtree.
+---@param group report_view.GroupNode
 ---@param ids table<string, boolean>
-local function collect_method_ids(pkg, ids)
-    for _, cls in ipairs(pkg.classes) do
-        for _, meth in ipairs(cls.methods) do
-            ids[meth.id] = true
+local function collect_member_ids(group, ids)
+    for _, cont in ipairs(group.containers) do
+        for _, mem in ipairs(cont.members) do
+            ids[mem.id] = true
         end
     end
-    for _, child in ipairs(pkg.children) do
-        collect_method_ids(child, ids)
+    for _, child in ipairs(group.children) do
+        collect_member_ids(child, ids)
     end
 end
 
---- Collect expansion state from the tree keyed by full_path/classname.
----@param tree report_view.PackageNode[]
----@return table<string, boolean>
+--- Collect expansion state from the tree keyed by full_path/container_id.
 local function collect_expansion_state(tree)
     local exp = {}
-    local function walk(packages)
-        for _, pkg in ipairs(packages) do
-            exp["pkg:" .. pkg.full_path] = pkg.expanded
-            for _, cls in ipairs(pkg.classes) do
-                exp["cls:" .. cls.classname] = cls.expanded
+    local function walk(groups)
+        for _, group in ipairs(groups) do
+            exp["grp:" .. group.full_path] = group.expanded
+            for _, cont in ipairs(group.containers) do
+                exp["cnt:" .. cont.container_id] = cont.expanded
             end
-            walk(pkg.children)
+            walk(group.children)
         end
     end
     walk(tree)
@@ -298,42 +293,33 @@ local function collect_expansion_state(tree)
 end
 
 --- Restore expansion state onto a rebuilt tree.
----@param tree report_view.PackageNode[]
----@param exp table<string, boolean>
 local function restore_expansion_state(tree, exp)
-    local function walk(packages)
-        for _, pkg in ipairs(packages) do
-            local key = "pkg:" .. pkg.full_path
+    local function walk(groups)
+        for _, group in ipairs(groups) do
+            local key = "grp:" .. group.full_path
             if exp[key] ~= nil then
-                pkg.expanded = exp[key]
+                group.expanded = exp[key]
             end
-            for _, cls in ipairs(pkg.classes) do
-                local cls_key = "cls:" .. cls.classname
-                if exp[cls_key] ~= nil then
-                    cls.expanded = exp[cls_key]
+            for _, cont in ipairs(group.containers) do
+                local cnt_key = "cnt:" .. cont.container_id
+                if exp[cnt_key] ~= nil then
+                    cont.expanded = exp[cnt_key]
                 end
             end
-            walk(pkg.children)
+            walk(group.children)
         end
     end
     walk(tree)
 end
 
---- Rebuild tree from snapshot, preserving expansion state from previous tree.
----@param old_tree report_view.PackageNode[]
----@param snapshot report_view.Snapshot
----@return report_view.PackageNode[]
-local function rebuild_tree(old_tree, snapshot)
+local function rebuild_tree(old_tree, snapshot, adapter)
     local exp = collect_expansion_state(old_tree)
-    local new_tree = build_tree(snapshot)
+    local new_tree = build_tree(snapshot, adapter)
     restore_expansion_state(new_tree, exp)
     return new_tree
 end
 
 --- Build a line from parts, tracking highlight byte ranges.
----@param parts { [1]: string, [2]: string|nil }[]
----@return string text
----@return { [1]: number, [2]: number, [3]: string }[] highlights {col_start, col_end, hl_group}
 local function format_line(parts)
     local text = ""
     local hls = {}
@@ -347,10 +333,6 @@ local function format_line(parts)
     return text, hls
 end
 
---- Render the tree into lines + line_map + highlights.
----@return string[] lines
----@return report_view.LineInfo[] line_map
----@return { [1]: number, [2]: number, [3]: number, [4]: string }[] highlights {line, col_start, col_end, hl_group}
 local function render()
     local tree = state.tree
     if not tree then
@@ -386,11 +368,8 @@ local function render()
         total_time = total_time + (result.time or 0)
     end
 
-    -- Header
     local summary_parts = {
         { " ❮❮❮", "GrayBold" },
-        -- { "   Test Report", "Title" },
-        -- { " · ", "GrenBold" }
     }
     table.insert(summary_parts, { " " .. tostring(total), "PurpleBold" })
     table.insert(summary_parts, { "/", "DiagnosticInfo" })
@@ -406,106 +385,98 @@ local function render()
     local header_text, header_hls = format_line(summary_parts)
     add_line(header_text, { type = "header" }, header_hls)
 
-    -- Separator
-    -- local sep = string.rep("─", math.max(#header_text, 60))
-    -- add_line(sep, { type = "separator" }, { { 0, #sep, "Comment" } })
-
-    -- Blank line
-    -- add_line("", { type = "blank" })
-
-    -- Pre-compute running state for classes and packages (bubbles up from method IDs)
-    local is_running_cls = {}
-    local is_running_pkg = {}
+    -- Pre-compute running state for containers and groups (bubbles up from member IDs)
+    local is_running_cnt = {}
+    local is_running_grp = {}
     if state.running then
-        local function compute_running(pkgs)
-            for _, pkg in ipairs(pkgs) do
-                local pkg_running = false
-                for _, cls in ipairs(pkg.classes) do
-                    for _, meth in ipairs(cls.methods) do
-                        if state.running[meth.id] then
-                            is_running_cls[cls.classname] = true
-                            pkg_running = true
+        local function compute_running(groups)
+            for _, group in ipairs(groups) do
+                local grp_running = false
+                for _, cont in ipairs(group.containers) do
+                    for _, mem in ipairs(cont.members) do
+                        if state.running[mem.id] then
+                            is_running_cnt[cont.container_id] = true
+                            grp_running = true
                             break
                         end
                     end
                 end
-                compute_running(pkg.children)
-                for _, child in ipairs(pkg.children) do
-                    if is_running_pkg[child.full_path] then
-                        pkg_running = true
+                compute_running(group.children)
+                for _, child in ipairs(group.children) do
+                    if is_running_grp[child.full_path] then
+                        grp_running = true
                     end
                 end
-                if pkg_running then
-                    is_running_pkg[pkg.full_path] = true
+                if grp_running then
+                    is_running_grp[group.full_path] = true
                 end
             end
         end
         compute_running(tree)
     end
 
-    -- Recursive rendering of package children (sub-packages + classes)
-    ---@param pkg report_view.PackageNode
+    -- Recursive rendering of group children (sub-groups + containers)
+    ---@param group report_view.GroupNode
     ---@param prefix string
-    local function render_children(pkg, prefix)
-        -- Combined child list: classes first, then sub-packages
+    local function render_children(group, prefix)
         local items = {}
-        for _, cls in ipairs(pkg.classes) do
-            table.insert(items, { kind = "class", cls = cls })
+        for _, cont in ipairs(group.containers) do
+            table.insert(items, { kind = "container", cont = cont })
         end
-        for _, child in ipairs(pkg.children) do
-            table.insert(items, { kind = "package", child = child })
+        for _, child in ipairs(group.children) do
+            table.insert(items, { kind = "group", child = child })
         end
 
         for i, item in ipairs(items) do
             local is_last = i == #items
             local branch = is_last and BRANCH_LAST or BRANCH
-            local cont = is_last and INDENT or CONTINUATION
+            local cont_pfx = is_last and INDENT or CONTINUATION
 
-            if item.kind == "class" then
-                local cls = item.cls
-                local cls_fold = cls.expanded and arrow_down or arrow_right
-                local cls_running = is_running_cls[cls.classname]
-                local cls_icon = cls_running and running_icon or result_icon[cls.status]
-                local cls_icon_hl = cls_running and running_hl or result_hl[cls.status]
-                local time_str = cls.time and string.format(" (%.2fs)", cls.time) or ""
+            if item.kind == "container" then
+                local cont = item.cont
+                local cnt_fold = cont.expanded and arrow_down or arrow_right
+                local cnt_running = is_running_cnt[cont.container_id]
+                local cnt_icon = cnt_running and running_icon or result_icon[cont.status]
+                local cnt_icon_hl = cnt_running and running_hl or result_hl[cont.status]
+                local time_str = cont.time and string.format(" (%.2fs)", cont.time) or ""
 
-                local cls_text, cls_hls = format_line({
+                local cnt_text, cnt_hls = format_line({
                     { prefix .. branch, "Comment" },
-                    { cls_fold .. " ", "Comment" },
-                    { cls.name, "Type" },
-                    { " " .. cls_icon, cls_icon_hl },
+                    { cnt_fold .. " ", "Comment" },
+                    { cont.name, "Type" },
+                    { " " .. cnt_icon, cnt_icon_hl },
                     { time_str, "Comment" },
                 })
-                add_line(cls_text, { type = "class", node = cls, package_node = pkg }, cls_hls)
+                add_line(cnt_text, { type = "container", node = cont, group_node = group }, cnt_hls)
 
-                if cls.expanded then
-                    for meth_idx, meth in ipairs(cls.methods) do
-                        local is_last_meth = meth_idx == #cls.methods
-                        local meth_branch = is_last_meth and BRANCH_LAST or BRANCH
-                        local meth_running = state.running and state.running[meth.id]
-                        local meth_icon = meth_running and running_icon or result_icon[meth.status]
-                        local meth_icon_hl = meth_running and running_hl or result_hl[meth.status]
-                        local meth_time = meth.time and string.format(" (%.3fs)", meth.time) or ""
+                if cont.expanded then
+                    for mem_idx, mem in ipairs(cont.members) do
+                        local is_last_mem = mem_idx == #cont.members
+                        local mem_branch = is_last_mem and BRANCH_LAST or BRANCH
+                        local mem_running = state.running and state.running[mem.id]
+                        local mem_icon = mem_running and running_icon or result_icon[mem.status]
+                        local mem_icon_hl = mem_running and running_hl or result_hl[mem.status]
+                        local mem_time = mem.time and string.format(" (%.3fs)", mem.time) or ""
 
-                        local meth_name_hl = meth.status == "failed" and "DiagnosticError" or nil
-                        local meth_text, meth_hls = format_line({
-                            { prefix .. cont, "Comment" },
-                            { meth_branch, "Comment" },
-                            { meth.name, meth_name_hl },
-                            { " " .. meth_icon, meth_icon_hl },
-                            { meth_time, "Comment" },
+                        local mem_name_hl = mem.status == "failed" and "DiagnosticError" or nil
+                        local mem_text, mem_hls = format_line({
+                            { prefix .. cont_pfx, "Comment" },
+                            { mem_branch, "Comment" },
+                            { mem.name, mem_name_hl },
+                            { " " .. mem_icon, mem_icon_hl },
+                            { mem_time, "Comment" },
                         })
                         add_line(
-                            meth_text,
-                            { type = "method", node = meth, class_node = cls, package_node = pkg },
-                            meth_hls
+                            mem_text,
+                            { type = "member", node = mem, container_node = cont, group_node = group },
+                            mem_hls
                         )
                     end
                 end
             else
                 local child = item.child
                 local fold_char = child.expanded and arrow_down or arrow_right
-                local child_running = is_running_pkg[child.full_path]
+                local child_running = is_running_grp[child.full_path]
                 local child_icon = child_running and running_icon or result_icon[child.status]
                 local child_icon_hl = child_running and running_hl or result_hl[child.status]
 
@@ -515,33 +486,33 @@ local function render()
                     { child.name, "Directory" },
                     { " " .. child_icon, child_icon_hl },
                 })
-                add_line(child_text, { type = "package", node = child }, child_hls)
+                add_line(child_text, { type = "group", node = child }, child_hls)
 
                 if child.expanded then
-                    render_children(child, prefix .. cont)
+                    render_children(child, prefix .. cont_pfx)
                 end
             end
         end
     end
 
-    -- Packages
-    for pkg_idx, pkg in ipairs(tree) do
-        local pkg_running = is_running_pkg[pkg.full_path]
-        local icon = pkg_running and running_icon or result_icon[pkg.status]
-        local icon_hl = pkg_running and running_hl or result_hl[pkg.status]
-        local fold_char = pkg.expanded and arrow_down or arrow_right
-        local pkg_text, pkg_hls = format_line({
+    -- Top-level groups
+    for grp_idx, group in ipairs(tree) do
+        local grp_running = is_running_grp[group.full_path]
+        local icon = grp_running and running_icon or result_icon[group.status]
+        local icon_hl = grp_running and running_hl or result_hl[group.status]
+        local fold_char = group.expanded and arrow_down or arrow_right
+        local grp_text, grp_hls = format_line({
             { INITIAL_INDENT .. fold_char .. " ", "Comment" },
-            { pkg.name, "Directory" },
+            { group.name, "Directory" },
             { " " .. icon, icon_hl },
         })
-        add_line(pkg_text, { type = "package", node = pkg }, pkg_hls)
+        add_line(grp_text, { type = "group", node = group }, grp_hls)
 
-        if pkg.expanded then
-            render_children(pkg, INITIAL_INDENT)
+        if group.expanded then
+            render_children(group, INITIAL_INDENT)
         end
 
-        if pkg_idx < #tree then
+        if grp_idx < #tree then
             add_line("", { type = "blank" })
         end
     end
@@ -549,7 +520,6 @@ local function render()
     return lines, line_map, all_hls
 end
 
---- Refresh buffer content from current tree state.
 local function refresh()
     if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
         return
@@ -571,8 +541,6 @@ local function refresh()
     end
 end
 
---- Find the non-tree window to use for navigation and rerun.
----@return integer|nil
 local function get_target_win()
     if state.prev_winid and vim.api.nvim_win_is_valid(state.prev_winid) then
         return state.prev_winid
@@ -594,7 +562,6 @@ local function get_cursor_node()
     return state.line_map[line]
 end
 
--- Navigate to test source file (and optionally to the method line).
 local function action_goto()
     local info = get_cursor_node()
     if not info then
@@ -602,20 +569,20 @@ local function action_goto()
     end
 
     local file_path, line
-    if info.type == "method" then
-        file_path = info.class_node.file_path
+    if info.type == "member" then
+        file_path = info.container_node.file_path
         if file_path and state.snapshot.positions then
             local positions = state.snapshot.positions[file_path]
             if positions then
                 line = positions[info.node.name]
             end
         end
-    elseif info.type == "class" then
+    elseif info.type == "container" then
         file_path = info.node.file_path
-    elseif info.type == "package" then
-        local cls = find_first_class(info.node)
-        if cls then
-            file_path = cls.file_path
+    elseif info.type == "group" then
+        local cont = find_first_container(info.node)
+        if cont then
+            file_path = cont.file_path
         end
     end
 
@@ -636,33 +603,28 @@ local function action_goto()
     vim.cmd("normal! zz")
 end
 
--- Show test output for the method node under cursor.
 local function action_output()
     local info = get_cursor_node()
-    if not info or info.type ~= "method" then
-        vim.notify("test-report: select a test method to view output", vim.log.levels.INFO)
+    if not info or info.type ~= "member" then
+        vim.notify("test-report: select a test member to view output", vim.log.levels.INFO)
         return
     end
 
-    require("modules.java.test-report").show_output_for(info.node.name, info.node.result)
+    require("modules.common.test-report").show_output_for(info.node.name, info.node.result)
 end
 
--- Toggle fold on package or class node.
 local function action_toggle_fold()
     local info = get_cursor_node()
     if not info then
         return
     end
 
-    if info.type == "package" or info.type == "class" then
+    if info.type == "group" or info.type == "container" then
         info.node.expanded = not info.node.expanded
         refresh()
     end
 end
 
---- Rerun tests at cursor level (method/class/package).
---- Navigates to source file first so the existing test runner can resolve
---- classpath, module path, and JVM method signatures correctly.
 ---@param is_debug boolean|nil
 local function action_rerun(is_debug)
     local info = get_cursor_node()
@@ -676,15 +638,14 @@ local function action_rerun(is_debug)
         return
     end
 
-    if info.type == "method" then
-        local file_path = info.class_node.file_path
+    if info.type == "member" then
+        local file_path = info.container_node.file_path
         if not file_path then
             vim.notify("test-report: cannot resolve file for rerun", vim.log.levels.WARN)
             return
         end
         vim.api.nvim_set_current_win(win)
         vim.cmd("edit " .. vim.fn.fnameescape(file_path))
-        -- Position cursor at the test method for correct resolution
         if state.snapshot.positions then
             local positions = state.snapshot.positions[file_path]
             if positions and positions[info.node.name] then
@@ -699,7 +660,7 @@ local function action_rerun(is_debug)
         end)
         state.running = { [info.node.id] = true }
         refresh()
-    elseif info.type == "class" then
+    elseif info.type == "container" then
         local file_path = info.node.file_path
         if not file_path then
             vim.notify("test-report: cannot resolve file for rerun", vim.log.levels.WARN)
@@ -714,54 +675,58 @@ local function action_rerun(is_debug)
             })
         end)
         local ids = {}
-        for _, meth in ipairs(info.node.methods) do
-            ids[meth.id] = true
+        for _, mem in ipairs(info.node.members) do
+            ids[mem.id] = true
         end
         state.running = ids
         refresh()
-    elseif info.type == "package" then
-        local first_class = find_first_class(info.node)
-        if not first_class or not first_class.file_path then
-            vim.notify("test-report: cannot resolve file for package rerun", vim.log.levels.WARN)
+    elseif info.type == "group" then
+        local first_container = find_first_container(info.node)
+        if not first_container or not first_container.file_path then
+            vim.notify("test-report: cannot resolve file for group rerun", vim.log.levels.WARN)
             return
         end
         vim.api.nvim_set_current_win(win)
-        vim.cmd("edit " .. vim.fn.fnameescape(first_class.file_path))
-        local pkg_name = info.node.full_path
+        vim.cmd("edit " .. vim.fn.fnameescape(first_container.file_path))
+        local group_name = info.node.full_path
         nio_util.run(function()
             require("plugins.overseer.overseer-util").run_test({
                 test_type = task.test_type.ALL_DIR_TESTS,
                 is_debug = is_debug,
-                package_name = pkg_name,
+                package_name = group_name,
             })
         end)
         local ids = {}
-        collect_method_ids(info.node, ids)
+        collect_member_ids(info.node, ids)
         state.running = ids
         refresh()
     end
 end
 
---- Reload the tree from the current full snapshot (discards accumulated state).
 local function action_full_refresh()
-    local snapshot = require("modules.java.test-report").get_report_snapshot()
+    local snapshot = require("modules.common.test-report").get_report_snapshot()
     if vim.tbl_isempty(snapshot.results) then
         vim.notify("test-report: no test results available", vim.log.levels.WARN)
         return
     end
+    local adapter = registry.get(snapshot.filetype)
+    if not adapter then
+        vim.notify("test-report: no adapter for filetype: " .. tostring(snapshot.filetype), vim.log.levels.WARN)
+        return
+    end
+    state.adapter = adapter
     state.snapshot = {
         results = vim.deepcopy(snapshot.results),
         positions = snapshot.positions,
-        class_files = vim.deepcopy(snapshot.class_files),
+        container_files = vim.deepcopy(snapshot.container_files),
         filetype = snapshot.filetype,
     }
     state.running = nil
-    state.tree = build_tree(state.snapshot)
+    state.tree = build_tree(state.snapshot, adapter)
     refresh()
     log.info("tree view full refresh")
 end
 
---- Jump to next or previous failed test line.
 ---@param direction 1|-1
 local function action_jump_failed(direction)
     if not state.line_map then
@@ -770,25 +735,23 @@ local function action_jump_failed(direction)
     local cur = vim.api.nvim_win_get_cursor(0)[1]
     local total = #state.line_map
 
-    local function is_failed_method(idx)
+    local function is_failed_member(idx)
         local info = state.line_map[idx]
-        return info and info.type == "method" and info.node and info.node.status == "failed"
+        return info and info.type == "member" and info.node and info.node.status == "failed"
     end
 
-    -- Search from cursor in direction
     local i = cur + direction
     while i >= 1 and i <= total do
-        if is_failed_method(i) then
+        if is_failed_member(i) then
             vim.api.nvim_win_set_cursor(0, { i, 0 })
             return
         end
         i = i + direction
     end
 
-    -- Wrap around
     i = direction == 1 and 1 or total
     while i ~= cur do
-        if is_failed_method(i) then
+        if is_failed_member(i) then
             vim.api.nvim_win_set_cursor(0, { i, 0 })
             return
         end
@@ -827,7 +790,7 @@ local function action_show_help()
     vim.bo[help_buf].modifiable = false
     vim.bo[help_buf].bufhidden = "wipe"
 
-    local help_ns = vim.api.nvim_create_namespace("junit_report_help")
+    local help_ns = vim.api.nvim_create_namespace("test_report_view_help")
     for _, hl in ipairs(hls) do
         vim.api.nvim_buf_add_highlight(help_buf, help_ns, hl[4], hl[1], hl[2], hl[3])
     end
@@ -856,7 +819,6 @@ local function action_show_help()
     end, { buffer = help_buf, silent = true, nowait = true })
 end
 
----@param buf integer
 local function setup_keymaps(buf)
     local function map(lhs, fn, desc)
         vim.keymap.set("n", lhs, fn, { buffer = buf, silent = true, nowait = true, desc = desc })
@@ -884,7 +846,6 @@ local function setup_keymaps(buf)
         M.close()
     end, "Close")
 
-    -- Mouse: left click → goto, right click → fold/unfold
     map("<LeftRelease>", action_goto, "Go to test source (mouse)")
     map("<MiddleMouse>", function()
         local pos = vim.fn.getmousepos()
@@ -895,7 +856,6 @@ local function setup_keymaps(buf)
     end, "Toggle fold (mouse)")
 end
 
---- Close the tree view window.
 function M.close()
     if state.winid and vim.api.nvim_win_is_valid(state.winid) then
         vim.api.nvim_win_close(state.winid, true)
@@ -904,24 +864,28 @@ function M.close()
     state.bufnr = nil
 end
 
---- Open the tree view with the given report snapshot.
----@param snapshot report_view.Snapshot
+---@param snapshot test_report.Snapshot
 function M.open(snapshot)
-    -- Deep copy results and class_files so the tree owns its accumulated state
+    local adapter = registry.get(snapshot.filetype)
+    if not adapter then
+        vim.notify("test-report: no adapter for filetype: " .. tostring(snapshot.filetype), vim.log.levels.WARN)
+        return
+    end
+    state.adapter = adapter
     state.snapshot = {
         results = vim.deepcopy(snapshot.results),
         positions = snapshot.positions,
-        class_files = vim.deepcopy(snapshot.class_files),
+        container_files = vim.deepcopy(snapshot.container_files),
         filetype = snapshot.filetype,
     }
-    state.tree = build_tree(state.snapshot)
+    state.tree = build_tree(state.snapshot, adapter)
     state.prev_winid = vim.api.nvim_get_current_win()
 
     state.bufnr = vim.api.nvim_create_buf(false, true)
     vim.bo[state.bufnr].buftype = "nofile"
     vim.bo[state.bufnr].bufhidden = "wipe"
     vim.bo[state.bufnr].swapfile = false
-    vim.bo[state.bufnr].filetype = "junit-report-view"
+    vim.bo[state.bufnr].filetype = "test-report-view"
 
     vim.cmd("botright vsplit")
     state.winid = vim.api.nvim_get_current_win()
@@ -948,21 +912,19 @@ function M.open(snapshot)
         end,
     })
 
-    -- Position cursor on first package line (after header + separator + blank)
     if state.line_map then
         for i, info in ipairs(state.line_map) do
-            if info.type == "package" then
+            if info.type == "group" then
                 vim.api.nvim_win_set_cursor(state.winid, { i, 0 })
                 break
             end
         end
     end
 
-    log.info("tree view opened with " .. #state.tree .. " packages")
+    log.info("tree view opened with " .. #state.tree .. " groups")
 end
 
---- Toggle the tree view: close if open, open if closed.
----@param snapshot report_view.Snapshot
+---@param snapshot test_report.Snapshot
 function M.toggle(snapshot)
     if state.bufnr and vim.api.nvim_buf_is_valid(state.bufnr) then
         M.close()
@@ -971,27 +933,27 @@ function M.toggle(snapshot)
     M.open(snapshot)
 end
 
---- Incrementally merge new results into the tree view if it is currently open.
---- Rebuilds the tree preserving expansion state.
----@param snapshot report_view.Snapshot
+---@param snapshot test_report.Snapshot
 function M.refresh_if_open(snapshot)
     if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
         return
     end
-    -- Merge results into accumulated snapshot
+    local adapter = state.adapter or registry.get(snapshot.filetype)
+    if not adapter then
+        return
+    end
+    state.adapter = adapter
     for id, result in pairs(snapshot.results) do
         state.snapshot.results[id] = result
     end
-    for classname, file_path in pairs(snapshot.class_files or {}) do
-        state.snapshot.class_files[classname] = file_path
+    for container_id, file_path in pairs(snapshot.container_files or {}) do
+        state.snapshot.container_files[container_id] = file_path
     end
     for file_path, positions in pairs(snapshot.positions or {}) do
         state.snapshot.positions[file_path] = positions
     end
-    -- Clear running indicators now that new results have arrived
     state.running = nil
-    -- Rebuild tree preserving expansion state
-    state.tree = rebuild_tree(state.tree, state.snapshot)
+    state.tree = rebuild_tree(state.tree, state.snapshot, adapter)
     refresh()
     log.info("tree view refreshed (incremental)")
 end

@@ -103,21 +103,12 @@ return {
             { "<leader>tm", build_run_test(task.test_type.SELECTED_MODULES_TESTS), desc = "Run All Tests in Selected Modules", },
             { "<leader>tM", build_run_test(task.test_type.ALL_MODULES_TESTS), desc = "Run All Tests in All Modules", },
             { "<leader>tl", function() require("plugins.overseer.overseer-util").restart_last() end, desc = "Re-Run Last" },
-            { "<leader>to", function() require("modules.java.test-report").show_test_output() end, desc = "Toggle Test Output" },
-            { "<leader>tO", function() require("modules.java.test-report").hide_test_output() end, desc = "Hide Test Output" },
-            { "<leader>tL", function() require("modules.java.test-report").load_existing() end, desc = "Load Last Test Report" },
-            { "<leader>tv", function() require("modules.java.test-report").open_tree_view() end, desc = "Test Report Tree View" },
-            { "<leader>txx", "<cmd>Trouble junit_diagnostics toggle<cr>", desc = "Tests junit diagnostics trouble" },
-            { "<leader>txd", function()
-                Snacks.picker.diagnostics({
-                     -- severity = vim.diagnostic.severity.ERROR,
-                     filter = {
-                        filter = function(item, filter)
-                            return item.item.source == constants.java.junit
-                        end,
-                     },
-                })
-            end, desc = "Tests junit diagnostics picker" },
+            { "<leader>to", function() require("plugins.overseer.test-report-dispatcher").show_output() end, desc = "Toggle Test Output" },
+            { "<leader>tO", function() require("plugins.overseer.test-report-dispatcher").hide_output() end, desc = "Hide Test Output" },
+            { "<leader>tL", function() require("plugins.overseer.test-report-dispatcher").load_existing() end, desc = "Load Last Test Report" },
+            { "<leader>tv", function() require("plugins.overseer.test-report-dispatcher").open_tree_view() end, desc = "Test Report Tree View" },
+            { "<leader>txx", function() require("plugins.overseer.test-report-dispatcher").trouble_toggle() end, desc = "Tests diagnostics trouble" },
+            { "<leader>txd", function() require("plugins.overseer.test-report-dispatcher").picker_diagnostics() end, desc = "Tests diagnostics picker" },
         },
         config = function(_, opts)
             local overseer = require("overseer")

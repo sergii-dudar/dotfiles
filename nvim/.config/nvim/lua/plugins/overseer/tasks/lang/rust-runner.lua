@@ -110,4 +110,15 @@ function M.dap_launch_rerun()
     M.dap_launch()
 end
 
+---@param context task.lang.Context
+---@return task.lang.test.TestCmd
+function M.build_run_test_cmd(context)
+    return require("modules.rust.cargo-test").build_run_test_cmd(context)
+end
+
+---@return string|nil
+function M.get_test_report_dir()
+    return require("modules.rust.cargo-test").get_test_report_dir()
+end
+
 return M

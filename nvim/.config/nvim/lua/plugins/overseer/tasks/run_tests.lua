@@ -2,6 +2,19 @@ local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolve
 
 local M = {}
 
+-- filetype -> overseer component name that consumes test reports for that lang.
+-- Used to pick the right report processor (Java junit XML vs Rust cargo/nextest).
+local ft_to_report_component = {
+    java = "test_report.junit_report",
+    rust = "test_report.cargo_report",
+}
+
+---@param filetype string|nil
+---@return string|nil
+local function report_component_for(filetype)
+    return filetype and ft_to_report_component[filetype] or nil
+end
+
 local resolve_report_dir = function()
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     if type_resolver and type_resolver.get_test_report_dir then
@@ -32,9 +45,10 @@ function M.build_taks()
             local result_cmd = test_cmd.cmd
             local report_dir = test_cmd.report_dir or resolve_report_dir()
             local components = { "on_exit_set_status" }
-            if report_dir then
+            local report_component = report_component_for(vim.bo.filetype)
+            if report_dir and report_component then
                 table.insert(components, 1, {
-                    "test_report.junit_report",
+                    report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
                 })
@@ -42,7 +56,6 @@ function M.build_taks()
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
                 table.insert(components, 2, "on_result_diagnostics")
             end
-            -- dd(result_cmd)
             return {
                 cmd = result_cmd,
                 components = components,
@@ -63,9 +76,10 @@ function M.build_debug_taks()
             local result_cmd = test_cmd.cmd
             local report_dir = test_cmd.report_dir or resolve_report_dir()
             local components = { "on_exit_set_status", "debug.dap_ctrl_component" }
-            if report_dir then
+            local report_component = report_component_for(vim.bo.filetype)
+            if report_dir and report_component then
                 table.insert(components, 1, {
-                    "test_report.junit_report",
+                    report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
                 })
