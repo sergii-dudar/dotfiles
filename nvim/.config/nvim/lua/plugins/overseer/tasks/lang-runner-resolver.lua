@@ -31,6 +31,7 @@ local M = {}
 ---@field build_compile_cmd? fun()
 ---@field make_compile? fun()
 ---@field build_run_test_cmd?  fun(context:task.lang.Context):task.lang.test.TestCmd
+---@field prepare_test_context? fun(context:task.lang.Context):boolean,string|nil - async-friendly pre-builder hook (prompts etc.)
 ---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug, bypassing overseer DEBUG_TESTS task
 ---@field get_test_report_dir? fun():string
 

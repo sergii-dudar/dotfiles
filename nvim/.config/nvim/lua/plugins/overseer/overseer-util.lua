@@ -21,6 +21,19 @@ function M.run_test(context)
         vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
+    -- Opt-in: language runners can pre-populate context fields that require
+    -- async prompts (e.g. multi-select). We're still in the caller's nio.run
+    -- context here. By the time overseer's builder runs, the nio context may
+    -- be gone (overseer's built-in templates can async-break it).
+    if type_resolver.prepare_test_context then
+        local ok, err = type_resolver.prepare_test_context(context)
+        if not ok then
+            if err then
+                vim.notify(err, vim.log.levels.WARN)
+            end
+            return
+        end
+    end
     if context.is_debug then
         overseer.close()
         require("utils.dap-util").reset()

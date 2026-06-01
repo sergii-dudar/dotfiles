@@ -115,6 +115,12 @@ function M.dap_launch_test(context)
 end
 
 ---@param context task.lang.Context
+---@return boolean ok, string|nil err
+function M.prepare_test_context(context)
+    return require("modules.rust.cargo-test").prepare_test_context(context)
+end
+
+---@param context task.lang.Context
 ---@return task.lang.test.TestCmd
 function M.build_run_test_cmd(context)
     return require("modules.rust.cargo-test").build_run_test_cmd(context)

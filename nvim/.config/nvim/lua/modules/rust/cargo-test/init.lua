@@ -329,13 +329,14 @@ local function resolve_cmd(context)
     end
 
     if t == task.test_type.SELECTED_MODULES_TESTS then
-        local packages = workspace_member_packages(ws or vim.fn.getcwd())
-        if #packages == 0 then
-            vim.notify("No workspace members found", vim.log.levels.WARN)
-            return nil, nil
-        end
-        local picked = nio_util.multi_select(packages, "Select packages to test")
+        -- Selection must be done upfront (in the keymap's nio.run context) and
+        -- passed via context.selected_packages, because by the time our builder
+        -- runs, overseer's built-in cargo template has already async-broken the
+        -- nio context (calling nio_util.multi_select here errors with
+        -- "Cannot call async function from non-async context").
+        local picked = context.selected_packages
         if not picked or #picked == 0 then
+            vim.notify("No packages selected", vim.log.levels.WARN)
             return nil, nil
         end
         local cmd_str, dirs = build_multi_package_cmd(picked)
@@ -546,6 +547,30 @@ function M.dap_launch_test(context)
 end
 
 --------------------------------------------------------------------------------
+
+--- Hook invoked from overseer-util.run_test BEFORE the overseer task is built.
+--- We're still in the keymap's nio.run() context here, so async prompts work.
+--- We populate context.selected_packages so the builder doesn't need to prompt.
+---@param context task.lang.Context
+---@return boolean ok, string|nil err  (return false to abort the run)
+function M.prepare_test_context(context)
+    if context.is_debug then
+        return true
+    end
+    if context.test_type == task.test_type.SELECTED_MODULES_TESTS then
+        local ws = cargo_workspace_root() or vim.fn.getcwd()
+        local packages = workspace_member_packages(ws)
+        if #packages == 0 then
+            return false, "No workspace members found"
+        end
+        local picked = nio_util.multi_select(packages, "Select packages to test")
+        if not picked or #picked == 0 then
+            return false, "No packages selected"
+        end
+        context.selected_packages = picked
+    end
+    return true
+end
 
 ---@param context task.lang.Context
 ---@return task.lang.test.TestCmd
