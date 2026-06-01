@@ -36,9 +36,9 @@ local ns_diag = vim.api.nvim_create_namespace("test_report_diag")
 local ns_signs = vim.api.nvim_create_namespace("test_report_signs")
 
 local sign_config = {
-    passed = { text = "", hl = "DiagnosticOk" },
-    failed = { text = "", hl = "DiagnosticError" },
-    skipped = { text = "", hl = "DiagnosticWarn" },
+    passed = { text = "", hl = "DiagnosticOk" },
+    failed = { text = "", hl = "DiagnosticError" },
+    skipped = { text = "", hl = "DiagnosticWarn" },
 }
 
 -- Track buffers where we placed signs for efficient cleanup

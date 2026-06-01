@@ -236,11 +236,13 @@ local function runnable_to_nextest_cmd(runnable)
         table.insert(cmd, a)
     end
 
-    -- nextest filter syntax: exact name -> --exact + name; substring -> name.
+    -- nextest filter syntax: use filterset expressions for exact match.
+    -- `--exact` is a libtest flag and isn't accepted by nextest.
+    -- For non-exact filters, pass the name as a positional (substring match).
     for _, f in ipairs(filters) do
         if exact then
-            table.insert(cmd, "--exact")
-            table.insert(cmd, f)
+            table.insert(cmd, "-E")
+            table.insert(cmd, "test(=" .. f .. ")")
         else
             table.insert(cmd, f)
         end
@@ -455,12 +457,8 @@ local function compile_and_locate_test_binary(runnable)
     local cmd = { "cargo" }
     vim.list_extend(cmd, filtered)
 
-    local out = vim.fn.system(table.concat(
-        vim.tbl_map(function(a)
-            return vim.fn.shellescape(a)
-        end, cmd),
-        " "
-    ) .. " 2>/dev/null", { cwd = cwd }) or ""
+    local sysobj = vim.system(cmd, { cwd = cwd, text = true }):wait()
+    local out = (sysobj and sysobj.stdout) or ""
 
     local binary
     for line in out:gmatch("[^\n]+") do
@@ -546,14 +544,9 @@ function M.build_run_test_cmd(context)
         return { cmd = { "echo", "cargo-nextest not installed; aborting." } }
     end
 
-    -- Debug path is handled out-of-band via DAP (no overseer cmd).
-    -- We return a sentinel cmd that just notifies the user; the overseer task
-    -- is registered but the actual test debugger is launched via dap_launch_test.
-    if context.is_debug then
-        M.dap_launch_test(context)
-        return { cmd = { "echo", "Rust test debugger launched via DAP" } }
-    end
-
+    -- Note: is_debug is handled by overseer-util.run_test calling M.dap_launch_test
+    -- directly (we expose dap_launch_test below). This builder is only invoked for
+    -- non-debug runs.
     local cmd, report_dir = resolve_cmd(context)
     if not cmd then
         return { cmd = { "echo", "Could not build rust test command" } }

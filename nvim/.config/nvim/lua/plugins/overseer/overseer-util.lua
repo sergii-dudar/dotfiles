@@ -25,6 +25,14 @@ function M.run_test(context)
         overseer.close()
         require("utils.dap-util").reset()
         dap_after_session_clear()
+        -- Opt-in: language runners can provide a direct DAP launch for tests,
+        -- bypassing overseer task lifecycle. Useful when there is no equivalent
+        -- of JVM's JDWP "wait for debugger" mode (e.g. Rust test binaries).
+        if type_resolver.dap_launch_test then
+            type_resolver.dap_launch_test(context)
+            write_run_info(task.run_type.TEST, true)
+            return
+        end
         overseer_task_util.run_task({
             task_name = "DEBUG_TESTS",
             is_open_output = false,

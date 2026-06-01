@@ -288,36 +288,69 @@ end
 local function classify_file(packages, file_path)
     file_path = vim.fn.fnamemodify(file_path, ":p")
 
+    -- Pass 1: direct hit on a target's src_path.
+    for _, pkg in ipairs(packages) do
+        local pkg_name_snake = (pkg.name or ""):gsub("%-", "_")
+        for _, target in ipairs(pkg.targets or {}) do
+            local src_path = target.src_path and vim.fn.fnamemodify(target.src_path, ":p")
+            if src_path == file_path then
+                for _, kind in ipairs(target.kind or {}) do
+                    local bid = compute_binary_id(pkg_name_snake, kind, target.name)
+                    if bid then
+                        return bid, ""
+                    end
+                end
+            end
+        end
+    end
+
+    -- Pass 2: subtree match. Only valid when the target's src_path acts as a
+    -- "root" file with a real submodule tree underneath it. Specifically:
+    --   * src/lib.rs and src/main.rs  -> subtree is everything in src/ except
+    --     bin/<name>.rs files, tests/, examples/, benches/ (those are siblings,
+    --     not submodules).
+    --   * src/bin/<name>/main.rs      -> subtree is src/bin/<name>/**
+    --   * tests/<name>/main.rs        -> subtree is tests/<name>/**
+    --   * benches/<name>/main.rs etc. -> same pattern
+    -- Bare files like src/bin/<name>.rs or tests/<name>.rs DO NOT have a
+    -- submodule subtree; sibling files in the same dir are independent targets.
     for _, pkg in ipairs(packages) do
         local pkg_name_snake = (pkg.name or ""):gsub("%-", "_")
         for _, target in ipairs(pkg.targets or {}) do
             local src_path = target.src_path and vim.fn.fnamemodify(target.src_path, ":p")
             if src_path then
-                -- Direct hit: file is the target root.
-                if src_path == file_path then
-                    for _, kind in ipairs(target.kind or {}) do
-                        local bid = compute_binary_id(pkg_name_snake, kind, target.name)
-                        if bid then
-                            return bid, ""
-                        end
-                    end
-                end
-                -- Same directory subtree: file is a sub-module of this target.
+                local basename = vim.fn.fnamemodify(src_path, ":t")
                 local src_dir = vim.fn.fnamemodify(src_path, ":h") .. "/"
-                if vim.startswith(file_path, src_dir) then
+                local is_root_file = false
+                if basename == "lib.rs" or basename == "main.rs" then
+                    is_root_file = true
+                end
+                if is_root_file and vim.startswith(file_path, src_dir) then
                     for _, kind in ipairs(target.kind or {}) do
                         local bid = compute_binary_id(pkg_name_snake, kind, target.name)
                         if bid then
-                            -- File-based modules: relative path -> module path, minus extension.
                             local rel = file_path:sub(#src_dir + 1):gsub("%.rs$", "")
-                            -- mod.rs / main.rs collapse to their directory's module name.
                             rel = rel:gsub("/mod$", ""):gsub("/main$", "")
+                            -- For src/lib.rs or src/main.rs, exclude sibling
+                            -- integration-test / bin / example files.
+                            if kind == "lib" or (kind == "bin" and basename == "main.rs") then
+                                -- Skip if the relative path enters a sibling target's dir.
+                                if
+                                    rel:match("^bin/")
+                                    or rel:match("^tests/")
+                                    or rel:match("^examples/")
+                                    or rel:match("^benches/")
+                                then
+                                    goto continue
+                                end
+                            end
                             local mod_path = rel:gsub("/", "::")
                             if mod_path == "lib" or mod_path == "main" then
                                 mod_path = ""
                             end
                             return bid, mod_path
                         end
+                        ::continue::
                     end
                 end
             end
