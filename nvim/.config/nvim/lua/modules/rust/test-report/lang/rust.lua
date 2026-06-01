@@ -49,7 +49,7 @@ end
 ---@param dirs string[]
 ---@return table<string, test_report.TestResult>
 function M.parse_results(dirs)
-    return nextest_xml.parse_results(dirs)
+    return M._parse_results_impl(dirs)
 end
 
 ---@return string|nil
@@ -379,6 +379,7 @@ local function build_index(workspace_root)
     local packages = cargo_metadata_packages(workspace_root)
     local container_files = {}
     local positions_by_file = {}
+    local fn_names_by_container = {}
 
     -- Discover .rs files under each package's manifest dir.
     local seen_files = {}
@@ -427,6 +428,8 @@ local function build_index(workspace_root)
                     local container_id = mod_path == "" and binary_id or (binary_id .. "::" .. mod_path)
                     container_files[container_id] = file_path
                     fn_positions[t.fn_name] = t.line
+                    fn_names_by_container[container_id] = fn_names_by_container[container_id] or {}
+                    fn_names_by_container[container_id][t.fn_name] = true
                 end
                 positions_by_file[file_path] = {
                     positions = fn_positions,
@@ -449,6 +452,7 @@ local function build_index(workspace_root)
     cached = {
         container_files = container_files,
         positions_by_file = positions_by_file,
+        fn_names_by_container = fn_names_by_container,
         built_at = vim.uv.hrtime(),
     }
     index_cache[workspace_root] = cached
@@ -467,6 +471,94 @@ function M.id_to_file(container_id, report_dir)
     return idx.container_files[container_id]
 end
 
+---@param dirs string[]
+---@return table<string, test_report.TestResult>
+function M._parse_results_impl(dirs)
+    local raw = nextest_xml.parse_results(dirs)
+
+    local report_dir = dirs and dirs[1]
+    local ws = resolve_workspace_root(report_dir)
+    if not ws then
+        return raw
+    end
+    local idx = build_index(ws)
+    local fns_by_container = idx.fn_names_by_container or {}
+
+    --- Rewrite parametrized case ids by collapsing the trailing case-name segment.
+    --- Nextest reports `<mod>::<fn>::<case>` (sometimes more) as separate testcases;
+    --- our treesitter index only knows the parent `<fn>`. Walk up the container id
+    --- until the trailing segment matches a known fn in the resulting parent
+    --- container, then aggregate cases as multiple invocations of the same test.
+    local aggregated = {}
+    local function pick_status(a, b)
+        if a == "failed" or b == "failed" then
+            return "failed"
+        end
+        if a == "passed" or b == "passed" then
+            return "passed"
+        end
+        return a or b or "skipped"
+    end
+
+    for id, result in pairs(raw) do
+        local container_id, member = id:match("^(.+)#(.+)$")
+        if not container_id then
+            aggregated[id] = result
+        else
+            local known = fns_by_container[container_id]
+            if known and known[member] then
+                aggregated[id] = result
+            else
+                local trimmed = container_id
+                local case_suffix = member
+                local resolved_id = nil
+                for _ = 1, 4 do
+                    local parent, last = trimmed:match("^(.+)::([^:]+)$")
+                    if not parent then
+                        break
+                    end
+                    local parent_known = fns_by_container[parent]
+                    if parent_known and parent_known[last] then
+                        resolved_id = parent .. "#" .. last
+                        break
+                    end
+                    case_suffix = last .. "::" .. case_suffix
+                    trimmed = parent
+                end
+
+                if not resolved_id then
+                    aggregated[id] = result
+                else
+                    local existing = aggregated[resolved_id]
+                    if not existing then
+                        for _, inv in ipairs(result.invocations or {}) do
+                            inv.name = case_suffix
+                        end
+                        aggregated[resolved_id] = result
+                    else
+                        existing.status = pick_status(existing.status, result.status)
+                        existing.time = (existing.time or 0) + (result.time or 0)
+                        if result.errors then
+                            existing.errors = existing.errors or {}
+                            for _, e in ipairs(result.errors) do
+                                table.insert(existing.errors, e)
+                            end
+                        end
+                        if result.invocations then
+                            existing.invocations = existing.invocations or {}
+                            for _, inv in ipairs(result.invocations) do
+                                inv.name = case_suffix
+                                table.insert(existing.invocations, inv)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return aggregated
+end
 ---@param file_path string
 ---@param opts? test_report.FindOpts
 ---@return table<string, number> positions
