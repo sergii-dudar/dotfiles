@@ -1,5 +1,15 @@
 -- Rust test runner: builds `cargo nextest run` commands for each task.test_type.
 --
+-- REQUIRED DEPENDENCIES (see lua/modules/rust/RUST_TESTS.md for details):
+--   * cargo-nextest    `cargo install cargo-nextest --locked`
+--   * rust-analyzer    LSP, for experimental/runnables (test discovery at cursor)
+--   * codelldb         DAP adapter, for <leader>td test debug
+--
+-- We only use `cargo nextest run` — never `cargo test`. Nextest emits structured
+-- JUnit XML which our pipeline parses for signs, diagnostics, and the tree view.
+-- If nextest is missing, the runner aborts with a clear install message rather
+-- than silently falling back to libtest stdout parsing.
+--
 -- Approach:
 --   * For CURRENT_TEST and FILE_TESTS, query rust-analyzer's `experimental/runnables`
 --     at the cursor / file. Rust-analyzer returns the precise cargo invocation
