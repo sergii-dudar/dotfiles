@@ -165,6 +165,12 @@ local test_attr_names = {
     ["tokio::test"] = true,
     ["async_std::test"] = true,
     ["test_case"] = true,
+    quickcheck = true,
+}
+
+-- Macro names whose body declares test fns (e.g. `proptest! { #[test] fn foo(..) {..} }`).
+local fn_carrying_macros = {
+    proptest = true,
 }
 
 --- Parse a Rust source file and yield:
@@ -269,6 +275,33 @@ local function parse_test_fns(file_path, opts)
                 local mod_path = table.concat(mod_stack, "::")
                 local line = name_node:range()
                 table.insert(results, { mod_path = mod_path, fn_name = fn_name, line = line })
+            end
+        elseif t == "macro_invocation" then
+            -- Detect macros that carry test fn declarations in their body
+            -- (e.g. `proptest! { #[test] fn foo(..) {..} }`).
+            local macro_name
+            for child in node:iter_children() do
+                local ct = child:type()
+                if ct == "identifier" or ct == "scoped_identifier" then
+                    macro_name = node_text(child)
+                    break
+                end
+            end
+            if macro_name and fn_carrying_macros[macro_name] then
+                local body_text = node_text(node)
+                local start_row = node:range()
+                local mod_path = table.concat(mod_stack, "::")
+                local lines = vim.split(body_text, "\n", { plain = true })
+                for i, line_text in ipairs(lines) do
+                    local fn_name = line_text:match("^%s*fn%s+([%w_]+)")
+                    if fn_name then
+                        table.insert(results, {
+                            mod_path = mod_path,
+                            fn_name = fn_name,
+                            line = start_row + i - 1,
+                        })
+                    end
+                end
             end
         end
         for child in node:iter_children() do

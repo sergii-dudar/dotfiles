@@ -15,9 +15,9 @@ local M = {}
 
 -- Result icons placed after the name (signals pass/fail)
 local result_icon = {
-    passed = "",
-    failed = "",
-    skipped = "",
+    passed = "",
+    failed = "",
+    skipped = "",
 }
 local result_hl = {
     passed = "DiagnosticOk",
@@ -26,7 +26,7 @@ local result_hl = {
 }
 
 -- Running indicator (shown during test rerun)
-local running_icon = ""
+local running_icon = ""
 local running_hl = "DiagnosticInfo"
 
 -- Tree drawing characters
