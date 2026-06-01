@@ -761,9 +761,9 @@ end
 
 -- stylua: ignore start
 local help_entries = {
-    { "cr / LMB", "Go to test source" },
-    { "gd",       "Go to test source" },
-    { "o",        "Show test output" },
+    { "cr",       "Go to test source" },
+    { "o / gd",   "Go to test source" },
+    { "O",        "Show test output" },
     { "r",        "Re-run test" },
     { "R",        "Debug test" },
     { "Tab / MMB","Toggle fold" },
@@ -826,7 +826,8 @@ local function setup_keymaps(buf)
 
     map("<CR>", action_goto, "Go to test source")
     map("gd", action_goto, "Go to test source")
-    map("o", action_output, "Show test output")
+    map("o", action_goto, "Go to test source")
+    map("O", action_output, "Show test output")
     map("r", function()
         action_rerun(false)
     end, "Re-run test")
@@ -846,7 +847,6 @@ local function setup_keymaps(buf)
         M.close()
     end, "Close")
 
-    map("<LeftRelease>", action_goto, "Go to test source (mouse)")
     map("<MiddleMouse>", function()
         local pos = vim.fn.getmousepos()
         if pos.line > 0 then
