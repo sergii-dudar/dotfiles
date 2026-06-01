@@ -278,6 +278,13 @@ local function parse_test_fns(file_path, opts)
 
     walk(root, {})
 
+    -- For file-scope tests (e.g. Rust integration tests) there is no enclosing
+    -- `mod` to attach a container summary to. Fall back to the first line so
+    -- the user still gets an aggregated pass/fail mark for the file.
+    if container_line == nil and #results > 0 then
+        container_line = 0
+    end
+
     return results, container_line
 end
 
