@@ -40,11 +40,21 @@ The standard `<leader>t*` keymaps work with these `task.test_type` values:
 |-----------|----------|
 | `ALL_TESTS` / `ALL_MODULES_TESTS` | `go test -json ./...` from module root |
 | `ALL_DIR_TESTS` | `go test -json ./<current-dir>/...` |
-| `FILE_TESTS` | `go test -json -run '^(T1\|T2\|…)$' ./<pkg>/` — names from treesitter |
-| `CURRENT_TEST` | `go test -json -run '^TestName$' ./<pkg>/` — name from cursor |
+| `FILE_TESTS` | `go test -json -run '^(T1\|T2\|…)$' [-bench '^(B1\|…)$' -benchtime=1x] ./<pkg>/` |
+| `CURRENT_TEST` | Same as above, scoped to one test/bench/example/fuzz at cursor |
 | `SELECTED_MODULES_TESTS` | Prompts (multi-select) between `go.work` use entries |
 | `CURRENT_PARAMETRIZED_NUM_TEST` | Not implemented — Go subtests are aggregated automatically |
 | `TOGGLE_LAST_DEBUG` | Re-runs the last single test or file scope |
+
+### Function-kind handling
+
+| Kind | Signature | Flag used |
+|------|-----------|-----------|
+| `TestXxx` | `func TestXxx(t *testing.T)` | `-run` |
+| `BenchmarkXxx` | `func BenchmarkXxx(b *testing.B)` | `-bench` (+ `-benchtime=1x`) |
+| `FuzzXxx` | `func FuzzXxx(f *testing.F)` | `-run` (executes the seed corpus only, no fuzzing) |
+| `ExampleXxx` | `func ExampleXxx()` (no params; validated by `// Output:` comment) | `-run` |
+| `TestMain` | `func TestMain(m *testing.M)` | **Skipped** — it's the package setup hook, not a runnable test |
 
 ## Debug
 

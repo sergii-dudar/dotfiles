@@ -24,19 +24,31 @@ local nio_util = require("utils.nio-util")
 local M = {}
 
 ---@return string|nil
-local function go_module_root(cwd)
-    cwd = cwd or vim.fn.getcwd()
-    local cmd = string.format("cd %s 2>/dev/null && go env GOMOD 2>/dev/null", vim.fn.shellescape(cwd))
-    local h = io.popen(cmd)
-    if not h then
-        return nil
+local function go_module_root(start_dir)
+    -- Try the requested dir, the current file's dir, then cwd. First one with
+    -- a valid GOMOD wins.
+    local candidates = {}
+    if start_dir and start_dir ~= "" then
+        table.insert(candidates, start_dir)
     end
-    local out = (h:read("*a") or ""):gsub("\n", "")
-    h:close()
-    if out == "" or out == "/dev/null" then
-        return nil
+    local file = vim.fn.expand("%:p")
+    if file ~= "" then
+        table.insert(candidates, vim.fn.fnamemodify(file, ":h"))
     end
-    return vim.fn.fnamemodify(out, ":h")
+    table.insert(candidates, vim.fn.getcwd())
+
+    for _, dir in ipairs(candidates) do
+        local cmd = string.format("cd %s 2>/dev/null && go env GOMOD 2>/dev/null", vim.fn.shellescape(dir))
+        local h = io.popen(cmd)
+        if h then
+            local out = (h:read("*a") or ""):gsub("\n", "")
+            h:close()
+            if out ~= "" and out ~= "/dev/null" then
+                return vim.fn.fnamemodify(out, ":h")
+            end
+        end
+    end
+    return nil
 end
 
 ---@param module_root string
@@ -111,7 +123,44 @@ local function rel_pkg_pattern(pkg_dir, module_root)
     return abs_pkg
 end
 
---- Treesitter scan for test function names in current buffer (only Test*/Benchmark*/Example*).
+--- Match Go's own test/benchmark/fuzz/example naming convention.
+--- Per the testing package: a name like `TestXxx` is valid iff `Xxx` does NOT
+--- start with a lowercase ASCII letter. `TestMain` is the package setup hook
+--- and is excluded. Examples have signature `()` (no testing.T param), so the
+--- caller must skip the param check for Example*.
+---@param name string
+---@param prefix "Test"|"Benchmark"|"Fuzz"|"Example"
+---@return boolean
+local function name_matches_prefix(name, prefix)
+    if name == prefix then
+        return true
+    end
+    if not vim.startswith(name, prefix) then
+        return false
+    end
+    local next_char = name:sub(#prefix + 1, #prefix + 1)
+    return next_char ~= "" and not next_char:match("[a-z]")
+end
+
+---@param name string
+---@param params_text string
+---@return boolean
+local function is_runnable_test_fn(name, params_text)
+    if name == "TestMain" then
+        return false
+    end
+    if name_matches_prefix(name, "Example") then
+        -- Examples take no params and are validated by `// Output:` comment.
+        return true
+    end
+    if not params_text:match("%*testing%.[TBF]%f[^%a]") then
+        return false
+    end
+    return name_matches_prefix(name, "Test")
+        or name_matches_prefix(name, "Benchmark")
+        or name_matches_prefix(name, "Fuzz")
+end
+
 ---@return string[]
 local function test_fns_in_current_buffer()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -143,14 +192,7 @@ local function test_fns_in_current_buffer()
         if name_node and params_node then
             local fn_name = vim.treesitter.get_node_text(name_node, bufnr)
             local params_text = vim.treesitter.get_node_text(params_node, bufnr)
-            if
-                (
-                    fn_name:match("^Test[%u_]")
-                    or fn_name == "Test"
-                    or fn_name:match("^Benchmark")
-                    or fn_name:match("^Example")
-                ) and params_text:match("%*testing%.[TBF]%f[^%a]")
-            then
+            if is_runnable_test_fn(fn_name, params_text) then
                 table.insert(names, fn_name)
             end
         end
@@ -158,7 +200,8 @@ local function test_fns_in_current_buffer()
     return names
 end
 
---- Find the Test fn at cursor (closest function_declaration enclosing the cursor).
+--- Find the test fn at cursor (closest enclosing function_declaration that is
+--- a runnable test/bench/fuzz/example).
 ---@return string|nil
 local function test_fn_at_cursor()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -175,13 +218,20 @@ local function test_fn_at_cursor()
     local node = tree:root():descendant_for_range(row, 0, row, 0)
     while node do
         if node:type() == "function_declaration" then
+            local name_node, params_node
             for child in node:iter_children() do
-                if child:type() == "identifier" then
-                    local name = vim.treesitter.get_node_text(child, bufnr)
-                    if name:match("^Test") or name:match("^Benchmark") or name:match("^Example") then
-                        return name
-                    end
-                    return nil
+                local ct = child:type()
+                if ct == "identifier" and not name_node then
+                    name_node = child
+                elseif ct == "parameter_list" and not params_node then
+                    params_node = child
+                end
+            end
+            if name_node and params_node then
+                local name = vim.treesitter.get_node_text(name_node, bufnr)
+                local params_text = vim.treesitter.get_node_text(params_node, bufnr)
+                if is_runnable_test_fn(name, params_text) then
+                    return name
                 end
             end
             return nil
@@ -234,8 +284,8 @@ end
 -- Command builders
 
 --- Build the shell command running `go test -json` and capturing into a file.
---- The cmd is wrapped in `sh -c` so we get tee + report-dir clearing.
----@param opts { module_root: string, pkg_pattern: string, run_regex?: string, report_dir: string, extra_args?: string[] }
+--- The cmd is wrapped in `bash -c` so we get tee + PIPESTATUS handling.
+---@param opts { module_root: string, pkg_pattern: string, run_regex?: string, bench_regex?: string, report_dir: string, extra_args?: string[] }
 ---@return string[] cmd, string report_dir
 local function build_shell_cmd(opts)
     local report_dir = opts.report_dir
@@ -244,6 +294,11 @@ local function build_shell_cmd(opts)
     if opts.run_regex then
         table.insert(args, "-run")
         table.insert(args, opts.run_regex)
+    end
+    if opts.bench_regex then
+        table.insert(args, "-bench")
+        table.insert(args, opts.bench_regex)
+        table.insert(args, "-benchtime=1x")
     end
     if opts.extra_args then
         for _, a in ipairs(opts.extra_args) do
@@ -302,6 +357,50 @@ local function regex_escape(s)
     return (s:gsub("([%.%^%$%(%)%%%+%-%*%?%[%]%{%}|\\])", "%%%1"))
 end
 
+--- Classify Go test-function names into the right go-test flag bucket.
+--- Tests + Examples + Fuzz (seed-only) go through `-run`; Benchmarks need `-bench`.
+---@param names string[]
+---@return string[] run_names, string[] bench_names
+local function classify_names(names)
+    local run_names, bench_names = {}, {}
+    for _, n in ipairs(names) do
+        if name_matches_prefix(n, "Benchmark") then
+            table.insert(bench_names, n)
+        else
+            table.insert(run_names, n)
+        end
+    end
+    return run_names, bench_names
+end
+
+---@param names string[]
+---@return string|nil
+local function names_to_regex(names)
+    if #names == 0 then
+        return nil
+    end
+    local escaped = {}
+    for _, n in ipairs(names) do
+        table.insert(escaped, regex_escape(n))
+    end
+    return "^(" .. table.concat(escaped, "|") .. ")$"
+end
+
+--- Build run/bench regex pair from a list of names.
+--- When only benchmarks are present, force -run='^$' so go test doesn't also
+--- run every Test* via the default '.*' pattern.
+---@param names string[]
+---@return string|nil run_regex, string|nil bench_regex
+local function regexes_for(names)
+    local run_names, bench_names = classify_names(names)
+    local run_regex = names_to_regex(run_names)
+    local bench_regex = names_to_regex(bench_names)
+    if bench_regex and not run_regex then
+        run_regex = "^$"
+    end
+    return run_regex, bench_regex
+end
+
 --------------------------------------------------------------------------------
 -- Per-test-type resolver
 
@@ -358,16 +457,19 @@ local function resolve_cmd(context)
             vim.notify("No tests in current file", vim.log.levels.WARN)
             return nil, nil
         end
-        local escaped = {}
-        for _, f in ipairs(fns) do
-            table.insert(escaped, regex_escape(f))
-        end
-        local run_regex = "^(" .. table.concat(escaped, "|") .. ")$"
-        state.last = { kind = "file", pkg_pattern = pattern, run_regex = run_regex, test_type = t }
+        local run_regex, bench_regex = regexes_for(fns)
+        state.last = {
+            kind = "file",
+            pkg_pattern = pattern,
+            run_regex = run_regex,
+            bench_regex = bench_regex,
+            test_type = t,
+        }
         return build_shell_cmd({
             module_root = module_root,
             pkg_pattern = pattern,
             run_regex = run_regex,
+            bench_regex = bench_regex,
             report_dir = report_dir,
         })
     end
@@ -380,12 +482,20 @@ local function resolve_cmd(context)
             return nil, nil
         end
         local pattern = rel_pkg_pattern(pkg_dir, module_root)
-        local run_regex = "^" .. regex_escape(fn) .. "$"
-        state.last = { kind = "single", pkg_pattern = pattern, run_regex = run_regex, fn = fn, test_type = t }
+        local run_regex, bench_regex = regexes_for({ fn })
+        state.last = {
+            kind = "single",
+            pkg_pattern = pattern,
+            run_regex = run_regex,
+            bench_regex = bench_regex,
+            fn = fn,
+            test_type = t,
+        }
         return build_shell_cmd({
             module_root = module_root,
             pkg_pattern = pattern,
             run_regex = run_regex,
+            bench_regex = bench_regex,
             report_dir = report_dir,
         })
     end
@@ -404,6 +514,7 @@ local function resolve_cmd(context)
             module_root = module_root,
             pkg_pattern = state.last.pkg_pattern,
             run_regex = state.last.run_regex,
+            bench_regex = state.last.bench_regex,
             report_dir = report_dir,
         })
     end
@@ -432,7 +543,7 @@ function M.dap_launch_test(context)
         return
     end
 
-    local run_regex
+    local run_regex, bench_regex
     local fn_label
     if t == task.test_type.CURRENT_TEST then
         local fn = test_fn_at_cursor()
@@ -440,7 +551,7 @@ function M.dap_launch_test(context)
             vim.notify("No test at cursor", vim.log.levels.WARN)
             return
         end
-        run_regex = "^" .. regex_escape(fn) .. "$"
+        run_regex, bench_regex = regexes_for({ fn })
         fn_label = fn
     elseif t == task.test_type.FILE_TESTS then
         local fns = test_fns_in_current_buffer()
@@ -448,18 +559,15 @@ function M.dap_launch_test(context)
             vim.notify("No tests in current file", vim.log.levels.WARN)
             return
         end
-        local escaped = {}
-        for _, f in ipairs(fns) do
-            table.insert(escaped, regex_escape(f))
-        end
-        run_regex = "^(" .. table.concat(escaped, "|") .. ")$"
+        run_regex, bench_regex = regexes_for(fns)
         fn_label = "file tests"
     elseif t == task.test_type.TOGGLE_LAST_DEBUG then
-        if not state.last or not state.last.run_regex then
+        if not state.last or not (state.last.run_regex or state.last.bench_regex) then
             vim.notify("No previous go test to toggle debug for", vim.log.levels.WARN)
             return
         end
         run_regex = state.last.run_regex
+        bench_regex = state.last.bench_regex
         fn_label = state.last.fn or "last"
     else
         vim.notify("Debug not supported for go test type: " .. tostring(t), vim.log.levels.WARN)
@@ -468,8 +576,20 @@ function M.dap_launch_test(context)
 
     state.last = state.last or {}
     state.last.run_regex = run_regex
+    state.last.bench_regex = bench_regex
     state.last.pkg_pattern = rel_pkg_pattern(pkg_dir, module_root)
     state.last.fn = fn_label
+
+    local dap_args = {}
+    if run_regex then
+        table.insert(dap_args, "-test.run")
+        table.insert(dap_args, run_regex)
+    end
+    if bench_regex then
+        table.insert(dap_args, "-test.bench")
+        table.insert(dap_args, bench_regex)
+        table.insert(dap_args, "-test.benchtime=1x")
+    end
 
     require("dap").run({
         name = "Go: Debug test (" .. fn_label .. ")",
@@ -477,7 +597,7 @@ function M.dap_launch_test(context)
         request = "launch",
         mode = "test",
         program = pkg_dir,
-        args = { "-test.run", run_regex },
+        args = dap_args,
         cwd = pkg_dir,
     })
 end
@@ -518,7 +638,9 @@ function M.build_run_test_cmd(context)
     end
     local cmd, report_dir = resolve_cmd(context)
     if not cmd then
-        return { cmd = { "echo", "Could not build go test command" } }
+        -- resolve_cmd already emitted a specific notification; return a no-op
+        -- echo so overseer has something to run.
+        return { cmd = { "echo", "go test: aborted (see notification above)" } }
     end
     return { cmd = cmd, report_dir = report_dir }
 end

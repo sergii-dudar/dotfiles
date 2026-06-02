@@ -115,6 +115,7 @@ function M.parse_file(filepath)
     -- Per-(package,test) accumulator before we collapse into parent tests.
     -- key = "<Package>::<Test>"  (NOT the final test_report id)
     local agg = {}
+    local pkg_status = {} -- [package] = "passed"|"failed" (package-level outcome)
     local function get(pkg, test)
         local key = pkg .. "::" .. test
         local entry = agg[key]
@@ -125,6 +126,7 @@ function M.parse_file(filepath)
                 output_buf = {},
                 status = nil,
                 elapsed = nil,
+                saw_run = false,
             }
             agg[key] = entry
         end
@@ -132,20 +134,67 @@ function M.parse_file(filepath)
     end
 
     local lines = vim.split(content, "\n", { plain = true })
+    local saw_no_tests_warning = false
     for _, line in ipairs(lines) do
         if line ~= "" then
             local ok, ev = pcall(vim.fn.json_decode, line)
-            if ok and type(ev) == "table" and ev.Action and ev.Package and ev.Test and ev.Test ~= "" then
-                local action = ev.Action
-                local entry = get(ev.Package, ev.Test)
-                if action == "output" and ev.Output then
-                    table.insert(entry.output_buf, ev.Output)
-                elseif action_to_status[action] then
-                    entry.status = action_to_status[action]
-                    entry.elapsed = tonumber(ev.Elapsed) or entry.elapsed
+            if ok and type(ev) == "table" and ev.Action and ev.Package then
+                if
+                    not saw_no_tests_warning
+                    and ev.Action == "output"
+                    and ev.Output
+                    and ev.Output:find("no tests to run", 1, true)
+                then
+                    saw_no_tests_warning = true
+                end
+                if ev.Test and ev.Test ~= "" then
+                    local action = ev.Action
+                    local entry = get(ev.Package, ev.Test)
+                    if action == "run" then
+                        entry.saw_run = true
+                    elseif action == "output" and ev.Output then
+                        table.insert(entry.output_buf, ev.Output)
+                    elseif action_to_status[action] then
+                        entry.status = action_to_status[action]
+                        entry.elapsed = tonumber(ev.Elapsed) or entry.elapsed
+                    end
+                else
+                    -- Package-level event (no Test field).
+                    if action_to_status[ev.Action] then
+                        pkg_status[ev.Package] = action_to_status[ev.Action]
+                    end
                 end
             end
         end
+    end
+
+    if saw_no_tests_warning and vim.tbl_isempty(agg) then
+        vim.schedule(function()
+            vim.notify(
+                "go test: '-run' regex matched nothing. If you just changed test-discovery code, restart nvim.\n"
+                    .. "If go test cached a stale result, run: go clean -testcache",
+                vim.log.levels.WARN
+            )
+        end)
+    end
+
+    --- Infer status for entries Go didn't emit a terminal event for. Benchmarks
+    --- (and Examples without `// Output:` comments) only get `run` + output, then
+    --- a package-level pass. Treat saw_run + no failure markers as passed.
+    ---@param entry table
+    ---@return "passed"|"failed"|"skipped"
+    local function infer_status(entry)
+        if entry.status then
+            return entry.status
+        end
+        local output = table.concat(entry.output_buf, "")
+        if output:find("--- FAIL", 1, true) or output:find("\nFAIL", 1, true) then
+            return "failed"
+        end
+        if entry.saw_run and pkg_status[entry.package] == "passed" then
+            return "passed"
+        end
+        return "skipped"
     end
 
     -- Collapse subtests into parent invocations.
@@ -153,7 +202,7 @@ function M.parse_file(filepath)
     for _, entry in pairs(agg) do
         local parent, sub = split_subtest(entry.test)
         local id = entry.package .. "#" .. parent
-        local status = entry.status or "skipped"
+        local status = infer_status(entry)
         local output = table.concat(entry.output_buf, "")
         local err_line = (status == "failed") and extract_line_from_output(output) or nil
         local message = (status == "failed") and (first_meaningful_line(output) or "test failed") or nil

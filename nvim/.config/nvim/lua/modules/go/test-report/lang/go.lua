@@ -151,16 +151,29 @@ local function first_param_is_testing(params_node, bufnr)
     return false
 end
 
+--- Match Go's own test/benchmark/fuzz/example naming convention.
+--- Per the testing package: a name like `TestXxx` is a test iff `Xxx` does NOT
+--- start with a lowercase ASCII letter (i.e. `^(Test|Benchmark|Fuzz|Example)[^a-z]`
+--- or the name is exactly the prefix). `TestMain` is the package setup hook and
+--- is excluded.
 ---@param fn_name string
 ---@return boolean
 local function is_test_fn_name(fn_name)
-    return fn_name:match("^Test[%u_]")
-        or fn_name:match("^Test$")
-        or fn_name:match("^Benchmark[%u_]")
-        or fn_name:match("^Benchmark$")
-        or fn_name:match("^Example[%u_]")
-        or fn_name:match("^Example$")
-        or fn_name == "TestMain"
+    if fn_name == "TestMain" then
+        return false
+    end
+    for _, prefix in ipairs({ "Test", "Benchmark", "Fuzz", "Example" }) do
+        if fn_name == prefix then
+            return true
+        end
+        if vim.startswith(fn_name, prefix) then
+            local next_char = fn_name:sub(#prefix + 1, #prefix + 1)
+            if next_char ~= "" and not next_char:match("[a-z]") then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 --- Parse a Go test file and yield test fns plus the container line (always 0 for Go
@@ -206,9 +219,12 @@ local function parse_test_fns(file_path, opts)
         local params_node = params_nodes and params_nodes[1]
         if name_node and params_node then
             local fn_name = vim.treesitter.get_node_text(name_node, bufnr)
-            if is_test_fn_name(fn_name) and first_param_is_testing(params_node, bufnr) then
-                local line = name_node:range()
-                table.insert(results, { fn_name = fn_name, line = line })
+            if is_test_fn_name(fn_name) then
+                local is_example = fn_name == "Example" or fn_name:match("^Example[%u_]")
+                if is_example or first_param_is_testing(params_node, bufnr) then
+                    local line = name_node:range()
+                    table.insert(results, { fn_name = fn_name, line = line })
+                end
             end
         end
     end
