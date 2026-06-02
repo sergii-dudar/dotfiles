@@ -13,6 +13,10 @@ M.rust = {
     cargo_test_diagnostics_source = "cargo_test_diagnostics",
     nextest_report_dir = "/target/nextest/default",
 }
+M.go = {
+    go_test = "go-test",
+    go_test_diagnostics_source = "go_test_diagnostics",
+}
 M.output = {
     height_rows = 10,
 }

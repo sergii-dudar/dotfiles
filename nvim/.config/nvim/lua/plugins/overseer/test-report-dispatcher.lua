@@ -9,18 +9,21 @@ local M = {}
 local ft_to_module = {
     java = "modules.java.test-report",
     rust = "modules.rust.test-report",
+    go = "modules.go.test-report",
 }
 
 -- filetype -> Trouble source name used by that adapter's diagnostics
 local ft_to_trouble_source = {
     java = "junit_diagnostics",
     rust = "cargo_test_diagnostics",
+    go = "go_test_diagnostics",
 }
 
 -- filetype -> diagnostic source name (matches adapter.diagnostic_source)
 local ft_to_diagnostic_source = {
     java = "junit",
     rust = "cargo-test",
+    go = "go-test",
 }
 
 ---@return string|nil
