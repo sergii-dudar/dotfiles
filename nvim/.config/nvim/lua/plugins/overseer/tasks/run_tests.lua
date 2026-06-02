@@ -8,6 +8,7 @@ local ft_to_report_component = {
     java = "test_report.junit_report",
     rust = "test_report.cargo_report",
     go = "test_report.go_report",
+    lua = "test_report.busted_report",
 }
 
 ---@param filetype string|nil

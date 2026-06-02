@@ -21,6 +21,7 @@ return {
             -- DAP
             "bash-debug-adapter",
             -- "haskell-debug-adapter",
+            "local-lua-debugger-vscode",
 
             -- Linter
             "checkstyle",
