@@ -21,6 +21,10 @@ M.go = {
     go_test = "go-test",
     go_test_diagnostics_source = "go_test_diagnostics",
 }
+M.bash = {
+    bashunit = "bashunit",
+    bashunit_test_diagnostics_source = "bashunit_test_diagnostics",
+}
 M.output = {
     height_rows = 10,
 }

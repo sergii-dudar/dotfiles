@@ -42,4 +42,29 @@ function M.dap_launch_rerun()
     M.dap_launch()
 end
 
+--------------------------------------------------------------------------------
+-- bashunit test integration (delegates to modules.bash.bashunit-test).
+
+---@param context task.lang.Context
+---@return boolean ok, string|nil err
+function M.prepare_test_context(context)
+    return require("modules.bash.bashunit-test").prepare_test_context(context)
+end
+
+---@param context task.lang.Context
+---@return task.lang.test.TestCmd
+function M.build_run_test_cmd(context)
+    return require("modules.bash.bashunit-test").build_run_test_cmd(context)
+end
+
+---@param context task.lang.Context
+function M.dap_launch_test(context)
+    return require("modules.bash.bashunit-test").dap_launch_test(context)
+end
+
+---@return string|nil
+function M.get_test_report_dir()
+    return require("modules.bash.bashunit-test").get_test_report_dir()
+end
+
 return M

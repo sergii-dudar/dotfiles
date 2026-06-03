@@ -99,6 +99,14 @@ return {
                     end, items)
                 end,
             },
+            bashunit_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.bash.bashunit
+                    end, items)
+                end,
+            },
         },
         auto_close = true, -- auto close when there are no items
         auto_open = false, -- auto open when there are items

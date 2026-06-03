@@ -11,6 +11,8 @@ local ft_to_module = {
     rust = "modules.rust.test-report",
     go = "modules.go.test-report",
     lua = "modules.lua.test-report",
+    sh = "modules.bash.test-report",
+    bash = "modules.bash.test-report",
 }
 
 -- filetype -> Trouble source name used by that adapter's diagnostics
@@ -19,6 +21,8 @@ local ft_to_trouble_source = {
     rust = "cargo_test_diagnostics",
     go = "go_test_diagnostics",
     lua = "busted_test_diagnostics",
+    sh = "bashunit_test_diagnostics",
+    bash = "bashunit_test_diagnostics",
 }
 
 -- filetype -> diagnostic source name (matches adapter.diagnostic_source)
@@ -27,6 +31,8 @@ local ft_to_diagnostic_source = {
     rust = "cargo-test",
     go = "go-test",
     lua = "busted",
+    sh = "bashunit",
+    bash = "bashunit",
 }
 
 ---@return string|nil
