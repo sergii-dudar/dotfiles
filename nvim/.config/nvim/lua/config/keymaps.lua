@@ -63,7 +63,7 @@ vim.keymap.set({ "n", "x" }, "H", "^", { noremap = true, silent = true }) -- Map
 vim.keymap.set({ "n", "x" }, "L", "$", { noremap = true, silent = true }) -- Mapping J to 6jzz
 
 -- replace currently selected text with default register without yanking it
-vim.keymap.set({ "v" }, "<leader>p", '"_dP', { silent = true })
+vim.keymap.set({ "v" }, "<leader>p", '"_dP', { desc = "Replace selected from default register", silent = true })
 
 -- paste from 0 register (where always live last yanked text, which is immune to being overwritten by deletions.)
 -- INFO: using `c` (change) in exchange is the key.

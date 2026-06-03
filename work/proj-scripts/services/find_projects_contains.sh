@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 # find_projects_contains.sh - Find projects containing specific text in files with given extensions
-# Usage: find_projects_contains.sh "text to search" "ext1,ext2,..."
+# Usage: find_projects_contains.sh [--invert] "text to search" "ext1,ext2,..."
 # Example: find_projects_contains.sh "PaymentService" "java,kt,xml"
+# Example: find_projects_contains.sh --invert "PaymentService" "java,kt,xml"
 
 set -euo pipefail
 
+INVERT=false
+if [[ "${1:-}" == "--invert" ]]; then
+  INVERT=true
+  shift
+fi
+
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 \"text to search\" [\"ext1,ext2,...\"]"
+  echo "Usage: $0 [--invert] \"text to search\" [\"ext1,ext2,...\"]"
   echo "Example: $0 \"PaymentService\" \"java,kt,xml\""
+  echo "Example: $0 --invert \"PaymentService\" \"java,kt,xml\""
   exit 1
 fi
 
@@ -26,7 +34,14 @@ if [[ -n "$EXTENSIONS" ]]; then
 fi
 
 # Find all matching files, extract project root (first-level subdirectory)
-rg --files-with-matches --no-messages "${RG_ARGS[@]}" -- "$SEARCH_TEXT" . 2>/dev/null \
+CONTAINING=$(rg --files-with-matches --no-messages "${RG_ARGS[@]}" -- "$SEARCH_TEXT" . 2>/dev/null \
   | sed -E 's|^\./||' \
   | cut -d'/' -f1 \
-  | sort -u
+  | sort -u || true)
+
+if [[ "$INVERT" == true ]]; then
+  ALL=$(find . -maxdepth 1 -mindepth 1 -type d | sed -E 's|^\./||' | sort -u)
+  comm -23 <(echo "$ALL") <(echo "$CONTAINING" | grep -v '^$' || true)
+else
+  echo "$CONTAINING" | grep -v '^$' || true
+fi

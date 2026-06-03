@@ -14,6 +14,9 @@ end
 -- NOTE: install lemminx with maven extension by run - ~/dotfiles/bin/install/nvim/ls/lemminx-maven/load_and_build_all.sh
 -- dd(vim.fn.join(lemminx_jars, ":"))
 
+-- NOTE: cometime lemminx mave have some issue (Non-resolvable parent POM) with detecting last vertion in case pattern version like
+-- in this case can help additing to .m2 lib root: maven-metadata-local.xml with setting last version to it. looks some issue with private remotes
+
 return {
     "neovim/nvim-lspconfig",
     opts = {
@@ -45,6 +48,19 @@ return {
                 single_file_support = true,
                 settings = {
                     xml = {
+                        -- logs = {
+                        --     client = true,
+                        --     file = "/tmp/lemminx.log",
+                        -- },
+                        -- maven = {
+                        --     userSettings = vim.fn.expand("~/.m2/settings.xml"),
+                        --     repo = {
+                        --         ["local"] = vim.fn.expand("~/.m2/repository"),
+                        --     },
+                        --     central = {
+                        --         skip = true,
+                        --     },
+                        -- },
                         -- Format:
                         -- https://github.com/eclipse-lemminx/lemminx/blob/main/docs/Configuration.md#all-formatting-options
                         -- https://github.com/redhat-developer/vscode-xml/blob/main/docs/Formatting.md#xmlformatxsischemalocationsplit

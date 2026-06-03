@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 # copy_projects_contains.sh - Find projects containing text and copy them to a destination
-# Usage: copy_projects_contains.sh "text to search" "ext1,ext2,..." /path/to/destination
+# Usage: copy_projects_contains.sh [--invert] "text to search" "ext1,ext2,..." /path/to/destination
 # Example: copy_projects_contains.sh ">infra-tracing<" "xml" /tmp/filtered
+# Example: copy_projects_contains.sh --invert ">infra-tracing<" "xml" /tmp/filtered
 
 set -euo pipefail
 
+INVERT=false
+if [[ "${1:-}" == "--invert" ]]; then
+  INVERT=true
+  shift
+fi
+
 if [[ $# -lt 3 ]]; then
-  echo "Usage: $0 \"text to search\" \"extensions\" \"/destination/path\""
+  echo "Usage: $0 [--invert] \"text to search\" \"extensions\" \"/destination/path\""
   echo "Example: $0 \">infra-tracing<\" \"xml\" /tmp/projects"
+  echo "Example: $0 --invert \">infra-tracing<\" \"xml\" /tmp/projects"
   exit 1
 fi
 
@@ -27,10 +35,17 @@ if [[ -n "$EXTENSIONS" ]]; then
 fi
 
 # Find matching projects (first-level subdirectories)
-PROJECTS=$(rg --files-with-matches --no-messages "${RG_ARGS[@]}" -- "$SEARCH_TEXT" . 2>/dev/null \
+CONTAINING=$(rg --files-with-matches --no-messages "${RG_ARGS[@]}" -- "$SEARCH_TEXT" . 2>/dev/null \
   | sed -E 's|^\./||' \
   | cut -d'/' -f1 \
-  | sort -u)
+  | sort -u || true)
+
+if [[ "$INVERT" == true ]]; then
+  ALL=$(find . -maxdepth 1 -mindepth 1 -type d | sed -E 's|^\./||' | sort -u)
+  PROJECTS=$(comm -23 <(echo "$ALL") <(echo "$CONTAINING" | grep -v '^$' || true))
+else
+  PROJECTS=$(echo "$CONTAINING" | grep -v '^$' || true)
+fi
 
 if [[ -z "$PROJECTS" ]]; then
   echo "No projects found containing \"$SEARCH_TEXT\""
