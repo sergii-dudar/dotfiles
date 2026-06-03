@@ -17,9 +17,10 @@
 --   CURRENT_TEST / CURRENT_PARAMETRIZED_NUM_TEST           -> bashunit <file> --filter <fn>
 --   TOGGLE_LAST_DEBUG                                      -> rerun previous command (debug or not)
 
+local constants = require("utils.constants")
+
 local M = {}
 
-local FALLBACK_BASHUNIT = "/home/serhii/tools/tools/bashunit/bashunit"
 local BASH_DEBUG_ADAPTER_PATH = vim.fn.stdpath("data") .. "/mason/packages/bash-debug-adapter/extension/bashdb_dir"
 
 --------------------------------------------------------------------------------
@@ -67,9 +68,23 @@ function M.project_root()
     return root
 end
 
---- Resolve the bashunit binary: project lib/bashunit > $PATH > fallback dev install.
+--- Resolve the bashunit binary. Precedence:
+---   1. `constants.bash.bashunit_bin` (manual system setting; recommended)
+---   2. Project-local: <root>/lib/bashunit, <root>/bashunit
+---   3. `bashunit` on $PATH (resolved to absolute via exepath)
 ---@return string|nil
 function M.find_bashunit_bin()
+    local configured = constants.bash and constants.bash.bashunit_bin
+    if configured and configured ~= "" then
+        if vim.fn.executable(configured) == 1 then
+            return configured
+        end
+        vim.notify(
+            "bashunit: configured path is not executable: " .. configured .. " — falling back to auto-detect",
+            vim.log.levels.WARN
+        )
+    end
+
     local root = M.project_root()
     if _bin_cache[root] ~= nil then
         return _bin_cache[root] or nil
@@ -82,12 +97,10 @@ function M.find_bashunit_bin()
         end
     end
     if vim.fn.executable("bashunit") == 1 then
-        _bin_cache[root] = "bashunit"
-        return "bashunit"
-    end
-    if vim.fn.executable(FALLBACK_BASHUNIT) == 1 then
-        _bin_cache[root] = FALLBACK_BASHUNIT
-        return FALLBACK_BASHUNIT
+        local abs = vim.fn.exepath("bashunit")
+        local resolved = (abs ~= "" and abs) or "bashunit"
+        _bin_cache[root] = resolved
+        return resolved
     end
     _bin_cache[root] = false
     return nil
@@ -305,6 +318,14 @@ function M.dap_launch_test(context)
         vim.notify("bashunit not found; cannot debug", vim.log.levels.ERROR)
         return
     end
+    -- bashdb does `bash <program> ...` — it needs an absolute file path, not a
+    -- name that depends on $PATH resolution inside its sub-shell.
+    if bin:sub(1, 1) ~= "/" then
+        local abs = vim.fn.exepath(bin)
+        if abs ~= "" then
+            bin = abs
+        end
+    end
     reset_report_file()
 
     local t = context.test_type
@@ -341,6 +362,7 @@ function M.dap_launch_test(context)
         return
     end
 
+    state.last = state.last or {}
     state.last.dap_args = args
 
     -- Reparse the test report when the debug session ends so signs/diagnostics
@@ -354,8 +376,15 @@ function M.dap_launch_test(context)
         end
     end
 
+    -- Reparse the test report only when OUR bashunit test session ends.
+    -- (Plain `<leader>rd` debug-current-file also uses bashdb; we must not
+    -- trigger test-report load for those non-test sessions.)
     if not dap.listeners.after.event_terminated["bash-test-report-reload"] then
-        dap.listeners.after.event_terminated["bash-test-report-reload"] = function()
+        dap.listeners.after.event_terminated["bash-test-report-reload"] = function(session, _body)
+            local cfg = session and session.config
+            if not cfg or cfg.name ~= "Bashunit: Debug test" then
+                return
+            end
             vim.schedule(function()
                 pcall(function()
                     require("modules.bash.test-report")
@@ -381,6 +410,10 @@ function M.dap_launch_test(context)
         pathMkfifo = "mkfifo",
         pathPkill = "pkill",
         args = args,
+        -- Adapter's bashDebug.js interpolates ${args.argsString} into the
+        -- final shell cmd; nil renders as the literal string "undefined".
+        -- The VSCode extension wrapper defaults it to "" — we must too.
+        argsString = "",
         env = {},
         terminalKind = "integrated",
     })

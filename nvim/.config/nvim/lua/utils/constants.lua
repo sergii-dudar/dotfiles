@@ -24,6 +24,10 @@ M.go = {
 M.bash = {
     bashunit = "bashunit",
     bashunit_test_diagnostics_source = "bashunit_test_diagnostics",
+    -- Absolute path to the bashunit binary used for `<leader>t*` runs/debug.
+    -- Set to your system install (e.g. via `~/.local/bin/bashunit`). Leave nil
+    -- to fall back to auto-detection (project lib/bashunit -> $PATH).
+    bashunit_bin = "/home/serhii/.local/bin/bashunit",
 }
 M.output = {
     height_rows = 10,
