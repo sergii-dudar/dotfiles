@@ -9,6 +9,7 @@ local ft_to_report_component = {
     rust = "test_report.cargo_report",
     go = "test_report.go_report",
     lua = "test_report.busted_report",
+    python = "test_report.pytest_report",
     sh = "test_report.bashunit_report",
     bash = "test_report.bashunit_report",
 }

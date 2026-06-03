@@ -11,6 +11,7 @@ local ft_to_module = {
     rust = "modules.rust.test-report",
     go = "modules.go.test-report",
     lua = "modules.lua.test-report",
+    python = "modules.python.test-report",
     sh = "modules.bash.test-report",
     bash = "modules.bash.test-report",
 }
@@ -21,6 +22,7 @@ local ft_to_trouble_source = {
     rust = "cargo_test_diagnostics",
     go = "go_test_diagnostics",
     lua = "busted_test_diagnostics",
+    python = "pytest_test_diagnostics",
     sh = "bashunit_test_diagnostics",
     bash = "bashunit_test_diagnostics",
 }
@@ -31,6 +33,7 @@ local ft_to_diagnostic_source = {
     rust = "cargo-test",
     go = "go-test",
     lua = "busted",
+    python = "pytest",
     sh = "bashunit",
     bash = "bashunit",
 }

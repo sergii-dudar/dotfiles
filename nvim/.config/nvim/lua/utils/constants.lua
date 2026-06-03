@@ -29,6 +29,14 @@ M.bash = {
     -- to fall back to auto-detection (project lib/bashunit -> $PATH).
     bashunit_bin = "/home/serhii/.local/bin/bashunit",
 }
+M.python = {
+    pytest = "pytest",
+    pytest_test_diagnostics_source = "pytest_test_diagnostics",
+    -- Absolute path to a Python interpreter for `<leader>t*` test runs/debug.
+    -- Leave nil to fall back to auto-detection: $VIRTUAL_ENV -> ./.venv ->
+    -- ./venv -> python3/python on $PATH.
+    python_bin = nil,
+}
 M.output = {
     height_rows = 10,
 }
