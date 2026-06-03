@@ -25,6 +25,12 @@
 #                          as warnings (yellow ⚠) instead of blocking failures.
 #                          Repeatable. Default: CI-*-API-LIBRARY*
 #       --no-warn          Disable the default warn pattern
+#       --deployments-dir <path>  Local clone of payments-deployment repo's
+#                          dev/workload directory. Each repo's tag is compared
+#                          against .helm.parameters[name=deployment.image.tag]
+#                          in <path>/<svc>/<svc>.yaml. Default points at the
+#                          author's local clone; override or use --no-deploy-check.
+#       --no-deploy-check  Skip the deploy-sync comparison entirely
 #       --no-color         Disable ANSI colors (also disables hyperlinks)
 #       --no-links         Disable OSC 8 hyperlinks (keep colors)
 #   -h, --help             Show this help
@@ -58,7 +64,7 @@ osc8() {
 }
 
 # ── args ──────────────────────────────────────────────────────────────────────
-INTERVAL=60
+INTERVAL=15
 ONCE=0
 DEFAULT_HOST="${GH_DEFAULT_HOST:-code.rbi.tech}"
 INPUTS=()
@@ -67,6 +73,12 @@ INPUT_FILE=""
 # warnings (yellow ⚠), not blocking failures.
 WARN_PATTERNS=()
 DEFAULT_WARN_PATTERN='CI-*-API-LIBRARY*'
+
+# Cross-check the repo's released tag against the version deployed on dev,
+# read from .../<svc>/<svc>.yaml at .spec.source.helm.parameters[name=deployment.image.tag].value
+# Mismatch downgrades a `success` repo to `warning`; missing file is just shown grey.
+DEPLOYMENTS_DIR="${UA_PAYMENTS_DEPLOY_DIR:-/Users/iuada144/serhii.home/work/git.work/ua-payments-deployment/dev/workload}"
+DEPLOY_CHECK=1
 
 usage() { sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -80,6 +92,8 @@ while (($#)); do
        --no-links) HYPERLINKS=0; shift ;;
        --warn-pattern) WARN_PATTERNS+=("${2:-}"); shift 2 ;;
        --no-warn) WARN_PATTERNS=(__none__); shift ;;
+       --deployments-dir) DEPLOYMENTS_DIR="${2:-}"; shift 2 ;;
+       --no-deploy-check) DEPLOY_CHECK=0; shift ;;
     -h|--help)     usage; exit 0 ;;
     --)            shift; while (($#)); do INPUTS+=("$1"); shift; done ;;
     -*)            echo "${RED}Unknown option: $1${RESET}" >&2; exit 2 ;;
@@ -162,6 +176,28 @@ matches_warn_pattern() {
   return 1
 }
 
+# Read deploy.image.tag from <DEPLOYMENTS_DIR>/<svc>/<svc>.yaml.
+# Echoes the tag value, or empty + non-zero exit on missing file / not found.
+# Service dir is the repo name with the leading "ua-payments-" stripped.
+read_deployed_tag() {
+  local repo="$1"
+  local svc="${repo#ua-payments-}"
+  local file="$DEPLOYMENTS_DIR/$svc/$svc.yaml"
+  [[ -f "$file" ]] || return 1
+  local val
+  val=$(awk '
+    /^[[:space:]]*-[[:space:]]*name:[[:space:]]*deployment\.image\.tag[[:space:]]*$/ { found=1; next }
+    found && /value:/ {
+      v=$0
+      sub(/^.*value:[[:space:]]*/, "", v)
+      gsub(/^["'"'"']+|["'"'"']+$/, "", v)
+      print v; exit
+    }
+  ' "$file")
+  [[ -z "$val" ]] && return 1
+  printf '%s' "$val"
+}
+
 # Auth check against each unique host
 declare -A HOST_AUTHED
 for h in "${HOSTS[@]}"; do
@@ -209,7 +245,7 @@ classify_repo() {
         }
       }
     }' -f "owner=$owner" -f "repo=$repo" 2>>"$err") || {
-      printf 'error\t-\t-\t-\t-\t-\t-\t%s\n' "$(head -c 140 "$err" | tr '\n\t' '  ')" >"$out"
+      printf 'error\t-\t-\t-\t-\t-\t-\t-\t-\t%s\n' "$(head -c 140 "$err" | tr '\n\t' '  ')" >"$out"
       return
   }
 
@@ -226,7 +262,7 @@ classify_repo() {
   local runs
   runs=$(GH_HOST="$host" gh api \
     "repos/$owner/$repo/actions/runs?head_sha=$head_oid&per_page=50" 2>>"$err") || {
-      printf 'error\t-\t-\t-\t-\t-\t-\t%s\n' "$(head -c 140 "$err" | tr '\n\t' '  ')" >"$out"
+      printf 'error\t-\t-\t-\t-\t-\t-\t-\t-\t%s\n' "$(head -c 140 "$err" | tr '\n\t' '  ')" >"$out"
       return
   }
 
@@ -322,7 +358,33 @@ classify_repo() {
   else
     status=success
   fi
-  detail=$(printf '%s' "$detail" | head -c 200)
+
+  # Deploy-sync check. Success = repo's latest tag matches the tag deployed
+  # to dev. Mismatch keeps the repo `pending` so the loop continues polling
+  # until the deployment repo is updated. Missing file is informational only.
+  # States: synced | mismatch | missing | disabled | nogittag (no repo tag yet)
+  local deploy_state="disabled" deploy_tag=""
+  if (( DEPLOY_CHECK )); then
+    if deploy_tag=$(read_deployed_tag "$repo"); then
+      if [[ -z "$tag_match" ]]; then
+        deploy_state="nogittag"
+      elif [[ "$tag_match" == "$deploy_tag" ]]; then
+        deploy_state="synced"
+      else
+        deploy_state="mismatch"
+        if [[ "$status" == "success" || "$status" == "warning" ]]; then
+          # Don't downgrade an actual failure, but anything green-ish drops
+          # back to pending until the dev YAML catches up.
+          status=pending
+        fi
+        [[ -n "$detail" ]] && detail="$detail; "
+        detail="${detail}deploy-mismatch: dev=$deploy_tag, repo=$tag_match"
+      fi
+    else
+      deploy_state="missing"
+    fi
+  fi
+  detail=$(printf '%s' "$detail" | head -c 240)
 
   local head_short="${head_oid:0:7}"
   local tag_display
@@ -333,16 +395,17 @@ classify_repo() {
     tag_display="${latest_tag:-—}?"
   fi
 
-  # TSV: status \t pass \t hardfail \t warn \t pending \t head_short \t tag \t detail
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+  # TSV: status \t pass \t hardfail \t warn \t pending \t head_short \t tag \t deploy_state \t deploy_tag \t detail
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
     "$status" "$n_pass" "$n_hardfail" "$n_warn" "$n_pending" \
-    "$head_short" "$tag_display" "$detail" >"$out"
+    "$head_short" "$tag_display" "$deploy_state" "$deploy_tag" "$detail" >"$out"
 }
 
 # ── render ────────────────────────────────────────────────────────────────────
 render_row() {
   local label="$1" actions_url="$2" status="$3" pass="$4" hardfail="$5" warn="$6"
-  local pending="$7" head_sha="$8" commit_url="$9" tag="${10}" tag_url="${11}" detail="${12}"
+  local pending="$7" head_sha="$8" commit_url="$9" tag="${10}" tag_url="${11}"
+  local deploy_state="${12}" deploy_tag="${13}" detail="${14}"
   local icon color
   case "$status" in
     success) icon="✔"; color="$GREEN"  ;;
@@ -357,6 +420,17 @@ render_row() {
   linked_label=$(osc8 "$actions_url" "$padded")
   linked_sha=$(osc8 "$commit_url" "$head_sha")
   linked_tag=$(osc8 "$tag_url" "$tag")
+
+  # Deploy-sync display
+  local deploy_disp=""
+  case "$deploy_state" in
+    synced)   deploy_disp="${GREEN}dev:✓${RESET}" ;;
+    mismatch) deploy_disp="${YELLOW}dev:${deploy_tag}${RESET}" ;;
+    missing)  deploy_disp="${GREY}dev:—${RESET}" ;;
+    nogittag) deploy_disp="${GREY}dev:?${RESET}" ;;
+    disabled|"") deploy_disp="" ;;
+  esac
+
   printf '  %s%s%s  %s  %s%s✓%s %s%s✗%s %s%s⚠%s %s%s…%s   %s%s%s   tag:%s%s%s' \
     "$color" "$icon" "$RESET" \
     "$linked_label" \
@@ -366,6 +440,7 @@ render_row() {
     "$YELLOW" "$pending"  "$RESET" \
     "$GREY"   "$linked_sha" "$RESET" \
     "$CYAN"   "$linked_tag" "$RESET"
+  [[ -n "$deploy_disp" ]] && printf '   %s' "$deploy_disp"
   if [[ -n "$detail" ]]; then
     printf '   %s%s%s' "$GREY" "$detail" "$RESET"
   fi
@@ -394,7 +469,7 @@ while :; do
 
   for ((i=0; i<N; i++)); do
     [[ -f "$TMPDIR/$i.out" ]] || continue
-    IFS=$'\t' read -r st _np _nhf _nw _nrun _hs _tag _det < "$TMPDIR/$i.out"
+    IFS=$'\t' read -r st _np _nhf _nw _nrun _hs _tag _ds _dt _det < "$TMPDIR/$i.out"
     STATE[i]="$st"
   done
 
@@ -410,9 +485,9 @@ while :; do
   green=0; warned=0; failing=0; running=0; errored=0
   for ((i=0; i<N; i++)); do
     if [[ -f "$TMPDIR/$i.out" ]]; then
-      IFS=$'\t' read -r st np nhf nw nrun hs tag det < "$TMPDIR/$i.out"
+      IFS=$'\t' read -r st np nhf nw nrun hs tag ds dt det < "$TMPDIR/$i.out"
     else
-      st="pending"; np=0; nhf=0; nw=0; nrun=0; hs="-"; tag="-"; det=""
+      st="pending"; np=0; nhf=0; nw=0; nrun=0; hs="-"; tag="-"; ds=""; dt=""; det=""
     fi
     # Compose URLs for the row's clickable links
     row_host="${HOSTS[i]}"; row_owner="${OWNERS[i]}"; row_repo="${REPOS[i]}"
@@ -426,7 +501,7 @@ while :; do
     fi
     printf '\033[K'
     render_row "${LABELS[i]}" "$actions_url" "$st" "$np" "$nhf" "$nw" "$nrun" \
-               "$hs" "$commit_url" "$tag" "$tag_url" "$det"
+               "$hs" "$commit_url" "$tag" "$tag_url" "$ds" "$dt" "$det"
     case "$st" in
       success) green=$((green+1)) ;;
       warning) warned=$((warned+1)) ;;
