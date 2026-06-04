@@ -21,10 +21,31 @@ function M.run_test(context)
         vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
+    -- Opt-in: language runners can pre-populate context fields that require
+    -- async prompts (e.g. multi-select). We're still in the caller's nio.run
+    -- context here. By the time overseer's builder runs, the nio context may
+    -- be gone (overseer's built-in templates can async-break it).
+    if type_resolver.prepare_test_context then
+        local ok, err = type_resolver.prepare_test_context(context)
+        if not ok then
+            if err then
+                vim.notify(err, vim.log.levels.WARN)
+            end
+            return
+        end
+    end
     if context.is_debug then
         overseer.close()
         require("utils.dap-util").reset()
         dap_after_session_clear()
+        -- Opt-in: language runners can provide a direct DAP launch for tests,
+        -- bypassing overseer task lifecycle. Useful when there is no equivalent
+        -- of JVM's JDWP "wait for debugger" mode (e.g. Rust test binaries).
+        if type_resolver.dap_launch_test then
+            type_resolver.dap_launch_test(context)
+            write_run_info(task.run_type.TEST, true)
+            return
+        end
         overseer_task_util.run_task({
             task_name = "DEBUG_TESTS",
             is_open_output = false,

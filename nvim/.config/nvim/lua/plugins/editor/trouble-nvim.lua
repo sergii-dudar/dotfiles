@@ -75,6 +75,46 @@ return {
                     end, items)
                 end,
             },
+            cargo_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.rust.cargo_test
+                    end, items)
+                end,
+            },
+            go_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.go.go_test
+                    end, items)
+                end,
+            },
+            busted_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.lua.busted
+                    end, items)
+                end,
+            },
+            bashunit_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.bash.bashunit
+                    end, items)
+                end,
+            },
+            pytest_test_diagnostics = {
+                mode = "diagnostics",
+                filter = function(items)
+                    return vim.tbl_filter(function(item)
+                        return item.item.source == constants.python.pytest
+                    end, items)
+                end,
+            },
         },
         auto_close = true, -- auto close when there are no items
         auto_open = false, -- auto open when there are items

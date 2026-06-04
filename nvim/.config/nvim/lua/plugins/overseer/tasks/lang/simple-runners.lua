@@ -66,11 +66,11 @@ function M.register(type_to_resolver)
     --     return { "deno", "run", file }
     -- end)
 
-    type_to_resolver["lua"] = build_run_cmd_only_resolver(function()
-        local dir = vim.fn.expand("%:p:h")
-        local fileName = vim.fn.expand("%:t")
-        return { "lua", dir .. "/" .. fileName }
-    end)
+    -- type_to_resolver["lua"] = build_run_cmd_only_resolver(function()
+    --     local dir = vim.fn.expand("%:p:h")
+    --     local fileName = vim.fn.expand("%:t")
+    --     return { "lua", dir .. "/" .. fileName }
+    -- end)
 
     -- type_to_resolver["sh"] = build_run_cmd_only_resolver(function()
     --     local dir = vim.fn.expand("%:p:h")

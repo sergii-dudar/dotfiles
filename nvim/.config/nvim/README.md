@@ -25,6 +25,13 @@
         ...
       stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
       replace java.nvim with own `module.java.refactor` and refactor integraions
+      Ability to run/debug tests to rust (same as for java)
+      Ability to run/debug tests to go (same as for java)
+
+       Ability to run/debug tests to lua (same as for java)
+
+      Ability to run/debug tests to bash (same as for java)
+      Ability to run/debug tests to python (same as for java)
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())

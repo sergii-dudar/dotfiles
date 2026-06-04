@@ -10,6 +10,7 @@ type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
 type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
 type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
+type_to_resolver["lua"] = require("plugins.overseer.tasks.lang.lua-runner")
 
 local M = {}
 
@@ -31,6 +32,8 @@ local M = {}
 ---@field build_compile_cmd? fun()
 ---@field make_compile? fun()
 ---@field build_run_test_cmd?  fun(context:task.lang.Context):task.lang.test.TestCmd
+---@field prepare_test_context? fun(context:task.lang.Context):boolean,string|nil - async-friendly pre-builder hook (prompts etc.)
+---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug, bypassing overseer DEBUG_TESTS task
 ---@field get_test_report_dir? fun():string
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
