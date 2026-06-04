@@ -165,7 +165,7 @@ function set_winbar(filetype)
             "log",
             "OverseerOutput",
             "neo-tree",
-            "junit-report-view",
+            "test-report-view",
         })
     then
         vim.wo.winbar = nil
