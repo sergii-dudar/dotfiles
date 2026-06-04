@@ -165,8 +165,12 @@ cleanup() {
     stty "$STTY_ORIG" <&9 2>/dev/null || true
   fi
   (( HAS_TTY )) && exec 9<&-
+  # Re-enable terminal auto-wrap (DECAWM) — disabled during the watch loop
+  # so long lines truncate instead of wrapping, keeping prev_lines exact.
+  [[ -t 1 ]] && printf '\033[?7h'
 }
 trap cleanup EXIT
+[[ -t 1 ]] && printf '\033[?7l'
 
 INTERRUPTED=0
 on_int() { INTERRUPTED=1; }
