@@ -145,12 +145,51 @@ for u in "${URLS[@]}"; do
 done
 
 TMPDIR=$(mktemp -d -t watch_pr_pipelines.XXXXXX)
-cleanup() { rm -rf "$TMPDIR"; }
+
+# Open /dev/tty as fd 9 so we can read single keystrokes during the
+# inter-cycle wait, even when URLs were piped in via stdin. The block
+# wrapper silences bash's own redirection error when no controlling tty
+# exists. Original stty settings are restored on EXIT.
+HAS_TTY=0
+{ exec 9</dev/tty; } 2>/dev/null && HAS_TTY=1
+STTY_ORIG=""
+if (( HAS_TTY )); then
+  STTY_ORIG=$(stty -g <&9 2>/dev/null || echo "")
+  if [[ -n "$STTY_ORIG" ]]; then
+    stty -icanon -echo min 0 time 0 <&9 2>/dev/null || STTY_ORIG=""
+  fi
+fi
+cleanup() {
+  rm -rf "$TMPDIR"
+  if [[ -n "$STTY_ORIG" ]]; then
+    stty "$STTY_ORIG" <&9 2>/dev/null || true
+  fi
+  (( HAS_TTY )) && exec 9<&-
+}
 trap cleanup EXIT
 
 INTERRUPTED=0
 on_int() { INTERRUPTED=1; }
 trap on_int INT
+
+# Wait up to $1 seconds, returning early on a control keypress.
+wait_with_keys() {
+  local total="$1" elapsed=0 key=""
+  while (( elapsed < total )); do
+    (( INTERRUPTED )) && return 0
+    if [[ -n "$STTY_ORIG" ]] && IFS= read -rsn 1 -t 1 key <&9 2>/dev/null; then
+      case "$key" in
+        r|R|' '|$'\n')  return 0 ;;
+        q|Q|$'\033')    INTERRUPTED=1; return 0 ;;
+        '+'|'=')        INTERVAL=$((INTERVAL * 2)); ((INTERVAL > 600)) && INTERVAL=600; return 0 ;;
+        '-'|'_')        INTERVAL=$((INTERVAL / 2)); ((INTERVAL < 1))   && INTERVAL=1;   return 0 ;;
+      esac
+    elif [[ -z "$STTY_ORIG" ]]; then
+      sleep 1
+    fi
+    elapsed=$((elapsed + 1))
+  done
+}
 
 # ── core: classify one PR ─────────────────────────────────────────────────────
 # Buckets observed from gh: pass | fail | pending | skipping | cancel
@@ -253,6 +292,7 @@ prev_lines=0
 start_ts=$(date +%s)
 
 while :; do
+  (( INTERRUPTED )) && { echo "${YELLOW}Interrupted — exiting.${RESET}" >&2; break; }
   cycle=$((cycle + 1))
 
   # Re-poll every PR that isn't done. `success` and `warning` are terminal
@@ -308,6 +348,10 @@ while :; do
     "$YELLOW" "$pending_count"                 "$RESET" \
     "$BLUE"   "$error_count"                   "$RESET"
   prev_lines=$((N + 2))
+  if [[ -n "$STTY_ORIG" ]]; then
+    printf '\033[K  %s[r]efresh  [q]uit  [+/-] interval%s\n' "$GREY" "$RESET"
+    prev_lines=$((prev_lines + 1))
+  fi
 
   # Termination conditions
   if (( ONCE )); then
@@ -324,11 +368,7 @@ while :; do
     break
   fi
 
-  # Interruptible sleep (1s ticks so Ctrl-C feels snappy)
-  for ((s=0; s<INTERVAL; s++)); do
-    (( INTERRUPTED )) && break
-    sleep 1
-  done
+  wait_with_keys "$INTERVAL"
 done
 
 # ── final summary ─────────────────────────────────────────────────────────────

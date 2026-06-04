@@ -10,7 +10,7 @@ BATTERY_FULL="󱊣"
 BATTERY_MED="󱊢"
 BATTERY_EMPTY="󱊡"
 BATTERY_CHARGE="󰂄"
-ADAPTER="󰚥 "
+ADAPTER="󰚥"
 
 generate_segmentrc() {
     read -r -d '' rccontents <<EORC
