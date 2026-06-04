@@ -5,6 +5,7 @@ Snacks.util.set_hl({
 }, { prefix = "SnacksPicker", default = true })
 
 local layouts = require("plugins.snacks.configs.layouts")
+local layout_vertical = { layout = layouts.custom_vertical }
 
 ---Toggle between horizontal and vertical layouts.
 ---@param picker snacks.Picker
@@ -77,10 +78,10 @@ local exclude_common = {
 }
 
 M.picker = {
-    -- layout = {
-    --     cycle = false,
-    -- },
-    layout = layouts.custom_default,
+    -- Do NOT set a fully-formed layout here. Snacks deep-merges the global layout into every
+    -- source, so a global with a `.layout` array leaks into sources that rely on `preset`,
+    -- causing `if not (layout.layout and layout.layout[1])` in snacks/picker/config/init.lua
+    -- to skip preset resolution. Each source below sets its own layout explicitly.
     hidden = true, -- Include hidden files in grep
     ignored = false, -- Exclude git-ignored files
     exclude = exclude_common,
@@ -181,21 +182,32 @@ M.picker = {
             --     "--ignore-case",
             -- },
         },
-        recent = {
-            layout = layouts.custom_vertical,
-        },
+        grep_buffers = layout_vertical,
+        grep_word = layout_vertical,
+        resume = layout_vertical,
+        undo = layout_vertical,
+        recent = layout_vertical,
         smart = {
             layout = layouts.custom_vertical,
             -- multi = { "buffers", "recent", "files" },
         },
-        git_files = { layout = layouts.custom_vertical },
-        git_branches = { layout = layouts.custom_vertical },
-        git_log = { layout = layouts.custom_vertical },
-        git_log_line = { layout = layouts.custom_vertical },
-        git_status = { layout = layouts.custom_vertical },
-        git_stash = { layout = layouts.custom_vertical },
-        git_diff = { layout = layouts.custom_vertical },
-        git_log_file = { layout = layouts.custom_vertical },
+        git_files = layout_vertical,
+        git_branches = layout_vertical,
+        git_log = layout_vertical,
+        git_log_line = layout_vertical,
+        git_status = layout_vertical,
+        git_stash = layout_vertical,
+        git_diff = layout_vertical,
+        git_log_file = layout_vertical,
+        lsp_declarations = layout_vertical,
+        lsp_definitions = layout_vertical,
+        lsp_implementations = layout_vertical,
+        lsp_incoming_calls = layout_vertical,
+        lsp_outgoing_calls = layout_vertical,
+        lsp_references = layout_vertical,
+        lsp_symbols = layout_vertical,
+        lsp_type_definitions = layout_vertical,
+        lsp_workspace_symbols = layout_vertical,
         projects = {
             dev = {
                 "~/serhii.home/work/git.work",
