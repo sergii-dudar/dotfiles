@@ -62,7 +62,7 @@ iscroll=$'\033[38;5;32m󰁪\033[0m'
 
 
 
-_fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} $(_klabels '^s')Autoscroll ${iscroll} "
+_fzf_header=" $(_klabel '󰘴r')Reload ${ihist} $(_klabels '󰘴a/󰘴d')Selecte/Deselect all ${iselect} $(_klabels '^q')Nvim and quit ${invim} $(_klabels 'enter')Nvim ${invim} $(_klabels '^s')Autoscroll ${iscroll} $(_klabels '^u')Clear query "
 selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUERY" \
         --layout=reverse \
         --header "$_fzf_header" \
@@ -73,6 +73,7 @@ selected=$(fzf --listen "$PORT" --ansi --disabled --multi --query "$INITIAL_QUER
         --bind "enter:execute($RG_PREFIX_NOCOL | gsed 's/^[^{]*//' | jq -s . > $tmp && LIMITED=Y nvim -R -c 'setfiletype json' $tmp; rm -f $tmp)" \
         --bind 'ctrl-q:select-all+accept' \
         --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
+        --bind "ctrl-u:clear-query+reload($RG_PREFIX)+transform([[ -f $SCROLL_FLAG ]] && echo last)" \
         --color 'hl:-1:underline,hl+:-1:underline:reverse' \
         --prompt 'Filter k8s logs ❯ ' \
         --wrap-sign '' \
