@@ -6,6 +6,7 @@ return {
             -- LSP
             "bash-language-server",
             "lemminx",
+            "autotools-language-server",
 
             -- Java
             "jdtls",
