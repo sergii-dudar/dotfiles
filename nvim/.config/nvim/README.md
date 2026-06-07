@@ -30,7 +30,7 @@
       Ability to run/debug tests to lua
       Ability to run/debug tests to bash
       Ability to run/debug tests to python
-      Ability to run/debug tests to js/ts, and debugging run
+      Ability to run/debug jest tests to js/ts, and debugging run
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())

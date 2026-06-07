@@ -648,8 +648,12 @@ local function action_rerun(is_debug)
         vim.cmd("edit " .. vim.fn.fnameescape(file_path))
         if state.snapshot.positions then
             local positions = state.snapshot.positions[file_path]
-            if positions and positions[info.node.name] then
-                vim.api.nvim_win_set_cursor(0, { positions[info.node.name] + 1, 0 })
+            -- Positions are keyed by the id's member part (what find_test_positions
+            -- returns), which is NOT always the human display name (e.g. jest uses
+            -- "L<row>" keys while the display is "describe > title"). Use the id.
+            local pos_key = info.node.id and info.node.id:match("#(.+)$") or info.node.name
+            if positions and pos_key and positions[pos_key] then
+                vim.api.nvim_win_set_cursor(0, { positions[pos_key] + 1, 0 })
             end
         end
         nio_util.run(function()

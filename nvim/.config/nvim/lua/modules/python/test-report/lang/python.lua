@@ -124,11 +124,7 @@ function M.find_test_positions(file_path, opts)
             if name_node then
                 local name = vim.treesitter.get_node_text(name_node, bufnr)
                 if name:match("^test_?") then
-                    local sr = child:range()
-                    positions[name] = sr
-                    if container_line == nil or sr < container_line then
-                        container_line = sr
-                    end
+                    positions[name] = child:range()
                 end
             end
         elseif ctype == "decorated_definition" then
@@ -141,11 +137,7 @@ function M.find_test_positions(file_path, opts)
                     if name_node then
                         local name = vim.treesitter.get_node_text(name_node, bufnr)
                         if name:match("^test_?") then
-                            local sr = def:range()
-                            positions[name] = sr
-                            if container_line == nil or sr < container_line then
-                                container_line = sr
-                            end
+                            positions[name] = def:range()
                         end
                     end
                 elseif dtype == "class_definition" then
@@ -227,6 +219,13 @@ function M.find_test_positions(file_path, opts)
                 end
             end
         end
+    end
+
+    -- No Test class to anchor the file-level summary mark on -> put it on the
+    -- file's first line (top) instead of the first test (which would duplicate
+    -- that test's own sign). When a class exists, container_line is its line.
+    if container_line == nil and next(positions) ~= nil then
+        container_line = 0
     end
 
     positions_cache[file_path] = { positions = positions, container_line = container_line, mtime = mtime }

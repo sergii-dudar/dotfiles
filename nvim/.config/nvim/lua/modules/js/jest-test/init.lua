@@ -287,8 +287,11 @@ local function ts_lang_for(bufnr)
     return "javascript"
 end
 
---- Build a `^...$` testNamePattern for the test enclosing the cursor by walking
---- up through enclosing describe/test call_expressions.
+--- Build a `^...$` testNamePattern for the test at the given row.
+--- Finds the INNERMOST leaf `test`/`it` call whose range contains `row`
+--- (column-independent — the tree view places the cursor at column 0, where a
+--- naive ancestor walk would miss deeply-nested tests), then prefixes the
+--- enclosing describe chain.
 ---@param bufnr integer
 ---@param row integer 0-indexed
 ---@return string|nil pattern
@@ -302,38 +305,54 @@ function M.name_pattern_at_row(bufnr, row)
     if not tree then
         return nil
     end
-    local root = tree:root()
-    local node = root:named_descendant_for_range(row, 0, row, 0)
-    if not node then
-        return nil
-    end
 
-    local chain = {}
-    local has_leaf = false
-    local cur = node
-    while cur do
-        if cur:type() == "call_expression" then
-            local fn = cur:field("function")[1]
-            local ident = fn and callee_root_ident(fn) or nil
-            if ident and (TEST_IDENTS[ident] or NAMESPACE_IDENTS[ident]) then
-                local name = call_name(cur, bufnr)
-                if name then
-                    table.insert(chain, 1, name)
-                    if TEST_IDENTS[ident] then
-                        has_leaf = true
+    local best_chain, best_span
+    -- Recursive walk carrying the enclosing describe-title chain.
+    local function walk(node, chain)
+        for child in node:iter_children() do
+            local descend_chain = chain
+            if child:type() == "call_expression" then
+                local fn = child:field("function")[1]
+                local ident = fn and callee_root_ident(fn) or nil
+                if ident and (TEST_IDENTS[ident] or NAMESPACE_IDENTS[ident]) then
+                    local name = call_name(child, bufnr)
+                    if name then
+                        local sr, _, er = child:range()
+                        if TEST_IDENTS[ident] then
+                            -- Leaf test: candidate if its range contains the row.
+                            if row >= sr and row <= er then
+                                local span = er - sr
+                                if best_span == nil or span < best_span then
+                                    best_span = span
+                                    best_chain = {}
+                                    for _, c in ipairs(chain) do
+                                        best_chain[#best_chain + 1] = c
+                                    end
+                                    best_chain[#best_chain + 1] = name
+                                end
+                            end
+                        else
+                            -- describe namespace: extend the chain for descendants.
+                            descend_chain = {}
+                            for _, c in ipairs(chain) do
+                                descend_chain[#descend_chain + 1] = c
+                            end
+                            descend_chain[#descend_chain + 1] = name
+                        end
                     end
                 end
             end
+            walk(child, descend_chain)
         end
-        cur = cur:parent()
     end
+    walk(tree:root(), {})
 
-    if not has_leaf or #chain == 0 then
+    if not best_chain or #best_chain == 0 then
         return nil
     end
 
     local parts = {}
-    for _, n in ipairs(chain) do
+    for _, n in ipairs(best_chain) do
         table.insert(parts, to_name_pattern(n))
     end
     return "^" .. table.concat(parts, " ") .. "$"
@@ -496,6 +515,7 @@ function M.dap_launch_test(context)
     state.last = state.last or {}
     state.last.dap_args = args
     state.last.filtered = filtered
+    state.last.filetype = vim.bo.filetype
     write_run_meta(filtered)
 
     local dap = require("dap")
@@ -511,7 +531,14 @@ function M.dap_launch_test(context)
             vim.schedule(function()
                 pcall(function()
                     require("modules.js.test-report")
-                    require("modules.common.test-report").load_existing()
+                    -- MERGE the rerun result into the accumulated report (do NOT
+                    -- clear): a single-test debug only re-runs one test, so
+                    -- clearing would drop every other test's result (and its
+                    -- name) from the tree. This mirrors the non-debug run path
+                    -- (overseer jest_report component -> process, no clear).
+                    local core = require("modules.common.test-report")
+                    local report_dir = M.get_test_report_dir()
+                    core.process(report_dir, (state.last and state.last.filetype) or "javascript")
                 end)
             end)
         end

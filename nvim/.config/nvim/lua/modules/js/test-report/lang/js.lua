@@ -189,24 +189,30 @@ function M.parse_results(dirs)
                         time = time + (inv.time or 0)
                     end
 
-                    results[id] = {
-                        status = jest_json.aggregate_status(g.invocations),
-                        time = time,
-                        invocations = g.invocations,
-                        errors = (#g.errors > 0) and g.errors or nil,
-                    }
-
                     local ancestors = g.ancestors or {}
                     local member_display = g.leaf or ""
                     if #ancestors > 0 then
                         member_display = table.concat(ancestors, " › ") .. " › " .. member_display
                     end
-                    display_cache[id] = {
-                        container = vim.fn.fnamemodify(abs, ":t"),
-                        member = member_display,
-                        group = nil, -- filled lazily in id_to_display (needs project root)
-                        _file = abs,
+
+                    results[id] = {
+                        status = jest_json.aggregate_status(g.invocations),
+                        time = time,
+                        invocations = g.invocations,
+                        errors = (#g.errors > 0) and g.errors or nil,
+                        -- Display info travels WITH the result (which the core
+                        -- persists/merges across runs) so names survive partial
+                        -- reloads (e.g. a filtered single-test debug reload).
+                        display = {
+                            container = vim.fn.fnamemodify(abs, ":t"),
+                            member = member_display,
+                            file = abs,
+                        },
                     }
+
+                    -- Fast path cache (rebuilt every parse); the result.display
+                    -- above is the durable source of truth.
+                    display_cache[id] = results[id].display
                 end
             end
         end
@@ -255,7 +261,6 @@ end
 ---@param id string  "<abs_file_path>#L<row>"
 ---@return test_report.IdDisplay
 function M.id_to_display(id)
-    local cached = display_cache[id]
     local file = id:match("^(.+)#")
     local project_root
     local ok, runner = pcall(require, "modules.js.jest-test")
@@ -272,11 +277,40 @@ function M.id_to_display(id)
         return dir
     end
 
-    if cached then
+    -- Resolve a human-readable name. Resolution order (each step is durable
+    -- against a partial/filtered reload, since the result itself lives in the
+    -- core's accumulated snapshot):
+    --   1. per-parse fast cache
+    --   2. `result.display` stored on the result at parse time
+    --   3. `result.invocations[1].name` (the leaf test title — ALWAYS present)
+    -- Only if no result exists at all do we fall back to the raw `L<row>` key.
+    local disp = display_cache[id]
+    local result
+    if not disp then
+        local ok_core, core = pcall(require, "modules.common.test-report")
+        if ok_core and core.get_report_snapshot then
+            local snap = core.get_report_snapshot()
+            result = snap.results and snap.results[id]
+            if result and result.display then
+                disp = result.display
+            end
+        end
+    end
+
+    if disp then
         return {
-            container = cached.container,
-            member = cached.member,
-            group = group_for(cached._file or file or id),
+            container = disp.container,
+            member = disp.member,
+            group = group_for(disp.file or file or id),
+        }
+    end
+
+    -- Fallback: derive the member from the result's first invocation title.
+    if result and result.invocations and result.invocations[1] and result.invocations[1].name then
+        return {
+            container = file and vim.fn.fnamemodify(file, ":t") or id,
+            member = result.invocations[1].name,
+            group = file and group_for(file) or nil,
         }
     end
 

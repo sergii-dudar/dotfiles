@@ -364,6 +364,7 @@ function M.dap_launch_test(context)
 
     state.last = state.last or {}
     state.last.dap_args = args
+    state.last.filetype = vim.bo.filetype
 
     -- Reparse the test report when the debug session ends so signs/diagnostics
     -- get populated even when the run happens via DAP (no overseer task component).
@@ -388,7 +389,14 @@ function M.dap_launch_test(context)
             vim.schedule(function()
                 pcall(function()
                     require("modules.bash.test-report")
-                    require("modules.common.test-report").load_existing()
+                    -- MERGE the rerun result into the accumulated report (do NOT
+                    -- clear): a single-test debug only re-runs one test, so
+                    -- clearing would drop every other test's result from the
+                    -- tree. Mirrors the non-debug run path (process, no clear).
+                    require("modules.common.test-report").process(
+                        M.get_test_report_dir(),
+                        (state.last and state.last.filetype) or "sh"
+                    )
                 end)
             end)
         end

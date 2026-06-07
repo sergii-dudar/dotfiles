@@ -418,7 +418,11 @@ function M.dap_launch_test(context)
             vim.schedule(function()
                 pcall(function()
                     require("modules.python.test-report")
-                    require("modules.common.test-report").load_existing()
+                    -- MERGE the rerun result into the accumulated report (do NOT
+                    -- clear): a single-test debug only re-runs one test, so
+                    -- clearing would drop every other test's result from the
+                    -- tree. Mirrors the non-debug run path (process, no clear).
+                    require("modules.common.test-report").process(M.get_test_report_dir(), "python")
                 end)
             end)
         end
