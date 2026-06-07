@@ -389,6 +389,61 @@ end
 
 local state = { last = nil }
 
+--- Resolve a mode-agnostic jest selection for the given context. Shared by the
+--- regular and debug builders so a run can be toggled between modes
+--- (TOGGLE_LAST_DEBUG) reusing the exact same selection.
+---
+--- Returns `{ targets, extra, filtered }`:
+---   targets  – paths passed to jest (file / dir / none for the whole project)
+---   extra    – optional extra flags (e.g. `--testNamePattern=<pat>`)
+---   filtered – whether this is a single-test (-t) run (drives `.run-meta`)
+--- `for_debug` only changes the no-test-under-cursor behaviour (regular falls
+--- back to the whole file; debug aborts).
+---@param context task.lang.Context
+---@param opts { for_debug: boolean }
+---@return { targets: string[], extra?: string[], filtered: boolean }|nil
+local function resolve_test_selection(context, opts)
+    local t = context.test_type
+    local file = vim.fn.expand("%:p")
+
+    if t == task.test_type.TOGGLE_LAST_DEBUG then
+        if state.last and state.last.targets then
+            return { targets = state.last.targets, extra = state.last.extra, filtered = state.last.filtered or false }
+        end
+        return nil
+    elseif
+        t == task.test_type.ALL_TESTS
+        or t == task.test_type.ALL_MODULES_TESTS
+        or t == task.test_type.SELECTED_MODULES_TESTS
+    then
+        return { targets = {}, filtered = false }
+    elseif t == task.test_type.ALL_DIR_TESTS then
+        return { targets = { vim.fn.expand("%:p:h") }, filtered = false }
+    elseif t == task.test_type.FILE_TESTS then
+        return { targets = { file }, filtered = false }
+    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
+        local bufnr = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+        local pattern = M.name_pattern_at_row(bufnr, row)
+        if not pattern then
+            if opts.for_debug then
+                vim.notify("No jest test under cursor", vim.log.levels.WARN)
+                return nil
+            end
+            vim.notify("No jest test under cursor — running file tests", vim.log.levels.WARN)
+            return { targets = { file }, filtered = false }
+        end
+        return { targets = { file }, extra = { "--testNamePattern=" .. pattern }, filtered = true }
+    end
+
+    if opts.for_debug then
+        vim.notify("JS debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
+        return nil
+    end
+    vim.notify("JS test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
+    return { targets = { file }, filtered = false }
+end
+
 ---@param context task.lang.Context
 ---@return boolean ok, string|nil err
 function M.prepare_test_context(context)
@@ -407,43 +462,15 @@ function M.build_run_test_cmd(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
     local root = M.project_root()
-    local cmd
-    local filtered = false
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.cmd then
-        cmd = state.last.cmd
-        filtered = state.last.filtered or false
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        cmd = build_cmd({})
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        cmd = build_cmd({ vim.fn.expand("%:p:h") })
-    elseif t == task.test_type.FILE_TESTS then
-        cmd = build_cmd({ file })
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local pattern = M.name_pattern_at_row(bufnr, row)
-        if not pattern then
-            vim.notify("No jest test under cursor — running file tests", vim.log.levels.WARN)
-            cmd = build_cmd({ file })
-        else
-            cmd = build_cmd({ file }, { "--testNamePattern=" .. pattern })
-            filtered = true
-        end
-    else
-        vim.notify("JS test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
-        cmd = build_cmd({ file })
+    local sel = resolve_test_selection(context, { for_debug = false })
+    if not sel then
+        return abort("No previous jest test to rerun")
     end
 
-    write_run_meta(filtered)
-    state.last = { cmd = cmd, filtered = filtered }
+    write_run_meta(sel.filtered)
+    state.last = { targets = sel.targets, extra = sel.extra, filtered = sel.filtered }
+    local cmd = build_cmd(sel.targets, sel.extra)
     return { cmd = cmd, report_dir = M.get_test_report_dir(), cwd = root }
 end
 
@@ -466,57 +493,32 @@ function M.dap_launch_test(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
     local root = M.project_root()
-    local args
-    local filtered = false
+    local sel = resolve_test_selection(context, { for_debug = true })
+    if not sel then
+        return
+    end
 
-    local base = {
+    -- Same arg shape as a normal jest run: base flags, then --testNamePattern (if
+    -- any), then the target paths.
+    local args = {
         "--runInBand",
         "--no-coverage",
         "--json",
         "--testLocationInResults",
         "--outputFile=" .. report_file(),
     }
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.dap_args then
-        args = state.last.dap_args
-        filtered = state.last.filtered or false
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local pattern = M.name_pattern_at_row(bufnr, row)
-        if not pattern then
-            vim.notify("No jest test under cursor", vim.log.levels.WARN)
-            return
+    if sel.extra then
+        for _, a in ipairs(sel.extra) do
+            table.insert(args, a)
         end
-        args = vim.deepcopy(base)
-        table.insert(args, "--testNamePattern=" .. pattern)
-        table.insert(args, file)
-        filtered = true
-    elseif t == task.test_type.FILE_TESTS then
-        args = vim.deepcopy(base)
-        table.insert(args, file)
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        args = vim.deepcopy(base)
-        table.insert(args, vim.fn.expand("%:p:h"))
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        args = vim.deepcopy(base)
-    else
-        vim.notify("JS debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
-        return
+    end
+    for _, tgt in ipairs(sel.targets) do
+        table.insert(args, tgt)
     end
 
-    state.last = state.last or {}
-    state.last.dap_args = args
-    state.last.filtered = filtered
-    state.last.filetype = vim.bo.filetype
-    write_run_meta(filtered)
+    state.last = { targets = sel.targets, extra = sel.extra, filtered = sel.filtered, filetype = vim.bo.filetype }
+    write_run_meta(sel.filtered)
 
     local dap = require("dap")
 

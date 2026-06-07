@@ -246,8 +246,62 @@ local function project_test_dirs()
     return found
 end
 
---- Memorised last (debug | non-debug) cmd so TOGGLE_LAST_DEBUG can rerun it.
+--- Memorised last selection (mode-agnostic) so TOGGLE_LAST_DEBUG can replay it
+--- in either regular or debug mode.
 local state = { last = nil }
+
+--- Resolve the bashunit target selection for the given context. Shared by the
+--- regular and debug builders so a run can be toggled between modes
+--- (TOGGLE_LAST_DEBUG) reusing the exact same selection.
+---
+--- Returns `{ paths, extra }` where `paths` is a single file (string) or a list
+--- of dirs, and `extra` is an optional `{ "--filter", fn }`. `for_debug` only
+--- changes the no-test-under-cursor behaviour (regular falls back to the whole
+--- file; debug aborts).
+---@param context task.lang.Context
+---@param opts { for_debug: boolean }
+---@return { paths: string|string[], extra?: string[] }|nil
+local function resolve_test_selection(context, opts)
+    local t = context.test_type
+    local file = vim.fn.expand("%:p")
+
+    if t == task.test_type.TOGGLE_LAST_DEBUG then
+        if state.last and state.last.paths then
+            return { paths = state.last.paths, extra = state.last.extra }
+        end
+        return nil
+    elseif
+        t == task.test_type.ALL_TESTS
+        or t == task.test_type.ALL_MODULES_TESTS
+        or t == task.test_type.SELECTED_MODULES_TESTS
+    then
+        return { paths = project_test_dirs() }
+    elseif t == task.test_type.ALL_DIR_TESTS then
+        return { paths = vim.fn.expand("%:p:h") }
+    elseif t == task.test_type.FILE_TESTS then
+        return { paths = file }
+    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
+        local bufnr = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+        local fn = M.test_fn_at_row(bufnr, row)
+        if not fn then
+            if opts.for_debug then
+                vim.notify("No bashunit test_* function under cursor", vim.log.levels.WARN)
+                return nil
+            end
+            vim.notify("No bashunit test_* function under cursor — running file tests", vim.log.levels.WARN)
+            return { paths = file }
+        end
+        return { paths = file, extra = { "--filter", fn } }
+    end
+
+    if opts.for_debug then
+        vim.notify("Bash debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
+        return nil
+    end
+    vim.notify("Bash test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
+    return { paths = file }
+end
 
 ---@param context task.lang.Context
 ---@return boolean ok, string|nil err
@@ -266,38 +320,13 @@ function M.build_run_test_cmd(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
-    local cmd
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.cmd then
-        cmd = state.last.cmd
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        cmd = build_cmd(project_test_dirs())
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        cmd = build_cmd(vim.fn.expand("%:p:h"))
-    elseif t == task.test_type.FILE_TESTS then
-        cmd = build_cmd(file)
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local fn = M.test_fn_at_row(bufnr, row)
-        if not fn then
-            vim.notify("No bashunit test_* function under cursor — running file tests", vim.log.levels.WARN)
-            cmd = build_cmd(file)
-        else
-            cmd = build_cmd(file, { "--filter", fn })
-        end
-    else
-        vim.notify("Bash test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
-        cmd = build_cmd(file)
+    local sel = resolve_test_selection(context, { for_debug = false })
+    if not sel then
+        return { cmd = { "echo", "No previous bash test to rerun" } }
     end
 
-    state.last = { cmd = cmd }
+    state.last = { paths = sel.paths, extra = sel.extra }
+    local cmd = build_cmd(sel.paths, sel.extra)
     return { cmd = cmd, report_dir = M.get_test_report_dir() }
 end
 
@@ -328,43 +357,27 @@ function M.dap_launch_test(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
-    local args
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.dap_args then
-        args = state.last.dap_args
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local fn = M.test_fn_at_row(bufnr, row)
-        if not fn then
-            vim.notify("No bashunit test_* function under cursor", vim.log.levels.WARN)
-            return
-        end
-        args = { "--log-junit", report_file(), file, "--filter", fn }
-    elseif t == task.test_type.FILE_TESTS then
-        args = { "--log-junit", report_file(), file }
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        args = { "--log-junit", report_file(), vim.fn.expand("%:p:h") }
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        local dirs = project_test_dirs()
-        args = { "--log-junit", report_file() }
-        for _, d in ipairs(dirs) do
-            table.insert(args, d)
-        end
-    else
-        vim.notify("Bash debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
+    local sel = resolve_test_selection(context, { for_debug = true })
+    if not sel then
         return
     end
 
-    state.last = state.last or {}
-    state.last.dap_args = args
-    state.last.filetype = vim.bo.filetype
+    state.last = { paths = sel.paths, extra = sel.extra, filetype = vim.bo.filetype }
+
+    -- Same arg shape as a normal bashunit run: --log-junit <report> <paths...> [--filter fn]
+    local args = { "--log-junit", report_file() }
+    if type(sel.paths) == "string" then
+        table.insert(args, sel.paths)
+    else
+        for _, d in ipairs(sel.paths) do
+            table.insert(args, d)
+        end
+    end
+    if sel.extra then
+        for _, a in ipairs(sel.extra) do
+            table.insert(args, a)
+        end
+    end
 
     -- Reparse the test report when the debug session ends so signs/diagnostics
     -- get populated even when the run happens via DAP (no overseer task component).

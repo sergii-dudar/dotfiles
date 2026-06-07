@@ -1,6 +1,7 @@
 local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
 local overseer_task_util = require("plugins.overseer.overseer-task-util")
 local overseer = require("overseer")
+local nio_util = require("utils.nio-util")
 -- local task_list = require("overseer.task_list")
 
 local M = {}
@@ -54,6 +55,17 @@ function M.run_test(context)
         })
         write_run_info(task.run_type.TEST, true)
     else
+        -- A non-java debug-test session is launched directly via dap.run (no
+        -- overseer task), so stop_all_prev_tasks won't clean it up when we switch
+        -- back to a regular run. Terminate any live session here so a
+        -- debug -> regular toggle/rerun doesn't leave it dangling.
+        local ok_dap, dap = pcall(require, "dap")
+        if ok_dap and dap.session() then
+            pcall(dap.terminate)
+            pcall(function()
+                require("dapui").close({})
+            end)
+        end
         require("utils.dap-util").reset()
         overseer_task_util.run_task({
             task_name = "RUN_TESTS",
@@ -170,12 +182,43 @@ function restart_last_task(type_resolver)
         end
     elseif last_run_info.runtype == task.run_type.TEST then
         if last_run_info.is_debug then
-            require("dap").terminate()
-            overseer_task_util.run_last_task()
+            if type_resolver.dap_launch_test then
+                -- Non-java debug launches dap directly (no overseer task to
+                -- restart). Re-dispatch through run_test, reusing the language's
+                -- stored last selection via TOGGLE_LAST_DEBUG.
+                nio_util.run(function()
+                    M.run_test({ test_type = task.test_type.TOGGLE_LAST_DEBUG, is_debug = true })
+                end)
+            else
+                -- Java: debug runs as an overseer DEBUG_TESTS task; restart it
+                -- (handles every test type and re-attaches via dap_ctrl_component).
+                require("dap").terminate()
+                overseer_task_util.run_last_task()
+            end
         else
             overseer_task_util.run_last_task({ is_open_output = true })
         end
     end
+end
+
+--- Toggle the last test run between regular and debug mode, reusing the
+--- language's stored last selection. Centralised here (not in the keymap) so the
+--- toggle direction is driven by the single source of truth (last_run_info),
+--- which is maintained for every language — including the non-java direct-dap
+--- path that does not touch the java-only `task.last_test` global.
+function M.toggle_last_test_debug()
+    if last_run_info.runtype ~= task.run_type.TEST then
+        vim.notify("No previous test run to toggle debug for", vim.log.levels.WARN)
+        return
+    end
+    local target = not last_run_info.is_debug
+    -- Java's junit TOGGLE_LAST_DEBUG branch reads this global to decide whether to
+    -- attach the JDWP agent; harmless no-op for other languages (they reuse their
+    -- own state.last). Keep it in sync with the central last_run_info.
+    task.last_test.is_debug = target
+    nio_util.run(function()
+        M.run_test({ test_type = task.test_type.TOGGLE_LAST_DEBUG, is_debug = target })
+    end)
 end
 
 function dap_after_session_clear()

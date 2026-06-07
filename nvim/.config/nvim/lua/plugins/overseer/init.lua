@@ -87,13 +87,7 @@ return {
             -- { "<leader>tr", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>tt", build_run_test(task.test_type.CURRENT_TEST), desc = "Run Current Test", },
             { "<leader>td", build_run_test(task.test_type.CURRENT_TEST, true), desc = "Debug Current Test", },
-            { "<leader>tD", function()
-                -- window_util.save_position()
-                task.last_test.is_debug = not task.last_test.is_debug
-                nio_util.run(function()
-                    require("plugins.overseer.overseer-util").run_test({ test_type = task.test_type.TOGGLE_LAST_DEBUG, is_debug = task.last_test.is_debug })
-                end)
-            end, desc = "Toggle Debug of Last Test Cmd", },
+            { "<leader>tD", function() require("plugins.overseer.overseer-util").toggle_last_test_debug() end, desc = "Toggle Debug of Last Test Cmd", },
             { "<leader>tf", build_run_test(task.test_type.FILE_TESTS), desc = "Run File Tests", },
             { "<leader>tF", build_run_test(task.test_type.FILE_TESTS, true), desc = "Run File Tests", },
             -- { "<leader>tF", build_run_test(task.test_type.ALL_DIR_TESTS), desc = "Run All Files in Current Package", },

@@ -285,8 +285,58 @@ local function build_nodeid(file, at)
     return file .. "::" .. at.method_name
 end
 
---- Memorised last cmd so TOGGLE_LAST_DEBUG can rerun it.
+--- Memorised last selection (mode-agnostic) so TOGGLE_LAST_DEBUG can replay it
+--- in either regular or debug mode.
 local state = { last = nil }
+
+--- Resolve the pytest target list for the given context. Shared by the regular
+--- and debug builders so a run can be toggled between modes (TOGGLE_LAST_DEBUG)
+--- reusing the exact same selection.
+---
+--- `for_debug` only changes the no-test-under-cursor behaviour: a regular run
+--- falls back to the whole file, while a debug run aborts (you must point at a
+--- specific test to debug).
+---@param context task.lang.Context
+---@param opts { for_debug: boolean }
+---@return string[]|nil paths
+local function resolve_test_paths(context, opts)
+    local t = context.test_type
+    local file = vim.fn.expand("%:p")
+
+    if t == task.test_type.TOGGLE_LAST_DEBUG then
+        return state.last and state.last.paths or nil
+    elseif
+        t == task.test_type.ALL_TESTS
+        or t == task.test_type.ALL_MODULES_TESTS
+        or t == task.test_type.SELECTED_MODULES_TESTS
+    then
+        return { M.project_root() }
+    elseif t == task.test_type.ALL_DIR_TESTS then
+        return { vim.fn.expand("%:p:h") }
+    elseif t == task.test_type.FILE_TESTS then
+        return { file }
+    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
+        local bufnr = vim.api.nvim_get_current_buf()
+        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+        local at = M.test_at_row(bufnr, row)
+        if not at then
+            if opts.for_debug then
+                vim.notify("No pytest test_* function under cursor", vim.log.levels.WARN)
+                return nil
+            end
+            vim.notify("No pytest test_* function under cursor — running file tests", vim.log.levels.WARN)
+            return { file }
+        end
+        return { build_nodeid(file, at) }
+    end
+
+    if opts.for_debug then
+        vim.notify("Python debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
+        return nil
+    end
+    vim.notify("Python test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
+    return { file }
+end
 
 ---@param context task.lang.Context
 ---@return boolean ok, string|nil err
@@ -313,38 +363,16 @@ function M.build_run_test_cmd(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
-    local cmd
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.cmd then
-        cmd = state.last.cmd
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        cmd = build_cmd(py, { M.project_root() })
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        cmd = build_cmd(py, { vim.fn.expand("%:p:h") })
-    elseif t == task.test_type.FILE_TESTS then
-        cmd = build_cmd(py, { file })
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local at = M.test_at_row(bufnr, row)
-        if not at then
-            vim.notify("No pytest test_* function under cursor — running file tests", vim.log.levels.WARN)
-            cmd = build_cmd(py, { file })
-        else
-            cmd = build_cmd(py, { build_nodeid(file, at) })
-        end
-    else
-        vim.notify("Python test type not supported: " .. tostring(t) .. ", falling back to file", vim.log.levels.WARN)
-        cmd = build_cmd(py, { file })
+    -- Resolve a mode-agnostic selection (list of pytest targets: nodeid/file/dir/
+    -- root) so the same selection can be replayed in either regular or debug mode
+    -- via TOGGLE_LAST_DEBUG (<leader>tD / <leader>tl).
+    local paths = resolve_test_paths(context, { for_debug = false })
+    if not paths then
+        return abort_no_pytest("No previous python test to rerun")
     end
 
-    state.last = { cmd = cmd }
+    state.last = { paths = paths }
+    local cmd = build_cmd(py, paths)
     return { cmd = cmd, report_dir = M.get_test_report_dir() }
 end
 
@@ -371,38 +399,16 @@ function M.dap_launch_test(context)
     end
     reset_report_file()
 
-    local t = context.test_type
-    local file = vim.fn.expand("%:p")
-    local args
-
-    if t == task.test_type.TOGGLE_LAST_DEBUG and state.last and state.last.dap_args then
-        args = state.last.dap_args
-    elseif t == task.test_type.CURRENT_TEST or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST then
-        local bufnr = vim.api.nvim_get_current_buf()
-        local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-        local at = M.test_at_row(bufnr, row)
-        if not at then
-            vim.notify("No pytest test_* function under cursor", vim.log.levels.WARN)
-            return
-        end
-        args = { build_nodeid(file, at), "--junit-xml=" .. report_file() }
-    elseif t == task.test_type.FILE_TESTS then
-        args = { file, "--junit-xml=" .. report_file() }
-    elseif t == task.test_type.ALL_DIR_TESTS then
-        args = { vim.fn.expand("%:p:h"), "--junit-xml=" .. report_file() }
-    elseif
-        t == task.test_type.ALL_TESTS
-        or t == task.test_type.ALL_MODULES_TESTS
-        or t == task.test_type.SELECTED_MODULES_TESTS
-    then
-        args = { M.project_root(), "--junit-xml=" .. report_file() }
-    else
-        vim.notify("Python debug test type not supported: " .. tostring(t), vim.log.levels.WARN)
+    -- Same mode-agnostic selection as the regular path, so a regular run can be
+    -- toggled into a debug run (and vice versa) reusing the last selection.
+    local paths = resolve_test_paths(context, { for_debug = true })
+    if not paths then
         return
     end
 
-    state.last = state.last or {}
-    state.last.dap_args = args
+    state.last = { paths = paths }
+    local args = vim.deepcopy(paths)
+    table.insert(args, "--junit-xml=" .. report_file())
 
     local dap = require("dap")
 
