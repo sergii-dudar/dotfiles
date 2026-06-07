@@ -335,36 +335,81 @@ function M.get_buffer_project_path(bufnr)
     return root_dir
 end
 
+--- Detect the build tool for an explicit path (uncached, path-aware).
+--- Walks up from `path` for each marker set and picks the NEAREST (deepest)
+--- root, so a gradle module nested under a maven ancestor still resolves as
+--- gradle. Ties favour maven (legacy precedence).
+---@param path string|integer Directory/file path or bufnr to start the search from.
+---@return "maven"|"gradle"|"unknown"
+function M.detect_project_type_at(path)
+    local maven_root = vim.fs.root(path, { "pom.xml" })
+    local gradle_root =
+        vim.fs.root(path, { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts" })
+
+    if maven_root and gradle_root then
+        -- Deeper (longer) root path is the more specific / nearer project.
+        return #gradle_root > #maven_root and "gradle" or "maven"
+    elseif maven_root then
+        return "maven"
+    elseif gradle_root then
+        return "gradle"
+    end
+    return "unknown"
+end
+
 local project_type_loc = nil
---- Detect the current Java project build tool.
+--- Detect the current Java project build tool (cached for the session).
 function M.detect_project_type()
     if project_type_loc ~= nil then
         return project_type_loc
     end
-
-    -- Try to find maven project root from current buffer
-    local maven_markers = { "pom.xml" }
-    local maven_root = vim.fs.root(0, maven_markers)
-    if maven_root then
-        project_type_loc = "maven"
-        return project_type_loc
-    end
-
-    -- Try to find gradle project root from current buffer
-    local gradle_markers = {
-        "build.gradle",
-        "build.gradle.kts",
-        "settings.gradle",
-        "settings.gradle.kts",
-    }
-    local gradle_root = vim.fs.root(0, gradle_markers)
-    if gradle_root then
-        project_type_loc = "gradle"
-        return project_type_loc
-    end
-
-    project_type_loc = "unknown"
+    project_type_loc = M.detect_project_type_at(0)
     return project_type_loc
+end
+
+--- Resolve the per-module build output layout for the given module path.
+--- Detection is by build file (pom.xml vs build.gradle[.kts]), never by folder
+--- presence, since a project may carry stale `target/` or `build/` dirs.
+---
+--- Gradle (jdtls/Eclipse buildship) compiles to `bin/main` / `bin/test`; pure
+--- gradle CLI uses `build/classes/java/main|test`. We prefer whichever output
+--- dir already exists (jdtls keeps `bin/` live while editing), falling back to
+--- the gradle CLI layout.
+---@param module_path string
+---@return { tool: string, classes_dir: string, test_classes_dir: string, report_dir: string, generated_annotations_dir: string }
+function M.get_build_layout(module_path)
+    local function first_existing(candidates, fallback)
+        for _, c in ipairs(candidates) do
+            if vim.fn.isdirectory(c) == 1 then
+                return c
+            end
+        end
+        return fallback
+    end
+
+    if M.detect_project_type_at(module_path) == "gradle" then
+        return {
+            tool = "gradle",
+            classes_dir = first_existing(
+                { module_path .. "/bin/main", module_path .. "/build/classes/java/main" },
+                module_path .. "/build/classes/java/main"
+            ),
+            test_classes_dir = first_existing(
+                { module_path .. "/bin/test", module_path .. "/build/classes/java/test" },
+                module_path .. "/build/classes/java/test"
+            ),
+            report_dir = module_path .. "/build/junit-report",
+            generated_annotations_dir = module_path .. "/build/generated/sources/annotationProcessor",
+        }
+    end
+
+    return {
+        tool = "maven",
+        classes_dir = module_path .. "/target/classes",
+        test_classes_dir = module_path .. "/target/test-classes",
+        report_dir = module_path .. "/target/junit-report",
+        generated_annotations_dir = module_path .. "/target/generated-sources/annotations",
+    }
 end
 
 local is_java_project_loc = nil

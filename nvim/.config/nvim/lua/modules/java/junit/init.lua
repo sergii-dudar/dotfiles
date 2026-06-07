@@ -6,7 +6,6 @@ local string_util = require("utils.string-util")
 local nio_util = require("utils.nio-util")
 -- local common_util = require("utils.common-util")
 local jdtls_classpath = require("utils.java.jdtls-classpath-util")
-local constants = require("utils.constants")
 
 local M = {}
 
@@ -38,16 +37,27 @@ local setting = {
         -- "-Djavax.net.ssl.trustStorePassword=secret",
         string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
-    report_dir = constants.java.junit_report_dir,
 }
 if byte_buddy_agent_jar then
     table.insert(setting.jvm_args, "-javaagent:" .. byte_buddy_agent_jar)
 end
 
 ---@param module_path string
+---@return string
+local function module_test_classes(module_path)
+    return java_util.get_build_layout(module_path).test_classes_dir
+end
+
+---@param module_path string
+---@return string
+local function module_report_dir(module_path)
+    return java_util.get_build_layout(module_path).report_dir
+end
+
+---@param module_path string
 ---@return boolean
 local function has_test_classes(module_path)
-    local test_classes_dir = module_path .. "/target/test-classes"
+    local test_classes_dir = module_test_classes(module_path)
     local test_sources_dir = module_path .. "/src/test"
     if vim.fn.isdirectory(test_sources_dir) ~= 1 or vim.fn.isdirectory(test_classes_dir) ~= 1 then
         return false
@@ -79,7 +89,7 @@ end
 local test_selector_resolver = {
     [task.test_type.ALL_TESTS] = function()
         local module_path = java_util.get_buffer_project_path()
-        local test_classes = module_path .. "/target/test-classes"
+        local test_classes = module_test_classes(module_path)
         return "--scan-class-path=" .. test_classes
     end,
     [task.test_type.ALL_DIR_TESTS] = function(context)
@@ -123,7 +133,7 @@ local test_selector_resolver = {
         end
 
         local module_path = java_util.get_buffer_project_path()
-        local test_classes = module_path .. "/target/test-classes"
+        local test_classes = module_test_classes(module_path)
         local current_test_method_fsignature =
             javap_util.resolve_parametrized_method_signature(current_test_method.fsignature, test_classes)
         -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
@@ -155,7 +165,7 @@ local test_selector_resolver = {
         end
         state.parametrized_test_num = tonumber(nio_util.input("Test Number")) - 1
         local module_path = java_util.get_buffer_project_path()
-        local test_classes = module_path .. "/target/test-classes"
+        local test_classes = module_test_classes(module_path)
         current_test_method_fqn =
             javap_util.resolve_parametrized_method_signature(current_test_method_fqn, test_classes)
         -- vim.notify("signature: " .. current_test_method_fqn, vim.log.levels.WARN)
@@ -215,11 +225,11 @@ local function build_multi_module_cmd(modules)
     local report_dirs = {}
 
     for _, mod in ipairs(modules) do
-        local test_classes = mod.path .. "/target/test-classes"
+        local test_classes = module_test_classes(mod.path)
         if has_test_classes(mod.path) then
             local classpath = jdtls_classpath.get_classpath_for_module_uri(mod.uri)
             if classpath then
-                local report_dir = mod.path .. setting.report_dir
+                local report_dir = module_report_dir(mod.path)
                 local cmd_table = build_single_module_cmd({
                     classpath = classpath,
                     report_dir = report_dir,
@@ -299,7 +309,7 @@ function build_junit_tests_cmd(context)
                 vim.notify("Could not resolve module for last test buffer", vim.log.levels.WARN)
                 return { cmd = { "echo", "Could not resolve module for last test buffer" } }
             end
-            local current_report_dir = module_path .. setting.report_dir
+            local current_report_dir = module_report_dir(module_path)
 
             return {
                 cmd = build_single_module_cmd({
@@ -322,7 +332,7 @@ function build_junit_tests_cmd(context)
 
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
     local module_path = java_util.get_buffer_project_path()
-    local current_report_dir = module_path .. setting.report_dir
+    local current_report_dir = module_report_dir(module_path)
 
     task.last_test.test_selector = test_selector
     task.last_test.is_debug = (is_debug ~= nil and is_debug ~= false) and true or false
@@ -335,7 +345,7 @@ function build_junit_tests_cmd(context)
             test_selector = test_selector,
             is_debug = is_debug,
         }),
-        report_dir = java_util.get_buffer_project_path() .. setting.report_dir,
+        report_dir = module_report_dir(java_util.get_buffer_project_path()),
     }
 end
 

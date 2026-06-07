@@ -67,7 +67,7 @@ return {
             { "<leader>jdf", ":JdtWipeDataAndRestart<CR>", desc = "JDTLS Wipe Data and [F]ull Restart" },
             { "<leader>jdg", function()
                 local path = java_util.get_buffer_project_path()
-                local dir = path .. "/target/generated-sources/annotations"
+                local dir = java_util.get_build_layout(path).generated_annotations_dir
                 vim.fn.delete(dir, "rf")
                 vim.notify("Cleared: " .. dir)
                 require("jdtls").update_project_config()

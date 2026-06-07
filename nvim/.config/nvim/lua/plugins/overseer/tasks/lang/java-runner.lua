@@ -74,7 +74,7 @@ end
 
 function M.get_test_report_dir()
     local java_util = require("utils.java.java-common")
-    return java_util.get_buffer_project_path() .. require("utils.constants").java.junit_report_dir
+    return java_util.get_build_layout(java_util.get_buffer_project_path()).report_dir
 end
 
 return M

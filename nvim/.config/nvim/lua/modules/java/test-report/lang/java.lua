@@ -119,7 +119,8 @@ function M.id_to_file(classname, report_dir)
     local outer_class = classname:match("^([^%$]+)") or classname
     local relative_path = outer_class:gsub("%.", "/") .. ".java"
 
-    local project_root = report_dir:match("(.+)/target/junit%-report$")
+    -- Accept both maven (target/junit-report) and gradle (build/junit-report).
+    local project_root = report_dir:match("^(.+)/[^/]+/junit%-report$")
     if project_root then
         local hit = build_class_index(project_root)[relative_path]
         if hit then
@@ -189,7 +190,7 @@ end
 
 ---@return string
 function M.get_test_report_dir()
-    return java_util.get_buffer_project_path() .. require("utils.constants").java.junit_report_dir
+    return java_util.get_build_layout(java_util.get_buffer_project_path()).report_dir
 end
 
 return M

@@ -61,6 +61,7 @@ local exclude_common = {
     "**/target/surefire-reports",
     "**/target/failsafe-reports",
     "**/target/junit-report",
+    "**/build/junit-report",
     "**/target/jacoco-output",
     "**/target/site",
     "**/target/.cache",
