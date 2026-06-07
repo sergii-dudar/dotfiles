@@ -14,6 +14,10 @@ local ft_to_module = {
     python = "modules.python.test-report",
     sh = "modules.bash.test-report",
     bash = "modules.bash.test-report",
+    javascript = "modules.js.test-report",
+    typescript = "modules.js.test-report",
+    javascriptreact = "modules.js.test-report",
+    typescriptreact = "modules.js.test-report",
 }
 
 -- filetype -> Trouble source name used by that adapter's diagnostics
@@ -25,6 +29,10 @@ local ft_to_trouble_source = {
     python = "pytest_test_diagnostics",
     sh = "bashunit_test_diagnostics",
     bash = "bashunit_test_diagnostics",
+    javascript = "jest_test_diagnostics",
+    typescript = "jest_test_diagnostics",
+    javascriptreact = "jest_test_diagnostics",
+    typescriptreact = "jest_test_diagnostics",
 }
 
 -- filetype -> diagnostic source name (matches adapter.diagnostic_source)
@@ -36,6 +44,10 @@ local ft_to_diagnostic_source = {
     python = "pytest",
     sh = "bashunit",
     bash = "bashunit",
+    javascript = "jest",
+    typescript = "jest",
+    javascriptreact = "jest",
+    typescriptreact = "jest",
 }
 
 ---@return string|nil

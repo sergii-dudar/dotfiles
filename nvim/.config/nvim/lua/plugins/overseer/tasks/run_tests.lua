@@ -12,6 +12,10 @@ local ft_to_report_component = {
     python = "test_report.pytest_report",
     sh = "test_report.bashunit_report",
     bash = "test_report.bashunit_report",
+    javascript = "test_report.jest_report",
+    typescript = "test_report.jest_report",
+    javascriptreact = "test_report.jest_report",
+    typescriptreact = "test_report.jest_report",
 }
 
 ---@param filetype string|nil
@@ -61,10 +65,14 @@ function M.build_taks()
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
                 table.insert(components, 2, "on_result_diagnostics")
             end
-            return {
+            local task = {
                 cmd = result_cmd,
                 components = components,
             }
+            if test_cmd.cwd then
+                task.cwd = test_cmd.cwd
+            end
+            return task
         end,
         condition = {
             filetype = lang_runner_resolver.types_supported_test_cmd,
@@ -92,10 +100,14 @@ function M.build_debug_taks()
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
                 table.insert(components, 2, "on_result_diagnostics")
             end
-            return {
+            local task = {
                 cmd = result_cmd,
                 components = components,
             }
+            if test_cmd.cwd then
+                task.cwd = test_cmd.cwd
+            end
+            return task
         end,
         condition = {
             filetype = lang_runner_resolver.types_supported_test_cmd,

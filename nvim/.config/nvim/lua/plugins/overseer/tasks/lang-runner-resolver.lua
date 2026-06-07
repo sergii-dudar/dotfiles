@@ -5,6 +5,9 @@ type_to_resolver["java"] = require("plugins.overseer.tasks.lang.java-runner")
 type_to_resolver["python"] = require("plugins.overseer.tasks.lang.python-runner")
 type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
 type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner")
+type_to_resolver["typescript"] = require("plugins.overseer.tasks.lang.js-runner")
+type_to_resolver["javascriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
+type_to_resolver["typescriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
 type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
 -- type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
@@ -21,6 +24,7 @@ local M = {}
 ---@class task.lang.test.TestCmd
 ---@field cmd string|string[]
 ---@field report_dir? string|string[]
+---@field cwd? string
 
 ---@class task.lang.Runner
 ---@field get_envs? fun():table<string, string>

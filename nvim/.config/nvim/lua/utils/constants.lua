@@ -37,6 +37,10 @@ M.python = {
     -- ./venv -> python3/python on $PATH.
     python_bin = nil,
 }
+M.js = {
+    jest = "jest",
+    jest_test_diagnostics_source = "jest_test_diagnostics",
+}
 M.output = {
     height_rows = 10,
 }
