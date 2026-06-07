@@ -91,10 +91,36 @@ return {
                 return false
             end
 
+            -- Restore neo-tree only once ALL debug sessions have ended.
+            -- The js-debug / Deno adapter spawns child sessions ("Remote
+            -- Process [n]"), each firing its own initialized/terminated events.
+            -- We must not let a child clobber the captured state, nor restore
+            -- while a parent/child session is still running.
+            local function maybe_restore_neotree()
+                vim.schedule(function()
+                    if require("dap").session() then
+                        return -- a debug session is still active
+                    end
+                    if neotree_was_open then
+                        local bufname = vim.api.nvim_buf_get_name(0)
+                        if bufname and bufname ~= "" and vim.fn.filereadable(bufname) == 1 then
+                            pcall(vim.cmd, "Neotree filesystem reveal left action=show")
+                        else
+                            pcall(vim.cmd, "Neotree filesystem left action=show")
+                        end
+                    end
+                    neotree_was_open = false
+                end)
+            end
+
             dap.listeners.after.event_initialized["dapui_config"] = function(session)
-                neotree_was_open = is_neotree_open()
-                if neotree_was_open then
-                    pcall(vim.cmd, "Neotree close")
+                -- Only the ROOT session (no parent) captures/closes neo-tree;
+                -- child sessions would otherwise overwrite the flag with false.
+                if session and not session.parent then
+                    neotree_was_open = is_neotree_open()
+                    if neotree_was_open then
+                        pcall(vim.cmd, "Neotree close")
+                    end
                 end
                 dap_util.reset()
                 dapui.open({ reset = true })
@@ -112,19 +138,15 @@ return {
             end
             dap.listeners.before.event_terminated["dapui_config"] = function()
                 pcall(dapui.close, {})
-                if neotree_was_open then
-                    vim.schedule(function()
-                        local bufname = vim.api.nvim_buf_get_name(0)
-                        if bufname and bufname ~= "" and vim.fn.filereadable(bufname) == 1 then
-                            pcall(vim.cmd, "Neotree filesystem reveal left action=show")
-                        else
-                            pcall(vim.cmd, "Neotree filesystem left action=show")
-                        end
-                    end)
-                end
+                maybe_restore_neotree()
             end
             dap.listeners.before.event_exited["dapui_config"] = function()
                 pcall(dapui.close, {})
+                maybe_restore_neotree()
+            end
+            dap.listeners.before.disconnect["dapui_config"] = function()
+                pcall(dapui.close, {})
+                maybe_restore_neotree()
             end
         end,
     },

@@ -71,6 +71,11 @@ local ns = vim.api.nvim_create_namespace("test_report_view")
 ---@field container_node? report_view.ContainerNode
 ---@field group_node? report_view.GroupNode
 
+-- Fixed width of the tree split. Re-asserted when other windows close (e.g.
+-- nvim-dap-ui panels) so the tree doesn't grow as freed columns redistribute.
+local TREE_WIDTH = 65
+local fix_width_group = vim.api.nvim_create_augroup("TestReportViewFixWidth", { clear = true })
+
 -- View state (singleton — only one tree view at a time)
 local state = {
     bufnr = nil, ---@type integer|nil
@@ -861,6 +866,7 @@ local function setup_keymaps(buf)
 end
 
 function M.close()
+    pcall(vim.api.nvim_clear_autocmds, { group = fix_width_group })
     if state.winid and vim.api.nvim_win_is_valid(state.winid) then
         vim.api.nvim_win_close(state.winid, true)
     end
@@ -894,7 +900,7 @@ function M.open(snapshot)
     vim.cmd("botright vsplit")
     state.winid = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.winid, state.bufnr)
-    vim.api.nvim_win_set_width(state.winid, 65)
+    vim.api.nvim_win_set_width(state.winid, TREE_WIDTH)
 
     vim.wo[state.winid].number = false
     vim.wo[state.winid].relativenumber = false
@@ -904,6 +910,28 @@ function M.open(snapshot)
     vim.wo[state.winid].cursorline = true
     vim.wo[state.winid].winfixwidth = true
 
+    -- Keep the tree at a fixed width even when other splits open/close. When a
+    -- vertical split (e.g. a nvim-dap-ui panel) closes, Neovim redistributes the
+    -- freed columns and the tree can grow despite `winfixwidth`; snap it back.
+    vim.api.nvim_clear_autocmds({ group = fix_width_group })
+    vim.api.nvim_create_autocmd({ "WinClosed", "WinResized" }, {
+        group = fix_width_group,
+        callback = function()
+            if not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
+                return
+            end
+            vim.schedule(function()
+                if
+                    state.winid
+                    and vim.api.nvim_win_is_valid(state.winid)
+                    and vim.api.nvim_win_get_width(state.winid) ~= TREE_WIDTH
+                then
+                    pcall(vim.api.nvim_win_set_width, state.winid, TREE_WIDTH)
+                end
+            end)
+        end,
+    })
+
     refresh()
     setup_keymaps(state.bufnr)
 
@@ -911,6 +939,7 @@ function M.open(snapshot)
         buffer = state.bufnr,
         once = true,
         callback = function()
+            pcall(vim.api.nvim_clear_autocmds, { group = fix_width_group })
             state.bufnr = nil
             state.winid = nil
         end,
