@@ -16,6 +16,7 @@ iconfigured=$'\033[38;5;110m\033[0m'
 
 inew=$'\033[38;5;32m\033[0m'
 ikill=$'\033[38;5;1m\033[0m'
+irename=$'\033[38;5;214m󰑕\033[0m'
 
 # OS_TYPE=$(uname)
 # function isMacOs() {
@@ -32,7 +33,7 @@ ikill=$'\033[38;5;1m\033[0m'
 session="$(
     sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
         --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${itmux} Tmux: " \
-        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}" \
+        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename}" \
         --bind 'tab:down,btab:up' \
         --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+reload(sesh list -i)" \
         --bind "ctrl-t:change-prompt(${itmux} Tmux: )+reload(sesh list -t -i)" \
@@ -44,6 +45,7 @@ session="$(
                                                     fd -H -d 5 -t d -p ~/.local/share/nvim/lazy ~ | xargs -I folder printf " folder\n"))' \
         --bind 'ctrl-d:execute(tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux kill-session -t $(echo {} | cut -c3-))+change-prompt( Tmux Kill: )+reload(sesh list -t -i)' \
         --bind 'ctrl-n:execute([ -n "{q}" ] && (tmux has-session -t {q} 2>/dev/null || tmux new-session -s {q} -n {q} -d))+change-prompt(  Tmux New: )+reload(sesh list -t -i)' \
+        --bind 'ctrl-r:execute(old=$(echo {} | cut -c3-); tmux has-session -t "$old" 2>/dev/null && new=$old && vared -p "Rename to: " new && [ -n "$new" ] && tmux rename-session -t "$old" "$new")+change-prompt(󰑕  Tmux Rename: )+reload(sesh list -t -i)' \
         --preview 'tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux capture-pane -peJt $(echo {} | cut -c3-) || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo $(echo {} | cut -c3-))"' \
         --preview-window=down,75%
 )"
