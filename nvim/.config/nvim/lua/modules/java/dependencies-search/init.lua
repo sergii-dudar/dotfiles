@@ -47,6 +47,7 @@ local include_dependencies = {
     -- "org.mapstruct",
     -- "com.fasterxml.jackson.core:jackson-databind",
     "ua.raiffeisen.payments",
+    "org.assertj:assertj-core",
 }
 
 local ignored_dependencies = {

@@ -13,6 +13,7 @@ return {
             "vscode-spring-boot-tools",
             "vscode-java-dependency",
             "vscode-java-decompiler",
+            "gradle-language-server",
 
             -- "haskell-language-server", -- issues with securities on macos
 

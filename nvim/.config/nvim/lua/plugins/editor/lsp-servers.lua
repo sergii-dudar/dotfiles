@@ -1,11 +1,13 @@
 return {
     -- ###### Makefile / autotools #######
     -- autotools-language-server: LSP for Makefile, automake, autoconf
+    -- gradle-language-server
     {
         "neovim/nvim-lspconfig",
         opts = {
             servers = {
                 autotools_ls = {},
+                -- gradle_ls = {},
             },
         },
     },
