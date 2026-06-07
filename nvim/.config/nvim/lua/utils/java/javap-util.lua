@@ -13,8 +13,9 @@ local exec_javap_cached = function(class_name, class_path)
         return result
     end
 
-    local cmd = string.format("javap -cp %s %s", class_path, class_name)
-    local obj = vim.system({ "bash", "-c", cmd }, { text = true }):wait()
+    -- Pass argv directly (no shell) so "$" in nested class names
+    -- (e.g. Outer$Inner) is not expanded away by the shell.
+    local obj = vim.system({ "javap", "-cp", class_path, class_name }, { text = true }):wait()
     result = obj.stdout or ""
 
     --[[ 

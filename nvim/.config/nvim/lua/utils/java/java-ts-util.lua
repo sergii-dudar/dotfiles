@@ -33,6 +33,35 @@ local function get_package_name(node)
 end
 
 -- ---------------------------------------------------------
+--  GET NESTED BINARY CLASS NAME
+-- ---------------------------------------------------------
+--- Build the JUnit/JVM binary class name for a class_declaration node by
+--- walking up every enclosing class_declaration and joining the simple names
+--- with "$" (e.g. "NestedTest$WhenDepositing"). For a top-level class this is
+--- just the simple name, so callers stay backward compatible.
+---@param class_node TSNode
+---@return string|nil
+local function nested_binary_class_name(class_node)
+    local names = {}
+    local node = class_node
+    while node do
+        if node:type() == "class_declaration" then
+            for c in node:iter_children() do
+                if c:type() == "identifier" then
+                    table.insert(names, 1, vim.treesitter.get_node_text(c, 0))
+                    break
+                end
+            end
+        end
+        node = node:parent()
+    end
+    if #names == 0 then
+        return nil
+    end
+    return table.concat(names, "$")
+end
+
+-- ---------------------------------------------------------
 --  GET CLASS NAME
 -- ---------------------------------------------------------
 --- Get the fully qualified class name at the cursor.
@@ -50,13 +79,9 @@ function M.get_class_name()
         return nil
     end
 
-    -- Extract class identifier
-    local cls_name
-    for c in node:iter_children() do
-        if c:type() == "identifier" then
-            cls_name = vim.treesitter.get_node_text(c, 0)
-            break
-        end
+    local cls_name = nested_binary_class_name(node)
+    if not cls_name then
+        return nil
     end
 
     local pkg = get_package_name(node)
@@ -84,12 +109,8 @@ function M.get_class_name_with_abstract()
         return nil
     end
 
-    local cls_name
     local is_abstract = false
     for c in node:iter_children() do
-        if c:type() == "identifier" then
-            cls_name = vim.treesitter.get_node_text(c, 0)
-        end
         if c:type() == "modifiers" then
             for m in c:iter_children() do
                 if vim.treesitter.get_node_text(m, 0) == "abstract" then
@@ -99,6 +120,7 @@ function M.get_class_name_with_abstract()
         end
     end
 
+    local cls_name = nested_binary_class_name(node)
     local pkg = get_package_name(node)
     local full_name = pkg and (pkg .. "." .. cls_name) or cls_name
 
