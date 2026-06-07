@@ -522,6 +522,18 @@ function M.dap_launch_test(context)
         return
     end
 
+    -- Remember the selection (mode-agnostic) so a debug run can be toggled back
+    -- to a regular run via TOGGLE_LAST_DEBUG (<leader>tD / <leader>tl), mirroring
+    -- the non-debug resolve_cmd path.
+    if t ~= task.test_type.TOGGLE_LAST_DEBUG then
+        state.last = {
+            kind = "runnable",
+            runnable = runnable,
+            test_type = t,
+            bufnr = vim.api.nvim_get_current_buf(),
+        }
+    end
+
     nio_util.run(function()
         vim.notify("Compiling test binary for debugging...", vim.log.levels.INFO)
         local binary, dap_args = compile_and_locate_test_binary(runnable)

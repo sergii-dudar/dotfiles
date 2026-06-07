@@ -34,6 +34,7 @@
       Ability to run/debug jest tests to js/ts, and debugging run
       Make java tests agnostics for maven/gradle
       last run (especially in debugging) with overseer now working in another lang implementations (except java)
+      try to fix bash tests debug
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
