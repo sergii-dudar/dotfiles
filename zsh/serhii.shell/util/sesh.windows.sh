@@ -28,7 +28,7 @@ window="$(
         --bind 'ctrl-n:execute(name={q}; [ -z "$name" ] && printf "Window name: " && read name; [ -n "$name" ] && tmux new-window -n "$name" -c '"$PANE_PATH"')+clear-query+reload('"$LIST_CMD"')' \
         --bind 'ctrl-g:execute(name={q}; [ -z "$name" ] && printf "Window name: " && read name; [ -n "$name" ] && tmux new-window -n "$name" -c '"$PANE_PATH"')+abort' \
         --bind 'ctrl-d:execute(tmux kill-window -t :$(echo {} | cut -d: -f1))+reload('"$LIST_CMD"')' \
-        --bind 'ctrl-r:execute(printf "Rename to: " && read name && [ -n "$name" ] && tmux rename-window -t :$(echo {} | cut -d: -f1) "$name")+reload('"$LIST_CMD"')' \
+        --bind 'ctrl-r:execute(idx=$(echo {} | cut -d: -f1); cur=$(echo {} | cut -d: -f2- | sed "s/^ //"); new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$cur") && [ -n "$new" ] && tmux rename-window -t :$idx "$new")+reload('"$LIST_CMD"')' \
         --preview 'tmux capture-pane -e -p -t :$(echo {} | cut -d: -f1)' \
         --preview-window=down,75%
 )"
