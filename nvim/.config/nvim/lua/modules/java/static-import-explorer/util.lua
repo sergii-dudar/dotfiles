@@ -26,8 +26,12 @@ function M.filter_dirs_by_patterns(source_dirs, patterns)
     end
     local result = {}
     for _, dir in ipairs(source_dirs) do
+        -- Normalize once per dir: Gradle cache paths embed the group as a single
+        -- dotted segment (.../files-2.1/org.assertj/...), so slash-form patterns
+        -- (org/assertj/...) won't match without this. No-op for Maven dirs.
+        local match_path = dep_search.coord_match_path(dir)
         for _, pattern in ipairs(patterns) do
-            if dir:find(pattern, 1, true) then
+            if match_path:find(pattern, 1, true) then
                 table.insert(result, dir)
                 break
             end
@@ -95,8 +99,9 @@ local function resolve_preferred_entries(entries, all_dep_dirs)
     if #exclude_coords > 0 then
         local exclude_patterns = M.to_dep_patterns(exclude_coords)
         dirs = vim.tbl_filter(function(dir)
+            local match_path = dep_search.coord_match_path(dir)
             for _, pattern in ipairs(exclude_patterns) do
-                if dir:find(pattern, 1, true) then
+                if match_path:find(pattern, 1, true) then
                     return false
                 end
             end

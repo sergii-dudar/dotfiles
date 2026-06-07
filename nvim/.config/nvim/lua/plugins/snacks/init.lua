@@ -130,11 +130,11 @@ return {
             { "<leader>fz", function() Snacks.picker.zoxide() end, desc = "Zoxide find", },
             { "<leader>fd", function() require("plugins.snacks.configs.find-dir").pick() end, desc = "Find Directories" },
             -- working exploring helpers:
-            { "<leader>g.", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
+            { "<leader>g,", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
             { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
             -- { "<leader>b.", function() LazyVim.pick("files", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Find File (Root of buffer)" },
             -- { "<leader>b/", function() LazyVim.pick("live_grep", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Grep (Root of buffer)" },
-            { "<leader>b.", function()
+            { "<leader>b,", function()
                 local path = require("utils.java.java-common").get_buffer_project_path()
                 local name = vim.fn.fnamemodify(path, ":t:r")
                 Snacks.picker.files({ cwd = path, title = "Files in: " .. name })

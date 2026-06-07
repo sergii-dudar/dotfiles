@@ -80,17 +80,57 @@ end
 local include_dep_patterns = to_path_patterns(include_dependencies)
 local ignored_dep_patterns = to_path_patterns(ignored_dependencies)
 
+-- Gradle module cache layout: <GRADLE_USER_HOME>/caches/modules-<N>/files-<X.Y>/
+-- The numeric format versions (e.g. modules-2, files-2.1) have changed across
+-- Gradle releases, so match them with wildcards instead of hardcoding.
+local GRADLE_CACHE_PATTERN = "/caches/modules%-%d+/files%-[%d.]+/"
+
+---@param path string
+---@return boolean
+local function is_gradle_cache_path(path)
+    return path:find(GRADLE_CACHE_PATTERN) ~= nil
+end
+
+--- Return the coordinate-relative remainder after the gradle cache root, or nil.
+---@param path string
+---@return string|nil
+local function gradle_cache_rel(path)
+    return path:match(GRADLE_CACHE_PATTERN .. "(.+)")
+end
+
+-- Normalize a jar/dir path to a slash-form coordinate path for pattern matching.
+-- Maven already stores the group as nested dirs (org/mapstruct/...), but Gradle
+-- uses a single dotted segment (files-2.1/org.mapstruct/...), so we convert that
+-- group segment's dots to slashes. Returns the input unchanged for Maven paths.
+---@param path string
+---@return string
+local function coord_match_path(path)
+    local g = gradle_cache_rel(path)
+    if not g then
+        return path
+    end
+    local group, rest = g:match("^([^/]+)/(.+)$")
+    if group then
+        return group:gsub("%.", "/") .. "/" .. rest
+    end
+    return g
+end
+
+-- Exposed for reuse (e.g. static-import-explorer's preferred-dep matching).
+M.coord_match_path = coord_match_path
+
 local function is_jar_ignored(jar_path)
+    local match_path = coord_match_path(jar_path)
     if #include_dep_patterns > 0 then
         for _, pattern in ipairs(include_dep_patterns) do
-            if jar_path:find(pattern, 1, true) then
+            if match_path:find(pattern, 1, true) then
                 return false
             end
         end
         return true
     end
     for _, pattern in ipairs(ignored_dep_patterns) do
-        if jar_path:find(pattern, 1, true) then
+        if match_path:find(pattern, 1, true) then
             return true
         end
     end
@@ -101,6 +141,21 @@ end
 -- ~/.m2/repository/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final-sources
 -- -> { label = "org.mapstruct:mapstruct:1.5.5.Final", dir = "..." }
 local function source_dir_to_module(dir)
+    -- Gradle: <cache>/modules-<N>/files-<X.Y>/<group.dotted>/<artifact>/<version>/<hash>/<artifact>-<version>-sources
+    local gradle_rel = gradle_cache_rel(dir)
+    if gradle_rel then
+        local parts = vim.split(gradle_rel, "/")
+        -- parts: {group.dotted, artifactId, version, hash, dirname}
+        if #parts < 4 then
+            return nil
+        end
+        return {
+            label = parts[1] .. ":" .. parts[2] .. ":" .. parts[3],
+            dir = dir,
+        }
+    end
+
+    -- Maven: ~/.m2/repository/<group/parts>/<artifact>/<version>/<artifact>-<version>-sources
     local repo_rel = dir:match(".m2/repository/(.+)")
     if not repo_rel then
         return nil
@@ -123,13 +178,29 @@ local function source_dir_to_module(dir)
     }
 end
 
-local function jar_to_sources_dir(jar_path)
-    local base = jar_path:gsub("%.jar$", "")
-    return base .. "-sources"
-end
+-- Resolve the sources jar + extraction dir for a binary dependency jar,
+-- handling both Maven and Gradle cache layouts.
+--   Maven : sources jar sits beside the binary jar in the same dir.
+--   Gradle: each file lives in its own SHA1 hash dir under the version dir, so
+--           the sources jar is in a sibling hash dir (not predictable from the
+--           binary jar's hash) — we glob the version dir for it.
+---@param jar string absolute path to a binary dependency jar
+---@return string|nil sources_jar, string|nil sources_dir
+local function resolve_sources(jar)
+    if is_gradle_cache_path(jar) then
+        local jar_name = vim.fn.fnamemodify(jar, ":t")
+        local sources_name = jar_name:gsub("%.jar$", "-sources.jar")
+        local version_dir = vim.fn.fnamemodify(jar, ":h:h")
+        local matches = vim.fn.glob(version_dir .. "/*/" .. sources_name, false, true)
+        if #matches > 0 then
+            local sjar = matches[1]
+            return sjar, (sjar:gsub("%.jar$", ""))
+        end
+        return nil, nil
+    end
 
-local function jar_to_sources_jar(jar_path)
-    return jar_to_sources_dir(jar_path) .. ".jar"
+    local base = jar:gsub("%.jar$", "")
+    return base .. "-sources.jar", base .. "-sources"
 end
 
 ---@param opts? { on_done?: fun() }
@@ -142,15 +213,14 @@ local function process_jars(jars)
     local missing = {}
 
     for _, jar in ipairs(jars) do
-        local sources_jar = jar_to_sources_jar(jar)
-        local sources_dir = jar_to_sources_dir(jar)
+        local sources_jar, sources_dir = resolve_sources(jar)
 
-        if vim.fn.isdirectory(sources_dir) == 1 then
+        if sources_dir and vim.fn.isdirectory(sources_dir) == 1 then
             table.insert(dirs_all, sources_dir)
             if not is_jar_ignored(jar) then
                 table.insert(dirs, sources_dir)
             end
-        elseif vim.fn.filereadable(sources_jar) == 1 then
+        elseif sources_jar and vim.fn.filereadable(sources_jar) == 1 then
             table.insert(to_extract, { sources_jar = sources_jar, sources_dir = sources_dir })
             table.insert(dirs_all, sources_dir)
             if not is_jar_ignored(jar) then
@@ -262,9 +332,9 @@ function M.load_sources(opts)
             table.insert(lines, "  " .. name)
         end
         table.insert(lines, "")
-        table.insert(lines, "Run in project root to download sources:")
-        table.insert(lines, "  mvn dependency:resolve -Dclassifier=sources")
-        table.insert(lines, "Then press <leader>jdl again.")
+        table.insert(lines, "Run in project root to download sources, then re-run the search:")
+        table.insert(lines, "  maven : mvn dependency:resolve -Dclassifier=sources")
+        table.insert(lines, "  gradle: ./gradlew eclipse  (or enable downloadSources in your IDE plugin)")
         -- NOTE: disable for now notification
         -- vim.notify(table.concat(lines, "\n"), vim.log.levels.WARN)
     end
@@ -335,7 +405,7 @@ end
 local use_jdt_opener = true
 
 local function is_project_file(file)
-    return not file:find("/.m2/repository/", 1, true)
+    return not file:find("/.m2/repository/", 1, true) and not is_gradle_cache_path(file)
 end
 
 -- When jdt opener is on:

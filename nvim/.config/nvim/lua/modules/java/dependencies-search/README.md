@@ -1,13 +1,19 @@
 # Dependencies Search
 
 Search and browse dependency source code using Snacks picker.
-Extracts `*-sources.jar` files in `~/.m2/repository/` and searches the extracted directories.
+Extracts `*-sources.jar` files and searches the extracted directories. Works with both
+build tools: Maven (`~/.m2/repository/`, sources jar beside the binary) and Gradle
+(`~/.gradle/caches/modules-2/files-2.1/`, sources jar in a sibling SHA1 hash dir). The jar
+list itself comes from the JDTLS classpath, so the active build tool is followed automatically.
 
 ## Keymaps
 
+Dependency sources are loaded lazily — the first time you trigger any of the
+keymaps below (or the `<leader>ci` static-import fallback) they are resolved
+from the JDTLS classpath and extracted. There is no separate "load" keymap.
+
 | Key | Description |
 |-----|-------------|
-| `<leader>jdl` | Load dependency sources from JDTLS classpath |
 | `<leader>j.` | Find file in dependency sources |
 | `<leader>j/` | Grep in dependency sources |
 | `<leader>je` | Explore dependency module (tree view) |
@@ -45,9 +51,9 @@ Three levels:
 
 ## Opening Files
 
-- **jdtls mode** (default): `.java` files open via `jdt_open_class(fqcn)`, non-java via `jdt://jarentry/` URI
+- **jdtls mode** (default): `.java` files open via `jdt_open_class(fqcn)`; non-java files via `jdt://jarentry/` URI (Maven), falling back to a raw open for Gradle
 - **file mode**: raw file open (toggle with `<C-o>`)
-- **project files** (from `src/`, not `.m2/repository/`): always open as regular files
+- **project files** (from `src/`, not the Maven/Gradle dependency cache): always open as regular files
 
 ## Public API (for reuse)
 

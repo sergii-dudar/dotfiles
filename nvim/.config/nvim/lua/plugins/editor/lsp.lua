@@ -121,7 +121,7 @@ return {
                         { "K", false },
                         { "<C-k>", false, mode = "i" }, -- disable if favor of blink.cmp
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
-                        { "<leader>k", function() 
+                        { "<leader>k", function()
                             if vim.bo.filetype == "http" then
                                 vim.lsp.buf.hover({ border = "rounded" })
                             else
