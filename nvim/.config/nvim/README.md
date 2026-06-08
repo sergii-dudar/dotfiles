@@ -18,23 +18,23 @@
      java: static import - add ability to import static members from inner classes
      java: highlight parameters of String.format, "".formatted, log.(info|warn|debug|error)("")
      new line indent, in case shiwf with more that 4, like:
-      DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
+     DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
       ability to goto class by classpath (like in spring.factories, org.springframework.boot.autoconfigure.AutoConfiguration.imports) like:
         org.springframework.boot.EnvironmentPostProcessor=ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor
         ua.raiffeisen.apigov.metrics.micrometer.ssl.config.SslMetricsAutoConfiguration
         ...
       stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
-      replace java.nvim with own `module.java.refactor` and refactor integraions
-      Ability to run/debug tests to rust
-      Ability to run/debug tests to go
-      Ability to run/debug tests to lua
-      Ability to run/debug tests to bash
-      Ability to run/debug tests to python
-      Ability to run/debug tests to c# and diagnostics issues
-      Ability to run/debug jest tests to js/ts, and debugging run
-      Make java tests agnostics for maven/gradle
-      last run (especially in debugging) with overseer now working in another lang implementations (except java)
-      try to fix bash tests debug
+     replace java.nvim with own `module.java.refactor` and refactor integraions
+     Ability to run/debug tests to rust
+     Ability to run/debug tests to go
+     Ability to run/debug tests to lua
+     Ability to run/debug tests to bash
+     Ability to run/debug tests to python
+     Ability to run/debug tests to c# and diagnostics issues
+     Ability to run/debug jest tests to js/ts, and debugging run
+     Make java tests agnostics for maven/gradle
+     last run (especially in debugging) with overseer not working in another lang implementations (except java)
+     try to fix bash tests debug
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
