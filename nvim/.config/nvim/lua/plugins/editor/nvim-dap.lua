@@ -27,7 +27,10 @@ return {
     },
     {
         "rcarriga/nvim-dap-ui",
-        dependencies = { "nvim-neotest/nvim-nio" },
+        dependencies = {
+            "nvim-neotest/nvim-nio",
+            "mfussenegger/nvim-dap",
+        },
         opts = {
             -- stylua: ignore
             layouts = {
@@ -147,6 +150,23 @@ return {
             dap.listeners.before.disconnect["dapui_config"] = function()
                 pcall(dapui.close, {})
                 maybe_restore_neotree()
+            end
+
+            -- codelldb spuriously reports "Invalid thread_id" on stackTrace
+            -- requests for threads that aren't stopped yet (or have already
+            -- exited). Filter that one notification so it doesn't appear on
+            -- every debug session start.
+            local dap_utils = require("dap.utils")
+            local orig_notify = dap_utils.notify
+            dap_utils.notify = function(msg, level)
+                if
+                    type(msg) == "string"
+                    and msg:find("Error retrieving stack traces", 1, true)
+                    and msg:find("Invalid thread_id", 1, true)
+                then
+                    return
+                end
+                return orig_notify(msg, level)
             end
         end,
     },
