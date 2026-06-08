@@ -95,6 +95,7 @@ require("lazy").setup({
         { import = "plugins.navigation" },
         { import = "plugins.editor" },
         { import = "plugins.editor.java" },
+        { import = "plugins.editor.rust" },
         { import = "plugins.editor.shell" },
         { import = "plugins.editor.lua" },
         { import = "plugins.snacks" },
