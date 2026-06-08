@@ -41,6 +41,10 @@ M.js = {
     jest = "jest",
     jest_test_diagnostics_source = "jest_test_diagnostics",
 }
+M.cs = {
+    dotnet_test = "dotnet-test",
+    dotnet_test_diagnostics_source = "dotnet_test_diagnostics",
+}
 M.output = {
     height_rows = 10,
 }

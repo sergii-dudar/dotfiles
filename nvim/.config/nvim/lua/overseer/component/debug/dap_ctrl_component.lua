@@ -1,4 +1,22 @@
-function write_to_dapui_console(lines)
+-- Pipes a debug task's output to the DAP UI console AND drives output-based DAP
+-- attach for languages whose debug flow is an overseer task rather than a native
+-- dap launch (Java JDWP, C# VSTest testhost).
+--
+-- This component is language-agnostic: the per-language "when to attach" logic
+-- lives in each runner (plugins/overseer/tasks/lang/<lang>-runner.lua) as a
+-- `dap_output_attacher = { name, match, attach }`. The task is built with a
+-- `filetype` param; we resolve that runner and use ONLY its attacher (so no
+-- cross-language matchers run). If a language has no attacher, we just stream
+-- output to the console.
+
+local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
+local log = require("utils.logging-util").new({
+    name = "dap-ctrl-component",
+    filename = "test-report.log",
+    level = vim.log.levels.DEBUG,
+})
+
+local function write_to_dapui_console(lines)
     local ok_dap, dap = pcall(require, "dap")
     local ok_dapui, dapui = pcall(require, "dapui")
     if ok_dap and ok_dapui and dap.session() then
@@ -23,7 +41,7 @@ function write_to_dapui_console(lines)
     end
 end
 
-function clean_dapui_console()
+local function clean_dapui_console()
     local ok_dap, dap = pcall(require, "dap")
     local ok_dapui, dapui = pcall(require, "dapui")
 
@@ -39,7 +57,7 @@ function clean_dapui_console()
     end
 end
 
-function write_to_dapui_repl(lines)
+local function write_to_dapui_repl(lines)
     local ok, dap = pcall(require, "dap")
     if ok and dap.session() then
         for _, line in ipairs(lines) do
@@ -50,32 +68,65 @@ end
 
 ---@type overseer.ComponentFileDefinition
 return {
-    desc = "Pipe task output to DAP UI console",
+    desc = "Pipe debug task output to the DAP UI console and drive output-based DAP attach",
+    params = {
+        filetype = {
+            type = "string",
+            optional = true,
+            desc = "Filetype used to resolve the language's dap_output_attacher",
+        },
+    },
     constructor = function(params)
-        local jdwp_port_attached = false
+        local attached = false
+        -- nil = not resolved yet, false = none for this filetype, table = attacher
+        local attacher
+
+        ---@return task.lang.DapOutputAttacher|false
+        local function resolve_attacher()
+            if attacher ~= nil then
+                return attacher
+            end
+            local ft = params and params.filetype
+            local runner = ft and lang_runner_resolver.resolve(ft) or nil
+            attacher = (runner and runner.dap_output_attacher) or false
+            log.debug(
+                "resolve_attacher: filetype=" .. tostring(ft) .. " attacher=" .. tostring(attacher and attacher.name)
+            )
+            return attacher
+        end
+
+        --- Scan output lines for the language's attach banner; attach once.
+        ---@param lines string[]
+        local function try_attach(lines)
+            if attached or not lines then
+                return
+            end
+            local att = resolve_attacher()
+            if not att then
+                return
+            end
+            for _, line in ipairs(lines) do
+                local target = line and att.match(line)
+                if target then
+                    attached = true
+                    log.debug("attaching via " .. att.name .. " target=" .. tostring(target))
+                    att.attach(target)
+                    break
+                end
+            end
+        end
 
         return {
             on_start = function(self, task)
                 -- Clear console buffer when task starts
                 vim.schedule(clean_dapui_console)
-                jdwp_port_attached = false
+                attached = false
             end,
             on_output_lines = function(self, task, lines)
-                -- Scan ALL provided lines (not just the first batch's first line)
-                -- until we find the JDWP listening banner. JVM/agents may print
-                -- other lines first.
-                -- TODO: It's java specific, make language-agnostic by moving to overseer.tasks.lang.[lang]-runner.lua
-                if not jdwp_port_attached and lines then
-                    for _, line in ipairs(lines) do
-                        local port = line and line:match("Listening for transport dt_socket at address: (%d+)")
-                        if port then
-                            jdwp_port_attached = true
-                            vim.notify("Connecting to java dap port: " .. port)
-                            require("utils.java.jdtls-config-dap-util").attach_to_remote(tonumber(port))
-                            break
-                        end
-                    end
-                end
+                -- Per-language output-driven DAP attach (Java JDWP / C# testhost).
+                -- Scans ALL provided lines (not just the first) since the banner may
+                -- be preceded by other output.
+                try_attach(lines)
 
                 vim.schedule(function()
                     write_to_dapui_console(lines)

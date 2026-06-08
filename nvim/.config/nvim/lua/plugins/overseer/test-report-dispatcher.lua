@@ -8,6 +8,7 @@ local M = {}
 -- filetype -> module path of the language test-report shim
 local ft_to_module = {
     java = "modules.java.test-report",
+    cs = "modules.cs.test-report",
     rust = "modules.rust.test-report",
     go = "modules.go.test-report",
     lua = "modules.lua.test-report",
@@ -23,6 +24,7 @@ local ft_to_module = {
 -- filetype -> Trouble source name used by that adapter's diagnostics
 local ft_to_trouble_source = {
     java = "junit_diagnostics",
+    cs = "dotnet_test_diagnostics",
     rust = "cargo_test_diagnostics",
     go = "go_test_diagnostics",
     lua = "busted_test_diagnostics",
@@ -38,6 +40,7 @@ local ft_to_trouble_source = {
 -- filetype -> diagnostic source name (matches adapter.diagnostic_source)
 local ft_to_diagnostic_source = {
     java = "junit",
+    cs = "dotnet-test",
     rust = "cargo-test",
     go = "go-test",
     lua = "busted",

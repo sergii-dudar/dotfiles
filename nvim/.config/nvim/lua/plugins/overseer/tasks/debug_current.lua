@@ -26,7 +26,7 @@ function M.build_taks()
                     "on_exit_set_status",
                     -- "on_complete_dispose",
                     -- "on_complete_notify",
-                    "debug.dap_ctrl_component",
+                    { "debug.dap_ctrl_component", filetype = vim.bo.filetype },
                 },
             }
         end,

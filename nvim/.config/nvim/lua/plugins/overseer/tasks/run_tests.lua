@@ -6,6 +6,7 @@ local M = {}
 -- Used to pick the right report processor (Java junit XML vs Rust cargo/nextest).
 local ft_to_report_component = {
     java = "test_report.junit_report",
+    cs = "test_report.cs_report",
     rust = "test_report.cargo_report",
     go = "test_report.go_report",
     lua = "test_report.busted_report",
@@ -88,7 +89,10 @@ function M.build_debug_taks()
             local test_cmd = resolve_type_test_cmd(params)
             local result_cmd = test_cmd.cmd
             local report_dir = test_cmd.report_dir or resolve_report_dir()
-            local components = { "on_exit_set_status", "debug.dap_ctrl_component" }
+            local components = {
+                "on_exit_set_status",
+                { "debug.dap_ctrl_component", filetype = vim.bo.filetype },
+            }
             local report_component = report_component_for(vim.bo.filetype)
             if report_dir and report_component then
                 table.insert(components, 1, {

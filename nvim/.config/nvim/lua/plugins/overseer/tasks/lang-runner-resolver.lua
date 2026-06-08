@@ -26,6 +26,11 @@ local M = {}
 ---@field report_dir? string|string[]
 ---@field cwd? string
 
+---@class task.lang.DapOutputAttacher
+---@field name string                          Identifier for logging.
+---@field match fun(line:string):any|nil       Scan one output line; return a target (port/pid) or nil.
+---@field attach fun(target:any)               Attach the debugger using the matched target.
+
 ---@class task.lang.Runner
 ---@field get_envs? fun():table<string, string>
 ---@field build_run_cmd fun():string[]
@@ -39,6 +44,7 @@ local M = {}
 ---@field prepare_test_context? fun(context:task.lang.Context):boolean,string|nil - async-friendly pre-builder hook (prompts etc.)
 ---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug, bypassing overseer DEBUG_TESTS task
 ---@field get_test_report_dir? fun():string
+---@field dap_output_attacher? task.lang.DapOutputAttacher - output-driven DAP attach for the overseer debug-task flow (java jdwp / cs testhost)
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]

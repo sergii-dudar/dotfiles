@@ -58,6 +58,21 @@ function M.dap_attach_to_remote(port)
     require("utils.java.jdtls-config-dap-util").attach_to_remote(port)
 end
 
+--- Output-driven DAP attach for the overseer debug-task flow. The JVM is launched
+--- with `-agentlib:jdwp=...,suspend=y` and prints a "Listening for transport..."
+--- banner; debug/dap_ctrl_component scans output and calls this once it appears.
+---@type task.lang.DapOutputAttacher
+M.dap_output_attacher = {
+    name = "jdwp",
+    match = function(line)
+        return line:match("Listening for transport dt_socket at address: (%d+)")
+    end,
+    attach = function(port)
+        vim.notify("Connecting to java dap port: " .. port)
+        require("utils.java.jdtls-config-dap-util").attach_to_remote(tonumber(port))
+    end,
+}
+
 function M.dap_launch()
     require("utils.java.jdtls-config-dap-util").run_current_main_class()
 end

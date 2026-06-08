@@ -1,3 +1,6 @@
+-- C# runner: app run/debug (dotnet run / netcoredbg). Test run/debug is delegated
+-- to modules.cs.dotnet-test (see lua/modules/cs/CS_TESTS.md).
+
 local M = {}
 
 ---@return table
@@ -9,13 +12,6 @@ function M.build_run_cmd()
         "cd " .. dir .. " && dotnet run",
     }
 end
-
--- ---@return table
--- function M.build_debug_cmd()
--- end
-
--- function M.dap_attach_to_remote(port)
--- end
 
 -- Helper function to find .csproj and determine DLL path
 local function get_dll_path()
@@ -111,12 +107,49 @@ function M.dap_launch()
         end,
     }
 
-    -- dd({ config = config, adapter = dap.adapters.netcoredbg })
     dap.run(config)
 end
 
 function M.dap_launch_rerun()
     M.dap_launch()
 end
+
+--------------------------------------------------------------------------------
+-- Tests (delegated to modules.cs.dotnet-test).
+-- NOTE: intentionally no dap_launch_test, so debug runs go through the overseer
+-- DEBUG_TESTS task + dap_ctrl_component (VSTEST_HOST_DEBUG + netcoredbg attach),
+-- giving <leader>tl rerun-in-debug and <leader>tD toggle parity with Java.
+
+---@param context task.lang.Context
+---@return boolean ok, string|nil err
+function M.prepare_test_context(context)
+    return require("modules.cs.dotnet-test").prepare_test_context(context)
+end
+
+---@param context task.lang.Context
+---@return task.lang.test.TestCmd
+function M.build_run_test_cmd(context)
+    return require("modules.cs.dotnet-test").build_run_test_cmd(context)
+end
+
+---@return string
+function M.get_test_report_dir()
+    return require("modules.cs.dotnet-test").get_test_report_dir()
+end
+
+--- Output-driven DAP attach for the overseer debug-task flow. Tests run under
+--- VSTEST_HOST_DEBUG=1, so the testhost prints "Process Id: N, Name: testhost" and
+--- waits; debug/dap_ctrl_component scans output and calls this once it appears.
+---@type task.lang.DapOutputAttacher
+M.dap_output_attacher = {
+    name = "netcoredbg-testhost",
+    match = function(line)
+        return line:match("Process Id:%s*(%d+),%s*Name:%s*testhost")
+    end,
+    attach = function(pid)
+        vim.notify("Attaching netcoredbg to testhost pid: " .. pid)
+        require("modules.cs.dotnet-test").dap_attach_testhost(tonumber(pid))
+    end,
+}
 
 return M
