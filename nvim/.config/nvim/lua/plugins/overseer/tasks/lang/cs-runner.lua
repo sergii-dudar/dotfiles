@@ -143,8 +143,11 @@ end
 ---@type task.lang.DapOutputAttacher
 M.dap_output_attacher = {
     name = "netcoredbg-testhost",
+    -- VSTEST_HOST_DEBUG banner: "Process Id: <pid>, Name: <dotnet|testhost>".
+    -- The process name varies by SDK version, so match any name, anchored by the
+    -- unique "Process Id: N, Name:" shape to avoid false positives.
     match = function(line)
-        return line:match("Process Id:%s*(%d+),%s*Name:%s*testhost")
+        return line:match("Process Id:%s*(%d+),%s*Name:")
     end,
     attach = function(pid)
         vim.notify("Attaching netcoredbg to testhost pid: " .. pid)

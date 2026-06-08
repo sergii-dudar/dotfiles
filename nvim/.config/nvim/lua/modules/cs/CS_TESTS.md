@@ -61,7 +61,7 @@ Debug tests run as an overseer `DEBUG_TESTS` task with `VSTEST_HOST_DEBUG=1`.
 The testhost prints its PID and waits. The generic
 `overseer/component/debug/dap_ctrl_component.lua` resolves the language's
 `dap_output_attacher` (declared on `cs-runner.lua`), which matches the
-`Process Id: N, Name: testhost` banner and attaches **netcoredbg**.
+`Process Id: N, Name: <dotnet|testhost>` banner and attaches **netcoredbg**.
 This mirrors Java's JDWP flow (Java declares its own `dap_output_attacher`), so
 `<leader>tl` (re-run last in debug) and
 `<leader>tD` (toggle regular/debug) work for C# the same as everywhere else.
