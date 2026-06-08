@@ -85,7 +85,12 @@ else
     alias awesome_debug="Xephyr :5 -screen 1920x1080 & sleep 1 ; DISPLAY=:5 awesome"
 
     # dotnet
-    export DOTNET_ROOT=$HOME/.dotnet
+    # Resolve DOTNET_ROOT from the dotnet on PATH (e.g. /usr/share/dotnet) so OmniSharp/MSBuild
+    # finds the current SDK + targeting packs. Hardcoding $HOME/.dotnet pinned a stale .NET 9
+    # install that lacked newer ref packs, breaking C# LSP (CS0518 predefined-type errors).
+    if command -v dotnet >/dev/null 2>&1; then
+        export DOTNET_ROOT="$(dirname "$(readlink -f "$(command -v dotnet)")")"
+    fi
 
 
     case "$XDG_SESSION_TYPE" in

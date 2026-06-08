@@ -61,7 +61,6 @@ local function get_dll_path()
 end
 
 function M.dap_launch()
-    -- TODO: is not ready yet, looks debug .net 10 is not well suported yet.
     local dap = require("dap")
 
     -- Ensure netcoredbg adapter is configured
