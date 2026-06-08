@@ -108,11 +108,20 @@ end
 ---@return table<string, number> positions, number|nil container_line
 function M.find_test_positions(file_path, opts)
     file_path = vim.fn.fnamemodify(file_path, ":p")
-    local bufnr = vim.fn.bufnr(file_path)
-    if bufnr ~= -1 and vim.api.nvim_buf_is_loaded(bufnr) then
-        return cs_ts.positions(bufnr)
+    -- Ensure the buffer is loaded so the test-report core (which looks the buffer
+    -- up by path) can place signs/extmarks on it. When a run spans several test
+    -- classes in different files, only the focused file is open; the rest must be
+    -- loaded here or extmark placement fails with "Invalid 'line': out of range".
+    local silent = not opts or opts.silent ~= false
+    local bufnr = vim.fn.bufadd(file_path)
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+        if silent then
+            pcall(vim.cmd, "noautocmd call bufload(" .. bufnr .. ")")
+        else
+            vim.fn.bufload(bufnr)
+        end
     end
-    return cs_ts.positions(file_path)
+    return cs_ts.positions(bufnr)
 end
 
 ---@param container_id string
