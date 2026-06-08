@@ -1,7 +1,7 @@
 -- Shared constants: diagnostic source names, junit paths, UI dimensions.
 
 local M = {}
-
+M.is_macos = vim.loop.os_uname().sysname == "Darwin"
 M.java = {
     maven_diagnostics_test_source = "maven-test",
     maven_diagnostics_compile_source = "maven-compile",
@@ -27,7 +27,7 @@ M.bash = {
     -- Absolute path to the bashunit binary used for `<leader>t*` runs/debug.
     -- Set to your system install (e.g. via `~/.local/bin/bashunit`). Leave nil
     -- to fall back to auto-detection (project lib/bashunit -> $PATH).
-    bashunit_bin = "/home/serhii/.local/bin/bashunit",
+    bashunit_bin = M.is_macos and "/opt/homebrew/bin/bashunit" or "/home/serhii/.local/bin/bashunit",
 }
 M.python = {
     pytest = "pytest",
