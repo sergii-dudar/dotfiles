@@ -1,6 +1,14 @@
-local overseer_task_util = require("plugins.overseer.overseer-task-util")
-
 local M = {}
+
+--------------------------------------------------------------------------------
+-- lsp
+M.code_action_auto_resolve_match_names = {
+    "Rewrite as raw strin",
+    "Rewrite as regular string",
+}
+
+--------------------------------------------------------------------------------
+-- runners
 
 function M.build_compile_cmd()
     local dir = vim.fn.expand("%:p:h")
@@ -76,7 +84,8 @@ local function get_rust_binary_info()
 end
 
 function M.dap_launch()
-    overseer_task_util.run_compile(function()
+    vim.cmd.RustLsp("debug")
+    --[[ require("plugins.overseer.overseer-task-util").run_compile(function()
         local binary_info = get_rust_binary_info()
         if not binary_info then
             return
@@ -103,7 +112,7 @@ function M.dap_launch()
                 "settings set target.inline-breakpoint-strategy always",
             },
         })
-    end)
+    end) ]]
 end
 
 function M.dap_launch_rerun()

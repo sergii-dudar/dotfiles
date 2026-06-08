@@ -3,6 +3,8 @@
 -- • get_client_by_name — get LSP client instance by name (e.g. "jdtls")
 -- • get_client_id_by_name — get LSP client ID by name
 
+local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
+
 local M = {}
 
 ---@return vim.lsp.Client|nil
@@ -181,21 +183,7 @@ local LspCodeAction = function()
         --     })
         -- end,
         resolve_context = function()
-            local action_match_names = {
-                "Add all missing imports",
-                "Convert to static import %(replace all occurrences%)",
-                -- "Convert to static import",
-                "Correct package declaration",
-                "Rename file to",
-                -- "Rename type to",
-                "Convert to method reference",
-                "Convert to lambda expression",
-                "Change body block to expression",
-                "Change body expression to block",
-                "Change type of '",
-                "Create method '",
-                "Add unimplemented methods",
-            }
+            local action_match_names = lang_runner_resolver.resolve().code_action_auto_resolve_match_names or {}
             local is_match_found = false
             vim.lsp.buf.code_action({
                 filter = function(action)

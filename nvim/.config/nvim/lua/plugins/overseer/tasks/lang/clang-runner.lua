@@ -1,5 +1,3 @@
-local overseer_task_util = require("plugins.overseer.overseer-task-util")
-
 local M = {}
 
 function M.build_compile_cmd()
@@ -41,7 +39,7 @@ end
 -- end
 
 function M.dap_launch()
-    overseer_task_util.run_compile(function()
+    require("plugins.overseer.overseer-task-util").run_compile(function()
         local fileNameWithoutExt = vim.fn.expand("%:t:r")
         require("dap").run({
             type = "codelldb",

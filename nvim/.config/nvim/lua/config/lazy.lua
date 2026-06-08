@@ -72,11 +72,11 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.lang.cmake" },
 
         -- ========= langs that using not very often: =========
-        { import = "lazyvim.plugins.extras.lang.go" },
-        { import = "lazyvim.plugins.extras.lang.dotnet" },
-        --{ import = "lazyvim.plugins.extras.lang.kotlin" },
-        --{ import = "lazyvim.plugins.extras.lang.scala" },
-        { import = "lazyvim.plugins.extras.lang.typescript" },
+        -- { import = "lazyvim.plugins.extras.lang.go" },
+        -- { import = "lazyvim.plugins.extras.lang.dotnet" },
+        -- { import = "lazyvim.plugins.extras.lang.kotlin" },
+        -- { import = "lazyvim.plugins.extras.lang.scala" },
+        -- { import = "lazyvim.plugins.extras.lang.typescript" },
 
         -- ========= util =========
         --{ import = "lazyvim.plugins.extras.util.rest" },

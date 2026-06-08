@@ -1,15 +1,17 @@
 local type_to_resolver = {}
 
 require("plugins.overseer.tasks.lang.simple-runners").register(type_to_resolver)
+
+-- uncomment languages you are using
 type_to_resolver["java"] = require("plugins.overseer.tasks.lang.java-runner")
 type_to_resolver["python"] = require("plugins.overseer.tasks.lang.python-runner")
-type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
-type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner")
-type_to_resolver["typescript"] = require("plugins.overseer.tasks.lang.js-runner")
-type_to_resolver["javascriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
-type_to_resolver["typescriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
+-- type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
+-- type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner")
+-- type_to_resolver["typescript"] = require("plugins.overseer.tasks.lang.js-runner")
+-- type_to_resolver["javascriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
+-- type_to_resolver["typescriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
+-- type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
 type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
-type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
 type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
 type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
 type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
@@ -45,15 +47,17 @@ local M = {}
 ---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug, bypassing overseer DEBUG_TESTS task
 ---@field get_test_report_dir? fun():string
 ---@field dap_output_attacher? task.lang.DapOutputAttacher - output-driven DAP attach for the overseer debug-task flow (java jdwp / cs testhost)
+---@field code_action_auto_resolve_match_names? string[]
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]
 
 -- dap examples configs - ~/.local/share/nvim/lazy/mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/configurations.lua
 
+---@param filetype? string
 ---@return task.lang.Runner|nil
 function M.resolve(filetype)
-    local type_resolver = type_to_resolver[filetype]
+    local type_resolver = type_to_resolver[filetype or vim.bo.filetype]
     if type_resolver then
         return type_resolver
     else
