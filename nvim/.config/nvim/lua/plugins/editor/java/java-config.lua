@@ -4,27 +4,26 @@ local java_util = require("utils.java.java-common")
 -- local notify_title = { title = "Spring Boot Tools LS" }
 --vim.lsp.set_log_level("warn")
 
--- stylua: ignore
-if java_util.is_java_project() then
-    -- java parse trace
-    vim.keymap.set("v", "<leader>jtp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "[J]ava selected [t]race [p]arse to qflist" })
-    vim.keymap.set("n", "<leader>jtp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "[J]ava buffer [t]race [p]arse to qflist" })
-    vim.keymap.set("n", "<leader>jtl", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "[J]ava [t]race current [l]ine parse to qflist" })
-    vim.keymap.set("n", "<leader>jtb", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "[J]ava [t]race current line open in [b]uffer" })
-    -- vim.keymap.set("n", "<leader>jts", function() Snacks.scratch({ name = "Stack Trace Scratch", ft = "log" }) end, { desc = "[J]ava [t]race [s]cratch buffer" })
-    vim.keymap.set("n", "<leader>jts", function() require("utils.java.java-trace-scratch").openStackTraceScratch() end, { desc = "[J]ava [t]race [s]cratch buffer" })
+-- stylua: ignore start
+-- java parse trace
+vim.keymap.set("v", "<leader>jtp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "[J]ava selected [t]race [p]arse to qflist" })
+vim.keymap.set("n", "<leader>jtp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "[J]ava buffer [t]race [p]arse to qflist" })
+vim.keymap.set("n", "<leader>jtl", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "[J]ava [t]race current [l]ine parse to qflist" })
+vim.keymap.set("n", "<leader>jtb", function() require("utils.java.java-trace").parse_trace_under_cursor_and_open_in_buffer() end, { desc = "[J]ava [t]race current line open in [b]uffer" })
+-- vim.keymap.set("n", "<leader>jts", function() Snacks.scratch({ name = "Stack Trace Scratch", ft = "log" }) end, { desc = "[J]ava [t]race [s]cratch buffer" })
+vim.keymap.set("n", "<leader>jts", function() require("utils.java.java-trace-scratch").openStackTraceScratch() end, { desc = "[J]ava [t]race [s]cratch buffer" })
 
-    -- map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
-    -- map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
+-- map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
+-- map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
-    -- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
-    vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "Open [j]dt [l]inks [a]ll" })
-    vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
-    vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
+-- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
+vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "Open [j]dt [l]inks [a]ll" })
+vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
+vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
 
-    -- Java refactor: snacks rename keymap (integrations setup is in java-immutable.lua config)
-    vim.keymap.set("n", "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, { desc = "Rename File (Java)" })
-end
+-- Java refactor: snacks rename keymap (integrations setup is in java-immutable.lua config)
+vim.keymap.set("n", "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, { desc = "Rename File (Java)" })
+-- stylua: ignore end
 
 return {
     {
@@ -44,7 +43,7 @@ return {
     {
         "mfussenegger/nvim-jdtls",
         -- cond = java_util.is_java_project(),
-        cond = global.is_not_limited,
+        -- cond = global.is_not_limited,
         dependencies = {
             "mason-org/mason.nvim",
             "JavaHello/spring-boot.nvim",
@@ -108,7 +107,6 @@ return {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
         ft = { "java", "yaml", "properties", "yml" },
-        cond = java_util.is_java_project() and global.is_not_limited,
         dependencies = {
             "mfussenegger/nvim-jdtls",
         },
@@ -176,7 +174,6 @@ return {
         -- "JavaHello/java-deps.nvim",
         "sergii-dudar/java-deps.nvim",
         ft = { "java" },
-        cond = java_util.is_java_project() and global.is_not_limited,
         lazy = true,
         -- stylua: ignore
         keys = {
@@ -219,7 +216,7 @@ return {
     -- {
     --     -- "simaxme/java.nvim",
     --     "sergii-dudar/java.nvim", -- my fork with [ neo-tree, oil.nvim, snacks rename ] support
-    --     cond = java_util.is_java_project() and global.is_not_limited,
+    --     cond = lang_project.is("java") and global.is_not_limited,
     --     ft = "java",
     --     -- stylua: ignore
     --     keys = {

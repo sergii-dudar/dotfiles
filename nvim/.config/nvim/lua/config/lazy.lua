@@ -15,6 +15,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+    -- stylua: ignore
     spec = {
         -- add LazyVim and import its plugins
         { "LazyVim/LazyVim", import = "lazyvim.plugins" },
@@ -94,8 +95,10 @@ require("lazy").setup({
         { import = "plugins.ui" },
         { import = "plugins.navigation" },
         { import = "plugins.editor" },
-        { import = "plugins.editor.java" },
-        { import = "plugins.editor.rust" },
+        -- Per-language editor configs are loaded only for their project type, so
+        -- e.g. java keymaps/plugins never appear in a rust project and vice-versa.
+        { import = "plugins.editor.java", cond = function() return require("utils.lang.lang-project").is("java") end, },
+        { import = "plugins.editor.rust", cond = function() return require("utils.lang.lang-project").is("rust") end, },
         { import = "plugins.editor.shell" },
         { import = "plugins.editor.lua" },
         { import = "plugins.snacks" },
