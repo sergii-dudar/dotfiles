@@ -33,7 +33,7 @@
      Ability to run/debug tests to c# and diagnostics issues
      Ability to run/debug jest tests to js/ts, and debugging run
      Make java tests agnostics for maven/gradle
-     last run (especially in debugging) with overseer not working in another lang implementations (except java)
+     last run (especially in debugging) and fast switch between last debug and run, with overseer not working in another lang implementations (except java)
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())

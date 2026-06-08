@@ -8,6 +8,12 @@ return {
             servers = {
                 autotools_ls = {},
                 -- gradle_ls = {},
+                omnisharp = {
+                    -- stylua: ignore
+                    keys = {
+                        { "gd", function() require("omnisharp_extended").lsp_definitions() end, desc = "Goto Definition", },
+                    },
+                },
             },
         },
     },
