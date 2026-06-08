@@ -109,9 +109,6 @@ function M.find_test_positions(file_path, opts)
     for id, node in query:iter_captures(tree:root(), bufnr) do
         if query.captures[id] == "fn.def" then
             local sr, _, _, _ = node:range()
-            if container_line == nil or sr < container_line then
-                container_line = sr
-            end
             -- find the name child
             for child in node:iter_children() do
                 if child:type() == "word" then
@@ -121,6 +118,13 @@ function M.find_test_positions(file_path, opts)
                 end
             end
         end
+    end
+
+    -- Bash tests have no grouping construct (no class / describe block), so the
+    -- file-level summary sign goes on the first line of the file rather than on
+    -- the first test function.
+    if next(positions) ~= nil then
+        container_line = 0
     end
 
     positions_cache[file_path] = { positions = positions, container_line = container_line, mtime = mtime }
