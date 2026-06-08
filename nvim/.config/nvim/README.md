@@ -30,11 +30,10 @@
      Ability to run/debug tests to lua
      Ability to run/debug tests to bash
      Ability to run/debug tests to python
-     Ability to run/debug tests to c# and diagnostics issues
+     Ability to run/debug tests to c# and diagnostics issues
      Ability to run/debug jest tests to js/ts, and debugging run
      Make java tests agnostics for maven/gradle
      last run (especially in debugging) with overseer not working in another lang implementations (except java)
-     try to fix bash tests debug
 
 ```java
 return paymentAccountPort.getSystemId(creditor.getIban())
