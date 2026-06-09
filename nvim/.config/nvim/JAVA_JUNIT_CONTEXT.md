@@ -2,123 +2,147 @@
 
 ### Overview
 
-Custom JUnit XML test report processor integrated into overseer.nvim workflow.
-Parses JUnit XML reports after test runs, displays results as gutter signs, virtual text,
-diagnostics, quickfix entries, and a detailed output viewer with stack trace highlighting.
+The Java JUnit test integration is the **Java adapter** of a now language-agnostic
+test-report framework built on overseer.nvim. A test run writes JUnit XML to
+`<module>/target/junit-report`; the adapter parses it and renders results as gutter
+signs, EOL virtual text, `vim.diagnostic` entries (source `junit`), a Trouble view,
+a tree sidebar, and a detailed output panel with Java stack-trace highlighting.
+
+The same pipeline now serves Rust, Go, Python, Bash, Lua, C#, JS/TS via their own
+adapters — Java/JUnit is just one registered language. See
+[`REGISTERING_NEW_MAIN_LANG_INFO.md`](./REGISTERING_NEW_MAIN_LANG_INFO.md) for the
+per-language picture.
 
 ### Plugins Used
 
-- overseer.nvim: Task runner framework (~/.local/share/nvim/lazy/overseer.nvim)
-- neotest + neotest-java: Reference for patterns (~/.local/share/nvim/lazy/neotest, ~/.local/share/nvim/lazy/neotest-java)
-- trouble.nvim: Used to display junit diagnostics on failures (via `Trouble junit_diagnostics open`)
-- snacks.nvim: Picker for diagnostics filtering (~/.local/share/nvim/lazy/snacks.nvim)
+- **overseer.nvim** — task runner framework (run / test / debug templates + components)
+- **nvim-nio** — async runtime (parsing / IO runs inside nio)
+- **trouble.nvim** — failure diagnostics (`Trouble junit_diagnostics ...`)
+- **snacks.nvim** — diagnostics picker (filtered by `source == "junit"`)
+
+> The custom runner **replaces** `neotest` / `neotest-java` (kept only under
+> `archive/` for reference).
 
 ### Key Files
 
-## Overseer plugin config (keybindings, task registration, setup)
+**Generic test-report core (filetype-agnostic)**
 
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/init.lua
+- `lua/modules/common/test-report/` — `init.lua` (orchestrator: parse → signs /
+  diagnostics / output panel / tree), `registry.lua` (filetype → `LangAdapter`),
+  `report-view.lua` (tree sidebar), `types.lua` (the `LangAdapter` contract)
 
-## Overseer utilities (run/debug/stop orchestration)
+**Filetype dispatcher (the test-report keymaps route through here)**
 
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/overseer-util.lua
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/overseer-task-util.lua
+- `lua/plugins/overseer/test-report-dispatcher.lua` — resolves the current filetype's
+  adapter + Trouble/diagnostic source and forwards `show/hide output`, `load_existing`,
+  `tree view`, `trouble`, `diagnostics picker`
 
-## Test report engine (core orchestrator: process, clear, show/hide output)
+**Java adapter**
 
-- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/init.lua
+- `lua/modules/java/test-report/init.lua` — thin shim: registers the Java adapter with
+  the core (`registry.register("java", …)`) and re-exports the core API
+- `lua/modules/java/test-report/junit-xml.lua` — JUnit XML parser (parses `TEST-*.xml`,
+  merges parameterized invocations, extracts errors)
+- `lua/modules/java/test-report/lang/java.lua` — Java `LangAdapter` (classname→file,
+  treesitter test positions, error-line extraction)
 
-## JUnit XML parser (parses TEST-\*.xml, merges parameterized invocations, extracts errors)
+**JUnit command builders**
 
-- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/junit-xml.lua
+- `lua/modules/java/junit/init.lua` — builds `junit-platform-console-standalone`
+  commands (classpath from jdtls, parametrized signatures via `javap`)
+  *(moved here from the old `lua/utils/java/junit/`)*
 
-## Java language adapter (classname-to-file, treesitter test positions, error line extraction)
+**Overseer glue**
 
-- ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/lang/java.lua
+- `lua/overseer/component/test_report/junit_report.lua` — overseer component that hands
+  XML output to the Java adapter on task completion
+- `lua/plugins/overseer/tasks/run_tests.lua` — RUN_TESTS / DEBUG_TESTS templates;
+  attaches the right `test_report.*_report` component by filetype
+- `lua/plugins/overseer/tasks/lang/java-runner.lua` — Java runner; the test command
+  delegates to `modules.java.junit.init.build_run_test_cmd`
+- `lua/plugins/overseer/init.lua` — overseer setup, `_G.task` enums, and all
+  `<leader>r*` / `<leader>t*` keymaps
+- `lua/plugins/overseer/overseer-util.lua`, `overseer-task-util.lua` — run / debug /
+  stop orchestration + task lifecycle
 
-## Overseer component (hooks into overseer lifecycle: on_complete/on_reset/on_dispose)
+**Java support utilities**
 
-- ~/dotfiles/nvim/.config/nvim/lua/overseer/component/test_report/junit_report.lua
-
-## Task builders (RUN_TESTS / DEBUG_TESTS templates, attaches junit_report component)
-
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/run_tests.lua
-
-## Java runner (delegates to utils.java.junit for building test commands)
-
-- ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/lang/java-runner.lua
-
-## Java stack trace highlighting and navigation
-
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-trace.lua
-
-## XML parsing library (vendored xml2lua-based parser)
-
-- ~/dotfiles/nvim/.config/nvim/lua/lib/xml/
-
-## Java utilities
-
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/junit/ -- JUnit command builders
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-common.lua -- Common helpers (get_buffer_project_path, parse_java_class_trace_line, etc.)
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-ts-util.lua -- Treesitter utils for Java
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/jdtls-util.lua -- JDTLS helpers (open class, load symbols)
-- ~/dotfiles/nvim/.config/nvim/lua/utils/lsp-util.lua -- LSP helpers (get_client_id_by_name)
+- `lua/utils/java/java-trace.lua` — Java stack-trace highlighting + navigation in the
+  output buffer (`find_edit_win()` opens files in a normal editing window)
+- `lua/utils/java/java-common.lua` — `get_buffer_project_path`, class/path helpers,
+  test-file detection
+- `lua/utils/java/java-ts-util.lua` — treesitter helpers (class name, method signature)
+- `lua/utils/java/jdtls-util.lua`, `jdtls-classpath-util.lua` — jdtls helpers + classpath
+- `lua/utils/lsp-util.lua` — LSP client lookup (`get_client_by_name` / `get_client_id_by_name`)
+- `lua/lib/xml/` — vendored xml2lua-based XML parser
 
 ### Architecture Flow
 
 ```
-Keybindings (<leader>t* and <leader>r*)
-  -> overseer-util.lua (orchestration: run/debug/stop)
-    -> overseer-task-util.lua (task lifecycle: run/stop/restart)
-      -> overseer tasks (run_tests.lua)
-        -> overseer component (junit_report.lua)
-          -> test-report engine (test-report/init.lua)
-            -> XML parser (junit-xml.lua)
-            -> Language adapter (lang/java.lua) -- extensible to other langs
-            -> Java trace highlighter (java-trace.lua) -- for output buffer
+Keybindings (<leader>t* / <leader>r*)            [plugins/overseer/init.lua]
+  -> overseer-util.lua            (orchestration: run / debug / stop)
+    -> overseer-task-util.lua     (task lifecycle: run / stop / restart)
+      -> run_tests.lua            (RUN_TESTS / DEBUG_TESTS templates)
+        -> junit_report.lua       (overseer component, picked by filetype)
+          -> test-report-dispatcher.lua    (filetype -> language adapter)
+            -> modules/common/test-report   (generic core: signs / diags / panel / tree)
+                 |-- registry -> modules/java/test-report/lang/java.lua  (Java adapter)
+                 |-- junit-xml.lua          (XML parsing)
+                 |-- java-trace.lua         (output-buffer trace highlighting)
 ```
 
 ### Key Design Details
 
-- Treesitter-based test position detection (queries @Test, @ParameterizedTest, @TestFactory, @CartesianTest)
-- Parameterized tests are merged under classname#methodName with individual invocations preserved
-- First <system-out> in JUnit XML is treated as JUnit5 metadata, rest is actual stdout
-- Report directory convention: <project>/target/junit-report
-- Results displayed via: extmark signs + EOL virtual text, vim.diagnostic (source="junit"), quickfix
-- Failed tests open Trouble with `junit_diagnostics` filter
-- Summary notification: "🚀 N Tests Passed" or "🚫 Tests Finished with failed X/Y tests"
-- Test output buffer has java stack trace highlighting (project classes blue, external purple)
-- Highlights in output buffer use nvim_buf_set_extmark with line_hl_group (not deprecated nvim_buf_add_highlight)
-- Stop all (<leader>rs/<leader>ts): stops running overseer tasks + terminates DAP session independently
-- java-trace.lua: find_edit_win() finds a normal editing window to open files (not trace/log panels)
+- Generic core + per-language `LangAdapter` registered by filetype (`registry.lua`);
+  Java is one adapter — Rust / Go / Python / Bash / Lua / C# / JS each register their own.
+- Treesitter-based test position detection (`@Test`, `@ParameterizedTest`,
+  `@TestFactory`, `@CartesianTest`).
+- Parameterized tests are merged under `classname#methodName`, individual invocations
+  preserved.
+- First `<system-out>` in JUnit XML is treated as JUnit5 metadata; the rest is real stdout.
+- Report directory convention: `<module>/target/junit-report`.
+- Results displayed via: extmark signs + EOL virtual text, `vim.diagnostic`
+  (source `junit`), quickfix; failures open Trouble `junit_diagnostics`; tree view via
+  `<leader>tv`.
+- Summary notification: "🚀 N Tests Passed" or "🚫 Tests Finished with failed X/Y tests".
+- Output buffer has Java stack-trace highlighting (project classes vs external);
+  extmarks use `line_hl_group` (not the deprecated `nvim_buf_add_highlight`).
+- Stop-all (`<leader>ts` / `<leader>rs`) stops running overseer tasks and terminates the
+  DAP session independently.
 
 ### Snacks Picker Integration
 
-- Snacks.picker.diagnostics supports `severity` option (passed to vim.diagnostic.get)
-- Snacks.picker.diagnostics supports `filter.filter` function: `fun(item, filter): boolean`
-    - item.item is the raw vim.Diagnostic, so item.item.source == "junit" filters by namespace
-- Example: `Snacks.picker.diagnostics({ filter = { filter = function(item) return item.item.source == "junit" end } })`
+- `Snacks.picker.diagnostics` supports a `severity` option (passed to `vim.diagnostic.get`).
+- `filter.filter` is `fun(item, filter): boolean`; `item.item` is the raw
+  `vim.Diagnostic`, so `item.item.source == "junit"` filters by source.
+- Wired via `<leader>txd` → `test-report-dispatcher.picker_diagnostics()`.
 
-### Keybindings (runner <leader>r\*)
+### Keybindings — code runner (`<leader>r*`)
 
-- <leader>rr -- Run Current
-- <leader>rd -- Debug Current
-- <leader>rl -- Re-Run Last
-- <leader>rs -- Stop All (overseer tasks + DAP)
-- <leader>ro -- Task list (OverseerToggle)
-- <leader>rt -- Task action (OverseerTaskAction)
+- `<leader>rr` — Run Current  (visual mode: Run Selected Lua)
+- `<leader>rd` — Debug Current
+- `<leader>rl` — Re-Run Last
+- `<leader>rD` — Toggle Debug of Last Run Cmd
+- `<leader>ro` — Task list
+- `<leader>rt` — Task action
+- `<leader>rs` — Stop All (overseer tasks + DAP)
 
-### Keybindings (test <leader>t\*)
+### Keybindings — tests runner (`<leader>t*`)
 
-- <leader>tt -- Run Current Test
-- <leader>td -- Debug Current Test
-- <leader>tf -- Run File Tests
-- <leader>ta -- Run All Tests
-- <leader>tp -- Run Current Parametrized Single Test
-- <leader>tP -- Debug Current Parametrized Single Test
-- <leader>ts -- Stop All (overseer tasks + DAP)
-- <leader>tl -- Re-Run Last
-- <leader>to -- Toggle Test Output (cursor-aware, with stack trace highlighting)
-- <leader>tO -- Hide Test Output
-- <leader>tL -- Load Last Test Report
-- <leader>tD -- Diagnostics picker (filtered by junit source)
+- `<leader>tt` — Run Current Test
+- `<leader>td` — Debug Current Test
+- `<leader>tD` — Toggle Debug of Last Test Cmd
+- `<leader>tf` — Run File Tests · `<leader>tF` — Debug File Tests
+- `<leader>ta` — Run All Tests
+- `<leader>tp` — Run Current Parametrized Single Test · `<leader>tP` — Debug it
+- `<leader>tm` — Run All Tests in Selected Modules · `<leader>tM` — in All Modules
+- `<leader>tl` — Re-Run Last
+- `<leader>ts` — Stop All (overseer tasks + DAP)
+- `<leader>to` — Toggle Test Output (stack-trace highlighted) · `<leader>tO` — Hide
+- `<leader>tL` — Load Last Test Report
+- `<leader>tv` — Test Report Tree View
+- `<leader>txx` — Tests diagnostics (Trouble) · `<leader>txd` — Tests diagnostics (picker)
+
+> `_G.task.test_type` enum: `ALL_TESTS`, `FILE_TESTS`, `CURRENT_TEST`,
+> `CURRENT_PARAMETRIZED_NUM_TEST`, `ALL_DIR_TESTS`, `ALL_MODULES_TESTS`,
+> `SELECTED_MODULES_TESTS`, `TOGGLE_LAST_DEBUG`.

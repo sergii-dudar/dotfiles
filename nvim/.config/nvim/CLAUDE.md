@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal Neovim configuration built on **LazyVim** (folke/LazyVim) distribution with **lazy.nvim** plugin manager. Heavily focused on Java/Spring Boot development with extensive custom tooling. Part of a larger dotfiles repo (stow-managed).
+Personal Neovim configuration built on **LazyVim** (folke/LazyVim) distribution with **lazy.nvim** plugin manager. **Language-agnostic by construction**: "primary" languages (currently **Java** + Spring/JDTLS and **Rust**) get full IDE-level, per-project-isolated tooling, while Go/Python/Bash/Lua/C#/JS-TS/C-C++ are supported out of the box for run/test/debug. See `REGISTERING_NEW_MAIN_LANG_INFO.md` for the primary-vs-supported model and how to register a new main language. Part of a larger dotfiles repo (stow-managed).
 
 ## Formatting
 
@@ -30,13 +30,16 @@ Lua files are formatted with **StyLua**: 4-space indentation, 120-column width, 
 ### Plugin Organization (`lua/plugins/`)
 
 Plugin specs are imported in `lua/config/lazy.lua`. Imports actually wired:
-`plugins.ui`, `plugins.navigation`, `plugins.editor`, `plugins.editor.java`,
-`plugins.editor.shell`, `plugins.editor.lua`, `plugins.snacks`, `plugins.tools`,
-plus a catch-all `plugins` import that picks up subdirs with `init.lua`
-(`overseer/`, `luasnip/`).
+`plugins.ui`, `plugins.navigation`, `plugins.editor`, `plugins.editor.shell`,
+`plugins.editor.lua`, `plugins.snacks`, `plugins.tools`, plus a catch-all `plugins`
+import that picks up subdirs with `init.lua` (`overseer/`, `luasnip/`). The
+per-language editor groups `plugins.editor.java` and `plugins.editor.rust` are imported
+**conditionally** — `{ import = …, cond = require("utils.lang.lang-project").is("<lang>") }`
+— so a project only loads its own language's editor config.
 
 - `editor/` — LSP (`lsp.lua`, `lsp-yaml.lua`, `lsp-servers.lua`, `mason.lua`), completion (`blink-cmp.lua`), formatting (`conform.nvim.lua`), DAP (`nvim-dap.lua`), treesitter, git, linting, AI (`ai.lua`, sidekick), session, trouble
-- `editor/java/` — JDTLS, Spring Boot LS, java-deps, Java file rename with package update
+- `editor/java/` — JDTLS, Spring Boot LS, java-deps, Java file rename with package update *(loaded only in Java projects)*
+- `editor/rust/` — rustaceanvim + rust-analyzer keymaps/code-actions *(loaded only in Rust projects)*
 - `editor/lua/` — lua_ls, lua DAP
 - `editor/shell/` — bash LSP
 - `ui/` — colorscheme, lualine, bufferline, noice, which-key, yazi
@@ -95,13 +98,14 @@ emits diagnostics + signs into the buffer, opens Trouble view).
 
 ### Utilities (`lua/utils/`)
 
-Shared helpers used across the config. Java-specific helpers live under
-`utils/java/`; the rest is general-purpose. Notable subdirs: `nvim/` (Neovim
-internals helpers), `tests/` (test-runner utilities), `ui/` (UI helpers),
-`linter/`, `json/`, `archive/`. Top-level files include:
+Shared helpers used across the config. The **language registry layer** lives under
+`utils/lang/`; Java-specific helpers under `utils/java/`; the rest is general-purpose.
+Notable subdirs: `lang/` (language registries — see below), `nvim/` (Neovim internals
+helpers), `tests/` (test-runner utilities), `ui/` (UI helpers), `linter/`, `json/`,
+`archive/`. Top-level files include:
 
 - `project-util.lua` — Multi-file project detection (controls Neo-tree/session auto-open)
-- `lsp-util.lua` — Code action helpers (apply by title, toggle between action pairs)
+- `lsp-util.lua` — LSP client lookup (`get_client_by_name` / `get_clients_by_name`) + code-action helpers (apply by title, toggle between action pairs)
 - `dap-util.lua` — DAP helpers (clipboard copy of evaluated values, etc.)
 - `logging-util.lua`, `cache-util.lua`, `nio-util.lua` — infrastructure
 - `resource-cwd-resolver.lua` — resolve resources relative to project root
@@ -119,6 +123,14 @@ Java helpers under `utils/java/`:
 - `java-trace.lua` — Parse Java stack traces to quickfix list, highlight traces in buffers
 - `maven-util.lua`, `maven-compile.lua` — Maven build integration
 - `javap-util.lua` — Resolve parametrized method signatures via `javap`
+
+Language registry layer under `utils/lang/`:
+
+- `lang-project.lua` — generic project/language **detection** (root markers + source exts), `M.current()` / `M.is(lang)`; the modern replacement for `java_util.is_java_project()` and the gate used by `config/lazy.lua`
+- `lsp-common.lua` — generic `apply_lsp_action` (code-action resolve / edit / command execution)
+- `lsp-land-handlers-resolver.lua` — loads a language's custom LSP handlers for the active project (only Java registers any today; Rust/others register none)
+- `java/lsp-java.lua`, `rust/lsp-rust.lua` — per-language code-action match-name data + (Java) import-resolve flow
+- `java/lsp-java-handlers.lua` — Java-only global LSP handler overrides (jdtls hover-link conversion + diagnostics post-processing), installed only in Java projects
 
 ### Libraries (`lua/lib/`)
 
@@ -138,11 +150,10 @@ hardcoding into plugin specs.
 
 ## Key Design Patterns
 
-- **Conditional Java loading**: Many plugins/keymaps use `java_util.is_java_project()` to only activate in Java projects. This checks for Maven/Gradle build files in the project root
+- **Per-language isolation**: each primary language's editor config is imported only for its project type via `{ import = …, cond = require("utils.lang.lang-project").is("<lang>") }` in `lazy.lua` — a Java project never loads Rust tooling and vice-versa. `lang-project.current()`/`is()` is the generic detector (root markers + exts); `java_util.is_java_project()` still exists for Java-internal checks
 - **Outside-file guard**: `java_util.if_java_file_outside()` prevents LSP attachment for Java files outside the current working directory (important for multi-microservice setups)
-- **LSP hover filtering**: `lsp.lua` wraps `vim.lsp.buf_request_all` to filter empty hover results and convert JDTLS markdown links
-- **Diagnostics filtering**: Generated sources (`target/generated-sources/`, `build/generated/`) only show Error-severity diagnostics from JDTLS
+- **Per-language LSP handlers**: `lsp.lua` is generic — it calls `utils.lang.lsp-land-handlers-resolver.setup()`, which loads the active language's handler module. Java's (`utils/lang/java/lsp-java-handlers.lua`) wraps `vim.lsp.buf_request_all` to filter empty hover results + convert JDTLS markdown links, and post-processes diagnostics (generated sources under `target/generated-sources/` / `build/generated/` only show Error-severity from JDTLS). Non-Java projects load none of this
 - **Overseer task templates**: Language-specific runners in `plugins/overseer/tasks/lang/` resolved by filetype via `lang-runner-resolver`
 - **Picker**: Uses Snacks picker (not Telescope/fzf). Set via `vim.g.lazyvim_picker = "snacks"`
 - **Session**: resession.nvim with scope.nvim (replaces LazyVim's persistence.nvim). Auto-saves per-directory sessions on exit, restores on startup for multi-file projects
-- **Completion**: blink.cmp with custom MapStruct source. LSP fallbacks disabled. DAP REPL completion enabled
+- **Completion**: blink.cmp; the custom MapStruct source is offered only in Java buffers (`per_filetype.java`), and jdtls hover-link conversion is lazy-loaded only for jdtls items. LSP fallbacks disabled. DAP REPL completion enabled

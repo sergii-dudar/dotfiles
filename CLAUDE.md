@@ -22,11 +22,13 @@ These are baked into scripts and configs throughout the repo — changing them t
 
 ## Neovim configuration
 
-The largest and most complex component. It has its own dedicated guidance file — read it before touching anything under `nvim/.config/nvim/`:
+The largest and most complex component. It has its own dedicated guidance files — read them before touching anything under `nvim/.config/nvim/`:
 
-- `nvim/.config/nvim/CLAUDE.md` — full architecture (entry point, plugin grouping, custom Java modules under `lua/modules/java/`, `_G.global` / `_G.task` / `_G.dd` globals, picker/session/completion design choices).
+- `nvim/.config/nvim/CLAUDE.md` — full architecture (entry point, plugin grouping, custom per-language modules under `lua/modules/`, the `utils/lang/` registries, `_G.global` / `_G.task` / `_G.dd` globals, picker/session/completion design choices).
+- `nvim/.config/nvim/REGISTERING_NEW_MAIN_LANG_INFO.md` — primary vs supported languages and how to register a new main language (worked Go example).
+- `nvim/.config/nvim/README.md` — user-facing stack overview + install.
 
-High-level: LazyVim base + lazy.nvim, with deep Java/Spring tooling — JDTLS integration, custom JUnit runner, MapStruct completion source backed by an out-of-process Java IPC server, dependency-source picker, refactor helpers. Snacks.nvim is the picker/UI framework (not Telescope/fzf). Sessions use resession.nvim + scope.nvim (LazyVim's `persistence.nvim` is replaced).
+High-level: LazyVim base + lazy.nvim, **language-agnostic by construction** — a project's tooling loads only for its language. **Primary** languages (IDE-level, per-project isolated) are **Java** (JDTLS + Spring; custom JUnit runner, MapStruct completion via an out-of-process Java IPC server, dependency-source picker, refactor helpers) and **Rust** (rustaceanvim). Many others (Go, Python, Bash, Lua, C#, JS/TS, C/C++) are **supported** for run/test/debug/report. Detection + gating run through `lua/utils/lang/lang-project.lua`; test reports through a shared `lua/modules/common/test-report` core + per-language adapters. Snacks.nvim is the picker/UI framework (not Telescope/fzf). Sessions use resession.nvim + scope.nvim (LazyVim's `persistence.nvim` is replaced).
 
 Disabled/replaced plugins live in `lua/plugins/archive/` — do **not** import from there in `lua/config/lazy.lua`.
 
