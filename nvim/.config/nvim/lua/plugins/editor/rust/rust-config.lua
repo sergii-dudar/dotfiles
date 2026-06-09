@@ -1,9 +1,6 @@
 local rustft = { "rust", "ron" }
 local cargoft = { "toml" }
 
--- which-key has no `ft` field, and its `cond` is evaluated only once at registration time, so group
--- labels can't be switched per buffer declaratively. Register the filetype-specific labels
--- buffer-locally on FileType -- which-key's supported mechanism (the inherited `buffer` field).
 local wk_augroup = vim.api.nvim_create_augroup("rust_config_which_key", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
     group = wk_augroup,
@@ -47,7 +44,8 @@ return {
                 end, ft = rustft, desc = "Context Apply First Code Action [rust-analyzer]" },
 
                 -- code / compile
-                { "<leader>jcc", function() vim.cmd.RustLsp({ "flyCheck", "run" }) end, ft = rustft, desc = "Rust Compile [rust]" },
+                { "<leader>jcc", function() vim.cmd.RustLsp({ "flyCheck", "run" }) end, ft = rustft, desc = "Rust Compile [rust]" }, -- have effect only in case: checkOnSave = false
+
                 -- diagnostics & errors
                 { "<leader>jde", function() vim.cmd.RustLsp({ 'explainError', 'current' }) end, ft = rustft, desc = "Diagnostic [e]xplain [rust]" },
                 { "<leader>jdd", function() vim.cmd.RustLsp({ 'renderDiagnostic', 'current' }) end, ft = rustft, desc = "[D]iagnostic render [rust]" },
@@ -58,6 +56,15 @@ return {
                 { "<leader>jop", function() vim.cmd.RustLsp('parentModule') end, ft = rustft, desc = "[O]pen [P]argo Module [rust]" },
                 { "<leader>jod", function() vim.cmd.RustLsp('openDocs') end, ft = rustft, desc = "[O]pen [d]ocs.rs of symbol under the cursor [rust]" },
         },
+        -- opts = {
+        --     server = {
+        --         default_settings = {
+        --             ["rust-analyzer"] = {
+        --                 checkOnSave = false,
+        --             },
+        --         },
+        --     },
+        -- },
         --[[ opts = function(_, opts)
             opts.server = opts.server or {}
             local prev_on_attach = opts.server.on_attach
@@ -73,9 +80,7 @@ return {
             return opts
         end, ]]
     },
-    -- crates.nvim keymaps, ft-scoped to Cargo.toml. Registered as lazy `keys` (not via
-    -- top-level safe_keymap_set) so there are no import-time side effects and crates.nvim
-    -- is loaded on demand.
+    -- managing crates.io dependencies
     {
         "Saecki/crates.nvim",
         -- stylua: ignore
