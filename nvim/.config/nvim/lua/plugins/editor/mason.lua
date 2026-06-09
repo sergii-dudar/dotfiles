@@ -8,6 +8,9 @@ return {
             "lemminx",
             "autotools-language-server",
 
+            -- Rust
+            "bacon-ls",
+
             -- Java
             "jdtls",
             "vscode-spring-boot-tools",

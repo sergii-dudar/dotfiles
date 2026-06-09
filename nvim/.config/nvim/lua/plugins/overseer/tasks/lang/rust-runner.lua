@@ -1,15 +1,5 @@
 local M = {}
 
---------------------------------------------------------------------------------
--- lsp
-M.code_action_auto_resolve_match_names = {
-    "Rewrite as raw strin",
-    "Rewrite as regular string",
-}
-
---------------------------------------------------------------------------------
--- runners
-
 function M.build_compile_cmd()
     local dir = vim.fn.expand("%:p:h")
     return {

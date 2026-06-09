@@ -175,9 +175,7 @@ local LspCodeAction = function()
             end
             resolve_first()
         end,
-        resolve_context = function()
-            local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
-            local action_match_names = lang_runner_resolver.resolve().code_action_auto_resolve_match_names or {}
+        resolve_context = function(action_match_names)
             local is_match_found = false
             vim.lsp.buf.code_action({
                 filter = function(action)
