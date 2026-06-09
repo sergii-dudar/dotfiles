@@ -32,6 +32,7 @@ return {
                     keys = {
                         { "K", false },
                         { "<C-k>", false, mode = "i" }, -- disable if favor of blink.cmp
+                        { "<leader>cc", false }, -- disable code lens in favor of main languages configs
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>k", function()
                             if vim.bo.filetype == "http" then
