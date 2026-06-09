@@ -42,6 +42,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
         result.diagnostics = filtered
         local bufnr = vim.uri_to_bufnr(result.uri)
         if vim.bo[bufnr].filetype ~= "java" then
+            ---@diagnostic disable-next-line: redundant-parameter
             return original_publish(err, result, ctx, config)
         end
         vim.schedule(function()
@@ -52,6 +53,7 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
             java_format_checker.apply(bufnr)
         end)
     end
+    ---@diagnostic disable-next-line: redundant-parameter
     return original_publish(err, result, ctx, config)
 end
 
