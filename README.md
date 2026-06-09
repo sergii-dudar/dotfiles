@@ -23,7 +23,7 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 - Terminal: [alacritty][4], [foot][87], [ghostty][5], [kitty][6], [wezterm][7]
 - Multiplexer: [tmux][8] + [tmux-powerline][9], [sesh][10] (as sessions manager + own customizations based on it and tmux api)
 - SHELL: [zsh][11] + [ohmyz][12] + [starship][13] + [fastfetch][14] and so on
-- Code: [nvim][15] (very hard patched to working with java (as it's one of my main professional area now), with a lot of my own solutions). hard user of [intellij][16] in previous
+- Code: [nvim][15], hard user of [intellij][16] in previous
 - Nerd-Fonts: [CascadiaCode][21], [hack][22], [FiraCode][23], [JetBrainsMono][24]
 - File Manager: [yazi][25], [ranger][26]
 - OS: linux (arch, ubuntu), macos

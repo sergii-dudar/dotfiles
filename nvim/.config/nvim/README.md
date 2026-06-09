@@ -1,50 +1,70 @@
-# My NEOVIM config.
-
-### TODO LIST   :
-
-     create java cmd tool `java-class-explorer` to exploring java class byte code to request full qualified type names, fields, inner classes, enum values etc
-     mapstruct completion support: using `java-class-explorer` write custom `blink-cmp-mapstruct-source`, where depends from `source` or `target` string context (using java treesitter) explore types from method parameters, or return type, fields list. `@Mapping and @ValueMapping (exploring enums)`
-     map struct support - implement goto definition separated path items in mapstruct mapping path
-     map struct support - performance and speed improvements (especially javap run)
-     neotest-java - investigation of issue of not working debugging for some king of prjects using spring-boot
-     investigate stevearc/overseer.nvim integration and implement it to replace CRAG666/code_runner.nvim
-     better dap and dap ui configuration (explore more convenient ways to debug java code)
-     stevearc/overseer.nvim: implement junit test runners by using junit-platform-console-standalone with parsing result xml and diagnostics, qflist and marks support...
-     implement java source depencenties (per project) fast search ability (with ability to search by `rg` and `fd` + snack pickers)
-     big refactoring of `utils` and `modules`
-     junit module: add ability to run tests for all proj modules, and to separated module (with selector, myabe with multiselect ability)
-     jdtls: implement static members (not `private` static fields or methods) search by snack.picker and import by enter. (quite anoying old problem actually, that not resolved in jdt so far, especially in case transition from intellij as I'm)
-     java: luasnip or related to unwrap ~builder: SomeClass name = builder -> to unwrap to: SomeClass.builder()[place cursor here].build();
-     java: static import - add ability to import static members from inner classes
-     java: highlight parameters of String.format, "".formatted, log.(info|warn|debug|error)("")
-     new line indent, in case shiwf with more that 4, like:
-     DAP: need ability to copy to clipboard evaluated variable value (and copy formatted valur by jq and xml [ :%!xmllint --format - ])
-      ability to goto class by classpath (like in spring.factories, org.springframework.boot.autoconfigure.AutoConfiguration.imports) like:
-        org.springframework.boot.EnvironmentPostProcessor=ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor
-        ua.raiffeisen.apigov.metrics.micrometer.ssl.config.SslMetricsAutoConfiguration
-        ...
-      stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
-     replace java.nvim with own `module.java.refactor` and refactor integraions
-     Ability to run/debug tests to rust
-     Ability to run/debug tests to go
-     Ability to run/debug tests to lua
-     Ability to run/debug tests to bash
-     Ability to run/debug tests to python
-     Ability to run/debug tests to c# and diagnostics issues
-     Ability to run/debug jest tests to js/ts, and debugging run
-     Make java tests agnostics for maven/gradle
-     last run (especially in debugging) and fast switch between last debug and run, with overseer not working in another lang implementations (except java)
-     refactoring to be able to integrate another main languages (keymans <leader>j...). currently java, need also rust and later maybe more, same keymans, but different areas and plugins, and functionalities
-
-```java
-return paymentAccountPort.getSystemId(creditor.getIban())
-    .filter(SystemId::isInternalSystem)
-    .flatMap(ignore -> this.getCreditorInternalInfo(creditor.getIban()))
-    .defaultIfEmpty(CREDITOR_DEFAULT);
-```
+# My Neovim config
 
 ### Screenshots
 
 ![neovim.png](../../../screenshots/nvim/neovim.png)
 
 ![neovim-grep.png](../../../screenshots/nvim/neovim-grep.png)
+
+A [LazyVim](https://www.lazyvim.org/)-based setup tuned for **IDE-level** work in a few
+main languages (Java first — moving off IntelliJ — then Rust), while staying
+language-agnostic so new languages plug in cleanly.
+
+## Stack
+
+- **Base:** LazyVim + lazy.nvim · leader = `Space`
+- **UI:** gruvbox-material, lualine, bufferline, noice, which-key, [snacks.nvim](https://github.com/folke/snacks.nvim) (picker / explorer / dashboard / zen), yazi
+- **Editing / LSP:** nvim-lspconfig + mason, **blink.cmp** completion, conform.nvim (format), nvim-lint, treesitter, trouble.nvim
+- **Debug / tasks:** nvim-dap, **overseer.nvim** (per-language run / test / debug)
+- **Navigation:** neo-tree, harpoon2, tmux-navigator
+- **Snippets:** LuaSnip · **Sessions:** resession.nvim + scope.nvim · **AI:** sidekick
+
+## Languages
+
+**Primary** (IDE-level, isolated per project type):
+
+- **Java** — jdtls + Spring Boot LS, with custom MapStruct `@Mapping` completion, a
+  JUnit runner, import/sibling refactor fixers on rename, a dependency-source browser,
+  hover-link rewriting and argument-mismatch highlighting.
+- **Rust** — rustaceanvim / rust-analyzer + cargo-nextest test reports.
+
+**Supported out of the box** (run / test / debug / report + LSP): Go, Python, Bash,
+Lua, C#, JavaScript / TypeScript, C / C++.
+
+> What "primary vs supported" means and how to register a new main language (with a
+> worked **Go** example): see
+> [`REGISTERING_NEW_MAIN_LANG_INFO.md`](./REGISTERING_NEW_MAIN_LANG_INFO.md).
+
+Custom per-language tooling lives in `lua/modules/<lang>/`, run/test glue in
+`lua/plugins/overseer/`, and detection / LSP / keymaps behind small registries in
+`lua/utils/lang/`. Deeper architecture notes: [`CLAUDE.md`](./CLAUDE.md).
+
+## Install (Linux / macOS)
+
+Managed with [GNU Stow](https://www.gnu.org/software/stow/); the repo **must** live at
+`~/dotfiles`.
+
+```sh
+# 1. clone the dotfiles repo to ~/dotfiles
+git clone https://github.com/sergii-dudar/dotfiles.git ~/dotfiles
+
+# 2. symlink the nvim config -> ~/.config/nvim
+cd ~/dotfiles
+stow nvim
+
+# 3. launch — lazy.nvim bootstraps itself and installs everything
+nvim
+```
+
+On first launch lazy.nvim installs the plugins and **mason** installs the LSPs / DAP
+adapters / formatters. Use `:Lazy` and `:Mason` to check status and `:checkhealth` to
+diagnose. Remove with `cd ~/dotfiles && stow -D nvim`.
+
+### Requirements
+
+- **Neovim ≥ 0.10** (0.11+ recommended)
+- `git`, [`ripgrep`](https://github.com/BurntSushi/ripgrep), [`fd`](https://github.com/sharkdp/fd), a **Nerd Font**, and a C compiler (for treesitter)
+- **GNU Stow**
+- Per-language toolchains as needed: a JDK (e.g. via SDKMAN) for Java, `rustup` for
+  Rust, `go`, Python, Node, … — test/debug extras are listed in each
+  `lua/modules/<lang>/*.md`.
