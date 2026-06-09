@@ -5,7 +5,8 @@ local java_util = require("utils.java.java-common")
 --vim.lsp.set_log_level("warn")
 
 -- stylua: ignore start
--- java parse trace
+
+-- ---------------------------- java parse trace ----------------------------
 vim.keymap.set("v", "<leader>jtp", function() require("utils.java.java-trace").parse_selected_trace_to_qflist() end, { desc = "[J]ava selected [t]race [p]arse to qflist" })
 vim.keymap.set("n", "<leader>jtp", function() require("utils.java.java-trace").parse_buffer_trace_to_qflist() end, { desc = "[J]ava buffer [t]race [p]arse to qflist" })
 vim.keymap.set("n", "<leader>jtl", function() require("utils.java.java-trace").parse_current_line_trace_to_qflist() end, { desc = "[J]ava [t]race current [l]ine parse to qflist" })
@@ -16,13 +17,21 @@ vim.keymap.set("n", "<leader>jts", function() require("utils.java.java-trace-scr
 -- map("n", "<leader>xh", function() require("utils.java.java-trace").highlight_java_test_trace_current_buf() end, { desc = "Highlight java stack trace" })
 -- map("v", "<leader>xh", function() require("utils.java.java-trace").highlight_java_trace_selected() end, { desc = "Highlight java stack trace" })
 
--- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
+-- ---------------------------- jdt links navigations, especially useful on jdtls hover navigations to decompiles classes
 vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").extract_and_open_current_line_all_jdt_link() end, { desc = "Open [j]dt [l]inks [a]ll" })
 vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
 vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
 
--- Java refactor: snacks rename keymap (integrations setup is in java-immutable.lua config)
+-- ---------------------------- Java refactor: snacks rename keymap (integrations setup is in java-immutable.lua config)
 vim.keymap.set("n", "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, { desc = "Rename File (Java)" })
+
+-- ---------------------------- code actions & lsp based extensions
+vim.keymap.set("n", "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, { desc = "[I]mport fqn class package and apply simple name" })
+-- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", }),
+vim.keymap.set("n", "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, { desc = "Toggle method body block/expressionn [jdtls]" })
+vim.keymap.set("n", "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, { desc = "Resolve imports [jdtls]" })
+vim.keymap.set("n", "<leader>cc", function() require("utils.lsp-util").code_action.resolve_context() end, { desc = "Context Apply First Code Action [jdtls]" })
+
 -- stylua: ignore end
 
 return {

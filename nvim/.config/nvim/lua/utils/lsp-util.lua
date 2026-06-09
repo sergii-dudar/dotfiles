@@ -157,13 +157,6 @@ end
 
 local LspCodeAction = function()
     return {
-        --- Apply the first matching code action from a priority-ordered list of patterns.
-        --- Calls fallback when no actions match.
-        ---
-        ---@param opts { actions: string[], fallback?: fun() }
-        -- apply_first_available = function(opts)
-        --     request_and_apply_first(opts.actions, opts.fallback)
-        -- end,
         resolve_imports = function()
             local word = vim.fn.expand("<cword>")
             local import_util = require("utils.java.java-import-util")
@@ -173,15 +166,6 @@ local LspCodeAction = function()
             end
             resolve_first()
         end,
-        -- resolve_context = function()
-        --     resolve_first({
-        --         "Convert to method reference",
-        --         "Convert to lambda expression",
-        --         "Create method '",
-        --         "Add unimplemented methods",
-        --         -- "Add all missing imports",
-        --     })
-        -- end,
         resolve_context = function()
             local action_match_names = lang_runner_resolver.resolve().code_action_auto_resolve_match_names or {}
             local is_match_found = false
