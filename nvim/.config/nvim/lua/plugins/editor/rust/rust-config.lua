@@ -1,33 +1,23 @@
 local rustft = { "rust", "ron" }
 local cargoft = { "toml" }
 
--- stylua: ignore start
-local keymap = LazyVim.safe_keymap_set
-keymap("n", "<leader>joo", function() require("crates").open_documentation() end, { ft = cargoft, silent = true, desc = "[O]pen Documentation [crates]" })
-keymap("n", "<leader>joc", function() require("crates").show_crate_popup() end, { ft = cargoft, silent = true, desc = "Open [C]rate Info [crates]" })
-keymap("n", "<leader>juu", function() require("crates").upgrade_crate(true) end, { ft = cargoft, silent = true, desc = "[U]pdate Current Crate [crates]" })
-keymap("n", "<leader>jua", function() require("crates").upgrade_all_crates(true) end, { ft = cargoft, silent = true, desc = "[U]pdate [A]ll Crates [crates]" })
-keymap("n", "<leader>jsv", function() require("crates").show_versions_popup() end, { ft = cargoft, silent = true, desc = "[S]how Crate [V]ersions Popup [crates]" })
-keymap("n", "<leader>jsd", function() require("crates").show_dependencies_popup() end, { ft = cargoft, silent = true, desc = "Show Crate [D]ependencies [crates]" })
--- stylua: ignore end
-
 return {
-    -- {
-    --     "folke/which-key.nvim",
-    --     optional = true,
-    --     opts = {
-    --         spec = {
-    --             { "<leader>j", group = "+rust", ft = rustft },
-    --             { "<leader>jc", group = "+rust code/compile", ft = rustft },
-    --             { "<leader>jd", group = "+rust errors/diagnostics", ft = rustft },
-    --             { "<leader>jo", group = "+rust open", ft = rustft },
-    --             { "<leader>j", group = "+cargo", ft = cargoft },
-    --             { "<leader>jo", group = "+cargo open", ft = cargoft },
-    --             { "<leader>ju", group = "+cargo update", ft = cargoft },
-    --             { "<leader>js", group = "+rust show", ft = cargoft },
-    --         },
-    --     },
-    -- },
+    {
+        "folke/which-key.nvim",
+        optional = true,
+        opts = {
+            spec = {
+                { "<leader>j", group = "+rust", ft = rustft },
+                { "<leader>jc", group = "+rust code/compile", ft = rustft },
+                { "<leader>jd", group = "+rust errors/diagnostics", ft = rustft },
+                { "<leader>jo", group = "+rust open", ft = rustft },
+                { "<leader>j", group = "+cargo", ft = cargoft },
+                { "<leader>jo", group = "+cargo open", ft = cargoft },
+                { "<leader>ju", group = "+cargo update", ft = cargoft },
+                { "<leader>js", group = "+rust show", ft = cargoft },
+            },
+        },
+    },
     -- rust keymaps, code actions & lsp based extensions.
     {
         "mrcjkb/rustaceanvim",
@@ -64,8 +54,24 @@ return {
             return opts
         end, ]]
     },
-    -- LSP for Cargo.toml
-    -- {
-    --     "Saecki/crates.nvim",
-    -- },
+    -- crates.nvim keymaps, ft-scoped to Cargo.toml. Registered as lazy `keys` (not via
+    -- top-level safe_keymap_set) so there are no import-time side effects and crates.nvim
+    -- is loaded on demand.
+    {
+        "Saecki/crates.nvim",
+        -- stylua: ignore
+        keys = {
+            { "<leader>joo", function() require("crates").open_documentation() end, ft = cargoft, desc = "[O]pen Documentation [crates]" },
+            { "<leader>joc", function() require("crates").show_crate_popup() end, ft = cargoft, desc = "Open [C]rate Info [crates]" },
+            { "<leader>juu", function() require("crates").upgrade_crate(true) end, ft = cargoft, desc = "[U]pdate Current Crate [crates]" },
+            { "<leader>jua", function() require("crates").upgrade_all_crates(true) end, ft = cargoft, desc = "[U]pdate [A]ll Crates [crates]" },
+            { "<leader>jsv", function() require("crates").show_versions_popup() end, ft = cargoft, desc = "[S]how Crate [V]ersions Popup [crates]" },
+            { "<leader>jsd", function() require("crates").show_dependencies_popup() end, ft = cargoft, desc = "Show Crate [D]ependencies [crates]" },
+        },
+        opts = {
+            popup = {
+                autofocus = true,
+            },
+        },
+    },
 }
