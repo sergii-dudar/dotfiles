@@ -1,34 +1,53 @@
 local rustft = { "rust", "ron" }
 local cargoft = { "toml" }
 
+-- which-key has no `ft` field, and its `cond` is evaluated only once at registration time, so group
+-- labels can't be switched per buffer declaratively. Register the filetype-specific labels
+-- buffer-locally on FileType -- which-key's supported mechanism (the inherited `buffer` field).
+local wk_augroup = vim.api.nvim_create_augroup("rust_config_which_key", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+    group = wk_augroup,
+    pattern = rustft,
+    callback = function(ev)
+        require("which-key").add({
+            ---@diagnostic disable-next-line: undefined-field
+            buffer = ev.buf,
+            { "<leader>j", group = "+rust" },
+            { "<leader>jc", group = "+rust code/compile" },
+            { "<leader>jd", group = "+rust errors/diagnostics" },
+            { "<leader>jo", group = "+rust open" },
+        })
+    end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+    group = wk_augroup,
+    pattern = cargoft,
+    callback = function(ev)
+        require("which-key").add({
+            ---@diagnostic disable-next-line: undefined-field
+            buffer = ev.buf,
+            { "<leader>j", group = "+cargo" },
+            { "<leader>jo", group = "+cargo open" },
+            { "<leader>ju", group = "+cargo update" },
+            { "<leader>js", group = "+cargo show" },
+        })
+    end,
+})
+
 return {
-    {
-        "folke/which-key.nvim",
-        optional = true,
-        opts = {
-            spec = {
-                { "<leader>j", group = "+rust", ft = rustft },
-                { "<leader>jc", group = "+rust code/compile", ft = rustft },
-                { "<leader>jd", group = "+rust errors/diagnostics", ft = rustft },
-                { "<leader>jo", group = "+rust open", ft = rustft },
-                { "<leader>j", group = "+cargo", ft = cargoft },
-                { "<leader>jo", group = "+cargo open", ft = cargoft },
-                { "<leader>ju", group = "+cargo update", ft = cargoft },
-                { "<leader>js", group = "+rust show", ft = cargoft },
-            },
-        },
-    },
     -- rust keymaps, code actions & lsp based extensions.
     {
         "mrcjkb/rustaceanvim",
         -- stylua: ignore
         keys = {
-                { "<leader>jcc", function() vim.cmd.RustLsp { "flyCheck", "run" } end, ft = rustft, desc = "Rust Compile [rust]" },
+                -- actions
                 { "<leader>cc", function()
                         local action_names = require("utils.lang.rust.lsp-rust").code_action_auto_resolve_match_names
                         require("utils.lsp-util").code_action.resolve_context(action_names)
                 end, ft = rustft, desc = "Context Apply First Code Action [rust-analyzer]" },
 
+                -- code / compile
+                { "<leader>jcc", function() vim.cmd.RustLsp({ "flyCheck", "run" }) end, ft = rustft, desc = "Rust Compile [rust]" },
                 -- diagnostics & errors
                 { "<leader>jde", function() vim.cmd.RustLsp({ 'explainError', 'current' }) end, ft = rustft, desc = "Diagnostic [e]xplain [rust]" },
                 { "<leader>jdd", function() vim.cmd.RustLsp({ 'renderDiagnostic', 'current' }) end, ft = rustft, desc = "[D]iagnostic render [rust]" },
