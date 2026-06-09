@@ -17,6 +17,16 @@ return {
                         { "gy", function() require('omnisharp_extended').lsp_type_definition() end, desc = "Goto T[y]pe Definition" },
                     },
                 },
+                yamlls = {
+                    settings = {
+                        yaml = {
+                            format = {
+                                printWidth = 300,
+                            },
+                            validate = true, -- temp disabled because of issues with schemas for application.yml [ Property ... is not allowed ]
+                        },
+                    },
+                },
             },
         },
     },
