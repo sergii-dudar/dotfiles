@@ -22,7 +22,7 @@ M.code_action_auto_resolve_match_names = {
 --- (respecting pattern priority order), or invoke a fallback if none match.
 ---@param action_match_names string[]
 ---@param fallback? fun()
-function request_and_apply_first(action_match_names, fallback)
+local request_and_apply_first = function(action_match_names, fallback)
     local bufnr = vim.api.nvim_get_current_buf()
     local clients = vim.lsp.get_clients({ bufnr = bufnr })
     local offset_encoding = clients[1] and clients[1].offset_encoding or "utf-16"

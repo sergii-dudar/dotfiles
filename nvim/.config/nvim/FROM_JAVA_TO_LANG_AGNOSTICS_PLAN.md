@@ -4,7 +4,7 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** in progress — **Item 1 done** (2026-06-09). Items below are ordered
+> **Status:** in progress — **Items 1–2 done** (2026-06-09). Items below are ordered
 > by impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
 > ones.
 >
@@ -48,9 +48,9 @@ just one entry.
 
 ---
 
-## 🔴 High priority — currently runs in *every* project (including Rust)
+## 🔴 High priority — currently runs in _every_ project (including Rust)
 
-### 1. Decouple global LSP handlers  ✅ DONE  `[todo: la-lsp-handlers]`
+### 1. Decouple global LSP handlers ✅ DONE `[todo: la-lsp-handlers]`
 
 **File:** `lua/plugins/editor/lsp.lua`
 
@@ -79,57 +79,54 @@ hub: handler needs differ too much per language to unify):
       `utils.lang.lsp-common`; `java-config.lua` ×2 → `utils.lang.java.lsp-java`;
       `rust-config.lua` → `utils.lang.rust.lsp-rust`).
 - **Verified:** stylua clean · luajit parses · headless: resolver skips a non-Java
-      cwd, and `lsp-java-handlers.setup()` installs the override without error.
+  cwd, and `lsp-java-handlers.setup()` installs the override without error.
 - **Note:** the hover override's generic empty-result filtering now applies only in
-      Java projects (moved wholesale, by decision); revisit if Rust later needs it.
+  Java projects (moved wholesale, by decision); revisit if Rust later needs it.
 
-### 2. Finish the code-action migration  `[todo: la-codeaction-migration]`
+### 2. Per-language code-action resolving ✅ DONE (by design) `[todo: la-codeaction-migration]`
 
-**Files:** `lua/utils/lsp-util.lua` (old `M.code_action`),
+**Files:** `lua/utils/lsp-util.lua` (generic `M.code_action`),
 `lua/utils/lang/java/lsp-java.lua`, `lua/utils/lang/rust/lsp-rust.lua`,
 `lua/utils/lang/lsp-common.lua`;
 callers `plugins/editor/java/java-config.lua`, `plugins/editor/rust/rust-config.lua`.
 
-Migration is half-done:
-- Import flow → `lsp-java.lua` (`resolve_imports`, `resolve_first`).
-- `resolve_context` / `toggle` / `apply` still in old `utils/lsp-util.lua`.
-- `resolve_context(action_names)` **ignores its argument** and re-reads
-  `lang-runner-resolver.resolve().code_action_auto_resolve_match_names` — so the
-  match-name list is **duplicated** in both the overseer runner and `lsp-<lang>`.
-- `lsp-java.lua` `request_and_apply_first` is declared as a **global** (missing
-  `local`) — see Bugs.
+**Nothing to migrate — this is the intended per-language split** (my initial
+"half-done" read was from stale scan notes; the code was since cleaned up):
 
-**Plan**
+- [x] `utils/lsp-util.lua` `M.code_action` is the **generic, language-agnostic
+      mechanism** — `resolve_context(action_match_names)` / `toggle` / `apply` take
+      match-name patterns as arguments (`lsp-util.lua:47` iterates the passed list;
+      `lang-runner-resolver` is no longer referenced — no duplication).
+- [x] Java _data_ + import-resolve flow live in `lang/java/lsp-java.lua`; Rust's
+      match-names in `lang/rust/lsp-rust.lua`. Each caller fetches its language's
+      `code_action_auto_resolve_match_names` and passes it in.
+- [x] Rust intentionally has no import-resolve flow; it may stay that way or get an
+      entirely different implementation later — per-language isolation, by design.
 
-- [ ] Move generic `request_and_apply_first` / `resolve_context` / `toggle` /
-      `apply` into `lsp-common.lua` (they only need match-name patterns + a fallback).
-- [ ] Make the passed `action_names` the single source of truth; delete the
-      internal `lang-runner-resolver` lookup from `resolve_context` (keep the
-      runner's copy only if the overseer flow still needs it — otherwise
-      consolidate to `lsp-<lang>.code_action_auto_resolve_match_names`).
-- [ ] Keep only per-language data + fallbacks in `lsp-<lang>.lua` (Java fallback:
-      `static-import-explorer.quick_import`).
-- [ ] Repoint callers; leave the commented old keymaps in place (preserve-code).
-- **Acceptance:** `<leader>cc` (resolve_context) honors the language's own
-      match-name list; no `utils/lsp-util.code_action` references remain in active
-      keymaps (commented ones stay).
+**Optional tidy-ups (not bugs, not required):**
+
+- [x] `lang/java/lsp-java.lua:25` — `request_and_apply_first` declared without
+      `local`, leaking a global `_G.request_and_apply_first` (used only at `:108`).
+      Add `local` to contain it — hygiene only, it works as-is.
+- [x] `lang/java/lsp-java.lua:82` — leftover debug `vim.notify("matched with" ..
+name_pattern)` fires on every matched context action; drop if unwanted.
 
 ---
 
 ## 🟠 Medium priority
 
-### 3. Gate global Java keymaps  `[todo: la-global-keymaps]`
+### 3. Gate global Java keymaps `[todo: la-global-keymaps]`
 
-- [ ] `lua/config/keymaps.lua` L162-172 — `<leader>Cjj` / `<leader>Cjy`
+- [x] `lua/config/keymaps.lua` L162-172 — `<leader>Cjj` / `<leader>Cjy`
       (`java-tostring-parser`) are set unconditionally. Move into
       `plugins/editor/java/` (loaded only for Java projects). `<leader>Cjn` (json
       normalize) is language-agnostic — leave it.
-- [ ] `lua/plugins/snacks/init.lua` L137-146 — `<leader>b,` / `<leader>b/` always
+- [x] `lua/plugins/snacks/init.lua` L137-146 — `<leader>b,` / `<leader>b/` always
       call `java-common.get_buffer_project_path()`; in a non-Java buffer this
       returns `nil` → `fnamemodify(nil, …)` error. Replace with a lang-aware
       buffer-project-root resolver (extend `lang-project` or `resource-cwd-resolver`).
 
-### 4. Generalize shared utils  `[todo: la-shared-utils]`
+### 4. Generalize shared utils `[todo: la-shared-utils]`
 
 - [ ] `lua/utils/dap-util.lua` L182-188 (`pick_and_write`) — hardcodes
       `java-common` + Maven `src/test/resources`. Route through
@@ -142,7 +139,7 @@ Migration is half-done:
 - [ ] `lua/utils/buffer-util.lua` L13-16 — `work_buffer_types = { java, lua }`
       lacks `rust` and others. Derive from the `lang-project` registry exts.
 
-### 5. Decouple completion from jdtls  `[todo: la-completion]`
+### 5. Decouple completion from jdtls `[todo: la-completion]`
 
 - [ ] `lua/plugins/editor/blink-cmp.lua` L7 — `require("utils.java.jdtls-util")` at
       module scope (loads in every project).
@@ -158,7 +155,7 @@ Migration is half-done:
 
 ## 🟡 Low priority / polish
 
-### 6. Gate Java commands + tools  `[todo: la-commands-mason]`
+### 6. Gate Java commands + tools `[todo: la-commands-mason]`
 
 - [ ] `lua/config/autocmds.lua` L288-299 — `:RunMainClass` user command requires
       `jdtls.dap` globally. Move into the Java editor config.
@@ -182,11 +179,11 @@ Migration is half-done:
 
 ---
 
-## Bugs found during the scan (incidental — fix opportunistically)
+## Stray globals / hygiene nits found during the scan (not functional bugs)
 
-- [ ] `lua/utils/lang/java/lsp-java.lua` — `function request_and_apply_first(...)` is
-      **global** (missing `local`); pollutes `_G`. Make it local (or move to
-      `lsp-common`).
+- [ ] `lua/utils/lang/java/lsp-java.lua:25` — `request_and_apply_first` declared
+      without `local`, leaking a global `_G.request_and_apply_first` (used only at
+      `:108`). Works fine; add `local` to contain it. (Also listed under Item 2.)
 - [ ] `lua/utils/nvim/winbar-util.lua` — `function split_str_by_src(...)` is
       **global**; should be `local`.
 

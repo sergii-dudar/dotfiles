@@ -51,6 +51,22 @@ return {
             },
         },
     },
+    {
+        "folke/snacks.nvim",
+        -- stylua: ignore
+        keys = {
+            { "<leader>b,", function()
+                local path = require("utils.java.java-common").get_buffer_project_path()
+                local name = vim.fn.fnamemodify(path, ":t:r")
+                Snacks.picker.files({ cwd = path, title = "Files in: " .. name })
+            end, desc = "Find File (Root of buffer)" },
+            { "<leader>b/", function()
+                local path = require("utils.java.java-common").get_buffer_project_path()
+                local name = vim.fn.fnamemodify(path, ":t:r")
+                Snacks.picker.grep({ cwd = path, title = "Grep in: " .. name })
+            end, desc = "Grep (Root of buffer)" },
+        },
+    },
     -- java code actions & lsp based extensions
     {
         "neovim/nvim-lspconfig",

@@ -134,22 +134,11 @@ return {
             { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
             -- { "<leader>b.", function() LazyVim.pick("files", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Find File (Root of buffer)" },
             -- { "<leader>b/", function() LazyVim.pick("live_grep", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Grep (Root of buffer)" },
-            { "<leader>b,", function()
-                local path = require("utils.java.java-common").get_buffer_project_path()
-                local name = vim.fn.fnamemodify(path, ":t:r")
-                Snacks.picker.files({ cwd = path, title = "Files in: " .. name })
-            end, desc = "Find File (Root of buffer)" },
-            { "<leader>b/", function()
-                local path = require("utils.java.java-common").get_buffer_project_path()
-                local name = vim.fn.fnamemodify(path, ":t:r")
-                Snacks.picker.grep({ cwd = path, title = "Grep in: " .. name })
-            end, desc = "Grep (Root of buffer)" },
             { "<leader>fp", function() require("plugins.snacks.configs.file-path-picker").pick({ mode = "n", picker = 'explorer' }) end, desc = "[F]ind File [P]ath (copy or paste)" },
             { "<leader>fp", ":<C-u>lua require('plugins.snacks.configs.file-path-picker').pick({ mode = 'v', picker = 'explorer' })<CR>", desc = "[F]ind File [P]ath (copy or v paste)", mode = "x" },
 
             -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
             -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },
-
         },
     },
 }
