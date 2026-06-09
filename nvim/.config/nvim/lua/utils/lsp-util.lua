@@ -1,20 +1,29 @@
 -- LSP client lookup helpers.
 --
--- • get_client_by_name — get LSP client instance by name (e.g. "jdtls")
+-- • get_clients_by_name — get all LSP clients by name (optionally buffer-scoped)
+-- • get_client_by_name — get the first LSP client by name (optionally buffer-scoped)
 -- • get_client_id_by_name — get LSP client ID by name
-
-local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
+--
+-- These wrap the built-in `vim.lsp.get_clients` (the canonical lookup API since
+-- nvim 0.10) and are the single, preferred way to resolve a client by name.
 
 local M = {}
 
+--- Get all LSP clients matching `name`, optionally scoped to a buffer.
+---@param name string client name (e.g. "jdtls")
+---@param opts? { bufnr?: integer } extra filters forwarded to vim.lsp.get_clients
+---@return vim.lsp.Client[]
+function M.get_clients_by_name(name, opts)
+    local filter = vim.tbl_extend("force", opts or {}, { name = name })
+    return vim.lsp.get_clients(filter)
+end
+
+--- Get the first LSP client matching `name`, optionally scoped to a buffer.
+---@param name string client name (e.g. "jdtls")
+---@param opts? { bufnr?: integer } extra filters forwarded to vim.lsp.get_clients
 ---@return vim.lsp.Client|nil
-function M.get_client_by_name(name)
-    local clients = vim.lsp.get_clients({ name = name }) -- or any client
-    if not clients or vim.tbl_isempty(clients) then
-        return nil
-    else
-        return clients[1]
-    end
+function M.get_client_by_name(name, opts)
+    return M.get_clients_by_name(name, opts)[1]
 end
 
 --[[ function M.get_client_id_by_name(name)
@@ -167,6 +176,7 @@ local LspCodeAction = function()
             resolve_first()
         end,
         resolve_context = function()
+            local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
             local action_match_names = lang_runner_resolver.resolve().code_action_auto_resolve_match_names or {}
             local is_match_found = false
             vim.lsp.buf.code_action({

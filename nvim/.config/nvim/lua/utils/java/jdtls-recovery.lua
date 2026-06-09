@@ -49,6 +49,7 @@ local logger = require("utils.logging-util").new({
     name = "jdtls-recovery",
     filename = "jdtls-recovery.log",
 })
+local lsp_util = require("utils.lsp-util")
 
 local SLEEP_THRESHOLD_MS = 2 * 60 * 1000
 -- Above this gap, jdtls's process-wide state is empirically unsalvageable
@@ -103,7 +104,7 @@ local function restart_all_jdtls(reason)
 
     logger.fmt_info("full restart (%s): %d java buffers", reason, #bufs)
 
-    for _, client in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+    for _, client in ipairs(lsp_util.get_clients_by_name("jdtls")) do
         pcall(vim.lsp.stop_client, client.id, true)
     end
 
@@ -228,7 +229,7 @@ local function soft_recover_buffer(buf, reason)
     end
     state.buf_last_soft[buf] = now
 
-    for _, c in ipairs(vim.lsp.get_clients({ bufnr = buf, name = "jdtls" })) do
+    for _, c in ipairs(lsp_util.get_clients_by_name("jdtls", { bufnr = buf })) do
         pcall(vim.lsp.buf_detach_client, buf, c.id)
     end
     vim.defer_fn(function()
@@ -266,7 +267,7 @@ local function check_gap()
         return
     end
 
-    local clients = vim.lsp.get_clients({ name = "jdtls" })
+    local clients = lsp_util.get_clients_by_name("jdtls")
     local gap_label = string.format("%ds", math.floor(gap / 1000))
 
     if #clients == 0 then
@@ -323,8 +324,8 @@ local function on_java_bufenter()
     if vim.bo[buf].filetype ~= "java" then
         return
     end
-    if #vim.lsp.get_clients({ bufnr = buf, name = "jdtls" }) == 0 then
-        if #vim.lsp.get_clients({ name = "jdtls" }) > 0 then
+    if not lsp_util.get_client_by_name("jdtls", { bufnr = buf }) then
+        if lsp_util.get_client_by_name("jdtls") then
             state.needs_resync[buf] = nil
             state.attach_fn(buf)
         end
@@ -369,7 +370,7 @@ function M.setup(attach_fn)
     end, { desc = "Force-restart JDTLS for all Java buffers" })
 
     vim.api.nvim_create_user_command("JdtlsHealthCheck", function()
-        local clients = vim.lsp.get_clients({ name = "jdtls" })
+        local clients = lsp_util.get_clients_by_name("jdtls")
         if #clients == 0 then
             vim.notify("JDTLS: no clients attached", vim.log.levels.WARN)
             return
@@ -391,7 +392,7 @@ function M.setup(attach_fn)
         -- Also probe the current buffer for the silent-desync case.
         local cur = vim.api.nvim_get_current_buf()
         if vim.bo[cur].filetype == "java" then
-            local buf_clients = vim.lsp.get_clients({ bufnr = cur, name = "jdtls" })
+            local buf_clients = lsp_util.get_clients_by_name("jdtls", { bufnr = cur })
             if #buf_clients == 0 then
                 vim.notify(
                     string.format("JDTLS current buf %d: NO CLIENT attached (run :JdtlsSoftRecover)", cur),
@@ -432,12 +433,11 @@ function M.setup(attach_fn)
             vim.notify("JdtlsCompletionProbe: current buffer is not Java", vim.log.levels.WARN)
             return
         end
-        local clients = vim.lsp.get_clients({ bufnr = cur, name = "jdtls" })
-        if #clients == 0 then
+        local client = lsp_util.get_client_by_name("jdtls", { bufnr = cur })
+        if not client then
             vim.notify("JdtlsCompletionProbe: no jdtls client on buffer", vim.log.levels.ERROR)
             return
         end
-        local client = clients[1]
         local cap = client.server_capabilities or {}
         local cp = cap.completionProvider
         if not cp then
@@ -510,10 +510,10 @@ function M.setup(attach_fn)
         table.insert(lines, "cwd: " .. vim.fn.getcwd())
         table.insert(lines, string.format("current buf: %d (%s, ft=%s)", cur, cur_name, vim.bo[cur].filetype))
 
-        local cur_clients = vim.lsp.get_clients({ bufnr = cur, name = "jdtls" })
+        local cur_clients = lsp_util.get_clients_by_name("jdtls", { bufnr = cur })
         table.insert(lines, "jdtls clients on current buf: " .. #cur_clients)
 
-        local all = vim.lsp.get_clients({ name = "jdtls" })
+        local all = lsp_util.get_clients_by_name("jdtls")
         table.insert(lines, "")
         table.insert(lines, "Total jdtls clients: " .. #all)
         for _, c in ipairs(all) do
@@ -539,7 +539,7 @@ function M.setup(attach_fn)
         table.insert(lines, "")
         table.insert(lines, "Loaded Java buffers:")
         for _, b in ipairs(java_buffers()) do
-            local cs = vim.lsp.get_clients({ bufnr = b, name = "jdtls" })
+            local cs = lsp_util.get_clients_by_name("jdtls", { bufnr = b })
             table.insert(lines, string.format("  buf %d  jdtls=%d  %s", b, #cs, vim.api.nvim_buf_get_name(b)))
         end
 
@@ -557,7 +557,7 @@ function M.setup(attach_fn)
 
         -- Capture root_dirs BEFORE stopping clients (after stop, config is gone).
         local roots = {}
-        for _, c in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+        for _, c in ipairs(lsp_util.get_clients_by_name("jdtls")) do
             if c.config and c.config.root_dir then
                 local name = vim.fs.basename(c.config.root_dir)
                 roots[name] = true
@@ -565,7 +565,7 @@ function M.setup(attach_fn)
         end
 
         -- Now stop clients so the cache is not in use.
-        for _, client in ipairs(vim.lsp.get_clients({ name = "jdtls" })) do
+        for _, client in ipairs(lsp_util.get_clients_by_name("jdtls")) do
             pcall(vim.lsp.stop_client, client.id, true)
         end
 

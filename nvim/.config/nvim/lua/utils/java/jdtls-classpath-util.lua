@@ -12,6 +12,7 @@
 -- • clear_cache — clear cached classpath data
 
 local log = require("utils.logging-util").new({ name = "Java.Classpath", filename = "java-classpath.log" })
+local lsp_util = require("utils.lsp-util")
 
 local M = {}
 
@@ -52,13 +53,11 @@ function M.is_jdtls_ready(bufnr)
     end
 
     -- Check if jdtls client is attached
-    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
-    if not clients or #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
+    if not client then
         log.debug("jdtls not attached")
         return false
     end
-
-    local client = clients[1]
 
     -- Check if client is initialized
     if not client.initialized then
@@ -192,14 +191,12 @@ end
 -- Get classpath from jdtls for all modules
 local function get_jdtls_classpath_of_all_modules(bufnr)
     -- Find jdtls client
-    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
-    if not clients or #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
+    if not client then
         log.warn("No jdtls client found")
         vim.notify("[MapStruct] No jdtls client found - classpath may be incomplete", vim.log.levels.WARN)
         return nil
     end
-
-    local client = clients[1]
 
     -- Get all projects/modules
     log.debug("Getting all projects from jdtls...")
@@ -354,14 +351,13 @@ function M.get_classpath_for_main_method_table(opts)
     local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
 
     -- Get jdtls client
-    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
-    if not clients or #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
+    if not client then
         log.warn("jdtls not attached to buffer")
         vim.notify("[Java Classpath] jdtls not attached", vim.log.levels.WARN)
         return nil
     end
 
-    local client = clients[1]
     if not client.initialized then
         log.warn("jdtls not initialized")
         vim.notify("[Java Classpath] jdtls not initialized", vim.log.levels.WARN)
@@ -423,13 +419,12 @@ end
 function M.get_all_project_modules(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
 
-    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
-    if not clients or #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
+    if not client then
         log.warn("No jdtls client found")
         return nil
     end
 
-    local client = clients[1]
     local result, err = client:request_sync("workspace/executeCommand", {
         command = "java.project.getAll",
         arguments = {},
@@ -469,13 +464,12 @@ function M.get_classpath_for_module_uri(module_uri, opts)
     local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
     local scope = opts.scope or "test"
 
-    local clients = vim.lsp.get_clients({ name = "jdtls", bufnr = bufnr })
-    if not clients or #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
+    if not client then
         log.warn("No jdtls client found")
         return nil
     end
 
-    local client = clients[1]
     local all_classpaths = {}
 
     for _, s in ipairs({ "runtime", scope }) do

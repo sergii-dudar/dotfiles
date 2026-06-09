@@ -25,6 +25,7 @@
 --       ~/.cache/nvim/test-report/nextest.toml
 
 local nio_util = require("utils.nio-util")
+local lsp_util = require("utils.lsp-util")
 
 local M = {}
 
@@ -155,11 +156,7 @@ end
 --- Get a rust-analyzer client (first one found).
 ---@return vim.lsp.Client|nil
 local function rust_analyzer_client()
-    local clients = vim.lsp.get_clients({ name = "rust-analyzer", bufnr = 0 })
-    if #clients == 0 then
-        clients = vim.lsp.get_clients({ name = "rust-analyzer" })
-    end
-    return clients[1]
+    return lsp_util.get_client_by_name("rust-analyzer", { bufnr = 0 }) or lsp_util.get_client_by_name("rust-analyzer")
 end
 
 --- Request rust-analyzer `experimental/runnables` for a given position.

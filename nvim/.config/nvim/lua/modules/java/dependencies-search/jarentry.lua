@@ -1,6 +1,8 @@
 -- Build and open jdt://jarentry/ URIs for resource files inside dependency jars.
 -- Format: jdt://jarentry/{entry_path}?={project}/{escaped_jar}={maven_metadata}
 
+local lsp_util = require("utils.lsp-util")
+
 local M = {}
 
 ---Build jdt://jarentry/ URI from an extracted source file path.
@@ -22,11 +24,11 @@ function M.build_uri(file_path, source_dirs)
     local entry_path = file_path:sub(#source_dir + 2)
     local jar_path = source_dir:gsub("-sources$", "") .. ".jar"
 
-    local clients = vim.lsp.get_clients({ name = "jdtls" })
-    if #clients == 0 then
+    local client = lsp_util.get_client_by_name("jdtls")
+    if not client then
         return nil
     end
-    local root_dir = clients[1].config.root_dir
+    local root_dir = client.config.root_dir
     local project_name = require("utils.java.project_name_resolver.pom_parser").get_artifact_id(root_dir)
         or vim.fn.fnamemodify(root_dir, ":t")
 
