@@ -54,7 +54,14 @@ local function diff_selected(picker)
     end)
 end
 
+-- Picker excludes grouped by project type. The active project's language list is
+-- appended to the common base (see project_excludes); add a language = add a table.
 local exclude_common = {
+    ".git",
+    ".idea",
+}
+
+local exclude_java = {
     -- "**/target/classes",
     -- "**/target/test-classes",
     "**/target/maven-*",
@@ -69,14 +76,34 @@ local exclude_common = {
     "**/target/*.war",
     "**/target/*.ear",
     -- "**/bin",
-    ".git",
     ".settings",
-    ".idea",
     ".mvn",
     "**/.classpath",
     "**/.factorypath",
     "**/.project",
 }
+
+local exclude_rust = {
+    "**/target/debug",
+    "**/target/release",
+    "**/target/nextest",
+    "**/target/doc",
+}
+
+local exclude_by_lang = {
+    java = exclude_java,
+    rust = exclude_rust,
+}
+
+-- Common excludes + the active project language's excludes.
+local function project_excludes()
+    local list = vim.deepcopy(exclude_common)
+    local lang = require("utils.lang.lang-project").current()
+    if lang and exclude_by_lang[lang] then
+        vim.list_extend(list, exclude_by_lang[lang])
+    end
+    return list
+end
 
 M.picker = {
     -- Do NOT set a fully-formed layout here. Snacks deep-merges the global layout into every
@@ -85,7 +112,7 @@ M.picker = {
     -- to skip preset resolution. Each source below sets its own layout explicitly.
     hidden = true, -- Include hidden files in grep
     ignored = false, -- Exclude git-ignored files
-    exclude = exclude_common,
+    exclude = project_excludes(),
     formatters = {
         file = {
             filename_first = true, -- display filename before the file path

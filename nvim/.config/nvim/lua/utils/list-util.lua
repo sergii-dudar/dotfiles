@@ -36,10 +36,6 @@ end
 
 --- Check whether the target string matches any value in the list.
 function M.any_match(target_string, match_table)
-    -- vim.notify(
-    --     "input: " .. target_string .. " --- " .. require("utils.common-util").table_to_string(match_table),
-    --     vim.log.levels.INFO
-    -- )
     for _, current_match in ipairs(match_table) do
         if string.match(target_string, current_match) then
             return true
@@ -71,28 +67,5 @@ function M.to_unique_list(tbl)
 
     return unique
 end
-
---[[ local logging = require("utils.logging-util")
-local log = logging.new({ name = "java-refactor", filename = "java-refactor.log" })
-
-local tab = {}
-table.insert(tab, "1")
-table.insert(tab, "2")
-table.insert(tab, "3")
-table.insert(tab, "4")
-table.insert(tab, "5")
-
-for _, value in ipairs(tab) do
-    print(_)
-    log.debug(_)
-end
-
-log.debug("---")
-for i = #tab, 1, -1 do
-    local value = tab[i]
-    print(i)
-    log.debug(i)
-end
-log.debug("++++") ]]
 
 return M

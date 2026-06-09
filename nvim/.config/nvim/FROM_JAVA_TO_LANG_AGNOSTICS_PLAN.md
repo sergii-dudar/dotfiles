@@ -4,9 +4,9 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** in progress — **Items 1–4 done** (2026-06-09). Items below are ordered
-> by impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
-> ones.
+> **Status:** in progress — **Items 1–4, 6, 7 done**, Item 5 pending (2026-06-09).
+> Items below are ordered by impact. Each maps to an existing in-repo pattern —
+> reuse them, don't invent new ones.
 >
 > **Editing rule for this refactor:** do **not** delete unused methods, comments,
 > or commented-out code. Migrate Java-specific logic into per-language modules;
@@ -158,27 +158,26 @@ name_pattern)` fires on every matched context action; drop if unwanted.
 
 ## 🟡 Low priority / polish
 
-### 6. Gate Java commands + tools `[todo: la-commands-mason]`
+### 6. Gate Java commands + tools  ✅ DONE  `[todo: la-commands-mason]`
 
-- [ ] `lua/config/autocmds.lua` L288-299 — `:RunMainClass` user command requires
-      `jdtls.dap` globally. Move into the Java editor config.
-- [ ] `lua/plugins/editor/mason.lua` — installs `jdtls`, `vscode-spring-boot-tools`,
-      `vscode-java-dependency`, `vscode-java-decompiler`, `gradle-language-server`,
-      `google-java-format`, `checkstyle`, `ktlint` unconditionally (also Rust tools
-      unconditionally). Decide: keep "install everything" or gate per-language via
-      `lang-project`. (Not breaking — preference call.)
-- [ ] `lua/plugins/editor/nvim-treesitter.lua` L41/L48 — Java-only special-cases
-      (`indent disable = { "java" }`, context `on_attach` off for java). Generalize
-      to a set if Rust needs similar; otherwise leave as deliberate Java tweaks.
-- [ ] `lua/utils/cache-util.lua` (`M.java`) / `lua/utils/list-util.lua` L76 (logger
-      named `java-refactor` in a general util) — cosmetic; nest/rename if desired.
+- [x] `lua/config/autocmds.lua` — `:RunMainClass` user command **removed**; the only
+      remaining `jdtls.dap` usage is in the Java-gated `plugins/editor/java/jdtls-config.lua`.
+- [x] **Decision:** `lua/plugins/editor/mason.lua` keeps installing **all** tools
+      (jdtls/spring/gradle/google-java-format/checkstyle, Rust tools, …) by default —
+      not gated per-language, intentionally.
+- [x] **Decision:** `lua/plugins/editor/nvim-treesitter.lua` keeps installing all
+      parsers and its Java tweaks (`indent disable = { "java" }`, context off for
+      java) by default — intentional, not gated.
+- [x] `lua/utils/cache-util.lua` (`M.java`) / `lua/utils/list-util.lua` logger name —
+      cosmetic only; left as-is by decision.
 
-### 7. Picker excludes (optional)
+### 7. Picker excludes  ✅ DONE
 
-- [ ] `lua/plugins/snacks/configs/pickers.lua` L60-64 — excludes `target/maven-*`,
-      `target/junit-report`, `build/junit-report` (Java build dirs). Add Rust
-      `target/nextest` etc., or derive excludes per language. L216 is a personal
-      work path — leave.
+- [x] `lua/plugins/snacks/configs/pickers.lua` — split the flat `exclude_common`
+      into `exclude_common` (`.git`, `.idea`) + per-language `exclude_java` /
+      `exclude_rust` + `exclude_by_lang`. `project_excludes()` = common + the active
+      project's list (via `lang-project.current()`), assigned to `picker.exclude`.
+      Rust adds `target/{debug,release,nextest,doc}`. L216 personal work path left.
 
 ---
 
