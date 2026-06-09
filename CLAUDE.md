@@ -52,5 +52,6 @@ Use this instead of `git push` when on the work network. Do not modify it casual
 ## When making changes
 
 - For Lua under `nvim/.config/nvim/`, run `stylua` before considering work done.
+- **Preserve existing code**: do not remove unused methods/functions, comments, or commented-out code unless explicitly asked to. Keep dead-but-intentional code in place (complements the `archive/` pattern); refactors should migrate such code, not silently delete it.
 - New app configs should follow the stow layout. Don't introduce hardcoded absolute paths outside `~/dotfiles` and `~/.config`.
 - Other tool-specific guidance lives in per-app `README.md` files (see `nvim/.config/nvim/README.md`, `tmux/README.md`, `aerospace/.config/aerospace/README.md`, `hyprland/README.md`, etc.) — consult them before changing the corresponding config.

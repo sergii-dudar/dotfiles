@@ -103,3 +103,4 @@ Task runner framework for build/test/debug/run operations:
 - **Indentation**: 4 spaces universally (Lua, Java, most filetypes). JSON/YAML/SQL use 2 spaces (see `.editorconfig`).
 - **StyLua directives**: `-- stylua: ignore start/end` when formatting must be suppressed (e.g., alignment tables)
 - **Archive pattern**: Disabled code goes to `archive/` subdirectories rather than being deleted
+- **Preserve existing code**: When making changes, do not remove unused methods/functions, comments, or commented-out code unless explicitly asked to. Keep dead-but-intentional code in place (this complements the Archive pattern); refactors should migrate such code, not silently delete it.

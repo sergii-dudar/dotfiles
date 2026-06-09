@@ -1,11 +1,13 @@
 ## Context information for JUnit Implementation
 
 ### Overview
+
 Custom JUnit XML test report processor integrated into overseer.nvim workflow.
 Parses JUnit XML reports after test runs, displays results as gutter signs, virtual text,
 diagnostics, quickfix entries, and a detailed output viewer with stack trace highlighting.
 
 ### Plugins Used
+
 - overseer.nvim: Task runner framework (~/.local/share/nvim/lazy/overseer.nvim)
 - neotest + neotest-java: Reference for patterns (~/.local/share/nvim/lazy/neotest, ~/.local/share/nvim/lazy/neotest-java)
 - trouble.nvim: Used to display junit diagnostics on failures (via `Trouble junit_diagnostics open`)
@@ -14,44 +16,56 @@ diagnostics, quickfix entries, and a detailed output viewer with stack trace hig
 ### Key Files
 
 ## Overseer plugin config (keybindings, task registration, setup)
+
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/init.lua
 
 ## Overseer utilities (run/debug/stop orchestration)
+
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/overseer-util.lua
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/overseer-task-util.lua
 
 ## Test report engine (core orchestrator: process, clear, show/hide output)
+
 - ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/init.lua
 
-## JUnit XML parser (parses TEST-*.xml, merges parameterized invocations, extracts errors)
+## JUnit XML parser (parses TEST-\*.xml, merges parameterized invocations, extracts errors)
+
 - ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/junit-xml.lua
 
 ## Java language adapter (classname-to-file, treesitter test positions, error line extraction)
+
 - ~/dotfiles/nvim/.config/nvim/lua/modules/java/test-report/lang/java.lua
 
 ## Overseer component (hooks into overseer lifecycle: on_complete/on_reset/on_dispose)
+
 - ~/dotfiles/nvim/.config/nvim/lua/overseer/component/test_report/junit_report.lua
 
 ## Task builders (RUN_TESTS / DEBUG_TESTS templates, attaches junit_report component)
+
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/run_tests.lua
 
 ## Java runner (delegates to utils.java.junit for building test commands)
+
 - ~/dotfiles/nvim/.config/nvim/lua/plugins/overseer/tasks/lang/java-runner.lua
 
 ## Java stack trace highlighting and navigation
+
 - ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-trace.lua
 
 ## XML parsing library (vendored xml2lua-based parser)
+
 - ~/dotfiles/nvim/.config/nvim/lua/lib/xml/
 
 ## Java utilities
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/junit/        -- JUnit command builders
+
+- ~/dotfiles/nvim/.config/nvim/lua/utils/java/junit/ -- JUnit command builders
 - ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-common.lua -- Common helpers (get_buffer_project_path, parse_java_class_trace_line, etc.)
 - ~/dotfiles/nvim/.config/nvim/lua/utils/java/java-ts-util.lua -- Treesitter utils for Java
-- ~/dotfiles/nvim/.config/nvim/lua/utils/java/jdtls-util.lua  -- JDTLS helpers (open class, load symbols)
-- ~/dotfiles/nvim/.config/nvim/lua/utils/lsp-util.lua         -- LSP helpers (get_client_id_by_name)
+- ~/dotfiles/nvim/.config/nvim/lua/utils/java/jdtls-util.lua -- JDTLS helpers (open class, load symbols)
+- ~/dotfiles/nvim/.config/nvim/lua/utils/lsp-util.lua -- LSP helpers (get_client_id_by_name)
 
 ### Architecture Flow
+
 ```
 Keybindings (<leader>t* and <leader>r*)
   -> overseer-util.lua (orchestration: run/debug/stop)
@@ -65,6 +79,7 @@ Keybindings (<leader>t* and <leader>r*)
 ```
 
 ### Key Design Details
+
 - Treesitter-based test position detection (queries @Test, @ParameterizedTest, @TestFactory, @CartesianTest)
 - Parameterized tests are merged under classname#methodName with individual invocations preserved
 - First <system-out> in JUnit XML is treated as JUnit5 metadata, rest is actual stdout
@@ -78,29 +93,32 @@ Keybindings (<leader>t* and <leader>r*)
 - java-trace.lua: find_edit_win() finds a normal editing window to open files (not trace/log panels)
 
 ### Snacks Picker Integration
+
 - Snacks.picker.diagnostics supports `severity` option (passed to vim.diagnostic.get)
 - Snacks.picker.diagnostics supports `filter.filter` function: `fun(item, filter): boolean`
-  - item.item is the raw vim.Diagnostic, so item.item.source == "junit" filters by namespace
+    - item.item is the raw vim.Diagnostic, so item.item.source == "junit" filters by namespace
 - Example: `Snacks.picker.diagnostics({ filter = { filter = function(item) return item.item.source == "junit" end } })`
 
-### Keybindings (runner <leader>r*)
-- <leader>rr  -- Run Current
-- <leader>rd  -- Debug Current
-- <leader>rl  -- Re-Run Last
-- <leader>rs  -- Stop All (overseer tasks + DAP)
-- <leader>ro  -- Task list (OverseerToggle)
-- <leader>rt  -- Task action (OverseerTaskAction)
+### Keybindings (runner <leader>r\*)
 
-### Keybindings (test <leader>t*)
-- <leader>tt  -- Run Current Test
-- <leader>td  -- Debug Current Test
-- <leader>tf  -- Run File Tests
-- <leader>ta  -- Run All Tests
-- <leader>tp  -- Run Current Parametrized Single Test
-- <leader>tP  -- Debug Current Parametrized Single Test
-- <leader>ts  -- Stop All (overseer tasks + DAP)
-- <leader>tl  -- Re-Run Last
-- <leader>to  -- Toggle Test Output (cursor-aware, with stack trace highlighting)
-- <leader>tO  -- Hide Test Output
-- <leader>tL  -- Load Last Test Report
-- <leader>tD  -- Diagnostics picker (filtered by junit source)
+- <leader>rr -- Run Current
+- <leader>rd -- Debug Current
+- <leader>rl -- Re-Run Last
+- <leader>rs -- Stop All (overseer tasks + DAP)
+- <leader>ro -- Task list (OverseerToggle)
+- <leader>rt -- Task action (OverseerTaskAction)
+
+### Keybindings (test <leader>t\*)
+
+- <leader>tt -- Run Current Test
+- <leader>td -- Debug Current Test
+- <leader>tf -- Run File Tests
+- <leader>ta -- Run All Tests
+- <leader>tp -- Run Current Parametrized Single Test
+- <leader>tP -- Debug Current Parametrized Single Test
+- <leader>ts -- Stop All (overseer tasks + DAP)
+- <leader>tl -- Re-Run Last
+- <leader>to -- Toggle Test Output (cursor-aware, with stack trace highlighting)
+- <leader>tO -- Hide Test Output
+- <leader>tL -- Load Last Test Report
+- <leader>tD -- Diagnostics picker (filtered by junit source)

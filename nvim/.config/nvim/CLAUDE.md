@@ -10,6 +10,10 @@ Personal Neovim configuration built on **LazyVim** (folke/LazyVim) distribution 
 
 Lua files are formatted with **StyLua**: 4-space indentation, 120-column width, double quotes preferred. Config is in `stylua.toml`. Run `stylua .` to format.
 
+## Editing conventions
+
+- **Preserve existing code**: do not remove unused methods/functions, comments, or commented-out code unless explicitly asked to. Keep dead-but-intentional code in place (complements the `archive/` pattern); refactors should migrate such code, not silently delete it.
+
 ## Architecture
 
 ### Entry Point
