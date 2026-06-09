@@ -4,7 +4,7 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** in progress — **Items 1–2 done** (2026-06-09). Items below are ordered
+> **Status:** in progress — **Items 1–3 done** (2026-06-09). Items below are ordered
 > by impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
 > ones.
 >
@@ -115,16 +115,16 @@ name_pattern)` fires on every matched context action; drop if unwanted.
 
 ## 🟠 Medium priority
 
-### 3. Gate global Java keymaps `[todo: la-global-keymaps]`
+### 3. Gate global Java keymaps  ✅ DONE  `[todo: la-global-keymaps]`
 
-- [x] `lua/config/keymaps.lua` L162-172 — `<leader>Cjj` / `<leader>Cjy`
-      (`java-tostring-parser`) are set unconditionally. Move into
-      `plugins/editor/java/` (loaded only for Java projects). `<leader>Cjn` (json
-      normalize) is language-agnostic — leave it.
-- [x] `lua/plugins/snacks/init.lua` L137-146 — `<leader>b,` / `<leader>b/` always
-      call `java-common.get_buffer_project_path()`; in a non-Java buffer this
-      returns `nil` → `fnamemodify(nil, …)` error. Replace with a lang-aware
-      buffer-project-root resolver (extend `lang-project` or `resource-cwd-resolver`).
+- [x] `lua/plugins/snacks/init.lua` — the `<leader>b,` / `<leader>b/` buffer-root
+      pickers that unconditionally called `java-common.get_buffer_project_path()`
+      (→ `nil` error in non-Java buffers) were **commented out** (L135-136). No longer
+      active, so no per-language gating needed for now.
+- [x] **Decision:** `lua/config/keymaps.lua` L162-172 `<leader>Cjj` / `<leader>Cjy`
+      (Java `toString` → JSON, via `java-tostring-parser`) **stay global in all project
+      types for now** — intentionally *not* gated. `<leader>Cjn` (json normalize) is
+      language-agnostic and also stays.
 
 ### 4. Generalize shared utils `[todo: la-shared-utils]`
 

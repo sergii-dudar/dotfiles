@@ -55,6 +55,8 @@ return {
         "folke/snacks.nvim",
         -- stylua: ignore
         keys = {
+            -- { "<leader>b,", function() LazyVim.pick("files", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Find File (Root of buffer)" },
+            -- { "<leader>b/", function() LazyVim.pick("live_grep", { root = false, cwd = require("utils.java.java-common").get_buffer_project_path() }) end, desc = "Grep (Root of buffer)" },
             { "<leader>b,", function()
                 local path = require("utils.java.java-common").get_buffer_project_path()
                 local name = vim.fn.fnamemodify(path, ":t:r")
