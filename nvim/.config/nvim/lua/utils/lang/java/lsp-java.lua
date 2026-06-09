@@ -1,4 +1,4 @@
-local lsp_lang_common = require("utils.lang.lsp.lsp-common")
+local lsp_lang_common = require("utils.lang.lsp-common")
 
 local M = {}
 

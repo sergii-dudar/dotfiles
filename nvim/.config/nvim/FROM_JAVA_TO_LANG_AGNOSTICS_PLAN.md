@@ -4,8 +4,8 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** scan complete, implementation pending. Items below are ordered by
-> impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
+> **Status:** in progress — **Item 1 done** (2026-06-09). Items below are ordered
+> by impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
 > ones.
 >
 > **Editing rule for this refactor:** do **not** delete unused methods, comments,
@@ -30,9 +30,11 @@ filetype / project type / LSP client name.
 - `lua/config/lazy.lua` L100-101 — per-language editor specs imported only for the
   active project type: `{ import = "plugins.editor.java", cond = …is("java") }`,
   same for `rust`.
-- `lua/utils/lang/lsp/` — per-language LSP layer: `lsp-common.lua` (generic
-  `apply_lsp_action`), `lsp-java.lua`, `lsp-rust.lua`
-  (`code_action_auto_resolve_match_names`, import resolve).
+- `lua/utils/lang/` — per-language LSP layer: `lsp-common.lua` (generic
+  `apply_lsp_action`), `java/lsp-java.lua`, `rust/lsp-rust.lua`
+  (`code_action_auto_resolve_match_names`, import resolve), plus
+  `lsp-land-handlers-resolver.lua` → loads `java/lsp-java-handlers.lua` for the
+  active project language (Item 1).
 - `lua/utils/resource-cwd-resolver.lua` — `register(ft, resolver)` pattern for
   picker cwd/resources (Java registered).
 - `lua/plugins/overseer/tasks/lang-runner-resolver.lua` — filetype → runner.
@@ -48,7 +50,7 @@ just one entry.
 
 ## 🔴 High priority — currently runs in *every* project (including Rust)
 
-### 1. Decouple global LSP handlers  `[todo: la-lsp-handlers]`
+### 1. Decouple global LSP handlers  ✅ DONE  `[todo: la-lsp-handlers]`
 
 **File:** `lua/plugins/editor/lsp.lua`
 
@@ -61,24 +63,31 @@ just one entry.
 - L60-100+ — `vim.lsp.buf_request_all` hover override hardcodes
   `is_jdtls = …name == "jdtls"` and `jdtls_util.convert_markdown_links_to_references`.
 
-**Plan**
+**Done** — implemented as a per-language handler module + a tiny resolver (no shared
+hub: handler needs differ too much per language to unify):
 
-- [ ] Add a per-client/filetype handler registry (e.g.
-      `utils/lang/lsp/lsp-handlers.lua`) with
-      `register(client_name_or_ft, { on_publish_diagnostics?, on_hover? })`.
-- [ ] Move the Java diagnostic post-processing (arg-highlight, format-checker,
-      `source == "Java"` filtering) into `lsp-java.lua`, registered only when
-      `lang-project.is("java")`.
-- [ ] Move the jdtls hover link conversion into the same Java registration.
-- [ ] Keep `lsp.lua` generic: install one dispatcher that fans out to registered
-      hooks; no `require("utils.java.*")` at module scope.
-- **Acceptance:** opening a Rust-only project never `require`s any `utils.java.*`;
-      `:lua print(package.loaded["utils.java.jdtls-util"])` is `nil`.
+- [x] `utils/lang/lsp-land-handlers-resolver.lua` — `setup()` resolves
+      `lang-project.current()` and `require(mod).setup()` for that language if it has
+      an entry in `handlers_by_lang` (`java` only today); skips otherwise.
+- [x] `utils/lang/java/lsp-java-handlers.lua` — the full publishDiagnostics + hover
+      (`buf_request_all`) block moved **verbatim** from `lsp.lua`, wrapped in
+      `setup()`; owns its `utils.java.*` requires.
+- [x] `lsp.lua` — Java block (93 lines) replaced by one
+      `require("utils.lang.lsp-land-handlers-resolver").setup()`; kept `$/progress`,
+      `diagnostic.config`, and the plugin spec. No `utils.java.*` at module scope.
+- [x] Fixed 3 stale requires from the `lang/` restructure (`lsp-java.lua` →
+      `utils.lang.lsp-common`; `java-config.lua` ×2 → `utils.lang.java.lsp-java`;
+      `rust-config.lua` → `utils.lang.rust.lsp-rust`).
+- **Verified:** stylua clean · luajit parses · headless: resolver skips a non-Java
+      cwd, and `lsp-java-handlers.setup()` installs the override without error.
+- **Note:** the hover override's generic empty-result filtering now applies only in
+      Java projects (moved wholesale, by decision); revisit if Rust later needs it.
 
 ### 2. Finish the code-action migration  `[todo: la-codeaction-migration]`
 
 **Files:** `lua/utils/lsp-util.lua` (old `M.code_action`),
-`lua/utils/lang/lsp/lsp-java.lua`, `lsp-rust.lua`, `lsp-common.lua`;
+`lua/utils/lang/java/lsp-java.lua`, `lua/utils/lang/rust/lsp-rust.lua`,
+`lua/utils/lang/lsp-common.lua`;
 callers `plugins/editor/java/java-config.lua`, `plugins/editor/rust/rust-config.lua`.
 
 Migration is half-done:
@@ -175,7 +184,7 @@ Migration is half-done:
 
 ## Bugs found during the scan (incidental — fix opportunistically)
 
-- [ ] `lua/utils/lang/lsp/lsp-java.lua` — `function request_and_apply_first(...)` is
+- [ ] `lua/utils/lang/java/lsp-java.lua` — `function request_and_apply_first(...)` is
       **global** (missing `local`); pollutes `_G`. Make it local (or move to
       `lsp-common`).
 - [ ] `lua/utils/nvim/winbar-util.lua` — `function split_str_by_src(...)` is

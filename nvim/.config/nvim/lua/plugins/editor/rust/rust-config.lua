@@ -26,7 +26,7 @@ return {
                     -- stylua: ignore
                     keys = {
                         { "<leader>cc", function()
-                            local action_names = require("utils.lang.lsp.lsp-rust").code_action_auto_resolve_match_names
+                            local action_names = require("utils.lang.rust.lsp-rust").code_action_auto_resolve_match_names
                             require("utils.lsp-util").code_action.resolve_context(action_names)
                         end,  desc = "Context Apply First Code Action [rust-analyzer]" }
                     },
