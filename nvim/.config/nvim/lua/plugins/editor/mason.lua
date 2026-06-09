@@ -8,9 +8,6 @@ return {
             "lemminx",
             "autotools-language-server",
 
-            -- Rust
-            "bacon-ls",
-
             -- Java
             "jdtls",
             "vscode-spring-boot-tools",
@@ -21,7 +18,11 @@ return {
             -- "haskell-language-server", -- issues with securities on macos
 
             "hyprls",
+
+            -- Rust
             "rust-analyzer",
+            -- "bacon",
+            -- "bacon-ls",
 
             -- DAP
             "bash-debug-adapter",
