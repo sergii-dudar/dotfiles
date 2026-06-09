@@ -136,7 +136,7 @@ end
 ---Prompt for expression, evaluate via DAP, return result lines via callback.
 ---@param callback fun(lines: string[])
 local function prompt_eval_dap(callback)
-    Snacks.input.input({ prompt = "Expression: " }, function(expr)
+    Snacks.input.input({ prompt = "Expression: ", default = vim.fn.expand("<cword>") }, function(expr)
         if not expr or expr == "" then
             return
         end
@@ -176,17 +176,15 @@ local function write_lines(lines, path)
 end
 
 ---Explorer picker to select/create a file, then write lines to it.
----Rooted at current module's src/test/resources.
+---Rooted at the buffer's per-filetype resource dir (cwd fallback).
 ---Use `a` to create new files, `<CR>` on a file to write to it.
 ---@param lines string[]
 local function pick_and_write(lines)
-    local java_util = require("utils.java.java-common")
-    local module_root = java_util.get_buffer_project_path() or vim.fn.getcwd()
     -- local resource_dirs = vim.fn.globpath(module_root, "src/**/resources", false, true)
-    local resources_dir = module_root .. "/src/test/resources"
-    if vim.fn.isdirectory(resources_dir) == 0 then
-        resources_dir = module_root .. "/src"
-    end
+    -- Root at the buffer's per-filetype resource dir (java -> src/test/resources, …);
+    -- fall back to cwd for filetypes with no registered resolver.
+    local resolved = require("utils.resource-cwd-resolver").resolve()
+    local resources_dir = (resolved and resolved.dirs[1]) or vim.fn.getcwd()
 
     Snacks.picker.explorer({
         cwd = resources_dir,

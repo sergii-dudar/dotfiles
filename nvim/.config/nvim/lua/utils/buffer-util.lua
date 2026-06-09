@@ -13,6 +13,7 @@ local M = {}
 local work_buffer_types = {
     java = true,
     lua = true,
+    rust = true,
 }
 
 -- get loaded bufferIds list, same as by `:ls` command or telescope buffers

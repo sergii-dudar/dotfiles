@@ -1,5 +1,8 @@
--- Custom winbar rendering: displays Java file path with highlighted module/root/package segments.
+-- Custom winbar rendering: per-filetype path shapers with a generic default.
+-- Java renders module/root/package as a dotted FQN; other filetypes fall back to a
+-- cwd-relative path. Register more variants with M.register(ft, shaper).
 --
+-- • register — register a path shaper for a filetype
 -- • eval — evaluate winbar expression for current buffer (returns statusline-style string)
 
 local M = {}
@@ -13,36 +16,57 @@ vim.api.nvim_set_hl(0, "WinBarPath", {
     bg = existing_path_hi.bg, --[[bold = true italic = true]]
 })
 
-function split_str_by_src(str)
-    local module, root, package = str:match("([^/]+)/src/(%w+)/java/(.*)")
+-- filetype -> fun(raw_path: string): string  (rendered path portion of the winbar)
+local shapers = {}
 
-    if not package then
-        root, package = str:match("^.*src/(%w*)/java/(.*)")
-    end
+--- Register a winbar path shaper for a filetype.
+---@param ft string
+---@param shaper fun(raw_path: string): string
+function M.register(ft, shaper)
+    shapers[ft] = shaper
+end
 
-    if package then
-        local prefix = module and (module .. " 󰏗 ") or ""
-        return prefix .. root .. " 󰬷 " .. package
-    end
-
+-- Strip the leading "<cwd-name>/" so the path shows relative to the project.
+local function cwd_relative(str)
     local dir_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
     local parts = require("utils.string-util").split(str, dir_name .. "/")
     return #parts == 2 and parts[2] or str
 end
 
+-- Default shaper: cwd-relative path with ❯ separators.
+local function default_shaper(str)
+    return cwd_relative(str):gsub("/", " ❯ ")
+end
+
+-- Java shaper: "module 󰏗 root 󰬷 package" as a dotted FQN, sans .java.
+local function java_shaper(str)
+    local module, root, package = str:match("([^/]+)/src/(%w+)/java/(.*)")
+    if not package then
+        root, package = str:match("^.*src/(%w*)/java/(.*)")
+    end
+
+    local base
+    if package then
+        local prefix = module and (module .. " 󰏗 ") or ""
+        base = prefix .. root .. " 󰬷 " .. package
+    else
+        base = cwd_relative(str)
+    end
+    return base:gsub("/", "."):gsub("%.java", "")
+end
+
+M.register("java", java_shaper)
+
 --- Evaluate the winbar expression for the current buffer.
 function M.eval()
-    local file_path = split_str_by_src(vim.api.nvim_eval_statusline("%f", {}).str)
-    local ext = vim.fn.fnamemodify(file_path, ":e")
-    local filename = vim.fn.fnamemodify(file_path, ":t")
-    local dev_icon, hl = require("nvim-web-devicons").get_icon(filename, ext)
-    dev_icon = (dev_icon and " " .. dev_icon .. " " or "")
+    local raw = vim.api.nvim_eval_statusline("%f", {}).str
+    local shaper = shapers[vim.bo.filetype] or default_shaper
+    local file_path = " " .. shaper(raw)
 
-    if ext == "java" or ext == "class" then
-        file_path = " " .. file_path:gsub("/", "."):gsub("%.java", "")
-    else
-        file_path = " " .. file_path:gsub("/", " ❯ ")
-    end
+    local ext = vim.fn.fnamemodify(raw, ":e")
+    local filename = vim.fn.fnamemodify(raw, ":t")
+    local dev_icon = require("nvim-web-devicons").get_icon(filename, ext)
+    dev_icon = (dev_icon and " " .. dev_icon .. " " or "")
 
     return "%#WinBarSeparator#"
         .. "%*"

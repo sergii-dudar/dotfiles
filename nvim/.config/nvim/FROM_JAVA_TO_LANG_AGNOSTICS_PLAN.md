@@ -4,7 +4,7 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** in progress — **Items 1–3 done** (2026-06-09). Items below are ordered
+> **Status:** in progress — **Items 1–4 done** (2026-06-09). Items below are ordered
 > by impact. Each maps to an existing in-repo pattern — reuse them, don't invent new
 > ones.
 >
@@ -126,18 +126,21 @@ name_pattern)` fires on every matched context action; drop if unwanted.
       types for now** — intentionally *not* gated. `<leader>Cjn` (json normalize) is
       language-agnostic and also stays.
 
-### 4. Generalize shared utils `[todo: la-shared-utils]`
+### 4. Generalize shared utils  ✅ DONE  `[todo: la-shared-utils]`
 
-- [ ] `lua/utils/dap-util.lua` L182-188 (`pick_and_write`) — hardcodes
-      `java-common` + Maven `src/test/resources`. Route through
-      `resource-cwd-resolver` or a per-language "test resource dir" hook.
-- [ ] `lua/utils/nvim/winbar-util.lua` L16-45 (`split_str_by_src`) — hardcodes
-      `…/src/<root>/java/…` parsing and `.java` extension special-casing; falls back
-      OK for other langs but the Java path shape is baked in. Generalize per
-      language (registry of path-shapers) or treat Java as one registered shaper.
-      (Also a stray global — see Bugs.)
-- [ ] `lua/utils/buffer-util.lua` L13-16 — `work_buffer_types = { java, lua }`
-      lacks `rust` and others. Derive from the `lang-project` registry exts.
+- [x] `lua/utils/dap-util.lua` (`pick_and_write`) — now roots the picker via
+      `resource-cwd-resolver.resolve()` (per-filetype resource dir, cwd fallback);
+      dropped the `java-common` require + Maven `src/test/resources` hardcode. Java
+      behaviour preserved; non-Java falls back to cwd.
+- [x] `lua/utils/nvim/winbar-util.lua` — refactored into a per-filetype shaper
+      registry: `M.register(ft, shaper)`, a generic `default_shaper` (cwd-relative
+      with ❯), and a registered `java_shaper` (dotted FQN). `M.eval` picks by
+      filetype or default. `split_str_by_src` is gone (now `local` helpers); Java
+      output is byte-identical to before. Add Rust/others later via `M.register`.
+- [x] `lua/utils/buffer-util.lua` — `work_buffer_types` now includes `rust`
+      (`get_active_ls_buffers` has only commented callers today; future-proofing).
+      (Couldn't derive from `lang-project` — it stores exts like `rs`, not the
+      `rust` filetype.)
 
 ### 5. Decouple completion from jdtls `[todo: la-completion]`
 
@@ -184,8 +187,8 @@ name_pattern)` fires on every matched context action; drop if unwanted.
 - [ ] `lua/utils/lang/java/lsp-java.lua:25` — `request_and_apply_first` declared
       without `local`, leaking a global `_G.request_and_apply_first` (used only at
       `:108`). Works fine; add `local` to contain it. (Also listed under Item 2.)
-- [ ] `lua/utils/nvim/winbar-util.lua` — `function split_str_by_src(...)` is
-      **global**; should be `local`.
+- [x] `lua/utils/nvim/winbar-util.lua` — `split_str_by_src` global → **fixed** in
+      Item 4 (refactored into `local` shaper helpers).
 
 ---
 
