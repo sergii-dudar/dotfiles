@@ -4,9 +4,8 @@ Tracking doc for decoupling the Neovim config from a hard Java/JDTLS assumption 
 additional "main" languages (Rust first, more later) get first-class support with
 the same muscle-memory, in complete per-language isolation.
 
-> **Status:** in progress — **Items 1–4, 6, 7 done**, Item 5 pending (2026-06-09).
-> Items below are ordered by impact. Each maps to an existing in-repo pattern —
-> reuse them, don't invent new ones.
+> **Status:** ✅ **All items (1–7) + optional tidies done** (2026-06-09). Each item
+> maps to an existing in-repo pattern — reuse them, don't invent new ones.
 >
 > **Editing rule for this refactor:** do **not** delete unused methods, comments,
 > or commented-out code. Migrate Java-specific logic into per-language modules;
@@ -142,17 +141,19 @@ name_pattern)` fires on every matched context action; drop if unwanted.
       (Couldn't derive from `lang-project` — it stores exts like `rs`, not the
       `rust` filetype.)
 
-### 5. Decouple completion from jdtls `[todo: la-completion]`
+### 5. Decouple completion from jdtls  ✅ DONE  `[todo: la-completion]`
 
-- [ ] `lua/plugins/editor/blink-cmp.lua` L7 — `require("utils.java.jdtls-util")` at
-      module scope (loads in every project).
-- [ ] L153-165 — documentation `draw` converts links only when
-      `opts.item.client_name == "jdtls"` (behaviour is correctly guarded, but the
-      module is always loaded). Move the jdtls-specific `draw` branch behind a
-      per-client documentation-formatter registry; lazy-require `jdtls-util` only
-      inside the jdtls branch.
-- [ ] L244 — MapStruct jar path is Java-specific; already inside the MapStruct
-      source — fine, just confirm it only registers for Java projects.
+- [x] `lua/plugins/editor/blink-cmp.lua` — removed the module-scope
+      `require("utils.java.jdtls-util")`; the documentation `draw` now lazy-requires
+      it **inside** the `client_name == "jdtls"` branch (cached; loads only when a
+      jdtls doc is drawn).
+- [x] MapStruct moved out of the global `sources.default` into
+      `per_filetype.java = { inherit_defaults = true, "mapstruct" }` (blink-native),
+      so `modules.blink.mapstruct-source` is offered/loaded only in Java buffers.
+- [x] Left the harmless `ctx.source_name == "mapstruct"` icon/label checks as-is.
+- **Verified:** a non-Java session loads neither `utils.java.jdtls-util` nor
+      `modules.blink.mapstruct-source`; `default` has no `mapstruct`; Java behaviour
+      (jdtls hover links + MapStruct) unchanged.
 
 ---
 
@@ -183,9 +184,9 @@ name_pattern)` fires on every matched context action; drop if unwanted.
 
 ## Stray globals / hygiene nits found during the scan (not functional bugs)
 
-- [ ] `lua/utils/lang/java/lsp-java.lua:25` — `request_and_apply_first` declared
-      without `local`, leaking a global `_G.request_and_apply_first` (used only at
-      `:108`). Works fine; add `local` to contain it. (Also listed under Item 2.)
+- [x] `lua/utils/lang/java/lsp-java.lua:25` — `request_and_apply_first` global →
+      **fixed** (now `local`; verified no `_G` leak). Debug `vim.notify("matched
+      with" …)` at `:82` also removed.
 - [x] `lua/utils/nvim/winbar-util.lua` — `split_str_by_src` global → **fixed** in
       Item 4 (refactored into `local` shaper helpers).
 

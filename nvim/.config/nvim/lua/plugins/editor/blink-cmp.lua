@@ -4,8 +4,6 @@
 -- local data_table = vim.json.decode(json_string)
 -- dd(data_table)
 
-local jdtls_util = require("utils.java.jdtls-util")
-
 local function is_dap_buffer()
     return require("cmp_dap").is_dap_buffer()
 end
@@ -153,9 +151,11 @@ return {
                     draw = function(opts)
                         if opts.item and opts.item.documentation and opts.item.documentation.value then
                             if opts.item.client_name == "jdtls" then
-                                -- opts.item.documentation.value = jdtls_util.fix_hover_links(opts.item.documentation.value)
+                                -- opts.item.documentation.value = require("utils.java.jdtls-util").fix_hover_links(opts.item.documentation.value)
                                 opts.item.documentation.value =
-                                    jdtls_util.convert_markdown_links_to_references(opts.item.documentation.value)
+                                    require("utils.java.jdtls-util").convert_markdown_links_to_references(
+                                        opts.item.documentation.value
+                                    )
                             end
                             local out = require("pretty_hover.parser").parse(opts.item.documentation.value)
                             opts.item.documentation.value = out:string()
@@ -237,7 +237,6 @@ return {
                     mapstruct = {
                         name = "mapstruct",
                         module = "modules.blink.mapstruct-source",
-
                         opts = {
                             -- Required: path to mapstruct-path-explorer.jar
                             -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
@@ -267,8 +266,9 @@ return {
                     ["dap-repl"] = { "dap", "lsp", "path", "buffer" },
                     ["dapui_watches"] = { "dap", "lsp", "path", "buffer" },
                     ["dapui_hover"] = { "dap", "lsp", "path", "buffer" },
+                    java = { inherit_defaults = true, "mapstruct" },
                 },
-                default = { "lsp", "mapstruct", "path", "snippets", "buffer" },
+                default = { "lsp", "path", "snippets", "buffer" },
                 -- default = { "mapstruct" },
             },
             -- snippets = { preset = 'default' | 'luasnip' | 'mini_snippets' },

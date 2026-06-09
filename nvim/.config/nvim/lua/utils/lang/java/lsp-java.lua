@@ -79,7 +79,6 @@ local request_and_apply_first = function(action_match_names, fallback)
                 for client_id, result in pairs(results) do
                     for _, action in ipairs(result.result or {}) do
                         if action.title and action.title:match(name_pattern) then
-                            vim.notify("matched with" .. name_pattern)
                             vim.schedule(function()
                                 local client = vim.lsp.get_client_by_id(client_id)
                                 if client then
