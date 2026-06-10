@@ -1,3 +1,4 @@
+---@type lang.LspCodeActions
 local M = {}
 
 M.code_action_auto_resolve_match_names = {

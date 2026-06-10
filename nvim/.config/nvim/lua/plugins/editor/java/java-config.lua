@@ -28,7 +28,7 @@ vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").e
 -- vim.keymap.set("n", "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, { desc = "Toggle method body block/expressionn [jdtls]" })
 -- vim.keymap.set("n", "<leader>ci", function() require("utils.lsp-util").code_action.resolve_imports() end, { desc = "Resolve imports [jdtls]" })
 -- vim.keymap.set("n", "<leader>cc", function()
---     local action_names = require("utils.lang.lsp.lsp-java").code_action_auto_resolve_match_names
+--     local action_names = require("utils.lang.java.lsp-java").code_action_auto_resolve_match_names
 --     require("utils.lsp-util").code_action.resolve_context(action_names)
 -- end, { desc = "Context Apply First Code Action [jdtls]" })
 

@@ -30,6 +30,8 @@
 ---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug.
 ---@field get_test_report_dir? fun():string
 ---@field dap_output_attacher? task.lang.DapOutputAttacher - output-driven DAP attach for the overseer debug-task flow.
----@field code_action_auto_resolve_match_names? string[]
+
+-- NOTE: LSP code-action match-names are an LSP concern, not part of the run/test/debug
+-- runner contract. See `lang.LspCodeActions` in `utils.lang.lsp-common`.
 
 return {}

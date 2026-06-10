@@ -95,7 +95,7 @@ Shared helper libraries following the `local M = {} ... return M` module pattern
 - `cache-util.lua` — Caching mechanism
 - `envs-util.lua` — Environment variable loading
 - `utils/java/` — Extensive Java tooling: JDTLS integration, classpath resolution, treesitter-based Java parsing, Maven utilities, javap bytecode parsing, project name resolution
-- `utils/lang/` — **language registry layer**: `lang-project.lua` (project/lang detection, `M.current()`/`M.is()`), `lsp-common.lua` (generic code-action apply), `lsp-land-handlers-resolver.lua` (loads a language's custom LSP handlers if any — only Java registers them today), `java/` & `rust/` (per-language LSP code-action data + handlers)
+- `utils/lang/` — **language registry layer**: `lang-project.lua` (project/lang detection, `M.current()`/`M.is()`), `lsp-common.lua` (generic code-action apply), `lsp-lang-handlers-resolver.lua` (loads a language's custom LSP handlers if any — only Java registers them today), `java/` & `rust/` (per-language LSP code-action data + handlers)
 
 ### Overseer Task System (`lua/plugins/overseer/` + `lua/overseer/`)
 

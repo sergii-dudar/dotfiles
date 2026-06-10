@@ -44,7 +44,7 @@ end
 
 local LspCodeAction = function()
     return {
-        resolve_context = function(action_match_names)
+        --[[ resolve_context = function(action_match_names)
             local is_match_found = false
             vim.lsp.buf.code_action({
                 filter = function(action)
@@ -61,6 +61,47 @@ local LspCodeAction = function()
                 end,
                 apply = true,
             })
+        end, ]]
+        -- Apply the first code action matching the highest-priority pattern.
+        -- `action_match_names` is consulted in order (outer loop), so the caller's
+        -- priority is honored regardless of the order the server returns actions in.
+        resolve_context = function(action_match_names)
+            local lsp_lang_common = require("utils.lang.lsp-common")
+            local bufnr = vim.api.nvim_get_current_buf()
+            local clients = vim.lsp.get_clients({ bufnr = bufnr })
+            if #clients == 0 then
+                vim.notify("No LSP clients attached", vim.log.levels.INFO)
+                return
+            end
+
+            local offset_encoding = clients[1].offset_encoding or "utf-16"
+            local params = vim.lsp.util.make_range_params(0, offset_encoding)
+            ---@diagnostic disable-next-line: inject-field
+            params.context = {
+                diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr),
+                triggerKind = vim.lsp.protocol.CodeActionTriggerKind.Invoked,
+            }
+
+            vim.lsp.buf_request_all(bufnr, "textDocument/codeAction", params, function(results)
+                for _, name_pattern in ipairs(action_match_names) do
+                    for client_id, result in pairs(results) do
+                        for _, action in ipairs(result.result or {}) do
+                            if action.title and action.title:match(name_pattern) then
+                                vim.schedule(function()
+                                    local client = vim.lsp.get_client_by_id(client_id)
+                                    if client then
+                                        lsp_lang_common.apply_lsp_action(action, client)
+                                    end
+                                end)
+                                return
+                            end
+                        end
+                    end
+                end
+                vim.schedule(function()
+                    vim.notify("No matching code action available", vim.log.levels.INFO)
+                end)
+            end)
         end,
         toggle = function(action_match_name1, action_match_name2)
             vim.lsp.buf.code_action({

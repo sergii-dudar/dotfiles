@@ -2,6 +2,7 @@ local lsp_lang_common = require("utils.lang.lsp-common")
 
 local M = {}
 
+---@type string[] # part of the `lang.LspCodeActions` shape (see utils.lang.lsp-common)
 M.code_action_auto_resolve_match_names = {
     "Add all missing imports",
     "Convert to static import %(replace all occurrences%)",

@@ -137,6 +137,11 @@ function M.current()
     return cached
 end
 
+--- Clear the cached detection result so the next `current()` re-resolves.
+--- Not called automatically: editor-config gating happens at lazy import time, so a
+--- mid-session `:cd` into another project intentionally does NOT re-gate. This is a
+--- manual / REPL / test escape hatch (e.g. after `:cd`, run
+--- `:lua require("utils.lang.lang-project").reset()`).
 function M.reset()
     cached = nil
 end

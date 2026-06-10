@@ -1,5 +1,12 @@
 local M = {}
 
+---Per-primary-language LSP code-action data.
+---Defined in `utils.lang.<lang>.lsp-<lang>` and consumed by that language's editor
+---config for `<leader>cc`. Intentionally separate from the Overseer run/test/debug
+---`task.lang.Runner` contract — this is an LSP concern.
+---@class lang.LspCodeActions
+---@field code_action_auto_resolve_match_names string[] Code-action title patterns (Lua patterns) auto-resolved by `<leader>cc`, in priority order; first match wins.
+
 --- Apply a resolved LSP code action (handles resolve, edit, and command execution)
 ---@param action lsp.CodeAction
 ---@param client vim.lsp.Client
