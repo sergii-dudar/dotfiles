@@ -1,28 +1,13 @@
 local lang_runner_resolver = require("plugins.overseer.tasks.lang-runner-resolver")
+local lang_registry = require("utils.lang.registry")
 
 local M = {}
-
--- filetype -> overseer component name that consumes test reports for that lang.
--- Used to pick the right report processor (Java junit XML vs Rust cargo/nextest).
-local ft_to_report_component = {
-    java = "test_report.junit_report",
-    cs = "test_report.cs_report",
-    rust = "test_report.cargo_report",
-    go = "test_report.go_report",
-    lua = "test_report.busted_report",
-    python = "test_report.pytest_report",
-    sh = "test_report.bashunit_report",
-    bash = "test_report.bashunit_report",
-    javascript = "test_report.jest_report",
-    typescript = "test_report.jest_report",
-    javascriptreact = "test_report.jest_report",
-    typescriptreact = "test_report.jest_report",
-}
 
 ---@param filetype string|nil
 ---@return string|nil
 local function report_component_for(filetype)
-    return filetype and ft_to_report_component[filetype] or nil
+    local report = lang_registry.report_for_filetype(filetype)
+    return report and report.component or nil
 end
 
 local resolve_report_dir = function()

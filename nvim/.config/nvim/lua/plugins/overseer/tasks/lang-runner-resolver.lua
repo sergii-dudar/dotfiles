@@ -1,53 +1,20 @@
 local type_to_resolver = {}
+local lang_registry = require("utils.lang.registry")
 
+require("plugins.overseer.tasks.lang.types")
 require("plugins.overseer.tasks.lang.simple-runners").register(type_to_resolver)
 
--- uncomment languages you are using
-type_to_resolver["java"] = require("plugins.overseer.tasks.lang.java-runner")
-type_to_resolver["python"] = require("plugins.overseer.tasks.lang.python-runner")
--- type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
--- type_to_resolver["javascript"] = require("plugins.overseer.tasks.lang.js-runner")
--- type_to_resolver["typescript"] = require("plugins.overseer.tasks.lang.js-runner")
--- type_to_resolver["javascriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
--- type_to_resolver["typescriptreact"] = require("plugins.overseer.tasks.lang.js-runner")
--- type_to_resolver["cs"] = require("plugins.overseer.tasks.lang.cs-runner")
-type_to_resolver["sh"] = require("plugins.overseer.tasks.lang.sh-runner")
-type_to_resolver["c"] = require("plugins.overseer.tasks.lang.clang-runner")
-type_to_resolver["cpp"] = require("plugins.overseer.tasks.lang.cpp-runner")
-type_to_resolver["rust"] = require("plugins.overseer.tasks.lang.rust-runner")
-type_to_resolver["lua"] = require("plugins.overseer.tasks.lang.lua-runner")
+for _, entry in ipairs(lang_registry.all()) do
+    local runner = entry.runner
+    if runner and runner.enabled ~= false then
+        local resolver = require(runner.module)
+        for _, ft in ipairs(runner.filetypes) do
+            type_to_resolver[ft] = resolver
+        end
+    end
+end
 
 local M = {}
-
----@class task.lang.Context
----@field test_type? task.test_type|integer
----@field is_debug boolean|nil
-
----@class task.lang.test.TestCmd
----@field cmd string|string[]
----@field report_dir? string|string[]
----@field cwd? string
-
----@class task.lang.DapOutputAttacher
----@field name string                          Identifier for logging.
----@field match fun(line:string):any|nil       Scan one output line; return a target (port/pid) or nil.
----@field attach fun(target:any)               Attach the debugger using the matched target.
-
----@class task.lang.Runner
----@field get_envs? fun():table<string, string>
----@field build_run_cmd fun():string[]
----@field build_debug_cmd? fun():string[] - [build_debug_cmd] requiring to have defined [dap_attach_to_remote]
----@field dap_attach_to_remote? fun()
----@field dap_launch? fun() - [dap_launch] requiring to have defined [dap_launch_rerun]
----@field dap_launch_rerun? fun()
----@field build_compile_cmd? fun()
----@field make_compile? fun()
----@field build_run_test_cmd?  fun(context:task.lang.Context):task.lang.test.TestCmd
----@field prepare_test_context? fun(context:task.lang.Context):boolean,string|nil - async-friendly pre-builder hook (prompts etc.)
----@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug, bypassing overseer DEBUG_TESTS task
----@field get_test_report_dir? fun():string
----@field dap_output_attacher? task.lang.DapOutputAttacher - output-driven DAP attach for the overseer debug-task flow (java jdwp / cs testhost)
----@field code_action_auto_resolve_match_names? string[]
 
 -- INFO: in case defined all pairs: [build_debug_cmd, dap_attach_to_remote], [dap_launch, dap_launch_rerun],
 --  priority is next: [dap_launch, dap_launch_rerun] (just because native dap `launch`, more reliable and fast then `attach`), [build_debug_cmd, dap_attach_to_remote]
@@ -57,11 +24,12 @@ local M = {}
 ---@param filetype? string
 ---@return task.lang.Runner|nil
 function M.resolve(filetype)
-    local type_resolver = type_to_resolver[filetype or vim.bo.filetype]
+    local ft = filetype or vim.bo.filetype
+    local type_resolver = type_to_resolver[ft]
     if type_resolver then
         return type_resolver
     else
-        vim.notify(filetype .. " have no any registered resolvers.", vim.log.levels.WARN)
+        vim.notify(tostring(ft) .. " has no registered resolver.", vim.log.levels.WARN)
         return nil
     end
 end

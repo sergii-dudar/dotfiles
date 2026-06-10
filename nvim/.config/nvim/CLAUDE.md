@@ -126,7 +126,9 @@ Java helpers under `utils/java/`:
 
 Language registry layer under `utils/lang/`:
 
-- `lang-project.lua` — generic project/language **detection** (root markers + source exts), `M.current()` / `M.is(lang)`; the modern replacement for `java_util.is_java_project()` and the gate used by `config/lazy.lua`
+- `registry.lua` — ordered language metadata: primary project markers/exts, enabled runner modules, and test-report module/component/source data
+- `registry-check.lua` — validates language metadata, runner modules, report modules, component files, and duplicate filetype mappings; exposed as `:LangRegistryCheck`
+- `lang-project.lua` — generic project/language **detection** from primary entries in `registry.lua`, `M.current()` / `M.is(lang)` / `M.reset()`; the modern replacement for `java_util.is_java_project()` and the gate used by `config/lazy.lua`
 - `lsp-common.lua` — generic `apply_lsp_action` (code-action resolve / edit / command execution)
 - `lsp-land-handlers-resolver.lua` — loads a language's custom LSP handlers for the active project (only Java registers any today; Rust/others register none)
 - `java/lsp-java.lua`, `rust/lsp-rust.lua` — per-language code-action match-name data + (Java) import-resolve flow
@@ -150,10 +152,11 @@ hardcoding into plugin specs.
 
 ## Key Design Patterns
 
-- **Per-language isolation**: each primary language's editor config is imported only for its project type via `{ import = …, cond = require("utils.lang.lang-project").is("<lang>") }` in `lazy.lua` — a Java project never loads Rust tooling and vice-versa. `lang-project.current()`/`is()` is the generic detector (root markers + exts); `java_util.is_java_project()` still exists for Java-internal checks
+- **Per-language isolation**: each primary language's custom editor config is imported only for its project type via `{ import = …, cond = require("utils.lang.lang-project").is("<lang>") }` in `lazy.lua` — a Java project never loads Rust custom keymaps/config and vice-versa. `lang-project.current()`/`is()` is the generic detector (root markers + exts from `utils.lang.registry`); `java_util.is_java_project()` still exists for Java-internal checks
 - **Outside-file guard**: `java_util.if_java_file_outside()` prevents LSP attachment for Java files outside the current working directory (important for multi-microservice setups)
 - **Per-language LSP handlers**: `lsp.lua` is generic — it calls `utils.lang.lsp-land-handlers-resolver.setup()`, which loads the active language's handler module. Java's (`utils/lang/java/lsp-java-handlers.lua`) wraps `vim.lsp.buf_request_all` to filter empty hover results + convert JDTLS markdown links, and post-processes diagnostics (generated sources under `target/generated-sources/` / `build/generated/` only show Error-severity from JDTLS). Non-Java projects load none of this
 - **Overseer task templates**: Language-specific runners in `plugins/overseer/tasks/lang/` resolved by filetype via `lang-runner-resolver`
+- **Runner contract**: shared runner annotations live in `plugins/overseer/tasks/lang/types.lua`; run `:LangRegistryCheck` after changing language metadata
 - **Picker**: Uses Snacks picker (not Telescope/fzf). Set via `vim.g.lazyvim_picker = "snacks"`
 - **Session**: resession.nvim with scope.nvim (replaces LazyVim's persistence.nvim). Auto-saves per-directory sessions on exit, restores on startup for multi-file projects
 - **Completion**: blink.cmp; the custom MapStruct source is offered only in Java buffers (`per_filetype.java`), and jdtls hover-link conversion is lazy-loaded only for jdtls items. LSP fallbacks disabled. DAP REPL completion enabled

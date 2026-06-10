@@ -22,9 +22,6 @@ vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").e
 vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
 vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
 
--- ---------------------------- Java refactor: snacks rename keymap (integrations setup is in java-immutable.lua config)
-vim.keymap.set("n", "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, { desc = "Rename File (Java)" })
-
 -- ---------------------------- code actions & lsp based extensions
 -- vim.keymap.set("n", "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, { desc = "[I]mport fqn class package and apply simple name" })
 -- -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", }),
@@ -78,6 +75,7 @@ return {
                     -- stylua: ignore
                     keys = {
                         { "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end,  desc = "[I]mport fqn class package and apply simple name" },
+                        { "<leader>cR", function() require("modules.java.refactor.integrations").snacks_rename_current() end, desc = "Rename File (Java)" },
                         -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", }),
                         { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]" },
                         { "<leader>ci", function() require("utils.lang.java.lsp-java").resolve_imports() end, desc = "Resolve imports [jdtls]" },

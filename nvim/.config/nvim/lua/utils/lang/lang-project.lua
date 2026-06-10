@@ -16,34 +16,10 @@
 --   Tier 2 only runs when tier 1 matched nothing, so it never overrides a real
 --   project root and a plain `cd ~` won't be misdetected (bounded depth).
 --
--- Extend for new languages by adding an entry to the `registry` table below.
+-- Extend for new languages by adding a primary entry to `utils.lang.registry`.
 
 local M = {}
-
----@class lang_project.Def
----@field markers string[]            Root-marker filenames (for vim.fs.root).
----@field exts table<string, boolean> Source-file extensions (without dot).
-
----@type table<string, lang_project.Def>
-local registry = {
-    java = {
-        markers = {
-            "pom.xml", -- Maven
-            "build.gradle", -- Gradle
-            "build.gradle.kts", -- Gradle Kotlin DSL
-            "settings.gradle", -- Gradle multi-project
-            "settings.gradle.kts",
-            "gradlew", -- Gradle wrapper
-            "mvnw", -- Maven wrapper
-            "build.xml", -- Ant
-        },
-        exts = { java = true },
-    },
-    rust = {
-        markers = { "Cargo.toml" },
-        exts = { rs = true },
-    },
-}
+local lang_registry = require("utils.lang.registry")
 
 -- Tier-2 source scan bounds (keep the marker-less fallback cheap and safe).
 local SCAN_MAX_DEPTH = 4
@@ -72,9 +48,9 @@ local function lang_for_ext(ext)
     if not ext then
         return nil
     end
-    for lang, def in pairs(registry) do
-        if def.exts[ext] then
-            return lang
+    for _, entry in ipairs(lang_registry.primary()) do
+        if entry.project.exts[ext] then
+            return entry.name
         end
     end
     return nil
@@ -85,11 +61,11 @@ end
 ---@return string|nil
 local function detect_by_markers(cwd)
     local best_lang, best_len = nil, -1
-    for lang, def in pairs(registry) do
-        local root = vim.fs.root(cwd, def.markers)
+    for _, entry in ipairs(lang_registry.primary()) do
+        local root = vim.fs.root(cwd, entry.project.markers)
         if root and #root > best_len then
             best_len = #root
-            best_lang = lang
+            best_lang = entry.name
         end
     end
     return best_lang
@@ -154,6 +130,10 @@ function M.current()
     local cwd = vim.fn.getcwd()
     cached = detect_by_markers(cwd) or detect_by_open_files() or detect_by_sources(cwd) or false
     return cached
+end
+
+function M.reset()
+    cached = nil
 end
 
 --- Is the active project the given language?

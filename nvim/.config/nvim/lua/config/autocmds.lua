@@ -241,6 +241,10 @@ vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave" }, {
 -------------------------------------------------------
 ----------------- Runner (Overseer) -------------------
 
+vim.api.nvim_create_user_command("LangRegistryCheck", function(opts)
+    require("utils.lang.registry-check").run({ notify = true, raise = opts.bang })
+end, { bang = true })
+
 vim.api.nvim_create_user_command("WatchRun", function()
     local overseer = require("overseer")
     overseer.run_task({ name = "run current", autostart = false }, function(task)

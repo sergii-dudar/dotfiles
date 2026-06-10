@@ -4,54 +4,7 @@
 -- go through here so they work across languages without per-lang knowledge.
 
 local M = {}
-
--- filetype -> module path of the language test-report shim
-local ft_to_module = {
-    java = "modules.java.test-report",
-    cs = "modules.cs.test-report",
-    rust = "modules.rust.test-report",
-    go = "modules.go.test-report",
-    lua = "modules.lua.test-report",
-    python = "modules.python.test-report",
-    sh = "modules.bash.test-report",
-    bash = "modules.bash.test-report",
-    javascript = "modules.js.test-report",
-    typescript = "modules.js.test-report",
-    javascriptreact = "modules.js.test-report",
-    typescriptreact = "modules.js.test-report",
-}
-
--- filetype -> Trouble source name used by that adapter's diagnostics
-local ft_to_trouble_source = {
-    java = "junit_diagnostics",
-    cs = "dotnet_test_diagnostics",
-    rust = "cargo_test_diagnostics",
-    go = "go_test_diagnostics",
-    lua = "busted_test_diagnostics",
-    python = "pytest_test_diagnostics",
-    sh = "bashunit_test_diagnostics",
-    bash = "bashunit_test_diagnostics",
-    javascript = "jest_test_diagnostics",
-    typescript = "jest_test_diagnostics",
-    javascriptreact = "jest_test_diagnostics",
-    typescriptreact = "jest_test_diagnostics",
-}
-
--- filetype -> diagnostic source name (matches adapter.diagnostic_source)
-local ft_to_diagnostic_source = {
-    java = "junit",
-    cs = "dotnet-test",
-    rust = "cargo-test",
-    go = "go-test",
-    lua = "busted",
-    python = "pytest",
-    sh = "bashunit",
-    bash = "bashunit",
-    javascript = "jest",
-    typescript = "jest",
-    javascriptreact = "jest",
-    typescriptreact = "jest",
-}
+local lang_registry = require("utils.lang.registry")
 
 ---@return string|nil
 local function current_filetype()
@@ -70,11 +23,15 @@ local function ensure_loaded(ft)
     if not ft then
         return nil
     end
-    local mod_path = ft_to_module[ft]
-    if not mod_path then
+    local report = lang_registry.report_for_filetype(ft)
+    if not report then
         return nil
     end
-    pcall(require, mod_path)
+    local ok, err = pcall(require, report.module)
+    if not ok then
+        vim.notify("test-report: failed to load " .. report.module .. ": " .. tostring(err), vim.log.levels.ERROR)
+        return nil
+    end
     return require("modules.common.test-report")
 end
 
@@ -122,7 +79,8 @@ end
 
 function M.trouble_toggle()
     local ft = current_filetype()
-    local source = ft and ft_to_trouble_source[ft]
+    local report = lang_registry.report_for_filetype(ft)
+    local source = report and report.trouble_source
     if not source then
         notify_unsupported("trouble diagnostics")
         return
@@ -132,7 +90,8 @@ end
 
 function M.picker_diagnostics()
     local ft = current_filetype()
-    local source = ft and ft_to_diagnostic_source[ft]
+    local report = lang_registry.report_for_filetype(ft)
+    local source = report and report.diagnostic_source
     if not source then
         notify_unsupported("diagnostics picker")
         return

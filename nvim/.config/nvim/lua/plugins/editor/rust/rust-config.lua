@@ -1,6 +1,20 @@
 local rustft = { "rust", "ron" }
 local cargoft = { "toml" }
 
+---@param bufnr integer
+---@return boolean
+local function is_cargo_toml(bufnr)
+    return vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":t") == "Cargo.toml"
+end
+
+---@param bufnr integer
+---@param lhs string
+---@param rhs function
+---@param desc string
+local function cargo_keymap(bufnr, lhs, rhs, desc)
+    vim.keymap.set("n", lhs, rhs, { buffer = bufnr, desc = desc })
+end
+
 local wk_augroup = vim.api.nvim_create_augroup("rust_config_which_key", { clear = true })
 vim.api.nvim_create_autocmd("FileType", {
     group = wk_augroup,
@@ -23,9 +37,10 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
     group = wk_augroup,
     pattern = cargoft,
+    -- stylua: ignore
     callback = function(ev)
         ---@diagnostic disable-next-line: undefined-field
-        if vim.bo[ev.buf].buftype ~= "" then
+        if vim.bo[ev.buf].buftype ~= "" or not is_cargo_toml(ev.buf) then
             return
         end
         require("which-key").add({
@@ -36,6 +51,12 @@ vim.api.nvim_create_autocmd("FileType", {
             { "<leader>ju", group = "+cargo update" },
             { "<leader>js", group = "+cargo show" },
         })
+        cargo_keymap(ev.buf, "<leader>joo", function() require("crates").open_documentation() end, "[O]pen Documentation [crates]")
+        cargo_keymap(ev.buf, "<leader>joc", function() require("crates").show_crate_popup() end, "Open [C]rate Info [crates]")
+        cargo_keymap(ev.buf, "<leader>juu", function() require("crates").upgrade_crate(true) end, "[U]pdate Current Crate [crates]")
+        cargo_keymap(ev.buf, "<leader>jua", function() require("crates").upgrade_all_crates(true) end, "[U]pdate [A]ll Crates [crates]")
+        cargo_keymap(ev.buf, "<leader>jsv", function() require("crates").show_versions_popup() end, "[S]how Crate [V]ersions Popup [crates]")
+        cargo_keymap(ev.buf, "<leader>jsd", function() require("crates").show_dependencies_popup() end, "Show Crate [D]ependencies [crates]")
     end,
 })
 
@@ -91,15 +112,7 @@ return {
     -- managing crates.io dependencies
     {
         "Saecki/crates.nvim",
-        -- stylua: ignore
-        keys = {
-            { "<leader>joo", function() require("crates").open_documentation() end, ft = cargoft, desc = "[O]pen Documentation [crates]" },
-            { "<leader>joc", function() require("crates").show_crate_popup() end, ft = cargoft, desc = "Open [C]rate Info [crates]" },
-            { "<leader>juu", function() require("crates").upgrade_crate(true) end, ft = cargoft, desc = "[U]pdate Current Crate [crates]" },
-            { "<leader>jua", function() require("crates").upgrade_all_crates(true) end, ft = cargoft, desc = "[U]pdate [A]ll Crates [crates]" },
-            { "<leader>jsv", function() require("crates").show_versions_popup() end, ft = cargoft, desc = "[S]how Crate [V]ersions Popup [crates]" },
-            { "<leader>jsd", function() require("crates").show_dependencies_popup() end, ft = cargoft, desc = "Show Crate [D]ependencies [crates]" },
-        },
+        event = { "BufRead Cargo.toml" },
         opts = {
             popup = {
                 autofocus = true,

@@ -83,21 +83,23 @@ mechanism, but is **not** gated/isolated, and has no dedicated editor config or
 
 ## The registries (the pluggable seams)
 
-Every per-language behaviour hangs off one of these. Adding a language = adding one
-small entry to each relevant registry. Nothing else in the config needs to change.
+Most per-language metadata now starts in `lua/utils/lang/registry.lua`. Adding a
+language = adding one language entry there, then creating the language-specific files
+that entry points to.
 
 | Concern                       | File                                                                     | What you add                                  |
 | ----------------------------- | ------------------------------------------------------------------------ | --------------------------------------------- |
-| Project detection             | `lua/utils/lang/lang-project.lua`                                        | `registry` entry: markers + exts              |
+| Language metadata             | `lua/utils/lang/registry.lua`                                            | primary project markers, runner, report       |
+| Project detection             | `lua/utils/lang/lang-project.lua`                                        | consumes primary entries from registry        |
 | Editor-config load gating     | `lua/config/lazy.lua`                                                    | gated `{ import = … , cond = …is("<lang>") }` |
 | Editor config (keymaps / LSP) | `lua/plugins/editor/<lang>/`                                             | new dir + `<lang>-config.lua`                 |
 | LSP code-action data          | `lua/utils/lang/<lang>/lsp-<lang>.lua`                                   | new module                                    |
 | LSP custom handlers _(opt)_   | `lua/utils/lang/lsp-land-handlers-resolver.lua`                          | `handlers_by_lang` entry                      |
-| Overseer runner switch        | `lua/plugins/overseer/tasks/lang-runner-resolver.lua`                    | `type_to_resolver[<lang>]`                    |
+| Overseer runner switch        | `lua/utils/lang/registry.lua`                                            | `runner.enabled = true`                       |
 | Runner contract               | `lua/plugins/overseer/tasks/lang/<lang>-runner.lua`                      | new module                                    |
 | Test-report module            | `lua/modules/<lang>/test-report/`                                        | adapter (self-registers)                      |
-| Test-report dispatch          | `lua/plugins/overseer/test-report-dispatcher.lua`                        | 3 filetype entries                            |
-| Test-report component         | `lua/overseer/component/test_report/<lang>_report.lua` + `run_tests.lua` | component + mapping                           |
+| Test-report dispatch          | `lua/utils/lang/registry.lua`                                            | report module/sources                         |
+| Test-report component         | `lua/overseer/component/test_report/<lang>_report.lua`                   | component file + registry component name      |
 | Constants                     | `lua/utils/constants.lua`                                                | `M.<lang>` table                              |
 | Tools                         | `lua/plugins/editor/mason.lua`                                           | LSP / DAP / linter / formatter                |
 | Treesitter                    | `lua/plugins/editor/nvim-treesitter.lua`                                 | parsers                                       |
@@ -120,33 +122,39 @@ Go is already a _supported_ language; these exist and stay as-is:
 - `lua/modules/go/test-report/` — adapter (`init.lua` shim, `lang/go.lua`, `json-parser.lua`)
 - `lua/overseer/component/test_report/go_report.lua` — report component
 - `lua/plugins/overseer/tasks/lang/go-runner.lua` — runner-contract glue
-- `lua/plugins/overseer/test-report-dispatcher.lua` — already has the `go` entries
-- `lua/plugins/overseer/tasks/run_tests.lua` — already maps `go = "test_report.go_report"`
+- `lua/utils/lang/registry.lua` — already has Go report metadata and a disabled runner entry
 - `lua/utils/constants.lua` — already has `M.go`
 
 The runner just needs to be **switched on** (Step 2).
 
-### 1. Register project detection — `lua/utils/lang/lang-project.lua`
+### 1. Register primary metadata — `lua/utils/lang/registry.lua`
 
-Add Go to the `registry` table:
+Update the existing Go entry:
 
 ```lua
-go = {
-    markers = { "go.mod", "go.work" },
-    exts = { go = true },
-},
+{
+    name = "go",
+    primary = true,
+    project = {
+        markers = { "go.mod", "go.work" },
+        exts = { go = true },
+    },
+    runner = {
+        module = "plugins.overseer.tasks.lang.go-runner",
+        filetypes = { "go" },
+        -- remove `enabled = false`
+    },
+    -- keep the existing report metadata
+}
 ```
 
 Now `require("utils.lang.lang-project").is("go")` returns `true` inside a Go module,
 and the marker-less fallback recognises a folder of loose `*.go` files too.
 
-### 2. Switch on the overseer runner — `lang-runner-resolver.lua`
+### 2. Switch on the overseer runner
 
-Uncomment the existing (currently commented) line:
-
-```lua
-type_to_resolver["go"] = require("plugins.overseer.tasks.lang.go-runner")
-```
+Remove `enabled = false` from the Go `runner` entry in `lua/utils/lang/registry.lua`.
+`lang-runner-resolver.lua` consumes enabled runner entries automatically.
 
 That single line activates run / test / debug: the `<leader>t…` test keymaps, the
 report dispatcher and DAP all flow through the contract `go-runner.lua` already
@@ -279,7 +287,12 @@ sees gopls keymaps, and vice-versa. This is the isolation guarantee.
 " inside a Go project (has go.mod):
 :lua =require("utils.lang.lang-project").current()                                   " -> "go"
 :lua =require("plugins.overseer.tasks.lang-runner-resolver").resolve("go") ~= nil    " -> true
+:LangRegistryCheck
 ```
+
+For headless validation, use
+`nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa`.
+The `raise` form exits with an error if registry metadata is invalid.
 
 Then, in a Go project: `<leader>j` shows the `+go` which-key group, `gd` / hover /
 code-actions use gopls, the `<leader>t…` test keymaps run `go test`, `<leader>td`
@@ -298,6 +311,7 @@ as copy-paste templates):
 1. **Runner contract** — `lua/plugins/overseer/tasks/lang/<lang>-runner.lua`
    implementing `task.lang.Runner`: `build_run_cmd`, `build_run_test_cmd`,
    `prepare_test_context?`, `dap_launch?`, `dap_launch_test?`, `get_test_report_dir?`.
+   The shared annotation contract lives in `lua/plugins/overseer/tasks/lang/types.lua`.
 2. **Test runner** — `lua/modules/<lang>/<framework>-test/init.lua`: builds the test
    command + DAP launch and writes a machine-readable report (JUnit XML / JSON).
 3. **Report adapter** — `lua/modules/<lang>/test-report/`: `init.lua` registers the
@@ -305,9 +319,11 @@ as copy-paste templates):
    (`registry.register("<lang>", require("modules.<lang>.test-report.lang.<lang>"))`)
    and re-exports the core; `lang/<lang>.lua` parses results into diagnostics + signs.
 4. **Report component** — `lua/overseer/component/test_report/<lang>_report.lua`.
-5. **Dispatcher** — `test-report-dispatcher.lua`: add 3 filetype entries
-   (`ft_to_module`, `ft_to_trouble_source`, `ft_to_diagnostic_source`).
-6. **Component mapping** — `run_tests.lua`: add to `ft_to_report_component`.
+5. **Registry report metadata** — add `report.module`, `report.component`,
+   `report.filetypes`, `report.trouble_source`, and `report.diagnostic_source` to
+   `lua/utils/lang/registry.lua`. `test-report-dispatcher.lua` and `run_tests.lua`
+   consume this automatically.
+6. **Runner metadata** — add the runner module/filetypes to `lua/utils/lang/registry.lua`.
 7. **Constants** — `constants.lua`: add `M.<lang> = { <test_name>, <diagnostic_source>, <report_dir> }`.
 8. **DAP adapter** — add to `mason.lua` if debugging is wanted.
 
@@ -317,8 +333,7 @@ Then follow Steps 1–8 above to make it a _primary_ language.
 
 ## Quick checklist — primary language
 
-- [ ] `lang-project.lua` — markers + exts
-- [ ] `lang-runner-resolver.lua` — `type_to_resolver[<lang>]`
+- [ ] `utils/lang/registry.lua` — primary markers/exts, runner, report metadata
 - [ ] `utils/lang/<lang>/lsp-<lang>.lua` — code-action match names
 - [ ] `plugins/editor/<lang>/<lang>-config.lua` — which-key `<leader>j` + LSP keys
 - [ ] `config/lazy.lua` — gated `{ import = "plugins.editor.<lang>", cond = …is("<lang>") }`
