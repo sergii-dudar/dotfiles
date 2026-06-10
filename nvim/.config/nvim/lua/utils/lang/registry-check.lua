@@ -1,3 +1,26 @@
+-- Validates `utils.lang.registry` metadata: missing fields, duplicate
+-- filetypes, runner/report modules that fail to load, and missing report
+-- component files.
+--
+-- In-editor:
+--   :LangRegistryCheck     -- prints + notifies; exit on error: no
+--   :LangRegistryCheck!    -- raises (errors out); useful for `:source`-time checks
+--
+-- Headless (run from a separate terminal while editing in the main one;
+-- the two nvim instances are independent processes):
+--
+--   nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa
+--
+-- With `raise = true`: errors go to stderr with a stacktrace and the process
+-- exits non-zero (CI-friendly). Drop `raise = true` for a stdout-only report
+-- with exit code 0.
+--
+-- Continuous re-check on file save (uses `entr`):
+--
+--   fd -e lua . lua/utils/lang lua/plugins/overseer/tasks lua/modules \
+--     | entr -c nvim --headless \
+--       "+lua require('utils.lang.registry-check').run({ raise = true })" +qa
+
 local registry = require("utils.lang.registry")
 
 local M = {}
@@ -58,23 +81,18 @@ function M.check()
             if not has_values(runner.filetypes) then
                 add_error(errors, label .. ": runner has no filetypes")
             end
-            if runner.enabled ~= false then
-                local ok, err = pcall(require, runner.module)
-                if not ok then
-                    add_error(
-                        errors,
-                        label .. ": runner module failed to load: " .. runner.module .. " (" .. tostring(err) .. ")"
-                    )
+            local ok, err = pcall(require, runner.module)
+            if not ok then
+                add_error(
+                    errors,
+                    label .. ": runner module failed to load: " .. runner.module .. " (" .. tostring(err) .. ")"
+                )
+            end
+            for _, ft in ipairs(runner.filetypes or {}) do
+                if runner_filetypes[ft] then
+                    add_error(errors, label .. ": runner filetype duplicates " .. runner_filetypes[ft] .. ": " .. ft)
                 end
-                for _, ft in ipairs(runner.filetypes or {}) do
-                    if runner_filetypes[ft] then
-                        add_error(
-                            errors,
-                            label .. ": runner filetype duplicates " .. runner_filetypes[ft] .. ": " .. ft
-                        )
-                    end
-                    runner_filetypes[ft] = label
-                end
+                runner_filetypes[ft] = label
             end
         end
 

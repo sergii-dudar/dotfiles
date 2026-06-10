@@ -11,7 +11,6 @@ local M = {}
 ---@class lang.RegistryRunner
 ---@field module string Lua module path for the Overseer runner contract implementation under `lua/plugins/overseer/tasks/lang/`. The module should return a `task.lang.Runner`.
 ---@field filetypes string[] Neovim filetypes handled by this runner. These become keys in `lang-runner-resolver` and drive run/test/debug template availability.
----@field enabled? boolean Set to `false` to keep runner metadata documented while preventing the runner from being registered. Omit or set true for active runners.
 
 ---Test-report integration metadata.
 ---Connects filetypes to report parsers, Overseer report components, Trouble sources, and diagnostic filters.
@@ -31,6 +30,8 @@ local M = {}
 ---@field runner? lang.RegistryRunner Overseer run/test/debug metadata. Omit when a language has no custom runner integration.
 ---@field report? lang.RegistryReport Test-report metadata for report parsing, diagnostics, Trouble integration, output panels, and tree view support.
 
+-- To disable any language, just comment it
+-- to validate, can be used: `cd ~/config/nvim && nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa`
 ---@type lang.RegistryEntry[]
 local entries = {
     {
@@ -129,19 +130,18 @@ local entries = {
             filetypes = { "c" },
         },
     },
-    {
+    --[[ {
         name = "cpp",
         runner = {
             module = "plugins.overseer.tasks.lang.cpp-runner",
             filetypes = { "cpp" },
         },
-    },
-    {
+    }, ]]
+    --[[ {
         name = "go",
         runner = {
             module = "plugins.overseer.tasks.lang.go-runner",
             filetypes = { "go" },
-            enabled = false,
         },
         report = {
             module = "modules.go.test-report",
@@ -150,13 +150,12 @@ local entries = {
             trouble_source = "go_test_diagnostics",
             diagnostic_source = "go-test",
         },
-    },
-    {
+    }, ]]
+    --[[ {
         name = "javascript",
         runner = {
             module = "plugins.overseer.tasks.lang.js-runner",
             filetypes = { "javascript", "typescript", "javascriptreact", "typescriptreact" },
-            enabled = false,
         },
         report = {
             module = "modules.js.test-report",
@@ -165,13 +164,12 @@ local entries = {
             trouble_source = "jest_test_diagnostics",
             diagnostic_source = "jest",
         },
-    },
-    {
+    }, ]]
+    --[[ {
         name = "cs",
         runner = {
             module = "plugins.overseer.tasks.lang.cs-runner",
             filetypes = { "cs" },
-            enabled = false,
         },
         report = {
             module = "modules.cs.test-report",
@@ -180,7 +178,7 @@ local entries = {
             trouble_source = "dotnet_test_diagnostics",
             diagnostic_source = "dotnet-test",
         },
-    },
+    }, ]]
 }
 
 ---@return lang.RegistryEntry[]

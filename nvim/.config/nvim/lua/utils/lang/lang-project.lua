@@ -122,6 +122,11 @@ function M.current()
     if cached ~= nil then
         return cached
     end
+    -- LIMITED mode (`LIMITED` env var, exposed via `_G.global.is_limited`) is a
+    -- session-wide opt-out for heavy, per-language IDE tooling — used when
+    -- launching nvim purely as an editor (quick edits, diff viewer, git
+    -- commit). Short-circuiting to `false` here prevents any primary editor
+    -- config from being gated on, so projects load the generic baseline only.
     if _G.global and global.is_limited then
         cached = false
         return cached

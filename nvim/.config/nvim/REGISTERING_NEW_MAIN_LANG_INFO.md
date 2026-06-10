@@ -94,8 +94,7 @@ that entry points to.
 | Editor-config load gating     | `lua/config/lazy.lua`                                                    | gated `{ import = … , cond = …is("<lang>") }` |
 | Editor config (keymaps / LSP) | `lua/plugins/editor/<lang>/`                                             | new dir + `<lang>-config.lua`                 |
 | LSP code-action data          | `lua/utils/lang/<lang>/lsp-<lang>.lua`                                   | new module                                    |
-| LSP custom handlers _(opt)_   | `lua/utils/lang/lsp-land-handlers-resolver.lua`                          | `handlers_by_lang` entry                      |
-| Overseer runner switch        | `lua/utils/lang/registry.lua`                                            | `runner.enabled = true`                       |
+| LSP custom handlers _(opt)_   | `lua/utils/lang/lsp-lang-handlers-resolver.lua`                          | `handlers_by_lang` entry                      |
 | Runner contract               | `lua/plugins/overseer/tasks/lang/<lang>-runner.lua`                      | new module                                    |
 | Test-report module            | `lua/modules/<lang>/test-report/`                                        | adapter (self-registers)                      |
 | Test-report dispatch          | `lua/utils/lang/registry.lua`                                            | report module/sources                         |
@@ -122,10 +121,10 @@ Go is already a _supported_ language; these exist and stay as-is:
 - `lua/modules/go/test-report/` — adapter (`init.lua` shim, `lang/go.lua`, `json-parser.lua`)
 - `lua/overseer/component/test_report/go_report.lua` — report component
 - `lua/plugins/overseer/tasks/lang/go-runner.lua` — runner-contract glue
-- `lua/utils/lang/registry.lua` — already has Go report metadata and a disabled runner entry
+- `lua/utils/lang/registry.lua` — already has the Go runner + report metadata
 - `lua/utils/constants.lua` — already has `M.go`
 
-The runner just needs to be **switched on** (Step 2).
+Step 1 below just promotes the existing entry to a primary one.
 
 ### 1. Register primary metadata — `lua/utils/lang/registry.lua`
 
@@ -142,7 +141,6 @@ Update the existing Go entry:
     runner = {
         module = "plugins.overseer.tasks.lang.go-runner",
         filetypes = { "go" },
-        -- remove `enabled = false`
     },
     -- keep the existing report metadata
 }
@@ -151,15 +149,12 @@ Update the existing Go entry:
 Now `require("utils.lang.lang-project").is("go")` returns `true` inside a Go module,
 and the marker-less fallback recognises a folder of loose `*.go` files too.
 
-### 2. Switch on the overseer runner
+### 2. Verify the registry
 
-Remove `enabled = false` from the Go `runner` entry in `lua/utils/lang/registry.lua`.
-`lang-runner-resolver.lua` consumes enabled runner entries automatically.
-
-That single line activates run / test / debug: the `<leader>t…` test keymaps, the
-report dispatcher and DAP all flow through the contract `go-runner.lua` already
-implements (`build_run_cmd`, `build_run_test_cmd`, `dap_launch`, `dap_launch_test`,
-`get_test_report_dir`, …).
+Step 1 already wired the runner — there's no separate enable switch. Confirm with
+`:LangRegistryCheck` (or the headless variant in Step 8). Run / test / debug
+flow through the contract `go-runner.lua` already implements (`build_run_cmd`,
+`build_run_test_cmd`, `dap_launch`, `dap_launch_test`, `get_test_report_dir`, …).
 
 ### 3. Per-language LSP code-action data — `utils/lang/go/lsp-go.lua`
 
@@ -277,7 +272,7 @@ sees gopls keymaps, and vice-versa. This is the isolation guarantee.
 - **buffer-util**: add `go = true` to `work_buffer_types`
 - **snippets**: add `lua/plugins/luasnip/snippets/go/`
 - **LSP handlers**: **skip.** Go (like Rust) needs no custom diagnostic/hover
-  post-processing, so leave `lsp-land-handlers-resolver.lua` alone. Only Java
+  post-processing, so leave `lsp-lang-handlers-resolver.lua` alone. Only Java
   registers handlers there. Add a `go = "utils.lang.go.lsp-go-handlers"` entry **only**
   if Go later needs jdtls-style handler overrides.
 

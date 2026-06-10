@@ -12,7 +12,7 @@ vim.diagnostic.config({
 
 -- Per-language LSP handlers (e.g. jdtls diagnostic/hover post-processing) are
 -- installed only for the active project language; languages that register none
-require("utils.lang.lsp-land-handlers-resolver").setup()
+require("utils.lang.lsp-lang-handlers-resolver").setup()
 
 return {
     {

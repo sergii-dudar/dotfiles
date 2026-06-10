@@ -6,7 +6,7 @@ require("plugins.overseer.tasks.lang.simple-runners").register(type_to_resolver)
 
 for _, entry in ipairs(lang_registry.all()) do
     local runner = entry.runner
-    if runner and runner.enabled ~= false then
+    if runner then
         local resolver = require(runner.module)
         for _, ft in ipairs(runner.filetypes) do
             type_to_resolver[ft] = resolver
