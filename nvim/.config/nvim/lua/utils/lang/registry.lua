@@ -30,7 +30,7 @@ local M = {}
 ---@field runner? lang.RegistryRunner Overseer run/test/debug metadata. Omit when a language has no custom runner integration.
 ---@field report? lang.RegistryReport Test-report metadata for report parsing, diagnostics, Trouble integration, output panels, and tree view support.
 
--- To disable any language, just comment it
+-- To disable any language, just uncomment it (and don't forget uncomment related language extras `lazyvim.plugins.extras.lang...` in `config.lazy.lua`)
 -- to validate from cmd directly, can be used: `cd ~/.config/nvim && nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa`
 ---@type lang.RegistryEntry[]
 local entries = {
