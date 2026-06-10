@@ -15,11 +15,36 @@ local dap_after_session_clear
 
 local last_run_info = {}
 
+---@param type_resolver task.lang.Runner
+---@param which "run"|"test"
+---@param context? task.lang.Context
+---@return boolean ok true when the action may proceed
+local function passes_run_guard(type_resolver, which, context)
+    local guard = type_resolver.run_guard
+    if not guard then
+        return true
+    end
+    local fn = which == "run" and guard.can_run or guard.can_test
+    if not fn then
+        return true
+    end
+    local ok, msg = fn(context)
+    if not ok then
+        vim.notify(msg or ("Blocked: wrong " .. which .. " context"), vim.log.levels.WARN)
+        return false
+    end
+    return true
+end
+
 ---@param context task.lang.Context
 function M.run_test(context)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     if not type_resolver then
         vim.notify("Test runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+    -- Guard against a run/test key mix-up before any (possibly async) prompts.
+    if not passes_run_guard(type_resolver, "test", context) then
         return
     end
     -- Opt-in: language runners can pre-populate context fields that require
@@ -87,6 +112,9 @@ function M.run_current()
         vim.notify("Runner is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
         return
     end
+    if not passes_run_guard(type_resolver, "run") then
+        return
+    end
     require("utils.dap-util").reset()
     overseer_task_util.run_task({
         task_name = "RUN_CURRENT",
@@ -100,6 +128,9 @@ function M.debug_current()
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
     if not type_resolver or (not type_resolver.build_debug_cmd and not type_resolver.dap_launch) then
         vim.notify("Debug is not configured for: " .. vim.bo.filetype, vim.log.levels.WARN)
+        return
+    end
+    if not passes_run_guard(type_resolver, "run") then
         return
     end
     debug_current_internal(type_resolver)

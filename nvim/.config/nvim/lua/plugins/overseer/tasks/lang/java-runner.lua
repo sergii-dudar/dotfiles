@@ -92,4 +92,53 @@ function M.get_test_report_dir()
     return java_util.get_build_layout(java_util.get_buffer_project_path()).report_dir
 end
 
+-- Test types whose target is the file/method under the cursor. Only these are
+-- guarded against a run/test key mix-up; project-wide types (ALL_TESTS, module
+-- runs, TOGGLE_LAST_DEBUG) are not tied to the current buffer.
+local FILE_BOUND_TEST_TYPES = {
+    [task.test_type.FILE_TESTS] = true,
+    [task.test_type.CURRENT_TEST] = true,
+    [task.test_type.CURRENT_PARAMETRIZED_NUM_TEST] = true,
+}
+
+---@return boolean
+local function is_test_context()
+    local java_ts = require("utils.java.java-ts-util")
+    -- src/test path is the strongest signal; treesitter annotations cover the
+    -- (rare) test class kept outside a test source root.
+    return require("utils.java.java-common").is_test_file()
+        or java_ts.is_test_method_at_cursor()
+        or java_ts.class_has_test_methods()
+end
+
+-- Guard against the common <leader>r… / <leader>t… mix-up. Running a test class
+-- as a `main` (or debugging one) launches a JVM with no entry point and can leave
+-- a half-attached DAP session that needs a full nvim restart to clear, so we
+-- refuse the wrong key up front rather than letting it break the session.
+---@type task.lang.RunGuard
+M.run_guard = {
+    -- Gate <leader>r… (run/debug current as a main class).
+    can_run = function()
+        if is_test_context() then
+            return false, "✋ This is a test — use <leader>t… (test runner), not <leader>r…"
+        end
+        return true
+    end,
+    -- Gate <leader>t… (run/debug the current file's tests).
+    ---@param context task.lang.Context
+    can_test = function(context)
+        if not FILE_BOUND_TEST_TYPES[context.test_type] then
+            return true
+        end
+        if is_test_context() then
+            return true
+        end
+        local java_ts = require("utils.java.java-ts-util")
+        if java_ts.has_main_method() then
+            return false, "✋ This is a main class — use <leader>r… (run/debug), not <leader>t…"
+        end
+        return false, "✋ Current file is not a test — use <leader>r… (run/debug), not <leader>t…"
+    end,
+}
+
 return M

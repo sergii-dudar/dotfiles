@@ -16,6 +16,10 @@
 ---@field match fun(line:string):any|nil       Scan one output line; return a target (port/pid) or nil.
 ---@field attach fun(target:any)               Attach the debugger using the matched target.
 
+---@class task.lang.RunGuard
+---@field can_run? fun():boolean,string|nil                       Gate <leader>r… run/debug-current; return false + message to block.
+---@field can_test? fun(context:task.lang.Context):boolean,string|nil  Gate <leader>t… test runs; return false + message to block.
+
 ---@class task.lang.Runner
 ---@field get_envs? fun():table<string, string>
 ---@field build_run_cmd fun():string[]
@@ -30,6 +34,7 @@
 ---@field dap_launch_test? fun(context:task.lang.Context) - direct DAP launch for test debug.
 ---@field get_test_report_dir? fun():string
 ---@field dap_output_attacher? task.lang.DapOutputAttacher - output-driven DAP attach for the overseer debug-task flow.
+---@field run_guard? task.lang.RunGuard - optional run/test key-mix-up guard (e.g. block <leader>r… on a test, <leader>t… on a main).
 
 -- NOTE: LSP code-action match-names are an LSP concern, not part of the run/test/debug
 -- runner contract. See `lang.LspCodeActions` in `utils.lang.lsp-common`.

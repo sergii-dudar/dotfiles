@@ -34,3 +34,4 @@
      last run (especially in debugging) and fast switch between last debug and run, with overseer not working in another lang implementations (except java)
      refactoring to be able to integrate another main languages (keymans <leader>j...). currently java, need also rust and later maybe more, same keymans, but different areas and plugins, and functionalities
      issues with jdtls after long idle time with blink completions restoring
+     dwl - need try to resolve issues why not running discord, steam etc, and maybe another similar problems

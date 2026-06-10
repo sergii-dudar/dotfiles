@@ -9,8 +9,21 @@
 -- • get_full_method — package.Class.method
 -- • get_full_method_with_params — full method with parameter types
 -- • get_full_method_with_params_and_abstract — full method + abstract class info
+-- • is_test_method_at_cursor — cursor method carries a JUnit test annotation
+-- • class_has_test_methods — file contains any JUnit test-annotated method
+-- • has_main_method — file contains a `public static void main(String[])`
 
 local M = {}
+
+-- JUnit/Jupiter method-level annotations that mark a method as a runnable test.
+-- Used by the run/test guards to tell a test method from a `main`/production one.
+local TEST_ANNOTATIONS = {
+    Test = true,
+    ParameterizedTest = true,
+    RepeatedTest = true,
+    TestFactory = true,
+    TestTemplate = true,
+}
 
 -- Modern Neovim Treesitter API
 local function node_at_cursor()
@@ -322,6 +335,128 @@ function M.get_full_method_with_params_and_abstract(delimiter)
         fsignature = class_info.fqn .. delimiter .. sig,
         is_abstract = class_info.is_abstract,
     }
+end
+
+-- ---------------------------------------------------------
+--  TEST / MAIN CLASSIFICATION (run vs test guards)
+-- ---------------------------------------------------------
+-- Resolve the simple (unqualified) name of an annotation node. Handles both
+-- `@Test` (marker_annotation) and `@RepeatedTest(3)` (annotation), and strips
+-- any package qualifier, e.g. `org.junit.jupiter.api.Test` -> `Test`.
+---@param ann_node TSNode
+---@return string|nil
+local function annotation_simple_name(ann_node)
+    local name_node = ann_node:field("name")[1]
+    if not name_node then
+        return nil
+    end
+    local text = vim.treesitter.get_node_text(name_node, 0)
+    return text:match("([%w_]+)%s*$")
+end
+
+-- Collect the set of annotation simple-names declared on a method's `modifiers`.
+---@param method_node TSNode
+---@return table<string, boolean>
+local function method_annotation_names(method_node)
+    local names = {}
+    for c in method_node:iter_children() do
+        if c:type() == "modifiers" then
+            for m in c:iter_children() do
+                local t = m:type()
+                if t == "marker_annotation" or t == "annotation" then
+                    local n = annotation_simple_name(m)
+                    if n then
+                        names[n] = true
+                    end
+                end
+            end
+        end
+    end
+    return names
+end
+
+---@param method_node TSNode
+---@return boolean
+local function method_is_test(method_node)
+    for name in pairs(method_annotation_names(method_node)) do
+        if TEST_ANNOTATIONS[name] then
+            return true
+        end
+    end
+    return false
+end
+
+-- Detect the conventional entry point `public static void main(String[] args)`.
+-- We only require name == "main" and the `static` modifier; that is enough to
+-- distinguish a runnable class from a test without false positives in practice.
+---@param method_node TSNode
+---@return boolean
+local function method_is_main(method_node)
+    local name, is_static
+    for c in method_node:iter_children() do
+        local t = c:type()
+        if t == "identifier" then
+            name = vim.treesitter.get_node_text(c, 0)
+        elseif t == "modifiers" then
+            for m in c:iter_children() do
+                if vim.treesitter.get_node_text(m, 0) == "static" then
+                    is_static = true
+                end
+            end
+        end
+    end
+    return name == "main" and is_static == true
+end
+
+---@param predicate fun(method_node:TSNode):boolean
+---@return boolean
+local function any_method_in_file(predicate)
+    local ok, parser = pcall(vim.treesitter.get_parser, 0, "java")
+    if not ok or not parser then
+        return false
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return false
+    end
+
+    local found = false
+    local function walk(node)
+        if found then
+            return
+        end
+        if node:type() == "method_declaration" and predicate(node) then
+            found = true
+            return
+        end
+        for c in node:iter_children() do
+            walk(c)
+        end
+    end
+    walk(tree:root())
+    return found
+end
+
+--- Whether the method under the cursor carries a JUnit test annotation.
+---@return boolean
+function M.is_test_method_at_cursor()
+    local m = get_method_node()
+    if not m then
+        return false
+    end
+    return method_is_test(m)
+end
+
+--- Whether the current file declares any JUnit test-annotated method.
+---@return boolean
+function M.class_has_test_methods()
+    return any_method_in_file(method_is_test)
+end
+
+--- Whether the current file declares a `static main` entry point.
+---@return boolean
+function M.has_main_method()
+    return any_method_in_file(method_is_main)
 end
 
 return M

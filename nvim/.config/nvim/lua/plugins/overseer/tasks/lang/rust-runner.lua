@@ -130,4 +130,47 @@ function M.get_test_report_dir()
     return require("modules.rust.cargo-test").get_test_report_dir()
 end
 
+-- Test types whose target is the cursor/file (guarded against a run/test key
+-- mix-up). Project-wide types are not tied to the current buffer.
+local CURSOR_BOUND_TEST_TYPES = {
+    [task.test_type.CURRENT_TEST] = true,
+    [task.test_type.CURRENT_PARAMETRIZED_NUM_TEST] = true,
+}
+
+-- Guard against the <leader>r… / <leader>t… mix-up. Rust has no `src/test`
+-- convention and a binary's `main.rs` often holds both `fn main` and a
+-- `#[cfg(test)]` module, so detection is cursor-scoped: it asks where the cursor
+-- actually is rather than what the file contains.
+---@type task.lang.RunGuard
+M.run_guard = {
+    -- Gate <leader>r… (cargo run / debug the binary).
+    can_run = function()
+        if require("utils.rust.rust-ts-util").is_test_context_at_cursor() then
+            return false, "✋ Cursor is in a test — use <leader>t… (test runner), not <leader>r…"
+        end
+        return true
+    end,
+    -- Gate <leader>t… (run/debug the test at/around the cursor).
+    ---@param context task.lang.Context
+    can_test = function(context)
+        local rust_ts = require("utils.rust.rust-ts-util")
+        local t = context.test_type
+        if CURSOR_BOUND_TEST_TYPES[t] then
+            if rust_ts.is_test_context_at_cursor() then
+                return true
+            end
+            if rust_ts.has_main_function() then
+                return false, "✋ Cursor is not in a test (main/binary) — use <leader>r… (run/debug)"
+            end
+            return false, "✋ Cursor is not in a test — use <leader>r… (run/debug), not <leader>t…"
+        end
+        if t == task.test_type.FILE_TESTS then
+            if not rust_ts.file_has_tests() then
+                return false, "✋ This file has no tests — use <leader>r… (run/debug), not <leader>t…"
+            end
+        end
+        return true
+    end,
+}
+
 return M
