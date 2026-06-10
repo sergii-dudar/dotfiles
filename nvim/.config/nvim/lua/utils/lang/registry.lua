@@ -31,7 +31,7 @@ local M = {}
 ---@field report? lang.RegistryReport Test-report metadata for report parsing, diagnostics, Trouble integration, output panels, and tree view support.
 
 -- To disable any language, just comment it
--- to validate, can be used: `cd ~/config/nvim && nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa`
+-- to validate from cmd directly, can be used: `cd ~/.config/nvim && nvim --headless "+lua require('utils.lang.registry-check').run({ raise = true })" +qa`
 ---@type lang.RegistryEntry[]
 local entries = {
     {
