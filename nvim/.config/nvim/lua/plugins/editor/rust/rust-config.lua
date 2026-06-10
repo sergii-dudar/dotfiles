@@ -6,6 +6,10 @@ vim.api.nvim_create_autocmd("FileType", {
     group = wk_augroup,
     pattern = rustft,
     callback = function(ev)
+        ---@diagnostic disable-next-line: undefined-field
+        if vim.bo[ev.buf].buftype ~= "" then
+            return
+        end
         require("which-key").add({
             ---@diagnostic disable-next-line: undefined-field
             buffer = ev.buf,
@@ -20,6 +24,10 @@ vim.api.nvim_create_autocmd("FileType", {
     group = wk_augroup,
     pattern = cargoft,
     callback = function(ev)
+        ---@diagnostic disable-next-line: undefined-field
+        if vim.bo[ev.buf].buftype ~= "" then
+            return
+        end
         require("which-key").add({
             ---@diagnostic disable-next-line: undefined-field
             buffer = ev.buf,
