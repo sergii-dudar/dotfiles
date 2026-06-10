@@ -57,6 +57,17 @@ local function lang_for_ext(ext)
 end
 
 -- Tier 1: nearest root marker (deepest path wins).
+--
+-- For each primary language `vim.fs.root` walks upward from `cwd` and returns the
+-- closest ancestor directory that holds one of that language's markers. Several
+-- languages may match at different depths (e.g. a Java sub-project nested inside a
+-- Rust workspace), so we must disambiguate instead of trusting registry order.
+--
+-- `best_len` tracks the longest matched root path seen so far. Since every match is
+-- an ancestor of the same `cwd`, a deeper directory always yields a longer path
+-- string, so the longest path is the nearest (most specific) root — that language
+-- wins. This keeps detection correct for nested projects regardless of iteration
+-- order.
 ---@param cwd string
 ---@return string|nil
 local function detect_by_markers(cwd)
