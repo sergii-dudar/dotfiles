@@ -92,13 +92,17 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.util.octo" },
 
         -- ========= import/override with your plugins =========
-        { import = "plugins.ui" },
-        { import = "plugins.navigation" },
-        { import = "plugins.editor" },
-        -- Per-language editor configs are loaded only for their project type, so
+
+        -- Per-language (main language) editor configs are loaded only for their project type, so
         -- e.g. java keymaps/plugins never appear in a rust project and vice-versa.
         { import = "plugins.editor.java", cond = function() return require("utils.lang.lang-project").is("java") end, },
         { import = "plugins.editor.rust", cond = function() return require("utils.lang.lang-project").is("rust") end, },
+        -- add more, or another main language, in can your proffessional language for example is `go` (see current infrastructure for details)
+
+        -- general
+        { import = "plugins.ui" },
+        { import = "plugins.navigation" },
+        { import = "plugins.editor" },
         { import = "plugins.editor.shell" },
         { import = "plugins.editor.lua" },
         { import = "plugins.snacks" },
