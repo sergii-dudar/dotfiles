@@ -1,4 +1,5 @@
 local M = {}
+local entries_by_filetype ---@type table<string, lang.RegistryEntry>|nil
 
 ---Project-root detection metadata for a primary language.
 ---Consumed by `utils.lang.lang-project` to decide which primary editor config can load.
@@ -181,6 +182,41 @@ local entries = {
     }, ]]
 }
 
+---@param index table<string, lang.RegistryEntry>
+---@param entry lang.RegistryEntry
+---@param filetypes string[]|nil
+local function add_entry_filetypes(index, entry, filetypes)
+    for _, ft in ipairs(filetypes or {}) do
+        index[ft] = entry
+    end
+end
+
+---@return table<string, lang.RegistryEntry>
+local function build_filetype_index()
+    local result = {}
+    for _, entry in ipairs(entries) do
+        if entry.runner then
+            add_entry_filetypes(result, entry, entry.runner.filetypes)
+        end
+        if entry.report then
+            add_entry_filetypes(result, entry, entry.report.filetypes)
+        end
+    end
+    return result
+end
+
+---@param filetype string
+---@param filetypes string[]|nil
+---@return boolean
+local function contains_filetype(filetype, filetypes)
+    for _, ft in ipairs(filetypes or {}) do
+        if ft == filetype then
+            return true
+        end
+    end
+    return false
+end
+
 ---@return lang.RegistryEntry[]
 function M.all()
     return entries
@@ -197,21 +233,33 @@ function M.primary()
     return result
 end
 
+---@return table<string, lang.RegistryEntry>
+function M.by_filetype()
+    if not entries_by_filetype then
+        entries_by_filetype = build_filetype_index()
+    end
+    return entries_by_filetype
+end
+
+---@param filetype string|nil
+---@return lang.RegistryEntry|nil
+function M.for_filetype(filetype)
+    if not filetype or filetype == "" then
+        return nil
+    end
+    return M.by_filetype()[filetype]
+end
+
 ---@param filetype string|nil
 ---@return lang.RegistryReport|nil
 function M.report_for_filetype(filetype)
     if not filetype or filetype == "" then
         return nil
     end
-    for _, entry in ipairs(entries) do
-        local report = entry.report
-        if report then
-            for _, ft in ipairs(report.filetypes) do
-                if ft == filetype then
-                    return report
-                end
-            end
-        end
+    local entry = M.for_filetype(filetype)
+    local report = entry and entry.report
+    if report and contains_filetype(filetype, report.filetypes) then
+        return report
     end
     return nil
 end

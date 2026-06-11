@@ -28,7 +28,12 @@ end
 
 -- Strip the leading "<cwd-name>/" so the path shows relative to the project.
 local function cwd_relative(str)
-    local dir_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+    local cwd = vim.fn.getcwd():gsub("/$", "")
+    if str:sub(1, #cwd + 1) == cwd .. "/" then
+        return str:sub(#cwd + 2)
+    end
+
+    local dir_name = vim.fn.fnamemodify(cwd, ":t")
     local parts = require("utils.string-util").split(str, dir_name .. "/")
     return #parts == 2 and parts[2] or str
 end
@@ -38,15 +43,46 @@ local function default_shaper(str)
     return cwd_relative(str):gsub("/", " ❯ ")
 end
 
--- Java shaper: "module 󰏗 root 󰬷 package" as a dotted FQN, sans .java.
+local function java_root_markers()
+    local java = require("utils.lang.registry").for_filetype("java")
+    return (java and java.project and java.project.markers) or {}
+end
+
+local function has_java_root_marker(dir)
+    if not dir or dir == "" then
+        return false
+    end
+
+    for _, marker in ipairs(java_root_markers()) do
+        if vim.uv.fs_stat(dir .. "/" .. marker) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function is_nested_java_module(module_path)
+    local absolute_module_path = vim.fn.fnamemodify(module_path, ":p"):gsub("/$", "")
+    local parent_path = vim.fn.fnamemodify(absolute_module_path, ":h")
+    return parent_path ~= absolute_module_path and has_java_root_marker(parent_path)
+end
+
+-- Java shaper: "module 󰏗 root 󰬷 package" for multi-module projects,
+-- or "root 󰬷 package" when the project root is the Java module.
 local function java_shaper(str)
-    local module, root, package = str:match("([^/]+)/src/(%w+)/java/(.*)")
+    local module_path, root, package = str:match("(.+)/src/([^/]+)/java/(.*)")
+    local module = module_path and vim.fn.fnamemodify(module_path, ":t")
     if not package then
-        root, package = str:match("^.*src/(%w*)/java/(.*)")
+        root, package = str:match("^src/([^/]+)/java/(.*)")
     end
 
     local base
     if package then
+        if not module_path or not is_nested_java_module(module_path) then
+            module = nil
+        end
+
         local prefix = module and (module .. " 󰏗 ") or ""
         base = prefix .. root .. " 󰬷 " .. package
     else
@@ -59,7 +95,10 @@ M.register("java", java_shaper)
 
 --- Evaluate the winbar expression for the current buffer.
 function M.eval()
-    local raw = vim.api.nvim_eval_statusline("%f", {}).str
+    local raw = vim.api.nvim_buf_get_name(0)
+    if raw == "" then
+        raw = vim.api.nvim_eval_statusline("%f", {}).str
+    end
     local shaper = shapers[vim.bo.filetype] or default_shaper
     local file_path = " " .. shaper(raw)
 

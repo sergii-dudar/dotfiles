@@ -22,3 +22,6 @@ target
 .claude
 /update_tag_versions*.sh
 /gh-push.sh
+**/CLAUDE.md
+**/AGENTS.md
+**/copilot-instructions.md
