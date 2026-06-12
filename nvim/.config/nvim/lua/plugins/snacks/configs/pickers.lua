@@ -6,6 +6,7 @@ Snacks.util.set_hl({
 
 local layouts = require("plugins.snacks.configs.layouts")
 local layout_vertical = { layout = layouts.custom_vertical }
+local picker_util = require("utils.snacks-pickers-util")
 
 ---Toggle between horizontal and vertical layouts.
 ---@param picker snacks.Picker
@@ -14,130 +15,6 @@ local function toggle_layout(picker)
     local next_name = current == "custom_horizontal" and "custom_vertical" or "custom_horizontal"
     picker._layout_toggle_name = next_name
     picker:set_layout(Snacks.picker.config.layout({ layout = next_name }))
-end
-
----Close the active picker and open another one.
----@param picker snacks.Picker
----@param open fun()
-local function switch_picker(picker, open)
-    picker:norm(function()
-        picker:close()
-        vim.schedule(open)
-    end)
-end
-
----@param picker snacks.Picker
----@return number
-local function picker_current_buf(picker)
-    local filter_buf = picker.input and picker.input.filter and picker.input.filter.current_buf
-    if filter_buf and vim.api.nvim_buf_is_valid(filter_buf) then
-        return filter_buf
-    end
-
-    local ok, main_buf = pcall(vim.api.nvim_win_get_buf, picker.main)
-    if ok and vim.api.nvim_buf_is_valid(main_buf) then
-        return main_buf
-    end
-
-    return vim.api.nvim_get_current_buf()
-end
-
----@param picker snacks.Picker
----@return boolean
-local function has_buffer_picker_results(picker)
-    local current_buf = picker_current_buf(picker)
-    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-        local keep = vim.bo[buf].buflisted and buf ~= current_buf and vim.bo[buf].buftype ~= "nofile"
-        if keep then
-            return true
-        end
-    end
-    return false
-end
-
-local picker_switch_order = { "files", "recent", "buffers", "grep" }
-local picker_switch_open = {
-    files = function()
-        LazyVim.pick.open("files", { root = false })
-    end,
-    recent = function()
-        Snacks.picker.recent({ filter = { cwd = true } })
-    end,
-    buffers = function()
-        Snacks.picker.buffers()
-    end,
-    grep = function()
-        LazyVim.pick.open("live_grep", { root = false })
-    end,
-}
-local picker_switch_has_results = {
-    buffers = has_buffer_picker_results,
-}
-
----@param picker snacks.Picker
----@param source string
-local function switch_to_picker(picker, source)
-    switch_picker(picker, picker_switch_open[source])
-end
-
----@param picker snacks.Picker
----@param source string
----@return boolean
-local function can_switch_to_picker(picker, source)
-    local has_results = picker_switch_has_results[source]
-    return not has_results or has_results(picker)
-end
-
----@param picker snacks.Picker
----@param step integer
-local function rotate_picker(picker, step)
-    local current = picker.opts.source
-    local current_index = step > 0 and 0 or #picker_switch_order + 1
-    for index, source in ipairs(picker_switch_order) do
-        if source == current then
-            current_index = index
-            break
-        end
-    end
-
-    for offset = 1, #picker_switch_order do
-        local next_index = ((current_index - 1 + step * offset) % #picker_switch_order) + 1
-        local source = picker_switch_order[next_index]
-        if can_switch_to_picker(picker, source) then
-            switch_to_picker(picker, source)
-            return
-        end
-    end
-end
-
----@param picker snacks.Picker
-local function switch_to_files(picker)
-    switch_to_picker(picker, "files")
-end
-
----@param picker snacks.Picker
-local function switch_to_buffers(picker)
-    switch_to_picker(picker, "buffers")
-end
-
----@param picker snacks.Picker
-local function switch_to_grep(picker)
-    switch_to_picker(picker, "grep")
-end
-
----@param picker snacks.Picker
-local function switch_to_recent(picker)
-    switch_to_picker(picker, "recent")
-end
-
----@param picker snacks.Picker
-local function switch_to_next_picker(picker)
-    rotate_picker(picker, 1)
-end
-
----@param picker snacks.Picker
-local function switch_to_prev_picker(picker)
-    rotate_picker(picker, -1)
 end
 
 ---Grep within selected files from the files picker.
@@ -219,7 +96,7 @@ local exclude_by_lang = {
     rust = exclude_rust,
 }
 
--- Common excludes + the active project language's excludes.
+---Build common excludes plus active project language-specific excludes.
 local function project_excludes()
     local list = vim.deepcopy(exclude_common)
     local lang = require("utils.lang.lang-project").current()
@@ -260,23 +137,23 @@ M.picker = {
         diff_selected = diff_selected,
         toggle_layout = toggle_layout,
         grep_selected_files = grep_selected_files,
-        switch_to_files = switch_to_files,
-        switch_to_buffers = switch_to_buffers,
-        switch_to_grep = switch_to_grep,
-        switch_to_recent = switch_to_recent,
-        switch_to_next_picker = switch_to_next_picker,
-        switch_to_prev_picker = switch_to_prev_picker,
+        switch_to_files = picker_util.switch_to_files,
+        switch_to_buffers = picker_util.switch_to_buffers,
+        switch_to_grep = picker_util.switch_to_grep,
+        switch_to_recent = picker_util.switch_to_recent,
+        switch_to_next_picker = picker_util.switch_to_next_picker,
+        switch_to_prev_picker = picker_util.switch_to_prev_picker,
     },
     win = {
         input = {
             keys = {
-                ["<c-,>"] = { "switch_to_files", mode = { "i", "n" }, desc = "Switch to files" },
-                ["<c-.>"] = { "switch_to_buffers", mode = { "i", "n" }, desc = "Switch to buffers" },
-                ["<c-/>"] = { "switch_to_grep", mode = { "i", "n" }, desc = "Switch to grep" },
-                ["<c-_>"] = { "switch_to_grep", mode = { "i", "n" }, desc = "Switch to grep" },
-                ["<c-o>"] = { "switch_to_recent", mode = { "i", "n" }, desc = "Switch to recent" },
-                ["<c-]>"] = { "switch_to_next_picker", mode = { "i", "n" }, desc = "Switch to next picker" },
-                ["<c-e>"] = { "switch_to_prev_picker", mode = { "i", "n" }, desc = "Switch to previous picker" },
+                ["<c-,>"] = { "switch_to_prev_picker", mode = { "i", "n" }, desc = "Switch to previous picker" },
+                ["<c-.>"] = { "switch_to_next_picker", mode = { "i", "n" }, desc = "Switch to next picker" },
+                -- ["<c-/>"] = { "switch_to_grep", mode = { "i", "n" }, desc = "Switch to grep" },
+                -- ["<c-_>"] = { "switch_to_grep", mode = { "i", "n" }, desc = "Switch to grep" },
+                -- ["<c-o>"] = { "switch_to_recent", mode = { "i", "n" }, desc = "Switch to recent" },
+                -- ["<c-]>"] = { "switch_to_next_picker", mode = { "i", "n" }, desc = "Switch to next picker" },
+                -- ["<c-e>"] = { "switch_to_prev_picker", mode = { "i", "n" }, desc = "Switch to previous picker" },
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
@@ -290,13 +167,13 @@ M.picker = {
         },
         list = {
             keys = {
-                ["<c-,>"] = { "switch_to_files", mode = { "n" }, desc = "Switch to files" },
-                ["<c-.>"] = { "switch_to_buffers", mode = { "n" }, desc = "Switch to buffers" },
-                ["<c-/>"] = { "switch_to_grep", mode = { "n" }, desc = "Switch to grep" },
-                ["<c-_>"] = { "switch_to_grep", mode = { "n" }, desc = "Switch to grep" },
-                ["<c-o>"] = { "switch_to_recent", mode = { "n" }, desc = "Switch to recent" },
-                ["<c-]>"] = { "switch_to_next_picker", mode = { "n" }, desc = "Switch to next picker" },
-                ["<c-e>"] = { "switch_to_prev_picker", mode = { "n" }, desc = "Switch to previous picker" },
+                ["<c-,>"] = { "switch_to_prev_picker", mode = { "n" }, desc = "Switch to previous picker" },
+                ["<c-.>"] = { "switch_to_next_picker", mode = { "n" }, desc = "Switch to next picker" },
+                -- ["<c-/>"] = { "switch_to_grep", mode = { "n" }, desc = "Switch to grep" },
+                -- ["<c-_>"] = { "switch_to_grep", mode = { "n" }, desc = "Switch to grep" },
+                -- ["<c-o>"] = { "switch_to_recent", mode = { "n" }, desc = "Switch to recent" },
+                -- ["<c-]>"] = { "switch_to_next_picker", mode = { "n" }, desc = "Switch to next picker" },
+                -- ["<c-e>"] = { "switch_to_prev_picker", mode = { "n" }, desc = "Switch to previous picker" },
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "n" } },
