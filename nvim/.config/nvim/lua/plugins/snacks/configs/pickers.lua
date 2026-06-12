@@ -26,6 +26,35 @@ local function switch_picker(picker, open)
     end)
 end
 
+---@param picker snacks.Picker
+---@return number
+local function picker_current_buf(picker)
+    local filter_buf = picker.input and picker.input.filter and picker.input.filter.current_buf
+    if filter_buf and vim.api.nvim_buf_is_valid(filter_buf) then
+        return filter_buf
+    end
+
+    local ok, main_buf = pcall(vim.api.nvim_win_get_buf, picker.main)
+    if ok and vim.api.nvim_buf_is_valid(main_buf) then
+        return main_buf
+    end
+
+    return vim.api.nvim_get_current_buf()
+end
+
+---@param picker snacks.Picker
+---@return boolean
+local function has_buffer_picker_results(picker)
+    local current_buf = picker_current_buf(picker)
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        local keep = vim.bo[buf].buflisted and buf ~= current_buf and vim.bo[buf].buftype ~= "nofile"
+        if keep then
+            return true
+        end
+    end
+    return false
+end
+
 local picker_switch_order = { "files", "recent", "buffers", "grep" }
 local picker_switch_open = {
     files = function()
@@ -41,6 +70,9 @@ local picker_switch_open = {
         LazyVim.pick.open("live_grep", { root = false })
     end,
 }
+local picker_switch_has_results = {
+    buffers = has_buffer_picker_results,
+}
 
 ---@param picker snacks.Picker
 ---@param source string
@@ -49,10 +81,18 @@ local function switch_to_picker(picker, source)
 end
 
 ---@param picker snacks.Picker
+---@param source string
+---@return boolean
+local function can_switch_to_picker(picker, source)
+    local has_results = picker_switch_has_results[source]
+    return not has_results or has_results(picker)
+end
+
+---@param picker snacks.Picker
 ---@param step integer
 local function rotate_picker(picker, step)
     local current = picker.opts.source
-    local current_index = 0
+    local current_index = step > 0 and 0 or #picker_switch_order + 1
     for index, source in ipairs(picker_switch_order) do
         if source == current then
             current_index = index
@@ -60,13 +100,14 @@ local function rotate_picker(picker, step)
         end
     end
 
-    if current_index == 0 then
-        switch_to_picker(picker, step > 0 and picker_switch_order[1] or picker_switch_order[#picker_switch_order])
-        return
+    for offset = 1, #picker_switch_order do
+        local next_index = ((current_index - 1 + step * offset) % #picker_switch_order) + 1
+        local source = picker_switch_order[next_index]
+        if can_switch_to_picker(picker, source) then
+            switch_to_picker(picker, source)
+            return
+        end
     end
-
-    local next_index = ((current_index - 1 + step) % #picker_switch_order) + 1
-    switch_to_picker(picker, picker_switch_order[next_index])
 end
 
 ---@param picker snacks.Picker
