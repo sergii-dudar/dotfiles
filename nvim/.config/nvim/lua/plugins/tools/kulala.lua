@@ -8,7 +8,8 @@ return {
         "mistweaverco/kulala.nvim",
         -- tag = "v5.3.4",
         -- tag = "v6.1.0",
-        ft = "http",
+        ft = { "http", "rest" },
+        -- ft = { "http", "rest", "javascript", "lua" },
         -- stylua: ignore
         keys = {
             { "<leader>R", "", desc = "+Rest" },
