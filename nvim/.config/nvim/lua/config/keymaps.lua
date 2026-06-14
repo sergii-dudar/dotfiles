@@ -144,6 +144,7 @@ end, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J
 -- stylua: ignore start
 vim.api.nvim_set_keymap("v", "<leader>R", [["hy:%s/\V<C-r>=escape(@h, '/\')<CR>//gc<Left><Left><Left>]], { noremap = true, silent = false, desc = "Replace with prompt" })
 -- vim.api.nvim_set_keymap("v", "<leader>R", '"hy:%s/<C-r>h//gc<Left><Left><Left>', { noremap = true, silent = false, desc = "Replace with prompt" })
+-- vim.api.nvim_set_keymap("v", "<leader>a/", [["hy/\V<C-r>=escape(@h, '/\')<CR><CR>]], { noremap = true, silent = false, desc = "Search selection literally" })
 
 -- run lua in runtime (in all buffers!)
 -- map("n", "<space>rs", "<cmd>source %<CR>", { desc = "Run lua current file" })
@@ -156,6 +157,14 @@ vim.api.nvim_set_keymap("v", "<leader>R", [["hy:%s/\V<C-r>=escape(@h, '/\')<CR>/
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
 -- stylua: ignore end
+
+-- Open a search prompt prefilled with the clipboard, escaping "/" and "\" so e.g.
+-- "folke/noice.nvim" becomes "folke\/noice.nvim" and searches literally for the slash.
+-- (Terminal intercepts <C-v> as paste, so we prefill instead of mapping inside the prompt.)
+vim.keymap.set("n", "g/", function()
+    local text = vim.fn.escape((vim.fn.getreg("+"):gsub("\n", "")), "/\\")
+    vim.fn.feedkeys("/" .. text, "n")
+end, { desc = "Search clipboard (slash-escaped)" })
 
 ------------------------------------------------------------
 -------------- convert Java toString() to JSON -------------
