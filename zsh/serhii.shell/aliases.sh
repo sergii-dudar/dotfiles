@@ -150,3 +150,4 @@ alias tmuxkill='tmux kill-server'
 
 # nvim
 alias nviml="LIMITED=Y nvim"
+alias nvima="LOAD_ALL=Y nvim"

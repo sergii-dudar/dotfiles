@@ -13,6 +13,7 @@ end
 
 M.is_limited = (vim.env["LIMITED"] ~= nil) and true or false
 M.is_not_limited = not M.is_limited
+M.is_all = (vim.env["LOAD_ALL"] ~= nil) and true or false
 
 _G.global = M
 

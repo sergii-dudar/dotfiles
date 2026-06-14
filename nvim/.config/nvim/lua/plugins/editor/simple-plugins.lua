@@ -1,4 +1,11 @@
 return {
+    -- floating search & replace with live match tracking, navigation, and quick replacements.
+    {
+        "ankushbhagats/match.nvim",
+        opts = {
+            anchor = "NE", -- "NE"|"NW"|"SE"|"SW"
+        },
+    },
     --{ "mg979/vim-visual-multi" },
     {
         -- "norcalli/nvim-colorizer.lua",
