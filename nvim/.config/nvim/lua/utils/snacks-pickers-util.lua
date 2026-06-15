@@ -136,16 +136,16 @@ function M.open_buffers_or_recent_or_files()
     end
 
     if has_recent_picker_results() then
-        vim.notify("No buffers to show, opening recent files", vim.log.levels.INFO)
+        vim.notify("󱎸 No buffers to show, opening recent files", vim.log.levels.INFO)
         Snacks.picker.recent(recent_picker_opts())
         return
     end
 
-    vim.notify("No buffers or recent files to show, opening files", vim.log.levels.INFO)
+    vim.notify("󱙓 No buffers or recent files to show, opening files", vim.log.levels.INFO)
     LazyVim.pick("files", { root = false })()
 end
 
-local picker_switch_order = { "files", "recent", "buffers", "grep" }
+local picker_switch_order = { "buffers", "recent", "files", "grep" }
 local picker_switch_open = {
     files = function(opts)
         LazyVim.pick.open("files", opts)
