@@ -11,36 +11,40 @@ local function switch_picker(picker, open)
 end
 
 ---Resolve the buffer that should be treated as current for picker filtering.
----@param picker snacks.Picker
+---@param picker? snacks.Picker
 ---@return number
 local function picker_current_buf(picker)
-    local filter_buf = picker.input and picker.input.filter and picker.input.filter.current_buf
+    local filter_buf = picker and picker.input and picker.input.filter and picker.input.filter.current_buf
     if filter_buf and vim.api.nvim_buf_is_valid(filter_buf) then
         return filter_buf
     end
 
-    local ok, main_buf = pcall(vim.api.nvim_win_get_buf, picker.main)
-    if ok and vim.api.nvim_buf_is_valid(main_buf) then
-        return main_buf
+    if picker then
+        local ok, main_buf = pcall(vim.api.nvim_win_get_buf, picker.main)
+        if ok and vim.api.nvim_buf_is_valid(main_buf) then
+            return main_buf
+        end
     end
 
     return vim.api.nvim_get_current_buf()
 end
 
 ---Resolve the current working directory from the active picker context.
----@param picker snacks.Picker
+---@param picker? snacks.Picker
 ---@return string
 local function picker_cwd(picker)
-    local filter_cwd = picker.input and picker.input.filter and picker.input.filter.cwd
+    local filter_cwd = picker and picker.input and picker.input.filter and picker.input.filter.cwd
     if filter_cwd then
         return filter_cwd
     end
 
-    local ok, cwd = pcall(function()
-        return picker:cwd()
-    end)
-    if ok and cwd then
-        return cwd
+    if picker then
+        local ok, cwd = pcall(function()
+            return picker:cwd()
+        end)
+        if ok and cwd then
+            return cwd
+        end
     end
 
     return vim.fn.getcwd(0)
@@ -83,7 +87,7 @@ local function picker_query_opts(picker)
 end
 
 ---Check whether the buffers picker would have at least one visible result.
----@param picker snacks.Picker
+---@param picker? snacks.Picker
 ---@return boolean
 local function has_buffer_picker_results(picker)
     local current_buf = picker_current_buf(picker)
@@ -97,7 +101,7 @@ local function has_buffer_picker_results(picker)
 end
 
 ---Build recent picker options scoped to the active picker cwd.
----@param picker snacks.Picker
+---@param picker? snacks.Picker
 ---@return snacks.picker.Config
 local function recent_picker_opts(picker)
     return {
@@ -107,7 +111,7 @@ local function recent_picker_opts(picker)
 end
 
 ---Check whether the recent picker would have at least one visible result.
----@param picker snacks.Picker
+---@param picker? snacks.Picker
 ---@return boolean
 local function has_recent_picker_results(picker)
     local opts = Snacks.picker.config.get(vim.tbl_extend("force", { source = "recent" }, recent_picker_opts(picker)))
@@ -122,6 +126,23 @@ local function has_recent_picker_results(picker)
         return has_results
     end)
     return ok and found
+end
+
+---Open buffers, notifying when falling back to recent files or cwd files.
+function M.open_buffers_or_recent_or_files()
+    if has_buffer_picker_results() then
+        Snacks.picker.buffers()
+        return
+    end
+
+    if has_recent_picker_results() then
+        vim.notify("No buffers to show, opening recent files", vim.log.levels.INFO)
+        Snacks.picker.recent(recent_picker_opts())
+        return
+    end
+
+    vim.notify("No buffers or recent files to show, opening files", vim.log.levels.INFO)
+    LazyVim.pick("files", { root = false })()
 end
 
 local picker_switch_order = { "files", "recent", "buffers", "grep" }

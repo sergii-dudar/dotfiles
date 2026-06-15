@@ -24,6 +24,8 @@
     Snacks.picker.grep({ cwd = path, title = path })
 end, { nargs = "?" }) ]]
 
+local picker_util = require("utils.snacks-pickers-util")
+
 return {
     {
         "folke/snacks.nvim",
@@ -114,7 +116,7 @@ return {
             { "<leader>'", function() Snacks.explorer() end, desc = "Explorer Snacks (cwd)", },
             -- { "<leader>;", function() Snacks.picker.smart() end, desc = "Smart Picker (Snacks)", },
             -- pickets
-            { "<leader>.", function() Snacks.picker.buffers() end, desc = "Buffers" },
+            { "<leader>.", picker_util.open_buffers_or_recent_or_files, desc = "Buffers" },
             { "<leader>,", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
             { "<leader>/", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
             -- { "<leader>m", LazyVim.pick("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
@@ -122,7 +124,7 @@ return {
             --{ "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             { "<leader>m", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
             -- { "<leader><space>", function() require("snipe").open_buffer_menu() end, desc = "Open Snipe buffer menu" },
-            { "<leader><space>", function() Snacks.picker.buffers() end, desc = "Buffers" },
+            { "<leader><space>", picker_util.open_buffers_or_recent_or_files, desc = "Buffers" },
             { "<leader>sy", function() Snacks.picker.cliphist() end, desc = "Search Yanks (cliphist)", },
             -- { "<leader>dps", function() Snacks.profiler.scratch() end, desc = "Profiler Scratch Buffer", },
             -- replace `Snacks.picker.buffers()` to snipe - simpler for me, and need less actions to buffer navigation and managing
