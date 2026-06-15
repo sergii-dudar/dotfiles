@@ -73,17 +73,21 @@ local function picker_input_text(picker)
 end
 
 ---Build initial query options for the next picker from the current input text.
+---Only the field the destination picker actually edits is seeded: live pickers (e.g. grep)
+---edit `search`, while the others edit `pattern`. Seeding both leaves the non-edited field
+---(e.g. `search` on the files picker) set, hidden and immutable — which traps the input.
 ---@param picker snacks.Picker
+---@param target_live boolean whether the destination picker is live (edits `search`)
 ---@return snacks.picker.Config
-local function picker_query_opts(picker)
+local function picker_query_opts(picker, target_live)
     local input = picker_input_text(picker)
     if input == "" then
         return {}
     end
-    return {
-        pattern = input,
-        search = input,
-    }
+    if target_live then
+        return { search = input }
+    end
+    return { pattern = input }
 end
 
 ---Check whether the buffers picker would have at least one visible result.
@@ -164,13 +168,17 @@ local picker_switch_has_results = {
     recent = has_recent_picker_results,
     buffers = has_buffer_picker_results,
 }
+-- Pickers whose input edits the live `search` field instead of the fuzzy `pattern` field.
+local picker_switch_live = {
+    grep = true,
+}
 
 ---Build the option table used when switching to a picker source.
 ---@param picker snacks.Picker
 ---@param source string
 ---@return snacks.picker.Config
 local function picker_switch_opts(picker, source)
-    local query_opts = picker_query_opts(picker)
+    local query_opts = picker_query_opts(picker, picker_switch_live[source] == true)
     if source == "recent" then
         return vim.tbl_extend("force", recent_picker_opts(picker), query_opts)
     end
