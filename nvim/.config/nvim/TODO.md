@@ -35,3 +35,4 @@
      refactoring to be able to integrate another main languages (keymans <leader>j...). currently java, need also rust and later maybe more, same keymans, but different areas and plugins, and functionalities
      issues with jdtls after long idle time with blink completions restoring
      dwl - need try to resolve issues why not running discord, steam etc, and maybe another similar problems
+     inregrate go as main supported language
