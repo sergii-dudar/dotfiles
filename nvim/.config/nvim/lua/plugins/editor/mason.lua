@@ -8,6 +8,10 @@ return {
             "lemminx",
             "autotools-language-server",
 
+            -- Go
+            "gopls",
+            "golangci-lint",
+
             -- Java
             "jdtls",
             "vscode-spring-boot-tools",

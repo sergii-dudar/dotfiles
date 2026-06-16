@@ -138,8 +138,15 @@ local entries = {
             filetypes = { "cpp" },
         },
     }, ]]
-    --[[ {
+    {
         name = "go",
+        primary = true,
+        project = {
+            markers = {
+                "go.mod",
+            },
+            exts = { go = true },
+        },
         runner = {
             module = "plugins.overseer.tasks.lang.go-runner",
             filetypes = { "go" },
@@ -151,7 +158,7 @@ local entries = {
             trouble_source = "go_test_diagnostics",
             diagnostic_source = "go-test",
         },
-    }, ]]
+    },
     --[[ {
         name = "javascript",
         runner = {
