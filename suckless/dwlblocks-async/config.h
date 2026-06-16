@@ -17,6 +17,10 @@
 #define TRAILING_DELIMITER 0
 
 // Define blocks for the status feed as X(icon, cmd, interval, signal).
+// NOTE: signal 10 is intentionally avoided. With CLICKABLE_BLOCKS, the signal
+// number is emitted as a raw prefix byte before each block; byte 10 is '\n',
+// which is also the line delimiter dwl frames on. Using it would make the
+// stream ambiguous and corrupt the bar.
 #define BLOCKS(X) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-date",          10,     1) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-key-layout",    0,      2) \
@@ -27,13 +31,13 @@
     X("", "/home/serhii/dotfiles/bin/dwl/sb-cpu-temp",      120,    7) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-disk",          1200,   8) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-weather",       1200,   9) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-mediaplayer",   0,      10) \
+    X("", "/home/serhii/dotfiles/bin/dwl/sb-mediaplayer",   0,      14) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-network",       30,     11) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-bluetooth",     30,     12) \
     X("", "/home/serhii/dotfiles/bin/dwl/sb-mic",           30,     13)
 #endif  // CONFIG_H
 
 // update from sh: kill -(34 + signal) $(pidof dwlblocks)
-// to update sb-key-layout: kill -(34 + 1) $(pidof dwmblocks)
+// to update sb-key-layout: kill -(34 + 2) $(pidof dwlblocks)
 //
-//  X("", "/home/serhii/dotfiles/bin/dwl/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '󰣇' '#bd93f9'",          0, 14) 
+//  X("", "/home/serhii/dotfiles/bin/dwl/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '󰣇' '#bd93f9'",          0, 15) 
