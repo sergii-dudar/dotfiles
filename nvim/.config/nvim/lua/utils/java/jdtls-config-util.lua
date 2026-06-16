@@ -161,7 +161,9 @@ M.jdtls_settings = {
         completion = {
             maxResults = 0, -- Set to 0 to remove truncation limit, to rely on blink.cmp frizbee (fuzzy like) filtering
             enabled = true,
-            engine = "dom", -- "ecj"|"dom"
+            -- DOM completion requires java.jdt.ls.javac.enabled="on"; keep ECJ
+            -- while Javac support is disabled to avoid fast empty completion lists.
+            engine = "ecj", -- "ecj"|"dom"
             -- matchCase = "off", -- "firstLetter" | "off"
             -- Defines a list of static members or types with static members. Content
             -- assist will propose those static members even if the import is missing.

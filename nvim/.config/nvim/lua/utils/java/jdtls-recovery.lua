@@ -4,28 +4,28 @@
 --
 -- Detection: wall-clock gap between BufEnter/FocusGained events. macOS sleep
 -- does not fire VimResume; FocusGained is unreliable in tmux. CursorMoved /
--- InsertEnter only update the tick (no gap check) so reading code for >2 min
--- does not look like sleep.
+-- InsertEnter normally only update the tick, but they also trigger recovery
+-- after a clear suspend/long-idle gap so a wake-up in the same buffer is not
+-- missed.
 --
--- Three-tier action on gap:
+-- Recovery action on gap:
 --   1. workspace probe (`java.project.getAll`) — if it times out, the jdtls
 --      process / message loop is dead → full restart.
---   2. gap >= 1 hour (LONG_SLEEP_MS) — jdtls's process-wide completion state
---      is empirically unsalvageable by soft-recover after long suspends:
---      even buffers opened fresh AFTER the wake have broken completion.
---      Skip the cheap path and full-restart immediately.
---   3. shorter gap, workspace alive → mark every loaded Java buffer as
---      "needs_resync" and soft-recover the current buffer immediately.
---      Other Java buffers are soft-recovered lazily on first BufEnter
---      (avoids reattaching buffers the user never visits again).
+--   2. workspace alive after a normal idle gap → full restart. jdtls's
+--      completion state can become broken process-wide after suspend/idle
+--      while navigation and diagnostics still work; didClose+didOpen does not
+--      fix newly opened buffers in that state.
+--   3. workspace alive after a very long gap → hard restart. The weekend case
+--      can survive ordinary JVM restart, so rebuild only that project's jdtls
+--      cache before reattaching buffers.
 --
--- Why unconditional soft-recover on short gaps instead of probing the
--- buffer? jdtls's per-buffer completion state silently rots during sleep:
+-- Why full restart instead of probing textDocument/completion? jdtls's
+-- per-buffer completion state can silently rot during sleep:
 -- workspace requests still answer, foldingRange still answers, only
--- completion goes dead. There is no cheap, safe request that reliably
--- distinguishes "completion fine" from "completion silently dead", so we
--- always pay the soft-recover cost (~200ms, single buffer) after a sleep
--- gap. didClose + didOpen forces jdtls to rebuild the per-buffer state.
+-- completion goes dead. In practice the same failure also appears
+-- process-wide, where newly opened buffers have no completion either. The
+-- automatic path therefore restarts jdtls; :JdtlsSoftRecover remains as a
+-- cheap manual diagnostic/repair command for buffer-local desync.
 --
 -- NOTE: we deliberately do NOT probe textDocument/completion. Sending
 -- completion to a URI that jdtls has not yet received didOpen for causes a
@@ -52,25 +52,33 @@ local logger = require("utils.logging-util").new({
 local lsp_util = require("utils.lsp-util")
 
 local SLEEP_THRESHOLD_MS = 2 * 60 * 1000
--- Above this gap, jdtls's process-wide state is empirically unsalvageable
--- by soft-recover alone — even buffers opened fresh AFTER the wake have
--- broken completion. Escalate straight to full restart for long suspends.
+-- Above this gap, non-focus activity should also trigger recovery; otherwise
+-- a wake-up in the same Java buffer can be missed until focus changes.
 local LONG_SLEEP_MS = 60 * 60 * 1000
+-- Above this gap, ordinary restart has proven insufficient: jdtls can come
+-- back with completion still broken until its workspace cache is rebuilt.
+local HARD_RESTART_GAP_MS = 8 * 60 * 60 * 1000
 local PROBE_TIMEOUT_MS = 3000
 local BUF_PROBE_TIMEOUT_MS = 2000
 local ACTION_COOLDOWN_MS = 30 * 1000
 local BUF_SOFT_COOLDOWN_MS = 10 * 1000
+local RESTART_SHUTDOWN_TIMEOUT_MS = 10 * 1000
+local RESTART_ATTACH_GRACE_MS = 1000
+local RESTART_ATTACH_POLL_MS = 200
 
 local state = {
+    -- Wall-clock timestamp for sleep/idle detection. Do not use vim.uv.now()
+    -- here: that is an event-loop/monotonic clock, not wall time.
     last_tick = nil,
+    -- Monotonic timestamp used only to detect wall-vs-monotonic drift after
+    -- real system suspend on platforms where monotonic time pauses.
+    last_mono_tick = nil,
     attach_fn = nil,
     recovering = false,
     probing = false,
     last_action_at = 0,
     -- per-buffer cooldown timestamps for soft recovery
     buf_last_soft = {},
-    -- buffers flagged for soft-recover on next BufEnter (post-sleep lazy resync)
-    needs_resync = {},
 }
 
 local function in_cooldown()
@@ -79,6 +87,34 @@ end
 
 local function mark_action()
     state.last_action_at = vim.uv.now()
+end
+
+--- Return current wall-clock time in milliseconds.
+local function wall_now_ms()
+    return os.time() * 1000
+end
+
+--- Reset wall-clock and monotonic sleep-detection ticks to now.
+local function set_tick()
+    state.last_tick = wall_now_ms()
+    state.last_mono_tick = vim.uv.now()
+end
+
+--- Update sleep-detection ticks and return wall-clock/monotonic gaps.
+local function update_tick_and_get_gaps()
+    local now = wall_now_ms()
+    local mono_now = vim.uv.now()
+    local prev = state.last_tick
+    local prev_mono = state.last_mono_tick
+
+    state.last_tick = now
+    state.last_mono_tick = mono_now
+
+    if not prev then
+        return nil, nil
+    end
+
+    return now - prev, prev_mono and (mono_now - prev_mono) or nil
 end
 
 local function java_buffers()
@@ -91,6 +127,211 @@ local function java_buffers()
     return bufs
 end
 
+--- Request graceful stop for every active JDTLS client.
+local function request_stop_jdtls_clients()
+    local clients = lsp_util.get_clients_by_name("jdtls")
+    for _, client in ipairs(clients) do
+        local ok, err = pcall(function()
+            if client.stop then
+                client:stop(RESTART_SHUTDOWN_TIMEOUT_MS)
+            else
+                vim.lsp.stop_client(client.id, RESTART_SHUTDOWN_TIMEOUT_MS)
+            end
+        end)
+        if not ok then
+            logger.fmt_warn("failed to stop client %s: %s", tostring(client.id), tostring(err))
+        end
+    end
+    return clients
+end
+
+--- Check whether all supplied clients are already closing their RPC streams.
+local function clients_are_closing(clients)
+    for _, client in ipairs(clients) do
+        if client.rpc and not client.rpc.is_closing() then
+            return false
+        end
+    end
+    return true
+end
+
+--- Poll until supplied clients close or the restart timeout is reached.
+local function wait_for_clients_to_close(clients, done)
+    local deadline = vim.uv.now() + RESTART_SHUTDOWN_TIMEOUT_MS + RESTART_ATTACH_GRACE_MS
+
+    local function poll()
+        if clients_are_closing(clients) then
+            done(true)
+            return
+        end
+        if vim.uv.now() >= deadline then
+            logger.fmt_warn("timed out waiting for %d jdtls client(s) to close; reattaching anyway", #clients)
+            done(false)
+            return
+        end
+        vim.defer_fn(poll, RESTART_ATTACH_POLL_MS)
+    end
+
+    poll()
+end
+
+--- Clear blink.cmp's active LSP completion queue and cached LSP source items.
+local function reset_blink_lsp_state(reason)
+    local trigger_ok, trigger = pcall(require, "blink.cmp.completion.trigger")
+    if trigger_ok then
+        local hide_ok, hide_err = pcall(function()
+            trigger.hide()
+        end)
+        if not hide_ok then
+            logger.fmt_warn("blink trigger reset failed (%s): %s", reason, tostring(hide_err))
+        end
+    end
+
+    local ok_sources, sources = pcall(require, "blink.cmp.sources.lib")
+    if not ok_sources then
+        return
+    end
+
+    local cancel_ok, cancel_err = pcall(function()
+        sources.cancel_completions()
+    end)
+    if not cancel_ok then
+        logger.fmt_warn("blink completion queue reset failed (%s): %s", reason, tostring(cancel_err))
+    end
+
+    local provider_ok, provider = pcall(function()
+        return sources.providers and sources.providers.lsp or sources.get_provider_by_id("lsp")
+    end)
+    if provider_ok and provider then
+        if provider.list then
+            local list_ok, list_err = pcall(function()
+                provider.list:destroy()
+            end)
+            if not list_ok then
+                logger.fmt_warn("blink lsp list reset failed (%s): %s", reason, tostring(list_err))
+            end
+            provider.list = nil
+        end
+        provider.resolve_cache_context_id = nil
+        provider.resolve_cache = {}
+    end
+
+    local ok_cache, cache = pcall(require, "blink.cmp.sources.lsp.cache")
+    if ok_cache and type(cache) == "table" then
+        cache.entries = {}
+    end
+end
+
+--- Refresh blink.cmp after JDTLS clients have been recreated.
+local function refresh_blink_lsp(reason)
+    reset_blink_lsp_state(reason)
+
+    local ok, cmp = pcall(require, "blink.cmp")
+    if not ok then
+        return
+    end
+
+    local reload_ok, reload_err = pcall(function()
+        cmp.reload("lsp")
+    end)
+    if not reload_ok then
+        logger.fmt_warn("blink lsp reload failed (%s): %s", reason, tostring(reload_err))
+    end
+
+    local subscribe_ok, subscribe_err = pcall(function()
+        cmp.resubscribe()
+    end)
+    if not subscribe_ok then
+        logger.fmt_warn("blink resubscribe failed (%s): %s", reason, tostring(subscribe_err))
+    end
+end
+
+--- Reattach JDTLS to loaded Java buffers and finish the recovery cycle.
+local function reattach_java_buffers(bufs, reason)
+    local attached = 0
+    for _, buf in ipairs(bufs) do
+        if vim.api.nvim_buf_is_loaded(buf) then
+            vim.api.nvim_buf_call(buf, function()
+                state.attach_fn(buf)
+            end)
+            attached = attached + 1
+        end
+    end
+    -- Reset the sleep detector after reattach so the next event does not reuse
+    -- the stale pre-recovery timestamp.
+    set_tick()
+    state.recovering = false
+    if attached > 0 then
+        vim.defer_fn(function()
+            refresh_blink_lsp(reason)
+        end, RESTART_ATTACH_GRACE_MS)
+        vim.notify(string.format("JDTLS recovered (%s, %d buffers)", reason, attached), vim.log.levels.INFO)
+    end
+end
+
+--- Extract JDTLS cache project names from client root directories.
+local function project_names_from_clients(clients)
+    local names = {}
+    for _, client in ipairs(clients) do
+        if client.config and client.config.root_dir then
+            names[vim.fs.basename(client.config.root_dir)] = true
+        end
+    end
+    return names
+end
+
+--- Wipe JDTLS cache directories for the supplied project names.
+local function wipe_jdtls_cache(project_names)
+    local cache_dir = vim.fn.stdpath("cache") .. "/jdtls"
+    local wiped = {}
+
+    for project_name in pairs(project_names) do
+        local path = cache_dir .. "/" .. project_name
+        if vim.fn.isdirectory(path) == 1 then
+            vim.fn.delete(path, "rf")
+            table.insert(wiped, project_name)
+        end
+    end
+
+    if #wiped == 0 and next(project_names) == nil and vim.fn.isdirectory(cache_dir) == 1 then
+        vim.fn.delete(cache_dir, "rf")
+        table.insert(wiped, "<all jdtls cache>")
+    end
+
+    return wiped
+end
+
+--- Stop JDTLS, wipe project cache, and reattach all loaded Java buffers.
+local function hard_restart_all_jdtls(reason)
+    if state.recovering then
+        return
+    end
+    local bufs = java_buffers()
+    if #bufs == 0 then
+        return
+    end
+
+    local clients = lsp_util.get_clients_by_name("jdtls")
+    local project_names = project_names_from_clients(clients)
+
+    state.recovering = true
+    mark_action()
+
+    logger.fmt_info("hard restart (%s): %d java buffers", reason, #bufs)
+
+    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
+        local wiped = wipe_jdtls_cache(project_names)
+        if #wiped > 0 then
+            logger.fmt_info("hard restart (%s): wiped cache for %s", reason, table.concat(wiped, ", "))
+            vim.notify("JDTLS hard restart: wiped cache for " .. table.concat(wiped, ", "), vim.log.levels.INFO)
+        else
+            logger.fmt_warn("hard restart (%s): no cache directories found to wipe", reason)
+        end
+        reattach_java_buffers(bufs, "hard restart: " .. reason)
+    end)
+end
+
+--- Stop JDTLS and reattach all loaded Java buffers without wiping cache.
 local function restart_all_jdtls(reason)
     if state.recovering then
         return
@@ -104,28 +345,9 @@ local function restart_all_jdtls(reason)
 
     logger.fmt_info("full restart (%s): %d java buffers", reason, #bufs)
 
-    for _, client in ipairs(lsp_util.get_clients_by_name("jdtls")) do
-        pcall(vim.lsp.stop_client, client.id, true)
-    end
-
-    vim.defer_fn(function()
-        local attached = 0
-        for _, buf in ipairs(bufs) do
-            if vim.api.nvim_buf_is_loaded(buf) then
-                vim.api.nvim_buf_call(buf, function()
-                    state.attach_fn(buf)
-                end)
-                attached = attached + 1
-            end
-        end
-        -- Reset tick to now so that the next gap check starts from this
-        -- point, not from the pre-sleep time that triggered this restart.
-        state.last_tick = vim.uv.now()
-        state.recovering = false
-        if attached > 0 then
-            vim.notify(string.format("JDTLS recovered (%s, %d buffers)", reason, attached), vim.log.levels.INFO)
-        end
-    end, 500)
+    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
+        reattach_java_buffers(bufs, reason)
+    end)
 end
 
 local function probe_client(client, done)
@@ -245,18 +467,8 @@ local function soft_recover_buffer(buf, reason)
     end, 200)
 end
 
-local function update_tick()
-    state.last_tick = vim.uv.now()
-end
-
-local function check_gap()
-    local now = vim.uv.now()
-    local prev = state.last_tick
-    state.last_tick = now
-    if not prev then
-        return
-    end
-    local gap = now - prev
+--- Recover JDTLS after a detected wall-clock gap.
+local function recover_after_gap(gap, source)
     if gap <= SLEEP_THRESHOLD_MS then
         return
     end
@@ -268,7 +480,7 @@ local function check_gap()
     end
 
     local clients = lsp_util.get_clients_by_name("jdtls")
-    local gap_label = string.format("%ds", math.floor(gap / 1000))
+    local gap_label = string.format("%ds/%s", math.floor(gap / 1000), source)
 
     if #clients == 0 then
         restart_all_jdtls("gap " .. gap_label .. ", no client")
@@ -284,38 +496,45 @@ local function check_gap()
             return
         end
 
-        -- Long-suspend escalation: jdtls's process-wide completion state is
-        -- empirically unsalvageable by soft-recover after multi-hour
-        -- suspends — even freshly-opened buffers have broken completion.
-        -- Skip the cheap path and go straight to full restart.
-        if gap >= LONG_SLEEP_MS then
-            logger.fmt_info("gap %s exceeds long-sleep threshold -> full restart", gap_label)
-            restart_all_jdtls("gap " .. gap_label .. ", long sleep")
+        if gap >= HARD_RESTART_GAP_MS then
+            logger.fmt_info("gap %s: workspace healthy -> hard restart for workspace refresh", gap_label)
+            hard_restart_all_jdtls("gap " .. gap_label .. ", workspace refresh")
             return
         end
 
-        -- Short suspend: workspace is alive, but jdtls's per-buffer
-        -- completion state can silently rot. Cure is buffer-level
-        -- didClose+didOpen (soft recover). Mark all loaded Java buffers as
-        -- "needs_resync" and soft-recover the current buffer immediately;
-        -- others get done lazily on first BufEnter.
-        local java_bufs = java_buffers()
-        for _, b in ipairs(java_bufs) do
-            state.needs_resync[b] = true
-        end
-        logger.fmt_info("gap %s: workspace healthy, marked %d java buffers for resync", gap_label, #java_bufs)
-
-        local cur = vim.api.nvim_get_current_buf()
-        if vim.bo[cur].filetype == "java" and state.needs_resync[cur] then
-            state.needs_resync[cur] = nil
-            soft_recover_buffer(cur, "gap " .. gap_label .. ", post-sleep resync")
-        end
+        logger.fmt_info("gap %s: workspace healthy -> full restart for completion refresh", gap_label)
+        restart_all_jdtls("gap " .. gap_label .. ", completion refresh")
     end)
 end
 
--- BufEnter for java buffers: cover two cases.
---   1. Buffer has no jdtls client at all → attach.
---   2. Buffer is flagged for post-sleep resync → soft recover lazily.
+--- Refresh the idle tick during ordinary editing and recover on long gaps.
+local function update_tick()
+    local gap, mono_gap = update_tick_and_get_gaps()
+    if not gap or gap < 0 then
+        return
+    end
+
+    -- Normal "reading without moving the cursor" produces both a wall-clock
+    -- gap and a monotonic gap. A real system suspend often produces wall time
+    -- advancing much further than monotonic time. Also recover after very long
+    -- inactivity even if the platform's monotonic clock includes sleep.
+    local suspend_gap = mono_gap and (gap - mono_gap) or 0
+    if suspend_gap >= SLEEP_THRESHOLD_MS or gap >= LONG_SLEEP_MS then
+        recover_after_gap(gap, "activity")
+    end
+end
+
+--- Check focus/buffer-entry events for an idle gap that needs recovery.
+local function check_gap()
+    local gap = update_tick_and_get_gaps()
+    if not gap or gap < 0 then
+        return
+    end
+    recover_after_gap(gap, "focus")
+end
+
+-- BufEnter for java buffers: if a buffer has no jdtls client but a project
+-- client exists, attach it. This covers already-open buffers after recovery.
 local function on_java_bufenter()
     if state.recovering then
         return
@@ -326,21 +545,16 @@ local function on_java_bufenter()
     end
     if not lsp_util.get_client_by_name("jdtls", { bufnr = buf }) then
         if lsp_util.get_client_by_name("jdtls") then
-            state.needs_resync[buf] = nil
             state.attach_fn(buf)
         end
         return
-    end
-    if state.needs_resync[buf] then
-        state.needs_resync[buf] = nil
-        soft_recover_buffer(buf, "post-sleep lazy resync")
     end
 end
 
 ---@param attach_fn fun(buf: integer)
 function M.setup(attach_fn)
     state.attach_fn = attach_fn
-    state.last_tick = vim.uv.now()
+    set_tick()
 
     local group = vim.api.nvim_create_augroup("jdtls_sleep_recovery", { clear = true })
 
@@ -553,43 +767,7 @@ function M.setup(attach_fn)
     -- workspace re-index, ~30-90s) but bypasses any corruption in the cache
     -- that survives ordinary restarts.
     vim.api.nvim_create_user_command("JdtlsHardRestart", function()
-        local cache_dir = vim.fn.stdpath("cache") .. "/jdtls"
-
-        -- Capture root_dirs BEFORE stopping clients (after stop, config is gone).
-        local roots = {}
-        for _, c in ipairs(lsp_util.get_clients_by_name("jdtls")) do
-            if c.config and c.config.root_dir then
-                local name = vim.fs.basename(c.config.root_dir)
-                roots[name] = true
-            end
-        end
-
-        -- Now stop clients so the cache is not in use.
-        for _, client in ipairs(lsp_util.get_clients_by_name("jdtls")) do
-            pcall(vim.lsp.stop_client, client.id, true)
-        end
-
-        vim.defer_fn(function()
-            local wiped = {}
-            for project_name in pairs(roots) do
-                local p = cache_dir .. "/" .. project_name
-                if vim.fn.isdirectory(p) == 1 then
-                    vim.fn.delete(p, "rf")
-                    table.insert(wiped, project_name)
-                end
-            end
-            if #wiped == 0 then
-                -- Fallback: nuke entire jdtls cache if we couldn't pin down a project.
-                if vim.fn.isdirectory(cache_dir) == 1 then
-                    vim.fn.delete(cache_dir, "rf")
-                    table.insert(wiped, "<all jdtls cache>")
-                end
-            end
-            vim.notify("JDTLS hard restart: wiped cache for " .. table.concat(wiped, ", "), vim.log.levels.INFO)
-            state.recovering = false
-            state.last_action_at = 0
-            restart_all_jdtls("hard restart")
-        end, 500)
+        hard_restart_all_jdtls("manual")
     end, { desc = "Wipe JDTLS workspace cache and restart (slow, fixes cache corruption)" })
 end
 
