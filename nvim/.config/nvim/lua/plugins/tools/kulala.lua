@@ -8,6 +8,8 @@ return {
         "mistweaverco/kulala.nvim",
         -- tag = "v5.3.4",
         -- tag = "v6.1.0",
+        tag = "v6.10.1",
+        -- tag = "v6.12.0",
         ft = { "http", "rest" },
         -- ft = { "http", "rest", "javascript", "lua" },
         -- stylua: ignore

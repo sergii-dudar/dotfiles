@@ -138,7 +138,7 @@ local entries = {
             filetypes = { "cpp" },
         },
     }, ]]
-    {
+    --[[ {
         name = "go",
         primary = true,
         project = {
@@ -158,7 +158,7 @@ local entries = {
             trouble_source = "go_test_diagnostics",
             diagnostic_source = "go-test",
         },
-    },
+    }, ]]
     --[[ {
         name = "javascript",
         runner = {

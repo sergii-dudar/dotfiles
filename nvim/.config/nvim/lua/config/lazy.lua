@@ -73,7 +73,7 @@ require("lazy").setup({
         -- { import = "lazyvim.plugins.extras.lang.cmake" },
 
         -- ========= langs that using not very often: =========
-        { import = "lazyvim.plugins.extras.lang.go" },
+        -- { import = "lazyvim.plugins.extras.lang.go" },
         -- { import = "lazyvim.plugins.extras.lang.dotnet" },
         -- { import = "lazyvim.plugins.extras.lang.kotlin" },
         -- { import = "lazyvim.plugins.extras.lang.scala" },
@@ -97,7 +97,7 @@ require("lazy").setup({
         -- e.g. java keymaps/plugins never appear in a rust project and vice-versa.
         { import = "plugins.editor.java", cond = function() return global.is_all or require("utils.lang.lang-project").is("java") end, },
         { import = "plugins.editor.rust", cond = function() return global.is_all or require("utils.lang.lang-project").is("rust") end, },
-        { import = "plugins.editor.go", cond = function() return global.is_all or require("utils.lang.lang-project").is("go") end, },
+        -- { import = "plugins.editor.go", cond = function() return global.is_all or require("utils.lang.lang-project").is("go") end, },
         -- add more, or another main language, in can your proffessional language for example is `go` (see current infrastructure for details)
 
         -- general
