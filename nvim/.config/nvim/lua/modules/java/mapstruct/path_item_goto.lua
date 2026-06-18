@@ -201,10 +201,64 @@ local function get_mapping_path_under_cursor()
     return { path = path, member = member }
 end
 
+---@param line string
+---@param quote_idx integer
+---@return boolean
+local function is_escaped_quote(line, quote_idx)
+    local slash_count = 0
+    local idx = quote_idx - 1
+    while idx >= 1 and line:sub(idx, idx) == "\\" do
+        slash_count = slash_count + 1
+        idx = idx - 1
+    end
+    return slash_count % 2 == 1
+end
+
+---@param line string
+---@param start_idx integer
+---@return integer|nil
+local function find_left_quote(line, start_idx)
+    for idx = math.min(start_idx, #line), 1, -1 do
+        if line:sub(idx, idx) == '"' and not is_escaped_quote(line, idx) then
+            return idx
+        end
+    end
+    return nil
+end
+
+---@param line string
+---@param start_idx integer
+---@return integer|nil
+local function find_right_quote(line, start_idx)
+    for idx = math.max(start_idx, 1), #line do
+        if line:sub(idx, idx) == '"' and not is_escaped_quote(line, idx) then
+            return idx
+        end
+    end
+    return nil
+end
+
+--- Check whether the cursor is inside a quoted string without touching Tree-sitter.
+---@return boolean
+local function is_cursor_inside_quoted_string()
+    local _, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local line = vim.api.nvim_get_current_line()
+    local cursor_idx = col + 1
+    return find_left_quote(line, cursor_idx) ~= nil and find_right_quote(line, cursor_idx + 1) ~= nil
+end
+
 --- Check whether the current cursor is on a MapStruct path item that can own go-to-definition.
 ---@param params? { bufnr?: integer, row?: integer, col?: integer }
 ---@return boolean
 function M.can_goto_path_item_definition(params)
+    if not mapstruct.is_mapper_file(params and params.bufnr) then
+        return false
+    end
+
+    if not is_cursor_inside_quoted_string() then
+        return false
+    end
+
     local current_path = get_mapping_path_under_cursor()
     if not current_path.member then
         return false

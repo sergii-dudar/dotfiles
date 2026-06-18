@@ -509,7 +509,7 @@ function M.is_mapper_file(bufnr)
         return false
     end
 
-    local filename = vim.fn.expand("%:t")
+    local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":t")
     -- return filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil
     return (filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")
 end
