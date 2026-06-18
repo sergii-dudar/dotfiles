@@ -334,7 +334,7 @@ return {
                     if client and client.name == "jdtls" then
                         -- Auto-refresh project config once workspace settles, so APT-generated
                         -- sources (MapStruct impls etc.) wiped during m2e configure get regenerated.
-                        require("utils.java.jdtls-workspace-watcher").setup(client)
+                        require("utils.java.jdtls-workspace-watcher").setup(client, args.buf)
                         local wk = require("which-key")
                         wk.add({
                             {

@@ -248,6 +248,10 @@ end
 
 --- Reattach JDTLS to loaded Java buffers and finish the recovery cycle.
 local function reattach_java_buffers(bufs, reason)
+    pcall(function()
+        require("utils.java.jdtls-workspace-watcher").mark_recovery_refresh(reason)
+    end)
+
     local attached = 0
     for _, buf in ipairs(bufs) do
         if vim.api.nvim_buf_is_loaded(buf) then
