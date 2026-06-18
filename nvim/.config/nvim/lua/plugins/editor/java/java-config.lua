@@ -131,9 +131,6 @@ return {
             { "<leader>jj", function() require("utils.java.jdtls-util").open_fqn_under_cursor() end, desc = "Open FQN Under Cursor" },
             { "<leader>ji", function() require("modules.java.static-import-explorer").quick_import() end, desc = "Static Import Quick" },
             { "<leader>jI", function() require("modules.java.static-import-explorer").find() end, desc = "Static Import Search" },
-            -- Mapstruct
-            { "<leader>jm", function() require("modules.java.mapstruct").goto_path_definition({ is_open_as_floating_win = true }) end, desc = "Go to definition (MapStruct) Float" },
-            { "<leader>jM", function() require("modules.java.mapstruct").goto_path_definition() end, desc = "Go to definition (MapStruct)" },
         },
         opts = {
             --[[jdtls = {

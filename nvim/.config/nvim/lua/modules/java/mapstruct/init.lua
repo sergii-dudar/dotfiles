@@ -514,6 +514,14 @@ function M.is_mapper_file(bufnr)
     return (filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")
 end
 
+--- Check whether MapStruct path go-to-definition should handle the current cursor.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@return boolean
+function M.can_goto_path_definition(params)
+    local path_goto = require("modules.java.mapstruct.path_item_goto")
+    return path_goto.can_goto_path_item_definition(params)
+end
+
 -- Go to definition of a field/method in MapStruct path
 -- Requires cursor to be on a path item in @Mapping annotation (e.g., "person.address.city")
 ---@param opts GoToMapStructOptions|nil of options

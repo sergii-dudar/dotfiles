@@ -201,6 +201,18 @@ local function get_mapping_path_under_cursor()
     return { path = path, member = member }
 end
 
+--- Check whether the current cursor is on a MapStruct path item that can own go-to-definition.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@return boolean
+function M.can_goto_path_item_definition(params)
+    local current_path = get_mapping_path_under_cursor()
+    if not current_path.member then
+        return false
+    end
+
+    return mapstruct.is_in_mapping_context(params or {})
+end
+
 ---@class GoToMapStructOptions
 ---@field is_open_as_floating_win (boolean|nil) widget to apply icon, default - false
 ---@param opts GoToMapStructOptions|nil of options

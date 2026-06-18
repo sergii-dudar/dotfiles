@@ -19,6 +19,39 @@ M.code_action_auto_resolve_match_names = {
     "Add unimplemented methods",
 }
 
+--- Build a MapStruct path navigation handler for Java LSP go-to mappings.
+---@param opts? GoToMapStructOptions
+---@return lang.LspNavigationHandler
+local function mapstruct_path_handler(opts)
+    return {
+        name = opts and opts.is_open_as_floating_win and "mapstruct-path-definition-float"
+            or "mapstruct-path-definition",
+        navigate = function(ctx)
+            if ctx.filetype ~= "java" then
+                return false
+            end
+
+            local mapstruct = require("modules.java.mapstruct")
+            local params = { bufnr = ctx.bufnr, row = ctx.row, col = ctx.col }
+            if not mapstruct.can_goto_path_definition(params) then
+                return false
+            end
+
+            mapstruct.goto_path_definition(opts)
+            return true
+        end,
+    }
+end
+
+M.navigation = {
+    definition = {
+        mapstruct_path_handler(),
+    },
+    declaration = {
+        mapstruct_path_handler({ is_open_as_floating_win = true }),
+    },
+}
+
 --- Request code actions from all LSP clients, apply the first matching one
 --- (respecting pattern priority order), or invoke a fallback if none match.
 ---@param action_match_names string[]
