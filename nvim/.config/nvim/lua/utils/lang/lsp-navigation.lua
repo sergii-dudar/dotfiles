@@ -1,6 +1,7 @@
 local lang_registry = require("utils.lang.registry")
 
 local M = {}
+local lsp_modules_by_lang = {}
 
 ---@alias lang.LspNavigationMethod "definition"|"declaration"
 
@@ -41,12 +42,18 @@ local function get_lang_lsp_module(filetype)
         return nil
     end
 
+    if lsp_modules_by_lang[entry.name] ~= nil then
+        return lsp_modules_by_lang[entry.name] or nil
+    end
+
     local module_name = ("utils.lang.%s.lsp-%s"):format(entry.name, entry.name)
     local ok, mod = pcall(require, module_name)
     if ok then
+        lsp_modules_by_lang[entry.name] = mod
         return mod
     end
 
+    lsp_modules_by_lang[entry.name] = false
     return nil
 end
 

@@ -31,6 +31,11 @@ local function mapstruct_path_handler(opts)
                 return false
             end
 
+            local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.bufnr), ":t")
+            if not ((filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")) then
+                return false
+            end
+
             local mapstruct = require("modules.java.mapstruct")
             local params = { bufnr = ctx.bufnr, row = ctx.row, col = ctx.col }
             if not mapstruct.can_goto_path_definition(params) then
@@ -43,9 +48,21 @@ local function mapstruct_path_handler(opts)
     }
 end
 
+--- Build a Lombok builder navigation handler for Java LSP go-to-definition.
+---@return lang.LspNavigationHandler
+local function lombok_builder_handler()
+    return {
+        name = "lombok-builder-field-definition",
+        navigate = function(ctx)
+            return require("utils.java.lombok-builder-navigation").goto_definition(ctx)
+        end,
+    }
+end
+
 M.navigation = {
     definition = {
         mapstruct_path_handler(),
+        lombok_builder_handler(),
     },
     declaration = {
         mapstruct_path_handler({ is_open_as_floating_win = true }),
