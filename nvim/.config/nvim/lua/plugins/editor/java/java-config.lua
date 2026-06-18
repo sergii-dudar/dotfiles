@@ -191,6 +191,7 @@ return {
                                     boot2 = {
                                         JAVA_PUBLIC_BEAN_METHOD = "IGNORE",
                                         MISSING_CONFIGURATION_ANNOTATION = "IGNORE",
+                                        JAVA_CONSTRUCTOR_PARAMETER_INJECTION = "IGNORE",
                                     },
                                 },
                             },

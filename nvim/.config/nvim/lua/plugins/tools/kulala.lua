@@ -6,10 +6,7 @@ vim.filetype.add({
 return {
     {
         "mistweaverco/kulala.nvim",
-        -- tag = "v5.3.4",
-        -- tag = "v6.1.0",
-        tag = "v6.10.1",
-        -- tag = "v6.12.0",
+        -- tag = "v6.14.0",
         ft = { "http", "rest" },
         -- ft = { "http", "rest", "javascript", "lua" },
         -- stylua: ignore
@@ -66,6 +63,17 @@ return {
                 },
             },
             lsp = {
+                enable = true,
+                keymaps = false, -- disabled by default, as Kulala relies on default Neovim LSP keymaps
+                ---filetypes to attach Kulala LSP to
+                ---@type string[]
+                filetypes = {
+                    "http",
+                    "rest",
+                    -- "javascript",
+                    -- "typescript",
+                    -- "lua",
+                },
                 on_attach = function(_, bufnr)
                     vim.schedule(function()
                         -- remove mapping to pick my default mapping in keymaps.lua
@@ -73,7 +81,7 @@ return {
                     end)
                 end,
             },
-            global_keymaps = true,
+            global_keymaps = false,
             global_keymaps_prefix = "<leader>r",
         },
     },
