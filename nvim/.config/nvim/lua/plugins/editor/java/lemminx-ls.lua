@@ -1,7 +1,3 @@
-if global.is_limited then
-    return {}
-end
-
 local jdtls_util = require("utils.java.java-common")
 -- local java_util = require("utils.java.java-common")
 local lemminx_jars = {}

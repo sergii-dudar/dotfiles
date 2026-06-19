@@ -6,13 +6,13 @@ for dir in */; do
     cd "$dir"
     echo "----------- inside $PWD"
 
-#    if [ "$dir" = 'ua-payments-payment-transmaster-connector/' ]; then
-#      FIXED_PROJ="FIXED"
-#    fi
-#    if [ ! -v FIXED_PROJ ]; then
-#      echo "skip as already processd"
-#      continue
-#    fi
+    #    if [ "$dir" = 'ua-payments-payment-transmaster-connector/' ]; then
+    #      FIXED_PROJ="FIXED"
+    #    fi
+    #    if [ ! -v FIXED_PROJ ]; then
+    #      echo "skip as already processd"
+    #      continue
+    #    fi
 
     # Check if the directory is a Git repository
     if [ -d ".git" ] && [ -f "pom.xml" ]; then

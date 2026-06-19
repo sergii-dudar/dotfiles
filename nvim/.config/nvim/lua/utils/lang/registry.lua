@@ -48,6 +48,7 @@ local entries = {
                 "gradlew",
                 "mvnw",
                 "build.xml",
+                "settings.xml", -- Maven settings at the repo root for parent/BOM-only repos that have no top-level pom.xml
             },
             exts = { java = true },
         },

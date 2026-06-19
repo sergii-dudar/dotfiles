@@ -189,6 +189,7 @@ return {
                                         JAVA_PUBLIC_BEAN_METHOD = "IGNORE",
                                         MISSING_CONFIGURATION_ANNOTATION = "IGNORE",
                                         JAVA_CONSTRUCTOR_PARAMETER_INJECTION = "IGNORE",
+                                        JAVA_AUTOWIRED_CONSTRUCTOR = "IGNORE",
                                     },
                                 },
                             },
