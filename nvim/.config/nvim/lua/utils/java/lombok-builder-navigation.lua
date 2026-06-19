@@ -126,21 +126,149 @@ local function field_column(line, field_name)
     return start_idx - 1
 end
 
----@param bufnr integer
----@param field_name string
+---@class java.BuilderTypeDeclaration
+---@field kind "class"|"record"
+---@field lnum integer
+
+--- Find the class or record declaration that belongs to a Lombok @Builder annotation.
+---@param lines string[]
 ---@param annotation_lnum integer
+---@return java.BuilderTypeDeclaration|nil
+local function find_builder_type_declaration(lines, annotation_lnum)
+    for idx = annotation_lnum, #lines do
+        local line = lines[idx]
+        if line:match("%f[%w_]record%s+") then
+            return { kind = "record", lnum = idx }
+        end
+        if line:match("%f[%w_]class%s+") then
+            return { kind = "class", lnum = idx }
+        end
+    end
+    return nil
+end
+
+--- Check whether a character is escaped by an odd number of backslashes.
+---@param line string
+---@param idx integer
+---@return boolean
+local function is_escaped_char(line, idx)
+    local slash_count = 0
+    local cursor = idx - 1
+    while cursor >= 1 and char_at(line, cursor) == "\\" do
+        slash_count = slash_count + 1
+        cursor = cursor - 1
+    end
+    return slash_count % 2 == 1
+end
+
+--- Find the opening parenthesis of a Java record component list.
+---@param line string
+---@return integer|nil
+local function record_open_paren(line)
+    local record_start = line:find("%f[%w_]record%s+")
+    if not record_start then
+        return nil
+    end
+    return line:find("%(", record_start)
+end
+
+--- Return the final identifier in a record component segment when it matches the requested field.
+---@param identifiers { name: string, lnum: integer, col: integer }[]
+---@param field_name string
 ---@return integer|nil, integer|nil
-local function find_field_in_builder_class(bufnr, field_name, annotation_lnum)
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+local function record_component_from_identifiers(identifiers, field_name)
+    local candidate = identifiers[#identifiers]
+    if candidate and candidate.name == field_name then
+        return candidate.lnum, candidate.col
+    end
+    return nil, nil
+end
+
+--- Find a record component by name, ignoring annotation arguments and generic type commas.
+---@param lines string[]
+---@param field_name string
+---@param record_lnum integer
+---@return integer|nil, integer|nil
+local function find_record_component(lines, field_name, record_lnum)
+    local paren_depth = 0
+    local angle_depth = 0
+    local in_string = false
+    local identifiers = {}
+
+    for lnum = record_lnum, #lines do
+        local line = lines[lnum]
+        local idx = 1
+
+        if paren_depth == 0 then
+            local open_paren = record_open_paren(line)
+            if not open_paren then
+                return nil, nil
+            end
+            paren_depth = 1
+            idx = open_paren + 1
+        end
+
+        while idx <= #line do
+            local ch = char_at(line, idx)
+
+            if in_string then
+                if ch == '"' and not is_escaped_char(line, idx) then
+                    in_string = false
+                end
+            elseif ch == '"' then
+                in_string = true
+            elseif ch == "<" then
+                angle_depth = angle_depth + 1
+            elseif ch == ">" and angle_depth > 0 then
+                angle_depth = angle_depth - 1
+            elseif ch == "(" then
+                paren_depth = paren_depth + 1
+            elseif ch == ")" then
+                if paren_depth == 1 then
+                    return record_component_from_identifiers(identifiers, field_name)
+                end
+                paren_depth = paren_depth - 1
+            elseif ch == "," and paren_depth == 1 and angle_depth == 0 then
+                local found_lnum, found_col = record_component_from_identifiers(identifiers, field_name)
+                if found_lnum then
+                    return found_lnum, found_col
+                end
+                identifiers = {}
+            elseif is_identifier_char(ch) then
+                local start_idx = idx
+                while idx <= #line and is_identifier_char(char_at(line, idx)) do
+                    idx = idx + 1
+                end
+                table.insert(identifiers, {
+                    name = line:sub(start_idx, idx - 1),
+                    lnum = lnum,
+                    col = start_idx - 1,
+                })
+                idx = idx - 1
+            end
+
+            idx = idx + 1
+        end
+    end
+
+    return nil, nil
+end
+
+--- Find a normal Java class field by name inside the annotated class body.
+---@param lines string[]
+---@param field_name string
+---@param class_lnum integer
+---@return integer|nil, integer|nil
+local function find_class_field(lines, field_name, class_lnum)
     local brace_depth = 0
-    for idx = 1, annotation_lnum - 1 do
+    for idx = 1, class_lnum - 1 do
         brace_depth = brace_depth + brace_delta(lines[idx] or "")
     end
 
     local found_class = false
     local class_depth = brace_depth
 
-    for idx = annotation_lnum, #lines do
+    for idx = class_lnum, #lines do
         local line = lines[idx]
         local before_depth = brace_depth
 
@@ -155,12 +283,31 @@ local function find_field_in_builder_class(bufnr, field_name, annotation_lnum)
         end
 
         brace_depth = brace_depth + brace_delta(line)
-        if found_class and idx > annotation_lnum and brace_depth <= class_depth then
+        if found_class and idx > class_lnum and brace_depth <= class_depth then
             break
         end
     end
 
     return nil, nil
+end
+
+--- Find a Lombok builder field or record component by name.
+---@param bufnr integer
+---@param field_name string
+---@param annotation_lnum integer
+---@return integer|nil, integer|nil
+local function find_field_in_builder_type(bufnr, field_name, annotation_lnum)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local declaration = find_builder_type_declaration(lines, annotation_lnum)
+    if not declaration then
+        return nil, nil
+    end
+
+    if declaration.kind == "record" then
+        return find_record_component(lines, field_name, declaration.lnum)
+    end
+
+    return find_class_field(lines, field_name, declaration.lnum)
 end
 
 ---@param win integer
@@ -179,7 +326,7 @@ local function jump_from_builder_annotation_to_field(win, bufnr, field_name)
         return false
     end
 
-    local field_lnum, col = find_field_in_builder_class(bufnr, field_name, lnum)
+    local field_lnum, col = find_field_in_builder_type(bufnr, field_name, lnum)
     if not field_lnum then
         return false
     end
