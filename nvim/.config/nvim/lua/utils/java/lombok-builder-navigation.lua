@@ -33,6 +33,65 @@ local function skip_spaces(line, idx, step)
     return idx
 end
 
+---@param line string
+---@param idx integer
+---@return integer
+local function skip_java_type_arguments(line, idx)
+    if char_at(line, idx) ~= "<" then
+        return idx
+    end
+
+    local depth = 0
+    while idx <= #line do
+        local ch = char_at(line, idx)
+        if ch == "<" then
+            depth = depth + 1
+        elseif ch == ">" then
+            depth = depth - 1
+            if depth == 0 then
+                return idx + 1
+            end
+        end
+        idx = idx + 1
+    end
+
+    return idx
+end
+
+--- Check whether a method name starts or returns a Lombok builder chain.
+---@param name string
+---@return boolean
+local function is_builder_chain_start_method(name)
+    return name:lower():find("builder", 1, true) ~= nil
+end
+
+--- Check whether a line starts or continues a Lombok builder chain.
+---@param line string
+---@return boolean
+local function line_has_builder_chain_start(line)
+    local dot_idx = line:find("%.")
+    while dot_idx do
+        local idx = skip_spaces(line, dot_idx + 1, 1)
+        idx = skip_java_type_arguments(line, idx)
+        idx = skip_spaces(line, idx, 1)
+
+        local start_idx = idx
+        while idx <= #line and is_identifier_char(char_at(line, idx)) do
+            idx = idx + 1
+        end
+
+        local name = line:sub(start_idx, idx - 1)
+        idx = skip_spaces(line, idx, 1)
+        if is_builder_chain_start_method(name) and char_at(line, idx) == "(" then
+            return true
+        end
+
+        dot_idx = line:find("%.", dot_idx + 1)
+    end
+
+    return false
+end
+
 ---@param bufnr integer
 ---@param lnum integer
 ---@return boolean
@@ -42,11 +101,11 @@ local function is_inside_builder_chain(bufnr, lnum)
 
     for idx = #lines, 1, -1 do
         local line = lines[idx]
-        if line:match("%.builder%s*%(") or line:match("%.toBuilder%s*%(") then
+        if line_has_builder_chain_start(line) then
             return true
         end
 
-        if line:find(";") then
+        if idx ~= #lines and line:find(";") then
             return false
         end
     end
