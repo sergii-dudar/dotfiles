@@ -12,9 +12,17 @@ local M = {}
 
 local java_util = require("utils.java.java-common")
 
+local neotree_setup_done = false
+local oil_setup_done = false
+local fyler_autocmd_setup_done = false
+
 --- Neo-tree.nvim: subscribe to file_renamed/file_moved events.
 --- These fire for both files AND directories.
 local function setup_neotree()
+    if neotree_setup_done then
+        return
+    end
+
     local java_refactor = require("modules.java.refactor")
 
     local handle_rename = function(data)
@@ -36,13 +44,20 @@ local function setup_neotree()
         event = events.FILE_MOVED,
         handler = handle_rename,
     })
+
+    neotree_setup_done = true
 end
 
 --- Oil.nvim: subscribe to OilActionsPost autocmd for move actions.
 local function setup_oil()
+    if oil_setup_done then
+        return
+    end
+
     local java_refactor = require("modules.java.refactor")
 
     vim.api.nvim_create_autocmd("User", {
+        group = vim.api.nvim_create_augroup("JavaRefactorOilIntegration", { clear = true }),
         pattern = "OilActionsPost",
         callback = function(event)
             if not java_util.is_java_project() then
@@ -63,6 +78,8 @@ local function setup_oil()
             end
         end,
     })
+
+    oil_setup_done = true
 end
 
 -- ============================================================================
@@ -83,10 +100,17 @@ end
 --- Fyler.nvim BufUnload autocmd — processes all registered changes when fyler closes.
 --- Called from: autocmds.lua
 function M.setup_fyler_autocmd()
+    if fyler_autocmd_setup_done then
+        return
+    end
+
+    local group = vim.api.nvim_create_augroup("JavaRefactorFylerIntegration", { clear = true })
     vim.api.nvim_create_autocmd({ "FileType" }, {
+        group = group,
         pattern = "fyler",
         callback = function(ev)
             vim.api.nvim_create_autocmd({ "BufUnload" }, {
+                group = group,
                 buffer = ev.buf,
                 callback = function()
                     vim.notify("Fyler: fixing after move is running...")
@@ -96,6 +120,8 @@ function M.setup_fyler_autocmd()
             })
         end,
     })
+
+    fyler_autocmd_setup_done = true
 end
 
 --- Rename current file via Snacks.rename with Java refactoring.

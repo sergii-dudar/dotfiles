@@ -102,6 +102,14 @@ return {
                     vim.opt_local.number = true
                 end,
             },
+            {
+                event = "neo_tree_popup_input_ready",
+                --- Keep rename inputs open when leaving insert mode with Esc, and go to normal mode.
+                ---@param args { bufnr: integer }
+                handler = function(args)
+                    vim.keymap.set("i", "<esc>", vim.cmd.stopinsert, { noremap = true, buffer = args.bufnr })
+                end,
+            },
             -- automatically toggle file preview, not working if neotree opened, need manually toggle, but works great
             -- in case close\open tree that fully ok for my flow
             -- {

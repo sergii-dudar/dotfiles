@@ -5,9 +5,9 @@
 local M = {}
 
 local string_util = require("utils.string-util")
-local buffer_util = require("utils.buffer-util")
 local consts = require("modules.java.refactor.constants")
 local canonical_mod = require("modules.java.refactor.canonical")
+local buffer_manager = require("modules.java.refactor.buffer-manager")
 
 local log = consts.log
 local shell_escape = consts.shell_escape
@@ -85,8 +85,8 @@ local function compute_structural_mirrors(structural_refactorings, test_mirrors,
             local handle = io.popen(fd_cmd)
             if handle then
                 local found_count = 0
-                for subdir in handle:lines() do
-                    subdir = subdir:gsub("/$", "")
+                for raw_subdir in handle:lines() do
+                    local subdir = raw_subdir:gsub("/$", "")
                     local subdir_name = subdir:match(".+/([^/]+)$")
                     log.debug("Found counterpart subdirectory:", subdir, "name:", subdir_name)
 
@@ -272,36 +272,7 @@ end
 ---@param test_mirrors java.rejactor.FileMove[]
 ---@param opened_buffers_to_reopen table Buffer tracking list to append to
 local function track_mirror_buffers(test_mirrors, opened_buffers_to_reopen)
-    for _, mirror in ipairs(test_mirrors) do
-        if vim.fn.isdirectory(mirror.src) == 1 then
-            local handle = io.popen("fd -e java . " .. shell_escape(mirror.src))
-            if handle then
-                for file_path in handle:lines() do
-                    local buf_id = buffer_util.find_buf_by_path(file_path)
-                    if buf_id then
-                        local new_path = file_path:gsub("^" .. vim.pesc(mirror.src), mirror.dst)
-                        table.insert(opened_buffers_to_reopen, {
-                            old_path = file_path,
-                            new_path = new_path,
-                            buf_id = buf_id,
-                        })
-                        log.info("Will reopen buffer:", file_path, "->", new_path)
-                    end
-                end
-                handle:close()
-            end
-        elseif mirror.src:match("%.java$") then
-            local buf_id = buffer_util.find_buf_by_path(mirror.src)
-            if buf_id then
-                table.insert(opened_buffers_to_reopen, {
-                    old_path = mirror.src,
-                    new_path = mirror.dst,
-                    buf_id = buf_id,
-                })
-                log.info("Will reopen buffer:", mirror.src, "->", mirror.dst)
-            end
-        end
-    end
+    buffer_manager.track_buffers_into(test_mirrors, opened_buffers_to_reopen)
 end
 
 --- Perform physical file/directory moves for mirrors.

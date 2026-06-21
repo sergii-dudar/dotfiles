@@ -258,40 +258,54 @@ function M.process_registerd_changes()
     -- Step 6: Separate shell and Lua operations
     local shell_cmds, lua_operations = executor.separate_operations(global_operations)
 
-    -- Use '; ' to join commands so one failure doesn't abort subsequent operations
-    local global_cmd_run = table.concat(shell_cmds, " ; ")
+    local global_cmd_run = executor.build_shell_chain(shell_cmds)
     log.debug("Full shell command chain length:", #global_cmd_run, "characters")
 
     -- Step 7: Execute in test mode (directly, without UI)
     if M.test_mode then
         local success = executor.execute_test_mode(shell_cmds, lua_operations)
+        if success then
+            mirror_sync.cleanup_empty_dirs(module_path)
+        end
         all_registered_changes = {}
         return success
     end
 
-    -- Step 8: Delete old buffers before applying changes
+    -- Step 8: Persist modified buffers, then delete old buffers before applying changes
+    if not buffer_manager.write_modified_buffers(opened_buffers_to_reopen) then
+        return false
+    end
     buffer_manager.delete_old_buffers(opened_buffers_to_reopen)
 
     -- Step 9: Build composite callback for post-execution
-    local composite_callback = function()
+    local composite_callback = function(shell_success, exit_code)
+        local lua_success = true
+
         -- Execute Lua operations after shell commands complete
-        if #lua_operations > 0 then
+        if shell_success and #lua_operations > 0 then
             log.info("Executing", #lua_operations, "Lua operations after shell commands")
             for _, op in ipairs(lua_operations) do
                 log.info("Executing:", op.description)
                 local success = op.fn()
                 if not success then
                     log.error("Lua operation failed:", op.description)
+                    lua_success = false
                 end
             end
             log.info("All Lua operations completed")
+        elseif not shell_success then
+            log.warn("Skipping Lua operations because shell refactoring failed with exit code:", exit_code)
         end
 
         -- Reopen buffers from new locations
         buffer_manager.reopen_buffers(opened_buffers_to_reopen)
 
         -- Final empty directory cleanup
-        mirror_sync.cleanup_empty_dirs(module_path)
+        if shell_success and lua_success then
+            mirror_sync.cleanup_empty_dirs(module_path)
+        else
+            vim.notify("Java refactoring finished with errors. Check java-refactor.log.", vim.log.levels.WARN)
+        end
     end
 
     -- Step 10: Execute shell commands via terminal, then run composite callback
@@ -300,7 +314,7 @@ function M.process_registerd_changes()
     else
         log.info("No shell commands to execute, running Lua operations directly")
         vim.schedule(function()
-            composite_callback()
+            composite_callback(true, 0)
         end)
     end
 
@@ -309,12 +323,16 @@ function M.process_registerd_changes()
     return true
 end
 
+M.process_registered_changes = M.process_registerd_changes
+
+--- Process one file move immediately using the registered-change pipeline.
 ---@param src string
 ---@param dst string
+---@return boolean|nil success
 function M.process_single_file_change(src, dst)
     log.info("Processing single file change:", src, "->", dst)
     M.register_change(src, dst)
-    M.process_registerd_changes()
+    return M.process_registerd_changes()
 end
 
 return M

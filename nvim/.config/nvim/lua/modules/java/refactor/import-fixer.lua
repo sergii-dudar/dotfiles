@@ -11,6 +11,7 @@
 local M = {}
 
 local logging = require("utils.logging-util")
+local consts = require("modules.java.refactor.constants")
 local log = logging.new({ name = "import-fixer", filename = "java-refactor.log" })
 
 -- Use GNU sed on both platforms for consistent behavior
@@ -20,8 +21,8 @@ local is_macos = vim.loop.os_uname().sysname == "Darwin"
 local sed = is_macos and "gsed" or "sed"
 
 -- Boundary patterns for matching Java type names (shared with init.lua logic)
-local LEADING_BOUNDARY = "(^|[[:space:],;(}<@])"
-local TRAILING_BOUNDARY = "([[:space:],;(}\\.>@])"
+local LEADING_BOUNDARY = consts.LEADING_BOUNDARY
+local TRAILING_BOUNDARY = consts.TRAILING_BOUNDARY
 
 -- Helper to escape single quotes in paths for safe shell interpolation
 local function shell_escape(s)
@@ -120,116 +121,119 @@ function M.fix_old_package_imports(opts)
         return false
     end
 
-    -- OLD_DIR might not exist if all files were moved from it - this is OK
-    -- We only process files in OLD_DIR if the directory still exists
-    if vim.fn.isdirectory(opts.old_dir) == 0 then
+    local old_dir_exists = vim.fn.isdirectory(opts.old_dir) == 1
+    if not old_dir_exists then
         log.debug("Old directory doesn't exist (all files moved):", opts.old_dir)
-        return true
     end
 
-    -- Find last import line using rg
-    local last_import_output = exec_and_read(
-        string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.new_file_path))
-    )
-    local last_import_line = tonumber(last_import_output) or 2
-    log.debug("Last import line:", last_import_line)
+    local sibling_usage_fixer = require("modules.java.refactor.sibling-usage-fixer")
 
-    -- Get the package of the file being fixed
-    local file_package_output = exec_and_read(
-        string.format(
-            "rg -m1 '^package ' %s 2>/dev/null | sed 's/package \\(.*\\);/\\1/'",
-            shell_escape(opts.new_file_path)
+    if old_dir_exists then
+        -- Find last import line using rg
+        local last_import_output = exec_and_read(
+            string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.new_file_path))
         )
-    )
-    local file_package = file_package_output and file_package_output:gsub("%s+", "") or ""
-    log.debug("File package:", file_package)
+        local last_import_line = tonumber(last_import_output) or 2
+        log.debug("Last import line:", last_import_line)
 
-    -- Get all Java files in old directory (not recursively)
-    local java_files_handle = io.popen(
-        string.format(
-            "fd --color=never -e java --max-depth 1 . %s -x basename {} .java 2>/dev/null",
-            shell_escape(opts.old_dir)
-        )
-    )
-
-    if not java_files_handle then
-        log.warn("Failed to list files in old directory:", opts.old_dir)
-        return true
-    end
-
-    local imports_added = 0
-    for filename in java_files_handle:lines() do
-        log.debug("Checking if file uses type:", filename)
-
-        -- Check if the moved file uses this type (with proper boundary matching)
-        local uses_type = os.execute(
+        -- Get the package of the file being fixed
+        local file_package_output = exec_and_read(
             string.format(
-                "rg -q '%s%s%s' %s 2>/dev/null",
-                LEADING_BOUNDARY,
-                filename,
-                TRAILING_BOUNDARY,
+                "rg -m1 '^package ' %s 2>/dev/null | sed 's/package \\(.*\\);/\\1/'",
                 shell_escape(opts.new_file_path)
             )
         )
+        local file_package = file_package_output and file_package_output:gsub("%s+", "") or ""
+        log.debug("File package:", file_package)
 
-        if uses_type == 0 or uses_type == true then
-            log.debug("File uses type:", filename)
+        -- Get all Java files in old directory (not recursively)
+        local java_files_handle = io.popen(
+            string.format(
+                "fd --color=never -e java --max-depth 1 . %s -x basename {} .java 2>/dev/null",
+                shell_escape(opts.old_dir)
+            )
+        )
 
-            -- Determine the correct package for import
-            local import_package = opts.old_package
+        if not java_files_handle then
+            log.warn("Failed to list files in old directory:", opts.old_dir)
+        else
+            local imports_added = 0
+            for filename in java_files_handle:lines() do
+                log.debug("Checking if file uses type:", filename)
 
-            -- If this file is a sibling (also being moved), import from NEW_PACKAGE instead
-            if is_sibling(filename, opts.siblings) then
-                import_package = opts.new_package
-                log.debug("Type is sibling, importing from new package:", import_package)
-            else
-                log.debug("Type is not sibling, importing from old package:", import_package)
-            end
+                -- Check if the moved file uses this type (with proper boundary matching)
+                local uses_type = os.execute(
+                    string.format(
+                        "rg -q '%s%s%s' %s 2>/dev/null",
+                        LEADING_BOUNDARY,
+                        filename,
+                        TRAILING_BOUNDARY,
+                        shell_escape(opts.new_file_path)
+                    )
+                )
 
-            -- Only add import if not in the same package
-            if file_package ~= import_package then
-                local import_line = string.format("import %s.%s;", import_package, filename)
-                log.info("Adding import:", import_line)
+                if uses_type == 0 or uses_type == true then
+                    log.debug("File uses type:", filename)
 
-                if add_import_line(opts.new_file_path, last_import_line, import_line) then
-                    imports_added = imports_added + 1
+                    -- Determine the correct package for import
+                    local import_package = opts.old_package
+
+                    -- If this file is a sibling (also being moved), import from NEW_PACKAGE instead
+                    if is_sibling(filename, opts.siblings) then
+                        import_package = opts.new_package
+                        log.debug("Type is sibling, importing from new package:", import_package)
+                    else
+                        log.debug("Type is not sibling, importing from old package:", import_package)
+                    end
+
+                    -- Only add import if not in the same package
+                    if file_package ~= import_package then
+                        local import_line = string.format("import %s.%s;", import_package, filename)
+                        log.info("Adding import:", import_line)
+
+                        if add_import_line(opts.new_file_path, last_import_line, import_line) then
+                            imports_added = imports_added + 1
+                        end
+                    else
+                        log.debug("Skipping import (same package):", filename)
+                    end
                 end
-            else
-                log.debug("Skipping import (same package):", filename)
             end
+
+            java_files_handle:close()
+            log.info("Added", imports_added, "imports to", opts.new_file_path)
         end
-    end
 
-    java_files_handle:close()
-    log.info("Added", imports_added, "imports to", opts.new_file_path)
+        -- Fix imports in files that stayed in old directory (both main and test)
+        -- They need to import the moved type from the new package
+        log.debug("Fixing imports in old directory files")
 
-    -- Fix imports in files that stayed in old directory (both main and test)
-    -- They need to import the moved type from the new package
-    log.debug("Fixing imports in old directory files")
-    local sibling_usage_fixer = require("modules.java.refactor.sibling-usage-fixer")
+        -- Process main directory
+        local old_dir_files_handle = io.popen(
+            string.format("fd --color=never -e java --max-depth 1 . %s 2>/dev/null", shell_escape(opts.old_dir))
+        )
 
-    -- Process main directory
-    local old_dir_files_handle =
-        io.popen(string.format("fd --color=never -e java --max-depth 1 . %s 2>/dev/null", shell_escape(opts.old_dir)))
+        if old_dir_files_handle then
+            local fixes_applied = 0
+            for old_file in old_dir_files_handle:lines() do
+                log.debug("Fixing sibling usage in old directory file:", old_file)
 
-    if old_dir_files_handle then
-        local fixes_applied = 0
-        for old_file in old_dir_files_handle:lines() do
-            log.debug("Fixing sibling usage in old directory file:", old_file)
+                local success = sibling_usage_fixer.fix_sibling_usage({
+                    file_path = old_file,
+                    new_package = opts.new_package,
+                    old_type_name = opts.old_type_name,
+                    new_type_name = opts.new_type_name,
+                })
 
-            local success = sibling_usage_fixer.fix_sibling_usage({
-                file_path = old_file,
-                new_package = opts.new_package,
-                old_type_name = opts.old_type_name,
-                new_type_name = opts.new_type_name,
-            })
-
-            if success then
-                fixes_applied = fixes_applied + 1
+                if success then
+                    fixes_applied = fixes_applied + 1
+                end
             end
+            old_dir_files_handle:close()
+            log.info("Fixed", fixes_applied, "files in old directory")
         end
-        old_dir_files_handle:close()
-        log.info("Fixed", fixes_applied, "files in old directory")
+    else
+        log.debug("Skipping old-directory file scans; wildcard and counterpart fixes will still run")
     end
 
     -- Also process counterpart directory (test mirror of old_dir, or main mirror if old_dir is test)

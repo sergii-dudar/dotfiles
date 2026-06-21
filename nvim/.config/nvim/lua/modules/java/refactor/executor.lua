@@ -12,11 +12,25 @@ local log = consts.log
 
 local current_term_win = nil
 
+--- Build a shell command chain that runs every command and fails if any command fails.
+---@param shell_cmds string[]
+---@return string command
+function M.build_shell_chain(shell_cmds)
+    local parts = { "failed=0" }
+
+    for _, cmd in ipairs(shell_cmds) do
+        table.insert(parts, string.format("( %s ) || failed=1", cmd))
+    end
+
+    table.insert(parts, "exit $failed")
+    return table.concat(parts, " ; ")
+end
+
 --- Execute a shell command string in a terminal split with progress UI.
---- On success, closes the terminal and calls the callback.
+--- Closes the terminal on success and calls the completion callback with the result.
 ---@param cmd_args string The shell command to run
----@param on_success_callback? function Called after successful completion
-function M.run_cmd(cmd_args, on_success_callback)
+---@param on_complete_callback? fun(success:boolean, exit_code:integer) Called after completion
+function M.run_cmd(cmd_args, on_complete_callback)
     log.info("Starting Java refactoring command execution")
     log.debug("Command:", cmd_args)
     spinner.start("🚀 " .. "Java Refactoring...")
@@ -41,11 +55,11 @@ function M.run_cmd(cmd_args, on_success_callback)
             spinner.stop(code == 0, code == 0 and "Java refactoring finished" or "Java refactoring failed")
             if code == 0 then
                 util.close_window_if_exists(current_term_win)
-                if on_success_callback then
-                    vim.schedule(function()
-                        on_success_callback()
-                    end)
-                end
+            end
+            if on_complete_callback then
+                vim.schedule(function()
+                    on_complete_callback(code == 0, code)
+                end)
             end
         end,
     })
@@ -53,6 +67,12 @@ function M.run_cmd(cmd_args, on_success_callback)
     if job_id <= 0 then
         log.error("Failed to start command via jobstart()")
         vim.notify("Failed to start cmd via jobstart()", vim.log.levels.ERROR)
+        spinner.stop(false, "Java refactoring failed")
+        if on_complete_callback then
+            vim.schedule(function()
+                on_complete_callback(false, -1)
+            end)
+        end
     else
         log.debug("Command started with job_id:", job_id)
     end
@@ -79,6 +99,7 @@ function M.execute_test_mode(shell_cmds, lua_operations)
         end
         if failed_cmds > 0 then
             log.warn(failed_cmds, "of", #shell_cmds, "shell commands had non-zero exit")
+            return false
         end
         log.info("Shell commands completed:", #shell_cmds - failed_cmds, "succeeded,", failed_cmds, "failed")
     end

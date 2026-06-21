@@ -8,6 +8,7 @@
 local M = {}
 
 local logging = require("utils.logging-util")
+local consts = require("modules.java.refactor.constants")
 local log = logging.new({ name = "sibling-usage-fixer", filename = "java-refactor.log" })
 
 -- Use GNU sed on both platforms for consistent behavior
@@ -16,8 +17,8 @@ local log = logging.new({ name = "sibling-usage-fixer", filename = "java-refacto
 local sed = vim.loop.os_uname().sysname == "Darwin" and "gsed" or "sed"
 
 -- Boundary patterns for matching Java type names (shared with init.lua logic)
-local LEADING_BOUNDARY = "(^|[[:space:],;(}<@])"
-local TRAILING_BOUNDARY = "([[:space:],;(}\\.>@])"
+local LEADING_BOUNDARY = consts.LEADING_BOUNDARY
+local TRAILING_BOUNDARY = consts.TRAILING_BOUNDARY
 
 -- Helper to execute command and get output
 local function exec_and_read(cmd)
@@ -133,7 +134,9 @@ function M.fix_sibling_usage(opts)
         local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
         log.info("Adding import:", import_line, "to", opts.file_path)
 
-        add_import_line(opts.file_path, last_import_line, import_line)
+        if not add_import_line(opts.file_path, last_import_line, import_line) then
+            return false
+        end
     else
         log.debug("Same package, skipping import")
     end

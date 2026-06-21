@@ -24,8 +24,8 @@ M.xargs = M.is_macos and "xargs" or "xargs -r"
 -- Sed boundary patterns for matching Java type names.
 -- Leading boundary: characters that can precede a type name (includes @ for annotations, ^ for line start)
 -- Trailing boundary: characters that can follow a type name
-M.LEADING_BOUNDARY = "(^|[[:space:],;(}<@])"
-M.TRAILING_BOUNDARY = "([[:space:],;(}\\.>@])"
+M.LEADING_BOUNDARY = "(^|[[:space:],;({}<@])"
+M.TRAILING_BOUNDARY = "([[:space:],;(){}\\.<>@:\\[]|$)"
 
 --- Helper to escape single quotes in paths for safe shell interpolation
 ---@param s string
