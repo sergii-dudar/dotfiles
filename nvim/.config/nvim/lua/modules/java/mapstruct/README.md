@@ -7,6 +7,7 @@ This directory contains the isolated MapStruct completion module that can be use
 ```
 modules/java/mapstruct/
 ├── init.lua         - Main module API (isolated from blink.cmp)
+├── config.lua       - Shared defaults and option merging
 ├── context.lua      - Treesitter-based context extraction
 ├── server.lua       - Java IPC server lifecycle management
 └── ipc_client.lua   - Unix domain socket IPC client
@@ -99,8 +100,7 @@ sources = {
             name = "mapstruct",
             module = "modules.blink.mapstruct-source",
             opts = {
-                jar_path = "~/path/to/mapstruct-path-explorer.jar",
-                use_jdtls_classpath = true,
+                -- Defaults live in modules.java.mapstruct.config.
                 log_level = "INFO",
             },
         },

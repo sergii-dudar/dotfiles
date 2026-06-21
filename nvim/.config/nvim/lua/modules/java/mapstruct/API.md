@@ -88,28 +88,22 @@ User types in @Mapping annotation
 ### User Commands
 
 ```
-:MapStructStart   - Manually start server
-:MapStructStatus  - Show server/cache status
-:MapStructRestart - Restart server
-:MapStructStop    - Stop server
-:MapStructPing    - Check connectivity
+:MapStructServerStart - Manually start server
+:MapStructStatus      - Show server/cache status
+:MapStructRestart     - Restart server
+:MapStructStop        - Stop server
+:MapStructPing        - Check connectivity
 ```
 
 ## Initialization
 
 ### Default Options
 
-The module comes with sensible defaults and will auto-initialize on first use if `setup()` is not called manually.
+The module comes with defaults from `modules.java.mapstruct.config` and will auto-initialize on first use if
+`setup()` is not called manually.
 
 ```lua
-DEFAULT_OPTS = {
-    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
-    use_jdtls_classpath = true,
-    classpath = nil,
-    java_cmd = "java",
-    log_level = vim.log.levels.WARN,
-    log_file = "~/.local/state/nvim/mapstruct-source-server.log",
-}
+local defaults = require("modules.java.mapstruct.config").get_defaults()
 ```
 
 ### `setup(opts)`
@@ -118,12 +112,10 @@ Initialize the module (optional - auto-initializes with defaults on first use).
 
 ```lua
 mapstruct.setup({
-    jar_path = "~/path/to/mapstruct-path-explorer.jar",  -- Optional if default exists
-    use_jdtls_classpath = true,                          -- Default: true
-    java_cmd = "java",                                   -- Default: "java"
-    classpath = "/custom/path",                          -- Optional: fallback classpath
-    log_level = "INFO",                                  -- Default: vim.log.levels.WARN
-    log_file = "~/.local/share/nvim/mapstruct.log",     -- Optional: Java log file
+    jar_path = "~/path/to/mapstruct-path-explorer.jar", -- Optional override
+    classpath = "/custom/path",                         -- Optional fallback classpath
+    log_level = "INFO",                                 -- Optional override
+    log_file = "~/.local/share/nvim/mapstruct.log",     -- Optional override
 })
 ```
 

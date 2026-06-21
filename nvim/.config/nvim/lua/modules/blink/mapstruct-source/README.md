@@ -91,18 +91,15 @@ mvn clean package -U
 
 ### 2. Configure blink.cmp
 
-The source is already configured in `lua/plugins/editor/blink-cmp.lua`. Update the jar path:
+The source is already configured in `lua/plugins/editor/blink-cmp.lua`. Shared defaults live in
+`modules.java.mapstruct.config`; keep only local overrides here:
 
 ```lua
 mapstruct = {
     name = "mapstruct",
     module = "modules.blink.mapstruct-source",
     opts = {
-        -- Required: path to mapstruct-path-explorer.jar
-        jar_path = "~/path/to/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-
-        -- Optional: use jdtls classpath (default: true)
-        use_jdtls_classpath = true,
+        log_level = vim.log.levels.DEBUG,
     },
 },
 ```
@@ -212,7 +209,7 @@ vim.keymap.set('n', '<leader>mp', ':MapStructPing<CR>', { desc = 'MapStruct: Pin
 
 ```lua
 opts = {
-    -- Required: Path to the jar file
+    -- Optional override; default lives in modules.java.mapstruct.config
     jar_path = "~/path/to/mapstruct-path-explorer.jar",
 
     -- Use jdtls classpath (includes all project modules and dependencies)

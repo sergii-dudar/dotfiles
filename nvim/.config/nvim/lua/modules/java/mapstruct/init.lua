@@ -2,53 +2,33 @@
 -- Provides MapStruct completion functionality independent of any completion framework
 -- Can be used with blink.cmp, nvim-cmp, or standalone
 
+local config = require("modules.java.mapstruct.config")
 local server = require("modules.java.mapstruct.server")
 local ipc_client = require("modules.java.mapstruct.ipc_client")
 local context = require("modules.java.mapstruct.context")
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
-local common_util = require("utils.common-util")
 local log = logging_util.new({ name = "MapStruct", filename = "mapstruct-source.log" })
 local spinner = require("utils.ui.spinner")
 
 local M = {}
 
--- Default options
-local DEFAULT_OPTS = {
-    -- Required: path to mapstruct-path-explorer.jar
-    -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-    -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
-    jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer-repo/target/mapstruct-path-explorer.jar",
-
-    -- Optional: use jdtls classpath (default: true)
-    use_jdtls_classpath = true,
-
-    -- Optional: manual classpath (fallback if jdtls fails)
-    classpath = nil,
-
-    -- Optional: custom Java command
-    java_cmd = "java",
-
-    -- Optional: log level (default: vim.log.levels.WARN)
-    -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
-    -- Controls both Java and Lua logging
-    log_level = vim.log.levels.WARN,
-
-    -- Optional: Java server log file
-    log_file = "~/.local/state/nvim/mapstruct-source-server.log",
-}
-
 -- Module state
 local state = {
     initialized = false,
     jar_path = nil,
-    use_jdtls_classpath = true,
-    java_cmd = "java",
+    use_jdtls_classpath = config.defaults.use_jdtls_classpath,
     server_started = false,
-    opts = {},
+    opts = config.get_defaults(),
 }
 
--- Set log level for all mapstruct modules
+local commands_setup = false
+local cleanup_augroup = nil
+local ensure_initialized
+local ensure_server_running
+
+--- Set log level for all MapStruct modules.
+---@param level string|number
 function M.set_log_level(level)
     local numeric_level = logging_util.level_to_number(level)
     log.set_level(numeric_level)
@@ -58,8 +38,21 @@ function M.set_log_level(level)
     classpath_util.set_log_level(numeric_level)
 end
 
--- Setup user commands for debugging and control (private)
+--- Return effective options after applying MapStruct defaults.
+---@param opts? table
+---@return table
+function M.default_opts(opts)
+    return config.merge(opts)
+end
+
+--- Setup user commands for debugging and control.
 local function setup_commands()
+    if commands_setup then
+        return
+    end
+
+    commands_setup = true
+
     vim.api.nvim_create_user_command("MapStructStatus", function()
         local status = M.get_status()
 
@@ -77,7 +70,7 @@ local function setup_commands()
         if not status.jdtls_ready then
             print("  Note: Server will not start until jdtls is ready")
         end
-    end, { desc = "Show MapStruct server status" })
+    end, { desc = "Show MapStruct server status", force = true })
 
     vim.api.nvim_create_user_command("MapStructRestart", function()
         M.restart(function(success)
@@ -88,14 +81,14 @@ local function setup_commands()
                 vim.notify("[MapStruct] Failed to restart server", vim.log.levels.ERROR)
             end
         end)
-    end, { desc = "Restart MapStruct server" })
+    end, { desc = "Restart MapStruct server", force = true })
 
     vim.api.nvim_create_user_command("MapStructStop", function()
         M.stop(function()
             log.info("Server stopped")
             vim.notify("[MapStruct] Server stopped", vim.log.levels.INFO)
         end)
-    end, { desc = "Stop MapStruct server" })
+    end, { desc = "Stop MapStruct server", force = true })
 
     vim.api.nvim_create_user_command("MapStructPing", function()
         M.ping(function(result, err)
@@ -106,16 +99,47 @@ local function setup_commands()
                 vim.notify("[MapStruct] Pong: " .. vim.inspect(result), vim.log.levels.INFO)
             end
         end)
-    end, { desc = "Ping MapStruct server" })
+    end, { desc = "Ping MapStruct server", force = true })
+
+    vim.api.nvim_create_user_command("MapStructServerStart", function()
+        ensure_initialized()
+        if not state.initialized then
+            vim.notify("[MapStruct] Module failed to initialize", vim.log.levels.ERROR)
+            return
+        end
+
+        ensure_server_running(function(success, err)
+            if success then
+                log.info("Server started successfully")
+                vim.notify("[MapStruct] Server started successfully", vim.log.levels.INFO)
+            else
+                vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
+            end
+        end)
+    end, { desc = "Start MapStruct server", force = true })
 end
 
--- Initialize the MapStruct module
--- opts: { jar_path, use_jdtls_classpath, java_cmd, classpath, log_level, log_file }
-function M.setup(opts)
-    opts = opts or {}
+--- Setup cleanup hooks for the MapStruct server and timers.
+local function setup_cleanup_autocmd()
+    if cleanup_augroup then
+        return
+    end
 
-    -- Merge with defaults
-    opts = vim.tbl_deep_extend("force", DEFAULT_OPTS, opts)
+    cleanup_augroup = vim.api.nvim_create_augroup("MapStructCleanup", { clear = true })
+    vim.api.nvim_create_autocmd("VimLeavePre", {
+        group = cleanup_augroup,
+        callback = function()
+            context.stop_cleanup_timer()
+            server.stop()
+        end,
+    })
+end
+
+--- Initialize the MapStruct module.
+---@param opts? table
+---@return boolean
+function M.setup(opts)
+    opts = config.merge(opts)
 
     -- Validate jar_path
     if not opts.jar_path then
@@ -133,9 +157,9 @@ function M.setup(opts)
     -- Store configuration
     state.jar_path = jar_path
     state.use_jdtls_classpath = opts.use_jdtls_classpath ~= false -- default true
-    state.java_cmd = opts.java_cmd or "java"
     state.opts = opts
     state.initialized = true
+    ipc_client.configure(opts)
 
     -- Set log level if specified
     if opts.log_level then
@@ -149,30 +173,28 @@ function M.setup(opts)
     setup_commands()
 
     -- Setup auto-cleanup on VimLeavePre
-    vim.api.nvim_create_autocmd("VimLeavePre", {
-        callback = function()
-            server.stop()
-        end,
-    })
+    setup_cleanup_autocmd()
 
     return true
 end
 
--- Auto-initialize with defaults if not already initialized
-local function ensure_initialized()
+--- Auto-initialize with defaults if not already initialized.
+ensure_initialized = function()
     if not state.initialized then
         log.info("Auto-initializing MapStruct module with default options")
-        M.setup(DEFAULT_OPTS)
+        M.setup()
     end
 end
 
--- Check if module is initialized
+--- Check if module is initialized.
+---@return boolean
 function M.is_initialized()
     return state.initialized
 end
 
--- Ensure server is running
-local function ensure_server_running(callback)
+--- Ensure server is running.
+---@param callback fun(success: boolean)
+ensure_server_running = function(callback)
     if server.is_running() and ipc_client.is_connected() then
         callback(true)
         return
@@ -210,18 +232,12 @@ local function ensure_server_running(callback)
     state.server_started = true
 
     spinner.start("🚀 " .. "Starting MapStruct Server...")
-    server.start(state.jar_path, {
-        java_cmd = state.java_cmd,
-        use_jdtls_classpath = state.use_jdtls_classpath,
-        classpath = state.opts.classpath,
-        log_level = state.opts.log_level,
-        log_file = state.opts.log_file,
-    }, function(success, err)
+    server.start(state.jar_path, state.opts, function(success, err)
         if not success then
             log.error("Failed to start server:", err)
             vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
             state.server_started = false
-            callback(false)
+            callback(false, err)
         else
             log.info("Server started successfully")
             callback(true)
@@ -230,10 +246,10 @@ local function ensure_server_running(callback)
     end)
 end
 
--- Base request logic to ensure server is running and handle retries
--- method: string - the IPC method to call
--- request_params: table - the request parameters
--- callback: function(result, error)
+--- Run an IPC request after starting the server, retrying once after connection loss.
+---@param method string
+---@param request_params table
+---@param callback fun(result?: table, err?: string)
 local function make_ipc_request(method, request_params, callback)
     -- Ensure server is running
     ensure_server_running(function(running)
@@ -249,7 +265,17 @@ local function make_ipc_request(method, request_params, callback)
                 log.warn("Request failed:", err)
 
                 -- If request failed, try to reconnect and retry once
-                if err == "Not connected" or err == "timeout" then
+                local connection_lost = type(err) == "string"
+                    and (
+                        err == "Not connected"
+                        or err == "timeout"
+                        or err == "Server cleanup"
+                        or err == "Server disconnected"
+                        or err:match("^Socket read error")
+                        or err:match("^Heartbeat failed")
+                    )
+
+                if connection_lost then
                     log.info("Connection lost, attempting to restart server...")
 
                     -- Reset state
@@ -292,10 +318,9 @@ local function make_ipc_request(method, request_params, callback)
     end)
 end
 
--- Get completions for MapStruct @Mapping annotations
--- params: { bufnr, row, col }
--- callback: function(completions, error)
--- completions format: { completions = {...}, className, simpleName, packageName }
+--- Get completions for MapStruct @Mapping annotations.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@param callback fun(result?: table, err?: string)
 function M.get_completions(params, callback)
     -- Auto-initialize if needed
     ensure_initialized()
@@ -347,8 +372,8 @@ function M.get_completions(params, callback)
     end
 
     -- Make request using base request logic with retry on compilation errors
-    local max_retries = 5
-    local retry_delay_ms = 2000 -- Start with 2 seconds
+    local max_retries = state.opts.path_retry_max_attempts
+    local retry_delay_ms = state.opts.path_retry_initial_delay_ms
     local attempt = 0
 
     local function make_request_with_retry()
@@ -402,9 +427,9 @@ function M.get_completions(params, callback)
     make_request_with_retry()
 end
 
--- Explore type source location
--- params: { typeName: string }
--- callback: function(result, error)
+--- Explore type source location.
+---@param params? { typeName?: string }
+---@param callback fun(result?: table, err?: string)
 function M.explore_type_source(params, callback)
     ensure_initialized()
 
@@ -430,10 +455,9 @@ function M.explore_type_source(params, callback)
     make_ipc_request("explore_type_source", request_params, callback)
 end
 
--- Get context information at cursor position
--- params: { bufnr, row, col }
--- Returns: { ok = true, value = context } on success
---          { ok = false, reason = "error_code", message = "user message" } on failure
+--- Get context information at cursor position.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@return table
 function M.get_context(params)
     params = params or {}
     local bufnr = params.bufnr or vim.api.nvim_get_current_buf()
@@ -443,7 +467,8 @@ function M.get_context(params)
     return context.get_completion_context(bufnr, row, col)
 end
 
--- Get server status
+--- Get server status.
+---@return table
 function M.get_status()
     local status = server.get_status()
     local jdtls_ready = classpath_util.is_jdtls_ready()
@@ -460,7 +485,8 @@ function M.get_status()
     }
 end
 
--- Restart the server
+--- Restart the server.
+---@param callback? fun(success: boolean)
 function M.restart(callback)
     server.restart(function(success)
         if callback then
@@ -469,7 +495,8 @@ function M.restart(callback)
     end)
 end
 
--- Stop the server
+--- Stop the server.
+---@param callback? fun()
 function M.stop(callback)
     server.stop(function()
         if callback then
@@ -478,7 +505,8 @@ function M.stop(callback)
     end)
 end
 
--- Ping the server
+--- Ping the server.
+---@param callback? fun(result?: table, err?: string)
 function M.ping(callback)
     if not ipc_client.is_connected() then
         if callback then
@@ -494,14 +522,17 @@ function M.ping(callback)
     end)
 end
 
--- Check if cursor is in a valid MapStruct context
--- params: { bufnr, row, col }
+--- Check if cursor is in a valid MapStruct context.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@return boolean
 function M.is_in_mapping_context(params)
     local ctx = M.get_context(params)
     return ctx.ok == true
 end
 
--- Check if file is a mapper file
+--- Check if file is a mapper or builder Java file.
+---@param bufnr? integer
+---@return boolean
 function M.is_mapper_file(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     local filetype = vim.bo[bufnr].filetype
@@ -522,25 +553,13 @@ function M.can_goto_path_definition(params)
     return path_goto.can_goto_path_item_definition(params)
 end
 
--- Go to definition of a field/method in MapStruct path
--- Requires cursor to be on a path item in @Mapping annotation (e.g., "person.address.city")
+--- Go to definition of a field/method in a MapStruct path.
 ---@param opts GoToMapStructOptions|nil of options
 function M.goto_path_definition(opts)
     local path_goto = require("modules.java.mapstruct.path_item_goto")
     path_goto.goto_path_item_definitions(opts)
 end
 
-vim.api.nvim_create_user_command("MapStructServerStart", function()
-    -- Auto-initialize if needed
-    ensure_initialized()
-    ensure_server_running(function(success, err)
-        if success then
-            log.info("Server started successfully")
-            vim.notify("[MapStruct] Server started successfully", vim.log.levels.INFO)
-        else
-            vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
-        end
-    end)
-end, { desc = "Start MapStruct server" })
+setup_commands()
 
 return M

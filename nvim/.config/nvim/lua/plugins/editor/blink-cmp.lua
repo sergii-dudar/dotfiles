@@ -238,27 +238,8 @@ return {
                         name = "mapstruct",
                         module = "modules.blink.mapstruct-source",
                         opts = {
-                            -- Required: path to mapstruct-path-explorer.jar
-                            -- jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer.jar",
-                            jar_path = "~/tools/java-extensions/mapstruct/mapstruct-path-explorer-repo/target/mapstruct-path-explorer.jar",
-                            -- jar_path = "~/serhii.home/personal/git/mapstruct-path-explorer/target/mapstruct-path-explorer.jar",
-
-                            -- Optional: use jdtls classpath (default: true)
-                            use_jdtls_classpath = true,
-
-                            -- Optional: manual classpath (fallback if jdtls fails)
-                            -- classpath = nil,
-
-                            -- Optional: custom Java command
-                            -- java_cmd = "java",
-
-                            -- Optional: log level (default: vim.log.levels.INFO)
-                            -- Can be vim.log.levels.* or string ("DEBUG", "INFO", etc.)
-                            -- Controls both Java and Lua logging
+                            -- Shared defaults live in modules.java.mapstruct.config.
                             log_level = vim.log.levels.DEBUG,
-
-                            -- Optional: Java server log file (default: ~/.local/state/nvim/mapstruct-source-server.log)
-                            -- log_file = "~/.local/state/nvim/mapstruct-source-server.log",
                         },
                     },
                 },

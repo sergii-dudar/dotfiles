@@ -1,6 +1,7 @@
 -- Server Lifecycle Manager for MapStruct IPC
 -- Handles starting, stopping, and monitoring the Java server
 
+local config = require("modules.java.mapstruct.config")
 local ipc_client = require("modules.java.mapstruct.ipc_client")
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local logging_util = require("utils.logging-util")
@@ -8,7 +9,10 @@ local log = logging_util.new({ name = "MapStruct.Server", filename = "mapstruct-
 
 local M = {}
 
--- Set log level for this module
+local uv = vim.uv or vim.loop
+
+--- Set log level for this module.
+---@param level string|number
 function M.set_log_level(level)
     log.set_level(level)
 end
@@ -22,15 +26,26 @@ local state = {
     opts = nil, -- Store original options for restart
 }
 
--- Generate unique socket path for this Neovim instance
-local function generate_socket_path()
-    local tmpdir = "/tmp"
+--- Generate a unique socket path for this Neovim instance.
+---@param opts table
+---@return string
+local function generate_socket_path(opts)
+    local tmpdir = vim.fn.expand(opts.socket_dir or config.defaults.socket_dir)
+    tmpdir = tmpdir:gsub("/+$", "")
     local nvim_pid = vim.fn.getpid()
     return string.format("%s/mapstruct-ipc-%d.sock", tmpdir, nvim_pid)
 end
 
--- Filter out SLF4J providers from classpath to avoid conflicts
--- Patterns to exclude: logback, log4j, slf4j-simple, slf4j-jdk14, etc.
+--- Check whether a filesystem path exists.
+---@param path string|nil
+---@return boolean
+local function path_exists(path)
+    return path ~= nil and uv.fs_stat(path) ~= nil
+end
+
+--- Filter out SLF4J providers from classpath to avoid conflicts.
+---@param classpath string|nil
+---@return string|nil
 local function filter_slf4j_providers(classpath)
     if not classpath or classpath == "" then
         return classpath
@@ -74,9 +89,12 @@ local function filter_slf4j_providers(classpath)
     return table.concat(filtered, ":")
 end
 
--- Start the Java IPC server
+--- Start the Java IPC server.
+---@param jar_path string
+---@param opts? table
+---@param callback? fun(success: boolean, result_or_err?: string)
 function M.start(jar_path, opts, callback)
-    opts = opts or {}
+    opts = config.merge(opts)
 
     if state.server_job_id then
         log.warn("Server already running")
@@ -90,13 +108,21 @@ function M.start(jar_path, opts, callback)
     if state.is_starting then
         log.warn("Server is already starting")
         vim.notify("[MapStruct] Server is already starting", vim.log.levels.WARN)
+        if callback then
+            callback(false, "Server is already starting")
+        end
         return
     end
 
     state.is_starting = true
     state.jar_path = jar_path
-    state.socket_path = generate_socket_path()
+    state.socket_path = generate_socket_path(opts)
     state.opts = opts -- Store options for restart
+
+    if path_exists(state.socket_path) then
+        log.debug("Deleting stale socket before start:", state.socket_path)
+        vim.fn.delete(state.socket_path)
+    end
 
     -- Build classpath
     local classpath = jar_path
@@ -118,7 +144,7 @@ function M.start(jar_path, opts, callback)
 
     -- Build command
     local cmd = {
-        opts.java_cmd or "java",
+        opts.java_cmd,
     }
 
     -- Add log level system property if specified
@@ -144,7 +170,7 @@ function M.start(jar_path, opts, callback)
     table.insert(cmd, state.socket_path)
 
     log.info("Starting server on", state.socket_path)
-    log.info("Java command:", opts.java_cmd or "java")
+    log.info("Java command:", opts.java_cmd)
     log.info("Use jdtls classpath:", opts.use_jdtls_classpath)
     log.info("Log level from opts:", opts.log_level or "not set")
     log.debug("Full command:", vim.inspect(cmd))
@@ -193,8 +219,8 @@ function M.start(jar_path, opts, callback)
 
     -- Give server time to start, then connect
     vim.defer_fn(function()
-        state.is_starting = false
         ipc_client.connect(state.socket_path, function(success, err)
+            state.is_starting = false
             if callback then
                 if success then
                     callback(true, state.socket_path)
@@ -203,10 +229,11 @@ function M.start(jar_path, opts, callback)
                 end
             end
         end)
-    end, 1000)
+    end, opts.start_connect_delay_ms)
 end
 
--- Stop the server
+--- Stop the server.
+---@param callback? fun(success: boolean)
 function M.stop(callback)
     log.info("Stop requested - server_job_id:", state.server_job_id)
 
@@ -247,7 +274,8 @@ function M.stop(callback)
     end, 200)
 end
 
--- Restart the server
+--- Restart the server.
+---@param callback? fun(success: boolean, err?: string)
 function M.restart(callback)
     log.info("Restarting server...")
     log.info("Current state - jar_path:", state.jar_path)
@@ -273,11 +301,11 @@ function M.restart(callback)
     end)
 end
 
--- Cleanup server resources
+--- Cleanup server resources.
 function M.cleanup()
     log.info("Cleanup called")
     log.debug("Disconnecting IPC client")
-    ipc_client.disconnect()
+    ipc_client.disconnect("Server cleanup")
 
     if state.server_job_id then
         log.debug("Clearing server_job_id:", state.server_job_id)
@@ -285,7 +313,7 @@ function M.cleanup()
     end
 
     -- Clean up socket file
-    if state.socket_path and vim.fn.filereadable(state.socket_path) == 1 then
+    if path_exists(state.socket_path) then
         log.debug("Deleting socket file:", state.socket_path)
         vim.fn.delete(state.socket_path)
     end
@@ -294,12 +322,14 @@ function M.cleanup()
     log.info("Cleanup completed")
 end
 
--- Check if server is running
+--- Check if server is running.
+---@return boolean
 function M.is_running()
     return state.server_job_id ~= nil
 end
 
--- Get server status
+--- Get server status.
+---@return table
 function M.get_status()
     return {
         running = state.server_job_id ~= nil,
@@ -310,7 +340,8 @@ function M.get_status()
     }
 end
 
--- Get socket path
+--- Get socket path.
+---@return string|nil
 function M.get_socket_path()
     return state.socket_path
 end
