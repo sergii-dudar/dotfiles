@@ -62,6 +62,8 @@ local ignored_dependencies = {
 
 local state = {
     loaded = false,
+    loading = false,
+    pending_on_done = {},
     source_dirs_main = {},
     source_dirs_main_all = {},
     source_dirs_test = {},
@@ -76,6 +78,19 @@ local function to_path_patterns(deps)
         table.insert(patterns, dep:gsub(":", "/"):gsub("%.", "/") .. "/")
     end
     return patterns
+end
+
+--- Insert an item into a list once, preserving first-seen order.
+---@param list table
+---@param seen table
+---@param key string
+---@param item any
+local function insert_once(list, seen, key, item)
+    if seen[key] then
+        return
+    end
+    seen[key] = true
+    table.insert(list, item)
 end
 
 local include_dep_patterns = to_path_patterns(include_dependencies)
@@ -99,22 +114,31 @@ local function gradle_cache_rel(path)
     return path:match(GRADLE_CACHE_PATTERN .. "(.+)")
 end
 
--- Normalize a jar/dir path to a slash-form coordinate path for pattern matching.
--- Maven already stores the group as nested dirs (org/mapstruct/...), but Gradle
--- uses a single dotted segment (files-2.1/org.mapstruct/...), so we convert that
--- group segment's dots to slashes. Returns the input unchanged for Maven paths.
+local coord_match_cache = {}
+
+--- Normalize a jar/dir path to a slash-form coordinate path for pattern matching.
+--- Maven already stores the group as nested dirs (org/mapstruct/...), but Gradle
+--- uses a single dotted segment (files-2.1/org.mapstruct/...), so we convert that
+--- group segment's dots to slashes. Returns the input unchanged for Maven paths.
 ---@param path string
 ---@return string
 local function coord_match_path(path)
+    local cached = coord_match_cache[path]
+    if cached then
+        return cached
+    end
     local g = gradle_cache_rel(path)
     if not g then
+        coord_match_cache[path] = path
         return path
     end
     local group, rest = g:match("^([^/]+)/(.+)$")
+    local result = g
     if group then
-        return group:gsub("%.", "/") .. "/" .. rest
+        result = group:gsub("%.", "/") .. "/" .. rest
     end
-    return g
+    coord_match_cache[path] = result
+    return result
 end
 
 -- Exposed for reuse (e.g. static-import-explorer's preferred-dep matching).
@@ -204,54 +228,101 @@ local function resolve_sources(jar)
     return base .. "-sources.jar", base .. "-sources"
 end
 
----@param opts? { on_done?: fun() }
---- Process a list of jars into source_dirs (filtered) and source_dirs_all (unfiltered).
---- Returns { dirs, dirs_all, to_extract, missing }
+--- Process jars into filtered/all source dirs plus extraction and missing-source lists.
+---@param jars string[]
+---@return { dirs: string[], dirs_all: string[], to_extract: table[], missing: string[] }
 local function process_jars(jars)
     local dirs = {}
     local dirs_all = {}
     local to_extract = {}
     local missing = {}
+    local seen_dirs = {}
+    local seen_dirs_all = {}
+    local seen_extract = {}
+    local seen_missing = {}
 
     for _, jar in ipairs(jars) do
         local sources_jar, sources_dir = resolve_sources(jar)
 
         if sources_dir and vim.fn.isdirectory(sources_dir) == 1 then
-            table.insert(dirs_all, sources_dir)
+            insert_once(dirs_all, seen_dirs_all, sources_dir, sources_dir)
             if not is_jar_ignored(jar) then
-                table.insert(dirs, sources_dir)
+                insert_once(dirs, seen_dirs, sources_dir, sources_dir)
             end
         elseif sources_jar and vim.fn.filereadable(sources_jar) == 1 then
-            table.insert(to_extract, { sources_jar = sources_jar, sources_dir = sources_dir })
-            table.insert(dirs_all, sources_dir)
+            insert_once(to_extract, seen_extract, sources_dir, { sources_jar = sources_jar, sources_dir = sources_dir })
+            insert_once(dirs_all, seen_dirs_all, sources_dir, sources_dir)
             if not is_jar_ignored(jar) then
-                table.insert(dirs, sources_dir)
+                insert_once(dirs, seen_dirs, sources_dir, sources_dir)
             end
         else
-            table.insert(missing, vim.fn.fnamemodify(jar, ":t"))
+            local jar_name = vim.fn.fnamemodify(jar, ":t")
+            insert_once(missing, seen_missing, jar_name, jar_name)
         end
     end
 
     return { dirs = dirs, dirs_all = dirs_all, to_extract = to_extract, missing = missing }
 end
 
+--- Extract unique jar paths from a JDTLS classpath list.
+---@param classpaths string[]
+---@return string[]
 local function classpaths_to_jars(classpaths)
     local jars = {}
+    local seen = {}
     for _, entry in ipairs(classpaths) do
         if entry:match("%.jar$") then
-            table.insert(jars, entry)
+            insert_once(jars, seen, entry, entry)
         end
     end
     return jars
 end
 
+--- Queue a load callback while dependency sources are being resolved.
+---@param callback? fun()
+local function queue_on_done(callback)
+    if callback then
+        table.insert(state.pending_on_done, callback)
+    end
+end
+
+--- Run and clear callbacks waiting for dependency source loading.
+local function flush_on_done()
+    local callbacks = state.pending_on_done
+    state.pending_on_done = {}
+    for _, callback in ipairs(callbacks) do
+        callback()
+    end
+end
+
+--- Mark dependency loading as complete and notify queued callbacks.
+local function finish_load()
+    state.loaded = true
+    state.loading = false
+    flush_on_done()
+end
+
+--- Resolve dependency source dirs from JDTLS classpath, extracting sources jars when needed.
+---@param opts? { on_done?: fun(), bufnr?: integer }
 function M.load_sources(opts)
     local on_done = opts and opts.on_done
     local bufnr = opts and opts.bufnr
 
+    if state.loading then
+        queue_on_done(on_done)
+        return
+    end
+
+    state.loading = true
+    state.loaded = false
+    state.pending_on_done = {}
+    queue_on_done(on_done)
+
     -- Load runtime (main) scope
     local main_cp = classpath_util.get_classpath_for_main_method_table({ scope = "runtime", bufnr = bufnr })
     if not main_cp then
+        state.loading = false
+        state.pending_on_done = {}
         vim.notify("[Dep Search] Failed to get classpath from jdtls", vim.log.levels.WARN)
         return
     end
@@ -274,10 +345,11 @@ function M.load_sources(opts)
 
     -- Modules from test (superset) for selectors
     local modules = {}
+    local seen_modules = {}
     for _, dir in ipairs(test_result.dirs_all) do
         local mod = source_dir_to_module(dir)
         if mod then
-            table.insert(modules, mod)
+            insert_once(modules, seen_modules, mod.label .. "\n" .. mod.dir, mod)
         end
     end
     table.sort(modules, function(a, b)
@@ -340,9 +412,6 @@ function M.load_sources(opts)
         -- vim.notify(table.concat(lines, "\n"), vim.log.levels.WARN)
     end
 
-    state.loaded = true
-
-    local total_dirs = #test_result.dirs
     if #to_extract == 0 then
         spinner.stop(
             true,
@@ -354,9 +423,7 @@ function M.load_sources(opts)
             )
         )
         notify_missing()
-        if on_done then
-            on_done()
-        end
+        finish_load()
         return
     end
 
@@ -386,9 +453,7 @@ function M.load_sources(opts)
                         )
                     )
                     notify_missing()
-                    if on_done then
-                        on_done()
-                    end
+                    finish_load()
                 end)
             end
         end)
@@ -635,14 +700,19 @@ function M.explore()
     end)
 end
 
+--- Reset loaded dependency sources and picker module selection state.
 function M.reset()
     state.loaded = false
+    state.loading = false
+    state.pending_on_done = {}
     state.source_dirs_main = {}
     state.source_dirs_main_all = {}
     state.source_dirs_test = {}
     state.source_dirs_test_all = {}
     state.modules = {}
     state.exclude = {}
+    selected_explore_module = nil
+    coord_match_cache = {}
     vim.notify("[Dep Search] Cache cleared. Will reload on next use.", vim.log.levels.INFO)
 end
 

@@ -1,9 +1,9 @@
-local java_util = require("utils.java.java-common")
 local dep_search = require("modules.java.dependencies-search")
 local util = require("modules.java.static-import-explorer.util")
 
 local M = {}
 
+--- Build the picker confirm callback that inserts the selected static import.
 local function make_confirm(settings, state)
     return function(picker, item)
         if not item then
@@ -16,7 +16,7 @@ local function make_confirm(settings, state)
         end
         picker:close()
         local lnum = item.pos and item.pos[1] or nil
-        local fqcn = java_util.file_to_fqcn(file, lnum)
+        local fqcn = util.file_to_fqcn(file, lnum, state.fqcn_cache)
         if not fqcn then
             vim.notify("[Static Import] Could not determine FQCN", vim.log.levels.WARN)
             return
@@ -33,11 +33,18 @@ local function make_confirm(settings, state)
     end
 end
 
+--- Build the Snacks formatter for displaying class/member search results.
 local function make_format_item(state)
     return function(item)
         local lnum = item.pos and item.pos[1] or nil
-        local fqcn = java_util.file_to_fqcn(item.file or "", lnum)
+        local fqcn = util.file_to_fqcn(item.file or "", lnum, state.fqcn_cache)
         local member = util.extract_static_member(item.text or "", state.current_word)
+        if not fqcn then
+            local filename = vim.fn.fnamemodify(item.file or "", ":t:r")
+            return {
+                { filename .. "." .. (member or "?"), "Function" },
+            }
+        end
         local class_name = fqcn:match("([^%.]+)$") or fqcn
         local pkg = fqcn:match("^(.+)%.") or ""
 
@@ -52,6 +59,7 @@ local function make_format_item(state)
     end
 end
 
+--- Ensure dependency source directories are available before refreshing a picker.
 local function ensure_deps_loaded(state, callback)
     if not dep_search.is_loaded() then
         dep_search.load_sources({
@@ -63,6 +71,7 @@ local function ensure_deps_loaded(state, callback)
     end
 end
 
+--- Build custom picker actions for dependency and matching-mode toggles.
 local function build_actions(settings, state)
     return {
         toggle_deps = function(picker)
@@ -119,10 +128,12 @@ local picker_keys = {
     ["<C-w>"] = { "toggle_starts_with", mode = { "n", "i" }, desc = "Toggle full match / starts with" },
 }
 
+--- Return true when a grep line should not be offered as a static import candidate.
 local function is_excluded_line(text)
     return text:match("return%s") or text:match("private%s") or text:match("protected%s")
 end
 
+--- Open the Snacks picker for the current static-import search state.
 ---@param settings table
 ---@param state table
 ---@param glob? string

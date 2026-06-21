@@ -2,7 +2,6 @@ local util = require("modules.java.static-import-explorer.util")
 local picker = require("modules.java.static-import-explorer.picker")
 local dep_search = require("modules.java.dependencies-search")
 local java_util = require("utils.java.java-common")
-local java_import_util = require("utils.java.java-import-util")
 
 local M = {}
 
@@ -37,21 +36,33 @@ local settings = {
 -- Test scope always includes main preferred deps
 vim.list_extend(settings.preferred_deps_test, settings.preferred_deps_main)
 
-local state = {
-    source_bufnr = nil,
-    include_deps = false,
-    include_all_deps = false,
-    starts_with = false,
-    current_word = "",
-    default_glob = "*.java",
-}
+--- Create isolated picker/search state for one user invocation.
+---@param opts? table
+---@return table
+local function new_state(opts)
+    local state = {
+        source_bufnr = vim.api.nvim_get_current_buf(),
+        include_deps = false,
+        include_all_deps = false,
+        starts_with = false,
+        current_word = "",
+        default_glob = "*.java",
+        fqcn_cache = {},
+    }
+    if opts then
+        state = vim.tbl_extend("force", state, opts)
+    end
+    return state
+end
 
-local function apply_items(items)
+--- Insert selected static-import items into the invocation source buffer.
+local function apply_items(state, items)
     for _, item in ipairs(items) do
         util.add_import_to_buffer(item.name, state.source_bufnr)
     end
 end
 
+--- Format a quick-import choice for vim.ui.select.
 local function format_select_item(item)
     local class = item.fqcn:match("([^%.]+)$") or item.fqcn
     local pkg = item.fqcn:match("^(.+)%.") or ""
@@ -59,17 +70,20 @@ local function format_select_item(item)
     return class .. "." .. member_str .. "  (" .. pkg .. ")"
 end
 
-local function get_scope()
+--- Resolve dependency scope from the invocation source buffer.
+local function get_scope(state)
     return java_util.is_test_file(state.source_bufnr) and "test" or "main"
 end
 
-local function get_quick_search_dirs()
+--- Build quick-import search directories from module sources and preferred deps.
+local function get_quick_search_dirs(state)
     local dirs = util.get_module_src_dirs(state.source_bufnr)
-    vim.list_extend(dirs, util.get_preferred_dep_dirs(get_scope(), settings))
-    return dirs
+    vim.list_extend(dirs, util.get_preferred_dep_dirs(get_scope(state), settings))
+    return util.dedup_dirs(dirs)
 end
 
-local function fallback_to_find(word)
+--- Open the full picker after a quick-import miss or cancelled selection.
+local function fallback_to_find(state, word)
     if not settings.fallback_to_find then
         return
     end
@@ -88,22 +102,23 @@ local function fallback_to_find(word)
     end
 end
 
-local function on_rg_result(result, pattern, word)
+--- Handle ripgrep completion for quick-import.
+local function on_rg_result(state, result, word)
     if result.code ~= 0 or not result.stdout or result.stdout == "" then
         vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
-        fallback_to_find(word)
+        fallback_to_find(state, word)
         return
     end
 
-    local items = util.parse_rg_results(result.stdout, settings.import_mode, word)
+    local items = util.parse_rg_results(result.stdout, settings.import_mode, word, state.fqcn_cache)
     if #items == 0 then
         vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
-        fallback_to_find(word)
+        fallback_to_find(state, word)
         return
     end
 
     if #items == 1 and settings.auto_apply_single then
-        apply_items(items)
+        apply_items(state, items)
         return
     end
 
@@ -112,15 +127,16 @@ local function on_rg_result(result, pattern, word)
         format_item = format_select_item,
     }, function(choice)
         if choice then
-            apply_items({ choice })
+            apply_items(state, { choice })
         else
-            fallback_to_find(word)
+            fallback_to_find(state, word)
         end
     end)
 end
 
-local function run_search(word, pattern)
-    local search_dirs = get_quick_search_dirs()
+--- Run the quick-import ripgrep search for the invocation state.
+local function run_search(state, word, pattern)
+    local search_dirs = get_quick_search_dirs(state)
     if #search_dirs == 0 then
         vim.notify("[Static Import] No search directories found", vim.log.levels.WARN)
         return
@@ -134,7 +150,7 @@ local function run_search(word, pattern)
         rg_cmd,
         { text = true },
         vim.schedule_wrap(function(result)
-            on_rg_result(result, pattern, word)
+            on_rg_result(state, result, word)
         end)
     )
 end
@@ -150,7 +166,7 @@ end
 --- to fuzzy-search across many candidates, or need to widen the search to all
 --- dependencies via the picker's toggles.
 function M.find()
-    state.source_bufnr = vim.api.nvim_get_current_buf()
+    local state = new_state()
     state.current_word = vim.fn.expand("<cword>")
 
     local dirs = util.get_search_dirs(state, settings)
@@ -176,18 +192,13 @@ end
 --- `assertThat`, `MAX_VALUE`, `mock`) and you want a single keystroke to import
 --- it without leaving the buffer.
 function M.quick_import()
-    state.source_bufnr = vim.api.nvim_get_current_buf()
     local word = vim.fn.expand("<cword>")
+    local state = new_state({ current_word = word })
 
     if word == "" then
         vim.notify("[Static Import] No word under cursor", vim.log.levels.WARN)
         return
     end
-
-    -- if java_import_util.static_import_exists(word, state.source_bufnr) then
-    --     vim.notify("[Static Import] Already imported: " .. word, vim.log.levels.INFO)
-    --     return
-    -- end
 
     local pattern = util.build_search(word, true)
     if not pattern then
@@ -198,11 +209,11 @@ function M.quick_import()
         dep_search.load_sources({
             bufnr = state.source_bufnr,
             on_done = function()
-                run_search(word, pattern)
+                run_search(state, word, pattern)
             end,
         })
     else
-        run_search(word, pattern)
+        run_search(state, word, pattern)
     end
 end
 

@@ -40,6 +40,21 @@ function M.filter_dirs_by_patterns(source_dirs, patterns)
     return result
 end
 
+--- Return directories without duplicates while preserving their first-seen order.
+---@param dirs string[]
+---@return string[]
+function M.dedup_dirs(dirs)
+    local result = {}
+    local seen = {}
+    for _, dir in ipairs(dirs or {}) do
+        if dir ~= "" and not seen[dir] then
+            seen[dir] = true
+            table.insert(result, dir)
+        end
+    end
+    return result
+end
+
 -- Cache for preferred dep dirs, keyed by scope
 local preferred_cache = { main = nil, test = nil }
 
@@ -109,7 +124,7 @@ local function resolve_preferred_entries(entries, all_dep_dirs)
         end, dirs)
     end
 
-    return dirs
+    return M.dedup_dirs(dirs)
 end
 
 --- Get cached preferred dep dirs for a scope.
@@ -133,6 +148,7 @@ function M.get_preferred_dep_dirs(scope, settings)
     return preferred_cache[scope]
 end
 
+--- Clear cached preferred dependency directories after dependency cache reset.
 function M.clear_preferred_cache()
     preferred_cache = { main = nil, test = nil }
 end
@@ -161,6 +177,7 @@ function M.get_module_src_dirs(bufnr)
     return dirs
 end
 
+--- Build the directory list for the current static-import search state.
 ---@param state { include_deps: boolean, include_all_deps: boolean, source_bufnr?: integer }
 ---@param settings? { preferred_deps_main?: string[], preferred_deps_test?: string[] }
 function M.get_search_dirs(state, settings)
@@ -193,7 +210,7 @@ function M.get_search_dirs(state, settings)
             vim.list_extend(dirs, dep_dirs)
         end
     end
-    return dirs
+    return M.dedup_dirs(dirs)
 end
 
 --- Extract static member name from a matched grep line.
@@ -234,9 +251,11 @@ function M.extract_static_member(text, word)
     return nil
 end
 
+--- Build an import statement for the selected class/member.
 ---@param fqcn string
 ---@param member? string
 ---@param import_mode string "wildcard"|"explicit"
+---@return string
 function M.build_import_line(fqcn, member, import_mode)
     if import_mode == "explicit" and member then
         return "import static " .. fqcn .. "." .. member .. ";"
@@ -248,6 +267,11 @@ end
 ---@param import_line string
 ---@param bufnr integer
 function M.add_import_to_buffer(import_line, bufnr)
+    if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+        vim.notify("[Static Import] Source buffer is no longer available", vim.log.levels.WARN)
+        return
+    end
+
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
     for _, line in ipairs(lines) do
@@ -293,6 +317,27 @@ function M.build_search(word, starts_with)
     end
 end
 
+--- Resolve a Java file to FQCN with an optional per-invocation cache.
+---@param file string
+---@param line_num? integer
+---@param cache? table<string, string|false>
+---@return string|nil
+function M.file_to_fqcn(file, line_num, cache)
+    if not cache then
+        return java_util.file_to_fqcn(file, line_num)
+    end
+
+    local key = file .. ":" .. tostring(line_num or "")
+    local cached = cache[key]
+    if cached ~= nil then
+        return cached or nil
+    end
+
+    local fqcn = java_util.file_to_fqcn(file, line_num)
+    cache[key] = fqcn or false
+    return fqcn
+end
+
 --- Derive FQCN from Java file path (no I/O, uses path structure).
 --- Looks for src/main/java/ or src/test/java/ prefix to extract package.
 ---@param file string
@@ -316,8 +361,9 @@ end
 ---@param stdout string
 ---@param import_mode string
 ---@param word? string the searched identifier — passed to extract_static_member to resolve inline declarations
+---@param fqcn_cache? table<string, string|false>
 ---@return { name: string, fqcn: string, member: string|nil }[]
-function M.parse_rg_results(stdout, import_mode, word)
+function M.parse_rg_results(stdout, import_mode, word, fqcn_cache)
     local lines = vim.split(stdout, "\n", { trimempty = true })
     local seen = {}
     local items = {}
@@ -331,7 +377,7 @@ function M.parse_rg_results(stdout, import_mode, word)
             and not text:match("private%s")
             and not text:match("protected%s")
         then
-            local fqcn = java_util.file_to_fqcn(file, tonumber(lnum_str))
+            local fqcn = M.file_to_fqcn(file, tonumber(lnum_str), fqcn_cache)
             if fqcn then
                 local member = M.extract_static_member(text, word)
                 local import_str = M.build_import_line(fqcn, member, import_mode)
