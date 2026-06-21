@@ -2,6 +2,9 @@
 -- filetypes, runner/report modules that fail to load, and missing report
 -- component files.
 --
+-- - check - collect registry validation errors
+-- - run - print/notify/raise the validation report
+--
 -- In-editor:
 --   :LangRegistryCheck     -- prints + notifies; exit on error: no
 --   :LangRegistryCheck!    -- raises (errors out); useful for `:source`-time checks
@@ -25,18 +28,21 @@ local registry = require("utils.lang.registry")
 
 local M = {}
 
+--- Append one validation failure to the collected error list.
 ---@param errors string[]
 ---@param msg string
 local function add_error(errors, msg)
     table.insert(errors, msg)
 end
 
+--- Check whether a metadata list is a non-empty table.
 ---@param values string[]|nil
 ---@return boolean
 local function has_values(values)
     return type(values) == "table" and #values > 0
 end
 
+--- Check whether an Overseer component module file exists on runtimepath.
 ---@param path string
 ---@return boolean
 local function component_exists(path)
@@ -44,6 +50,9 @@ local function component_exists(path)
     return #vim.api.nvim_get_runtime_file(rel, false) > 0
 end
 
+--- Validate every language registry entry.
+--- Checks required metadata, duplicate filetypes, loadable runner/report modules,
+--- and report component files without raising; callers receive all failures.
 ---@return boolean ok
 ---@return string[] errors
 function M.check()
@@ -135,6 +144,9 @@ function M.check()
     return #errors == 0, errors
 end
 
+--- Run the language registry validation report.
+--- Prints, notifies, or raises based on options so the same checker can be used
+--- interactively and from headless/CI-style Neovim commands.
 ---@param opts? { raise?: boolean, notify?: boolean }
 ---@return boolean ok
 function M.run(opts)

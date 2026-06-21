@@ -8,6 +8,10 @@
 -- Used at lazy-spec build time (config/lazy.lua import `cond`) and inside the
 -- per-language configs. Result is cached for the session.
 --
+-- - current - resolve/cache the active project language
+-- - reset - clear cached detection
+-- - is - compare the active project language with a requested language
+--
 -- Detection tiers (first match wins):
 --   1. Root markers nearest the cwd (deepest root wins for nested/polyglot).
 --   2. Fallback for marker-less folders (e.g. a plain dir of loose *.java files):
@@ -36,12 +40,14 @@ local SCAN_SKIP = {
 
 local cached ---@type string|false|nil
 
+--- Extract a filename extension without the leading dot.
 ---@param name string
 ---@return string|nil
 local function ext_of(name)
     return name:match("%.([%w_]+)$")
 end
 
+--- Resolve the primary language registered for a source extension.
 ---@param ext string|nil
 ---@return string|nil
 local function lang_for_ext(ext)
@@ -56,7 +62,7 @@ local function lang_for_ext(ext)
     return nil
 end
 
--- Tier 1: nearest root marker (deepest path wins).
+--- Detect by nearest project root marker (deepest path wins).
 --
 -- For each primary language `vim.fs.root` walks upward from `cwd` and returns the
 -- closest ancestor directory that holds one of that language's markers. Several
@@ -82,7 +88,7 @@ local function detect_by_markers(cwd)
     return best_lang
 end
 
--- Tier 2a: extension of the file(s) the editor was opened with.
+--- Detect by extension of the file(s) the editor was opened with.
 ---@return string|nil
 local function detect_by_open_files()
     for _, f in ipairs(vim.fn.argv()) do
@@ -98,11 +104,12 @@ local function detect_by_open_files()
     return nil
 end
 
--- Tier 2b: bounded, heavy-dir-skipping scan of cwd for a known source file.
+--- Detect by bounded, heavy-dir-skipping scan of cwd for a known source file.
 ---@param cwd string
 ---@return string|nil
 local function detect_by_sources(cwd)
     local result
+    --- Walk directories until a registered source extension is found.
     local function walk(dir, depth)
         if result then
             return

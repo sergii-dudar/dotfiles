@@ -1,3 +1,10 @@
+-- LSP navigation utilities: route definition/declaration requests through
+-- optional language-specific handlers before falling back to the default LSP
+-- implementation.
+--
+-- - definition - run custom `gd` navigation handlers with LSP fallback
+-- - declaration - run custom `gD` navigation handlers with LSP fallback
+
 local lang_registry = require("utils.lang.registry")
 
 local M = {}
@@ -142,12 +149,16 @@ local function run(method)
     continue_lsp()
 end
 
---- Run custom `gd` handlers before falling back to the standard LSP definition request.
+--- Navigate to a symbol definition through registered language-specific handlers.
+--- Used by `gd` mappings; falls back to `vim.lsp.buf.definition()` exactly once
+--- when no handler claims the request.
 function M.definition()
     run("definition")
 end
 
---- Run custom `gD` handlers before falling back to the standard LSP declaration request.
+--- Navigate to a symbol declaration through registered language-specific handlers.
+--- Used by `gD` mappings; falls back to `vim.lsp.buf.declaration()` exactly once
+--- when no handler claims the request.
 function M.declaration()
     run("declaration")
 end

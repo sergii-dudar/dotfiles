@@ -1,3 +1,6 @@
+-- Rust LSP metadata: code-action title patterns that are safe to auto-resolve
+-- for Rust buffers.
+
 ---@type lang.LspCodeActions
 local M = {}
 

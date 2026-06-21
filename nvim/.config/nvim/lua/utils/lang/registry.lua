@@ -1,3 +1,12 @@
+-- Language registry utilities: central metadata for project detection,
+-- run/test/debug runners, and test-report integrations.
+--
+-- - all - return every language registry entry
+-- - primary - return project-detectable primary languages
+-- - by_filetype - build/cache the filetype lookup index
+-- - for_filetype - resolve registry metadata for a filetype
+-- - report_for_filetype - resolve test-report metadata for a filetype
+
 local M = {}
 local entries_by_filetype ---@type table<string, lang.RegistryEntry>|nil
 
@@ -190,6 +199,7 @@ local entries = {
     }, ]]
 }
 
+--- Add a set of filetypes to an index for one registry entry.
 ---@param index table<string, lang.RegistryEntry>
 ---@param entry lang.RegistryEntry
 ---@param filetypes string[]|nil
@@ -199,6 +209,7 @@ local function add_entry_filetypes(index, entry, filetypes)
     end
 end
 
+--- Build the filetype-to-registry-entry lookup table.
 ---@return table<string, lang.RegistryEntry>
 local function build_filetype_index()
     local result = {}
@@ -213,6 +224,7 @@ local function build_filetype_index()
     return result
 end
 
+--- Check whether a filetype is present in a registry filetype list.
 ---@param filetype string
 ---@param filetypes string[]|nil
 ---@return boolean
@@ -225,11 +237,17 @@ local function contains_filetype(filetype, filetypes)
     return false
 end
 
+--- Return the complete registry table.
+--- Includes primary languages, runner-only languages, and currently disabled
+--- examples left commented in the registry source for future re-enablement.
 ---@return lang.RegistryEntry[]
 function M.all()
     return entries
 end
 
+--- Return language entries that can identify the active project.
+--- Only entries marked `primary` and carrying project detection metadata are
+--- included, because these are safe to use for editor-config gating.
 ---@return lang.RegistryEntry[]
 function M.primary()
     local result = {}
@@ -241,6 +259,9 @@ function M.primary()
     return result
 end
 
+--- Return the cached filetype-to-language index.
+--- The index is built lazily from runner and report filetypes, then reused for
+--- all filetype lookups during the session.
 ---@return table<string, lang.RegistryEntry>
 function M.by_filetype()
     if not entries_by_filetype then
@@ -249,6 +270,9 @@ function M.by_filetype()
     return entries_by_filetype
 end
 
+--- Resolve a registry entry for a Neovim filetype.
+--- Accepts nil or empty filetypes and returns nil so callers can pass buffer
+--- filetypes directly without pre-validation.
 ---@param filetype string|nil
 ---@return lang.RegistryEntry|nil
 function M.for_filetype(filetype)
@@ -258,6 +282,9 @@ function M.for_filetype(filetype)
     return M.by_filetype()[filetype]
 end
 
+--- Resolve test-report metadata for a Neovim filetype.
+--- Returns metadata only when the matched entry explicitly lists the filetype in
+--- its report integration, avoiding accidental use of runner-only metadata.
 ---@param filetype string|nil
 ---@return lang.RegistryReport|nil
 function M.report_for_filetype(filetype)

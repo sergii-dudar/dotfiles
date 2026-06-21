@@ -1,4 +1,7 @@
--- • setup — install the Java publishDiagnostics + hover (buf_request_all) overrides
+-- Java LSP handler utilities: install jdtls-specific diagnostics and hover
+-- post-processing while preserving the original Neovim LSP handlers.
+--
+-- - setup - install the Java publishDiagnostics and hover overrides
 
 local java_arg_highlight = require("utils.java.java-arg-highlight")
 local java_format_checker = require("utils.java.java-format-checker")
@@ -6,6 +9,10 @@ local jdtls_util = require("utils.java.jdtls-util")
 
 local M = {}
 
+--- Install Java-specific LSP handler overrides.
+--- Filters generated-source diagnostics, refreshes Java argument highlights and
+--- format checks after diagnostic publishes, and removes empty hover responses
+--- while normalizing jdtls markdown links.
 function M.setup()
     local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
     java_format_checker.setup()

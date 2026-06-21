@@ -1,3 +1,6 @@
+-- Go LSP metadata: code-action title patterns that are safe to auto-resolve for
+-- Go buffers.
+
 ---@type lang.LspCodeActions
 local M = {}
 

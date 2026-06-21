@@ -1,3 +1,7 @@
+-- Language LSP helpers: shared code-action contracts and application logic.
+--
+-- - apply_lsp_action - resolve/apply an LSP code action and execute its command
+
 local M = {}
 
 ---Per-primary-language LSP code-action data.
@@ -7,7 +11,10 @@ local M = {}
 ---@class lang.LspCodeActions
 ---@field code_action_auto_resolve_match_names string[] Code-action title patterns (Lua patterns) auto-resolved by `<leader>cc`, in priority order; first match wins.
 
---- Apply a resolved LSP code action (handles resolve, edit, and command execution)
+--- Apply an LSP code action for the current buffer.
+--- Resolves lazy actions when the client supports `codeAction/resolve`, applies
+--- workspace edits with the client's offset encoding, then executes any command
+--- returned by the action.
 ---@param action lsp.CodeAction
 ---@param client vim.lsp.Client
 function M.apply_lsp_action(action, client)

@@ -1,3 +1,9 @@
+-- Java LSP utilities: Java-specific code-action priorities and custom
+-- navigation handlers layered over standard LSP behavior.
+--
+-- - resolve_imports - auto-apply safe Java import/code actions with fallback
+-- - navigation - MapStruct and Lombok-aware definition/declaration handlers
+
 local lsp_lang_common = require("utils.lang.lsp-common")
 
 local M = {}
@@ -154,12 +160,16 @@ local request_and_apply_first = function(action_match_names, fallback)
     end)
 end
 
+--- Apply the configured Java code-action priority list with static-import fallback.
 local resolve_first = function(list_actions)
     request_and_apply_first(list_actions, function()
         require("modules.java.static-import-explorer").quick_import()
     end)
 end
 
+--- Resolve Java imports or invoke the Java static-import picker fallback.
+--- Skips work when the word under the cursor is already imported, then applies
+--- the first matching LSP import/code action using the configured priority list.
 function M.resolve_imports()
     local word = vim.fn.expand("<cword>")
     local import_util = require("utils.java.java-import-util")
