@@ -10,6 +10,7 @@
 -- • get_full_method_with_params — full method with parameter types
 -- • get_full_method_with_params_and_abstract — full method + abstract class info
 -- • is_test_method_at_cursor — cursor method carries a JUnit test annotation
+-- • is_main_method_at_cursor — cursor method is a `public static void main(String[])`
 -- • class_has_test_methods — file contains any JUnit test-annotated method
 -- • has_main_method — file contains a `public static void main(String[])`
 
@@ -25,10 +26,26 @@ local TEST_ANNOTATIONS = {
     TestTemplate = true,
 }
 
--- Modern Neovim Treesitter API
+--- Return the Tree-sitter node at the cursor, parsing Java on demand if needed.
+---@return TSNode|nil
 local function node_at_cursor()
     local pos = vim.api.nvim_win_get_cursor(0)
-    return vim.treesitter.get_node({ pos = { pos[1] - 1, pos[2] } })
+    local row = pos[1] - 1
+    local col = pos[2]
+    local node = vim.treesitter.get_node({ pos = { row, col } })
+    if node then
+        return node
+    end
+
+    local ok, parser = pcall(vim.treesitter.get_parser, 0, "java")
+    if not ok or not parser then
+        return nil
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return nil
+    end
+    return tree:root():named_descendant_for_range(row, col, row, col)
 end
 
 -- ---------------------------------------------------------
@@ -445,6 +462,16 @@ function M.is_test_method_at_cursor()
         return false
     end
     return method_is_test(m)
+end
+
+--- Whether the method under the cursor is a `static main` entry point.
+---@return boolean
+function M.is_main_method_at_cursor()
+    local m = get_method_node()
+    if not m then
+        return false
+    end
+    return method_is_main(m)
 end
 
 --- Whether the current file declares any JUnit test-annotated method.
