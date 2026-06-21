@@ -14,7 +14,7 @@ local settings = {
     -- fallback to find() when quick has no results or user cancels select
     fallback_to_find = true,
     -- include generated Java sources from target/generated-sources and build/generated/sources
-    include_generated_sources = true,
+    include_generated_sources = false,
     -- Preferred dependencies included in default search alongside src/.
     -- Format: "groupId" or "groupId:artifactId" (same as dependencies-search include_dependencies).
     preferred_deps_main = {

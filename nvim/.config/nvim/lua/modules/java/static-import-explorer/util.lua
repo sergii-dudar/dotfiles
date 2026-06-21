@@ -153,35 +153,12 @@ function M.clear_preferred_cache()
     preferred_cache = { main = nil, test = nil }
 end
 
---- Add existing directories matched by a glob pattern.
+--- Add an existing directory to a list.
 ---@param dirs string[]
----@param pattern string
-local function add_globbed_dirs(dirs, pattern)
-    for _, dir in ipairs(vim.fn.glob(pattern, false, true)) do
-        if vim.fn.isdirectory(dir) == 1 then
-            table.insert(dirs, dir)
-        end
-    end
-end
-
---- Add generated roots that do not expose a nested source-root layout.
----@param dirs string[]
----@param pattern string
----@param nested_roots string[]
-local function add_direct_generated_roots(dirs, pattern, nested_roots)
-    for _, dir in ipairs(vim.fn.glob(pattern, false, true)) do
-        if vim.fn.isdirectory(dir) == 1 then
-            local has_nested_root = false
-            for _, nested in ipairs(nested_roots) do
-                if vim.fn.isdirectory(dir .. "/" .. nested) == 1 then
-                    has_nested_root = true
-                    break
-                end
-            end
-            if not has_nested_root then
-                table.insert(dirs, dir)
-            end
-        end
+---@param dir string
+local function add_existing_dir(dirs, dir)
+    if vim.fn.isdirectory(dir) == 1 then
+        table.insert(dirs, dir)
     end
 end
 
@@ -192,26 +169,11 @@ end
 local function get_generated_src_dirs(module_root, include_test)
     local dirs = {}
 
-    add_globbed_dirs(dirs, module_root .. "/target/generated-sources/*/src/main/java")
-    add_globbed_dirs(dirs, module_root .. "/target/generated-sources/*/src/main")
-    add_direct_generated_roots(dirs, module_root .. "/target/generated-sources/*", { "src/main/java", "src/main" })
-    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/main/java")
-    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/main")
-    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/main/java")
-    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/main")
+    add_existing_dir(dirs, module_root .. "/target/generated-sources")
+    add_existing_dir(dirs, module_root .. "/build/generated/sources")
 
     if include_test then
-        add_globbed_dirs(dirs, module_root .. "/target/generated-test-sources/*/src/test/java")
-        add_globbed_dirs(dirs, module_root .. "/target/generated-test-sources/*/src/test")
-        add_direct_generated_roots(
-            dirs,
-            module_root .. "/target/generated-test-sources/*",
-            { "src/test/java", "src/test" }
-        )
-        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/test/java")
-        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/test")
-        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/test/java")
-        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/test")
+        add_existing_dir(dirs, module_root .. "/target/generated-test-sources")
     end
 
     return M.dedup_dirs(dirs)
