@@ -318,8 +318,115 @@ local function make_ipc_request(method, request_params, callback)
     end)
 end
 
+--- Remove Java generic arguments from a type name for server class loading.
+---@param type_name string|nil
+---@return string|nil
+local function erase_type_arguments(type_name)
+    if type(type_name) ~= "string" then
+        return type_name
+    end
+
+    local result = {}
+    local generic_depth = 0
+
+    for idx = 1, #type_name do
+        local char = type_name:sub(idx, idx)
+        if char == "<" then
+            generic_depth = generic_depth + 1
+        elseif char == ">" then
+            generic_depth = math.max(generic_depth - 1, 0)
+        elseif generic_depth == 0 then
+            table.insert(result, char)
+        end
+    end
+
+    return table.concat(result):gsub("%s+", "")
+end
+
+--- Return the root source parameter name used by a path expression.
+---@param path_expression string|nil
+---@return string|nil
+local function get_path_root_source(path_expression)
+    if type(path_expression) ~= "string" then
+        return nil
+    end
+
+    return path_expression:match("^([%w_]+)%.")
+end
+
+--- Copy a source parameter for IPC, erasing generic type arguments.
+--- Generics are always stripped: the server only uses the type string to load the
+--- class via Class.forName/loadClass, which reject names like "java.util.Set<...>".
+--- Reflection on collection item types uses the loaded Class, not this string, so the
+--- generic arguments are never useful to the server and only break class loading.
+---@param source table
+---@return table
+local function copy_source_for_ipc(source)
+    return {
+        name = source.name,
+        type = erase_type_arguments(source.type),
+    }
+end
+
+--- Narrow source parameters to the root path owner when possible.
+---@param sources table[]
+---@param path_expression string|nil
+---@return table[]
+local function prepare_sources_for_path(sources, path_expression)
+    local root_source = get_path_root_source(path_expression)
+    local prepared_sources = {}
+
+    for _, source in ipairs(sources or {}) do
+        if not root_source or source.name == root_source then
+            table.insert(prepared_sources, copy_source_for_ipc(source))
+        end
+    end
+
+    if #prepared_sources > 0 then
+        return prepared_sources
+    end
+
+    for _, source in ipairs(sources or {}) do
+        table.insert(prepared_sources, copy_source_for_ipc(source))
+    end
+
+    return prepared_sources
+end
+
+--- Remove an already-selected source parameter prefix from the path sent to the server.
+---@param path_expression string|nil
+---@param root_source string|nil
+---@return string|nil
+local function strip_path_root_source(path_expression, root_source)
+    if type(path_expression) ~= "string" or not root_source then
+        return path_expression
+    end
+
+    local prefix = root_source .. "."
+    if vim.startswith(path_expression, prefix) then
+        return path_expression:sub(#prefix + 1)
+    end
+
+    return path_expression
+end
+
+--- Prepare source parameters and path expression for source completion.
+---@param sources table[]
+---@param path_expression string|nil
+---@return table[], string|nil
+local function prepare_source_request_for_path(sources, path_expression)
+    local root_source = get_path_root_source(path_expression)
+    local prepared_sources = prepare_sources_for_path(sources, path_expression)
+
+    if root_source and #prepared_sources == 1 and prepared_sources[1].name == root_source then
+        return prepared_sources, strip_path_root_source(path_expression, root_source)
+    end
+
+    return prepared_sources, path_expression
+end
+
 --- Get completions for MapStruct @Mapping annotations.
----@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@param params? { bufnr?: integer, row?: integer, col?: integer, path_expression?: string }
 ---@param callback fun(result?: table, err?: string)
 function M.get_completions(params, callback)
     -- Auto-initialize if needed
@@ -352,6 +459,10 @@ function M.get_completions(params, callback)
     end
 
     local completion_ctx = completion_ctx_result.value
+    local path_expression = params.path_expression
+    if path_expression == nil then
+        path_expression = completion_ctx.path_expression
+    end
 
     -- Build request based on attribute type
     local request_params
@@ -359,14 +470,15 @@ function M.get_completions(params, callback)
         -- Target: navigate directly into the target class fields
         request_params = {
             sources = { { name = "$target", type = completion_ctx.class_name } },
-            pathExpression = completion_ctx.path_expression,
+            pathExpression = path_expression,
             isEnum = completion_ctx.is_enum or false,
         }
     else
         -- Source: use new protocol with sources array
+        local sources, source_path_expression = prepare_source_request_for_path(completion_ctx.sources, path_expression)
         request_params = {
-            sources = completion_ctx.sources,
-            pathExpression = completion_ctx.path_expression,
+            sources = sources,
+            pathExpression = source_path_expression,
             isEnum = completion_ctx.is_enum or false,
         }
     end
