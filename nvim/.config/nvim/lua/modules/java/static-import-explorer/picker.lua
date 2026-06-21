@@ -147,6 +147,9 @@ function M.open(settings, state, glob)
         format = make_format_item(state),
         confirm = make_confirm(settings, state),
         transform = function(item)
+            if item.file == state.source_file then
+                return false
+            end
             if is_excluded_line(item.text or "") then
                 return false
             end

@@ -47,6 +47,7 @@ local settings = {
                                    -- "wildcard": import static pkg.Class.*;
     auto_apply_single = true,      -- skip select when only one match
     fallback_to_find = true,       -- open full picker (with all deps) when quick has no results
+    include_generated_sources = true, -- include target/build generated Java sources
 
     -- Preferred deps always included in search alongside src/
     preferred_deps_main = {

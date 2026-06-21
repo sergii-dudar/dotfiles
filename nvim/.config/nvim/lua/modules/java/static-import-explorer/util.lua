@@ -153,12 +153,77 @@ function M.clear_preferred_cache()
     preferred_cache = { main = nil, test = nil }
 end
 
---- Returns source dirs based on buffer context:
---- main file -> src/main/java only
---- test file -> src/main/java + src/test/java
----@param bufnr? integer
+--- Add existing directories matched by a glob pattern.
+---@param dirs string[]
+---@param pattern string
+local function add_globbed_dirs(dirs, pattern)
+    for _, dir in ipairs(vim.fn.glob(pattern, false, true)) do
+        if vim.fn.isdirectory(dir) == 1 then
+            table.insert(dirs, dir)
+        end
+    end
+end
+
+--- Add generated roots that do not expose a nested source-root layout.
+---@param dirs string[]
+---@param pattern string
+---@param nested_roots string[]
+local function add_direct_generated_roots(dirs, pattern, nested_roots)
+    for _, dir in ipairs(vim.fn.glob(pattern, false, true)) do
+        if vim.fn.isdirectory(dir) == 1 then
+            local has_nested_root = false
+            for _, nested in ipairs(nested_roots) do
+                if vim.fn.isdirectory(dir .. "/" .. nested) == 1 then
+                    has_nested_root = true
+                    break
+                end
+            end
+            if not has_nested_root then
+                table.insert(dirs, dir)
+            end
+        end
+    end
+end
+
+--- Returns generated Java source directories for a module root.
+---@param module_root string
+---@param include_test boolean
 ---@return string[]
-function M.get_module_src_dirs(bufnr)
+local function get_generated_src_dirs(module_root, include_test)
+    local dirs = {}
+
+    add_globbed_dirs(dirs, module_root .. "/target/generated-sources/*/src/main/java")
+    add_globbed_dirs(dirs, module_root .. "/target/generated-sources/*/src/main")
+    add_direct_generated_roots(dirs, module_root .. "/target/generated-sources/*", { "src/main/java", "src/main" })
+    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/main/java")
+    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/main")
+    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/main/java")
+    add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/main")
+
+    if include_test then
+        add_globbed_dirs(dirs, module_root .. "/target/generated-test-sources/*/src/test/java")
+        add_globbed_dirs(dirs, module_root .. "/target/generated-test-sources/*/src/test")
+        add_direct_generated_roots(
+            dirs,
+            module_root .. "/target/generated-test-sources/*",
+            { "src/test/java", "src/test" }
+        )
+        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/test/java")
+        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/test")
+        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/test/java")
+        add_globbed_dirs(dirs, module_root .. "/build/generated/sources/*/*/test")
+    end
+
+    return M.dedup_dirs(dirs)
+end
+
+--- Returns source dirs based on buffer context:
+--- main file -> src/main/java + generated main sources when enabled
+--- test file -> src/main/java + src/test/java + generated main/test sources when enabled
+---@param bufnr? integer
+---@param include_generated_sources? boolean defaults to true
+---@return string[]
+function M.get_module_src_dirs(bufnr, include_generated_sources)
     local module_root = java_util.get_buffer_project_path(bufnr)
     if not module_root then
         return {}
@@ -168,20 +233,25 @@ function M.get_module_src_dirs(bufnr)
     if vim.fn.isdirectory(main_dir) == 1 then
         table.insert(dirs, main_dir)
     end
-    if java_util.is_test_file(bufnr) then
+    local is_test = java_util.is_test_file(bufnr)
+    if include_generated_sources ~= false then
+        vim.list_extend(dirs, get_generated_src_dirs(module_root, is_test))
+    end
+    if is_test then
         local test_dir = module_root .. "/src/test/java"
         if vim.fn.isdirectory(test_dir) == 1 then
             table.insert(dirs, test_dir)
         end
     end
-    return dirs
+    return M.dedup_dirs(dirs)
 end
 
 --- Build the directory list for the current static-import search state.
 ---@param state { include_deps: boolean, include_all_deps: boolean, source_bufnr?: integer }
 ---@param settings? { preferred_deps_main?: string[], preferred_deps_test?: string[] }
 function M.get_search_dirs(state, settings)
-    local dirs = M.get_module_src_dirs(state.source_bufnr)
+    local include_generated_sources = not settings or settings.include_generated_sources ~= false
+    local dirs = M.get_module_src_dirs(state.source_bufnr, include_generated_sources)
     if #dirs == 0 then
         -- fallback: try src/ directly
         local module_root = java_util.get_buffer_project_path(state.source_bufnr)
@@ -362,8 +432,9 @@ end
 ---@param import_mode string
 ---@param word? string the searched identifier — passed to extract_static_member to resolve inline declarations
 ---@param fqcn_cache? table<string, string|false>
+---@param source_file? string file to exclude from import candidates
 ---@return { name: string, fqcn: string, member: string|nil }[]
-function M.parse_rg_results(stdout, import_mode, word, fqcn_cache)
+function M.parse_rg_results(stdout, import_mode, word, fqcn_cache, source_file)
     local lines = vim.split(stdout, "\n", { trimempty = true })
     local seen = {}
     local items = {}
@@ -373,6 +444,7 @@ function M.parse_rg_results(stdout, import_mode, word, fqcn_cache)
         if
             file
             and text
+            and file ~= source_file
             and not text:match("return%s")
             and not text:match("private%s")
             and not text:match("protected%s")

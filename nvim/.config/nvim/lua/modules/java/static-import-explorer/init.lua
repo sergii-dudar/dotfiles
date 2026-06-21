@@ -13,6 +13,8 @@ local settings = {
     auto_apply_single = true,
     -- fallback to find() when quick has no results or user cancels select
     fallback_to_find = true,
+    -- include generated Java sources from target/generated-sources and build/generated/sources
+    include_generated_sources = true,
     -- Preferred dependencies included in default search alongside src/.
     -- Format: "groupId" or "groupId:artifactId" (same as dependencies-search include_dependencies).
     preferred_deps_main = {
@@ -42,6 +44,7 @@ vim.list_extend(settings.preferred_deps_test, settings.preferred_deps_main)
 local function new_state(opts)
     local state = {
         source_bufnr = vim.api.nvim_get_current_buf(),
+        source_file = vim.api.nvim_buf_get_name(0),
         include_deps = false,
         include_all_deps = false,
         starts_with = false,
@@ -77,7 +80,7 @@ end
 
 --- Build quick-import search directories from module sources and preferred deps.
 local function get_quick_search_dirs(state)
-    local dirs = util.get_module_src_dirs(state.source_bufnr)
+    local dirs = util.get_module_src_dirs(state.source_bufnr, settings.include_generated_sources)
     vim.list_extend(dirs, util.get_preferred_dep_dirs(get_scope(state), settings))
     return util.dedup_dirs(dirs)
 end
@@ -110,7 +113,7 @@ local function on_rg_result(state, result, word)
         return
     end
 
-    local items = util.parse_rg_results(result.stdout, settings.import_mode, word, state.fqcn_cache)
+    local items = util.parse_rg_results(result.stdout, settings.import_mode, word, state.fqcn_cache, state.source_file)
     if #items == 0 then
         vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
         fallback_to_find(state, word)
