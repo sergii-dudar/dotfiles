@@ -1,3 +1,8 @@
+-- Lombok builder navigation utilities: map generated builder setter calls back
+-- to their source Java fields or record components.
+--
+-- - goto_definition - resolve builder-chain field navigation through LSP
+
 local M = {}
 
 local ignored_builder_methods = {
@@ -6,6 +11,7 @@ local ignored_builder_methods = {
     toBuilder = true,
 }
 
+--- Return one character from a 1-indexed string position.
 ---@param line string
 ---@param idx integer
 ---@return string
@@ -16,12 +22,14 @@ local function char_at(line, idx)
     return line:sub(idx, idx)
 end
 
+--- Check whether a character can belong to a Java identifier.
 ---@param ch string
 ---@return boolean
 local function is_identifier_char(ch)
     return ch:match("[%w_]") ~= nil
 end
 
+--- Move across whitespace in one direction from a string index.
 ---@param line string
 ---@param idx integer
 ---@param step integer
@@ -33,6 +41,7 @@ local function skip_spaces(line, idx, step)
     return idx
 end
 
+--- Skip a Java generic type argument block starting at `<`.
 ---@param line string
 ---@param idx integer
 ---@return integer
@@ -92,6 +101,7 @@ local function line_has_builder_chain_start(line)
     return false
 end
 
+--- Check whether a buffer line is inside a nearby Lombok builder call chain.
 ---@param bufnr integer
 ---@param lnum integer
 ---@return boolean
@@ -156,6 +166,7 @@ local function get_chained_method_name_under_cursor()
     return name
 end
 
+--- Return the net brace balance for one source line.
 ---@param line string
 ---@return integer
 local function brace_delta(line)
@@ -164,6 +175,7 @@ local function brace_delta(line)
     return opens - closes
 end
 
+--- Return the column of a field declaration on a source line.
 ---@param line string
 ---@param field_name string
 ---@return integer|nil
@@ -369,6 +381,7 @@ local function find_field_in_builder_type(bufnr, field_name, annotation_lnum)
     return find_class_field(lines, field_name, declaration.lnum)
 end
 
+--- Jump from a Lombok @Builder annotation target to the matching source field.
 ---@param win integer
 ---@param bufnr integer
 ---@param field_name string
@@ -398,6 +411,7 @@ local function jump_from_builder_annotation_to_field(win, bufnr, field_name)
     return true
 end
 
+--- Apply an LSP definition result and refine Lombok @Builder hits to source fields.
 ---@param options vim.lsp.LocationOpts.OnList
 ---@param field_name string
 ---@param win integer
@@ -432,7 +446,9 @@ local function apply_definition_list(options, field_name, win, tagname, from)
     jump_from_builder_annotation_to_field(win, bufnr, field_name)
 end
 
---- Run standard LSP definition, then redirect Lombok builder annotation hits to the field.
+--- Navigate from a Lombok builder setter call to its source field.
+--- Runs standard LSP definition first, then redirects hits on a generated
+--- `@Builder` annotation to the matching Java class field or record component.
 ---@param ctx lang.LspNavigationContext
 ---@return boolean
 function M.goto_definition(ctx)
