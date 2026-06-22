@@ -58,6 +58,9 @@ prepend_keymap = [
     # smart-enter.yazi
     { on = "l", run = "plugin smart-enter", desc = "Enter the child directory, or open the file" },
 
+    # shell-like cd -
+    { on = "-", run = "plugin last-dir", desc = "Switch to previous visited directory" },
+
     ### sudo.yazi
     # sudo cp/mv
     { on = ["R", "p", "p"], run = "plugin sudo -- paste", desc = "sudo paste" },

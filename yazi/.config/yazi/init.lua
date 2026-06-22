@@ -20,6 +20,8 @@ require("copy-file-contents"):setup({
 
 require("system-clipboard")
 
+require("last-dir"):setup()
+
 -- https://github.com/sxyazi/yazi/blob/shipped/yazi-plugin/preset/components/status.lua
 
 function Status:mode()
