@@ -35,4 +35,4 @@
      refactoring to be able to integrate another main languages (keymans <leader>j...). currently java, need also rust and later maybe more, same keymans, but different areas and plugins, and functionalities
      issues with jdtls after long idle time with blink completions restoring
      inregrate go as main supported language
-     create wrapper/abstraction over lsp goto definition to be able to extend main language goto definition over standard lsp way
+     create wrapper/abstraction over lsp goto definition to be able to extend main language goto definition over standard lsp way

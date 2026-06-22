@@ -4,35 +4,27 @@
 --
 -- Detection: wall-clock gap between BufEnter/FocusGained events. macOS sleep
 -- does not fire VimResume; FocusGained is unreliable in tmux. CursorMoved /
--- InsertEnter normally only update the tick, but they also trigger recovery
--- after a clear suspend/long-idle gap so a wake-up in the same buffer is not
--- missed.
+-- InsertEnter normally only update the tick, but they also trigger a health
+-- check after a clear suspend/long-idle gap so a wake-up in the same buffer is
+-- not missed.
 --
 -- Recovery action on gap:
 --   1. workspace probe (`java.project.getAll`) — if it times out, the jdtls
---      process / message loop is dead → full restart.
---   2. workspace alive after a normal idle gap → full restart. jdtls's
---      completion state can become broken process-wide after suspend/idle
---      while navigation and diagnostics still work; didClose+didOpen does not
---      fix newly opened buffers in that state.
---   3. workspace alive after a very long gap → hard restart. The weekend case
---      can survive ordinary JVM restart, so rebuild only that project's jdtls
---      cache before reattaching buffers.
+--      process / message loop is dead → restart.
+--   2. workspace alive → probe raw `textDocument/completion` on the current
+--      Java buffer, but only when that buffer already has an attached jdtls
+--      client, so the server has received didOpen for the URI.
+--   3. completion healthy → reset blink.cmp LSP state only; do not restart
+--      jdtls. This handles stale client-side completion wiring cheaply.
+--   4. completion empty/error/timeout → restart jdtls. After a very long gap,
+--      use a hard restart because stale workspace/APT state can survive an
+--      ordinary restart.
 --
--- Why full restart instead of probing textDocument/completion? jdtls's
--- per-buffer completion state can silently rot during sleep:
--- workspace requests still answer, foldingRange still answers, only
--- completion goes dead. In practice the same failure also appears
--- process-wide, where newly opened buffers have no completion either. The
--- automatic path therefore restarts jdtls; :JdtlsSoftRecover remains as a
--- cheap manual diagnostic/repair command for buffer-local desync.
---
--- NOTE: we deliberately do NOT probe textDocument/completion. Sending
--- completion to a URI that jdtls has not yet received didOpen for causes a
--- NullPointerException inside lsp4j (RemoteEndpoint.handleRequest, future=null)
--- which crashes the jdtls message loop and triggers a restart cascade.
--- foldingRange is the lightest buffer-scoped request that does not have this
--- failure mode.
+-- Why completion probing is guarded: sending completion to a URI that jdtls
+-- has not yet received didOpen for can crash the jdtls message loop. The
+-- automatic probe therefore only uses the current buffer after Neovim reports
+-- an attached jdtls client for it. If focus returns to a non-Java buffer, the
+-- gap is remembered and checked on the next Java BufEnter.
 --
 -- On restart: we call attach_fn for EVERY loaded Java buffer (not just one per
 -- root). jdtls.start_or_attach deduplicates by root_dir, so the server is
@@ -51,17 +43,21 @@ local logger = require("utils.logging-util").new({
 })
 local lsp_util = require("utils.lsp-util")
 
-local SLEEP_THRESHOLD_MS = 2 * 60 * 1000
+local SLEEP_THRESHOLD_MS = 10 * 60 * 1000
 -- Above this gap, non-focus activity should also trigger recovery; otherwise
 -- a wake-up in the same Java buffer can be missed until focus changes.
 local LONG_SLEEP_MS = 60 * 60 * 1000
--- Above this gap, ordinary restart has proven insufficient: jdtls can come
--- back with completion still broken until its workspace cache is rebuilt.
+-- Above this gap, a required restart becomes hard: jdtls can come back with
+-- completion or annotation-processing state still broken until its workspace
+-- cache is rebuilt.
 local HARD_RESTART_GAP_MS = 8 * 60 * 60 * 1000
 local PROBE_TIMEOUT_MS = 3000
 local BUF_PROBE_TIMEOUT_MS = 2000
+local COMPLETION_PROBE_TIMEOUT_MS = 5000
+local COMPLETION_EMPTY_RETRY_DELAY_MS = 250
 local ACTION_COOLDOWN_MS = 30 * 1000
 local BUF_SOFT_COOLDOWN_MS = 10 * 1000
+local PENDING_GAP_TTL_MS = 10 * 60 * 1000
 local RESTART_SHUTDOWN_TIMEOUT_MS = 10 * 1000
 local RESTART_ATTACH_GRACE_MS = 1000
 local RESTART_ATTACH_POLL_MS = 200
@@ -79,6 +75,8 @@ local state = {
     last_action_at = 0,
     -- per-buffer cooldown timestamps for soft recovery
     buf_last_soft = {},
+    -- gap health check deferred until the user enters a Java buffer
+    pending_gap = nil,
 }
 
 local function in_cooldown()
@@ -442,6 +440,202 @@ local function probe_buffer(client, buf, done)
     end, BUF_PROBE_TIMEOUT_MS)
 end
 
+--- Extract item count and preview labels from a completion response.
+local function summarize_completion_result(result)
+    local items = result
+    if type(result) == "table" and result.items then
+        items = result.items
+    end
+
+    local count = type(items) == "table" and #items or 0
+    local preview = {}
+    for i = 1, math.min(5, count) do
+        table.insert(preview, items[i].label or "?")
+    end
+
+    return count, preview
+end
+
+--- Return the current Java buffer and attached JDTLS client for safe completion probing.
+local function completion_probe_target()
+    local buf = vim.api.nvim_get_current_buf()
+    if vim.bo[buf].filetype ~= "java" then
+        return nil, nil, "current buffer is not Java"
+    end
+
+    local client = lsp_util.get_client_by_name("jdtls", { bufnr = buf })
+    if not client then
+        return nil, nil, "no jdtls client on current buffer"
+    end
+    if client.initialized == false then
+        return nil, nil, "jdtls client is not initialized"
+    end
+
+    return buf, client, nil
+end
+
+--- Send a raw textDocument/completion request to an attached Java buffer.
+local function probe_completion(client, buf, done)
+    if not vim.api.nvim_buf_is_loaded(buf) then
+        done({ status = "skipped", reason = "buffer is unloaded" })
+        return
+    end
+
+    local cap = client.server_capabilities or {}
+    local cp = cap.completionProvider
+    if not cp then
+        done({ status = "unsupported", reason = "client has no completionProvider" })
+        return
+    end
+
+    local params_ok, params = pcall(function()
+        return vim.api.nvim_buf_call(buf, function()
+            return vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16")
+        end)
+    end)
+    if not params_ok then
+        done({ status = "error", error = params })
+        return
+    end
+
+    local trigger_kind = vim.lsp.protocol.CompletionTriggerKind or {}
+    params.context = { triggerKind = trigger_kind.Invoked or 1 }
+
+    local start = vim.uv.now()
+    local responded = false
+    local ok, req_id = client:request("textDocument/completion", params, function(err, result)
+        if responded then
+            return
+        end
+        responded = true
+
+        local elapsed = vim.uv.now() - start
+        if err then
+            done({ status = "error", elapsed = elapsed, error = err })
+            return
+        end
+
+        local count, preview = summarize_completion_result(result)
+        done({
+            status = count > 0 and "ok" or "empty",
+            elapsed = elapsed,
+            count = count,
+            preview = preview,
+        })
+    end, buf)
+
+    if not ok then
+        done({ status = "request_failed", reason = "client:request returned false" })
+        return
+    end
+
+    vim.defer_fn(function()
+        if responded then
+            return
+        end
+        responded = true
+        pcall(function()
+            client:cancel_request(req_id)
+        end)
+        done({ status = "timeout", elapsed = COMPLETION_PROBE_TIMEOUT_MS })
+    end, COMPLETION_PROBE_TIMEOUT_MS)
+end
+
+--- Probe raw JDTLS completion on the current Java buffer when that is safe.
+local function probe_current_completion(done)
+    local buf, client, reason = completion_probe_target()
+    if not buf or not client then
+        done({ status = "skipped", reason = reason })
+        return
+    end
+
+    probe_completion(client, buf, done)
+end
+
+--- Probe completion and retry once when JDTLS returns an empty list.
+local function probe_current_completion_for_recovery(done)
+    probe_current_completion(function(first)
+        if first.status ~= "empty" then
+            done(first)
+            return
+        end
+
+        vim.defer_fn(function()
+            probe_current_completion(function(second)
+                second.first_empty = first
+                done(second)
+            end)
+        end, COMPLETION_EMPTY_RETRY_DELAY_MS)
+    end)
+end
+
+--- Format a completion probe result for logs and notifications.
+local function format_completion_probe_result(result)
+    if result.status == "ok" or result.status == "empty" then
+        local preview = result.preview and #result.preview > 0 and " — " .. table.concat(result.preview, ", ") or ""
+        local retry = result.first_empty and " after empty retry" or ""
+        return string.format("%d items in %dms%s%s", result.count or 0, result.elapsed or 0, preview, retry)
+    end
+
+    if result.status == "error" then
+        return string.format(
+            "ERROR%s: %s",
+            result.elapsed and " after " .. result.elapsed .. "ms" or "",
+            vim.inspect(result.error)
+        )
+    end
+
+    if result.status == "timeout" then
+        return string.format("TIMEOUT after %dms", result.elapsed or COMPLETION_PROBE_TIMEOUT_MS)
+    end
+
+    return result.reason or result.status
+end
+
+--- Return the notification severity for a completion probe result.
+local function completion_probe_level(result)
+    if result.status == "ok" then
+        return vim.log.levels.INFO
+    end
+    if result.status == "empty" or result.status == "skipped" then
+        return vim.log.levels.WARN
+    end
+    return vim.log.levels.ERROR
+end
+
+--- Return whether a completion probe result proves JDTLS needs a restart.
+local function completion_probe_failed(result)
+    return result.status ~= "ok" and result.status ~= "skipped"
+end
+
+--- Remember a gap that should be health-checked on the next Java buffer.
+local function defer_gap_until_java_buffer(gap, source, reason)
+    state.pending_gap = {
+        gap = gap,
+        source = source,
+        reason = reason,
+        at = vim.uv.now(),
+    }
+    logger.fmt_info(
+        "gap %ds/%s: completion probe skipped (%s) -> waiting for Java BufEnter",
+        math.floor(gap / 1000),
+        source,
+        reason
+    )
+end
+
+--- Restart JDTLS after a failed health check, using hard restart only after very long gaps.
+local function restart_after_failed_health_check(gap, gap_label, reason)
+    if gap >= HARD_RESTART_GAP_MS then
+        logger.fmt_info("gap %s: %s -> hard restart", gap_label, reason)
+        hard_restart_all_jdtls("gap " .. gap_label .. ", " .. reason)
+        return
+    end
+
+    logger.fmt_info("gap %s: %s -> full restart", gap_label, reason)
+    restart_all_jdtls("gap " .. gap_label .. ", " .. reason)
+end
+
 -- Soft recovery: detach + reattach a single buffer. Cheaper than full restart
 -- (no JVM startup, no re-index). Used when the workspace is healthy but the
 -- buffer-specific didOpen state has been lost (silent post-sleep failure).
@@ -495,20 +689,54 @@ local function recover_after_gap(gap, source)
     probe_all_clients(clients, function(any_dead)
         state.probing = false
         if any_dead then
-            logger.fmt_info("workspace probe failed (gap %s) -> full restart", gap_label)
-            restart_all_jdtls("gap " .. gap_label .. ", probe failed")
+            restart_after_failed_health_check(gap, gap_label, "workspace probe failed")
             return
         end
 
-        if gap >= HARD_RESTART_GAP_MS then
-            logger.fmt_info("gap %s: workspace healthy -> hard restart for workspace refresh", gap_label)
-            hard_restart_all_jdtls("gap " .. gap_label .. ", workspace refresh")
-            return
-        end
+        state.probing = true
+        probe_current_completion_for_recovery(function(result)
+            state.probing = false
+            if result.status == "skipped" then
+                defer_gap_until_java_buffer(gap, source, result.reason or result.status)
+                return
+            end
 
-        logger.fmt_info("gap %s: workspace healthy -> full restart for completion refresh", gap_label)
-        restart_all_jdtls("gap " .. gap_label .. ", completion refresh")
+            local probe_result = format_completion_probe_result(result)
+            if completion_probe_failed(result) then
+                restart_after_failed_health_check(gap, gap_label, "completion probe " .. probe_result)
+                return
+            end
+
+            logger.fmt_info(
+                "gap %s: workspace and completion healthy (%s) -> blink refresh only",
+                gap_label,
+                probe_result
+            )
+            refresh_blink_lsp("gap " .. gap_label .. ", completion healthy")
+        end)
     end)
+end
+
+--- Replay a deferred gap health check once a Java buffer is current.
+local function run_pending_gap_on_java_bufenter()
+    local pending = state.pending_gap
+    if not pending then
+        return
+    end
+
+    state.pending_gap = nil
+    if (vim.uv.now() - pending.at) > PENDING_GAP_TTL_MS then
+        logger.fmt_info(
+            "dropping pending gap %ds/%s after Java BufEnter: expired",
+            math.floor(pending.gap / 1000),
+            pending.source
+        )
+        return
+    end
+
+    vim.defer_fn(function()
+        recover_after_gap(pending.gap, pending.source .. "+java")
+    end, 200)
 end
 
 --- Refresh the idle tick during ordinary editing and recover on long gaps.
@@ -537,8 +765,7 @@ local function check_gap()
     recover_after_gap(gap, "focus")
 end
 
--- BufEnter for java buffers: if a buffer has no jdtls client but a project
--- client exists, attach it. This covers already-open buffers after recovery.
+--- Attach missing JDTLS clients on Java BufEnter and replay pending gap checks.
 local function on_java_bufenter()
     if state.recovering then
         return
@@ -550,11 +777,16 @@ local function on_java_bufenter()
     if not lsp_util.get_client_by_name("jdtls", { bufnr = buf }) then
         if lsp_util.get_client_by_name("jdtls") then
             state.attach_fn(buf)
+            vim.defer_fn(run_pending_gap_on_java_bufenter, 200)
+        else
+            run_pending_gap_on_java_bufenter()
         end
         return
     end
+    run_pending_gap_on_java_bufenter()
 end
 
+--- Register JDTLS sleep-recovery autocmds and diagnostic commands.
 ---@param attach_fn fun(buf: integer)
 function M.setup(attach_fn)
     state.attach_fn = attach_fn
@@ -628,8 +860,15 @@ function M.setup(attach_fn)
                     )
                 end)
             end
+
+            probe_current_completion(function(result)
+                vim.notify(
+                    "JDTLS current buf completion: " .. format_completion_probe_result(result),
+                    completion_probe_level(result)
+                )
+            end)
         end
-    end, { desc = "Probe JDTLS health (workspace + current buffer) without restarting" })
+    end, { desc = "Probe JDTLS health (workspace + current buffer + completion) without restarting" })
 
     vim.api.nvim_create_user_command("JdtlsSoftRecover", function()
         local cur = vim.api.nvim_get_current_buf()
@@ -646,77 +885,12 @@ function M.setup(attach_fn)
     -- us whether jdtls is the problem (returns 0 / errors / times out) or the
     -- client (jdtls returns items but blink does not surface them).
     vim.api.nvim_create_user_command("JdtlsCompletionProbe", function()
-        local cur = vim.api.nvim_get_current_buf()
-        if vim.bo[cur].filetype ~= "java" then
-            vim.notify("JdtlsCompletionProbe: current buffer is not Java", vim.log.levels.WARN)
-            return
-        end
-        local client = lsp_util.get_client_by_name("jdtls", { bufnr = cur })
-        if not client then
-            vim.notify("JdtlsCompletionProbe: no jdtls client on buffer", vim.log.levels.ERROR)
-            return
-        end
-        local cap = client.server_capabilities or {}
-        local cp = cap.completionProvider
-        if not cp then
+        probe_current_completion(function(result)
             vim.notify(
-                "JdtlsCompletionProbe: client advertises NO completionProvider capability!",
-                vim.log.levels.ERROR
+                "JdtlsCompletionProbe: " .. format_completion_probe_result(result),
+                completion_probe_level(result)
             )
-            return
-        end
-
-        local params = vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16")
-        local start = vim.uv.now()
-        local responded = false
-        local ok, req_id = client:request("textDocument/completion", params, function(err, result)
-            if responded then
-                return
-            end
-            responded = true
-            local elapsed = vim.uv.now() - start
-            if err then
-                vim.notify(
-                    string.format("JdtlsCompletionProbe: ERROR after %dms: %s", elapsed, vim.inspect(err)),
-                    vim.log.levels.ERROR
-                )
-                return
-            end
-            local items = result
-            if type(result) == "table" and result.items then
-                items = result.items
-            end
-            local count = items and #items or 0
-            local preview = {}
-            for i = 1, math.min(5, count) do
-                table.insert(preview, items[i].label or "?")
-            end
-            vim.notify(
-                string.format(
-                    "JdtlsCompletionProbe: %d items in %dms%s",
-                    count,
-                    elapsed,
-                    #preview > 0 and " — " .. table.concat(preview, ", ") or ""
-                ),
-                count > 0 and vim.log.levels.INFO or vim.log.levels.WARN
-            )
-        end, cur)
-
-        if not ok then
-            vim.notify("JdtlsCompletionProbe: request() returned false", vim.log.levels.ERROR)
-            return
-        end
-
-        vim.defer_fn(function()
-            if responded then
-                return
-            end
-            responded = true
-            pcall(function()
-                client:cancel_request(req_id)
-            end)
-            vim.notify("JdtlsCompletionProbe: TIMEOUT after 5s", vim.log.levels.ERROR)
-        end, 5000)
+        end)
     end, { desc = "Send a real textDocument/completion at cursor and report raw result" })
 
     -- Print detailed jdtls state to :messages.
