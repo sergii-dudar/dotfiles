@@ -21,7 +21,7 @@
         org.springframework.boot.EnvironmentPostProcessor=ua.raiffeisen.apigov.metrics.MetricsEnvironmentPostProcessor
         ua.raiffeisen.apigov.metrics.micrometer.ssl.config.SslMetricsAutoConfiguration
         ...
-      stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
+     stabilize `module.java.refactor` for fixing batch moved\renamed java files, packages etc. (especially renaming global packages src/test)
      replace java.nvim with own `module.java.refactor` and refactor integraions
      Ability to run/debug tests to rust
      Ability to run/debug tests to go
