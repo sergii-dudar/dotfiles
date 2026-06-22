@@ -48,6 +48,7 @@ local include_dependencies = {
     -- "com.fasterxml.jackson.core:jackson-databind",
     "ua.raiffeisen.payments",
     "org.assertj:assertj-core",
+    -- "org.apache.commons:commons-collections4",
 }
 
 local ignored_dependencies = {

@@ -107,8 +107,14 @@ return {
             -- If you add a dependency to the POM or change one of the existing dependencies version, 
             -- you must run “:JdtUpdateConfig” so the Java LSP can download the new dependencies.
             -- { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
-            { "<leader>jdu", function() require("jdtls").update_project_config() end, desc = "JDTLS Update Config [module of current buf]" },
-            { "<leader>jdU", function() require("jdtls").update_projects_config({ select_mode = "all" }) end, desc = "JDTLS Update Config [all modules]" },
+            { "<leader>jdu", function()
+                require("jdtls").update_project_config()
+                require("modules.java.dependencies-search").reset()
+            end, desc = "JDTLS Update Config [module of current buf]" },
+            { "<leader>jdU", function()
+                require("jdtls").update_projects_config({ select_mode = "all" })
+                require("modules.java.dependencies-search").reset()
+            end, desc = "JDTLS Update Config [all modules]" },
             -- In case of misalignments of the workspace, e.g., if you wipe the local Maven cache (“~/.m2/repository”) when restarting 
             -- an already opened project, you get errors due to unresolved dependencies, you can run “:JdtWipeDataAndRestart”
             -- which will resolve the Maven dependencies from scratch
