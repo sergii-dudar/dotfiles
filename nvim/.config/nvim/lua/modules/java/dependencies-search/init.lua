@@ -652,8 +652,11 @@ local function open_explorer(mod)
                     require("utils.java.jdtls-util").jdt_open_class(fqcn)
                 else
                     picker:close()
+                    -- jarentry.open returns false when jdtls is down / URI can't be
+                    -- built; the picker is already closed here, so fall back to a raw
+                    -- :edit rather than re-invoking orig_confirm on a dead picker.
                     if not jarentry.open(file, state.source_dirs_test_all) then
-                        return orig_confirm(picker, item, action)
+                        vim.cmd("edit " .. vim.fn.fnameescape(file))
                     end
                 end
             end
@@ -713,15 +716,17 @@ function M.reset()
     state.exclude = {}
     selected_explore_module = nil
     coord_match_cache = {}
+    -- Invalidate the dependent static-import-explorer preferred-deps cache here
+    -- (not only in :DepSearchReset) so any caller of M.reset() stays consistent.
+    -- Lazy require avoids the circular load with static-import-explorer.util.
+    pcall(function()
+        require("modules.java.static-import-explorer.util").clear_preferred_cache()
+    end)
     vim.notify("[Dep Search] Cache cleared. Will reload on next use.", vim.log.levels.INFO)
 end
 
 vim.api.nvim_create_user_command("DepSearchReset", function()
     M.reset()
-    -- Clear static-import-explorer preferred deps cache
-    pcall(function()
-        require("modules.java.static-import-explorer.util").clear_preferred_cache()
-    end)
 end, { desc = "Clear dependency search cache and reload on next use" })
 
 function M.is_loaded()

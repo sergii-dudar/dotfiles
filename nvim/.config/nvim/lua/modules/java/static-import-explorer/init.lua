@@ -172,12 +172,7 @@ function M.find()
     local state = new_state()
     state.current_word = vim.fn.expand("<cword>")
 
-    local dirs = util.get_search_dirs(state, settings)
-    if #dirs == 0 then
-        vim.notify("[Static Import] No search directories found", vim.log.levels.WARN)
-        return
-    end
-
+    -- picker.open computes the search dirs and warns/returns if there are none.
     picker.open(settings, state)
 end
 

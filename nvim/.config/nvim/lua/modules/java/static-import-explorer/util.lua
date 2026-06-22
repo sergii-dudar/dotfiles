@@ -245,6 +245,18 @@ function M.get_search_dirs(state, settings)
     return M.dedup_dirs(dirs)
 end
 
+--- Return true when a grep match line is noise rather than an importable member:
+--- a `return` statement, or a `private`/`protected` declaration. Matched as whole
+--- words (frontier pattern) so identifiers like `returnValue`/`protectedName` are kept.
+--- Single source of truth shared by the picker `transform` and `parse_rg_results`.
+---@param text string
+---@return boolean
+function M.is_excluded_line(text)
+    return text:match("%f[%w]return%f[%W]") ~= nil
+        or text:match("%f[%w]private%f[%W]") ~= nil
+        or text:match("%f[%w]protected%f[%W]") ~= nil
+end
+
 --- Extract static member name from a matched grep line.
 --- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
 --- For enum constants: ALL_CAPS at start of trimmed line before ',' ';' or '(' (constructor args)
@@ -343,7 +355,10 @@ function M.build_search(word, starts_with)
         local enum_pattern = "(?:^|,)[\\s]*" .. word .. enum_tail .. "[\\s]*(?:[,;({]|$)"
         return field_pattern .. "|" .. enum_pattern
     else
-        -- Static method (camelCase) — requires static, public optional (covers interface methods)
+        -- Static method (camelCase) — requires static, public optional (covers interface methods).
+        -- NOTE: rg matches per line, so `static` and the method name must be on the same line.
+        -- Signatures split across lines (e.g. `public static <T> T\n    mock(...)`) are missed by
+        -- design — matching multi-line would require rg -U and inflate false positives.
         local suffix = starts_with and "[a-zA-Z0-9_]*\\(" or "\\("
         return "static[\\s]+.*[\\s]+" .. word .. suffix
     end
@@ -403,16 +418,12 @@ function M.parse_rg_results(stdout, import_mode, word, fqcn_cache, source_file)
 
     for _, line in ipairs(lines) do
         local file, lnum_str, text = line:match("^(.-):(%d+):(.*)")
-        if
-            file
-            and text
-            and file ~= source_file
-            and not text:match("return%s")
-            and not text:match("private%s")
-            and not text:match("protected%s")
-        then
+        if file and text and file ~= source_file and not M.is_excluded_line(text) then
             local fqcn = M.file_to_fqcn(file, tonumber(lnum_str), fqcn_cache)
-            if fqcn then
+            -- Require a package: file_to_fqcn falls back to the bare class name for
+            -- files without a `package` line, and Java forbids importing from the
+            -- default package, so a dotless FQCN can never form a valid static import.
+            if fqcn and fqcn:find(".", 1, true) then
                 local member = M.extract_static_member(text, word)
                 local import_str = M.build_import_line(fqcn, member, import_mode)
                 if not seen[import_str] then

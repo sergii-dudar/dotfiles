@@ -17,7 +17,10 @@ local function make_confirm(settings, state)
         picker:close()
         local lnum = item.pos and item.pos[1] or nil
         local fqcn = util.file_to_fqcn(file, lnum, state.fqcn_cache)
-        if not fqcn then
+        -- file_to_fqcn falls back to the bare class name for files without a
+        -- `package` line; a dotless FQCN is the default package, which Java cannot
+        -- import — reject it rather than insert a broken `import static Class.member;`.
+        if not fqcn or not fqcn:find(".", 1, true) then
             vim.notify("[Static Import] Could not determine FQCN", vim.log.levels.WARN)
             return
         end
@@ -128,19 +131,19 @@ local picker_keys = {
     ["<C-w>"] = { "toggle_starts_with", mode = { "n", "i" }, desc = "Toggle full match / starts with" },
 }
 
---- Return true when a grep line should not be offered as a static import candidate.
-local function is_excluded_line(text)
-    return text:match("return%s") or text:match("private%s") or text:match("protected%s")
-end
-
 --- Open the Snacks picker for the current static-import search state.
 ---@param settings table
 ---@param state table
 ---@param glob? string
 function M.open(settings, state, glob)
+    local dirs = util.get_search_dirs(state, settings)
+    if #dirs == 0 then
+        vim.notify("[Static Import] No search directories found", vim.log.levels.WARN)
+        return
+    end
     local search = util.build_search(state.current_word, state.starts_with)
     Snacks.picker.grep({
-        dirs = util.get_search_dirs(state, settings),
+        dirs = dirs,
         search = search,
         glob = glob or state.default_glob,
         title = "Static Import Search",
@@ -150,7 +153,7 @@ function M.open(settings, state, glob)
             if item.file == state.source_file then
                 return false
             end
-            if is_excluded_line(item.text or "") then
+            if util.is_excluded_line(item.text or "") then
                 return false
             end
         end,
