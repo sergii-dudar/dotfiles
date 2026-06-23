@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Display whether microphone is actively being used by any app.
+
+case "$BLOCK_BUTTON" in
+    1) setsid --fork pavucontrol ;;
+    3) setsid --fork env XDG_CURRENT_DESKTOP=GNOME gnome-control-center ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/scripts/dwl/colorscheme
+
+if pactl list source-outputs short 2>/dev/null | grep -q .; then
+    echo " ^fg(ca9ee6)^fg() $SPLIT"
+else
+    # echo "^fg(ca9ee6) $SPLIT"
+    exit 0
+fi

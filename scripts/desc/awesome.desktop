@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Awesome
+Comment=Highly configurable framework window manager
+TryExec=awesome
+Exec=$HOME/dotfiles/scripts/desc/awesome.desktop.runner.sh
+Type=Application

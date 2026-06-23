@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. ~/dotfiles/bin/wmscripts/status-bar/shared-openweather.cached
+. ~/dotfiles/scripts/wmscripts/status-bar/shared-openweather.cached
 
 function of_font() {
     # echo "<span size=\"$2\">$1</span>"

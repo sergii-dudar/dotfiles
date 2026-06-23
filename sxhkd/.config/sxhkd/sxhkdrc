@@ -7,12 +7,12 @@ super + q
     ~/.config/rofi/scripts/powermenu_t1
 
 ctrl + alt + q
-    ~/dotfiles/bin/screen-lock
+    ~/dotfiles/scripts/screen-lock
 
 # just the unconviniest combination to hit, as is mapping to right alt by `keyd`
 # alt + ctrl + super + shift + space
 super + space
-    ~/dotfiles/bin/change_language.sh
+    ~/dotfiles/scripts/change_language.sh
 
 # general:
 # XDG_CURRENT_DESKTOP=GNOME gnome-control-center
@@ -33,7 +33,7 @@ alt + shift + g
     kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center
 
 alt + shift + b
-    ~/dotfiles/bin/start-browser
+    ~/dotfiles/scripts/start-browser
 # ---------- Audio Keybindings ------------- #
 
 super + Left

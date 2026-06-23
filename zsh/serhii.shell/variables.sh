@@ -14,7 +14,7 @@ if isMacOs; then
     # Add Docker Desktop for Mac (docker)
     export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 
-    alias setwalls="~/dotfiles/bin/macos/set_wallpapers.sh"
+    alias setwalls="~/dotfiles/scripts/macos/set_wallpapers.sh"
     function kanata_run() {
         sudo bash -c "$(which kanata) --cfg $HOME/.config/kanata/kanata.kbd >> /var/log/kanata.log 2>&1 &"
         tail -f /var/log/kanata.log

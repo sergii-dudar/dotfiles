@@ -54,6 +54,6 @@
     "custom/runner-wallpapers": {
         "format": "<span color='#b4befe'> </span>",
         "tooltip": false,
-        "on-click": "foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"
+        "on-click": "foot --app-id com.scratchpad.wallpapers ~/dotfiles/scripts/wallpapers/wallpaper-selector.sh"
     }
 }

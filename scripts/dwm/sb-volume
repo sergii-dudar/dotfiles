@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Display volume levels.
+
+case "$BLOCK_BUTTON" in
+    1) pactl set-sink-mute @DEFAULT_SINK@ toggle ;;
+    2) setsid --fork kitty -e nvim "$0" ;;
+    3) setsid --fork pavucontrol ;;
+    4) pactl set-sink-volume @DEFAULT_SINK@ +5% ;;
+    5) pactl set-sink-volume @DEFAULT_SINK@ -5% ;;
+    6) setsid --fork kitty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/scripts/dwm/colorscheme
+
+if [ "$(pamixer --get-mute)" == "true" ]; then
+    notify-send --expire-time=1000 "Volume Muted 🔇"
+    echo " ^c#d35f5e^  MUT $SPLIT"
+    exit 0
+fi
+
+# volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%')" # can return from any channels: 80 55 75
+# volume="$(pactl list sinks | grep 'Volume: front-left' | awk '{print $5}' | tr -d '%' | head -n1)"
+volume="$(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}' | tr -d '%')"
+
+if [ -z "$volume" ]; then
+    icon="  "
+    volume=" "
+    return 0
+fi
+
+if [ "$volume" -eq 125 ]; then
+    icon="  "
+    notify-send -u critical "Volume 125%" "You are going to damage your ears!"
+elif [ "$volume" -gt 99 ]; then
+    icon="  "
+elif [ "$volume" -gt 40 ]; then
+    icon="  "
+elif [ "$volume" -gt 15 ]; then
+    icon=" "
+elif [ "$volume" -lt 10 ]; then
+    icon=" "
+    echo " ^c#ca9ee6^$icon^c$FG_COLOR^0$volume^c#6272a4^% $SPLIT"
+    exit 0
+else
+    icon=" "
+fi
+
+echo " ^c#ca9ee6^$icon^c$FG_COLOR^$volume^c#6272a4^% $SPLIT"

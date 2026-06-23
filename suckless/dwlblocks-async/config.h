@@ -22,22 +22,22 @@
 // which is also the line delimiter dwl frames on. Using it would make the
 // stream ambiguous and corrupt the bar.
 #define BLOCKS(X) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-date",          10,     1) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-key-layout",    0,      2) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-volume",        10,     3) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-battery",       300,    4) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-memory",        30,     5) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-cpu-load",      30,     6) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-cpu-temp",      120,    7) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-disk",          1200,   8) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-weather",       1200,   9) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-mediaplayer",   0,      14) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-network",       30,     11) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-bluetooth",     30,     12) \
-    X("", "/home/serhii/dotfiles/bin/dwl/sb-mic",           30,     13)
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-date",          10,     1) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-key-layout",    0,      2) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-volume",        10,     3) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-battery",       300,    4) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-memory",        30,     5) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-cpu-load",      30,     6) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-cpu-temp",      120,    7) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-disk",          1200,   8) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-weather",       1200,   9) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-mediaplayer",   0,      14) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-network",       30,     11) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-bluetooth",     30,     12) \
+    X("", "/home/serhii/dotfiles/scripts/dwl/sb-mic",           30,     13)
 #endif  // CONFIG_H
 
 // update from sh: kill -(34 + signal) $(pidof dwlblocks)
 // to update sb-key-layout: kill -(34 + 2) $(pidof dwlblocks)
 //
-//  X("", "/home/serhii/dotfiles/bin/dwl/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '󰣇' '#bd93f9'",          0, 15) 
+//  X("", "/home/serhii/dotfiles/scripts/dwl/sb-runner '/home/serhii/.config/rofi/scripts/launcher_t1' '󰣇' '#bd93f9'",          0, 15) 

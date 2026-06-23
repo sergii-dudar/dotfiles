@@ -78,7 +78,7 @@ run_cmd() {
 }
 
 exec_on_exit_action() {
-    ~/dotfiles/bin/wmscripts/on_logout_action.sh
+    ~/dotfiles/scripts/wmscripts/on_logout_action.sh
 }
 
 # Actions
@@ -101,11 +101,11 @@ case ${chosen} in
                     sleep 0.2 && hyprlock &
                     ;;
                 *)
-                    sleep 0.2 && "$HOME/dotfiles/bin/screen-lockw" & # swaylock
+                    sleep 0.2 && "$HOME/dotfiles/scripts/screen-lockw" & # swaylock
                     ;;
             esac
         else
-            sleep 0.2 && "$HOME/dotfiles/bin/screen-lock"
+            sleep 0.2 && "$HOME/dotfiles/scripts/screen-lock"
         fi
         ;;
     "$suspend")

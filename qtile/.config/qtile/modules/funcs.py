@@ -56,7 +56,7 @@ def layout_change(layout, group):
 
 @hook.subscribe.startup_once
 def autostart_once():
-    home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_once.sh")
+    home = os.path.expanduser("~/dotfiles/scripts/wmscripts/autostart_once.sh")
     subprocess.Popen([home, "qtile"])
     # lazy.to_screen(1)  # Focus second monitor
     # lazy.group["9"].toscreen()  # Move workspace 9 to second monitor
@@ -64,7 +64,7 @@ def autostart_once():
 
 @hook.subscribe.startup
 def autostart_always():
-    home = os.path.expanduser("~/dotfiles/bin/wmscripts/autostart_always.sh")
+    home = os.path.expanduser("~/dotfiles/scripts/wmscripts/autostart_always.sh")
     subprocess.Popen([home, "qtile"])
 
 @hook.subscribe.client_new

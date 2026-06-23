@@ -7,7 +7,7 @@ end
 for _, bundle in ipairs(vim.split(vim.fn.glob("$HOME/tools/java-extensions/lemminx/lemminx-maven/*.jar"), "\n")) do
     table.insert(lemminx_jars, bundle)
 end
--- NOTE: install lemminx with maven extension by run - ~/dotfiles/bin/install/nvim/ls/lemminx-maven/load_and_build_all.sh
+-- NOTE: install lemminx with maven extension by run - ~/dotfiles/scripts/install/nvim/ls/lemminx-maven/load_and_build_all.sh
 -- dd(vim.fn.join(lemminx_jars, ":"))
 
 -- NOTE: cometime lemminx mave have some issue (Non-resolvable parent POM) with detecting last vertion in case pattern version like

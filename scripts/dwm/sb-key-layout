@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+. "$HOME"/dotfiles/scripts/dwm/colorscheme
+
+case "$BLOCK_BUTTON" in
+    1 | 3) "$HOME"/dotfiles/scripts/change_language.sh ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+declare -A lmap
+lmap["ua"]="UA"
+lmap["us"]="US"
+
+k_layout_icon=" "
+k_layout=$(setxkbmap -query | grep layout | awk '{print $NF}')
+
+echo " ^c#8caaee^$k_layout_icon ^c#cba6f7^${lmap[$k_layout]}^d^  $SPLIT"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 . ~/dotfiles/xmobar/.config/xmobar/shell/module.colorscheme
-. ~/dotfiles/bin/wmscripts/status-bar/shared-openweather.cached
+. ~/dotfiles/scripts/wmscripts/status-bar/shared-openweather.cached
 
 function of_font() {
     echo "<fn=$2>$1</fn>"

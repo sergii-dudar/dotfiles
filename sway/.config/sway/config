@@ -8,8 +8,8 @@ include ~/.config/sway/modes.conf
 
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 #exec --no-startup-id /usr/lib/xdg-desktop-portal -r
-exec_always --no-startup-id ~/dotfiles/bin/apply-display-settings.w.sh sway
-exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.w.sh sway
+exec_always --no-startup-id ~/dotfiles/scripts/apply-display-settings.w.sh sway
+exec --no-startup-id ~/dotfiles/scripts/wmscripts/autostart_once.w.sh sway
 exec_always --no-startup-id ~/.config/waybar/sway-waybar-run
 
 seat seat0 xcursor_theme elementary 30
@@ -42,10 +42,10 @@ output "HDMI-A-3" mode 2560x1440@74.983Hz transform 90 pos 3840 0
 # exec --no-startup-id "swaybg -o HDMI-A-1 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
 # exec --no-startup-id "swaybg -o HDMI-A-2 -i ~/wallpapers/jpg/Wall147.jpg -m fill"
 # exec --no-startup-id "swaybg -o HDMI-A-3 -i ~/wallpapers/portrait/AzZxWk0.png -m fill"
-# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-1 && swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-1.txt) -m fill"
-# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-2 && swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-2.txt) -m fill"
-# exec --no-startup-id "~/dotfiles/bin/monitor-exists.sh HDMI-A-3 && swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/bin/wallpapers/selected/HDMI-A-3.txt) -m fill"
-exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.w.sh sway
+# exec --no-startup-id "~/dotfiles/scripts/monitor-exists.sh HDMI-A-1 && swaybg -o HDMI-A-1 -i $(cat ~/dotfiles/scripts/wallpapers/selected/HDMI-A-1.txt) -m fill"
+# exec --no-startup-id "~/dotfiles/scripts/monitor-exists.sh HDMI-A-2 && swaybg -o HDMI-A-2 -i $(cat ~/dotfiles/scripts/wallpapers/selected/HDMI-A-2.txt) -m fill"
+# exec --no-startup-id "~/dotfiles/scripts/monitor-exists.sh HDMI-A-3 && swaybg -o HDMI-A-3 -i $(cat ~/dotfiles/scripts/wallpapers/selected/HDMI-A-3.txt) -m fill"
+exec --no-startup-id ~/dotfiles/scripts/wmscripts/autostart_always.w.sh sway
 
 # output "HDMI-A-1" scale 1.4
 # output "HDMI-A-1" transform 90
@@ -146,19 +146,19 @@ set $pmenu ~/.config/rofi/scripts/powermenu_t1
     bindsym $alt+space exec $menu
     bindsym $mod+q exec $pmenu
 
-    bindsym $ctrl+$alt+q exec ~/dotfiles/bin/screen-lockw
-    # bindsym $mod+space exec ~/dotfiles/bin/change_language.sh sway
+    bindsym $ctrl+$alt+q exec ~/dotfiles/scripts/screen-lockw
+    # bindsym $mod+space exec ~/dotfiles/scripts/change_language.sh sway
     bindsym $mod+space exec ~/.config/waybar/module/shell/change_language.sh sway
 
     # toggle waybar visibility
     bindsym $mod+b exec "killall -SIGUSR1 waybar"
-    bindsym Print exec ~/dotfiles/bin/screenshot.w.sh
+    bindsym Print exec ~/dotfiles/scripts/screenshot.w.sh
      
     # open/close gnome-control-center
     bindsym $alt+Shift+g exec "kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
     # bindsym $alt+Shift+w exec ~/.config/waypaper/toggle.sh sway
-    bindsym $alt+Shift+w exec foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh
-    bindsym $alt+Shift+b exec ~/dotfiles/bin/start-browserw
+    bindsym $alt+Shift+w exec foot --app-id com.scratchpad.wallpapers ~/dotfiles/scripts/wallpapers/wallpaper-selector.sh
+    bindsym $alt+Shift+b exec ~/dotfiles/scripts/start-browserw
     
     # ---------- Audio Keybindings ------------- #
     bindsym $mod+Left exec "amixer -D pulse sset Master 5%-"

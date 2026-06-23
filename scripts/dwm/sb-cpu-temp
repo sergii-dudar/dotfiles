@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Display disk usage for both `/` and `/home`.
+
+. "$HOME"/dotfiles/scripts/dwm/colorscheme
+
+case $BLOCK_BUTTON in
+    1) notify-send "🖥 CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)" ;;
+    2) setsid --fork kitty -e htop ;;
+    3) notify-send "🖥 CPU module " "\- Shows CPU temperature.
+- Click to show intensive processes.
+        - Middle click to open htop." ;;
+    6) setsid --fork ghostty -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+temp=$(sensors | awk '/Core 0/ {print $3}' | sed 's/[^0-9]*\([0-9]*\)\..*/\1/')
+
+icon_fg="#8caaee"
+icon=""
+
+if [ "$temp" -lt 25 ]; then
+    icon_fg="#8caaee"
+    icon=""
+elif [ "$temp" -lt 50 ]; then
+    icon_fg="#8caaee"
+    icon=""
+elif [ "$temp" -lt 65 ]; then
+    icon_fg="#e5c890"
+    icon=""
+elif [ "$temp" -lt 80 ]; then
+    icon_fg="#e78284"
+    icon=""
+else
+    icon_fg="#ff5555"
+    icon=""
+fi
+
+echo " ^c$icon_fg^$icon ^c$FG_COLOR^$temp^c#6272a4^°C $SPLIT"

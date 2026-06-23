@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Pick WM by Random
+Comment=Pick Window Manager by Random
+Exec=$HOME/dotfiles/scripts/desc/wm-picker.desktop.runner.sh random
+Type=Application

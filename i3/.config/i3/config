@@ -2,8 +2,8 @@ include ~/.config/i3/theme.conf
 include ~/.config/i3/rules.conf
 include ~/.config/i3/modes.conf
 
-exec --no-startup-id ~/dotfiles/bin/wmscripts/autostart_once.sh i3
-exec_always --no-startup-id ~/dotfiles/bin/wmscripts/autostart_always.sh i3
+exec --no-startup-id ~/dotfiles/scripts/wmscripts/autostart_once.sh i3
+exec_always --no-startup-id ~/dotfiles/scripts/wmscripts/autostart_always.sh i3
 
 set $primary HDMI-1
 set $secondary HDMI-2

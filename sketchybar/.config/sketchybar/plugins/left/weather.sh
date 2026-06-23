@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. "$HOME"/dotfiles/bin/wmscripts/status-bar/shared-openweather.cached
+. "$HOME"/dotfiles/scripts/wmscripts/status-bar/shared-openweather.cached
 
 ICON_OFFSET=3
 case "$WEATHER_ICON" in

@@ -53,7 +53,7 @@ M.setup = function()
     ))
 
     -- custom_keyboard_widget.widget:buttons(awful.util.table.join(awful.button({}, 1, function()
-    --     awful.spawn.with_shell(string.format("bash %s/dotfiles/bin/change_language.sh", vars.path.home_dir))
+    --     awful.spawn.with_shell(string.format("bash %s/dotfiles/scripts/change_language.sh", vars.path.home_dir))
     --     custom_keyboard_widget.update()
     -- end)))
 

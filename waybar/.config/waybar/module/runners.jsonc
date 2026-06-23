@@ -56,7 +56,7 @@
     "image#runner-brave": {
         "path": "/home/serhii/.config/waybar/resources/brave.icns",
         "size": 31,
-        "on-click": "~/dotfiles/bin/start-browserw"
+        "on-click": "~/dotfiles/scripts/start-browserw"
     },
     "image#runner-intellij": {
         "path": "/home/serhii/.config/waybar/resources/intellij.svg",

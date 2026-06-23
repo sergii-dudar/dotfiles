@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Display currently playing media with status icons.
+# Replicates waybar custom/media (mediaplayer.py) behavior for dwlblocks.
+# Dependencies: sudo pacman -S playerctl
+
+case "$BLOCK_BUTTON" in
+    1) playerctl play-pause ;;
+    2) playerctl stop ;;
+    3) setsid --fork foot --app-id com.scratchpad.music /home/serhii/.cargo/bin/rmpc ;;
+    4) playerctl next ;;
+    5) playerctl previous ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/scripts/dwl/colorscheme
+
+# player_args=(--player=mpd,spotify,mpv,%any)
+# status="$(playerctl "${player_args[@]}" status 2>/dev/null)" || exit 0
+# artist="$(playerctl "${player_args[@]}" metadata artist 2>/dev/null)"
+# title="$(playerctl "${player_args[@]}" metadata title 2>/dev/null)"
+status="$(playerctl status 2>/dev/null)" || exit 0
+artist="$(playerctl metadata artist 2>/dev/null)"
+title="$(playerctl metadata title 2>/dev/null)"
+
+[ -z "$title" ] && exit 0
+
+if [ -n "$artist" ]; then
+    song="$artist - $title"
+else
+    song="$title"
+fi
+
+# Truncate to 30 chars (matching waybar max-length)
+if [ "${#song}" -gt 30 ]; then
+    song="${song:0:27}..."
+fi
+
+if [ "$status" = "Playing" ]; then
+    icon="^fg(c678dd) ^fg()"
+elif [ "$status" = "Paused" ]; then
+    icon="^fg(98be65) ^fg()"
+elif [ "$status" = "Stopped" ]; then
+    icon="^fg(FC9867) ^fg()"
+else
+    exit 0
+fi
+
+echo " ${icon} ^fg(5699af)${song}^fg() $SPLIT"

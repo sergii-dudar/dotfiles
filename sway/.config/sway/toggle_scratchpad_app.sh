@@ -17,7 +17,7 @@ case "$1" in
         app_id="com.scratchpad.wallpapers"
         # run_cmd="ghostty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
         # run_cmd="alacritty --class=com.scratchpad.yazi -e ~/.cargo/bin/yazi"
-        run_cmd="foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"
+        run_cmd="foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/scripts/wallpapers/wallpaper-selector.sh"
         notify_msg="🌆 Wallpapers"
         ;;
     "music")

@@ -19,7 +19,7 @@ hl.bind(keys(c.mainMod, "Q"), hl.dsp.exec_cmd(c.qmenu))
 hl.bind(keys(c.mainMod, "V"), hl.dsp.exec_cmd(c.clipmenu))
 
 -- Other
--- hl.bind(keys(c.ctrl, c.alt, "Q"), hl.dsp.exec_cmd("~/dotfiles/bin/screen-lockw"))
+-- hl.bind(keys(c.ctrl, c.alt, "Q"), hl.dsp.exec_cmd("~/dotfiles/scripts/screen-lockw"))
 hl.bind(keys(c.ctrl, c.alt, "Q"), hl.dsp.exec_cmd("hyprlock"))
 hl.bind(keys(c.mainMod, "SPACE"), hl.dsp.exec_cmd("~/.config/waybar/module/shell/change_language.sh hyprland"))
 hl.bind(keys(c.mainMod, c.shift, "R"), hl.dsp.exec_cmd("hyprctl reload"))
@@ -84,11 +84,11 @@ hl.bind(keys(c.mainMod, "RETURN"), hl.dsp.exec_cmd(c.terminal))
 hl.bind(keys(c.alt, c.shift, "G"), hl.dsp.exec_cmd("kill -9 $(pidof gnome-control-center) || XDG_CURRENT_DESKTOP=GNOME gnome-control-center"))
 -- stylua: ignore end
 -- hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("~/.config/waypaper/toggle.sh hyprland"))
-hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("foot --app-id com.scratchpad.wallpapers ~/dotfiles/bin/wallpapers/wallpaper-selector.sh"))
-hl.bind(keys(c.alt, c.shift, "B"), hl.dsp.exec_cmd("~/dotfiles/bin/start-browserw"))
+hl.bind(keys(c.alt, c.shift, "W"), hl.dsp.exec_cmd("foot --app-id com.scratchpad.wallpapers ~/dotfiles/scripts/wallpapers/wallpaper-selector.sh"))
+hl.bind(keys(c.alt, c.shift, "B"), hl.dsp.exec_cmd("~/dotfiles/scripts/start-browserw"))
 
-hl.bind("Print", hl.dsp.exec_cmd("~/dotfiles/bin/screenshot.w.sh"))
-hl.bind("Pause", hl.dsp.exec_cmd("~/dotfiles/bin/screenshot.w.sh"))
+hl.bind("Print", hl.dsp.exec_cmd("~/dotfiles/scripts/screenshot.w.sh"))
+hl.bind("Pause", hl.dsp.exec_cmd("~/dotfiles/scripts/screenshot.w.sh"))
 
 ----------------------------------------------------
 ----------------------- Games ----------------------

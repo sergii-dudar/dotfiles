@@ -22,7 +22,7 @@ M.apps = {
     },
     wallpapers = {
         class = "com.scratchpad.wallpapers",
-        cmd = "foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/bin/wallpapers/wallpaper-selector.sh",
+        cmd = "foot --app-id=com.scratchpad.wallpapers -e ~/dotfiles/scripts/wallpapers/wallpaper-selector.sh",
         notify = "🌆 Wallpapers",
     },
     nautilus = {

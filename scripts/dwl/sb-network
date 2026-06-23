@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Display network status (wifi/ethernet/disconnected).
+# Based on waybar network module icons and colors.
+# Dependencies: sudo pacman -S iproute2 iw wireless_tools
+
+case "$BLOCK_BUTTON" in
+    1) setsid --fork env XDG_CURRENT_DESKTOP=GNOME gnome-control-center ;;
+    6) setsid --fork foot -e nvim "$0" ;;
+        # *) notify-send "not action on: button -- $BLOCK_BUTTON" ;;
+esac
+
+. "$HOME"/dotfiles/scripts/dwl/colorscheme
+
+# Check ethernet first
+eth_iface="$(ip -o link show | awk -F': ' '/^[0-9]+: (en|eth)/{print $2}' | head -1)"
+if [ -n "$eth_iface" ]; then
+    eth_state="$(cat /sys/class/net/"$eth_iface"/operstate 2>/dev/null)"
+    if [ "$eth_state" = "up" ]; then
+        ip_addr="$(ip -4 addr show "$eth_iface" | awk '/inet /{print $2}' | head -1)"
+        if [ -n "$ip_addr" ]; then
+            echo " ^fg(51afef)󰈀 󰈁^fg() $SPLIT"
+        else
+            echo " ^fg(a6e3a1)󰈀 󰈁^fg($FG_COLOR) (No IP) $SPLIT"
+        fi
+        exit 0
+    fi
+fi
+
+# Check wifi
+wifi_iface="$(iw dev 2>/dev/null | awk '/Interface/{print $2}' | head -1)"
+if [ -z "$wifi_iface" ]; then
+    wifi_iface="$(ip -o link show | awk -F': ' '/^[0-9]+: (wl)/{print $2}' | head -1)"
+fi
+
+if [ -n "$wifi_iface" ]; then
+    wifi_state="$(cat /sys/class/net/"$wifi_iface"/operstate 2>/dev/null)"
+    if [ "$wifi_state" = "up" ]; then
+        signal="$(awk 'NR==3{print int($3 * 100 / 70)}' /proc/net/wireless 2>/dev/null)"
+        [ -z "$signal" ] && signal=0
+        [ "$signal" -gt 100 ] && signal=100
+
+        if [ "$signal" -ge 80 ]; then
+            icon="^fg(a6e3a1)󰤨 ^fg()"
+        elif [ "$signal" -ge 60 ]; then
+            icon="^fg(4db5bd)󰤥 ^fg()"
+        elif [ "$signal" -ge 40 ]; then
+            icon="^fg(98be65)󰤢 ^fg()"
+        elif [ "$signal" -ge 20 ]; then
+            icon="^fg(da8548)󰤟 ^fg()"
+        else
+            icon="^fg(ff6c6b)󰤫 ^fg()"
+        fi
+
+        echo " ${icon}^fg($FG_COLOR)${signal}^fg(6272a4)% $SPLIT"
+        exit 0
+    fi
+fi
+
+# Disconnected
+echo " ^fg(c678dd)󰈂 󰤭 ^fg() $SPLIT"

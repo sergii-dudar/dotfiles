@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Dwl
+Comment=dwm for Wayland
+Exec=/home/serhii/dotfiles/scripts/desc/dwl.desktop.runner.sh
+Type=Application

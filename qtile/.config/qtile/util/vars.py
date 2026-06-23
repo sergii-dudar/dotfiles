@@ -34,7 +34,7 @@ class RunClass:
         self.todoist = "flatpak run com.todoist.Todoist"
         self.screenie = "flameshot gui"
 
-        self.change_language = "bash " + path.home_dir + "/dotfiles/bin/change_language.sh"
+        self.change_language = "bash " + path.home_dir + "/dotfiles/scripts/change_language.sh"
         self.monkey_type = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         self.volume_control = "pavucontrol"
         self.gnome_system_monitor = "gnome-system-monitor"

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+. "$HOME"/dotfiles/scripts/polybar/colorscheme
+. "$HOME"/dotfiles/scripts/wmscripts/status-bar/shared-openweather.cached
+# weather_icon=02d
+# temperature=-2
+# units_color="#6272a4"
+
+# just template in case need change polybar config a lot and to not push weather api a lot
+# echo "%{F#50fa7b} %{F-}%{F#94928F}-1%{F-}%{F#6272a4}°C%{F-}"
+
+function of_font() {
+    echo %\{T"$2"\}"$1"%\{T-\}
+}
+
+function get_emoji() {
+    case $1 in
+        01d) icon=$(of_font "☀️" 19)  ;; # Clear sky (day)
+        01n) icon=$(of_font "🌙" 18) ;; # Clear sky (night) "🌙" "🌕"
+        02d) icon=$(of_font "🌤️" 20) ;; # Few clouds (day) "🌤" 🌤️"
+        02n) icon=$(of_font "🌥" 21)  ;; # Few clouds (night) "🌥" "☁️"
+        03d) icon=$(of_font "🌥️" 21) ;; # Scattered clouds
+        03n) icon=$(of_font "☁️" 20)  ;; # Scattered clouds
+        04d) icon=$(of_font "🌥" 21)  ;; # # Broken clouds "🌥" "☁️"
+        04n) icon=$(of_font "🌥" 21)  ;; # Broken clouds "🌥" "☁️"
+        09d) icon=$(of_font "🌧️" 19) ;; # Shower rain (day) "🌧️" "🌧"
+        09n) icon=$(of_font "🌧️" 19) ;; # Shower rain (night) "🌧️" "🌧"
+        10d) icon=$(of_font "🌦" 19)  ;; # Rain (day) "⛈" "🌦"
+        10n) icon=$(of_font "⛈" 19)  ;; # Rain (night) "⛈" "🌧"
+        11d) icon=$(of_font "🌩" 19) ;; # Thunderstorm (day) "🌩" "⛈"
+        11n) icon=$(of_font "🌩" 19) ;; # Thunderstorm (night)
+        13d) icon=$(of_font "🌨️" 18)  ;; # Snow (day) "🌨️" "❄️"
+        13n) icon=$(of_font "🌨️" 18)  ;; # Snow (night) "🌨️" "❄️"
+        50d) icon=$(of_font "🌫" 18) ;; # Mist (day)
+        50n) icon=$(of_font "🌫" 18) ;; # Mist (night)
+        *) icon=$(of_font "✨" 18)   ;; # Unknown condition
+    esac
+
+    echo "$icon"
+}
+
+
+# echo "$(of_color "$icon " $icon_color)$(of_color $temperature $FG_COLOR)$(of_color "°C" $units_color)"
+#echo "%{T16}$icon%{T-}%{T1}%{F#94928F}-3%{F-}%{F#6272a4}°C%{F-}%{T-}"
+echo "$(get_emoji $WEATHER_ICON)%{T12} %{T-}$(of_color $TEMPERATURE $FG_COLOR)$(of_color "°C" $units_color)"
+
+# debug all emojis in polybar
+# echo -n "$(get_emoji "01d")|$(get_emoji "01n")|$(get_emoji "02d")|$(get_emoji "02n")|$(get_emoji "03d")|$(get_emoji "03n")|"
+# echo -n "$(get_emoji "04d")|$(get_emoji "04n")|$(get_emoji "09d")|$(get_emoji "09n")|$(get_emoji "10d")|$(get_emoji "10n")|"
+# echo -n "$(get_emoji "11d")|$(get_emoji "11n")|$(get_emoji "13d")|$(get_emoji "13n")|$(get_emoji "50d")|$(get_emoji "50n")|"
+# echo "$(get_emoji "555")"

@@ -13,7 +13,7 @@ M.path.home_dir = os.getenv("HOME")
 
 M.run.mymenu = M.path.home_dir .. "/.config/rofi/scripts/launcher_t1"
 M.run.powermenu = M.path.home_dir .. "/.config/rofi/scripts/powermenu_t1"
-M.run.change_language = "bash " .. M.path.home_dir .. "/dotfiles/bin/change_language.sh"
+M.run.change_language = "bash " .. M.path.home_dir .. "/dotfiles/scripts/change_language.sh"
 M.run.monkey_type = "brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
 M.run.volume_control = "pavucontrol"
 M.run.gnome_system_monitor = "gnome-system-monitor"

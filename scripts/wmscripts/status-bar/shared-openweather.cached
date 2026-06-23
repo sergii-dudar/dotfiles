@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+# How often to update the weather in seconds.
+OPEN_WEATHER_UPDATE_PERIOD="1800" # once 30 min
+CACHE_DIR="$HOME/dotfiles/temp"
+CACHE_FILE="$CACHE_DIR/cache.openweather.envs"
+OS_TYPE=$(uname)
+
+function get_weather() {
+    load_openweather_env
+    echo "$(get_emoji $WEATHER_ICON)$TEMPERATURE"°C
+}
+
+function load_openweather_env() {
+    if [ -f "$CACHE_FILE" ]; then
+        if __is_mac_os; then
+            last_update=$(stat -f "%m" "${CACHE_FILE}")
+        else
+            last_update=$(stat -c "%Y" "${CACHE_FILE}")
+        fi
+        time_now=$(date +%s)
+        up_to_date=$(echo "(${time_now}-${last_update}) < ${OPEN_WEATHER_UPDATE_PERIOD}" | bc)
+        if [ "$up_to_date" -eq 1 ]; then
+            __read_tmp_file
+            return
+        fi
+    fi
+
+    . "$HOME"/dotfiles/scripts/wmscripts/status-bar/shared-openweather
+
+    mkdir -p "$CACHE_DIR"
+    weather_file_envs_content="WEATHER_ICON=$weather_icon\nTEMPERATURE=$temperature\nDEFAULT_ICON=$(get_emoji $weather_icon)"
+    echo -e "$weather_file_envs_content" > "${CACHE_FILE}"
+    __read_tmp_file
+
+    # weather_test_result="$(__get_emoji $weather_icon)$temperature"°C
+    # echo "$weather_test_result" | tee "${CACHE_FILE}"
+}
+
+function __read_tmp_file() {
+    if [ ! -f "$CACHE_FILE" ]; then
+        return
+    fi
+    . "$CACHE_FILE"
+}
+
+function __is_mac_os() {
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+        # echo "current is MacOs..."
+        return 0  # true
+    else
+        # echo "current is Linux..."
+        return 1  # false
+    fi
+}
+
+function get_emoji() {
+    case $1 in
+        01d) icon=" " ;; # Clear sky (day)
+        01n) icon="󰖔 " ;; # Clear sky (night)
+        02d) icon=" " ;; # Few clouds (day)
+        02n) icon=" " ;; # Few clouds (night)
+        03d) icon=" " ;; # Scattered clouds
+        03n) icon=" " ;; # Scattered clouds
+        04d) icon=" " ;; # Broken clouds
+        04n) icon=" " ;; # Broken clouds
+        09d) icon=" " ;; # Shower rain (day)
+        09n) icon=" " ;; # Shower rain (night)
+        10d) icon=" " ;; # Rain (day)
+        10n) icon=" " ;; # Rain (night)
+        11d) icon=" " ;; # Thunderstorm (day)
+        11n) icon=" " ;; # Thunderstorm (night)
+        13d) icon=" " ;; # Snow (day) 
+        13n) icon=" " ;; # Snow (night) 
+        50d) icon=" " ;; # Mist (day)
+        50n) icon=" " ;; # Mist (night)
+        *) icon=" "   ;; # Unknown condition
+    esac
+
+    echo "$icon"
+}
+
+function get_emoji2() {
+    case $1 in
+        01d) icon="☀️" ;; # Clear sky (day)
+        01n) icon="🌛" ;; # Clear sky (night) "🌙" "🌕"
+        02d) icon="🌤️" ;; # Few clouds (day) "🌤" 🌤️"
+        02n) icon="☁️" ;; # Few clouds (night) "🌥" "☁️"
+        03d) icon="⛅" ;; # Scattered clouds
+        03n) icon="☁️" ;; # Scattered clouds
+        04d) icon="⛅" ;; # # Broken clouds "🌥" "☁️"
+        04n) icon="☁️" ;; # Broken clouds "🌥" "☁️"
+        09d) icon="🌧️" ;; # Shower rain (day) "🌧️" "🌧"
+        09n) icon="🌧️" ;; # Shower rain (night) "🌧️" "🌧"
+        10d) icon="🌦️" ;; # Rain (day) "⛈" "🌦"
+        10n) icon="⛈️" ;; # Rain (night) "⛈" "🌧"
+        11d) icon="🌩️" ;; # Thunderstorm (day) "🌩" "⛈"
+        11n) icon="🌩️" ;; # Thunderstorm (night)
+        13d) icon="🌨️" ;; # Snow (day) "🌨️" "❄️"
+        13n) icon="🌨️" ;; # Snow (night) "🌨️" "❄️"
+        50d) icon="🌫️" ;; # Mist (day)
+        50n) icon="🌫️" ;; # Mist (night)
+        *) icon="✨"   ;; # Unknown condition
+    esac
+
+    echo "$icon"
+}
+
+function get_emoji_color() {
+    case $1 in
+        01d) icon_color="#f1fa8c" ;; # Clear sky (Day) ☀
+        01n) icon_color="#f1fa8c" ;; # Clear sky (Night) 🌙
+        02d) icon_color="#d0deec" ;; # Few clouds (Day) 🌤
+        02n) icon_color="#d0deec" ;; # Few clouds (Night) ☁🌙
+        03d) icon_color="#aabfff" ;; # Scattered clouds
+        03n) icon_color="#aabfff" ;; # Scattered clouds
+        04d) icon_color="#8be9fd" ;; # Broken clouds
+        04n) icon_color="#8be9fd" ;; # Broken clouds
+        09d) icon_color="#0189cc" ;; # Shower rain 🌧
+        09n) icon_color="#0189cc" ;; # Shower rain 🌧 (same as day)
+        10d) icon_color="#4e6881" ;; # Rain (Day) 🌦
+        10n) icon_color="#4e6881" ;; # Rain (Night) 🌧🌙
+        11d) icon_color="#9eb200" ;; # Thunderstorm ⚡
+        11n) icon_color="#9eb200" ;; # Thunderstorm (Night) ⚡🌙
+        13d) icon_color="#fffafa" ;; # Snow    ❄
+        13n) icon_color="#fffafa" ;; # Snow ❄ (same as day)
+        50d) icon_color="#bfd1d9" ;; # Mist 🌫
+        50n) icon_color="#bfd1d9" ;; # Mist (Night) 🌫🌙
+        *) icon_color="#ffd27d" ;; # Default (Unknown Weather) ☁
+    esac
+
+    echo $icon_color
+}
+
+units_color="#6272a4"
+
+load_openweather_env
+# get_weather

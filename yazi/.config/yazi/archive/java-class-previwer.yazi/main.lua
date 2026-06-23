@@ -47,7 +47,7 @@ end
 
 function M:preload(job)
     -- os.execute("/bin/echo " .. tostring(job.file.url) .. " > /tmp/logs.txt")
-    os.execute(os.getenv("HOME") .. "/dotfiles/bin/java/decompile.sh " .. tostring(job.file.url))
+    os.execute(os.getenv("HOME") .. "/dotfiles/scripts/java/decompile.sh " .. tostring(job.file.url))
     return true
 end
 
