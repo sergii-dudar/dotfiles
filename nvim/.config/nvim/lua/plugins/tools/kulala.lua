@@ -1,3 +1,4 @@
+-- TODO: load conditionally on http project
 vim.filetype.add({
     extension = {
         ["http"] = "http",
