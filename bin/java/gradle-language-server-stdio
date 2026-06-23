@@ -21,16 +21,16 @@
 # - copies bytes from the socket back to Neovim stdout;
 # - cleans up the Java process and socket path on exit.
 #
-# The default server files come from the VS Code extension installed at:
-#   /home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3
-#
-# To test another checkout/build of vscode-gradle, set:
-#   VSCODE_GRADLE_EXTENSION=/path/to/extension-root
+# The default server files come as from the VS Code extension installed at:
+#   ~/.vscode/extensions/vscjava.vscode-gradle-3.17.3
+# as from mason "gradle-language-server":
+#   ~/.local/share/nvim/mason/packages/gradle-language-server/extension
 #
 # That directory must contain the `lib/` folder with gradle-language-server.jar
 # and its dependencies. The script intentionally uses `java -cp lib/*` instead
 # of `java -jar`, because gradle-language-server.jar is a library JAR without an
 # executable manifest.
+
 import os
 import select
 import signal
@@ -42,7 +42,7 @@ import tempfile
 
 EXTENSION_DIR = os.environ.get(
     "VSCODE_GRADLE_EXTENSION",
-    # "/home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3",
+    # os.environ["HOME"] + "/.vscode/extensions/vscjava.vscode-gradle-3.17.3",
      os.environ["HOME"] + "/.local/share/nvim/mason/packages/gradle-language-server/extension"
 )
 
