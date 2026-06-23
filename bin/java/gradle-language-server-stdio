@@ -42,8 +42,8 @@ import tempfile
 
 EXTENSION_DIR = os.environ.get(
     "VSCODE_GRADLE_EXTENSION",
-    "/home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3",
-    # "/home/serhii/.local/share/nvim/mason/packages/gradle-language-server"
+    # "/home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3",
+     os.environ["HOME"] + "/.local/share/nvim/mason/packages/gradle-language-server/extension"
 )
 
 
