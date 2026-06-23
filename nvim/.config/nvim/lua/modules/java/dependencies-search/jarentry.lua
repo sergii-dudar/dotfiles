@@ -1,11 +1,23 @@
--- Build and open jdt://jarentry/ URIs for resource files inside dependency jars.
--- Format: jdt://jarentry/{entry_path}?={project}/{escaped_jar}={maven_metadata}
+--- Build and open `jdt://jarentry/` URIs for resource files inside dependency jars.
+---
+--- This module lets dependency-search open non-Java resources through JDTLS
+--- instead of raw extracted files when Maven metadata can be derived. It maps
+--- a file inside an extracted Maven `*-sources/` directory back to the binary
+--- jar path and metadata that JDTLS expects in a `jdt://jarentry/` URI. Gradle
+--- dependency sources are still searchable; callers fall back to raw file open
+--- when this URI cannot be built.
+---
+--- Public API:
+--- - `M.build_uri(file_path, source_dirs)`: Build a `jdt://jarentry/` URI for an extracted source file.
+--- - `M.open(file_path, source_dirs, line)`: Open an extracted source file through JDTLS and jump to a line.
+---
+--- URI format: `jdt://jarentry/{entry_path}?={project}/{escaped_jar}={maven_metadata}`.
 
 local lsp_util = require("utils.lsp-util")
 
 local M = {}
 
----Build jdt://jarentry/ URI from an extracted source file path.
+--- Build a `jdt://jarentry/` URI from an extracted source file path.
 ---@param file_path string absolute path to a file inside an extracted sources dir
 ---@param source_dirs string[] list of all source dirs to match against
 ---@return string|nil uri
@@ -61,7 +73,7 @@ function M.build_uri(file_path, source_dirs)
     )
 end
 
----Open a resource file via jdt://jarentry/ URI.
+--- Open a resource file through a `jdt://jarentry/` URI.
 ---@param file_path string absolute path to extracted source file
 ---@param source_dirs string[] list of all source dirs
 ---@param line? number line to jump to

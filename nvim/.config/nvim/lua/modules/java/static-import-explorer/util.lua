@@ -1,3 +1,27 @@
+--- Utility helpers for Java static-import discovery and insertion.
+---
+--- This module contains the pure-ish pieces used by both quick import and the
+--- picker: dependency-coordinate matching, source directory composition,
+--- ripgrep regex construction, grep-result parsing, static member extraction,
+--- FQCN lookup/caching, and import-line insertion.
+---
+--- Public API:
+--- - `M.to_dep_patterns(deps)`: Convert dependency coordinates to slash-form path patterns.
+--- - `M.filter_dirs_by_patterns(source_dirs, patterns)`: Keep dependency dirs matching any pattern.
+--- - `M.dedup_dirs(dirs)`: Deduplicate directory lists while preserving order.
+--- - `M.get_preferred_dep_dirs(scope, settings)`: Resolve preferred dependency entries for a scope.
+--- - `M.clear_preferred_cache()`: Clear preferred dependency dir cache after dep reload/reset.
+--- - `M.get_module_src_dirs(bufnr, include_generated_sources)`: Return Java source roots for a buffer module.
+--- - `M.get_search_dirs(state, settings)`: Compose project, preferred, filtered, and all dependency dirs.
+--- - `M.is_excluded_line(text)`: Detect grep lines that should not become import candidates.
+--- - `M.extract_static_member(text, word)`: Extract a static field, enum constant, or method name from a line.
+--- - `M.build_import_line(fqcn, member, import_mode)`: Build an `import static` line.
+--- - `M.add_import_to_buffer(import_line, bufnr)`: Insert a static import into a Java buffer.
+--- - `M.build_search(word, starts_with)`: Build the ripgrep regex for the word under cursor.
+--- - `M.file_to_fqcn(file, line_num, cache)`: Resolve and optionally cache Java file FQCNs.
+--- - `M.fqcn_from_path(file)`: Derive an FQCN from a Java source path without reading the file.
+--- - `M.parse_rg_results(...)`: Parse ripgrep output into deduplicated import candidates.
+
 local java_util = require("utils.java.java-common")
 local dep_search = require("modules.java.dependencies-search")
 
@@ -6,6 +30,9 @@ local M = {}
 --- Convert dependency coordinates to path patterns for substring matching.
 --- "org.apache.commons" -> "org/apache/commons/"
 --- "org.apache.commons:commons-collections4" -> "org/apache/commons/commons-collections4/"
+--- The resulting slash-form patterns are matched against Maven paths directly
+--- and against Gradle paths after `dependencies-search.coord_match_path()`
+--- normalizes the dotted Gradle group segment.
 ---@param deps string[]
 ---@return string[]
 function M.to_dep_patterns(deps)
@@ -17,6 +44,8 @@ function M.to_dep_patterns(deps)
 end
 
 --- Filter source dirs by dependency patterns (substring match against path).
+--- Supports both Maven and Gradle dependency cache paths by normalizing each
+--- source dir through `dependencies-search.coord_match_path()` before matching.
 ---@param source_dirs string[]
 ---@param patterns string[]
 ---@return string[]
@@ -58,12 +87,14 @@ end
 -- Cache for preferred dep dirs, keyed by scope
 local preferred_cache = { main = nil, test = nil }
 
---- Resolve preferred dep entries into directories.
---- Formats:
----   "org.apache.commons" — include all source dirs matching this group
----   "org.apache.commons:commons-lang3" — include specific artifact
----   "!org.apache.commons.commons-compress" — exclude matching dirs
----   "org.assertj:assertj-core#org/assertj/core/util;org/assertj/core/api" — include only specific subdirs
+--- Resolve preferred dependency entries into source directories.
+--- Entry formats:
+--- - `"org.apache.commons"`: include all source dirs matching this group.
+--- - `"org.apache.commons:commons-lang3"`: include one artifact.
+--- - `"!org.apache.commons.commons-compress"`: exclude matching dirs.
+--- - `"org.assertj:assertj-core#org/assertj/core/util;org/assertj/core/api"`:
+---   include only specific subdirs inside the matched artifact source dir.
+--- Matching works for Maven and Gradle cache paths via coordinate normalization.
 ---@param entries string[]
 ---@param all_dep_dirs string[]
 ---@return string[]
@@ -128,6 +159,8 @@ local function resolve_preferred_entries(entries, all_dep_dirs)
 end
 
 --- Get cached preferred dep dirs for a scope.
+--- Preferred dirs are resolved from `dependencies-search.get_source_dirs_all()`
+--- so they can include libraries that are outside the default filtered dep set.
 ---@param scope "main"|"test"
 ---@param settings { preferred_deps_main: string[], preferred_deps_test: string[] }
 ---@return string[]
@@ -154,6 +187,8 @@ function M.clear_preferred_cache()
 end
 
 --- Add an existing directory to a list.
+--- Missing directories are ignored so callers can list Maven/Gradle generated
+--- source conventions without checking each path first.
 ---@param dirs string[]
 ---@param dir string
 local function add_existing_dir(dirs, dir)
@@ -163,6 +198,8 @@ local function add_existing_dir(dirs, dir)
 end
 
 --- Returns generated Java source directories for a module root.
+--- Includes Maven `target/generated-sources`, Gradle `build/generated/sources`,
+--- and Maven test generated sources when the invocation buffer is a test file.
 ---@param module_root string
 ---@param include_test boolean
 ---@return string[]
@@ -179,9 +216,10 @@ local function get_generated_src_dirs(module_root, include_test)
     return M.dedup_dirs(dirs)
 end
 
---- Returns source dirs based on buffer context:
---- main file -> src/main/java + generated main sources when enabled
---- test file -> src/main/java + src/test/java + generated main/test sources when enabled
+--- Return Java source dirs based on buffer context.
+--- Main files search `src/main/java` plus generated main sources when enabled.
+--- Test files search `src/main/java`, `src/test/java`, and generated main/test
+--- sources when enabled.
 ---@param bufnr? integer
 ---@param include_generated_sources? boolean defaults to true
 ---@return string[]
@@ -209,8 +247,13 @@ function M.get_module_src_dirs(bufnr, include_generated_sources)
 end
 
 --- Build the directory list for the current static-import search state.
+--- Always starts with current module Java source dirs. Preferred dependency dirs
+--- are added when dependency sources are loaded. Picker toggles then optionally
+--- append filtered dependency dirs (`include_deps`) or every dependency dir
+--- (`include_all_deps`).
 ---@param state { include_deps: boolean, include_all_deps: boolean, source_bufnr?: integer }
 ---@param settings? { preferred_deps_main?: string[], preferred_deps_test?: string[] }
+---@return string[] dirs deduplicated search directories
 function M.get_search_dirs(state, settings)
     local include_generated_sources = not settings or settings.include_generated_sources ~= false
     local dirs = M.get_module_src_dirs(state.source_bufnr, include_generated_sources)
@@ -261,7 +304,9 @@ end
 --- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
 --- For enum constants: ALL_CAPS at start of trimmed line before ',' ';' or '(' (constructor args)
 --- For methods: identifier before '('
+---@param text string grep match line
 ---@param word? string the searched identifier — resolves the correct member in inline declarations like "NONE, DEBTOR, CREDITOR;"
+---@return string|nil member extracted import member name
 function M.extract_static_member(text, word)
     -- When the searched word is known, find it directly first. Without this, an inline enum
     -- like "    NONE, DEBTOR, CREDITOR;" returns CREDITOR (matched by the field pattern below)
@@ -338,8 +383,13 @@ function M.add_import_to_buffer(import_line, bufnr)
     vim.notify("[Static Import] Added: " .. import_line, vim.log.levels.INFO)
 end
 
+--- Build a ripgrep regex for a possible static member.
+--- ALL_CAPS words use field and enum-constant patterns. Other words use a
+--- same-line `static ... word(` method pattern. `starts_with` widens the match
+--- for prefix search in quick import and picker toggle mode.
 ---@param word string
 ---@param starts_with boolean
+---@return string|nil pattern ripgrep expression, or nil for an empty word
 function M.build_search(word, starts_with)
     if word == "" then
         return nil

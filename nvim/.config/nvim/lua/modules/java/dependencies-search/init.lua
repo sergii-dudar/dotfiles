@@ -1,3 +1,30 @@
+--- Dependency source search UI for Java projects.
+---
+--- Resolves dependency source directories from the active JDTLS classpath,
+--- extracts missing `*-sources.jar` archives for Maven and Gradle caches, and
+--- exposes Snacks picker workflows for finding, grepping, and exploring source
+--- files. The module keeps both filtered and unfiltered source-dir caches so
+--- related Java tools can reuse the same dependency discovery results.
+---
+--- Public API:
+--- - `M.load_sources(opts)`: Load main/test dependency source dirs and extract sources jars when needed.
+--- - `M.find_files()`: Open a Snacks file picker over the current dependency source scope.
+--- - `M.grep()`: Open a Snacks grep picker over the current dependency source scope.
+--- - `M.explore()`: Open a tree explorer rooted at a selected dependency module's source dir.
+--- - `M.reset()`: Clear source-dir, module, exclude, and dependent preferred-dependency caches.
+--- - `M.is_loaded()`: Return whether dependency source dirs are currently loaded.
+--- - `M.get_source_dirs(scope)`: Return filtered source dirs for `main` or `test` scope.
+--- - `M.get_source_dirs_all(scope)`: Return unfiltered source dirs for `main` or `test` scope.
+--- - `M.get_exclude()`: Return Snacks exclude globs for ignored file types, names, and packages.
+--- - `M.coord_match_path(path)`: Normalize Maven/Gradle dependency paths for coordinate matching.
+---
+--- Search scope:
+--- - Default picker search uses the filtered dependency list for speed and lower noise.
+--- - Press `<C-a>` in the files/grep picker to switch to all loaded dependency source dirs.
+--- - Edit `include_dependencies` and `ignored_dependencies` below to control the default filtered set.
+--- - Restart Neovim or reload this module after changing those lists; then run `:DepSearchReset`
+---   if dependency sources were already loaded in the current session.
+
 local classpath_util = require("utils.java.jdtls-classpath-util")
 local jarentry = require("modules.java.dependencies-search.jarentry")
 local spinner = require("utils.ui.spinner")
@@ -38,11 +65,23 @@ local ignored_packages = {
     -- "org.junit.*",
 }
 
--- Filter dependencies by Maven coordinates (matched against ~/.m2/repository path).
--- Format: "groupId" to match all artifacts in group, or "groupId:artifactId" for specific one.
+-- Control the default dependency search scope by dependency coordinates.
+-- Format: "groupId" matches every artifact in that group, while
+-- "groupId:artifactId" matches one artifact. Paths are normalized for both
+-- Maven and Gradle caches before matching.
 --
 -- When include_dependencies is non-empty, ONLY matching jars are included (whitelist mode).
 -- When it's empty, ignored_dependencies is used as a blacklist instead.
+--
+-- The default files/grep picker searches this filtered set because it is faster
+-- and avoids noisy third-party libraries. Press <C-a> inside the files/grep
+-- picker to toggle "all" mode, which searches every loaded dependency source
+-- directory. All mode is useful for discovery or debugging missed results, but
+-- it can be slower because Snacks/ripgrep has many more directories to scan.
+--
+-- After editing these constants in a running Neovim session, reload this module
+-- or restart Neovim. If sources were already loaded, run :DepSearchReset before
+-- opening the picker again.
 local include_dependencies = {
     -- "org.mapstruct",
     -- "com.fasterxml.jackson.core:jackson-databind",
@@ -73,6 +112,9 @@ local state = {
     exclude = {},
 }
 
+--- Convert dependency coordinate filters into slash-separated cache path patterns.
+---@param deps string[] dependency filters in `groupId` or `groupId:artifactId` format
+---@return string[] patterns path fragments suitable for plain substring matching
 local function to_path_patterns(deps)
     local patterns = {}
     for _, dep in ipairs(deps) do
@@ -102,6 +144,7 @@ local ignored_dep_patterns = to_path_patterns(ignored_dependencies)
 -- Gradle releases, so match them with wildcards instead of hardcoding.
 local GRADLE_CACHE_PATTERN = "/caches/modules%-%d+/files%-[%d.]+/"
 
+--- Check whether a path points into a Gradle dependency cache.
 ---@param path string
 ---@return boolean
 local function is_gradle_cache_path(path)
@@ -143,8 +186,14 @@ local function coord_match_path(path)
 end
 
 -- Exposed for reuse (e.g. static-import-explorer's preferred-dep matching).
+--- Normalize a Maven or Gradle dependency path for reuse by related modules.
+---@param path string dependency jar or source-dir path
+---@return string match_path slash-form coordinate path used by include/ignore filters
 M.coord_match_path = coord_match_path
 
+--- Decide whether a dependency jar should be excluded by include/ignore filters.
+---@param jar_path string absolute dependency jar path
+---@return boolean ignored true when the jar should not be searched by default
 local function is_jar_ignored(jar_path)
     local match_path = coord_match_path(jar_path)
     if #include_dep_patterns > 0 then
@@ -163,9 +212,11 @@ local function is_jar_ignored(jar_path)
     return false
 end
 
--- Parse Maven coordinates from a source dir path
--- ~/.m2/repository/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final-sources
--- -> { label = "org.mapstruct:mapstruct:1.5.5.Final", dir = "..." }
+--- Parse dependency coordinates from a Maven or Gradle extracted sources directory.
+--- For Maven `~/.m2/repository/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final-sources`,
+--- returns `{ label = "org.mapstruct:mapstruct:1.5.5.Final", dir = "..." }`.
+---@param dir string absolute extracted sources directory
+---@return { label: string, dir: string }|nil module dependency label and root directory
 local function source_dir_to_module(dir)
     -- Gradle: <cache>/modules-<N>/files-<X.Y>/<group.dotted>/<artifact>/<version>/<hash>/<artifact>-<version>-sources
     local gradle_rel = gradle_cache_rel(dir)
@@ -204,12 +255,10 @@ local function source_dir_to_module(dir)
     }
 end
 
--- Resolve the sources jar + extraction dir for a binary dependency jar,
--- handling both Maven and Gradle cache layouts.
---   Maven : sources jar sits beside the binary jar in the same dir.
---   Gradle: each file lives in its own SHA1 hash dir under the version dir, so
---           the sources jar is in a sibling hash dir (not predictable from the
---           binary jar's hash) — we glob the version dir for it.
+--- Resolve the sources jar and extraction directory for a binary dependency jar.
+--- Handles both Maven and Gradle cache layouts: Maven stores the sources jar
+--- beside the binary jar, while Gradle stores each file in a separate hash dir
+--- and requires globbing sibling hash dirs under the version directory.
 ---@param jar string absolute path to a binary dependency jar
 ---@return string|nil sources_jar, string|nil sources_dir
 local function resolve_sources(jar)
@@ -391,6 +440,7 @@ function M.load_sources(opts)
         end
     end
 
+    --- Prepare the missing-sources warning text when dependency source jars are unavailable.
     local function notify_missing()
         if #missing_sources == 0 then
             return
@@ -461,6 +511,8 @@ function M.load_sources(opts)
     end
 end
 
+--- Ensure dependency sources are loaded before running a picker callback.
+---@param callback fun()
 local function ensure_loaded(callback)
     if state.loaded then
         callback()
@@ -471,14 +523,18 @@ end
 
 local use_jdt_opener = true
 
+--- Check whether a file belongs to the current project rather than a dependency cache.
+---@param file string absolute file path
+---@return boolean
 local function is_project_file(file)
     return not file:find("/.m2/repository/", 1, true) and not is_gradle_cache_path(file)
 end
 
--- When jdt opener is on:
---   .java files: open via jdtls FQCN (jdt://contents/)
---   other files: open via jdt://jarentry/ URI
--- When jdt opener is off: default Snacks jump (raw file)
+--- Open the selected picker item using jdtls-aware navigation when possible.
+--- When jdt opener is on, `.java` files open via FQCN and other dependency
+--- resources open through `jdt://jarentry/`; otherwise Snacks performs a raw jump.
+---@param picker table Snacks picker instance
+---@param item? table selected item with `file` and optional `pos`
 local function dep_confirm(picker, item)
     if not item then
         return
@@ -502,6 +558,8 @@ local function dep_confirm(picker, item)
     end
 end
 
+--- Toggle dependency picker open mode between jdtls URIs and raw files.
+---@param picker table Snacks picker instance, unused by this action
 local function toggle_jdt_opener(picker)
     use_jdt_opener = not use_jdt_opener
     local mode = use_jdt_opener and "jdtls" or "file"
@@ -510,6 +568,8 @@ end
 
 local use_all_dirs = false
 
+--- Return the current project module `src` directory for local-source search, if available.
+---@return string|nil src_dir absolute `src` directory for the current buffer's project module
 local function get_module_src_dir()
     local java_util = require("utils.java.java-common")
     local module_root = java_util.get_buffer_project_path()
@@ -523,6 +583,8 @@ local function get_module_src_dir()
     return nil
 end
 
+--- Build the active picker directory list from dependency scope and local module sources.
+---@return string[] dirs current dependency source dirs, with local module `src` prepended when present
 local function get_current_dirs()
     local dirs = use_all_dirs and state.source_dirs_test_all or state.source_dirs_test
     local src_dir = get_module_src_dir()
@@ -532,6 +594,8 @@ local function get_current_dirs()
     return dirs
 end
 
+--- Toggle picker scope between filtered dependency dirs and the complete dependency dir set.
+---@param picker table Snacks picker instance to refresh after changing its directories
 local function toggle_all_sources(picker)
     use_all_dirs = not use_all_dirs
     local dirs = get_current_dirs()
@@ -544,6 +608,8 @@ end
 -- Forward declarations for select_module (needs open_picker reference)
 local open_picker
 
+--- Prompt for one dependency module and relaunch the current picker scoped to that module.
+---@param picker table Snacks picker instance being replaced by the module-scoped picker
 local function select_module(picker)
     local labels = vim.tbl_map(function(m)
         return m.label
@@ -580,6 +646,7 @@ local dep_picker_keys = {
     ["<C-s>"] = { "select_module", mode = { "n", "i" }, desc = "Scope to single module" },
 }
 
+--- Open a dependency file or grep picker with shared actions and keybindings.
 ---@param source "files"|"grep"
 ---@param dirs? string[] override dirs (nil = use default filtered dirs)
 ---@param title? string override title
@@ -599,12 +666,14 @@ open_picker = function(source, dirs, title)
     })
 end
 
+--- Open a Snacks file picker over dependency sources, loading them first if needed.
 function M.find_files()
     ensure_loaded(function()
         open_picker("files")
     end)
 end
 
+--- Open a Snacks grep picker over dependency sources, loading them first if needed.
 function M.grep()
     ensure_loaded(function()
         open_picker("grep")
@@ -613,6 +682,8 @@ end
 
 local selected_explore_module = nil
 
+--- Reset the selected explorer module and reopen the dependency explorer prompt.
+---@param picker table Snacks explorer picker instance being replaced
 local function change_module(picker)
     picker:close()
     selected_explore_module = nil
@@ -629,6 +700,8 @@ local explorer_keys = {
     ["<C-s>"] = { "change_module", mode = { "n", "i" }, desc = "Change module" },
 }
 
+--- Open a Snacks explorer rooted at one dependency module source directory.
+---@param mod { label: string, dir: string } dependency module selected from `state.modules`
 local function open_explorer(mod)
     selected_explore_module = mod
 
@@ -665,6 +738,8 @@ local function open_explorer(mod)
         end,
         on_show = function(picker)
             local Tree = require("snacks.explorer.tree")
+            --- Recursively expand explorer tree nodes under a dependency source directory.
+            ---@param path string directory path to expand
             local function open_all(path)
                 Tree:open(path)
                 for name, t in vim.fs.dir(path) do
@@ -679,6 +754,7 @@ local function open_explorer(mod)
     })
 end
 
+--- Prompt for a dependency module and open a tree explorer for its extracted sources.
 function M.explore()
     ensure_loaded(function()
         if selected_explore_module then
@@ -730,11 +806,15 @@ vim.api.nvim_create_user_command("DepSearchReset", function()
     M.reset()
 end, { desc = "Clear dependency search cache and reload on next use" })
 
+--- Check whether dependency source directories are loaded.
+---@return boolean loaded true when `M.load_sources()` has completed successfully
 function M.is_loaded()
     return state.loaded
 end
 
+--- Return filtered dependency source dirs for a classpath scope.
 ---@param scope? "main"|"test" defaults to "test" (superset)
+---@return string[] dirs filtered source directories
 function M.get_source_dirs(scope)
     if scope == "main" then
         return state.source_dirs_main
@@ -742,7 +822,9 @@ function M.get_source_dirs(scope)
     return state.source_dirs_test
 end
 
+--- Return all dependency source dirs for a classpath scope before include/ignore filtering.
 ---@param scope? "main"|"test" defaults to "test" (superset)
+---@return string[] dirs unfiltered source directories
 function M.get_source_dirs_all(scope)
     if scope == "main" then
         return state.source_dirs_main_all
@@ -750,6 +832,8 @@ function M.get_source_dirs_all(scope)
     return state.source_dirs_test_all
 end
 
+--- Return Snacks picker exclude globs for ignored extensions, file names, and packages.
+---@return string[] exclude glob patterns passed to Snacks picker configuration
 function M.get_exclude()
     return state.exclude
 end

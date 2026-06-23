@@ -23,7 +23,7 @@ from the JDTLS classpath and extracted. There is no separate "load" keymap.
 | Key | Action |
 |-----|--------|
 | `<C-o>` | Toggle jdtls/file opener |
-| `<C-a>` | Toggle all/filtered source dirs |
+| `<C-a>` | Toggle all/filtered source dirs, then rerun the current search |
 | `<C-s>` | Scope to single module |
 
 ## Explorer Keys
@@ -36,37 +36,66 @@ from the JDTLS classpath and extracted. There is no separate "load" keymap.
 ## How It Works
 
 1. Gets classpath from running JDTLS instance (`scope = "test"`)
-2. For each `.jar` in classpath, looks for `*-sources.jar` / `*-sources/` in same directory
+2. For each `.jar` in classpath, resolves `*-sources.jar` / `*-sources/` using Maven or Gradle cache layout
 3. Extracts unzipped sources async if needed
 4. Stores filtered (`source_dirs`) and unfiltered (`source_dirs_all`) lists
 5. Current module `src/` is always included in search dirs
 
 ## Dependency Filtering
 
-Three levels:
+The files/grep pickers have two search modes:
 
-1. **`include_dependencies`** (whitelist) — when non-empty, ONLY matching jars included. Format: `"groupId"` or `"groupId:artifactId"`
-2. **`ignored_dependencies`** (blacklist) — used when include list is empty
-3. **`ignored_extensions` / `ignored_file_names` / `ignored_packages`** — file-level filtering via Snacks `exclude`
+1. **Filtered mode** is the default. It searches the current module `src/` plus the dependency dirs allowed by `include_dependencies` / `ignored_dependencies`. This is faster and gives less noisy results because Snacks/ripgrep scans fewer library directories.
+2. **All mode** is toggled with `<C-a>` inside the files/grep picker. It searches the current module `src/` plus every loaded dependency source dir. This is slower on large projects, but useful when you are exploring unknown code, checking whether a filtered library hides a result, or debugging missed matches.
+
+Control the default filtered library set in `init.lua`:
+
+1. **`include_dependencies`** is whitelist mode. When this list is non-empty, only matching jars are searched by default. Use `"groupId"` to include all artifacts in a group, or `"groupId:artifactId"` for one artifact.
+2. **`ignored_dependencies`** is blacklist mode. It is used only when `include_dependencies` is empty. Matching jars are excluded from the default search, while the rest are included.
+3. **`ignored_extensions` / `ignored_file_names` / `ignored_packages`** are file-level picker excludes applied after the library set is chosen.
+
+The same `groupId` / `groupId:artifactId` strings work for both Maven and Gradle dependencies. Maven paths already use slash-separated group directories, while Gradle paths store the group as a dotted segment; the module normalizes both before matching.
+
+Examples:
+
+```lua
+local include_dependencies = {
+    "ua.raiffeisen.payments",
+    "org.assertj:assertj-core",
+}
+
+local ignored_dependencies = {
+    "org.springframework",
+    "com.google",
+}
+```
+
+To search one more library by default, add its group or `groupId:artifactId` to `include_dependencies`.
+To search most libraries by default, make `include_dependencies = {}` and keep only noisy groups in `ignored_dependencies`.
+To search absolutely everything by default, make both lists empty, but expect slower picker searches and more irrelevant matches.
+
+After changing these constants in a running Neovim session, restart Neovim or reload this module. If dependency sources were already loaded, run `:DepSearchReset` before opening the picker again.
 
 ## Opening Files
 
-- **jdtls mode** (default): `.java` files open via `jdt_open_class(fqcn)`; non-java files via `jdt://jarentry/` URI (Maven), falling back to a raw open for Gradle
+- **jdtls mode** (default): `.java` files open via `jdt_open_class(fqcn)`; non-java files open via `jdt://jarentry/` when Maven metadata can be built, otherwise they fall back to a raw file open
 - **file mode**: raw file open (toggle with `<C-o>`)
 - **project files** (from `src/`, not the Maven/Gradle dependency cache): always open as regular files
 
 ## Public API (for reuse)
 
-```lua
-M.load_sources(opts?)  -- opts: { on_done?, bufnr? }
-M.find_files()
-M.grep()
-M.explore()
-M.is_loaded()
-M.get_source_dirs()      -- filtered
-M.get_source_dirs_all()  -- all
-M.get_exclude()
-```
+| Method | Description |
+|--------|-------------|
+| `M.load_sources(opts?)` | Loads main/test dependency source directories from JDTLS classpaths and extracts missing sources jars. `opts` supports `{ on_done?, bufnr? }`. |
+| `M.find_files()` | Opens a Snacks file picker over the current dependency source scope. |
+| `M.grep()` | Opens a Snacks grep picker over the current dependency source scope. |
+| `M.explore()` | Prompts for a dependency module and opens a tree explorer rooted at its extracted sources. |
+| `M.reset()` | Clears loaded source dirs, module/exclude state, selected explorer module, and dependent preferred-dependency cache. |
+| `M.is_loaded()` | Returns whether dependency source directories are already loaded. |
+| `M.get_source_dirs(scope?)` | Returns filtered source directories for `main` or `test` scope; defaults to `test`. |
+| `M.get_source_dirs_all(scope?)` | Returns unfiltered source directories for `main` or `test` scope; defaults to `test`. |
+| `M.get_exclude()` | Returns Snacks picker exclude globs for ignored extensions, file names, and packages. |
+| `M.coord_match_path(path)` | Normalizes Maven/Gradle dependency paths into slash-form coordinate paths for matching filters. |
 
 ## File Structure
 

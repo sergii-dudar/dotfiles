@@ -1,9 +1,26 @@
+--- Snacks picker wrapper for static-import search results.
+---
+--- Builds the interactive grep picker used by `static-import-explorer.find()`
+--- and by quick-import fallback. It formats grep hits as static import
+--- candidates, inserts the selected import into the original source buffer, and
+--- exposes search-scope controls:
+--- - `<C-d>` toggles filtered dependency sources from `dependencies-search`.
+--- - `<C-a>` toggles all dependency sources from `dependencies-search`.
+--- - `<C-g>` / `<C-x>` set and clear the Java class-name glob.
+--- - `<C-w>` toggles full-match vs starts-with regex mode.
+---
+--- Public API:
+--- - `M.open(settings, state, glob)`: Open the static-import Snacks grep picker.
+
 local dep_search = require("modules.java.dependencies-search")
 local util = require("modules.java.static-import-explorer.util")
 
 local M = {}
 
 --- Build the picker confirm callback that inserts the selected static import.
+---@param settings table static-import explorer settings
+---@param state table invocation state containing source buffer and word
+---@return fun(picker: table, item?: table)
 local function make_confirm(settings, state)
     return function(picker, item)
         if not item then
@@ -37,6 +54,8 @@ local function make_confirm(settings, state)
 end
 
 --- Build the Snacks formatter for displaying class/member search results.
+---@param state table invocation state containing the current word and FQCN cache
+---@return fun(item: table): table
 local function make_format_item(state)
     return function(item)
         local lnum = item.pos and item.pos[1] or nil
@@ -63,6 +82,8 @@ local function make_format_item(state)
 end
 
 --- Ensure dependency source directories are available before refreshing a picker.
+---@param state table invocation state containing source buffer
+---@param callback fun()
 local function ensure_deps_loaded(state, callback)
     if not dep_search.is_loaded() then
         dep_search.load_sources({
@@ -75,6 +96,12 @@ local function ensure_deps_loaded(state, callback)
 end
 
 --- Build custom picker actions for dependency and matching-mode toggles.
+--- The filtered/all dependency toggles mutate picker dirs in place because the
+--- regex is unchanged. The starts-with toggle reopens the picker because it must
+--- rebuild the ripgrep search pattern.
+---@param settings table static-import explorer settings
+---@param state table invocation state shared with the picker
+---@return table<string, fun(picker: table)>
 local function build_actions(settings, state)
     return {
         toggle_deps = function(picker)
@@ -132,6 +159,10 @@ local picker_keys = {
 }
 
 --- Open the Snacks picker for the current static-import search state.
+--- Starts with module sources plus preferred dependency dirs when available.
+--- Users can widen scope with `<C-d>` for filtered dependencies or `<C-a>` for
+--- all dependencies. Confirming an item inserts an `import static` line into the
+--- source buffer captured in `state.source_bufnr`.
 ---@param settings table
 ---@param state table
 ---@param glob? string

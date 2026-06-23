@@ -1,3 +1,26 @@
+--- Static import resolver for Java members that JDTLS does not auto-import.
+---
+--- Provides two user-facing workflows:
+--- - `M.quick_import()`: fast ripgrep lookup for the word under cursor, with
+---   automatic insertion when there is one import candidate.
+--- - `M.find()`: interactive Snacks picker for browsing static members and
+---   widening the search scope.
+---
+--- Search scope:
+--- - Quick import loads dependency sources, then searches current module Java
+---   sources plus `settings.preferred_deps_main` / `settings.preferred_deps_test`.
+---   This keeps the fast path small and predictable.
+--- - Full picker starts with module sources plus preferred dependencies when
+---   dependency sources are already loaded. Inside the picker, `<C-d>` toggles
+---   filtered dependency dirs and `<C-a>` toggles all dependency dirs.
+--- - Preferred dependency entries use the same `groupId` / `groupId:artifactId`
+---   coordinate style for Maven and Gradle caches. Entries also support `!`
+---   exclusions and `#sub/path;other/path` subpath restrictions.
+---
+--- Public API:
+--- - `M.quick_import()`: Resolve and insert a static import for the word under cursor.
+--- - `M.find()`: Open the interactive static-import picker for the word under cursor.
+
 local util = require("modules.java.static-import-explorer.util")
 local picker = require("modules.java.static-import-explorer.picker")
 local dep_search = require("modules.java.dependencies-search")
@@ -15,8 +38,10 @@ local settings = {
     fallback_to_find = true,
     -- include generated Java sources from target/generated-sources and build/generated/sources
     include_generated_sources = false,
-    -- Preferred dependencies included in default search alongside src/.
-    -- Format: "groupId" or "groupId:artifactId" (same as dependencies-search include_dependencies).
+    -- Preferred dependencies included in default search alongside module src/.
+    -- Format: "groupId" or "groupId:artifactId" for both Maven and Gradle caches.
+    -- Prefix with "!" to exclude a matched dependency, or append "#sub/path;other/path"
+    -- to restrict a dependency to selected packages/directories.
     preferred_deps_main = {
         -- "org.apache.commons",
         -- "com.fasterxml.jackson.core:jackson-databind",
@@ -39,6 +64,9 @@ local settings = {
 vim.list_extend(settings.preferred_deps_test, settings.preferred_deps_main)
 
 --- Create isolated picker/search state for one user invocation.
+--- The state keeps the source buffer, current word, picker toggles, active glob,
+--- and a per-invocation FQCN cache so quick-import and picker paths do not share
+--- stale buffer-specific data.
 ---@param opts? table
 ---@return table
 local function new_state(opts)
@@ -59,13 +87,17 @@ local function new_state(opts)
 end
 
 --- Insert selected static-import items into the invocation source buffer.
+---@param state table invocation state containing `source_bufnr`
+---@param items { name: string }[] parsed import candidates
 local function apply_items(state, items)
     for _, item in ipairs(items) do
         util.add_import_to_buffer(item.name, state.source_bufnr)
     end
 end
 
---- Format a quick-import choice for vim.ui.select.
+--- Format a quick-import choice for `vim.ui.select`.
+---@param item { fqcn: string, member?: string } parsed import candidate
+---@return string label select-menu label in `Class.member (package)` form
 local function format_select_item(item)
     local class = item.fqcn:match("([^%.]+)$") or item.fqcn
     local pkg = item.fqcn:match("^(.+)%.") or ""
@@ -74,11 +106,17 @@ local function format_select_item(item)
 end
 
 --- Resolve dependency scope from the invocation source buffer.
+---@param state table invocation state containing `source_bufnr`
+---@return "main"|"test" scope preferred/dependency scope to use for this buffer
 local function get_scope(state)
     return java_util.is_test_file(state.source_bufnr) and "test" or "main"
 end
 
 --- Build quick-import search directories from module sources and preferred deps.
+--- This intentionally excludes full dependency source dirs for speed; the picker
+--- path can widen scope with `<C-d>` / `<C-a>` when the focused search misses.
+---@param state table invocation state containing `source_bufnr`
+---@return string[] dirs deduplicated source directories for the fast ripgrep pass
 local function get_quick_search_dirs(state)
     local dirs = util.get_module_src_dirs(state.source_bufnr, settings.include_generated_sources)
     vim.list_extend(dirs, util.get_preferred_dep_dirs(get_scope(state), settings))
@@ -86,6 +124,10 @@ local function get_quick_search_dirs(state)
 end
 
 --- Open the full picker after a quick-import miss or cancelled selection.
+--- The fallback starts in all-dependencies mode so missed preferred-dep results
+--- are discoverable without requiring another keypress.
+---@param state table invocation state reused by the picker
+---@param word string searched word under cursor
 local function fallback_to_find(state, word)
     if not settings.fallback_to_find then
         return
@@ -106,6 +148,11 @@ local function fallback_to_find(state, word)
 end
 
 --- Handle ripgrep completion for quick-import.
+--- Parses ripgrep output, auto-applies a single candidate when configured, shows
+--- a select menu for multiple candidates, or falls back to the full picker.
+---@param state table invocation state
+---@param result { code: integer, stdout?: string } `vim.system` result
+---@param word string searched word under cursor
 local function on_rg_result(state, result, word)
     if result.code ~= 0 or not result.stdout or result.stdout == "" then
         vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
@@ -138,6 +185,9 @@ local function on_rg_result(state, result, word)
 end
 
 --- Run the quick-import ripgrep search for the invocation state.
+---@param state table invocation state
+---@param word string searched word under cursor
+---@param pattern string ripgrep pattern from `util.build_search`
 local function run_search(state, word, pattern)
     local search_dirs = get_quick_search_dirs(state)
     if #search_dirs == 0 then
