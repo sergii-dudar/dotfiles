@@ -77,6 +77,12 @@ return {
                     ".DS_Store",
                     "target",
                     "bin",
+                    "gradle",
+                    ".gradle",
+                    "gradlew",
+                    "gradlew.bat",
+                    "build",
+                    ".classpath",
                     -- ".rgignore"
                 },
                 hide_by_pattern = { -- uses glob style patterns
