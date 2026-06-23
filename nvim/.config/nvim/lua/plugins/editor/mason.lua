@@ -19,9 +19,11 @@ return {
             "vscode-java-decompiler",
             "gradle-language-server",
 
-            -- "haskell-language-server", -- issues with securities on macos
+            -- AI
+            -- "copilot-language-server",
 
-            "hyprls",
+            -- "haskell-language-server", -- issues with securities on macos
+            -- "hyprls",
 
             -- Rust
             "rust-analyzer",
