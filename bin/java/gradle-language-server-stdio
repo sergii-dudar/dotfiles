@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+#
+# stdio adapter for Microsoft's Gradle language server.
+#
+# The Gradle language server bundled with the VS Code Gradle extension is not a
+# normal stdin/stdout LSP executable. Its Java entrypoint expects one argument:
+# a Unix domain socket path. The server connects to that socket and then speaks
+# LSP over the socket.
+#
+# Neovim's built-in LSP client expects `cmd` language servers to speak LSP over
+# the process stdin/stdout streams. Mason currently exposes the Gradle package
+# as `java -jar gradle-language-server.jar`, but that JAR has no Main-Class
+# manifest and cannot be run that way. Even running the Java main class directly
+# is not enough, because Neovim would still be connected to stdin/stdout while
+# the server is connected to a socket.
+#
+# This script is the missing bridge:
+# - creates a temporary Unix domain socket;
+# - launches com.microsoft.gradle.GradleLanguageServer with that socket path;
+# - copies bytes from Neovim stdin to the socket;
+# - copies bytes from the socket back to Neovim stdout;
+# - cleans up the Java process and socket path on exit.
+#
+# The default server files come from the VS Code extension installed at:
+#   /home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3
+#
+# To test another checkout/build of vscode-gradle, set:
+#   VSCODE_GRADLE_EXTENSION=/path/to/extension-root
+#
+# That directory must contain the `lib/` folder with gradle-language-server.jar
+# and its dependencies. The script intentionally uses `java -cp lib/*` instead
+# of `java -jar`, because gradle-language-server.jar is a library JAR without an
+# executable manifest.
+import os
+import select
+import signal
+import socket
+import subprocess
+import sys
+import tempfile
+
+
+EXTENSION_DIR = os.environ.get(
+    "VSCODE_GRADLE_EXTENSION",
+    "/home/serhii/.vscode/extensions/vscjava.vscode-gradle-3.17.3",
+    # "/home/serhii/.local/share/nvim/mason/packages/gradle-language-server"
+)
+
+
+def main() -> int:
+    lib_dir = os.path.join(EXTENSION_DIR, "lib")
+    if not os.path.isdir(lib_dir):
+        print(f"Gradle extension lib directory does not exist: {lib_dir}", file=sys.stderr)
+        return 1
+
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server = None
+    socket_path = None
+
+    try:
+        bind_error = None
+        for runtime_dir in (os.environ.get("XDG_RUNTIME_DIR"), tempfile.gettempdir()):
+            if not runtime_dir:
+                continue
+
+            socket_path = tempfile.mktemp(prefix="gradle-language-server-", suffix=".sock", dir=runtime_dir)
+            try:
+                listener.bind(socket_path)
+                break
+            except OSError as err:
+                bind_error = err
+                socket_path = None
+        else:
+            print(f"Could not create Gradle language server socket: {bind_error}", file=sys.stderr)
+            return 1
+
+        listener.listen(1)
+
+        server = subprocess.Popen(
+            [
+                "java",
+                "-cp",
+                os.path.join(lib_dir, "*"),
+                "com.microsoft.gradle.GradleLanguageServer",
+                socket_path,
+            ],
+            stdin=subprocess.DEVNULL,
+        )
+
+        conn, _ = listener.accept()
+        listener.close()
+
+        stdin_fd = sys.stdin.buffer.fileno()
+        stdout = sys.stdout.buffer
+        conn_fd = conn.fileno()
+        watch_stdin = True
+
+        while True:
+            read_fds = [conn_fd]
+            if watch_stdin:
+                read_fds.append(stdin_fd)
+
+            readable, _, _ = select.select(read_fds, [], [])
+
+            if stdin_fd in readable:
+                data = os.read(stdin_fd, 65536)
+                if not data:
+                    watch_stdin = False
+                    try:
+                        conn.shutdown(socket.SHUT_WR)
+                    except OSError:
+                        pass
+                else:
+                    conn.sendall(data)
+
+            if conn_fd in readable:
+                data = conn.recv(65536)
+                if not data:
+                    break
+                stdout.write(data)
+                stdout.flush()
+
+        return server.wait()
+    finally:
+        if server and server.poll() is None:
+            server.send_signal(signal.SIGTERM)
+            try:
+                server.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                server.kill()
+        try:
+            listener.close()
+        except OSError:
+            pass
+        if socket_path:
+            try:
+                os.unlink(socket_path)
+            except OSError:
+                pass
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

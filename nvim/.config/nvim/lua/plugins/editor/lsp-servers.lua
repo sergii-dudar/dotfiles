@@ -7,7 +7,9 @@ return {
         opts = {
             servers = {
                 autotools_ls = {},
-                -- gradle_ls = {},
+                gradle_ls = {
+                    cmd = { global.dotfiles_path("/bin/java/gradle-language-server-stdio") },
+                },
                 omnisharp = {
                     -- stylua: ignore
                     keys = {
@@ -27,6 +29,19 @@ return {
                         },
                     },
                 },
+            },
+            setup = {
+                -- Keep gradle_ls out of mason-lspconfig automatic enablement.
+                -- Mason currently rewrites gradle_ls.cmd back to its broken
+                -- `gradle-language-server` wrapper, so this server must be
+                -- configured and enabled manually with the stdio adapter above.
+                -- Returning true tells LazyVim this one server is handled here;
+                -- other LSP servers continue through the normal setup path.
+                gradle_ls = function(_, opts)
+                    vim.lsp.config("gradle_ls", opts)
+                    vim.lsp.enable("gradle_ls")
+                    return true
+                end,
             },
         },
     },
