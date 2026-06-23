@@ -76,7 +76,7 @@ local exclude_java = {
     "**/target/*.jar",
     "**/target/*.war",
     "**/target/*.ear",
-    -- "**/bin",
+    "**/bin",
     ".settings",
     ".mvn",
     "**/.classpath",
