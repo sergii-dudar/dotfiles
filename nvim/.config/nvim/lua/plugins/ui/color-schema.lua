@@ -89,6 +89,12 @@ return {
             vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { fg = "#a9b665" })
             vim.api.nvim_set_hl(0, "SnacksTitle", { link = "SnacksPickerTitle", default = true })
 
+            -- 1. Define custom highlight group
+            -- vim.api.nvim_set_hl(0, "YankHighlight", { bg = "#3b4261", fg = "#ff9e64" })
+
+            -- #2B3339 #32302f
+            vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#3c3836" })
+
             -- vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#89b4fa", bold = true })
             -- vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#f38ba8", bold = true })
         end,
