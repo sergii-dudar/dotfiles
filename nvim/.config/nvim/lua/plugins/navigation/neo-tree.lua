@@ -76,15 +76,12 @@ return {
                     ".factorypath",
                     ".DS_Store",
                     "target",
-                    -- "bin", -- commented as currently now using gradle
+                    "bin",
                     -- ".rgignore"
                 },
                 hide_by_pattern = { -- uses glob style patterns
                     ".classpath.*",
                 },
-                -- always_show_by_pattern = {
-                --     global.dotfiles_path("/bin"),
-                -- },
             },
             follow_current_file = {
                 enabled = false, -- This will find and focus the file in the active buffer every time
