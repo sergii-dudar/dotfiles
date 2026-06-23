@@ -3,6 +3,7 @@ vim.filetype.add({
         ["http"] = "http",
     },
 })
+-- docs: https://github.com/mistweaverco/kulala.nvim/tree/main/doc
 return {
     {
         "mistweaverco/kulala.nvim",
@@ -19,22 +20,22 @@ return {
             { "<CR>", function() require('kulala').run() end, desc = "Send the request (http)", ft = "http" },
             { "<leader>rl", function() require('kulala').replay() end, desc = "Replay the last request (http)", ft = {"http", "json"} },
 
-            -- https://neovim.getkulala.net/docs/getting-started/default-keymaps
-            { "<leader>rc", function() require('kulala').copy() end, desc = "Copy as cURL", ft = "http" },
-            { "<leader>rC", function() require('kulala').from_curl() end, desc = "Paste from curl", ft = "http" },
-            { "<leader>re", function() require('kulala').set_selected_env() end, desc = "Set environment", ft = "http" },
-            { "<leader>rg", function() require('kulala').download_graphql_schema() end, desc = "Download GraphQL schema", ft = "http", },
-            { "<leader>ri", function() require('kulala').inspect() end, desc = "Inspect current request", ft = "http" },
-            -- { "<leader>rn", function() require('kulala').jump_next() end, desc = "Jump to next request", ft = "http" },
-            -- { "<leader>rp", function() require('kulala').jump_prev() end, desc = "Jump to previous request", ft = "http" },
+            { "<leader>rc", function() require('kulala').copy() end, desc = "Copy as cURL (http)", ft = "http" },
+            { "<leader>rC", function() require('kulala').from_curl() end, desc = "Paste from curl (http)", ft = "http" },
+            { "<leader>re", function() require('kulala').set_selected_env() end, desc = "Set environment (http)", ft = "http" },
+            { "<leader>rg", function() require('kulala').download_graphql_schema() end, desc = "Download GraphQL schema (http)", ft = "http", },
+            { "<leader>ri", function() require('kulala').inspect() end, desc = "Inspect current request (http)", ft = "http" },
+
+            { "<leader>]", function() require('kulala').jump_next() end, desc = "Jump to next request (http)", ft = "http" },
+            { "<leader>[", function() require('kulala').jump_prev() end, desc = "Jump to previous request (http)", ft = "http" },
             -- { "<leader>rq", function() require('kulala').close() end, desc = "Close window", ft = "http" },
             -- { "<leader>rS", function() require('kulala').show_stats() end, desc = "Show stats", ft = "http" },
             -- { "<leader>rt", function() require('kulala').toggle_view() end, desc = "Toggle headers/body", ft = "http" },
             --
-            -- ["Show headers"] = { "H", function() require("kulala.ui").show_headers() end, },
-            -- ["Show body"] = { "B", function() require("kulala.ui").show_body() end, },
-            -- ["Show headers and body"] = { "A", function() require("kulala.ui").show_headers_body() end, },
-            -- ["Show verbose"] = { "V", function() require("kulala.ui").show_verbose() end, },
+            { "<leader>H", function() require("kulala.ui").show_headers() end, desc = "Show [H]eaders (http result)", ft = "http" },
+            { "<leader>B", function() require("kulala.ui").show_body() end, desc = "Show [B]ody (http result)", ft = "http" },
+            { "<leader>A", function() require("kulala.ui").show_headers_body() end, desc = "Show [A]ll (http result)", ft = "http" },
+            { "<leader>V", function() require("kulala.ui").show_verbose() end, desc = "Show [V]erbose (http result)", ft = "http" },
             -- 
             -- ["Show script output"] = { "O", function() require("kulala.ui").show_script_output() end, },
             -- ["Show report"] = { "R", function() require("kulala.ui").show_report() end, },
