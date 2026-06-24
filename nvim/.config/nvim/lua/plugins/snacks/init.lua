@@ -134,11 +134,11 @@ return {
             -- working exploring helpers:
             { "<leader>g,", LazyVim.pick("files", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Find File (Working all)" },
             { "<leader>g/", LazyVim.pick("live_grep", { root = false, cwd = "~/serhii.home/work/git.work.payments.all" }), desc = "Grep (Working all)" },
-            { "<leader>fp", function() require("plugins.snacks.configs.file-path-picker").pick({ mode = "n", picker = 'explorer' }) end, desc = "[F]ind File [P]ath (copy or paste)" },
-            { "<leader>fp", ":<C-u>lua require('plugins.snacks.configs.file-path-picker').pick({ mode = 'v', picker = 'explorer' })<CR>", desc = "[F]ind File [P]ath (copy or v paste)", mode = "x" },
-
             -- { "<leader>g.", function() Snacks.picker.files({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Find File (Working all)" },
             -- { "<leader>g/", function() Snacks.picker.grep({ cwd = "~/serhii.home/work/git.work.payments.all" }) end, desc = "Grep (Working all)" },
+
+            { "<leader>fp", function() require("plugins.snacks.configs.file-path-picker").pick({ mode = "n", picker = 'explorer' }) end, desc = "[F]ind File [P]ath (copy or paste)" },
+            { "<leader>fp", ":<C-u>lua require('plugins.snacks.configs.file-path-picker').pick({ mode = 'v', picker = 'explorer' })<CR>", desc = "[F]ind File [P]ath (copy or v paste)", mode = "x" },
         },
     },
 }
