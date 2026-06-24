@@ -63,25 +63,33 @@ local exclude_common = {
 }
 
 local exclude_java = {
+    -- maven
     "**/target/classes",
     "**/target/test-classes",
     "**/target/maven-*",
     "**/target/surefire-reports",
     "**/target/failsafe-reports",
     "**/target/junit-report",
-    "**/build/junit-report",
     "**/target/jacoco-output",
     "**/target/site",
     "**/target/.cache",
     "**/target/*.jar",
     "**/target/*.war",
     "**/target/*.ear",
-    "**/bin",
-    ".settings",
     ".mvn",
+    -- gradle
+    "**/bin",
+    "**/build/junit-report",
+    "**/gradle",
+    "gradlew",
+    "gradlew.bat",
+    "**/build",
+    ".gradle",
+    -- jdtls
     "**/.classpath",
     "**/.factorypath",
     "**/.project",
+    ".settings",
 }
 
 local exclude_rust = {
@@ -123,6 +131,23 @@ local function toggle_exclude(picker)
     picker:find()
 end
 
+-- Decompile-and-preview script: runs Fernflower and prints bat-highlighted Java
+-- to stdout. Previewed in terminal mode (no ft) so bat's ANSI colors render.
+local decompile_script = _G.global.dotfiles_path("scripts/java/decompile_stdout.sh")
+
+---Default previewer that decompiles `.class` files via Fernflower instead of
+---showing Snacks' "binary file" warning. Everything else falls through to the
+---built-in file previewer.
+---@param ctx snacks.picker.preview.ctx
+local function file_preview(ctx)
+    local path = Snacks.picker.util.path(ctx.item)
+    if path and path:sub(-6) == ".class" then
+        -- No `ft` => runs in a terminal/pty preview, which renders bat's ANSI.
+        return Snacks.picker.preview.cmd({ decompile_script, path }, ctx)
+    end
+    return Snacks.picker.preview.file(ctx)
+end
+
 M.picker = {
     -- Do NOT sejkt a fully-formed layout here. Snacks deep-merges the global layout into every
     -- source, so a global with a `.layout` array leaks into sources that rely on `preset`,
@@ -131,6 +156,9 @@ M.picker = {
     hidden = true, -- Include hidden files in grep
     ignored = false, -- Exclude git-ignored files
     exclude = project_excludes(),
+    -- Default previewer for sources without their own (files/grep/explorer/…):
+    -- decompiles .class files via Fernflower, otherwise the built-in file preview.
+    preview = file_preview,
     formatters = {
         file = {
             filename_first = true, -- display filename before the file path
