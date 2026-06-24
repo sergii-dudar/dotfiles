@@ -79,6 +79,51 @@ function M.highlight_java_trace_selected()
     M.highlight_java_test_trace_text(stack_trace, vim.fn.getpos("v")[2])
 end
 
+--- Resolve an LSP location URI (file:// or jdt://) to a *loaded* buffer plus a
+--- safe (in-range) line number, for use as a quickfix `bufnr` entry.
+---
+--- Why pre-load instead of passing the URI as a qf `filename`:
+---   • jdt:// is a pseudo-path. Trouble's qf source drops entries whose filename
+---     Vim can't resolve to a real file (valid == 0) on every list refresh, which
+---     manifested as the quickfix list "losing" its library frames on round-trip.
+---   • Trouble derives the filetype via vim.filetype.match() on the raw jdt:// string
+---     for unloaded buffers, mis-detecting it (e.g. as `stata`) → missing TS parser.
+---   • The trace line can exceed a decompiled class's length → "Invalid cursor line".
+--- Loading the buffer up-front (nvim-jdtls' BufReadCmd fetches source/decompiled
+--- content synchronously and sets filetype=java) sidesteps all three: Trouble sees a
+--- real, loaded `java` buffer and a clamped, in-range line.
+---@param uri string
+---@param line integer 1-based line from the stack trace
+---@return integer|nil bufnr, integer lnum
+local function resolve_uri_to_buf(uri, line)
+    local bufnr = vim.uri_to_bufnr(uri)
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+        pcall(vim.fn.bufload, bufnr)
+    end
+    if not vim.api.nvim_buf_is_loaded(bufnr) then
+        return nil, line
+    end
+    -- Trouble's main-window detection (view/main.lua `_valid`) rejects any window
+    -- whose buffer has a non-empty 'buftype'. nvim-jdtls marks jdt:// (decompiled)
+    -- buffers as `nofile`, so once Trouble points the main window at one it can no
+    -- longer find a valid jump target and starts loading the *next* selected item
+    -- into the Trouble (qflist) window itself. Presenting the decompiled buffer as a
+    -- normal, file-less, read-only buffer keeps that window a valid jump target so
+    -- navigation round-trips cleanly. (file:// source buffers are already buftype="".)
+    if vim.bo[bufnr].buftype == "nofile" then
+        pcall(function()
+            vim.bo[bufnr].buftype = ""
+            vim.bo[bufnr].swapfile = false
+            vim.bo[bufnr].modified = false
+        end)
+    end
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+    if line_count > 0 and line > line_count then
+        line = line_count
+    end
+    return bufnr, line
+end
+
 ---@type parce java trace to locations (local project files and load from jdtls in case lib refs)
 local parse_java_stack_trace = function(trace, result_callback)
     local loc_result_items_map = {}
@@ -123,13 +168,31 @@ local parse_java_stack_trace = function(trace, result_callback)
                     n = n + 1
                     loc_item.text = string.format("( %s ) %s", n, parsed.method)
                     table.insert(all_result_items, loc_item)
-                elseif jdt_sym_loc_item then
+                elseif jdt_sym_loc_item and jdt_sym_loc_item.location then
                     n = n + 1
-                    local jdt_item = vim.lsp.util.symbols_to_items({ jdt_sym_loc_item }, 0)[1]
-                    jdt_item.text = string.format("( %s ) %s.%s", n, parsed.class_path, parsed.method)
-                    jdt_item.lnum = parsed.class_line_number
-                    jdt_item.end_lnum = parsed.class_line_number
-                    -- dd(jdt_item)
+                    -- Resolve the library class to a loaded buffer and reference it by `bufnr`
+                    -- (not a raw jdt:// `filename`) so the quickfix entry survives Trouble's
+                    -- list refreshes, gets the right `java` filetype, and lands on an in-range
+                    -- line. The line itself comes from the parsed trace (clamped). See
+                    -- resolve_uri_to_buf() for the rationale. nvim 0.12's
+                    -- vim.lsp.util.symbols_to_items() is intentionally avoided here: it requires a
+                    -- position encoding and otherwise asserts an LSP client on the current buffer,
+                    -- which the trace/qflist buffer never has.
+                    local bufnr, lnum = resolve_uri_to_buf(jdt_sym_loc_item.location.uri, parsed.class_line_number)
+                    local jdt_item = {
+                        lnum = lnum,
+                        end_lnum = lnum,
+                        col = 1,
+                        end_col = 1,
+                        valid = 1,
+                        text = string.format("( %s ) %s.%s", n, parsed.class_path, parsed.method),
+                    }
+                    if bufnr then
+                        jdt_item.bufnr = bufnr
+                    else
+                        -- Couldn't load (no jdtls / fetch failed): fall back to the resolved path.
+                        jdt_item.filename = vim.uri_to_fname(jdt_sym_loc_item.location.uri)
+                    end
                     table.insert(all_result_items, jdt_item)
                 else
                     vim.notify(string.format("⚠️ class %s was not found", parsed.class_path))
