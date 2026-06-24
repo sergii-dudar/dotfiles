@@ -106,6 +106,23 @@ local function project_excludes()
     return list
 end
 
+---Toggle the picker's `exclude` patterns on/off, then re-run the find.
+---Unlike `toggle_ignored` (which only flips the git-ignore `--no-ignore` flag),
+---this clears/restores `opts.exclude` (the hard `fd -E` patterns from
+---`project_excludes()`), so excluded dirs like `target/`, `bin/`, `.idea`
+---become searchable.
+---@param picker snacks.Picker
+local function toggle_exclude(picker)
+    if picker.opts.exclude and #picker.opts.exclude > 0 then
+        picker.opts._saved_exclude = picker.opts.exclude
+        picker.opts.exclude = {}
+    else
+        picker.opts.exclude = picker.opts._saved_exclude or project_excludes()
+    end
+    picker.list:set_target()
+    picker:find()
+end
+
 M.picker = {
     -- Do NOT sejkt a fully-formed layout here. Snacks deep-merges the global layout into every
     -- source, so a global with a `.layout` array leaks into sources that rely on `preset`,
@@ -135,6 +152,7 @@ M.picker = {
     -- },
     actions = {
         diff_selected = diff_selected,
+        toggle_exclude = toggle_exclude,
         toggle_layout = toggle_layout,
         grep_selected_files = grep_selected_files,
         switch_to_files = picker_util.switch_to_files,
@@ -157,6 +175,7 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "i", "n" } },
+                ["<c-e>"] = { "toggle_exclude", mode = { "i", "n" }, desc = "Toggle excluded dirs/files" },
                 -- <c-[> is not mapped because Neovim receives it as <Esc>.
                 -- remap
                 -- ["<a-h>"] = "toggle_hidden",
@@ -177,6 +196,7 @@ M.picker = {
                 ["<c-\\>"] = { "edit_vsplit", mode = { "i", "n" } },
                 ["<c-d>"] = { "diff_selected", mode = { "i", "n" } },
                 ["<c-y>"] = { "toggle_layout", mode = { "n" } },
+                ["<c-e>"] = { "toggle_exclude", mode = { "n" }, desc = "Toggle excluded dirs/files" },
             },
         },
     },
