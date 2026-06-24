@@ -9,6 +9,17 @@ set -euo pipefail
 CLASSFILE="${1:-}"
 FERNFLOWER="$HOME/tools/java-extensions/decompiler/fernflower.jar"
 
+# bat is installed as `batcat` on Debian/Ubuntu (name clash) but `bat` on Arch
+# and macOS/Homebrew. Detect whichever exists; fall back to `cat` (no colors)
+# if bat isn't installed at all.
+if command -v bat >/dev/null 2>&1; then
+    BAT_BIN="bat"
+elif command -v batcat >/dev/null 2>&1; then
+    BAT_BIN="batcat"
+else
+    BAT_BIN=""
+fi
+
 if [[ -z "$CLASSFILE" || ! -f "$CLASSFILE" ]]; then
     echo "// file not found: $CLASSFILE" >&2
     exit 1
@@ -18,15 +29,24 @@ if [[ ! -f "$FERNFLOWER" ]]; then
     exit 1
 fi
 
-# Isolated temp dir per invocation avoids stale/colliding outputs.
+# Isolated temp dir per invocation avoids stale/colliding outputs. Clean it up
+# on normal exit AND on the signals a previewer sends when killing the job
+# (Snacks/Neovim send TERM when you move to the next item before we finish), so
+# interrupted decompiles don't leak temp dirs. SIGKILL can't be trapped, but the
+# OS reaps $TMPDIR periodically.
 OUTDIR="$(mktemp -d)"
 trap 'rm -rf "$OUTDIR"' EXIT
+trap 'rm -rf "$OUTDIR"; exit 143' INT TERM HUP
 
 java -jar "$FERNFLOWER" "$CLASSFILE" "$OUTDIR" >/dev/null 2>&1
 
 JAVA_FILE="$OUTDIR/$(basename "${CLASSFILE%.class}.java")"
 if [[ -f "$JAVA_FILE" ]]; then
-    bat --language=java --color=always --paging=never --style=numbers "$JAVA_FILE"
+    if [[ -n "$BAT_BIN" ]]; then
+        "$BAT_BIN" --language=java --color=always --paging=never --style=numbers "$JAVA_FILE"
+    else
+        cat "$JAVA_FILE"
+    fi
 else
     echo "// Decompilation failed for: $CLASSFILE" >&2
     exit 1

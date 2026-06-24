@@ -77,14 +77,15 @@ local exclude_java = {
     "**/target/*.war",
     "**/target/*.ear",
     ".mvn",
-    -- gradle
-    "**/bin",
-    "**/build/junit-report",
-    "**/gradle",
-    "gradlew",
-    "gradlew.bat",
-    "**/build",
-    ".gradle",
+
+    -- gradle (uncomment for gradle)
+    -- "**/bin",
+    -- "**/build",
+    -- "**/gradle",
+    -- "gradlew",
+    -- "gradlew.bat",
+    -- ".gradle",
+
     -- jdtls
     "**/.classpath",
     "**/.factorypath",
