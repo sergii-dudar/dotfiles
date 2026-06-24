@@ -1,4 +1,7 @@
--- TODO: load conditionally on http project
+if not global.is_all and not vim.fs.root(vim.fn.getcwd(), { "http-client.env.json" }) then
+    return {}
+end
+
 vim.filetype.add({
     extension = {
         ["http"] = "http",

@@ -63,8 +63,8 @@ local exclude_common = {
 }
 
 local exclude_java = {
-    -- "**/target/classes",
-    -- "**/target/test-classes",
+    "**/target/classes",
+    "**/target/test-classes",
     "**/target/maven-*",
     "**/target/surefire-reports",
     "**/target/failsafe-reports",
