@@ -8,7 +8,7 @@ return {
             servers = {
                 autotools_ls = {},
                 gradle_ls = {
-                    cmd = { global.dotfiles_path("/bin/java/gradle-language-server-stdio") },
+                    cmd = { global.dotfiles_path("/scripts/java/gradle-language-server-stdio") },
                 },
                 omnisharp = {
                     -- stylua: ignore
