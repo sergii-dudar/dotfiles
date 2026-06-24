@@ -28,7 +28,7 @@ local function replace_buffer_with_clipboard(buf)
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     normalize_trace_buffer(buf)
-    vim.notify("📝 Scratch content replacef from clipboard")
+    vim.notify("💾 Scratch content replacef from clipboard")
 end
 
 --- Open a scratch buffer for stack trace navigation.
