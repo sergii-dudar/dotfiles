@@ -64,6 +64,20 @@ return {
                 sort = { "trace_order" },
                 format = "{text:ts} {pos}",
             },
+            -- Same data as `java_trace`, but grouped by file. Because items are sorted
+            -- by `trace_order` BEFORE the tree is built, group nodes are created in the
+            -- order their first (lowest-ordinal) frame appears — so groups stay in trace
+            -- order and frames within a group keep their 1..N order too. Selected via
+            -- `require("utils.java.java-trace").trace_layout = "grouped"` (or the toggle).
+            java_trace_grouped = {
+                desc = "Java Stack Trace (grouped)",
+                source = "qf.qflist",
+                groups = {
+                    { "filename", format = "{file_icon} {filename} {count}" },
+                },
+                sort = { "trace_order" },
+                format = "{text:ts} {pos}",
+            },
             diagnostics = {
                 groups = {
                     { "directory" },

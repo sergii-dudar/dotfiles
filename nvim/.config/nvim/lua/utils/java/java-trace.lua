@@ -220,15 +220,51 @@ local parse_java_stack_trace = function(trace, result_callback)
     end
 end
 
+--- Layout for the parsed-trace Trouble view (see modes in trouble-nvim.lua):
+---   "grouped" → frames grouped by file; groups ordered by their first (lowest-ordinal)
+---               frame, frames within a group kept in trace order (default)
+---   "flat"    → frames listed 1..N with no grouping
+--- Override in config (e.g. `require("utils.java.java-trace").trace_layout = "flat"`).
+---@type "flat"|"grouped"
+M.trace_layout = "grouped"
+
+--- Trouble mode backing each layout.
+local TRACE_MODES = { flat = "java_trace", grouped = "java_trace_grouped" }
+
+--- Open (or refresh) the trace Trouble view in the currently configured layout,
+--- closing the other layout's view first so toggling never leaves two trace windows.
+local function open_trace_view()
+    local trouble = require("trouble")
+    local mode = TRACE_MODES[M.trace_layout] or TRACE_MODES.flat
+    for _, other in pairs(TRACE_MODES) do
+        if other ~= mode then
+            pcall(trouble.close, { mode = other })
+        end
+    end
+    trouble.open({ mode = mode, refresh = true })
+end
+
+--- Toggle the trace view between flat and grouped layouts. If a trace view is
+--- currently open, it is re-rendered immediately in the new layout; otherwise the
+--- new layout simply applies to the next parse.
+function M.toggle_trace_layout()
+    M.trace_layout = M.trace_layout == "grouped" and "flat" or "grouped"
+    vim.notify("Java trace layout: " .. M.trace_layout, vim.log.levels.INFO)
+    local trouble = require("trouble")
+    if trouble.is_open({ mode = "java_trace" }) or trouble.is_open({ mode = "java_trace_grouped" }) then
+        open_trace_view()
+    end
+end
+
 --- Show parsed stack trace entries in the quickfix list.
 function M.show_stack_trace_qflist(stack_trace)
     parse_java_stack_trace(stack_trace, function(trace_items)
         -- dd(trace_items)
         vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
-        -- `java_trace` is our flat, insertion-ordered Trouble mode (see trouble-nvim.lua):
-        -- no file grouping and no sorting, so frames keep their exact 1..N trace order.
-        -- refresh=true re-reads the quickfix list if the view is already open.
-        require("trouble").open({ mode = "java_trace", refresh = true })
+        -- Render through our dedicated trace mode(s): both keep exact 1..N order
+        -- (sorted by the per-item `nr` ordinal); the configured layout decides whether
+        -- frames are flat or grouped by file. refresh=true re-reads an open view.
+        open_trace_view()
     end)
 end
 
