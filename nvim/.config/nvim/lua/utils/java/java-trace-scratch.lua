@@ -18,6 +18,19 @@ function normalize_trace_buffer(buf)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, new_lines)
 end
 
+local function replace_buffer_with_clipboard(buf)
+    local clipboard_text = vim.fn.getreg("+")
+    local lines = vim.split(clipboard_text, "\n", { plain = true })
+
+    if clipboard_text == "" then
+        lines = {}
+    end
+
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+    normalize_trace_buffer(buf)
+    vim.notify("📝 Scratch content replacef from clipboard")
+end
+
 --- Open a scratch buffer for stack trace navigation.
 function M.openStackTraceScratch()
     Snacks.scratch({
@@ -49,6 +62,14 @@ function M.openStackTraceScratch()
                     end,
                     desc = "Selected trace to QF",
                     mode = "v",
+                },
+                ["replace_with_clipboard"] = {
+                    "<leader>r",
+                    function(self)
+                        replace_buffer_with_clipboard(self.buf)
+                    end,
+                    desc = "Replace with Clipboard",
+                    mode = "n",
                 },
                 ["normalize_trace"] = {
                     "<leader>n",
