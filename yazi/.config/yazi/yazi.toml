@@ -176,6 +176,8 @@ spotters = [
 	{ url = "*", run = "file" },
 ]
 preloaders = [
+	# Java bytecode — decompile with Fernflower ahead of preview (see plugins/java-class.yazi)
+	{ url = "*.class", run = "java-class" },
 	# Image
 	{ mime = "image/{avif,hei?,jxl}", run = "magick" },
 	{ mime = "image/svg+xml", run = "svg" },
@@ -191,6 +193,8 @@ preloaders = [
 ]
 previewers = [
 	{ url = "*/", run = "folder" },
+	# Java bytecode — decompile with Fernflower (see plugins/java-class.yazi)
+	{ url = "*.class", run = "java-class" },
 	# Code
 	{ mime = "text/*", run = "code" },
 	{ mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
