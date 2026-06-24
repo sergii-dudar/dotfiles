@@ -40,7 +40,8 @@ function M.openStackTraceScratch()
                     mode = "n",
                 },
                 ["parse_selected_trace"] = {
-                    "<leader>v",
+                    -- "<leader>v",
+                    "<cr>",
                     function(self)
                         local java_trace = require("utils.java.java-trace")
                         java_trace.parse_selected_trace_to_qflist()

@@ -124,6 +124,19 @@ local function resolve_uri_to_buf(uri, line)
     return bufnr, line
 end
 
+--- Star prefix marking the topmost (first) stack-trace frame — the throw site —
+--- so it stands out from the frames below it in the flat trace view.
+local TOP_FRAME_MARK = "★ "
+
+--- Build the quickfix `text` for a trace frame: "<star?>( <n> ) <class>.<method>".
+--- `n` is the 1-based display ordinal; frame 1 (the throw site) gets the star.
+---@param n integer
+---@param parsed { class_path: string, method: string }
+---@return string
+local function frame_text(n, parsed)
+    return string.format("%s( %s ) %s.%s", n == 1 and TOP_FRAME_MARK or "", n, parsed.class_path, parsed.method)
+end
+
 ---@type parce java trace to locations (local project files and load from jdtls in case lib refs)
 local parse_java_stack_trace = function(trace, result_callback)
     local loc_result_items_map = {}
@@ -152,7 +165,8 @@ local parse_java_stack_trace = function(trace, result_callback)
             local loc_item = loc_result_items_map[i]
             if loc_item then
                 n = n + 1
-                loc_item.text = string.format("( %s ) %s", n, parsed.method)
+                loc_item.text = frame_text(n, parsed)
+                loc_item.nr = n -- trace ordinal; java_trace mode sorts on this
                 table.insert(loc_result_items, loc_item)
             end
         end
@@ -166,7 +180,8 @@ local parse_java_stack_trace = function(trace, result_callback)
                 local jdt_sym_loc_item = jdt_results_items_map[parsed.class_path]
                 if loc_item then
                     n = n + 1
-                    loc_item.text = string.format("( %s ) %s", n, parsed.method)
+                    loc_item.text = frame_text(n, parsed)
+                    loc_item.nr = n -- trace ordinal; java_trace mode sorts on this
                     table.insert(all_result_items, loc_item)
                 elseif jdt_sym_loc_item and jdt_sym_loc_item.location then
                     n = n + 1
@@ -185,7 +200,8 @@ local parse_java_stack_trace = function(trace, result_callback)
                         col = 1,
                         end_col = 1,
                         valid = 1,
-                        text = string.format("( %s ) %s.%s", n, parsed.class_path, parsed.method),
+                        nr = n, -- trace ordinal; java_trace mode sorts on this
+                        text = frame_text(n, parsed),
                     }
                     if bufnr then
                         jdt_item.bufnr = bufnr
@@ -209,7 +225,10 @@ function M.show_stack_trace_qflist(stack_trace)
     parse_java_stack_trace(stack_trace, function(trace_items)
         -- dd(trace_items)
         vim.fn.setqflist({}, "r", { title = "Trace Quickfix List", items = trace_items })
-        vim.cmd("Trouble qflist toggle sort={}")
+        -- `java_trace` is our flat, insertion-ordered Trouble mode (see trouble-nvim.lua):
+        -- no file grouping and no sorting, so frames keep their exact 1..N trace order.
+        -- refresh=true re-reads the quickfix list if the view is already open.
+        require("trouble").open({ mode = "java_trace", refresh = true })
     end)
 end
 

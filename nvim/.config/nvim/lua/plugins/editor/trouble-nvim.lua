@@ -25,6 +25,16 @@ return {
             -- Set to false, if you want the preview to always be a real loaded buffer.
             scratch = true,
         },
+        -- Custom sorters (referenced by name in a mode's `sort`).
+        sorters = {
+            -- Order strictly by the trace ordinal the java-trace parser stamps on each
+            -- quickfix item (`nr`). Trouble's table.sort is NOT stable, so an empty/
+            -- equal-key sort scrambles equal items — an explicit numeric key is the only
+            -- reliable way to keep stack frames in their exact 1..N order.
+            trace_order = function(item)
+                return (item.item and item.item.nr) or 0
+            end,
+        },
         modes = {
             lsp = {
                 --win = { position = "right" },
@@ -41,6 +51,18 @@ return {
                 -- sort = { "severity", "filename", "pos", "message" },
                 sort = { { by = "none" } },
                 -- format = "{severity_icon|item.type:DiagnosticSignWarn} {text:ts} {pos}",
+            },
+            -- Flat, exactly-ordered view of the quickfix list, used by the Java
+            -- stack-trace parser (utils.java.java-trace). Reads the same `qf.qflist`
+            -- source but deliberately defines NO `groups` (so frames are not grouped
+            -- by file) and sorts by `trace_order` (the per-item `nr` ordinal) so frames
+            -- stay in exact trace order 1..N. The frame text carries the ordinal +
+            -- class.method, and the topmost frame is prefixed with a star by the parser.
+            java_trace = {
+                desc = "Java Stack Trace",
+                source = "qf.qflist",
+                sort = { "trace_order" },
+                format = "{text:ts} {pos}",
             },
             diagnostics = {
                 groups = {
