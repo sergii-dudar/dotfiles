@@ -76,9 +76,12 @@ local LspCodeAction = function()
 
             local offset_encoding = clients[1].offset_encoding or "utf-16"
             local params = vim.lsp.util.make_range_params(0, offset_encoding)
+            local cursor_lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
             ---@diagnostic disable-next-line: inject-field
             params.context = {
-                diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr),
+                -- diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr), -- <- deprecated
+                -- vim.diagnostic.get returns vim.Diagnostic shape; the LSP request needs lsp.Diagnostic shape
+                diagnostics = vim.lsp.diagnostic.from(vim.diagnostic.get(bufnr, { lnum = cursor_lnum })),
                 triggerKind = vim.lsp.protocol.CodeActionTriggerKind.Invoked,
             }
 

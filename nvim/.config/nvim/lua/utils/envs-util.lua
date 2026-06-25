@@ -6,6 +6,7 @@
 
 local M = {}
 
+--- Parse an env file into a key-value table.
 ---@param env_file string - path to env file
 ---@return table<string, string>
 function M.load_env_file(env_file)
@@ -20,7 +21,10 @@ function M.load_env_file(env_file)
         if not line:match("^%s*#") and not line:match("^%s*$") then
             local key, value = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
             if key then
-                envs[key] = value
+                key = key:match("^%s*(.-)%s*$")
+                if key ~= "" then
+                    envs[key] = value
+                end
             end
         end
     end

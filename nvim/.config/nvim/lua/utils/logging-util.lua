@@ -83,12 +83,12 @@ local function write_to_file(filepath, msg)
     end
 end
 
--- Create a logger for a specific module/component
+--- Create a logger for a specific module/component.
 function M.new(opts)
     opts = opts or {}
     local name = opts.name or "default"
     local filename = opts.filename or "nvim.log"
-    local level = opts.level or config.level
+    local level = M.level_to_number(opts.level or config.level)
 
     -- Return cached logger if exists
     if loggers[name] then
@@ -104,9 +104,9 @@ function M.new(opts)
         level = level,
     }
 
-    -- Set log level
+    --- Set this logger's minimum log level.
     function logger.set_level(new_level)
-        logger.level = new_level
+        logger.level = M.level_to_number(new_level)
     end
 
     -- Get current log level
@@ -217,11 +217,11 @@ function M.clear_log(filename)
     end
 end
 
--- Set global log level
+--- Set the global minimum log level for all loggers.
 function M.set_level(level)
-    config.level = level
+    config.level = M.level_to_number(level)
     for _, logger in pairs(loggers) do
-        logger.set_level(level)
+        logger.set_level(config.level)
     end
 end
 

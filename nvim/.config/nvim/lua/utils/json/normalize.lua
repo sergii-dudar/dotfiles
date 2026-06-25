@@ -1,41 +1,88 @@
--- JSON normalization: clean up stringified/escaped JSON in the current buffer.
+-- JSON normalization: unwrap stringified JSON objects/arrays and format them.
 --
--- • normalize_buffer — remove escaping, unwrap quoted objects/arrays in current buffer
--- • normalize_selection — remove escaping, unwrap quoted objects/arrays in visual selection
+-- • normalize_buffer — unwrap and format JSON in current buffer
+-- • normalize_selection — unwrap and format JSON in visual selection
 
 local M = {}
 
---- Normalize stringified JSON content:
---- - Remove newlines (\n)
---- - Convert "{ to { and }" to }
---- - Convert "[ to [ and ]" to ]
---- - Convert escaped quotes \" to "
---- @param content string
---- @return string
-local function normalize_content(content)
-    -- Remove literal \n and \r
-    content = content:gsub("\\n", ""):gsub("\\r", "")
+--- Decode JSON content if possible.
+---@param content string
+---@return any|nil
+local function decode_json(content)
+    local ok, decoded = pcall(vim.json.decode, content)
+    if ok then
+        return decoded
+    end
+    return nil
+end
 
-    -- Remove escaped quotes: \" -> "
-    content = content:gsub('\\"', '"')
+--- Check whether text looks like a JSON object or array.
+---@param content string
+---@return boolean
+local function looks_like_json_container(content)
+    local trimmed = vim.trim(content)
+    local first = trimmed:sub(1, 1)
+    local last = trimmed:sub(-1)
+    return (first == "{" and last == "}") or (first == "[" and last == "]")
+end
 
-    -- Remove string-wrapped braces/brackets: "{ -> {, }" -> }, "[ -> [, ]" -> ]
-    content = content:gsub('"{', "{"):gsub('}"', "}")
-    content = content:gsub('"%[', "["):gsub('%]"', "]")
+--- Unwrap a top-level JSON string when it contains JSON object or array text.
+---@param content string
+---@return string
+local function unwrap_stringified_json(content)
+    local decoded = decode_json(content)
+    if type(decoded) ~= "string" then
+        return content
+    end
 
-    -- Format with jq if available
-    local jq_result = vim.fn.system("echo " .. vim.fn.shellescape(content) .. " | jq .", "")
-    if vim.v.shell_error == 0 and jq_result and jq_result ~= "" then
-        content = jq_result
+    local candidate = vim.trim(decoded)
+    for _ = 1, 5 do
+        if not looks_like_json_container(candidate) then
+            return content
+        end
+
+        local nested = decode_json(candidate)
+        if type(nested) ~= "string" then
+            return nested ~= nil and candidate or content
+        end
+
+        local next_candidate = vim.trim(nested)
+        if next_candidate == candidate then
+            return content
+        end
+        candidate = next_candidate
     end
 
     return content
 end
 
+--- Format JSON content with jq when available.
+---@param content string
+---@return string
+local function format_json(content)
+    if vim.fn.executable("jq") ~= 1 then
+        return content
+    end
+
+    local jq_result = vim.fn.system({ "jq", "." }, content)
+    if vim.v.shell_error == 0 and jq_result and jq_result ~= "" then
+        return jq_result
+    end
+    return content
+end
+
+--- Normalize stringified JSON content.
+---@param content string
+---@return string
+local function normalize_content(content)
+    content = vim.trim(content)
+    return format_json(unwrap_stringified_json(content))
+end
+
 --- Normalize stringified JSON in the current buffer.
 function M.normalize_buffer()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    local content = normalize_content(table.concat(lines, ""))
+    local content = normalize_content(table.concat(lines, "\n"))
     local new_lines = vim.split(content, "\n", { trimempty = true })
     vim.api.nvim_buf_set_lines(0, 0, -1, false, new_lines)
 end
@@ -55,7 +102,7 @@ function M.normalize_selection()
     end
 
     local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
-    local content = normalize_content(table.concat(lines, ""))
+    local content = normalize_content(table.concat(lines, "\n"))
     local new_lines = vim.split(content, "\n", { trimempty = true })
     vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, new_lines)
 end

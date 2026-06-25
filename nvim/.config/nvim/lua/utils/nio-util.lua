@@ -25,6 +25,17 @@ end, 2)
 ---@param prompt string
 ---@return table[]|nil
 M.multi_select = nio.wrap(function(items, prompt, callback)
+    local completed = false
+
+    --- Complete the picker callback at most once.
+    local function complete(result)
+        if completed then
+            return
+        end
+        completed = true
+        callback(result)
+    end
+
     Snacks.picker.pick({
         title = prompt,
         layout = { preview = false, layout = { width = 0.4, height = 0.3 } },
@@ -34,17 +45,22 @@ M.multi_select = nio.wrap(function(items, prompt, callback)
         format = function(picker_item)
             return { { picker_item.text } }
         end,
-        confirm = function(picker, picker_item)
+        confirm = function(picker, _)
+            if completed then
+                return
+            end
+
             local selected = picker:selected({ fallback = true })
-            picker:close()
             local result = vim.tbl_map(function(sel)
                 return sel.item
             end, selected)
+
+            completed = true
+            picker:close()
             callback(#result > 0 and result or nil)
         end,
-        cancel = function(picker)
-            picker:close()
-            callback(nil)
+        on_close = function()
+            complete(nil)
         end,
     })
 end, 3)
