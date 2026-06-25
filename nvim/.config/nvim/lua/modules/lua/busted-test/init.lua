@@ -2,7 +2,7 @@
 -- and launches DAP via the local-lua-debugger-vscode adapter (Mason).
 --
 -- REQUIRED:
---   * busted                      (system, e.g. /usr/bin/busted from luarocks)
+--   * busted                      (system, Homebrew, or LuaRocks)
 --   * local-lua-debugger-vscode   (Mason package) — for <leader>td test debug
 --
 -- Output: our custom output handler emits NDJSON to:
@@ -21,8 +21,86 @@
 
 local M = {}
 
-local BUSTED_BIN = "/usr/bin/busted"
 local OUTPUT_HANDLER = vim.fn.stdpath("config") .. "/lua/modules/lua/busted-test/helpers/output_handler.lua"
+
+--------------------------------------------------------------------------------
+-- Busted executable resolution
+
+local _busted_bin_checked = false
+local _busted_bin = nil
+
+--- Return candidate busted launchers in preference order.
+---@return string[]
+local function busted_bin_candidates()
+    local home = os.getenv("HOME") or ""
+    local candidates = {}
+
+    if type(vim.g.lua_busted_bin) == "string" and vim.g.lua_busted_bin ~= "" then
+        table.insert(candidates, vim.g.lua_busted_bin)
+    end
+
+    local env_busted = os.getenv("BUSTED")
+    if env_busted and env_busted ~= "" then
+        table.insert(candidates, env_busted)
+    end
+
+    table.insert(candidates, "busted")
+
+    local prefixes = { "/opt/homebrew/bin", "/usr/local/bin" }
+    local names = { "busted", "busted-5.4", "busted-5.3", "busted-5.1" }
+    for _, prefix in ipairs(prefixes) do
+        for _, name in ipairs(names) do
+            table.insert(candidates, prefix .. "/" .. name)
+        end
+    end
+
+    if home ~= "" then
+        table.insert(candidates, home .. "/.luarocks/bin/busted")
+    end
+
+    for _, name in ipairs(names) do
+        table.insert(candidates, "/usr/bin/" .. name)
+    end
+
+    return candidates
+end
+
+--- Resolve an executable candidate to the command path Neovim should run.
+---@param candidate string
+---@return string|nil
+local function resolve_executable(candidate)
+    if type(candidate) ~= "string" or candidate == "" then
+        return nil
+    end
+    candidate = vim.fn.expand(candidate)
+    if vim.fn.executable(candidate) ~= 1 then
+        return nil
+    end
+    local full_path = vim.fn.exepath(candidate)
+    if full_path ~= "" then
+        return full_path
+    end
+    return candidate
+end
+
+--- Find the busted executable, including Homebrew paths often missing from GUI Neovim PATH.
+---@return string|nil
+local function find_busted_bin()
+    if _busted_bin_checked then
+        return _busted_bin
+    end
+    _busted_bin_checked = true
+
+    for _, candidate in ipairs(busted_bin_candidates()) do
+        local resolved = resolve_executable(candidate)
+        if resolved then
+            _busted_bin = resolved
+            return resolved
+        end
+    end
+
+    return nil
+end
 
 --------------------------------------------------------------------------------
 -- Project root resolution
@@ -82,21 +160,21 @@ end
 --------------------------------------------------------------------------------
 -- Sanity checks
 
-local _busted_available
+--- Report whether a busted executable is available for running tests.
+---@return boolean
 local function busted_available()
-    if _busted_available ~= nil then
-        return _busted_available
-    end
-    _busted_available = (vim.fn.executable(BUSTED_BIN) == 1)
-    if not _busted_available then
+    local bin = find_busted_bin()
+    if not bin then
         vim.schedule(function()
             vim.notify(
-                "Lua test runner: " .. BUSTED_BIN .. " not found.\n" .. "Install with:  sudo luarocks install busted",
+                "Lua test runner: busted not found.\n"
+                    .. "Tried PATH, ~/.luarocks/bin, /opt/homebrew/bin, /usr/local/bin, and /usr/bin.\n"
+                    .. "Install with: brew install busted  or  luarocks install busted",
                 vim.log.levels.ERROR
             )
         end)
     end
-    return _busted_available
+    return bin ~= nil
 end
 
 --------------------------------------------------------------------------------
@@ -324,7 +402,8 @@ local function build_shell_cmd(opts)
         project_root = opts.project_root,
     })
 
-    local quoted = { vim.fn.shellescape(BUSTED_BIN) }
+    local busted_bin = find_busted_bin() or "busted"
+    local quoted = { vim.fn.shellescape(busted_bin) }
     for _, a in ipairs(args) do
         table.insert(quoted, vim.fn.shellescape(a))
     end
@@ -433,32 +512,32 @@ end
 local LUA_LOCAL_EXT = vim.fn.stdpath("data") .. "/mason/packages/local-lua-debugger-vscode/extension"
 local LUA_LOCAL_DEBUGGER_DIR = LUA_LOCAL_EXT .. "/debugger"
 
+--- Check whether a busted launcher is safe for local-lua-debugger-vscode.
+---@param path string
+---@return boolean
+local function dap_can_run_busted(path)
+    local f = io.open(path, "r")
+    if not f then
+        return false
+    end
+    local head = f:read(4096) or ""
+    f:close()
+    return not head:find("lua5%.5") and not head:find("/5%.5/")
+end
+
+--- Find a busted launcher that is compatible with local-lua-debugger-vscode.
 --- The mason-shipped lldebugger.lua uses constructs that are NOT compatible
 --- with Lua 5.5 (generic-for loop vars are const-by-default → assignment
---- errors). Probe known locations for a busted installed against Lua ≤ 5.4.
---- Falls back to nil if none found, in which case DAP cannot be used.
+--- errors), so debug mode skips launchers pinned to Lua 5.5.
 ---@return string|nil bin, string|nil reason
 local function find_dap_busted_bin()
-    local home = os.getenv("HOME") or ""
-    local candidates = {
-        home .. "/.luarocks/bin/busted",
-        "/usr/local/bin/busted-5.4",
-        "/usr/local/bin/busted-5.3",
-        "/usr/local/bin/busted-5.1",
-        "/usr/bin/busted-5.4",
-        "/usr/bin/busted-5.3",
-        "/usr/bin/busted-5.1",
-    }
-    for _, path in ipairs(candidates) do
-        if vim.fn.executable(path) == 1 then
-            -- Read shebang/first lines to confirm it does NOT pin Lua 5.5.
-            local f = io.open(path, "r")
-            if f then
-                local head = f:read(4096) or ""
-                f:close()
-                if not head:find("lua5%.5") and not head:find("/5%.5/") then
-                    return path
-                end
+    local seen = {}
+    for _, candidate in ipairs(busted_bin_candidates()) do
+        local path = resolve_executable(candidate)
+        if path and not seen[path] then
+            seen[path] = true
+            if dap_can_run_busted(path) then
+                return path
             end
         end
     end

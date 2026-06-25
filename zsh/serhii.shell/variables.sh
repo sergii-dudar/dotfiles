@@ -36,6 +36,9 @@ if isMacOs; then
     export PATH=$GOPATH/bin:$PATH
     export PATH=/Users/iuada144/.sdkman/candidates/java/current/bin:$PATH
 
+    # Lua
+    export PATH=$PATH:$HOME/.luarocks/bin
+
     # Haskell
     export PATH=$PATH:$HOME/.ghcup/bin
     #export PATH=$HOME/.ghcup/bin:$PATH
@@ -68,6 +71,9 @@ else
     export GOPATH=$HOME/go
     export PATH=$GOPATH/bin:$PATH
     export PATH=$PATH:$HOME/.local/bin
+
+    # Lua
+    export PATH=$PATH:$HOME/.luarocks/bin
 
     export QT_SCALE_FACTOR=1.75
     # export QT_SCREEN_SCALE_FACTORS=1.75

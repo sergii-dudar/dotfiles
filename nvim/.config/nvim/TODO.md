@@ -38,3 +38,4 @@
      create wrapper/abstraction over lsp goto definition to be able to extend main language goto definition over standard lsp way
      better documentation coverage
      improve java-trace*.lua functionality
+     cover utilities and modules where possible with unit tests
