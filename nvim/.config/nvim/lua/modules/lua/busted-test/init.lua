@@ -44,10 +44,12 @@ local function busted_bin_candidates()
         table.insert(candidates, env_busted)
     end
 
-    table.insert(candidates, "busted")
+    local names = { "busted", "busted-5.4", "busted-5.3", "busted-5.1" }
+    for _, name in ipairs(names) do
+        table.insert(candidates, name)
+    end
 
     local prefixes = { "/opt/homebrew/bin", "/usr/local/bin" }
-    local names = { "busted", "busted-5.4", "busted-5.3", "busted-5.1" }
     for _, prefix in ipairs(prefixes) do
         for _, name in ipairs(names) do
             table.insert(candidates, prefix .. "/" .. name)
@@ -55,7 +57,9 @@ local function busted_bin_candidates()
     end
 
     if home ~= "" then
-        table.insert(candidates, home .. "/.luarocks/bin/busted")
+        for _, name in ipairs(names) do
+            table.insert(candidates, home .. "/.luarocks/bin/" .. name)
+        end
     end
 
     for _, name in ipairs(names) do
@@ -618,8 +622,11 @@ function M.dap_launch_test(context)
         vim.notify(
             "Lua test debug: "
                 .. why
-                .. "\nFix: `luarocks --lua-version=5.4 install --local busted`"
-                .. " (or 5.3 / 5.1), then re-run.",
+                .. "\nFix for Homebrew macOS:"
+                .. "\n  brew install lua@5.4"
+                .. '\n  luarocks --lua-version=5.4 --local config variables.LUA "$(brew --prefix lua@5.4)/bin/lua5.4"'
+                .. "\n  luarocks --lua-version=5.4 install --local busted"
+                .. "\nThen re-run debug.",
             vim.log.levels.ERROR
         )
         return
