@@ -835,4 +835,7 @@ function M.clear_stub_modules(modules)
     M.unload(modules)
 end
 
+M.is_macos = io.popen("uname -s"):read("*l") == "Darwin"
+M.tmp_dir = M.is_macos and "/private/tmp/" or "/tmp/"
+
 return M

@@ -2,6 +2,7 @@
 
 local M = {}
 M.is_macos = vim.loop.os_uname().sysname == "Darwin"
+M.tmp_dir = M.is_macos and "/private/tmp/" or "/tmp/"
 M.java = {
     maven_diagnostics_test_source = "maven-test",
     maven_diagnostics_compile_source = "maven-compile",

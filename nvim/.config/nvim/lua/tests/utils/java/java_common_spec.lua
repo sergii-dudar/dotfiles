@@ -1,4 +1,5 @@
 local helper = require("tests.utils.spec_helper")
+local tmp_dir = helper.tmp_dir
 
 describe("utils.java.java-common", function()
     local java_common
@@ -154,7 +155,7 @@ describe("utils.java.java-common", function()
 
     it("builds an FQCN from a Java file package declaration", function()
         -- given
-        local file_path = "/private/tmp/Foo.java"
+        local file_path = tmp_dir .. "Foo.java"
         write_file(file_path, "package ua.example;\n\npublic class Foo {}\n")
 
         -- when

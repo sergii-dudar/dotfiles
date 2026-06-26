@@ -1,9 +1,10 @@
 local helper = require("tests.utils.spec_helper")
+local tmp_dir = helper.tmp_dir
 
 describe("utils.logging-util", function()
     local logging_util
     local original_os_date
-    local log_dir = "/private/tmp/nvim-logging-util-spec"
+    local log_dir = tmp_dir .. "nvim-logging-util-spec"
 
     local function read_file(path)
         local file = assert(io.open(path, "r"))
