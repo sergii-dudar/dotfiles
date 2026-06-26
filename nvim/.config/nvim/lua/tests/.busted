@@ -1,3 +1,4 @@
+-- dependent on https://github.com/nvim-lua/plenary.nvim
 return {
     _all = {
         ROOT = { "." },

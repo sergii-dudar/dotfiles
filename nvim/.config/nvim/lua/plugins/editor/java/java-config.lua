@@ -134,7 +134,7 @@ return {
             { "<leader>j,", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
-            { "<leader>jj", function() require("utils.java.jdtls-util").open_fqn_under_cursor() end, desc = "Open FQN Under Cursor" },
+            { "<leader>jj", function() require("utils.java.goto-file-under-cursor").goto_under_cursor() end, desc = "Goto FQN / file under cursor" },
             { "<leader>ji", function() require("modules.java.static-import-explorer").quick_import() end, desc = "Static Import Quick" },
             { "<leader>jI", function() require("modules.java.static-import-explorer").find() end, desc = "Static Import Search" },
         },
