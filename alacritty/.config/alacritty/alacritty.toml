@@ -317,6 +317,7 @@ bindings = [
     # ...
 
     { key = "V", mods = "Control", action = "Paste" },
+    { key = "Key6", mods = "Control", chars = "\u001e" },
     { key = "Slash", mods = "Control", chars = "\u001f" }, # { key = "C", mods = "Control", action = "Copy" }
     { key = "Comma", mods = "Control", chars = "\u001b[44;5u" },
     { key = "Period", mods = "Control", chars = "\u001b[46;5u" },

@@ -116,7 +116,7 @@ if vim.o.diff then
 end
 
 -- language
-vim.opt.keymap = "ukrainian-jcuken" -- or "ukrainian-enhanced"
+vim.opt.keymap = "ukrainian-custom"
 vim.opt.iminsert = 0 -- English by default
 vim.opt.imsearch = 0 -- English in search by default
 

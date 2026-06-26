@@ -84,6 +84,7 @@ alias .5='cd ../../../../..'
 # changing cd to zoxide
 alias cd='z'
 alias cdi='zi'
+# alias images_preview="fzf --preview '~/dotfiles/zsh/serhii.shell/fzf-image-preview.sh {}'"
 
 # alias tmuxan='tmux attach || tmux new' # connect to exists session or create new one
 # alias tmuxan='tmux attach || tmux new -s ''default'' -n ''ranger.h'' ''ranger .'''
