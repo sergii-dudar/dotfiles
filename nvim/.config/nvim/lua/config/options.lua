@@ -115,6 +115,11 @@ if vim.o.diff then
     return
 end
 
+-- language
+vim.opt.keymap = "ukrainian-jcuken" -- or "ukrainian-enhanced"
+vim.opt.iminsert = 0 -- English by default
+vim.opt.imsearch = 0 -- English in search by default
+
 function open_tree_on_start()
     local project_util = require("utils.project-util")
     if project_util.is_multifile_proj() then
