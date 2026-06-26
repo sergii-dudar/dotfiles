@@ -134,6 +134,24 @@ end, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J
 --vim.keymap.set({ "n", "v" }, "<leader>y", "\"+yy")
 --vim.keymap.set("n", "<leader>Y", "\"+y")
 
+--- Copy current buffer file path to the system clipboard.
+local function copy_file_path(path_modifier, label)
+    local absolute_path = vim.api.nvim_buf_get_name(0)
+    if absolute_path == "" then
+        vim.notify("No file path for current buffer", vim.log.levels.WARN)
+        return
+    end
+
+    local path = vim.fn.fnamemodify(absolute_path, path_modifier)
+    vim.fn.setreg("+", path)
+    vim.notify("Copied: " .. path, vim.log.levels.INFO)
+end
+
+-- stylua: ignore start
+map("n", "<leader>yf", function() copy_file_path(":.", "relative") end, { desc = "Copy relative file path" })
+map("n", "<leader>yF", function() copy_file_path(":p", "absolute") end, { desc = "Copy absolute file path" })
+-- stylua: ignore end
+
 --start replacing word under cursonr
 --vim.keymap.set("n", "<leader>r", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
 --    { desc = "Start replacing word under cursor" })
