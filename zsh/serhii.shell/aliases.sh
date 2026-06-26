@@ -1,9 +1,6 @@
 alias rl='export MANUAL_RL=1 ; exec zsh' # reload shell with variable
 alias cl="clear"
 
-# short edit
-alias dots="cd ~/dotfiles && nvim"
-
 # Changing "ls" to "eza"
 alias l="eza -a --icons --color=always --group-directories-first"
 alias ls='eza -al --icons --color=always --group-directories-first'
@@ -151,3 +148,6 @@ alias tmuxkill='tmux kill-server'
 # nvim
 alias nviml="LIMITED=Y nvim"
 alias nvima="LOAD_ALL=Y nvim"
+
+# short edit
+alias dots="cd ~/dotfiles && LOAD_ALL=Y nvim"
