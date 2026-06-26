@@ -33,10 +33,10 @@
      Make java tests agnostics for maven/gradle
      last run (especially in debugging) and fast switch between last debug and run, with overseer not working in another lang implementations (except java)
      refactoring to be able to integrate another main languages (keymans <leader>j...). currently java, need also rust and later maybe more, same keymans, but different areas and plugins, and functionalities
-     issues with jdtls after long idle time with blink completions restoring
+     issues with jdtls after long idle time with blink completions restoring
      inregrate go as main supported language
      create wrapper/abstraction over lsp goto definition to be able to extend main language goto definition over standard lsp way
      better documentation coverage
      improve java-trace*.lua functionality
-     cover utilities and modules where possible with unit tests
-     jdtls, ability to go directly in file defided in static variable like .expectedEnvelopeXml(XPathUtil.builder(XML_ENVELOPE_ECB_PASS)
+     cover utilities and modules where possible with unit tests
+     jdtls, ability to go directly in file defided in static variable like .expectedEnvelopeXml(XPathUtil.builder(XML_ENVELOPE_ECB_PASS)
