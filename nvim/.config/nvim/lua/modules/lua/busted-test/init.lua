@@ -137,6 +137,27 @@ local function find_project_root(start)
     return nil
 end
 
+--- Walk up from `start` looking for a .busted config file.
+---@param start string
+---@return string|nil
+local function find_busted_config(start)
+    local dir = vim.fn.fnamemodify(start, ":p")
+    if vim.fn.isdirectory(dir) == 0 then
+        dir = vim.fn.fnamemodify(dir, ":h")
+    end
+
+    local prev = nil
+    while dir ~= prev and dir ~= "/" and dir ~= "" do
+        local config = dir .. "/.busted"
+        if vim.fn.filereadable(config) == 1 then
+            return config
+        end
+        prev = dir
+        dir = vim.fn.fnamemodify(dir, ":h")
+    end
+    return nil
+end
+
 ---@return string
 function M.project_root()
     local file = vim.fn.expand("%:p")
@@ -147,6 +168,25 @@ function M.project_root()
     local root = find_project_root(start) or vim.fn.getcwd()
     _root_cache[start] = root
     return root
+end
+
+--- Resolve the Busted config that should be used for the selected specs.
+---@param opts { spec_paths: string[]|nil, project_root: string }
+---@return string|nil
+local function busted_config_for(opts)
+    local root_config = opts.project_root .. "/.busted"
+    if vim.fn.filereadable(root_config) == 1 then
+        return root_config
+    end
+
+    for _, spec_path in ipairs(opts.spec_paths or {}) do
+        local config = find_busted_config(spec_path)
+        if config then
+            return config
+        end
+    end
+
+    return nil
 end
 
 ---@param root string
@@ -350,6 +390,10 @@ local function busted_args(opts)
         "-Xoutput=" .. opts.output_file,
         "--verbose",
     }
+    local config = busted_config_for(opts)
+    if config then
+        table.insert(args, "--config-file=" .. config)
+    end
     if opts.filter and opts.filter ~= "" then
         -- busted --filter is a Lua pattern matched against the full path
         -- ("desc1 desc2 it_name"). We escape magic chars for a literal match.

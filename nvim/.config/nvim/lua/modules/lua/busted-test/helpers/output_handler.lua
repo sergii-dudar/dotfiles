@@ -18,6 +18,7 @@
 return function(options)
     local busted = require("busted")
     local handler = require("busted.outputHandlers.base")()
+    local io_open = io.open
 
     -- Resolve output file from -Xoutput=<path>
     local output_file
@@ -31,7 +32,7 @@ return function(options)
 
     -- Truncate / create the output file up-front so consumers always find it.
     do
-        local f = io.open(output_file, "w")
+        local f = io_open(output_file, "w")
         if f then
             f:close()
         end
@@ -76,7 +77,7 @@ return function(options)
     end
 
     local function write_entry(entry)
-        local f = io.open(output_file, "a")
+        local f = io_open(output_file, "a")
         if not f then
             return
         end

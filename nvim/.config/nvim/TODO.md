@@ -39,3 +39,4 @@
      better documentation coverage
      improve java-trace*.lua functionality
      cover utilities and modules where possible with unit tests
+     jdtls, ability to go directly in file defided in static variable like .expectedEnvelopeXml(XPathUtil.builder(XML_ENVELOPE_ECB_PASS)

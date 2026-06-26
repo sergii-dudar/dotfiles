@@ -1,4 +1,7 @@
 {
+    "workspace.library": [
+        "lua/types"
+    ],
     "diagnostics.disable": [
         "lowercase-global",
         "unused-local"

@@ -1,0 +1,12 @@
+return {
+    _all = {
+        ROOT = { "." },
+        pattern = "_spec",
+        lpath = "?.lua;?/init.lua;../?.lua;../?/init.lua;../../?.lua;../../?/init.lua;lua/?.lua;lua/?/init.lua",
+        coverage = false,
+        verbose = false,
+    },
+    default = {
+        output = "utfTerminal",
+    },
+}
