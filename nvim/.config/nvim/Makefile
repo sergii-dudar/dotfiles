@@ -47,6 +47,18 @@ test-utils-json: ## Run utils/json specs.
 test-utils-java: ## Run utils/java specs.
 	$(BUSTED_BASE) $(TEST_ROOT)/utils/java
 
+.PHONY: test-modules
+test-modules: ## Run all module specs.
+	$(BUSTED_BASE) $(TEST_ROOT)/modules
+
+.PHONY: test-modules-common
+test-modules-common: ## Run common module specs.
+	$(BUSTED_BASE) $(TEST_ROOT)/modules/common
+
+.PHONY: test-modules-java
+test-modules-java: ## Run Java module specs.
+	$(BUSTED_BASE) $(TEST_ROOT)/modules/java
+
 # -----------------------------------------------------------------------------
 # Individual specs
 # -----------------------------------------------------------------------------

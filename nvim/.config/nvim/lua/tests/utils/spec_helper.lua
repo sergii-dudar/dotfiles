@@ -58,6 +58,26 @@ local function tbl_extend_force(...)
     return result
 end
 
+local deepcopy
+
+--- Deep-merge tables with the same force semantics needed by test doubles.
+local function tbl_deep_extend_force(...)
+    local result = {}
+    local tables = { ... }
+    for index = 2, #tables do
+        for key, value in pairs(tables[index] or {}) do
+            if type(value) == "table" and type(result[key]) == "table" then
+                result[key] = tbl_deep_extend_force("force", result[key], value)
+            elseif type(value) == "table" then
+                result[key] = deepcopy(value)
+            else
+                result[key] = value
+            end
+        end
+    end
+    return result
+end
+
 local function split_plain(str, delimiter)
     local result = {}
     delimiter = delimiter or "%s"
@@ -111,7 +131,7 @@ local function split_pattern(str, delimiter, opts)
     return result
 end
 
-local function deepcopy(value, seen)
+function deepcopy(value, seen)
     if type(value) ~= "table" then
         return value
     end
@@ -281,6 +301,10 @@ function M.reset_vim()
         fs_stat = function()
             return nil
         end,
+        hrtime = function()
+            state.hrtime = (state.hrtime or 0) + 1000000
+            return state.hrtime
+        end,
     }
     vim_test_double.uv = vim_test_double.loop
 
@@ -300,6 +324,30 @@ function M.reset_vim()
             error("test vim.tbl_extend only supports force mode")
         end
         return tbl_extend_force(mode, ...)
+    end
+
+    vim_test_double.tbl_deep_extend = function(mode, ...)
+        if mode ~= "force" then
+            error("test vim.tbl_deep_extend only supports force mode")
+        end
+        return tbl_deep_extend_force(mode, ...)
+    end
+
+    vim_test_double.tbl_contains = function(list, target)
+        for _, value in ipairs(list or {}) do
+            if value == target then
+                return true
+            end
+        end
+        return false
+    end
+
+    vim_test_double.tbl_count = function(tbl)
+        local count = 0
+        for _ in pairs(tbl or {}) do
+            count = count + 1
+        end
+        return count
     end
 
     vim_test_double.tbl_filter = function(predicate, list)
@@ -331,28 +379,72 @@ function M.reset_vim()
         return suffix == "" or str:sub(-#suffix) == suffix
     end
     vim_test_double.iter = function(list)
+        --- Return numeric-keyed table values in key order, preserving holes.
+        local function numeric_values(tbl)
+            local keys = {}
+            for key, _ in pairs(tbl or {}) do
+                if type(key) == "number" then
+                    table.insert(keys, key)
+                end
+            end
+            table.sort(keys)
+
+            local values = {}
+            for _, key in ipairs(keys) do
+                table.insert(values, tbl[key])
+            end
+            return values
+        end
+
         local object = {
-            list = list or {},
-            predicates = {},
+            list = numeric_values(list),
+            operations = {},
         }
 
         function object:filter(predicate)
-            table.insert(self.predicates, predicate)
+            table.insert(self.operations, { type = "filter", fn = predicate })
+            return self
+        end
+
+        function object:map(mapper)
+            table.insert(self.operations, { type = "map", fn = mapper })
+            return self
+        end
+
+        function object:flatten()
+            table.insert(self.operations, { type = "flatten" })
             return self
         end
 
         function object:totable()
-            local result = {}
-            for _, item in ipairs(self.list) do
-                local keep = true
-                for _, predicate in ipairs(self.predicates) do
-                    if not predicate(item) then
-                        keep = false
-                        break
+            local result = self.list
+            for _, operation in ipairs(self.operations) do
+                if operation.type == "flatten" then
+                    local flattened = {}
+                    for _, item in ipairs(numeric_values(result)) do
+                        if type(item) == "table" then
+                            for _, nested in ipairs(numeric_values(item)) do
+                                table.insert(flattened, nested)
+                            end
+                        else
+                            table.insert(flattened, item)
+                        end
                     end
-                end
-                if keep then
-                    table.insert(result, item)
+                    result = flattened
+                elseif operation.type == "filter" then
+                    local filtered = {}
+                    for _, item in ipairs(numeric_values(result)) do
+                        if operation.fn(item) then
+                            table.insert(filtered, item)
+                        end
+                    end
+                    result = filtered
+                elseif operation.type == "map" then
+                    local mapped = {}
+                    for _, item in ipairs(numeric_values(result)) do
+                        table.insert(mapped, operation.fn(item))
+                    end
+                    result = mapped
                 end
             end
             return result
@@ -463,8 +555,8 @@ function M.reset_vim()
         getcwd = function()
             return "/workspace"
         end,
-        glob = function()
-            return ""
+        glob = function(_, _, list)
+            return list and {} or ""
         end,
         getline = function()
             return ""
@@ -565,8 +657,23 @@ function M.reset_vim()
         nvim_buf_line_count = function(bufnr)
             return #(state.buffer_lines[bufnr] or {})
         end,
-        nvim_buf_set_lines = function(bufnr, _, _, _, lines)
-            state.buffer_lines[bufnr] = lines
+        nvim_buf_set_lines = function(bufnr, start_row, end_row, _, lines)
+            local current = state.buffer_lines[bufnr] or {}
+            local result = {}
+            local keep_until = math.max(start_row, 0)
+            local resume_from = end_row == -1 and (#current + 1) or (end_row + 1)
+
+            for index = 1, keep_until do
+                table.insert(result, current[index])
+            end
+            for _, line in ipairs(lines) do
+                table.insert(result, line)
+            end
+            for index = resume_from, #current do
+                table.insert(result, current[index])
+            end
+
+            state.buffer_lines[bufnr] = result
         end,
         nvim_buf_set_text = function(bufnr, start_row, start_col, end_row, end_col, lines)
             state.set_text = {
@@ -581,6 +688,10 @@ function M.reset_vim()
         nvim_create_buf = function()
             state.created_buf = (state.created_buf or 500) + 1
             return state.created_buf
+        end,
+        nvim_create_user_command = function(name, callback, opts)
+            state.user_commands = state.user_commands or {}
+            state.user_commands[name] = { callback = callback, opts = opts }
         end,
         nvim_get_current_buf = function()
             return state.current_buf
@@ -622,6 +733,9 @@ function M.reset_vim()
         end,
         nvim_win_set_buf = function(win, bufnr)
             state.window_set_buf = { win = win, bufnr = bufnr }
+        end,
+        nvim_win_set_cursor = function(_, cursor)
+            state.cursor = cursor
         end,
         nvim_win_set_height = function(win, height)
             state.window_height = { win = win, height = height }
