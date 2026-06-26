@@ -59,6 +59,14 @@ test-modules-common: ## Run common module specs.
 test-modules-java: ## Run Java module specs.
 	$(BUSTED_BASE) $(TEST_ROOT)/modules/java
 
+.PHONY: test-modules-rust
+test-modules-rust: ## Run Rust module specs.
+	$(BUSTED_BASE) $(TEST_ROOT)/modules/rust
+
+.PHONY: test-modules-go
+test-modules-go: ## Run Go module specs.
+	$(BUSTED_BASE) $(TEST_ROOT)/modules/go
+
 # -----------------------------------------------------------------------------
 # Individual specs
 # -----------------------------------------------------------------------------
