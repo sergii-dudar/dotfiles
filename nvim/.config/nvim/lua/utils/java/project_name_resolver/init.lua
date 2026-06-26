@@ -24,7 +24,7 @@ function M.resolve_project_name(module_dir, project_type)
     -- print(require("utils.java.java-common").get_buffer_project_path())
 
     module_dir = module_dir or java_common.get_buffer_project_path()
-    project_type = module_dir or java_common.detect_project_type()
+    project_type = project_type or java_common.detect_project_type()
     log.debug("Resolving projectName from build file for module: " .. module_dir)
 
     -- Strategy 1: Parse build file (pom.xml or settings.gradle)

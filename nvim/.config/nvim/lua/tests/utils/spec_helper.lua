@@ -81,6 +81,56 @@ local function split_plain(str, delimiter)
     return result
 end
 
+local function split_pattern(str, delimiter, opts)
+    opts = opts or {}
+    local result = opts.plain and split_plain(str, delimiter) or {}
+    if not opts.plain then
+        delimiter = delimiter or "%s"
+        local start = 1
+        while true do
+            local found_start, found_end = string.find(str, delimiter, start)
+            if not found_start then
+                table.insert(result, string.sub(str, start))
+                break
+            end
+            table.insert(result, string.sub(str, start, found_start - 1))
+            start = found_end + 1
+        end
+    end
+
+    if opts.trimempty then
+        local trimmed = {}
+        for _, item in ipairs(result) do
+            if item ~= "" then
+                table.insert(trimmed, item)
+            end
+        end
+        return trimmed
+    end
+
+    return result
+end
+
+local function deepcopy(value, seen)
+    if type(value) ~= "table" then
+        return value
+    end
+    seen = seen or {}
+    if seen[value] then
+        return seen[value]
+    end
+    local copy = {}
+    seen[value] = copy
+    for key, item in pairs(value) do
+        copy[deepcopy(key, seen)] = deepcopy(item, seen)
+    end
+    return copy
+end
+
+local function pesc(str)
+    return (tostring(str):gsub("([^%w])", "%%%1"))
+end
+
 local function is_array(tbl)
     local count = 0
     for key, _ in pairs(tbl) do
@@ -208,6 +258,12 @@ function M.reset_vim()
         },
         cmd = cmd,
     }
+    _G.global = {
+        is_limited = false,
+        dotfiles_path = function(path)
+            return "/dotfiles/" .. tostring(path)
+        end,
+    }
     vim_test_double.NIL = {}
     vim_test_double.json = {
         encode = function(value)
@@ -234,6 +290,9 @@ function M.reset_vim()
             return normalize_path(table.concat(parts, "/"))
         end,
         normalize = normalize_path,
+        root = function()
+            return nil
+        end,
     }
 
     vim_test_double.tbl_extend = function(mode, ...)
@@ -261,7 +320,58 @@ function M.reset_vim()
         return result
     end
 
-    vim_test_double.split = split_plain
+    vim_test_double.tbl_isempty = function(tbl)
+        return next(tbl) == nil
+    end
+
+    vim_test_double.deepcopy = deepcopy
+    vim_test_double.endswith = function(str, suffix)
+        str = tostring(str)
+        suffix = tostring(suffix)
+        return suffix == "" or str:sub(-#suffix) == suffix
+    end
+    vim_test_double.iter = function(list)
+        local object = {
+            list = list or {},
+            predicates = {},
+        }
+
+        function object:filter(predicate)
+            table.insert(self.predicates, predicate)
+            return self
+        end
+
+        function object:totable()
+            local result = {}
+            for _, item in ipairs(self.list) do
+                local keep = true
+                for _, predicate in ipairs(self.predicates) do
+                    if not predicate(item) then
+                        keep = false
+                        break
+                    end
+                end
+                if keep then
+                    table.insert(result, item)
+                end
+            end
+            return result
+        end
+
+        function object:next()
+            return self:totable()[1]
+        end
+
+        return object
+    end
+    vim_test_double.list_extend = function(destination, source)
+        for _, item in ipairs(source or {}) do
+            table.insert(destination, item)
+        end
+        return destination
+    end
+    vim_test_double.pesc = pesc
+    vim_test_double.split = split_pattern
     vim_test_double.trim = function(str)
         return tostring(str):match("^%s*(.-)%s*$")
     end
@@ -282,6 +392,14 @@ function M.reset_vim()
     vim_test_double.schedule = function(callback)
         table.insert(state.schedules, callback)
         callback()
+    end
+    vim_test_double.system = function(command, opts)
+        table.insert(state.system_calls, { command = command, opts = opts })
+        return {
+            wait = function()
+                return { stdout = "", stderr = "", code = 0 }
+            end,
+        }
     end
     vim_test_double.notify = function(message, level)
         table.insert(state.notifications, { message = message, level = level })
@@ -314,6 +432,14 @@ function M.reset_vim()
             return path
         end,
         fnamemodify = function(path, modifier)
+            if modifier == ":p:h" then
+                local absolute = tostring(path):sub(1, 1) == "/" and normalize_path(path)
+                    or normalize_path("/cwd/" .. tostring(path))
+                return dirname(absolute)
+            end
+            if modifier == ":t:r" then
+                return root_without_extension(path)
+            end
             if modifier == ":p" then
                 if tostring(path):sub(1, 1) == "/" then
                     return normalize_path(path)
@@ -336,6 +462,9 @@ function M.reset_vim()
         end,
         getcwd = function()
             return "/workspace"
+        end,
+        glob = function()
+            return ""
         end,
         getline = function()
             return ""
@@ -535,8 +664,21 @@ function M.reset_vim()
     }
 
     vim_test_double.diagnostic = {
+        severity = {
+            ERROR = 1,
+            WARN = 2,
+            INFO = 3,
+            HINT = 4,
+        },
         get = function()
             return {}
+        end,
+        reset = function()
+            state.diagnostics_reset = true
+        end,
+        set = function(_, bufnr, diagnostics)
+            state.diagnostics = state.diagnostics or {}
+            state.diagnostics[bufnr] = diagnostics
         end,
     }
 
