@@ -147,6 +147,24 @@ local function update_client_projects_config(client, bufnr, done)
     end, PROJECTS_TIMEOUT_MS)
 end
 
+--- Refresh blink.cmp after JDTLS recovery has finished its workspace build.
+local function refresh_blink_after_recovery_build(client, reason)
+    vim.defer_fn(function()
+        if client.rpc and client.rpc.is_closing() then
+            return
+        end
+
+        local ok, recovery = pcall(require, "utils.java.jdtls-recovery")
+        if not ok or not recovery.refresh_blink_lsp then
+            log.fmt_warn("client_id=%d could not refresh blink after recovery build: %s", client.id, tostring(recovery))
+            return
+        end
+
+        recovery.refresh_blink_lsp("recovery build complete: " .. reason)
+        log.fmt_info("client_id=%d refreshed blink after recovery build (%s)", client.id, reason)
+    end, IDLE_MS)
+end
+
 --- Request a full workspace build on the specific JDTLS client.
 local function request_full_workspace_build(client, reason)
     if client.rpc and client.rpc.is_closing() then
@@ -168,6 +186,7 @@ local function request_full_workspace_build(client, reason)
             [3] = "CANCELLED",
         }
         log.fmt_info("client_id=%d recovery build result: %s", client.id, statuses[result] or tostring(result))
+        refresh_blink_after_recovery_build(client, reason)
     end)
     if not ok then
         log.fmt_warn("client_id=%d could not request full workspace build", client.id)

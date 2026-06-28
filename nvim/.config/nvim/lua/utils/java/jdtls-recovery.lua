@@ -17,8 +17,8 @@
 --   3. completion healthy → reset blink.cmp LSP state only; do not restart
 --      jdtls. This handles stale client-side completion wiring cheaply.
 --   4. completion empty/error/timeout → restart jdtls. After a very long gap,
---      use a hard restart because stale workspace/APT state can survive an
---      ordinary restart.
+--      always use a hard restart because stale workspace/APT/client state can
+--      survive healthy-looking probes and ordinary restarts.
 --
 -- Why completion probing is guarded: sending completion to a URI that jdtls
 -- has not yet received didOpen for can crash the jdtls message loop. The
@@ -185,6 +185,16 @@ local function reset_blink_lsp_state(reason)
         end
     end
 
+    local list_ok, list = pcall(require, "blink.cmp.completion.list")
+    if list_ok then
+        local hide_ok, hide_err = pcall(function()
+            list.hide()
+        end)
+        if not hide_ok then
+            logger.fmt_warn("blink list reset failed (%s): %s", reason, tostring(hide_err))
+        end
+    end
+
     local ok_sources, sources = pcall(require, "blink.cmp.sources.lib")
     if not ok_sources then
         return
@@ -242,6 +252,11 @@ local function refresh_blink_lsp(reason)
     if not subscribe_ok then
         logger.fmt_warn("blink resubscribe failed (%s): %s", reason, tostring(subscribe_err))
     end
+end
+
+--- Refresh blink.cmp's LSP source after external JDTLS workspace events.
+function M.refresh_blink_lsp(reason)
+    refresh_blink_lsp(reason or "external")
 end
 
 --- Reattach JDTLS to loaded Java buffers and finish the recovery cycle.
@@ -693,6 +708,12 @@ local function recover_after_gap(gap, source)
             return
         end
 
+        if gap >= HARD_RESTART_GAP_MS then
+            logger.fmt_info("gap %s: workspace healthy but very long gap -> hard restart", gap_label)
+            hard_restart_all_jdtls("gap " .. gap_label .. ", long idle workspace refresh")
+            return
+        end
+
         state.probing = true
         probe_current_completion_for_recovery(function(result)
             state.probing = false
@@ -879,6 +900,11 @@ function M.setup(attach_fn)
         state.buf_last_soft[cur] = 0
         soft_recover_buffer(cur, "manual")
     end, { desc = "Detach + reattach JDTLS for the current buffer only (cheap recovery)" })
+
+    vim.api.nvim_create_user_command("JdtlsBlinkReset", function()
+        refresh_blink_lsp("manual blink reset")
+        vim.notify("JDTLS: blink LSP completion state reset", vim.log.levels.INFO)
+    end, { desc = "Reset blink.cmp LSP state without restarting JDTLS" })
 
     -- Manually send a real textDocument/completion request at the cursor and
     -- report the raw result. Use this when completion feels broken — it tells
