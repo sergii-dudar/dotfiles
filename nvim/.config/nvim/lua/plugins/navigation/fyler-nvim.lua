@@ -17,10 +17,10 @@ end
 return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
+    -- branch = "main",
     branch = "stable", -- Use stable branch for production
     -- commit = "5ef9d97b9292cee169ef0cfb865996f15ee9577a",
-    -- branch = "main",
-    lazy = false,
+    -- lazy = false,
     -- stylua: ignore
     keys = {
         { "<leader>i", toggle_fyler, desc = "Toggle Fyler View" },
@@ -35,6 +35,9 @@ return {
         },
         -- Whether to skip confirmation for "simple" mutations. A simple mutation
         -- follows: copy <= 1 and create <= 5 and delete <= 0 and move <= 1
+        --
+        -- Confirmation popup mappings are hardcoded in Fyler v2:
+        -- y/Y/<CR> confirm; n/N/<ESC>/<C-c> cancel.
         auto_confirm_simple_mutation = false,
         -- Restricts cursor from moving outside editable region
         bound_cursor = true,
