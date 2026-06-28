@@ -224,9 +224,9 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 --------------- project roots commands ----------------
 
 -- Fyler.nvim: process registered Java refactoring changes on buffer close
--- if require("utils.java.java-common").is_java_project() then
---     require("modules.java.refactor.integrations").setup_fyler_autocmd()
--- end
+if require("utils.java.java-common").is_java_project() then
+    require("modules.java.refactor.integrations").setup_fyler_autocmd()
+end
 
 -------------------------------------------------------
 ------------ auto save on buff switch\leave -----------

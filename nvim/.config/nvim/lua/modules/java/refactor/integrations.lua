@@ -107,7 +107,7 @@ function M.setup_fyler_autocmd()
     local group = vim.api.nvim_create_augroup("JavaRefactorFylerIntegration", { clear = true })
     vim.api.nvim_create_autocmd({ "FileType" }, {
         group = group,
-        pattern = "fyler",
+        pattern = { "fyler", "fyler_finder" },
         callback = function(ev)
             vim.api.nvim_create_autocmd({ "BufUnload" }, {
                 group = group,
