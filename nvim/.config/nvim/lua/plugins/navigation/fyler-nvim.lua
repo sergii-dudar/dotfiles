@@ -118,10 +118,7 @@ return {
                     action = "refresh",
                     args = { recursive = true, force = true },
                 },
-                ["<C-S>"] = {
-                    action = "select",
-                    args = { split = true },
-                },
+                ["<C-S>"] = { disabled = true },
                 ["<C-T>"] = {
                     action = "select",
                     args = { tabedit = true },
