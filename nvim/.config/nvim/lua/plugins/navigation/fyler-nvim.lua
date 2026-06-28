@@ -2,6 +2,18 @@ function toggle_fyler()
     vim.cmd("Neotree close") -- close neotree, as in case moving files and opened neotree getting errors.
     require("fyler").toggle()
 end
+
+--- Calculates Fyler's floating row offset from its centered position.
+local function fyler_floating_row_offset(offset)
+    local view_lines = vim.o.lines
+        - (vim.o.showtabline > 0 and 1 or 0)
+        - (vim.o.laststatus > 0 and 1 or 0)
+        - vim.o.cmdheight
+    local height = math.floor(view_lines * 0.95) - 2
+
+    return math.max(0, math.ceil((view_lines - height) * 0.5) + offset)
+end
+
 return {
     "A7Lavinraj/fyler.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -78,7 +90,8 @@ return {
                 -- Horizontal alignment: 'start' | 'center' | 'end'
                 col = "center",
                 -- Vertical alignment: 'start' | 'center' | 'end'
-                row = "center",
+                -- row = "center",
+                row = fyler_floating_row_offset(2),
             },
             replace = {
                 mappings = {
