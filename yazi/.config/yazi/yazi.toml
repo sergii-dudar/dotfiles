@@ -31,8 +31,7 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 
 [opener]
 edit = [
-    { run = 'cd $1 && nvim', desc = "NeoVim ... [PWD]", block = true, for = "unix" },
-    { run = 'LIMITED=Y nvim -p "$@"', desc = "NeoVim [selected file]", block = true, for = "unix" },
+    { run = 'if [ "$#" -eq 1 ] && [ -d "$1" ]; then cd "$1" && nvim; else LIMITED=Y nvim -p "$@"; fi', desc = "NeoVim [folder/files]", block = true, for = "unix" },
     { run = 'sudo ${EDITOR:=vi} "$@"', desc = "Sudo NeoVim [selected file]", block = true, for = "unix" },
     { run = 'subl "$@"', desc = "Sublime", for = "unix" },
     { run = 'code %*', orphan = true, desc = "code", for = "windows" },
