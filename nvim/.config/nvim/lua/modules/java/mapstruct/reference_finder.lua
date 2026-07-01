@@ -160,31 +160,12 @@ local function resolve_interface_method(client, impl_uri, pos, cb)
 end
 
 --- Whether a reference's file path denotes a test source. Test references are
---- sorted below source (main) references. Heuristic: the path contains "test"
---- (case-insensitive) — e.g. `src/test/java/…` or a `…Test.java` file.
+--- hidden by default (toggle back with <C-t>). Heuristic: the path contains a
+--- `test` directory segment — e.g. `…/src/test/java/…`.
 ---@param file string
 ---@return boolean
 local function is_test_ref(file)
-    return type(file) == "string" and file:lower():find("test") ~= nil
-end
-
---- Stable-partition items so source (main) references stay on top and test
---- references sink to the bottom; relative order within each group is preserved.
----@param items snacks.picker.finder.Item[]
----@return snacks.picker.finder.Item[]
-local function sources_then_tests(items)
-    local ordered, tests = {}, {}
-    for _, item in ipairs(items) do
-        if is_test_ref(item.file) then
-            table.insert(tests, item)
-        else
-            table.insert(ordered, item)
-        end
-    end
-    for _, item in ipairs(tests) do
-        table.insert(ordered, item)
-    end
-    return ordered
+    return type(file) == "string" and file:lower():find("/test/") ~= nil
 end
 
 --- Build a Snacks picker item from a location-like table.
@@ -202,20 +183,62 @@ local function make_item(file, lnum, col, text)
     }
 end
 
---- Show the merged references + @Mapping declarations in a Snacks picker.
+--- Show references (+ @Mapping declarations) in a Snacks picker. Test references
+--- (under `src/test`) are hidden by default; <C-t> toggles them back in, appended
+--- below the source references. `items` is the full ordered list (mappings first,
+--- then native references); the split into shown/hidden happens here.
 ---@param items snacks.picker.finder.Item[]
 ---@param title string
 local function show(items, title)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
+
+    local visible, tests = {}, {}
+    for _, item in ipairs(items) do
+        if is_test_ref(item.file) then
+            item.main = false
+            table.insert(tests, item)
+        else
+            item.main = true
+            table.insert(visible, item)
+        end
+    end
+
+    local show_tests = false
+
     Snacks.picker.pick({
         title = title,
-        items = items,
         format = "file",
         auto_confirm = true,
-        -- layout = { layout = layouts.custom_vertical },
         layout = layouts.custom_vertical,
-        -- local layout_vertical = { layout = layouts.custom_vertical }
+        -- Keep test references below source ones even while filtering: `main` groups
+        -- them (true -> 0, false -> 1), then normal score/idx ordering applies within
+        -- each group. (With an empty query Snacks already preserves the finder order.)
+        sort = { fields = { "main", { name = "score", desc = true }, "idx" } },
+        finder = function()
+            if not show_tests or #tests == 0 then
+                return visible
+            end
+            -- Source references on top, test references appended at the bottom.
+            local merged = {}
+            for _, item in ipairs(visible) do
+                table.insert(merged, item)
+            end
+            for _, item in ipairs(tests) do
+                table.insert(merged, item)
+            end
+            return merged
+        end,
+        win = {
+            input = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "i", "n" }, desc = "Toggle test references" } } },
+            list = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "n" }, desc = "Toggle test references" } } },
+        },
+        actions = {
+            toggle_tests = function(picker)
+                show_tests = not show_tests
+                picker:find()
+            end,
+        },
     })
 end
 
@@ -293,7 +316,7 @@ function M.find_references(opts)
             -- No mapper-impl usage: no @Mapping to add, but still apply the
             -- source-then-test ordering to the plain references ("default" gr).
             if #impl_methods == 0 then
-                show(sources_then_tests(items), "Jdtls References")
+                show(items, "Jdtls References")
                 return
             end
 
@@ -312,11 +335,11 @@ function M.find_references(opts)
                     end
                 end
 
-                -- Order: @Mapping declarations, then source references, then test
-                -- references. (`mapping_items` may be empty when all mappings are
-                -- implicit — then this is just the sorted native references.)
+                -- Order: @Mapping declarations first, then the native references.
+                -- `show` splits test references out (hidden by default). `mapping_items`
+                -- may be empty when all mappings are implicit — then it is just the refs.
                 local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
-                for _, native in ipairs(sources_then_tests(items)) do
+                for _, native in ipairs(items) do
                     table.insert(mapping_items, native)
                 end
                 show(mapping_items, title)
