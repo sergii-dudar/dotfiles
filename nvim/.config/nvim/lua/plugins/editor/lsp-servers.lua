@@ -24,6 +24,7 @@ return {
                         yaml = {
                             format = {
                                 printWidth = 300,
+                                singleQuote = true
                             },
                             validate = true, -- temp disabled because of issues with schemas for application.yml [ Property ... is not allowed ]
                         },

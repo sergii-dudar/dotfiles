@@ -61,7 +61,6 @@ return {
                         -- https://github.com/eclipse-lemminx/lemminx/blob/main/docs/Configuration.md#all-formatting-options
                         -- https://github.com/redhat-developer/vscode-xml/blob/main/docs/Formatting.md#xmlformatxsischemalocationsplit
                         format = {
-
                             enabled = true, -- Enable/disable XML formatting
                             insertSpaces = true, -- indent using spaces
                             tabSize = 4, -- amount of spaces to indent by if insertSpaces == true
