@@ -169,7 +169,7 @@ M.picker = {
     exclude = project_excludes(),
     -- Default previewer for sources without their own (files/grep/explorer/…):
     -- decompiles .class files via Fernflower, otherwise the built-in file preview.
-    preview = file_preview,
+    -- preview = file_preview,
     formatters = {
         file = {
             filename_first = true, -- display filename before the file path
