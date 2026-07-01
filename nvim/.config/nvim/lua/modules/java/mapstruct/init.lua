@@ -652,7 +652,22 @@ function M.is_mapper_file(bufnr)
         return false
     end
 
-    local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":t")
+    local name = vim.api.nvim_buf_get_name(bufnr)
+
+    -- jdtls library buffers use a jdt:// URI whose tail ends in ".class" (so the plain
+    -- ".java$" check below fails). The real source type name still appears earlier in the
+    -- URI as "<Type>.java", so match against that extracted type name. This makes mapper
+    -- navigation work inside decompiled/attached library sources, e.g.
+    -- jdt://contents/.../SomeMapper.java?=...SomeMapper.class
+    if vim.startswith(name, "jdt://") then
+        local type_name = name:match("([%w_%$]+)%.java") or name:match("([%w_%$]+)%.class")
+        if not type_name then
+            return false
+        end
+        return (type_name:match("Mapper") or type_name:match("Builder")) ~= nil
+    end
+
+    local filename = vim.fn.fnamemodify(name, ":t")
     -- return filename:match("Mapper%.java$") ~= nil or filename:match("Builder%.java$") ~= nil
     return (filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")
 end

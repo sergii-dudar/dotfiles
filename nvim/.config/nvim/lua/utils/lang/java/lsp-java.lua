@@ -37,12 +37,13 @@ local function mapstruct_path_handler(opts)
                 return false
             end
 
-            local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.bufnr), ":t")
-            if not ((filename:match("Mapper") or filename:match("Builder")) and filename:match("%.java$")) then
+            -- Delegate the mapper/builder file check to the module so jdtls library
+            -- buffers (jdt:// URIs, which end in ".class") are recognized too.
+            local mapstruct = require("modules.java.mapstruct")
+            if not mapstruct.is_mapper_file(ctx.bufnr) then
                 return false
             end
 
-            local mapstruct = require("modules.java.mapstruct")
             local params = { bufnr = ctx.bufnr, row = ctx.row, col = ctx.col }
             if not mapstruct.can_goto_path_definition(params) then
                 return false
