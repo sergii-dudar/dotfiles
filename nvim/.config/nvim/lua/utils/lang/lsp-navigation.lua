@@ -1,16 +1,17 @@
--- LSP navigation utilities: route definition/declaration requests through
--- optional language-specific handlers before falling back to the default LSP
--- implementation.
+-- LSP navigation utilities: route definition/declaration/references requests
+-- through optional language-specific handlers before falling back to the default
+-- LSP implementation.
 --
 -- - definition - run custom `gd` navigation handlers with LSP fallback
 -- - declaration - run custom `gD` navigation handlers with LSP fallback
+-- - references - run custom `gr` navigation handlers with LSP fallback
 
 local lang_registry = require("utils.lang.registry")
 
 local M = {}
 local lsp_modules_by_lang = {}
 
----@alias lang.LspNavigationMethod "definition"|"declaration"
+---@alias lang.LspNavigationMethod "definition"|"declaration"|"references"
 
 ---@class lang.LspNavigationContext
 ---@field method lang.LspNavigationMethod LSP navigation method being invoked.
@@ -30,6 +31,9 @@ local fallback_by_method = {
     end,
     declaration = function()
         vim.lsp.buf.declaration()
+    end,
+    references = function()
+        Snacks.picker.lsp_references()
     end,
 }
 
@@ -161,6 +165,14 @@ end
 --- when no handler claims the request.
 function M.declaration()
     run("declaration")
+end
+
+--- List references through registered language-specific handlers.
+--- Used by `gr` mappings; falls back to `Snacks.picker.lsp_references()` exactly
+--- once when no handler claims the request. A claiming handler owns the whole
+--- request (it may augment the standard references with synthetic locations).
+function M.references()
+    run("references")
 end
 
 return M

@@ -5,6 +5,7 @@
 -- • get_class_package — full package name
 -- • get_root_class_with_abstract — top-level class name + abstract
 -- • get_method_name_only — method name at cursor
+-- • get_enclosing_method_name_pos — method name pos + start row for a bufnr/position
 -- • get_method_signature — method name with descriptor
 -- • get_full_method — package.Class.method
 -- • get_full_method_with_params — full method with parameter types
@@ -232,6 +233,51 @@ function M.get_method_name_only()
     for c in m:iter_children() do
         if c:type() == "identifier" then
             return vim.treesitter.get_node_text(c, 0)
+        end
+    end
+
+    return nil
+end
+
+-- ---------------------------------------------------------
+--  ENCLOSING METHOD (explicit buffer + position)
+-- ---------------------------------------------------------
+--- Find the `method_declaration` enclosing a position in an arbitrary buffer and
+--- return its name-identifier start (for LSP requests targeting the method name)
+--- plus the method node's start row (a stable dedup key). Unlike the cursor-based
+--- helpers above, this operates on a background buffer (e.g. a generated
+--- `*MapperImpl.java` that an LSP reference points into) that is not the current
+--- window. The buffer must already be loaded (`vim.fn.bufload`).
+---@param bufnr integer
+---@param row integer 0-indexed row inside the method
+---@param col integer 0-indexed column inside the method
+---@return { name_row: integer, name_col: integer, method_row: integer }|nil
+function M.get_enclosing_method_name_pos(bufnr, row, col)
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    if not ok or not parser then
+        return nil
+    end
+
+    local tree = parser:parse()[1]
+    if not tree then
+        return nil
+    end
+
+    local node = tree:root():named_descendant_for_range(row, col, row, col)
+    while node and node:type() ~= "method_declaration" do
+        node = node:parent()
+    end
+    if not node then
+        return nil
+    end
+
+    local method_row = node:start()
+
+    -- The method name is the `identifier` child of the method_declaration.
+    for c in node:iter_children() do
+        if c:type() == "identifier" then
+            local name_row, name_col = c:start()
+            return { name_row = name_row, name_col = name_col, method_row = method_row }
         end
     end
 

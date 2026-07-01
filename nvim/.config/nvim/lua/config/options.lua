@@ -137,7 +137,7 @@ function open_tree_on_start()
             vim.schedule(function()
                 vim.cmd("Neotree filesystem reveal left")
             end)
-        end
+         end
         -- Snacks.picker.explorer()
     end
 end

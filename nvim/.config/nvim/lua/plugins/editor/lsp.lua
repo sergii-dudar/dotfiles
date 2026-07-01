@@ -35,6 +35,7 @@ return {
                         { "<leader>cc", false }, -- disable code lens in favor of main languages configs
                         { "gd", function() require("utils.lang.lsp-navigation").definition() end, desc = "Goto Definition", has = "definition" },
                         { "gD", function() require("utils.lang.lsp-navigation").declaration() end, desc = "Goto Declaration" },
+                        { "gr", function() require("utils.lang.lsp-navigation").references() end, desc = "References (+@Mapping)", nowait = true },
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>k", function()
                             if vim.bo.filetype == "http" then

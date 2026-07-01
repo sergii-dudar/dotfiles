@@ -55,6 +55,31 @@ local function mapstruct_path_handler(opts)
     }
 end
 
+--- Build a MapStruct-aware references handler for Java LSP `gr`.
+--- Always claims the request in Java buffers: it issues the standard references and
+--- augments them with the `@Mapping` declaration lines that reference the field. When
+--- there is nothing MapStruct-specific to add, the finder defers to `ctx.fallback`, so
+--- non-mapper references behave exactly like the default picker.
+---@return lang.LspNavigationHandler
+local function mapstruct_references_handler()
+    return {
+        name = "mapstruct-mapping-references",
+        navigate = function(ctx)
+            if ctx.filetype ~= "java" then
+                return false
+            end
+
+            require("modules.java.mapstruct.reference_finder").find_references({
+                bufnr = ctx.bufnr,
+                row = ctx.row,
+                col = ctx.col,
+                fallback = ctx.fallback,
+            })
+            return true
+        end,
+    }
+end
+
 --- Build a Lombok builder navigation handler for Java LSP go-to-definition.
 ---@return lang.LspNavigationHandler
 local function lombok_builder_handler()
@@ -73,6 +98,9 @@ M.navigation = {
     },
     declaration = {
         mapstruct_path_handler({ is_open_as_floating_win = true }),
+    },
+    references = {
+        mapstruct_references_handler(),
     },
 }
 
