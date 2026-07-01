@@ -74,6 +74,7 @@ vnoremap . :norm! .<CR>
 
 set number relativenumber
 set idearefactormode=keep
+set VimEverywhere
 
 set ideajoin
 set incsearch

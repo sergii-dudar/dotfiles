@@ -21,7 +21,7 @@ LIST_CMD='tmux list-windows -F "#{window_index}: #{window_name}"'
 PANE_PATH=$(tmux display-message -p '#{pane_current_path}')
 
 window="$(
-    eval "$LIST_CMD" | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
+    eval "$LIST_CMD" | fzf-tmux -x 100 -y 100 -p 100%,100% --height 100% \
         --no-sort --ansi --border-label " Tmux Window Manager " --prompt "${iwin} Windows: " \
         --header "[${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴g${n}]:New & Switch ${inewswitch}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename}" \
         --bind 'tab:down,btab:up' \
@@ -30,7 +30,7 @@ window="$(
         --bind 'ctrl-d:execute(tmux kill-window -t :$(echo {} | cut -d: -f1))+reload('"$LIST_CMD"')' \
         --bind 'ctrl-r:execute(idx=$(echo {} | cut -d: -f1); cur=$(echo {} | cut -d: -f2- | sed "s/^ //"); new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$cur") && [ -n "$new" ] && tmux rename-window -t :$idx "$new")+reload('"$LIST_CMD"')' \
         --preview 'tmux capture-pane -e -p -t :$(echo {} | cut -d: -f1)' \
-        --preview-window=down,75%
+        --preview-window=down,65%
 )"
 
 zle reset-prompt > /dev/null 2>&1 || true

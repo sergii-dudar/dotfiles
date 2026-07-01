@@ -31,7 +31,7 @@ irename=$'\033[38;5;214m󰑕\033[0m'
 #
 # if isMacOs; then
 session="$(
-    sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,90% --height 90% \
+    sesh list -t -i | fzf-tmux -x 100 -y 100 -p 100%,100% --height 100% \
         --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${itmux} Tmux: " \
         --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename}" \
         --bind 'tab:down,btab:up' \
@@ -47,7 +47,7 @@ session="$(
         --bind 'ctrl-n:execute([ -n "{q}" ] && (tmux has-session -t {q} 2>/dev/null || tmux new-session -s {q} -n {q} -d))+change-prompt(  Tmux New: )+reload(sesh list -t -i)' \
         --bind 'ctrl-r:execute(old=$(echo {} | cut -c3-); tmux has-session -t "$old" 2>/dev/null && new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$old") && [ -n "$new" ] && tmux rename-session -t "$old" "$new")+change-prompt(󰑕  Tmux Rename: )+reload(sesh list -t -i)' \
         --preview 'tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux capture-pane -peJt $(echo {} | cut -c3-) || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo $(echo {} | cut -c3-))"' \
-        --preview-window=down,75%
+        --preview-window=down,65%
 )"
 
 zle reset-prompt > /dev/null 2>&1 || true
