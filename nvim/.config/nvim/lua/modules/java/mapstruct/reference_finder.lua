@@ -159,6 +159,34 @@ local function resolve_interface_method(client, impl_uri, pos, cb)
     end)
 end
 
+--- Whether a reference's file path denotes a test source. Test references are
+--- sorted below source (main) references. Heuristic: the path contains "test"
+--- (case-insensitive) — e.g. `src/test/java/…` or a `…Test.java` file.
+---@param file string
+---@return boolean
+local function is_test_ref(file)
+    return type(file) == "string" and file:lower():find("test") ~= nil
+end
+
+--- Stable-partition items so source (main) references stay on top and test
+--- references sink to the bottom; relative order within each group is preserved.
+---@param items snacks.picker.finder.Item[]
+---@return snacks.picker.finder.Item[]
+local function sources_then_tests(items)
+    local ordered, tests = {}, {}
+    for _, item in ipairs(items) do
+        if is_test_ref(item.file) then
+            table.insert(tests, item)
+        else
+            table.insert(ordered, item)
+        end
+    end
+    for _, item in ipairs(tests) do
+        table.insert(ordered, item)
+    end
+    return ordered
+end
+
 --- Build a Snacks picker item from a location-like table.
 ---@param file string absolute path or jdt:// uri
 ---@param lnum integer 1-indexed line
@@ -176,11 +204,12 @@ end
 
 --- Show the merged references + @Mapping declarations in a Snacks picker.
 ---@param items snacks.picker.finder.Item[]
-local function show(items)
+---@param title string
+local function show(items, title)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
     Snacks.picker.pick({
-        title = "References (+@Mapping)",
+        title = title,
         items = items,
         format = "file",
         auto_confirm = true,
@@ -191,8 +220,9 @@ local function show(items)
 end
 
 --- Find references for the field under the cursor, augmented with MapStruct
---- `@Mapping` declaration lines. Falls back to the standard references picker when
---- there is nothing MapStruct-specific to add.
+--- `@Mapping` declaration lines. Ordering: `@Mapping` declarations first, then source
+--- (main) references, then test references. Falls back to the standard references
+--- picker only when references can't be resolved (no jdtls client / empty result).
 ---@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun() }
 function M.find_references(opts)
     opts = opts or {}
@@ -260,9 +290,10 @@ function M.find_references(opts)
 
             log.debug("references:", #locations, "impl methods:", #impl_methods, "field:", field_name)
 
-            -- No mapper-impl usage: behave exactly like the standard references picker.
+            -- No mapper-impl usage: no @Mapping to add, but still apply the
+            -- source-then-test ordering to the plain references ("default" gr).
             if #impl_methods == 0 then
-                fallback()
+                show(sources_then_tests(items), "Jdtls References")
                 return
             end
 
@@ -281,17 +312,14 @@ function M.find_references(opts)
                     end
                 end
 
-                -- Nothing MapStruct-specific to add (all implicit) -> standard picker.
-                if #mapping_items == 0 then
-                    fallback()
-                    return
-                end
-
-                -- @Mapping declarations first, then the native references.
-                for _, native in ipairs(items) do
+                -- Order: @Mapping declarations, then source references, then test
+                -- references. (`mapping_items` may be empty when all mappings are
+                -- implicit — then this is just the sorted native references.)
+                local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
+                for _, native in ipairs(sources_then_tests(items)) do
                     table.insert(mapping_items, native)
                 end
-                show(mapping_items)
+                show(mapping_items, title)
             end
 
             for _, method in ipairs(impl_methods) do
