@@ -141,6 +141,16 @@ local decompile_script = _G.global.dotfiles_path("scripts/java/decompile_stdout.
 ---built-in file previewer.
 ---@param ctx snacks.picker.preview.ctx
 local function file_preview(ctx)
+    -- `jdt://` URIs come from LSP pickers (references/definitions/…) that land in
+    -- library/JDK classes. They aren't files on disk, so hand them straight to the
+    -- built-in file previewer: it bufadd/bufloads the URI and jdtls' BufReadCmd
+    -- resolves the source via `java/classFileContents`. Check the RAW item.file —
+    -- `util.path` normalizes `jdt://` down to `jdt:/`, which would break matching.
+    local file = ctx.item and ctx.item.file
+    if type(file) == "string" and file:sub(1, 6) == "jdt://" then
+        return Snacks.picker.preview.file(ctx)
+    end
+
     local path = Snacks.picker.util.path(ctx.item)
     if path and path:sub(-6) == ".class" then
         -- No `ft` => runs in a terminal/pty preview, which renders bat's ANSI.
