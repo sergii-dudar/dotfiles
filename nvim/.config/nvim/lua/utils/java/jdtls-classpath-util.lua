@@ -368,21 +368,62 @@ function M.get_classpath_for_main_method_table(opts)
     -- java.project.getClasspaths is keyed on a file that BELONGS to a project. A
     -- jdt:// (library) buffer or an unnamed buffer has no project-owning URI —
     -- vim.uri_from_fname would also mangle a jdt:// name into a bogus file:// URI —
-    -- so fall back to a real source file under the attached client's root_dir.
+    -- so fall back to a real source file that identifies the right project.
+    local function is_real_java(p)
+        return p ~= "" and not p:match("^%w[%w+.-]*://") and p:match("%.java$") ~= nil and vim.fn.filereadable(p) == 1
+    end
+
     local file_path = vim.api.nvim_buf_get_name(bufnr)
     local file_uri
     if file_path ~= "" and not file_path:match("^%w[%w+.-]*://") and vim.fn.filereadable(file_path) == 1 then
         file_uri = vim.uri_from_fname(file_path)
     else
-        local root = client.config.root_dir
-        local candidate = root
-            and (
-                vim.fn.glob(root .. "/src/main/java/**/*.java", false, true)[1]
-                or vim.fn.glob(root .. "/src/test/java/**/*.java", false, true)[1]
-                or vim.fn.glob(root .. "/**/*.java", false, true)[1]
-            )
+        -- Resolve a representative project file. Order matters for multi-module repos:
+        -- we want a file in the module the user actually came from, so getClasspaths
+        -- keys to the correct module.
+        --   1. Walk the jumplist backwards for the most recent real project .java file.
+        --      This survives library→library hops (gd into LibA, then into LibB): the
+        --      alternate buffer would only be LibA, but the jumplist still holds the
+        --      source file underneath. LSP go-to-definition pushes a jump, so the origin
+        --      is recorded; entries may reference wiped buffers, hence the validation.
+        --   2. Alternate buffer (#) — covers non-jump navigation (:b#, picker) the
+        --      jumplist misses.
+        --   3. root_dir globs. root_dir is the NEAREST marker dir (vim.fs.root) — i.e.
+        --      the module dir in a Maven/Gradle reactor — so src/main/java usually exists
+        --      directly under it; the recursive `**` glob is a last resort for
+        --      aggregator-root layouts (arbitrary module, potentially slow).
+        local candidate
+        local jumps = vim.fn.getjumplist()[1] -- current window's jumplist, oldest→newest
+        for i = #jumps, 1, -1 do
+            local b = jumps[i].bufnr
+            if b and vim.api.nvim_buf_is_valid(b) then
+                local name = vim.api.nvim_buf_get_name(b)
+                if is_real_java(name) then
+                    candidate = name
+                    break
+                end
+            end
+        end
         if not candidate then
-            log.warn("No project file found under root_dir to resolve classpath for buffer:", file_path)
+            local alt = vim.fn.bufnr("#")
+            if alt > 0 then
+                local alt_name = vim.api.nvim_buf_get_name(alt)
+                if is_real_java(alt_name) then
+                    candidate = alt_name
+                end
+            end
+        end
+        if not candidate then
+            local root = client.config.root_dir
+            candidate = root
+                and (
+                    vim.fn.glob(root .. "/src/main/java/**/*.java", false, true)[1]
+                    or vim.fn.glob(root .. "/src/test/java/**/*.java", false, true)[1]
+                    or vim.fn.glob(root .. "/**/*.java", false, true)[1]
+                )
+        end
+        if not candidate then
+            log.warn("No project file found to resolve classpath for buffer:", file_path)
             vim.notify(
                 "[Java Classpath] Can't resolve a project file for classpath (library/unnamed buffer)",
                 vim.log.levels.WARN
