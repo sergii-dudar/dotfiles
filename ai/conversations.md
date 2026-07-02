@@ -12,4 +12,7 @@ copilot --resume=e22a817d-8269-4351-a83e-61e05c60b611
 dwl on second pc:
 copilot --resume=f42a6966-5ae1-42b7-a725-94d1b247173e
 
+nvim custom `gr` - /mapstruct/reference_finder
+copilot --resume=ec4e7239-b8a0-41eb-b3ab-32d3061ffaa0
+
 # Work pc
