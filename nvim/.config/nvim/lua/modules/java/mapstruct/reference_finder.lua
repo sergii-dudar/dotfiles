@@ -1,19 +1,27 @@
--- MapStruct-aware reference finder.
+-- MapStruct-aware `gr` (references).
 --
 -- Standard `gr` (textDocument/references) on a model/DTO field only surfaces the
 -- getter/setter calls MapStruct emits into the generated `*MapperImpl.java`; the
--- `@Mapping(source=…)` / `@Mapping(target=…)` declarations in the mapper interfaces
--- are invisible to JDTLS (opaque string literals). This module augments the native
--- references with those declaration lines by exploiting JDTLS's own override linkage:
+-- `@Mapping(source=…)` / `@Mapping(target=…)` (and `@ValueMapping`) declarations in
+-- the mapper types are invisible to JDTLS (opaque string literals). This module
+-- surfaces those declaration lines too, then hands the whole result to Snacks' own
+-- `lsp_references` picker so the native half (include_current filtering, jdt://
+-- preview, dedup, auto_confirm/jump) is reused verbatim.
 --
---   field usage in *MapperImpl.java  --(enclosing @Override method)-->
---   textDocument/declaration          --(super method)-->
---   interface mapping method          --(scan @Mapping block)--> declaration line
+-- Discovery — anchor on the references JDTLS already returns:
+--   field usage in *MapperImpl.java  --(class `extends`/`implements` clause)-->
+--   textDocument/definition           --(resolve the mapper type)-->
+--   scan the whole mapper file for @Mapping/@ValueMapping source|target segments.
+-- The scan is whole-file (not one method's block) because deeply-nested property
+-- paths compile into private helper methods that override nothing — so only the
+-- mapper *type*, not a specific method, is resolvable from the impl usage.
 --
--- Entry point: `M.find_references(opts)`, registered as the Java `references`
--- navigation handler in `utils/lang/java/lsp-java.lua`. When no generated-impl usage
--- is found, or nothing is added, it defers to the standard references picker via
--- `opts.fallback` so non-mapper `gr` behaves exactly as before.
+-- Presentation — a Snacks multi-finder: finder #1 is the built-in `lsp_references`
+-- (native refs), finder #2 injects the precomputed @Mapping lines. A `transform`
+-- ranks @Mapping declarations on top and test references at the bottom (hidden by
+-- default, <C-t> toggles). Entry point: `M.find_references(opts)`, registered as the
+-- Java `references` navigation handler in `utils/lang/java/lsp-java.lua`; it defers
+-- to `opts.fallback` when there is no jdtls client / no symbol under the cursor.
 
 local lsp_util = require("utils.lsp-util")
 local logging_util = require("utils.logging-util")
@@ -216,60 +224,42 @@ local function make_item(file, lnum, col, text)
     }
 end
 
---- Show references (+ @Mapping declarations) in a Snacks picker. Test references
---- (under `src/test`) are hidden by default; <C-t> toggles them back in, appended
---- below the source references. `items` is the full ordered list (mappings first,
---- then native references); the split into shown/hidden happens here.
----@param items snacks.picker.finder.Item[]
----@param title string
-local function show(items, title)
+--- Open Snacks' `lsp_references` picker, augmented with our precomputed @Mapping
+--- declaration lines via a multi-finder. Finder #1 is the built-in `lsp_references`
+--- (native references — include_current filtering, jdt:// preview, dedup,
+--- auto_confirm/jump all inherited from the source defaults); finder #2 injects
+--- `mapping_items`. Test references are ranked to the bottom and hidden by default;
+--- <C-t> toggles them.
+---@param mapping_items snacks.picker.finder.Item[] precomputed @Mapping lines (may be empty)
+---@param show_tests boolean initial test-reference visibility
+local function open_picker(mapping_items, show_tests)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
+    local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
 
-    if #items == 0 then
-        vim.notify("No references found", vim.log.levels.INFO)
-        return
-    end
-
-    local visible, tests = {}, {}
-    for _, item in ipairs(items) do
-        if is_test_ref(item.file) then
-            item.main = false
-            table.insert(tests, item)
-        else
-            item.main = true
-            table.insert(visible, item)
-        end
-    end
-
-    -- Tests are hidden by default, but if *every* reference is a test one, an empty
-    -- picker would read as "nothing found" — show them (still ordered at the bottom)
-    -- so the result is visible; <C-t> then hides them.
-    local show_tests = #visible == 0 and #tests > 0
-
-    Snacks.picker.pick({
+    Snacks.picker.lsp_references({
         title = title,
-        format = "file",
-        auto_confirm = true,
         layout = layouts.custom_vertical,
-        -- Keep test references below source ones even while filtering: `main` groups
-        -- them (true -> 0, false -> 1), then normal score/idx ordering applies within
-        -- each group. (With an empty query Snacks already preserves the finder order.)
-        sort = { fields = { "main", { name = "score", desc = true }, "idx" } },
-        finder = function()
-            if not show_tests or #tests == 0 then
-                return visible
+        -- Multi-finder: reuse the built-in lsp_references finder (source_id 1) for
+        -- native references, then inject our @Mapping lines (source_id 2).
+        finder = {
+            "lsp_references",
+            function()
+                return mapping_items
+            end,
+        },
+        -- Group order, preserved even while filtering: @Mapping declarations (0) on
+        -- top, source references (1), test references (2) at the bottom. Test refs are
+        -- dropped entirely while hidden; <C-t> re-runs the finder to reveal them.
+        transform = function(item)
+            local is_mapping = item.source_id == 2
+            local test = not is_mapping and is_test_ref(item.file)
+            if test and not show_tests then
+                return false
             end
-            -- Source references on top, test references appended at the bottom.
-            local merged = {}
-            for _, item in ipairs(visible) do
-                table.insert(merged, item)
-            end
-            for _, item in ipairs(tests) do
-                table.insert(merged, item)
-            end
-            return merged
+            item.rank = is_mapping and 0 or (test and 2 or 1)
         end,
+        sort = { fields = { "rank", { name = "score", desc = true }, "idx" } },
         win = {
             input = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "i", "n" }, desc = "Toggle test references" } } },
             list = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "n" }, desc = "Toggle test references" } } },
@@ -283,10 +273,10 @@ local function show(items, title)
     })
 end
 
---- Find references for the field under the cursor, augmented with MapStruct
---- `@Mapping` declaration lines. Ordering: `@Mapping` declarations first, then source
---- (main) references, then test references. Falls back to the standard references
---- picker only when references can't be resolved (no jdtls client / empty result).
+--- @Mapping-augmented `gr` for the field under the cursor. Discovers the mapper
+--- `@Mapping` lines that reference the field, then opens Snacks' `lsp_references`
+--- picker (which supplies the native references) with those lines injected on top.
+--- Defers to `opts.fallback` only when there is no jdtls client / no symbol.
 ---@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun() }
 function M.find_references(opts)
     opts = opts or {}
@@ -310,62 +300,45 @@ function M.find_references(opts)
     local names = candidate_names(field_name)
 
     local encoding = client.offset_encoding or "utf-16"
+    local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
+    local cur_lnum = row + 1
+
+    -- Our own references request is used only to discover mapper-impl anchors; the
+    -- picker's built-in lsp_references finder issues its own request for display.
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
         position = { line = row, character = col },
-        -- Match Snacks' `lsp_references` default (include_declaration = true). The
-        -- self-match at the cursor is stripped afterwards (see is_current_location),
-        -- mirroring Snacks' `include_current = false`, so an unused field yields an
-        -- empty list instead of one auto-confirmed self-jump.
         context = { includeDeclaration = true },
     }
 
     client:request("textDocument/references", ref_params, function(err, locations)
-        -- Surface a request error rather than silently deferring to a picker that
-        -- would itself just report "no results".
-        if err then
-            vim.schedule(function()
-                vim.notify(
-                    "References request failed for '" .. field_name .. "': " .. (err.message or vim.inspect(err)),
-                    vim.log.levels.WARN
-                )
-            end)
-            return
-        end
-        -- No references at all: the picker would open empty and read as a silent
-        -- no-op, so notify explicitly instead.
-        if not locations or vim.tbl_isempty(locations) then
-            vim.schedule(function()
-                vim.notify("No references found for '" .. field_name .. "'", vim.log.levels.INFO)
-            end)
-            return
-        end
-
         vim.schedule(function()
-            -- Native items are kept in full ("keep impl"), minus the cursor's own
-            -- location (Snacks `include_current = false`), so an unused field is empty.
-            local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
-            local cur_lnum = row + 1
-            local native_qf = vim.lsp.util.locations_to_items(locations, encoding)
-            local items = {}
-            for _, qf in ipairs(native_qf) do
-                if not is_current_location(qf, cur_file, cur_lnum) then
-                    table.insert(items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
-                end
+            -- No anchors to work from: open the picker with native references only.
+            -- The built-in finder handles display and reports "No results" itself
+            -- when there genuinely are none.
+            if err then
+                log.warn("references request failed:", err.message or vim.inspect(err))
             end
-
-            -- Only the symbol at the cursor came back — no real references. (Any
-            -- mapper-impl usage would survive the filter, so there can be no @Mapping
-            -- to add either.)
-            if #items == 0 then
-                vim.notify("No references found for '" .. field_name .. "'", vim.log.levels.INFO)
+            if err or not locations or vim.tbl_isempty(locations) then
+                open_picker({}, false)
                 return
             end
 
-            -- Collect the unique generated mapper-impl files among the references.
-            -- Each impl maps exactly one interface, so we resolve/scan per impl file.
-            local impl_uris = {}
-            local seen_impl = {}
+            -- Whether any non-test reference other than the cursor's own location
+            -- exists. When none does (and we add no @Mapping lines), the picker would
+            -- otherwise be empty with tests hidden — so reveal the test refs instead.
+            local visible_source, has_test = false, false
+            for _, qf in ipairs(vim.lsp.util.locations_to_items(locations, encoding)) do
+                if is_test_ref(qf.filename) then
+                    has_test = true
+                elseif not is_current_location(qf, cur_file, cur_lnum) then
+                    visible_source = true
+                end
+            end
+
+            -- Unique generated mapper-impl files among the references. Each impl maps
+            -- exactly one mapper type, so we resolve/scan per impl file.
+            local impl_uris, seen_impl = {}, {}
             for _, loc in ipairs(locations) do
                 local uri = loc.uri or loc.targetUri
                 if uri and is_generated_mapper_impl(uri) and not seen_impl[uri] then
@@ -376,17 +349,15 @@ function M.find_references(opts)
 
             log.debug("references:", #locations, "impl files:", #impl_uris, "field:", field_name)
 
-            -- No mapper-impl usage: no @Mapping to add, but still apply the
-            -- source-then-test ordering to the plain references ("default" gr).
+            -- No mapper-impl usage: plain references, fully delegated to the builtin.
             if #impl_uris == 0 then
-                show(items, "Jdtls References")
+                open_picker({}, not visible_source and has_test)
                 return
             end
 
-            -- Fan out one interface lookup per impl (pending-counter join, per
+            -- Fan out one mapper-type lookup per impl (pending-counter join, per
             -- jdtls-util pattern).
-            local synthetic = {}
-            local seen_mapping = {}
+            local synthetic, seen_mapping = {}, {}
             local pending = #impl_uris
 
             local function finish()
@@ -398,15 +369,10 @@ function M.find_references(opts)
                         table.insert(mapping_items, make_item(vim.uri_to_fname(s.uri), s.lnum, s.col, s.text))
                     end
                 end
-
-                -- Order: @Mapping declarations first, then the native references.
-                -- `show` splits test references out (hidden by default). `mapping_items`
-                -- may be empty when the mapping is implicit — then it is just the refs.
-                local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
-                for _, native in ipairs(items) do
-                    table.insert(mapping_items, native)
-                end
-                show(mapping_items, title)
+                -- With @Mapping lines there is always visible content; otherwise fall
+                -- back to the all-tests reveal decision.
+                local show_tests = #mapping_items == 0 and not visible_source and has_test
+                open_picker(mapping_items, show_tests)
             end
 
             -- Decrement exactly once per impl (guarded), so a failed definition lookup
@@ -425,11 +391,11 @@ function M.find_references(opts)
                 local pos = get_impl_interface_pos(mbuf)
 
                 if not pos then
-                    log.warn("could not find implements clause in impl:", impl_uri)
+                    log.warn("could not find supertype clause in impl:", impl_uri)
                     step_done()
                 else
-                    -- Resolve the mapper interface type (works past private helper
-                    -- methods that override nothing), then scan its whole file.
+                    -- Resolve the mapper type (works past private helper methods that
+                    -- override nothing), then scan its whole file.
                     client:request("textDocument/definition", {
                         textDocument = { uri = impl_uri },
                         position = { line = pos.row, character = pos.col },
@@ -437,7 +403,7 @@ function M.find_references(opts)
                         vim.schedule(function()
                             local iface = first_location(def_result)
                             if iface then
-                                log.debug("impl", impl_uri, "-> iface", iface.uri)
+                                log.debug("impl", impl_uri, "-> mapper", iface.uri)
                                 local ok, mappings = pcall(scan_interface_mappings, iface.uri, names)
                                 if ok and mappings then
                                     for _, mp in ipairs(mappings) do
