@@ -1529,6 +1529,103 @@ local function find_target_matches(bufnr, target)
     return matches
 end
 
+--- Return whether a buffer is a YAML resource file.
+---@param bufnr integer
+---@return boolean
+local function is_yaml_resource_buffer(bufnr)
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    return vim.bo[bufnr].filetype == "yaml" or name:match("%.ya?ml$") ~= nil
+end
+
+--- Return whether a buffer is a Java properties resource file.
+---@param bufnr integer
+---@return boolean
+local function is_properties_resource_buffer(bufnr)
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    return vim.bo[bufnr].filetype == "properties" or name:match("%.properties$") ~= nil
+end
+
+--- Resolve the full YAML property path at the current cursor line.
+---@param bufnr integer
+---@return string|nil
+local function yaml_property_path_at_cursor(bufnr)
+    local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, cursor_line, false)
+    local stack = {}
+    local current_path
+
+    for lnum, line in ipairs(lines) do
+        local indent, key = parse_yaml_key(line)
+        if indent and key then
+            while #stack > 0 and stack[#stack].indent >= indent do
+                table.remove(stack)
+            end
+            table.insert(stack, { indent = indent, key = key })
+
+            if lnum == cursor_line then
+                local parts = {}
+                for _, item in ipairs(stack) do
+                    table.insert(parts, item.key)
+                end
+                current_path = table.concat(parts, ".")
+            end
+        end
+    end
+
+    return current_path
+end
+
+--- Resolve the .properties key at the current cursor line.
+---@param bufnr integer
+---@return string|nil
+local function properties_key_at_cursor(bufnr)
+    local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+    local line = vim.api.nvim_buf_get_lines(bufnr, cursor_line - 1, cursor_line, false)[1] or ""
+    local key = parse_properties_key(line)
+    return key
+end
+
+--- Resolve the resource property path at the current cursor line.
+---@param bufnr integer
+---@return string|nil
+local function resource_property_key_at_cursor(bufnr)
+    if is_yaml_resource_buffer(bufnr) then
+        return yaml_property_path_at_cursor(bufnr)
+    end
+    if is_properties_resource_buffer(bufnr) then
+        return properties_key_at_cursor(bufnr)
+    end
+    return nil
+end
+
+--- Resolve a useful project cwd for grepping a resource property.
+---@param bufnr integer
+---@return string
+local function grep_cwd(bufnr)
+    local module_root = java_common.get_buffer_project_path(bufnr)
+    if module_root then
+        return module_root
+    end
+    return vim.fs.root(bufnr, { ".git" }) or vim.uv.cwd()
+end
+
+--- Open Snacks grep for usages of the resource property under the cursor.
+---@param bufnr integer
+---@return boolean handled
+local function grep_resource_property_under_cursor(bufnr)
+    local key = resource_property_key_at_cursor(bufnr)
+    if not key or key == "" then
+        return false
+    end
+
+    Snacks.picker.grep({
+        cwd = grep_cwd(bufnr),
+        search = key,
+        title = "Grep property: " .. key,
+    })
+    return true
+end
+
 --- Add the current Java source location to the window jumplist before opening a property file.
 local function add_origin_to_jumplist()
     vim.cmd("normal! m'")
@@ -1576,6 +1673,10 @@ end
 ---@return boolean handled whether this helper handled the cursor context
 function M.goto_property_definition()
     local bufnr = vim.api.nvim_get_current_buf()
+    if grep_resource_property_under_cursor(bufnr) then
+        return true
+    end
+
     local target = M.resolve_target(bufnr)
     if not target then
         return false
