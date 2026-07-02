@@ -1,4 +1,4 @@
--- Jump from a Spring Boot @ConfigurationProperties Java type/member to the
+-- Jump from a Spring Boot Java property reference to the
 -- matching key in application/bootstrap YAML or properties files.
 
 local M = {}
@@ -8,6 +8,7 @@ local uv = vim.uv or vim.loop
 
 local CONFIGURATION_PROPERTIES_FQN = "org.springframework.boot.context.properties.ConfigurationProperties"
 local NAME_FQN = "org.springframework.boot.context.properties.bind.Name"
+local VALUE_FQN = "org.springframework.beans.factory.annotation.Value"
 
 local RESOURCE_GLOBS = {
     "application*.yaml",
@@ -334,6 +335,264 @@ local function configuration_prefix(annotation, bufnr)
         or annotation_pair_string(annotation, bufnr, "value")
         or annotation_unnamed_string(annotation, bufnr)
         or ""
+end
+
+--- Find the annotation node represented by the cursor.
+---@param cursor_node TSNode|nil
+---@return TSNode|nil
+local function enclosing_annotation(cursor_node)
+    local node = cursor_node
+    while node do
+        local t = node:type()
+        if t == "annotation" or t == "marker_annotation" then
+            return node
+        end
+        if is_type_declaration(node) then
+            return nil
+        end
+        node = node:parent()
+    end
+    return nil
+end
+
+--- Find the string literal represented by the cursor.
+---@param cursor_node TSNode|nil
+---@return TSNode|nil
+local function enclosing_string_literal(cursor_node)
+    local node = cursor_node
+    while node do
+        if node:type() == "string_literal" then
+            return node
+        end
+        if is_type_declaration(node) then
+            return nil
+        end
+        node = node:parent()
+    end
+    return nil
+end
+
+--- Find a direct @Value annotation on a declaration node.
+---@param node TSNode
+---@param bufnr integer
+---@param imports table<string, boolean>
+---@return TSNode|nil
+local function direct_value_annotation(node, bufnr, imports)
+    for _, annotation in ipairs(direct_annotations(node)) do
+        if is_annotation(annotation, bufnr, imports, "Value", VALUE_FQN) then
+            return annotation
+        end
+    end
+    return nil
+end
+
+--- Find the @Value annotation related to the current cursor.
+---@param cursor_node TSNode|nil
+---@param bufnr integer
+---@param imports table<string, boolean>
+---@return TSNode|nil
+local function value_annotation_for_cursor(cursor_node, bufnr, imports)
+    local annotation = enclosing_annotation(cursor_node)
+    if annotation and is_annotation(annotation, bufnr, imports, "Value", VALUE_FQN) then
+        return annotation
+    end
+
+    local node = cursor_node
+    while node do
+        local t = node:type()
+        if t == "field_declaration" or t == "formal_parameter" or t == "method_declaration" then
+            local value_annotation = direct_value_annotation(node, bufnr, imports)
+            if value_annotation then
+                return value_annotation
+            end
+        end
+        if is_type_declaration(node) then
+            return nil
+        end
+        node = node:parent()
+    end
+
+    return nil
+end
+
+--- Extract the string expression from a Spring @Value annotation.
+---@param annotation TSNode
+---@param bufnr integer
+---@return string|nil
+local function value_annotation_string(annotation, bufnr)
+    return annotation_unnamed_string(annotation, bufnr) or annotation_pair_string(annotation, bufnr, "value")
+end
+
+--- Find the matching closing brace for a Spring ${...} placeholder.
+---@param text string
+---@param start_index integer
+---@return integer|nil
+local function placeholder_end_index(text, start_index)
+    local depth = 1
+    local index = start_index + 2
+    while index <= #text do
+        if text:sub(index, index + 1) == "${" then
+            depth = depth + 1
+            index = index + 2
+        elseif text:sub(index, index) == "}" then
+            depth = depth - 1
+            if depth == 0 then
+                return index
+            end
+            index = index + 1
+        else
+            index = index + 1
+        end
+    end
+    return nil
+end
+
+--- Find the first top-level default-value colon in placeholder content.
+---@param content string
+---@return integer|nil
+local function placeholder_default_colon(content)
+    local depth = 0
+    local index = 1
+    while index <= #content do
+        if content:sub(index, index + 1) == "${" then
+            depth = depth + 1
+            index = index + 2
+        else
+            local char = content:sub(index, index)
+            if char == "}" and depth > 0 then
+                depth = depth - 1
+            elseif char == ":" and depth == 0 then
+                return index
+            end
+            index = index + 1
+        end
+    end
+    return nil
+end
+
+--- Add one Spring placeholder key candidate to a list.
+---@param keys string[]
+---@param seen table<string, boolean>
+---@param content string
+local function add_placeholder_key(keys, seen, content)
+    local colon = placeholder_default_colon(content)
+    local key = vim.trim(colon and content:sub(1, colon - 1) or content)
+    if key ~= "" and not key:find("%$") and not key:match("^#") and not seen[key] then
+        table.insert(keys, key)
+        seen[key] = true
+    end
+end
+
+--- Extract property keys from every Spring ${...} placeholder in a string.
+---@param value string
+---@return string[]
+local function spring_placeholder_keys(value)
+    local keys = {}
+    local seen = {}
+
+    local function scan(text)
+        local index = 1
+        while index <= #text do
+            local start_index = text:find("${", index, true)
+            if not start_index then
+                return
+            end
+
+            local end_index = placeholder_end_index(text, start_index)
+            if not end_index then
+                return
+            end
+
+            local content = text:sub(start_index + 2, end_index - 1)
+            add_placeholder_key(keys, seen, content)
+            scan(content)
+            index = end_index + 1
+        end
+    end
+
+    scan(value)
+    return keys
+end
+
+--- Add placeholder keys from a string literal node.
+---@param keys string[]
+---@param seen table<string, boolean>
+---@param literal TSNode
+---@param bufnr integer
+local function add_string_literal_placeholder_keys(keys, seen, literal, bufnr)
+    local value = string_literal_value(literal, bufnr)
+    if not value then
+        return
+    end
+
+    for _, key in ipairs(spring_placeholder_keys(value)) do
+        if not seen[key] then
+            table.insert(keys, key)
+            seen[key] = true
+        end
+    end
+end
+
+--- Extract Spring placeholder keys from all string literals below a node.
+---@param node TSNode
+---@param bufnr integer
+---@return string[]
+local function placeholder_keys_in_node(node, bufnr)
+    local keys = {}
+    local seen = {}
+
+    local function visit(current)
+        if current:type() == "string_literal" then
+            add_string_literal_placeholder_keys(keys, seen, current, bufnr)
+            return
+        end
+
+        for child in current:iter_children() do
+            if child:named() then
+                visit(child)
+            end
+        end
+    end
+
+    visit(node)
+    return keys
+end
+
+--- Resolve Spring placeholder keys around the cursor, independent of annotation type.
+---@param cursor_node TSNode|nil
+---@param bufnr integer
+---@return string[]
+local function literal_placeholder_keys(cursor_node, bufnr)
+    local literal = enclosing_string_literal(cursor_node)
+    if literal then
+        return placeholder_keys_in_node(literal, bufnr)
+    end
+
+    local annotation = enclosing_annotation(cursor_node)
+    if annotation then
+        return placeholder_keys_in_node(annotation, bufnr)
+    end
+
+    return {}
+end
+
+--- Resolve @Value placeholder property keys around the cursor.
+---@param cursor_node TSNode|nil
+---@param bufnr integer
+---@param imports table<string, boolean>
+---@return string[]
+local function value_property_keys(cursor_node, bufnr, imports)
+    local annotation = value_annotation_for_cursor(cursor_node, bufnr, imports)
+    if not annotation then
+        return {}
+    end
+
+    local value = value_annotation_string(annotation, bufnr)
+    if not value then
+        return {}
+    end
+
+    return spring_placeholder_keys(value)
 end
 
 --- Extract a Spring Boot @Name override from a property member.
@@ -875,8 +1134,8 @@ end
 
 --- Build a navigation target from one or more candidate property keys.
 ---@param keys string[]
----@param kind "type"|"member"|"enum"
----@return { key: string, keys: string[], kind: "type"|"member"|"enum" }|nil
+---@param kind "type"|"member"|"enum"|"value"|"placeholder"
+---@return { key: string, keys: string[], kind: "type"|"member"|"enum"|"value"|"placeholder" }|nil
 local function property_target(keys, kind)
     local unique = {}
     local seen = {}
@@ -898,7 +1157,7 @@ end
 
 --- Resolve the Spring property key implied by the current Java cursor position.
 ---@param bufnr? integer
----@return { key: string, keys: string[], kind: "type"|"member"|"enum" }|nil
+---@return { key: string, keys: string[], kind: "type"|"member"|"enum"|"value"|"placeholder" }|nil
 function M.resolve_target(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     if vim.bo[bufnr].filetype ~= "java" then
@@ -919,6 +1178,16 @@ function M.resolve_target(bufnr)
     end
 
     local imports = collect_imports(root, bufnr)
+    local literal_keys = literal_placeholder_keys(cursor_node, bufnr)
+    if #literal_keys > 0 then
+        return property_target(literal_keys, "placeholder")
+    end
+
+    local value_keys = value_property_keys(cursor_node, bufnr, imports)
+    if #value_keys > 0 then
+        return property_target(value_keys, "value")
+    end
+
     local config_type, annotation = enclosing_configuration_type(type_node, bufnr, imports)
     if not config_type or not annotation then
         return nil

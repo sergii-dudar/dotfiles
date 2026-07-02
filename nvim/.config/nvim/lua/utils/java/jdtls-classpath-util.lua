@@ -364,9 +364,34 @@ function M.get_classpath_for_main_method_table(opts)
         return nil
     end
 
-    -- Get current file URI
+    -- Get current file URI.
+    -- java.project.getClasspaths is keyed on a file that BELONGS to a project. A
+    -- jdt:// (library) buffer or an unnamed buffer has no project-owning URI —
+    -- vim.uri_from_fname would also mangle a jdt:// name into a bogus file:// URI —
+    -- so fall back to a real source file under the attached client's root_dir.
     local file_path = vim.api.nvim_buf_get_name(bufnr)
-    local file_uri = vim.uri_from_fname(file_path)
+    local file_uri
+    if file_path ~= "" and not file_path:match("^%w[%w+.-]*://") and vim.fn.filereadable(file_path) == 1 then
+        file_uri = vim.uri_from_fname(file_path)
+    else
+        local root = client.config.root_dir
+        local candidate = root
+            and (
+                vim.fn.glob(root .. "/src/main/java/**/*.java", false, true)[1]
+                or vim.fn.glob(root .. "/src/test/java/**/*.java", false, true)[1]
+                or vim.fn.glob(root .. "/**/*.java", false, true)[1]
+            )
+        if not candidate then
+            log.warn("No project file found under root_dir to resolve classpath for buffer:", file_path)
+            vim.notify(
+                "[Java Classpath] Can't resolve a project file for classpath (library/unnamed buffer)",
+                vim.log.levels.WARN
+            )
+            return nil
+        end
+        file_path = candidate
+        file_uri = vim.uri_from_fname(candidate)
+    end
 
     -- Use provided scope or auto-detect from file path
     local scope = opts.scope or (is_test_file(file_path) and "test" or "runtime")

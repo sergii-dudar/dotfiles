@@ -650,13 +650,15 @@ local dep_picker_keys = {
 ---@param source "files"|"grep"
 ---@param dirs? string[] override dirs (nil = use default filtered dirs)
 ---@param title? string override title
-open_picker = function(source, dirs, title)
+---@param search? string initial grep search (seeds the picker prompt)
+open_picker = function(source, dirs, title, search)
     local picker_fn = source == "files" and Snacks.picker.files or Snacks.picker.grep
     local default_title = source == "files" and "Dependency Sources" or "Grep Dependency Sources"
     picker_fn({
         dirs = dirs or get_current_dirs(),
         exclude = state.exclude,
         title = title or default_title,
+        search = search,
         confirm = dep_confirm,
         actions = dep_picker_actions,
         win = {
@@ -677,6 +679,15 @@ end
 function M.grep()
     ensure_loaded(function()
         open_picker("grep")
+    end)
+end
+
+--- Grep dependency sources, seeding the search with the word under the cursor.
+--- Same picker as M.grep, just pre-filled — refine or clear the prompt as usual.
+function M.grep_word()
+    local word = vim.fn.expand("<cword>")
+    ensure_loaded(function()
+        open_picker("grep", nil, nil, word ~= "" and word or nil)
     end)
 end
 

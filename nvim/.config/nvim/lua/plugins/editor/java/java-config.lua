@@ -141,6 +141,7 @@ return {
             -- Proj Dependency Search: 
             { "<leader>j,", function() require("modules.java.dependencies-search").find_files() end, desc = "Find File in Dependencies", },
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
+            { "<leader>jw", function() require("modules.java.dependencies-search").grep_word() end, desc = "Grep Word (cword) in Dependencies", },
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
             { "<leader>jj", goto_java_context_under_cursor, desc = "Goto Spring property / FQN / file" },
             { "<leader>ji", function() require("modules.java.static-import-explorer").quick_import() end, desc = "Static Import Quick" },
