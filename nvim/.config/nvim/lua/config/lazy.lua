@@ -61,6 +61,9 @@ require("lazy").setup({
         { import = "lazyvim.plugins.extras.lang.python" },
         { import = "lazyvim.plugins.extras.lang.yaml" },
         { import = "lazyvim.plugins.extras.lang.helm" },
+        { import = "lazyvim.plugins.extras.lang.helm" },
+        -- { import = "lazyvim.plugins.extras.lang.rego" },
+
         -- { import = "lazyvim.plugins.extras.lang.java" }, using exended own version
         { import = "lazyvim.plugins.extras.lang.sql" },
         { import = "lazyvim.plugins.extras.lang.terraform" },
