@@ -175,6 +175,32 @@ local function is_test_ref(file)
     return type(file) == "string" and file:lower():find("/test/") ~= nil
 end
 
+--- Whether a native reference item is the symbol under the cursor (the location
+--- `gr` was invoked on). Mirrors Snacks' `include_current = false` filter
+--- (snacks/picker/source/lsp/init.lua): drop only the cursor location, so `gr` on
+--- a declaration removes the self-match (leaving real usages) while `gr` on a usage
+--- still lists the declaration. Without this, an unused field returns exactly one
+--- location — itself — which the picker's `auto_confirm` silently jumps to.
+---@param item vim.quickfix.entry
+---@param cur_file string normalized current file path
+---@param cur_lnum integer 1-indexed cursor line
+---@return boolean
+local function is_current_location(item, cur_file, cur_lnum)
+    if not item.filename or vim.fs.normalize(item.filename) ~= cur_file then
+        return false
+    end
+    if not item.lnum then
+        return false
+    end
+    if item.lnum == cur_lnum then
+        return true
+    end
+    if item.end_lnum then
+        return item.lnum <= cur_lnum and item.end_lnum >= cur_lnum
+    end
+    return false
+end
+
 --- Build a Snacks picker item from a location-like table.
 ---@param file string absolute path or jdt:// uri
 ---@param lnum integer 1-indexed line
@@ -287,10 +313,11 @@ function M.find_references(opts)
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
         position = { line = row, character = col },
-        -- Exclude the field's own declaration: with it included, an otherwise-unused
-        -- field still returns one location (itself), so the picker's auto_confirm
-        -- jumps to it and the "no references" path never runs. Usages only.
-        context = { includeDeclaration = false },
+        -- Match Snacks' `lsp_references` default (include_declaration = true). The
+        -- self-match at the cursor is stripped afterwards (see is_current_location),
+        -- mirroring Snacks' `include_current = false`, so an unused field yields an
+        -- empty list instead of one auto-confirmed self-jump.
+        context = { includeDeclaration = true },
     }
 
     client:request("textDocument/references", ref_params, function(err, locations)
@@ -315,11 +342,24 @@ function M.find_references(opts)
         end
 
         vim.schedule(function()
-            -- Native items are always kept in full ("keep impl").
+            -- Native items are kept in full ("keep impl"), minus the cursor's own
+            -- location (Snacks `include_current = false`), so an unused field is empty.
+            local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
+            local cur_lnum = row + 1
             local native_qf = vim.lsp.util.locations_to_items(locations, encoding)
             local items = {}
             for _, qf in ipairs(native_qf) do
-                table.insert(items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
+                if not is_current_location(qf, cur_file, cur_lnum) then
+                    table.insert(items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
+                end
+            end
+
+            -- Only the symbol at the cursor came back — no real references. (Any
+            -- mapper-impl usage would survive the filter, so there can be no @Mapping
+            -- to add either.)
+            if #items == 0 then
+                vim.notify("No references found for '" .. field_name .. "'", vim.log.levels.INFO)
+                return
             end
 
             -- Collect the unique generated mapper-impl files among the references.
