@@ -4,11 +4,11 @@
 -- getter/setter calls MapStruct emits into the generated `*MapperImpl.java`; the
 -- `@Mapping(source=…)` / `@Mapping(target=…)` (and `@ValueMapping`) declarations in
 -- the mapper types are invisible to JDTLS (opaque string literals). This module
--- surfaces those declaration lines too, then hands the whole result to Snacks' own
--- `lsp_references` picker so the native half (include_current filtering, jdt://
--- preview, dedup, auto_confirm/jump) is reused verbatim.
+-- surfaces those declaration lines too, alongside the native references, in one
+-- Snacks picker.
 --
--- Discovery — anchor on the references JDTLS already returns:
+-- Discovery — one references request; its locations both feed the native items and
+-- anchor the @Mapping scan:
 --   field usage in *MapperImpl.java  --(class `extends`/`implements` clause)-->
 --   textDocument/definition           --(resolve the mapper type)-->
 --   scan the whole mapper file for @Mapping/@ValueMapping source|target segments.
@@ -16,18 +16,30 @@
 -- paths compile into private helper methods that override nothing — so only the
 -- mapper *type*, not a specific method, is resolvable from the impl usage.
 --
--- Presentation — a Snacks multi-finder: finder #1 is the built-in `lsp_references`
--- (native refs), finder #2 injects the precomputed @Mapping lines. A `transform`
--- ranks @Mapping declarations on top and test references at the bottom (hidden by
--- default, <C-t> toggles). Entry point: `M.find_references(opts)`, registered as the
--- Java `references` navigation handler in `utils/lang/java/lsp-java.lua`; it defers
--- to `opts.fallback` when there is no jdtls client / no symbol under the cursor.
+-- Presentation — a single SYNCHRONOUS finder over lists we own: @Mapping declarations
+-- on top, source references next, test references at the bottom (hidden by default,
+-- <C-t> toggles). We build the native items ourselves (mirroring Snacks'
+-- `include_current = false`) rather than composing the built-in async `lsp_references`
+-- finder, because re-running that finder on every <C-t> dropped the injected @Mapping
+-- items; a synchronous finder makes the toggle deterministic. We still reuse the
+-- Snacks picker chrome (layout, previewer, jump, sort). Entry point:
+-- `M.find_references(opts)`, registered as the Java `references` navigation handler in
+-- `utils/lang/java/lsp-java.lua`; defers to `opts.fallback` when there is no jdtls
+-- client / no symbol under the cursor.
 
 local lsp_util = require("utils.lsp-util")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-source.log" })
 
 local M = {}
+
+--- Session-persistent settings for the references picker. These live for the whole
+--- Neovim session (not per-picker), so a toggle carries over to the next `gr`.
+---@class MapStructRefsSettings
+---@field show_test_references boolean Include `src/test` references in the picker. Toggle with <C-t>; carries to subsequent pickers this session. Useful while working on tests.
+M.settings = {
+    show_test_references = false,
+}
 
 --- Cheap URI prefilter for reference locations worth inspecting as a generated
 --- mapper impl. MapStruct names the generated class `<X>Impl` where the mapper type
@@ -263,49 +275,83 @@ local function make_item(file, lnum, col, text)
     }
 end
 
---- Open Snacks' `lsp_references` picker, augmented with our precomputed @Mapping
---- declaration lines via a multi-finder. Finder #1 is the built-in `lsp_references`
---- (native references — include_current filtering, jdt:// preview, dedup,
---- auto_confirm/jump all inherited from the source defaults); finder #2 injects
---- `mapping_items`. Test references are ranked to the bottom and hidden by default;
---- <C-t> toggles them.
+--- Open the references picker over lists we fully control: `@Mapping` declarations
+--- on top, then source references, then test references at the bottom. A single
+--- SYNCHRONOUS finder returns the current view, so <C-t> (toggle tests) re-runs it
+--- deterministically — the @Mapping items are always re-emitted. (An earlier version
+--- used a multi-finder with the built-in async `lsp_references` finder; re-running
+--- that on every toggle dropped the injected @Mapping items, so we own the item list
+--- instead and reuse only the Snacks picker chrome — layout, previewer, jump, sort.)
 ---@param mapping_items snacks.picker.finder.Item[] precomputed @Mapping lines (may be empty)
----@param show_tests boolean initial test-reference visibility
-local function open_picker(mapping_items, show_tests)
+---@param native_items snacks.picker.finder.Item[] native references (declaration already filtered out)
+local function open_picker(mapping_items, native_items)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
-    local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
 
-    Snacks.picker.lsp_references({
-        title = title,
-        layout = layouts.custom_vertical,
-        -- Multi-finder: reuse the built-in lsp_references finder (source_id 1) for
-        -- native references, then inject our @Mapping lines (source_id 2).
-        finder = {
-            "lsp_references",
-            function()
-                return mapping_items
-            end,
-        },
-        -- Group order, preserved even while filtering: @Mapping declarations (0) on
-        -- top, source references (1), test references (2) at the bottom. Test refs are
-        -- dropped entirely while hidden; <C-t> re-runs the finder to reveal them.
-        transform = function(item)
-            local is_mapping = item.source_id == 2
-            local test = not is_mapping and is_test_ref(item.file)
-            if test and not show_tests then
-                return false
+    -- Split native references into source vs test so tests can sit at the bottom and
+    -- be hidden by default.
+    local sources, tests = {}, {}
+    for _, item in ipairs(native_items) do
+        if is_test_ref(item.file) then
+            table.insert(tests, item)
+        else
+            table.insert(sources, item)
+        end
+    end
+
+    if #mapping_items == 0 and #sources == 0 and #tests == 0 then
+        vim.notify("No references found", vim.log.levels.INFO)
+        return
+    end
+
+    local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
+    -- Show tests when they are the only thing to show (else the picker would look
+    -- empty), regardless of the persisted flag.
+    local force_tests = #mapping_items == 0 and #sources == 0 and #tests > 0
+
+    -- Rank groups so order is preserved even while filtering: @Mapping (0), source
+    -- refs (1), test refs (2). Test visibility follows the session-persistent flag
+    -- (M.settings.show_test_references), re-read on every finder run so <C-t> toggles
+    -- take effect and carry to the next picker.
+    local function build()
+        local show_tests = M.settings.show_test_references or force_tests
+        local items = {}
+        for _, it in ipairs(mapping_items) do
+            it.rank = 0
+            items[#items + 1] = it
+        end
+        for _, it in ipairs(sources) do
+            it.rank = 1
+            items[#items + 1] = it
+        end
+        if show_tests then
+            for _, it in ipairs(tests) do
+                it.rank = 2
+                items[#items + 1] = it
             end
-            item.rank = is_mapping and 0 or (test and 2 or 1)
-        end,
+        end
+        return items
+    end
+
+    Snacks.picker.pick({
+        title = title,
+        format = "file",
+        auto_confirm = true,
+        layout = layouts.custom_vertical,
         sort = { fields = { "rank", { name = "score", desc = true }, "idx" } },
+        finder = build,
         win = {
             input = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "i", "n" }, desc = "Toggle test references" } } },
             list = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "n" }, desc = "Toggle test references" } } },
         },
         actions = {
+            -- Flip the session-persistent flag so the choice carries to later pickers.
             toggle_tests = function(picker)
-                show_tests = not show_tests
+                M.settings.show_test_references = not M.settings.show_test_references
+                vim.notify(
+                    "Test references " .. (M.settings.show_test_references and "shown" or "hidden") .. " (session)",
+                    vim.log.levels.INFO
+                )
                 picker:find()
             end,
         },
@@ -342,8 +388,8 @@ function M.find_references(opts)
     local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
     local cur_lnum = row + 1
 
-    -- Our own references request is used only to discover mapper-impl anchors; the
-    -- picker's built-in lsp_references finder issues its own request for display.
+    -- One references request: its locations both feed the displayed native items and
+    -- reveal the generated mapper-impl anchors we scan for @Mapping lines.
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
         position = { line = row, character = col },
@@ -352,26 +398,24 @@ function M.find_references(opts)
 
     client:request("textDocument/references", ref_params, function(err, locations)
         vim.schedule(function()
-            -- No anchors to work from: open the picker with native references only.
-            -- The built-in finder handles display and reports "No results" itself
-            -- when there genuinely are none.
             if err then
                 log.warn("references request failed:", err.message or vim.inspect(err))
             end
             if err or not locations or vim.tbl_isempty(locations) then
-                open_picker({}, false)
+                open_picker({}, {})
                 return
             end
 
-            -- Whether any non-test reference other than the cursor's own location
-            -- exists. When none does (and we add no @Mapping lines), the picker would
-            -- otherwise be empty with tests hidden — so reveal the test refs instead.
-            local visible_source, has_test = false, false
+            -- Native reference items: drop the cursor's own location (Snacks
+            -- `include_current = false` behaviour) and dedup by file:line.
+            local native_items, seen_native = {}, {}
             for _, qf in ipairs(vim.lsp.util.locations_to_items(locations, encoding)) do
-                if is_test_ref(qf.filename) then
-                    has_test = true
-                elseif not is_current_location(qf, cur_file, cur_lnum) then
-                    visible_source = true
+                if not is_current_location(qf, cur_file, cur_lnum) then
+                    local key = qf.filename .. ":" .. qf.lnum
+                    if not seen_native[key] then
+                        seen_native[key] = true
+                        table.insert(native_items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
+                    end
                 end
             end
 
@@ -389,9 +433,9 @@ function M.find_references(opts)
 
             log.debug("references:", #locations, "impl candidates:", #impl_uris, "field:", field_name)
 
-            -- No candidate impl usage: plain references, fully delegated to the builtin.
+            -- No candidate impl usage: plain references, no @Mapping lines to add.
             if #impl_uris == 0 then
-                open_picker({}, not visible_source and has_test)
+                open_picker({}, native_items)
                 return
             end
 
@@ -409,10 +453,7 @@ function M.find_references(opts)
                         table.insert(mapping_items, make_item(vim.uri_to_fname(s.uri), s.lnum, s.col, s.text))
                     end
                 end
-                -- With @Mapping lines there is always visible content; otherwise fall
-                -- back to the all-tests reveal decision.
-                local show_tests = #mapping_items == 0 and not visible_source and has_test
-                open_picker(mapping_items, show_tests)
+                open_picker(mapping_items, native_items)
             end
 
             -- Decrement exactly once per impl (guarded), so a failed definition lookup
