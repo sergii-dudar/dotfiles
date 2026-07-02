@@ -200,6 +200,11 @@ local function show(items, title)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
 
+    if #items == 0 then
+        vim.notify("No references found", vim.log.levels.INFO)
+        return
+    end
+
     local visible, tests = {}, {}
     for _, item in ipairs(items) do
         if is_test_ref(item.file) then
@@ -211,7 +216,10 @@ local function show(items, title)
         end
     end
 
-    local show_tests = false
+    -- Tests are hidden by default, but if *every* reference is a test one, an empty
+    -- picker would read as "nothing found" — show them (still ordered at the bottom)
+    -- so the result is visible; <C-t> then hides them.
+    local show_tests = #visible == 0 and #tests > 0
 
     Snacks.picker.pick({
         title = title,
@@ -279,12 +287,30 @@ function M.find_references(opts)
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
         position = { line = row, character = col },
-        context = { includeDeclaration = true },
+        -- Exclude the field's own declaration: with it included, an otherwise-unused
+        -- field still returns one location (itself), so the picker's auto_confirm
+        -- jumps to it and the "no references" path never runs. Usages only.
+        context = { includeDeclaration = false },
     }
 
     client:request("textDocument/references", ref_params, function(err, locations)
-        if err or not locations or vim.tbl_isempty(locations) then
-            vim.schedule(fallback)
+        -- Surface a request error rather than silently deferring to a picker that
+        -- would itself just report "no results".
+        if err then
+            vim.schedule(function()
+                vim.notify(
+                    "References request failed for '" .. field_name .. "': " .. (err.message or vim.inspect(err)),
+                    vim.log.levels.WARN
+                )
+            end)
+            return
+        end
+        -- No references at all: the picker would open empty and read as a silent
+        -- no-op, so notify explicitly instead.
+        if not locations or vim.tbl_isempty(locations) then
+            vim.schedule(function()
+                vim.notify("No references found for '" .. field_name .. "'", vim.log.levels.INFO)
+            end)
             return
         end
 
