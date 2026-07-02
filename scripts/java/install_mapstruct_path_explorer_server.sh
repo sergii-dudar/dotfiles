@@ -16,6 +16,6 @@ cd "$ms_path_explorer_repo" \
     && ./mvnw clean package -U -DskipTests \
     && cd ./target \
     && mkdir -p "$ms_path_explorer_dir" \
-    && mv "$ms_path_explorer_jar_name" "$ms_path_explorer_dir/"
+    && cp "$ms_path_explorer_jar_name" "$ms_path_explorer_dir/"
 
 echo "$ms_path_explorer_jar_name successfully installed to $ms_path_explorer_dir"
