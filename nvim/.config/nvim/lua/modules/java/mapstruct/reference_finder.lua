@@ -16,24 +16,31 @@
 -- `opts.fallback` so non-mapper `gr` behaves exactly as before.
 
 local lsp_util = require("utils.lsp-util")
-local java_ts = require("utils.java.java-ts-util")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-source.log" })
 
 local M = {}
 
--- How far above a mapping method we scan for its @Mapping annotation block.
-local MAX_ANNOTATION_SCAN_LINES = 60
-
---- Whether a file path is a generated MapStruct mapper implementation.
---- Maven emits into `target/generated-sources/`, Gradle into `build/generated/`;
---- the class itself is named `<Mapper>Impl`.
----@param file string
+--- Whether a reference URI points at a generated MapStruct mapper implementation.
+--- Two shapes are recognized:
+---  • project builds — Maven emits into `target/generated-sources/`, Gradle into
+---    `build/generated/`; the class is named `<Mapper>Impl.java`.
+---  • library mappers — when the mapper (and thus its generated impl) ships inside a
+---    dependency jar, JDTLS surfaces it as a `jdt://…/<Mapper>MapperImpl.class` URI, so
+---    match the impl type name directly rather than a source directory.
+---@param uri string
 ---@return boolean
-local function is_generated_mapper_impl(file)
-    if type(file) ~= "string" then
+local function is_generated_mapper_impl(uri)
+    if type(uri) ~= "string" then
         return false
     end
+
+    if vim.startswith(uri, "jdt://") then
+        local type_name = uri:match("([%w_%$]+)%.class") or uri:match("([%w_%$]+)%.java")
+        return type_name ~= nil and type_name:find("Mapper") ~= nil and type_name:find("Impl") ~= nil
+    end
+
+    local file = vim.uri_to_fname(uri)
     local in_generated = file:find("/target/generated%-sources/") or file:find("/build/generated/")
     if not in_generated then
         return false
@@ -64,61 +71,64 @@ local function first_location(result)
     return { uri = uri, line = range.start.line, character = range.start.character }
 end
 
---- The last dot-separated segment of a MapStruct path expression.
----@param path string
----@return string
-local function last_segment(path)
-    return path:match("([%w_$]+)%s*$") or path
+--- Property names that a reference to `word` could appear as inside a MapStruct
+--- path. Always the identifier itself; plus, when the cursor is on an accessor
+--- (`getFoo` / `setFoo` / `isFoo`), the decapitalized property name (`foo`) — since
+--- MapStruct paths use the property name, not the accessor.
+---@param word string
+---@return table<string, boolean>
+local function candidate_names(word)
+    local names = { [word] = true }
+    local rest = word:match("^get(%u[%w_$]*)$") or word:match("^set(%u[%w_$]*)$") or word:match("^is(%u[%w_$]*)$")
+    if rest then
+        names[rest:sub(1, 1):lower() .. rest:sub(2)] = true
+    end
+    return names
 end
 
---- Collect `@Mapping` declaration locations in a mapper interface that reference
---- `field_name`, by scanning the annotation block directly above a mapping method.
+--- Whether any dot/`.`-separated segment of a MapStruct path is one of `names`.
+--- Segments are matched anywhere in the path (`a.field.c`), so multi-field source
+--- and target paths surface too — not just the final segment.
+---@param path string
+---@param names table<string, boolean>
+---@return boolean
+local function path_matches(path, names)
+    for segment in path:gmatch("[%w_$]+") do
+        if names[segment] then
+            return true
+        end
+    end
+    return false
+end
+
+--- Scan an entire mapper interface file for `@Mapping` declarations whose source or
+--- target path references one of `names`. We scan the whole file (not just the block
+--- above one method) because MapStruct emits deeply-nested property assignments into
+--- private helper methods that override nothing — so the impl usage can't be linked to
+--- a specific interface method, only to the interface type. Matching any path segment
+--- also surfaces multi-field paths (`a.field.c`).
 ---@param iface_uri string
----@param method_line integer 0-indexed line of the interface method declaration
----@param field_name string
+---@param names table<string, boolean>
 ---@return { uri: string, lnum: integer, col: integer, text: string }[]
-local function collect_mapping_locations(iface_uri, method_line, field_name)
+local function scan_interface_mappings(iface_uri, names)
     local bufnr = vim.uri_to_bufnr(iface_uri)
     vim.fn.bufload(bufnr)
 
     local found = {}
-    -- Walk upward over the contiguous annotation/continuation block above the method.
-    local first_line = math.max(0, method_line - MAX_ANNOTATION_SCAN_LINES)
-    local lines = vim.api.nvim_buf_get_lines(bufnr, first_line, method_line, false)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-    for idx = #lines, 1, -1 do
-        local line = lines[idx]
-        local trimmed = line:gsub("^%s+", "")
-
-        -- Stop once we leave the annotation block: a non-blank line that is not an
-        -- annotation, a wrapped annotation argument, or a comment marks the previous
-        -- member. (MapStruct @Mapping annotations sit directly above the method.)
-        local is_block_line = trimmed == ""
-            or trimmed:sub(1, 1) == "@"
-            or trimmed:sub(1, 1) == '"'
-            or trimmed:sub(1, 1) == ","
-            or trimmed:sub(1, 1) == ")"
-            or trimmed:sub(1, 1) == "("
-            or trimmed:sub(1, 2) == "//"
-            or trimmed:sub(1, 1) == "*"
-            or trimmed:sub(1, 2) == "/*"
-            or trimmed:match("^[%w_]+%s*=") ~= nil
-        if not is_block_line then
-            break
-        end
-
-        local lnum0 = first_line + idx - 1 -- 0-indexed buffer line
+    for idx, line in ipairs(lines) do
         for _, attr in ipairs({ "source", "target" }) do
             local value_start = line:find(attr .. '%s*=%s*"')
             if value_start then
                 local path = line:match(attr .. '%s*=%s*"([^"]*)"')
-                if path and last_segment(path) == field_name then
+                if path and path_matches(path, names) then
                     local quote_col = line:find('"', value_start) or value_start
                     table.insert(found, {
                         uri = iface_uri,
-                        lnum = lnum0 + 1, -- 1-indexed for picker item
-                        col = quote_col, -- 0-indexed (quote_col is 1-indexed byte -> use as col start)
-                        text = trimmed,
+                        lnum = idx, -- 1-indexed line for picker item
+                        col = quote_col, -- 0-indexed path start (quote_col is 1-indexed quote byte)
+                        text = line:gsub("^%s+", ""),
                     })
                 end
             end
@@ -128,35 +138,32 @@ local function collect_mapping_locations(iface_uri, method_line, field_name)
     return found
 end
 
---- Resolve the interface mapping method for an overriding impl method.
---- Primary: textDocument/declaration (confirmed to hop to the parent type). Fallback:
---- the JDTLS `java.action.gotoSuperImplementation` command if declaration stays in the
---- same (impl) file or returns nothing.
----@param client vim.lsp.Client
----@param impl_uri string
----@param pos { line: integer, character: integer }
----@param cb fun(loc: { uri: string, line: integer, character: integer }|nil)
-local function resolve_interface_method(client, impl_uri, pos, cb)
-    local params = {
-        textDocument = { uri = impl_uri },
-        position = pos,
-    }
-
-    client:request("textDocument/declaration", params, function(_, result)
-        local loc = first_location(result)
-        if loc and loc.uri ~= impl_uri then
-            cb(loc)
-            return
+--- Locate the position of the mapper type name in a generated impl's supertype
+--- clause, so a `textDocument/definition` there resolves the mapper. MapStruct
+--- generates two shapes depending on how the mapper is declared:
+---  • interface mapper — `class FooMapperImpl implements FooMapper` (`implements`).
+---  • abstract-class mapper — `class FooMapperImpl extends FooMapper` (`extends`);
+---    these use `protected abstract` mapping methods, common for `@Mapping`-heavy
+---    ISO 20022 document mappers.
+--- Match `extends` first (an abstract-class mapper only extends the mapper), then
+--- fall back to `implements`. The class declaration sits near the top of a generated
+--- impl, so only the head is scanned.
+---@param bufnr integer
+---@return { row: integer, col: integer }|nil # 0-indexed row/col of the mapper type name
+local function get_impl_interface_pos(bufnr)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, 400, false)
+    for idx, line in ipairs(lines) do
+        if line:find("class%s+[%w_$]+") then
+            local _, kw_end = line:find("extends%s+")
+            if not kw_end then
+                _, kw_end = line:find("implements%s+")
+            end
+            if kw_end then
+                return { row = idx - 1, col = kw_end }
+            end
         end
-
-        -- Fallback: super-implementation command (impl override -> interface method).
-        client:request("workspace/executeCommand", {
-            command = "java.action.gotoSuperImplementation",
-            arguments = { { uri = impl_uri, position = pos } },
-        }, function(_, super_result)
-            cb(first_location(super_result))
-        end)
-    end)
+    end
+    return nil
 end
 
 --- Whether a reference's file path denotes a test source. Test references are
@@ -264,6 +271,10 @@ function M.find_references(opts)
         return
     end
 
+    -- Property names a @Mapping path segment could use for this field (handles the
+    -- cursor being on a getFoo/setFoo/isFoo accessor as well as the field itself).
+    local names = candidate_names(field_name)
+
     local encoding = client.offset_encoding or "utf-16"
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
@@ -285,45 +296,32 @@ function M.find_references(opts)
                 table.insert(items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
             end
 
-            -- Collect unique enclosing methods of usages inside generated mapper impls.
-            local impl_methods = {}
-            local seen_method = {}
+            -- Collect the unique generated mapper-impl files among the references.
+            -- Each impl maps exactly one interface, so we resolve/scan per impl file.
+            local impl_uris = {}
+            local seen_impl = {}
             for _, loc in ipairs(locations) do
                 local uri = loc.uri or loc.targetUri
-                local range = loc.range or loc.targetRange
-                if uri and range then
-                    local file = vim.uri_to_fname(uri)
-                    if is_generated_mapper_impl(file) then
-                        local mbuf = vim.uri_to_bufnr(uri)
-                        vim.fn.bufload(mbuf)
-                        local m = java_ts.get_enclosing_method_name_pos(mbuf, range.start.line, range.start.character)
-                        if m then
-                            local key = uri .. ":" .. m.method_row
-                            if not seen_method[key] then
-                                seen_method[key] = true
-                                table.insert(impl_methods, {
-                                    uri = uri,
-                                    pos = { line = m.name_row, character = m.name_col },
-                                })
-                            end
-                        end
-                    end
+                if uri and is_generated_mapper_impl(uri) and not seen_impl[uri] then
+                    seen_impl[uri] = true
+                    table.insert(impl_uris, uri)
                 end
             end
 
-            log.debug("references:", #locations, "impl methods:", #impl_methods, "field:", field_name)
+            log.debug("references:", #locations, "impl files:", #impl_uris, "field:", field_name)
 
             -- No mapper-impl usage: no @Mapping to add, but still apply the
             -- source-then-test ordering to the plain references ("default" gr).
-            if #impl_methods == 0 then
+            if #impl_uris == 0 then
                 show(items, "Jdtls References")
                 return
             end
 
-            -- Fan out declaration lookups (pending-counter join, per jdtls-util pattern).
+            -- Fan out one interface lookup per impl (pending-counter join, per
+            -- jdtls-util pattern).
             local synthetic = {}
             local seen_mapping = {}
-            local pending = #impl_methods
+            local pending = #impl_uris
 
             local function finish()
                 local mapping_items = {}
@@ -337,7 +335,7 @@ function M.find_references(opts)
 
                 -- Order: @Mapping declarations first, then the native references.
                 -- `show` splits test references out (hidden by default). `mapping_items`
-                -- may be empty when all mappings are implicit — then it is just the refs.
+                -- may be empty when the mapping is implicit — then it is just the refs.
                 local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
                 for _, native in ipairs(items) do
                     table.insert(mapping_items, native)
@@ -345,27 +343,48 @@ function M.find_references(opts)
                 show(mapping_items, title)
             end
 
-            for _, method in ipairs(impl_methods) do
-                resolve_interface_method(client, method.uri, method.pos, function(iface)
-                    if iface then
-                        log.debug("impl", method.uri, "-> iface", iface.uri, "line", iface.line)
+            -- Decrement exactly once per impl (guarded), so a failed definition lookup
+            -- or a not-yet-materialized jdt:// buffer can never leave `pending` above
+            -- zero and the picker unshown.
+            local function step_done()
+                pending = pending - 1
+                if pending == 0 then
+                    finish()
+                end
+            end
+
+            for _, impl_uri in ipairs(impl_uris) do
+                local mbuf = vim.uri_to_bufnr(impl_uri)
+                vim.fn.bufload(mbuf)
+                local pos = get_impl_interface_pos(mbuf)
+
+                if not pos then
+                    log.warn("could not find implements clause in impl:", impl_uri)
+                    step_done()
+                else
+                    -- Resolve the mapper interface type (works past private helper
+                    -- methods that override nothing), then scan its whole file.
+                    client:request("textDocument/definition", {
+                        textDocument = { uri = impl_uri },
+                        position = { line = pos.row, character = pos.col },
+                    }, function(_, def_result)
                         vim.schedule(function()
-                            local mappings = collect_mapping_locations(iface.uri, iface.line, field_name)
-                            for _, mp in ipairs(mappings) do
-                                table.insert(synthetic, mp)
+                            local iface = first_location(def_result)
+                            if iface then
+                                log.debug("impl", impl_uri, "-> iface", iface.uri)
+                                local ok, mappings = pcall(scan_interface_mappings, iface.uri, names)
+                                if ok and mappings then
+                                    for _, mp in ipairs(mappings) do
+                                        table.insert(synthetic, mp)
+                                    end
+                                elseif not ok then
+                                    log.warn("scan_interface_mappings failed:", mappings)
+                                end
                             end
-                            pending = pending - 1
-                            if pending == 0 then
-                                finish()
-                            end
+                            step_done()
                         end)
-                    else
-                        pending = pending - 1
-                        if pending == 0 then
-                            vim.schedule(finish)
-                        end
-                    end
-                end)
+                    end)
+                end
             end
         end)
     end, bufnr)
