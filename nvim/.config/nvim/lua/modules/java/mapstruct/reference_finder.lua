@@ -2,15 +2,18 @@
 --
 -- Standard `gr` (textDocument/references) on a model/DTO field only surfaces the
 -- getter/setter calls MapStruct emits into the generated `*MapperImpl.java`; the
--- `@Mapping(source=…)` / `@Mapping(target=…)` (and `@ValueMapping`) declarations in
--- the mapper types are invisible to JDTLS (opaque string literals). This module
--- surfaces those declaration lines too, alongside the native references, in one
+-- `@Mapping(source=…)` / `@Mapping(target=…)` and `@ValueMapping(source=…/target=…)`
+-- declarations in the mapper types are invisible to JDTLS (opaque string literals). This
+-- module surfaces those declaration lines too, alongside the native references, in one
 -- Snacks picker.
 --
--- Discovery — one references request; its locations both feed the native items and
--- anchor a per-reference @Mapping resolution. For each reference that lands in a
--- generated *MapperImpl.java we resolve the exact interface @Mapping that produced it
--- (reference_resolver, treesitter on the already-loaded impl buffer):
+-- Discovery — references for the symbol under the cursor AND its sibling field/accessors
+-- (get/set/is + record accessor) declared in the same enclosing type, unioned (MapStruct
+-- emits accessor-based code, so a bare field alone can miss the generated usages). The
+-- locations both feed the native items and anchor a per-reference @Mapping resolution.
+-- For each reference that lands in a generated *MapperImpl.java we resolve the exact
+-- interface @Mapping that produced it (reference_resolver, treesitter on the already-
+-- loaded impl buffer):
 --   field usage in *MapperImpl.java
 --     --(resolve_sinks: enclosing @Override mapping method + target setter "sink")-->
 --   deeply-nested paths compile into private helper methods that override nothing, so
@@ -34,8 +37,14 @@
 
 local lsp_util = require("utils.lsp-util")
 local reference_resolver = require("modules.java.mapstruct.reference_resolver")
+local spinner = require("utils.ui.spinner")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-source.log" })
+
+-- Search-spinner notifier id + a watchdog timeout (ms) that force-stops it if a jdtls
+-- request ever hangs, so the spinner can never be left spinning.
+local SPINNER_ID = "mapstruct-references"
+local SPINNER_TIMEOUT_MS = 30000
 
 local M = {}
 
@@ -323,143 +332,248 @@ function M.find_references(opts)
     local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
     local cur_lnum = row + 1
 
-    -- One references request: its locations both feed the displayed native items and
-    -- reveal the generated mapper-impl reference positions we resolve to @Mapping lines.
-    local ref_params = {
-        textDocument = vim.lsp.util.make_text_document_params(bufnr),
-        position = { line = row, character = col },
-        context = { includeDeclaration = true },
-    }
+    -- Search spinner: started here, always stopped exactly once — by `show` on the first
+    -- terminal result, or by the watchdog if a jdtls request hangs / never returns — so it
+    -- can never be left spinning.
+    spinner.start("🔍 Searching references…", { id = SPINNER_ID })
 
-    client:request("textDocument/references", ref_params, function(err, locations)
-        vim.schedule(function()
-            if err then
-                log.warn("references request failed:", err.message or vim.inspect(err))
-            end
-            if err or not locations or vim.tbl_isempty(locations) then
-                open_picker({}, {})
-                return
-            end
+    local finished = false
+    local watchdog = vim.uv.new_timer()
 
-            -- Native reference items: drop the cursor's own location (Snacks
-            -- `include_current = false` behaviour) and dedup by file:line.
-            local native_items, seen_native = {}, {}
-            for _, qf in ipairs(vim.lsp.util.locations_to_items(locations, encoding)) do
-                if not is_current_location(qf, cur_file, cur_lnum) then
-                    local key = qf.filename .. ":" .. qf.lnum
-                    if not seen_native[key] then
-                        seen_native[key] = true
-                        table.insert(native_items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
-                    end
-                end
-            end
+    --- Stop the spinner exactly once and tear down the watchdog.
+    ---@param stop_fn fun()
+    local function finish_spinner(stop_fn)
+        if finished then
+            return
+        end
+        finished = true
+        if watchdog then
+            watchdog:stop()
+            watchdog:close()
+            watchdog = nil
+        end
+        stop_fn()
+    end
 
-            -- Candidate `*Impl` reference positions grouped by file (cheap URI prefilter;
-            -- content qualification + parent @Mapper gate happen per file below). We keep
-            -- every position, not just the file, because each anchors a per-method sink
-            -- resolution on the impl buffer (which mapping method + which target setter).
-            local impl_refs, impl_uris = {}, {}
-            for _, loc in ipairs(locations) do
-                local uri = loc.uri or loc.targetUri
-                local range = loc.range or loc.targetSelectionRange or loc.targetRange
-                if uri and range and candidate_impl_uri(uri) then
-                    if not impl_refs[uri] then
-                        impl_refs[uri] = {}
-                        table.insert(impl_uris, uri)
-                    end
-                    table.insert(impl_refs[uri], { line = range.start.line, character = range.start.character })
-                end
-            end
+    if watchdog then
+        watchdog:start(
+            SPINNER_TIMEOUT_MS,
+            0,
+            vim.schedule_wrap(function()
+                finish_spinner(function()
+                    spinner.stop(false, "Reference search timed out", { id = SPINNER_ID, timeout = 3000 })
+                end)
+            end)
+        )
+    end
 
-            log.debug("references:", #locations, "impl candidates:", #impl_uris, "field:", field_name)
-
-            -- No candidate impl usage: plain references, no @Mapping lines to add.
-            if #impl_uris == 0 then
-                open_picker({}, native_items)
-                return
-            end
-
-            -- Fan out one mapper-type lookup per impl (pending-counter join, per
-            -- jdtls-util pattern). Per impl we resolve the interface type once, gate on
-            -- @Mapper, then keep only the @Mapping lines its reference sinks point at.
-            local mapping_items, seen_mapping = {}, {}
-            local pending = #impl_uris
-
-            local function finish()
-                open_picker(mapping_items, native_items)
-            end
-
-            -- Decrement exactly once per impl (guarded), so a failed definition lookup
-            -- or a not-yet-materialized jdt:// buffer can never leave `pending` above
-            -- zero and the picker unshown.
-            local function step_done()
-                pending = pending - 1
-                if pending == 0 then
-                    finish()
-                end
-            end
-
-            for _, impl_uri in ipairs(impl_uris) do
-                local mbuf = vim.uri_to_bufnr(impl_uri)
-                vim.fn.bufload(mbuf)
-                local pos = qualifies_as_generated_impl(mbuf, impl_uri) and mapper_impl_supertype_pos(mbuf) or nil
-
-                -- Resolve, from each reference in this impl, the enclosing @Override
-                -- mapping method + target sink (climbing private helper methods that
-                -- override nothing). These pin the exact interface @Mapping below.
-                local sinks = {}
-                if pos then
-                    for _, ref in ipairs(impl_refs[impl_uri]) do
-                        vim.list_extend(sinks, reference_resolver.resolve_sinks(mbuf, ref.line, ref.character))
-                    end
-                end
-
-                if not pos or #sinks == 0 then
-                    -- Not a generated mapper impl (hand-written `*Impl`, no supertype
-                    -- clause, …) or nothing resolvable: keep native references only.
-                    step_done()
-                else
-                    -- Resolve the mapper type from the impl supertype clause (works past
-                    -- private helpers), confirm it is a MapStruct `@Mapper`, then match
-                    -- only the resolved methods' @Mapping(target ~ sink) lines.
-                    client:request("textDocument/definition", {
-                        textDocument = { uri = impl_uri },
-                        position = { line = pos.row, character = pos.col },
-                    }, function(_, def_result)
-                        vim.schedule(function()
-                            local iface = first_location(def_result)
-                            if iface then
-                                local ibuf = vim.uri_to_bufnr(iface.uri)
-                                vim.fn.bufload(ibuf)
-                                if declares_mapper(ibuf) then
-                                    log.debug("impl", impl_uri, "-> @Mapper", iface.uri)
-                                    local ok, mappings = pcall(reference_resolver.mappings_for_sinks, ibuf, sinks)
-                                    if ok and mappings then
-                                        local iface_file = vim.uri_to_fname(iface.uri)
-                                        for _, mp in ipairs(mappings) do
-                                            local dedup_key = iface.uri .. ":" .. mp.lnum
-                                            if not seen_mapping[dedup_key] then
-                                                seen_mapping[dedup_key] = true
-                                                table.insert(
-                                                    mapping_items,
-                                                    make_item(iface_file, mp.lnum, mp.col, mp.text)
-                                                )
-                                            end
-                                        end
-                                    elseif not ok then
-                                        log.warn("mappings_for_sinks failed:", mappings)
-                                    end
-                                else
-                                    log.debug("supertype not @Mapper, skipping:", iface.uri)
-                                end
-                            end
-                            step_done()
-                        end)
-                    end)
-                end
-            end
+    -- Every terminal result funnels through here: stop the spinner (once), then open the
+    -- picker (or its "No references found" notice). Results that arrive after a watchdog
+    -- timeout still open the picker; the spinner is simply already stopped.
+    local function show(mapping_items, native_items)
+        finish_spinner(function()
+            spinner.cancel({ id = SPINNER_ID })
         end)
-    end, bufnr)
+        open_picker(mapping_items, native_items)
+    end
+
+    -- Resolve the (unioned) reference locations: build the native items, then map each
+    -- generated-impl reference to the exact interface @Mapping via its target sink.
+    local function process(locations)
+        -- Native reference items: drop the cursor's own location (Snacks
+        -- `include_current = false` behaviour) and dedup by file:line.
+        local native_items, seen_native = {}, {}
+        for _, qf in ipairs(vim.lsp.util.locations_to_items(locations, encoding)) do
+            if not is_current_location(qf, cur_file, cur_lnum) then
+                local key = qf.filename .. ":" .. qf.lnum
+                if not seen_native[key] then
+                    seen_native[key] = true
+                    table.insert(native_items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
+                end
+            end
+        end
+
+        -- Candidate `*Impl` reference positions grouped by file (cheap URI prefilter;
+        -- content qualification + parent @Mapper gate happen per file below). We keep
+        -- every position, not just the file, because each anchors a per-method sink
+        -- resolution on the impl buffer (which mapping method + which target setter).
+        local impl_refs, impl_uris = {}, {}
+        for _, loc in ipairs(locations) do
+            local uri = loc.uri or loc.targetUri
+            local range = loc.range or loc.targetSelectionRange or loc.targetRange
+            if uri and range and candidate_impl_uri(uri) then
+                if not impl_refs[uri] then
+                    impl_refs[uri] = {}
+                    table.insert(impl_uris, uri)
+                end
+                table.insert(impl_refs[uri], { line = range.start.line, character = range.start.character })
+            end
+        end
+
+        log.debug("references:", #locations, "impl candidates:", #impl_uris, "field:", field_name)
+
+        -- No candidate impl usage: plain references, no @Mapping lines to add.
+        if #impl_uris == 0 then
+            show({}, native_items)
+            return
+        end
+
+        -- Fan out one mapper-type lookup per impl (pending-counter join, per jdtls-util
+        -- pattern). Per impl we resolve the interface type once, gate on @Mapper, then
+        -- keep only the @Mapping lines its reference sinks point at.
+        local mapping_items, seen_mapping = {}, {}
+        local pending = #impl_uris
+
+        local function finish()
+            show(mapping_items, native_items)
+        end
+
+        -- Decrement exactly once per impl (guarded), so a failed definition lookup or a
+        -- not-yet-materialized jdt:// buffer can never leave `pending` above zero and the
+        -- picker unshown.
+        local function step_done()
+            pending = pending - 1
+            if pending == 0 then
+                finish()
+            end
+        end
+
+        for _, impl_uri in ipairs(impl_uris) do
+            local mbuf = vim.uri_to_bufnr(impl_uri)
+            vim.fn.bufload(mbuf)
+            local pos = qualifies_as_generated_impl(mbuf, impl_uri) and mapper_impl_supertype_pos(mbuf) or nil
+
+            -- Resolve, from each reference in this impl, the enclosing @Override mapping
+            -- method + target sink (climbing private helper methods that override
+            -- nothing). These pin the exact interface @Mapping below.
+            local sinks = {}
+            if pos then
+                for _, ref in ipairs(impl_refs[impl_uri]) do
+                    vim.list_extend(sinks, reference_resolver.resolve_sinks(mbuf, ref.line, ref.character))
+                end
+            end
+
+            if not pos or #sinks == 0 then
+                -- Not a generated mapper impl (hand-written `*Impl`, no supertype clause,
+                -- …) or nothing resolvable: keep native references only.
+                step_done()
+            else
+                -- Resolve the mapper type from the impl supertype clause (works past
+                -- private helpers), confirm it is a MapStruct `@Mapper`, then match only
+                -- the resolved methods' @Mapping(target ~ sink) lines.
+                local sent = client:request("textDocument/definition", {
+                    textDocument = { uri = impl_uri },
+                    position = { line = pos.row, character = pos.col },
+                }, function(_, def_result)
+                    vim.schedule(function()
+                        local iface = first_location(def_result)
+                        if iface then
+                            local ibuf = vim.uri_to_bufnr(iface.uri)
+                            vim.fn.bufload(ibuf)
+                            if declares_mapper(ibuf) then
+                                log.debug("impl", impl_uri, "-> @Mapper", iface.uri)
+                                local ok, mappings = pcall(reference_resolver.mappings_for_sinks, ibuf, sinks)
+                                if ok and mappings then
+                                    local iface_file = vim.uri_to_fname(iface.uri)
+                                    for _, mp in ipairs(mappings) do
+                                        local dedup_key = iface.uri .. ":" .. mp.lnum
+                                        if not seen_mapping[dedup_key] then
+                                            seen_mapping[dedup_key] = true
+                                            table.insert(mapping_items, make_item(iface_file, mp.lnum, mp.col, mp.text))
+                                        end
+                                    end
+                                elseif not ok then
+                                    log.warn("mappings_for_sinks failed:", mappings)
+                                end
+                            else
+                                log.debug("supertype not @Mapper, skipping:", iface.uri)
+                            end
+                        end
+                        step_done()
+                    end)
+                end)
+                -- A definition request that fails to send would never call step_done via
+                -- its callback; decrement here so the impl join can never stall.
+                if not sent then
+                    step_done()
+                end
+            end
+        end
+    end
+
+    -- Union references for the symbol under the cursor AND its sibling field/accessors
+    -- (get/set/is + record accessor) declared in the SAME enclosing type. MapStruct emits
+    -- accessor-based code, so `gr` on a bare field can otherwise miss the generated
+    -- usages; querying the siblings makes it work regardless of which one you invoke on.
+    -- Siblings are found only in the current buffer (the model class) and scoped to the
+    -- enclosing type, so same-named members of sibling classes are never conflated.
+    local names = reference_resolver.property_sibling_names(field_name)
+    local raw_positions = reference_resolver.sibling_declaration_positions(bufnr, row, col, names)
+    table.insert(raw_positions, 1, { line = row, character = col })
+
+    local positions, seen_pos = {}, {}
+    for _, p in ipairs(raw_positions) do
+        local key = p.line .. ":" .. p.character
+        if not seen_pos[key] then
+            seen_pos[key] = true
+            positions[#positions + 1] = p
+        end
+    end
+
+    local doc_params = vim.lsp.util.make_text_document_params(bufnr)
+    local all_locations, seen_loc = {}, {}
+    local pending_refs = #positions
+
+    local function collect(locs)
+        for _, loc in ipairs(locs or {}) do
+            local uri = loc.uri or loc.targetUri
+            local range = loc.range or loc.targetSelectionRange or loc.targetRange
+            if uri and range then
+                local key = uri .. ":" .. range.start.line .. ":" .. range.start.character
+                if not seen_loc[key] then
+                    seen_loc[key] = true
+                    all_locations[#all_locations + 1] = loc
+                end
+            end
+        end
+    end
+
+    local function on_refs_done()
+        if #all_locations == 0 then
+            show({}, {})
+            return
+        end
+        process(all_locations)
+    end
+
+    local function step_ref()
+        pending_refs = pending_refs - 1
+        if pending_refs == 0 then
+            on_refs_done()
+        end
+    end
+
+    -- One references request per unique position; join on a pending counter, then resolve
+    -- the union once. A request that fails to send still decrements (scheduled, after the
+    -- loop) so the join — and the spinner — can never stall.
+    for _, qp in ipairs(positions) do
+        local sent = client:request("textDocument/references", {
+            textDocument = doc_params,
+            position = { line = qp.line, character = qp.character },
+            context = { includeDeclaration = true },
+        }, function(err, locations)
+            vim.schedule(function()
+                if err then
+                    log.warn("references request failed:", err.message or vim.inspect(err))
+                end
+                collect(locations)
+                step_ref()
+            end)
+        end, bufnr)
+        if not sent then
+            vim.schedule(step_ref)
+        end
+    end
 end
 
 return M
