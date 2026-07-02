@@ -143,7 +143,7 @@ return {
             { "<leader>j/", function() require("modules.java.dependencies-search").grep() end, desc = "Grep in Dependencies", },
             { "<leader>jw", function() require("modules.java.dependencies-search").grep_word() end, desc = "Grep Word (cword) in Dependencies", },
             { "<leader>je", function() require("modules.java.dependencies-search").explore() end, desc = "Explore Dependency (jar)" },
-            { "<leader>jj", goto_java_context_under_cursor, desc = "Goto Spring property / FQN / file" },
+            { "<leader>jj", goto_java_context_under_cursor, desc = "Spring property goto/grep / FQN / file" },
             { "<leader>ji", function() require("modules.java.static-import-explorer").quick_import() end, desc = "Static Import Quick" },
             { "<leader>jI", function() require("modules.java.static-import-explorer").find() end, desc = "Static Import Search" },
         },
