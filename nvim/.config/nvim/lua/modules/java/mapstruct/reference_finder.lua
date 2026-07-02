@@ -8,13 +8,18 @@
 -- Snacks picker.
 --
 -- Discovery — one references request; its locations both feed the native items and
--- anchor the @Mapping scan:
---   field usage in *MapperImpl.java  --(class `extends`/`implements` clause)-->
---   textDocument/definition           --(resolve the mapper type)-->
---   scan the whole mapper file for @Mapping/@ValueMapping source|target segments.
--- The scan is whole-file (not one method's block) because deeply-nested property
--- paths compile into private helper methods that override nothing — so only the
--- mapper *type*, not a specific method, is resolvable from the impl usage.
+-- anchor a per-reference @Mapping resolution. For each reference that lands in a
+-- generated *MapperImpl.java we resolve the exact interface @Mapping that produced it
+-- (reference_resolver, treesitter on the already-loaded impl buffer):
+--   field usage in *MapperImpl.java
+--     --(resolve_sinks: enclosing @Override mapping method + target setter "sink")-->
+--   deeply-nested paths compile into private helper methods that override nothing, so
+--   the walk climbs helper -> caller (call-site search) until it reaches the public
+--   method, carrying the leaf sink;
+--     --(class `extends`/`implements` clause -> textDocument/definition)-->
+--   resolve the mapper type, gate on @Mapper, then keep only that method's
+--   @Mapping(target ~ sink). So `gr` on `Product.name` no longer drags in `Country.name`,
+--   `Department.name`, or a target-side `name` from unrelated methods.
 --
 -- Presentation — a single SYNCHRONOUS finder over lists we own: @Mapping declarations
 -- on top, source references next, test references at the bottom (hidden by default,
@@ -28,6 +33,7 @@
 -- client / no symbol under the cursor.
 
 local lsp_util = require("utils.lsp-util")
+local reference_resolver = require("modules.java.mapstruct.reference_resolver")
 local logging_util = require("utils.logging-util")
 local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-source.log" })
 
@@ -124,73 +130,6 @@ local function first_location(result)
         return nil
     end
     return { uri = uri, line = range.start.line, character = range.start.character }
-end
-
---- Property names that a reference to `word` could appear as inside a MapStruct
---- path. Always the identifier itself; plus, when the cursor is on an accessor
---- (`getFoo` / `setFoo` / `isFoo`), the decapitalized property name (`foo`) — since
---- MapStruct paths use the property name, not the accessor.
----@param word string
----@return table<string, boolean>
-local function candidate_names(word)
-    local names = { [word] = true }
-    local rest = word:match("^get(%u[%w_$]*)$") or word:match("^set(%u[%w_$]*)$") or word:match("^is(%u[%w_$]*)$")
-    if rest then
-        names[rest:sub(1, 1):lower() .. rest:sub(2)] = true
-    end
-    return names
-end
-
---- Whether any dot/`.`-separated segment of a MapStruct path is one of `names`.
---- Segments are matched anywhere in the path (`a.field.c`), so multi-field source
---- and target paths surface too — not just the final segment.
----@param path string
----@param names table<string, boolean>
----@return boolean
-local function path_matches(path, names)
-    for segment in path:gmatch("[%w_$]+") do
-        if names[segment] then
-            return true
-        end
-    end
-    return false
-end
-
---- Scan an entire mapper interface file for `@Mapping` declarations whose source or
---- target path references one of `names`. We scan the whole file (not just the block
---- above one method) because MapStruct emits deeply-nested property assignments into
---- private helper methods that override nothing — so the impl usage can't be linked to
---- a specific interface method, only to the interface type. Matching any path segment
---- also surfaces multi-field paths (`a.field.c`).
----@param iface_uri string
----@param names table<string, boolean>
----@return { uri: string, lnum: integer, col: integer, text: string }[]
-local function scan_interface_mappings(iface_uri, names)
-    local bufnr = vim.uri_to_bufnr(iface_uri)
-    vim.fn.bufload(bufnr)
-
-    local found = {}
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-
-    for idx, line in ipairs(lines) do
-        for _, attr in ipairs({ "source", "target" }) do
-            local value_start = line:find(attr .. '%s*=%s*"')
-            if value_start then
-                local path = line:match(attr .. '%s*=%s*"([^"]*)"')
-                if path and path_matches(path, names) then
-                    local quote_col = line:find('"', value_start) or value_start
-                    table.insert(found, {
-                        uri = iface_uri,
-                        lnum = idx, -- 1-indexed line for picker item
-                        col = quote_col, -- 0-indexed path start (quote_col is 1-indexed quote byte)
-                        text = line:gsub("^%s+", ""),
-                    })
-                end
-            end
-        end
-    end
-
-    return found
 end
 
 --- Locate the position of the mapper type name in a generated impl's supertype
@@ -380,16 +319,12 @@ function M.find_references(opts)
         return
     end
 
-    -- Property names a @Mapping path segment could use for this field (handles the
-    -- cursor being on a getFoo/setFoo/isFoo accessor as well as the field itself).
-    local names = candidate_names(field_name)
-
     local encoding = client.offset_encoding or "utf-16"
     local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
     local cur_lnum = row + 1
 
     -- One references request: its locations both feed the displayed native items and
-    -- reveal the generated mapper-impl anchors we scan for @Mapping lines.
+    -- reveal the generated mapper-impl reference positions we resolve to @Mapping lines.
     local ref_params = {
         textDocument = vim.lsp.util.make_text_document_params(bufnr),
         position = { line = row, character = col },
@@ -419,15 +354,20 @@ function M.find_references(opts)
                 end
             end
 
-            -- Unique candidate `*Impl` files among the references (cheap URI prefilter;
-            -- content qualification + parent @Mapper gate happen per file below). Each
-            -- impl maps exactly one mapper type, so we resolve/scan per impl file.
-            local impl_uris, seen_impl = {}, {}
+            -- Candidate `*Impl` reference positions grouped by file (cheap URI prefilter;
+            -- content qualification + parent @Mapper gate happen per file below). We keep
+            -- every position, not just the file, because each anchors a per-method sink
+            -- resolution on the impl buffer (which mapping method + which target setter).
+            local impl_refs, impl_uris = {}, {}
             for _, loc in ipairs(locations) do
                 local uri = loc.uri or loc.targetUri
-                if uri and candidate_impl_uri(uri) and not seen_impl[uri] then
-                    seen_impl[uri] = true
-                    table.insert(impl_uris, uri)
+                local range = loc.range or loc.targetSelectionRange or loc.targetRange
+                if uri and range and candidate_impl_uri(uri) then
+                    if not impl_refs[uri] then
+                        impl_refs[uri] = {}
+                        table.insert(impl_uris, uri)
+                    end
+                    table.insert(impl_refs[uri], { line = range.start.line, character = range.start.character })
                 end
             end
 
@@ -440,19 +380,12 @@ function M.find_references(opts)
             end
 
             -- Fan out one mapper-type lookup per impl (pending-counter join, per
-            -- jdtls-util pattern).
-            local synthetic, seen_mapping = {}, {}
+            -- jdtls-util pattern). Per impl we resolve the interface type once, gate on
+            -- @Mapper, then keep only the @Mapping lines its reference sinks point at.
+            local mapping_items, seen_mapping = {}, {}
             local pending = #impl_uris
 
             local function finish()
-                local mapping_items = {}
-                for _, s in ipairs(synthetic) do
-                    local dedup_key = s.uri .. ":" .. s.lnum
-                    if not seen_mapping[dedup_key] then
-                        seen_mapping[dedup_key] = true
-                        table.insert(mapping_items, make_item(vim.uri_to_fname(s.uri), s.lnum, s.col, s.text))
-                    end
-                end
                 open_picker(mapping_items, native_items)
             end
 
@@ -471,14 +404,24 @@ function M.find_references(opts)
                 vim.fn.bufload(mbuf)
                 local pos = qualifies_as_generated_impl(mbuf, impl_uri) and mapper_impl_supertype_pos(mbuf) or nil
 
-                if not pos then
-                    -- Not a generated mapper impl (hand-written `*Impl`, not `@Generated`,
-                    -- no supertype clause, …): skip, keep native references only.
+                -- Resolve, from each reference in this impl, the enclosing @Override
+                -- mapping method + target sink (climbing private helper methods that
+                -- override nothing). These pin the exact interface @Mapping below.
+                local sinks = {}
+                if pos then
+                    for _, ref in ipairs(impl_refs[impl_uri]) do
+                        vim.list_extend(sinks, reference_resolver.resolve_sinks(mbuf, ref.line, ref.character))
+                    end
+                end
+
+                if not pos or #sinks == 0 then
+                    -- Not a generated mapper impl (hand-written `*Impl`, no supertype
+                    -- clause, …) or nothing resolvable: keep native references only.
                     step_done()
                 else
-                    -- Resolve the mapper type (works past private helper methods that
-                    -- override nothing), confirm it is a MapStruct `@Mapper`, then scan
-                    -- its whole file.
+                    -- Resolve the mapper type from the impl supertype clause (works past
+                    -- private helpers), confirm it is a MapStruct `@Mapper`, then match
+                    -- only the resolved methods' @Mapping(target ~ sink) lines.
                     client:request("textDocument/definition", {
                         textDocument = { uri = impl_uri },
                         position = { line = pos.row, character = pos.col },
@@ -490,13 +433,21 @@ function M.find_references(opts)
                                 vim.fn.bufload(ibuf)
                                 if declares_mapper(ibuf) then
                                     log.debug("impl", impl_uri, "-> @Mapper", iface.uri)
-                                    local ok, mappings = pcall(scan_interface_mappings, iface.uri, names)
+                                    local ok, mappings = pcall(reference_resolver.mappings_for_sinks, ibuf, sinks)
                                     if ok and mappings then
+                                        local iface_file = vim.uri_to_fname(iface.uri)
                                         for _, mp in ipairs(mappings) do
-                                            table.insert(synthetic, mp)
+                                            local dedup_key = iface.uri .. ":" .. mp.lnum
+                                            if not seen_mapping[dedup_key] then
+                                                seen_mapping[dedup_key] = true
+                                                table.insert(
+                                                    mapping_items,
+                                                    make_item(iface_file, mp.lnum, mp.col, mp.text)
+                                                )
+                                            end
                                         end
                                     elseif not ok then
-                                        log.warn("scan_interface_mappings failed:", mappings)
+                                        log.warn("mappings_for_sinks failed:", mappings)
                                     end
                                 else
                                     log.debug("supertype not @Mapper, skipping:", iface.uri)
