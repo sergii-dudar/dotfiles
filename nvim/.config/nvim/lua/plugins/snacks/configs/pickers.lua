@@ -159,6 +159,37 @@ local function file_preview(ctx)
     return Snacks.picker.preview.file(ctx)
 end
 
+---Show the current selection's position in the picker (input) title, refreshed as
+---the cursor moves. Snacks' built-in `x/y` readout (right-aligned in the input line)
+---is matched/total and does NOT track the cursor; this appends `[row/matched]` to the
+---title via the supported `on_change` hook + `update_titles`, so no Snacks internals
+---are patched (survives upgrades). Visible where the layout title has a `{title}`
+---placeholder (e.g. `custom_vertical`'s input box).
+---@param picker snacks.Picker
+local function show_cursor_position(picker)
+    -- Cache the source's own title once, then rebuild from it on every move.
+    local base = picker._pos_base_title
+    if base == nil then
+        base = picker.title or ""
+        picker._pos_base_title = base
+    end
+
+    local matched = picker.list:count()
+    local parts = {}
+    if base ~= "" then
+        parts[#parts + 1] = base
+    end
+    if matched > 0 then
+        parts[#parts + 1] = ("[%d/%d]"):format(picker.list.cursor or 0, matched)
+    end
+    local title = table.concat(parts, " ")
+
+    if picker.title ~= title then
+        picker.title = title
+        picker:update_titles()
+    end
+end
+
 M.picker = {
     -- Do NOT sejkt a fully-formed layout here. Snacks deep-merges the global layout into every
     -- source, so a global with a `.layout` array leaks into sources that rely on `preset`,
@@ -167,6 +198,9 @@ M.picker = {
     hidden = true, -- Include hidden files in grep
     ignored = false, -- Exclude git-ignored files
     exclude = project_excludes(),
+    -- Append the current selection's `[row/matched]` to the title as the cursor moves
+    -- (the built-in x/y counter is matched/total and doesn't follow the cursor).
+    on_change = show_cursor_position,
     -- Default previewer for sources without their own (files/grep/explorer/…):
     -- decompiles .class files via Fernflower, otherwise the built-in file preview.
     -- preview = file_preview,

@@ -69,7 +69,7 @@ M.custom_buffers = {
 
 -- vertical telescope based style with bottom input
 M.custom_vertical = {
-    cycle = false,
+    cycle = true,
     reverse = false,
     layout = {
         backdrop = false,
@@ -120,7 +120,7 @@ M.custom_vertical = {
 
 -- telescope based style
 M.custom_horizontal = {
-    cycle = false,
+    cycle = true,
     reverse = false,
     layout = {
         box = "horizontal",
