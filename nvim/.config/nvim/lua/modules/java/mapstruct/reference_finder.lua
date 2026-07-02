@@ -29,31 +29,66 @@ local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-sou
 
 local M = {}
 
---- Whether a reference URI points at a generated MapStruct mapper implementation.
---- Two shapes are recognized:
----  • project builds — Maven emits into `target/generated-sources/`, Gradle into
----    `build/generated/`; the class is named `<Mapper>Impl.java`.
----  • library mappers — when the mapper (and thus its generated impl) ships inside a
----    dependency jar, JDTLS surfaces it as a `jdt://…/<Mapper>MapperImpl.class` URI, so
----    match the impl type name directly rather than a source directory.
+--- Cheap URI prefilter for reference locations worth inspecting as a generated
+--- mapper impl. MapStruct names the generated class `<X>Impl` where the mapper type
+--- `<X>` need NOT contain "Mapper" (it can be any name, e.g. `FooConverter`), so we
+--- only require the `Impl` suffix here — no "Mapper" in the name, no generated-dir.
+--- Content qualification (qualifies_as_generated_impl) and the decisive parent
+--- `@Mapper` gate (declares_mapper) run afterwards on the loaded buffer.
 ---@param uri string
 ---@return boolean
-local function is_generated_mapper_impl(uri)
+local function candidate_impl_uri(uri)
     if type(uri) ~= "string" then
         return false
     end
-
     if vim.startswith(uri, "jdt://") then
         local type_name = uri:match("([%w_%$]+)%.class") or uri:match("([%w_%$]+)%.java")
-        return type_name ~= nil and type_name:find("Mapper") ~= nil and type_name:find("Impl") ~= nil
+        return type_name ~= nil and type_name:match("Impl$") ~= nil
     end
+    return vim.uri_to_fname(uri):match("Impl%.java$") ~= nil
+end
 
-    local file = vim.uri_to_fname(uri)
-    local in_generated = file:find("/target/generated%-sources/") or file:find("/build/generated/")
-    if not in_generated then
-        return false
+--- Whether a loaded `*Impl` buffer looks annotation-processor-generated. Signals:
+---  • on-disk — a `generated-sources` / `build/generated` dir, OR a `@Generated`
+---    annotation (`javax.annotation.processing.Generated`, retention SOURCE — so it
+---    is present in generated `.java` but absent from decompiled library bytecode).
+---  • library (`jdt://`) — `@Generated` is stripped from bytecode, so accept here and
+---    let the parent `@Mapper` gate decide.
+--- This is a candidate filter only; declares_mapper is what actually confirms a
+--- MapStruct mapper (so non-MapStruct generated `*Impl` classes are rejected there).
+---@param bufnr integer
+---@param uri string
+---@return boolean
+local function qualifies_as_generated_impl(bufnr, uri)
+    if vim.startswith(uri, "jdt://") then
+        return true
     end
-    return file:match("Impl%.java$") ~= nil
+    local file = vim.uri_to_fname(uri)
+    if file:find("/target/generated%-sources/") or file:find("/build/generated/") then
+        return true
+    end
+    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 60, false)) do
+        if line:find("@Generated") then
+            return true
+        end
+    end
+    return false
+end
+
+--- Whether a loaded buffer declares a type annotated `@Mapper` (org.mapstruct.Mapper,
+--- retention CLASS — visible in both source and decompiled bytecode). This is the
+--- decisive gate: only after a resolved supertype is confirmed a MapStruct mapper do
+--- we scan it, so generated `*Impl` classes from other processors (Dagger, Lombok,
+--- Immutables, …) are ignored. Excludes `@MapperConfig` via a word boundary.
+---@param bufnr integer
+---@return boolean
+local function declares_mapper(bufnr)
+    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 400, false)) do
+        if line:find("@Mapper%f[%W]") then
+            return true
+        end
+    end
+    return false
 end
 
 --- Normalize an LSP definition/declaration result into a single location.
@@ -147,28 +182,32 @@ local function scan_interface_mappings(iface_uri, names)
 end
 
 --- Locate the position of the mapper type name in a generated impl's supertype
---- clause, so a `textDocument/definition` there resolves the mapper. MapStruct
---- generates two shapes depending on how the mapper is declared:
----  • interface mapper — `class FooMapperImpl implements FooMapper` (`implements`).
----  • abstract-class mapper — `class FooMapperImpl extends FooMapper` (`extends`);
----    these use `protected abstract` mapping methods, common for `@Mapping`-heavy
----    ISO 20022 document mappers.
+--- clause, so a `textDocument/definition` there resolves the mapper. Only accepts a
+--- class whose own name ends in `Impl` (the MapStruct-generated shape), then:
+---  • interface mapper — `class FooImpl implements Foo` (`implements`).
+---  • abstract-class mapper — `class FooImpl extends Foo` (`extends`); these use
+---    `protected abstract` mapping methods, common for `@Mapping`-heavy ISO 20022
+---    document mappers.
 --- Match `extends` first (an abstract-class mapper only extends the mapper), then
 --- fall back to `implements`. The class declaration sits near the top of a generated
 --- impl, so only the head is scanned.
 ---@param bufnr integer
 ---@return { row: integer, col: integer }|nil # 0-indexed row/col of the mapper type name
-local function get_impl_interface_pos(bufnr)
+local function mapper_impl_supertype_pos(bufnr)
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, 400, false)
     for idx, line in ipairs(lines) do
-        if line:find("class%s+[%w_$]+") then
+        local cls = line:match("class%s+([%w_$]+)")
+        if cls then
+            -- First top-level class in a generated impl file. If it isn't an `*Impl`,
+            -- this isn't the generated shape we expect — stop.
+            if not cls:match("Impl$") then
+                return nil
+            end
             local _, kw_end = line:find("extends%s+")
             if not kw_end then
                 _, kw_end = line:find("implements%s+")
             end
-            if kw_end then
-                return { row = idx - 1, col = kw_end }
-            end
+            return kw_end and { row = idx - 1, col = kw_end } or nil
         end
     end
     return nil
@@ -336,20 +375,21 @@ function M.find_references(opts)
                 end
             end
 
-            -- Unique generated mapper-impl files among the references. Each impl maps
-            -- exactly one mapper type, so we resolve/scan per impl file.
+            -- Unique candidate `*Impl` files among the references (cheap URI prefilter;
+            -- content qualification + parent @Mapper gate happen per file below). Each
+            -- impl maps exactly one mapper type, so we resolve/scan per impl file.
             local impl_uris, seen_impl = {}, {}
             for _, loc in ipairs(locations) do
                 local uri = loc.uri or loc.targetUri
-                if uri and is_generated_mapper_impl(uri) and not seen_impl[uri] then
+                if uri and candidate_impl_uri(uri) and not seen_impl[uri] then
                     seen_impl[uri] = true
                     table.insert(impl_uris, uri)
                 end
             end
 
-            log.debug("references:", #locations, "impl files:", #impl_uris, "field:", field_name)
+            log.debug("references:", #locations, "impl candidates:", #impl_uris, "field:", field_name)
 
-            -- No mapper-impl usage: plain references, fully delegated to the builtin.
+            -- No candidate impl usage: plain references, fully delegated to the builtin.
             if #impl_uris == 0 then
                 open_picker({}, not visible_source and has_test)
                 return
@@ -388,14 +428,16 @@ function M.find_references(opts)
             for _, impl_uri in ipairs(impl_uris) do
                 local mbuf = vim.uri_to_bufnr(impl_uri)
                 vim.fn.bufload(mbuf)
-                local pos = get_impl_interface_pos(mbuf)
+                local pos = qualifies_as_generated_impl(mbuf, impl_uri) and mapper_impl_supertype_pos(mbuf) or nil
 
                 if not pos then
-                    log.warn("could not find supertype clause in impl:", impl_uri)
+                    -- Not a generated mapper impl (hand-written `*Impl`, not `@Generated`,
+                    -- no supertype clause, …): skip, keep native references only.
                     step_done()
                 else
                     -- Resolve the mapper type (works past private helper methods that
-                    -- override nothing), then scan its whole file.
+                    -- override nothing), confirm it is a MapStruct `@Mapper`, then scan
+                    -- its whole file.
                     client:request("textDocument/definition", {
                         textDocument = { uri = impl_uri },
                         position = { line = pos.row, character = pos.col },
@@ -403,14 +445,20 @@ function M.find_references(opts)
                         vim.schedule(function()
                             local iface = first_location(def_result)
                             if iface then
-                                log.debug("impl", impl_uri, "-> mapper", iface.uri)
-                                local ok, mappings = pcall(scan_interface_mappings, iface.uri, names)
-                                if ok and mappings then
-                                    for _, mp in ipairs(mappings) do
-                                        table.insert(synthetic, mp)
+                                local ibuf = vim.uri_to_bufnr(iface.uri)
+                                vim.fn.bufload(ibuf)
+                                if declares_mapper(ibuf) then
+                                    log.debug("impl", impl_uri, "-> @Mapper", iface.uri)
+                                    local ok, mappings = pcall(scan_interface_mappings, iface.uri, names)
+                                    if ok and mappings then
+                                        for _, mp in ipairs(mappings) do
+                                            table.insert(synthetic, mp)
+                                        end
+                                    elseif not ok then
+                                        log.warn("scan_interface_mappings failed:", mappings)
                                     end
-                                elseif not ok then
-                                    log.warn("scan_interface_mappings failed:", mappings)
+                                else
+                                    log.debug("supertype not @Mapper, skipping:", iface.uri)
                                 end
                             end
                             step_done()
