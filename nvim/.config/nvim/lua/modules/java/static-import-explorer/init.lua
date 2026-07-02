@@ -70,13 +70,17 @@ vim.list_extend(settings.preferred_deps_test, settings.preferred_deps_main)
 ---@param opts? table
 ---@return table
 local function new_state(opts)
+    -- Capture the identifier and its buffer range together so prefix completion
+    -- (e.g. cursor on SIGNE -> SIGNED_NUM) can rewrite exactly the typed text.
+    local word_range, cword = util.cword_range()
     local state = {
         source_bufnr = vim.api.nvim_get_current_buf(),
         source_file = vim.api.nvim_buf_get_name(0),
         include_deps = false,
         include_all_deps = false,
         starts_with = false,
-        current_word = "",
+        current_word = cword or "",
+        word_range = word_range,
         default_glob = "*.java",
         fqcn_cache = {},
     }
@@ -91,6 +95,9 @@ end
 ---@param items { name: string }[] parsed import candidates
 local function apply_items(state, items)
     for _, item in ipairs(items) do
+        -- Complete the typed prefix to the full member before inserting the import:
+        -- the import line goes above the usage and would shift the captured row.
+        util.complete_word_in_buffer(state.source_bufnr, state.word_range, state.current_word, item.member)
         util.add_import_to_buffer(item.name, state.source_bufnr)
     end
 end
@@ -220,7 +227,6 @@ end
 --- dependencies via the picker's toggles.
 function M.find()
     local state = new_state()
-    state.current_word = vim.fn.expand("<cword>")
 
     -- picker.open computes the search dirs and warns/returns if there are none.
     picker.open(settings, state)
@@ -240,8 +246,8 @@ end
 --- `assertThat`, `MAX_VALUE`, `mock`) and you want a single keystroke to import
 --- it without leaving the buffer.
 function M.quick_import()
-    local word = vim.fn.expand("<cword>")
-    local state = new_state({ current_word = word })
+    local state = new_state()
+    local word = state.current_word
 
     if word == "" then
         vim.notify("[Static Import] No word under cursor", vim.log.levels.WARN)

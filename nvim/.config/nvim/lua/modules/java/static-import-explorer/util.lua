@@ -17,6 +17,8 @@
 --- - `M.extract_static_member(text, word)`: Extract a static field, enum constant, or method name from a line.
 --- - `M.build_import_line(fqcn, member, import_mode)`: Build an `import static` line.
 --- - `M.add_import_to_buffer(import_line, bufnr)`: Insert a static import into a Java buffer.
+--- - `M.cword_range()`: Range + text of the identifier under the cursor in the current window.
+--- - `M.complete_word_in_buffer(bufnr, range, expected, member)`: Complete a prefix to the imported member name.
 --- - `M.build_search(word, starts_with)`: Build the ripgrep regex for the word under cursor.
 --- - `M.file_to_fqcn(file, line_num, cache)`: Resolve and optionally cache Java file FQCNs.
 --- - `M.fqcn_from_path(file)`: Derive an FQCN from a Java source path without reading the file.
@@ -381,6 +383,79 @@ function M.add_import_to_buffer(import_line, bufnr)
 
     vim.api.nvim_buf_set_lines(bufnr, insert_after, insert_after, false, { import_line })
     vim.notify("[Static Import] Added: " .. import_line, vim.log.levels.INFO)
+end
+
+--- Return the range and text of the identifier under the cursor in the current window.
+--- Mirrors Vim's `<cword>` semantics: when the cursor is on a keyword char the whole
+--- run is taken; otherwise the next keyword run on the line is used. Keyword chars are
+--- `[%w_]` (Java identifier chars). Coordinates are 0-indexed, `col_end` exclusive, ready
+--- for `nvim_buf_get_text` / `nvim_buf_set_text`.
+---@return { row: integer, col_start: integer, col_end: integer }|nil range
+---@return string|nil word
+function M.cword_range()
+    local pos = vim.api.nvim_win_get_cursor(0)
+    local row = pos[1] - 1 -- 0-indexed row
+    local line = vim.api.nvim_get_current_line()
+    local n = #line
+    if n == 0 then
+        return nil, nil
+    end
+
+    local function is_kw(i)
+        return line:sub(i, i):match("[%w_]") ~= nil
+    end
+
+    local ci = pos[2] + 1 -- 1-indexed byte column into the line
+    if ci > n then
+        ci = n
+    end
+    -- Cursor not on a keyword char: advance to the start of the next keyword run.
+    if not is_kw(ci) then
+        local j = ci
+        while j <= n and not is_kw(j) do
+            j = j + 1
+        end
+        if j > n then
+            return nil, nil
+        end
+        ci = j
+    end
+
+    local s = ci
+    while s > 1 and is_kw(s - 1) do
+        s = s - 1
+    end
+    local e = ci
+    while e < n and is_kw(e + 1) do
+        e = e + 1
+    end
+
+    return { row = row, col_start = s - 1, col_end = e }, line:sub(s, e)
+end
+
+--- Complete a typed prefix under the cursor to the full imported member name.
+--- After a static import is added for a prefix search (cursor on `SIGNE`, member
+--- `SIGNED_NUM`), this rewrites the identifier in place. It is a no-op when there is
+--- no member, the text already equals the member, or the captured range no longer
+--- holds the originally-typed word (buffer edited / cursor moved since invocation).
+--- Call this BEFORE `add_import_to_buffer` so the captured row stays valid — the
+--- import line is inserted above the usage and would otherwise shift it down.
+---@param bufnr integer
+---@param range { row: integer, col_start: integer, col_end: integer }|nil
+---@param expected string the word originally under the cursor
+---@param member string|nil the full member name to write
+function M.complete_word_in_buffer(bufnr, range, expected, member)
+    if not range or not member or member == "" or member == expected then
+        return
+    end
+    if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+        return
+    end
+    local ok, cur = pcall(vim.api.nvim_buf_get_text, bufnr, range.row, range.col_start, range.row, range.col_end, {})
+    if not ok or cur[1] ~= expected then
+        return
+    end
+    vim.api.nvim_buf_set_text(bufnr, range.row, range.col_start, range.row, range.col_end, { member })
 end
 
 --- Build a ripgrep regex for a possible static member.

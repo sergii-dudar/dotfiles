@@ -48,6 +48,9 @@ local function make_confirm(settings, state)
                 vim.notify("[Static Import] Could not extract member, falling back to wildcard", vim.log.levels.WARN)
             end
         end
+        -- Complete the typed prefix to the full member before inserting the import:
+        -- the import line goes above the usage and would shift the captured row.
+        util.complete_word_in_buffer(state.source_bufnr, state.word_range, state.current_word, member)
         local import_line = util.build_import_line(fqcn, member, settings.import_mode)
         util.add_import_to_buffer(import_line, state.source_bufnr)
     end

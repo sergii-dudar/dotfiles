@@ -351,6 +351,7 @@ M.picker = {
         lsp_symbols = layout_vertical,
         lsp_type_definitions = layout_vertical,
         lsp_workspace_symbols = layout_vertical,
+        marks = layout_vertical,
         projects = {
             dev = {
                 "~/serhii.home/work/git.work",

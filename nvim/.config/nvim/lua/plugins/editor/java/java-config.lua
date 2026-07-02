@@ -205,6 +205,7 @@ return {
                                         MISSING_CONFIGURATION_ANNOTATION = "IGNORE",
                                         JAVA_CONSTRUCTOR_PARAMETER_INJECTION = "IGNORE",
                                         JAVA_AUTOWIRED_CONSTRUCTOR = "IGNORE",
+                                        DOMAIN_ID_FOR_REPOSITORY = "IGNORE",
                                     },
                                 },
                             },
