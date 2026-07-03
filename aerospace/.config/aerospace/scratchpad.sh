@@ -4,6 +4,7 @@ set -euo pipefail
 
 APP_ID="$1"
 APP_NAME="$2"
+APP_RUN_NAME="$3"
 CURRENT_WORKSPACE=$(aerospace list-workspaces --focused)
 CONFIG_DIR="$HOME/.config/aerospace/"
 
@@ -37,7 +38,7 @@ function move_app_to_scratchpad() {
 
 function main() {
     if is_app_closed; then
-        open -a "$APP_NAME"
+        open -a "$APP_RUN_NAME"
         sleep 0.5
         "$CONFIG_DIR/size_and_center_float.sh" "$APP_NAME"
         #elif aerospace list-windows --workspace "$CURRENT_WORKSPACE" --format "%{app-bundle-id}" | grep -q "$APP_ID"; then
