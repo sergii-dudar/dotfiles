@@ -46,35 +46,149 @@ local function find_project_file(class_fqn)
     return nil
 end
 
--- Find the line number of a field or method (getter/setter/builder) in a Java class
+-- Member matchers (each returns the 0-indexed column of the member on `line`, or nil).
+-- Kept separate so `find_field_position` can order them by the mapping side we came from
+-- (a `source` reads via a getter, a `target` writes via a setter), which is what makes
+-- the landing consistent — generated types (e.g. Avro) name fields in snake_case
+-- (`segment_id`) but accessors in camelCase (`getSegmentId`), so matching the camelCase
+-- member against a field declaration is unreliable while the accessor is exact.
+
+--- A field / record-component DECLARATION: a type token (word, `>` or `]` for generics
+--- / arrays) then the name then a terminator (`;` `=` `,` `)`). Requiring a preceding
+--- type avoids matching a bare mention such as `return name;` before the real field.
+---@param line string
+---@param esc string vim.pesc'd member name
+---@return integer|nil col 0-indexed
+local function find_field_decl(line, esc)
+    local c = line:find('[^"][%w_>%]]%s+' .. esc .. "%f[^%w_]%s*[;=,)]")
+    if c then
+        local name_start = line:find(esc .. "%f[^%w_]", c)
+        return name_start and name_start - 1 or c - 1
+    end
+    return nil
+end
+
+--- JavaBeans getter `getName(` (name capitalized). Exact regardless of field casing.
+---@param line string
+---@param ecap string vim.pesc'd capitalized name
+---@return integer|nil col 0-indexed
+local function find_getter(line, ecap)
+    local c = line:find("get" .. ecap .. "%s*%(")
+    return c and c - 1 or nil
+end
+
+--- JavaBeans setter `setName(` (name capitalized).
+---@param line string
+---@param ecap string vim.pesc'd capitalized name
+---@return integer|nil col 0-indexed
+local function find_setter(line, ecap)
+    local c = line:find("set" .. ecap .. "%s*%(")
+    return c and c - 1 or nil
+end
+
+--- Record accessor / fluent getter: `name()` with no arguments.
+---@param line string
+---@param esc string vim.pesc'd member name
+---@return integer|nil col 0-indexed
+local function find_accessor(line, esc)
+    local c = line:find("%f[%w_]" .. esc .. "%f[^%w_]%s*%(%s*%)")
+    return c and c - 1 or nil
+end
+
+--- Fluent builder setter: `name(<arg>…)` (arguments present) — distinct from the
+--- no-arg accessor above.
+---@param line string
+---@param esc string vim.pesc'd member name
+---@return integer|nil col 0-indexed
+local function find_fluent(line, esc)
+    local c = line:find("%f[%w_]" .. esc .. "%f[^%w_]%s*%(%s*[%w_@]")
+    return c and c - 1 or nil
+end
+
+--- Enum constant: bare name followed by `,` `;` `(` `)` — matches `NEW,` / `NEW;` /
+--- `NEW(args)`. Only used when the attribute is an enum, so this never over-matches a
+--- word buried inside a qualified name in ordinary types.
+---@param line string
+---@param esc string vim.pesc'd member name
+---@return integer|nil col 0-indexed
+local function find_enum_const(line, esc)
+    local c = line:find('[^"]%f[%w_]' .. esc .. "%f[^%w_]%s*[,;()]")
+    if c then
+        local name_start = line:find(esc, c)
+        return name_start and name_start - 1 or c - 1
+    end
+    return nil
+end
+
+-- Find the line number of a field or method (getter/setter/builder) in a Java class.
+-- Matchers are tried by preference (see `pref`): the FIRST hit of each matcher is recorded
+-- while scanning the class body, then the highest-priority matcher that hit wins — so
+-- physical order in the file never lets a lower-priority form (e.g. the field) beat a
+-- higher-priority one (e.g. the getter) that appears later.
 -- @param bufnr buffer number (0 for current buffer)
 -- @param class_name the name of the class (can be inner class)
 -- @param field_name the field name to search for
+-- @param pref { attribute_type?: "source"|"target", is_enum?: boolean } mapping side hint
 -- @return line number (1-indexed), column (0-indexed) or nil, nil if not found
-local function find_field_position(bufnr, class_name, field_name)
+local function find_field_position(bufnr, class_name, field_name, pref)
     bufnr = bufnr or 0
+    pref = pref or {}
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-    local in_target_class = false
-    local class_depth = 0
-    local brace_depth = 0
-
-    -- Pre-compile patterns for better performance
-    -- Use word boundary (%f[]) to match field name properly, even with generics
-    -- %f[%w_] = frontier before word char (word boundary at start)
-    -- %f[^%w_] = frontier before non-word char (word boundary at end)
-    -- [^"] ensures we don't match inside string literals
     local escaped_field_name = vim.pesc(field_name)
-    local field_pattern = '[^"]' .. "%f[%w_]" .. escaped_field_name .. "%f[^%w_]%s*[;=,(]"
-    local enum_pattern = '[^"]' .. "%f[%w_]" .. escaped_field_name .. "%f[^%w_]" -- No symbol required for enum constants
-    local record_field_pattern = '[^"]' .. "%f[%w_]" .. escaped_field_name .. "%f[^%w_]%s*[,)]"
-    local getter_capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
-    local escaped_getter_capitalized = vim.pesc(getter_capitalized)
-    local getter_pattern = '[^"]' .. "get" .. escaped_getter_capitalized .. "%s*%("
-    local setter_pattern = '[^"]' .. "set" .. escaped_getter_capitalized .. "%s*%("
-    local method_pattern = '[^"]' .. "%f[%w_]" .. escaped_field_name .. "%f[^%w_]%s*%(%)"
-    local builder_pattern = '[^"]' .. "Builder%s+" .. escaped_field_name .. "%s*%("
-    local fluent_pattern = '[^"]' .. "%f[%w_]" .. escaped_field_name .. "%f[^%w_]%s*%(.*%)%s*{"
+    local capitalized = field_name:sub(1, 1):upper() .. field_name:sub(2)
+    local escaped_capitalized = vim.pesc(capitalized)
+
+    -- Named matchers, bound to this member's escaped forms.
+    local field = {
+        name = "field",
+        fn = function(l)
+            return find_field_decl(l, escaped_field_name)
+        end,
+    }
+    local getter = {
+        name = "getter",
+        fn = function(l)
+            return find_getter(l, escaped_capitalized)
+        end,
+    }
+    local setter = {
+        name = "setter",
+        fn = function(l)
+            return find_setter(l, escaped_capitalized)
+        end,
+    }
+    local accessor = {
+        name = "accessor",
+        fn = function(l)
+            return find_accessor(l, escaped_field_name)
+        end,
+    }
+    local fluent = {
+        name = "fluent",
+        fn = function(l)
+            return find_fluent(l, escaped_field_name)
+        end,
+    }
+    local enum_const = {
+        name = "enum",
+        fn = function(l)
+            return find_enum_const(l, escaped_field_name)
+        end,
+    }
+
+    -- Preference order. Source reads → getter/accessor first; target writes →
+    -- setter/fluent first; enum attributes → the constant. Field is a fallback.
+    local order
+    if pref.is_enum then
+        order = { enum_const, getter, accessor, field }
+    elseif pref.attribute_type == "source" then
+        order = { getter, accessor, field, fluent, setter }
+    elseif pref.attribute_type == "target" then
+        order = { setter, fluent, field, accessor, getter }
+    else
+        order = { field, getter, accessor, setter, fluent }
+    end
 
     -- Pre-compile class detection patterns
     -- Use word boundary to handle cases where class name is at end of line
@@ -85,6 +199,11 @@ local function find_field_position(bufnr, class_name, field_name)
         "record%s+" .. escaped_class_name .. "%f[^%w_]",
         "enum%s+" .. escaped_class_name .. "%f[^%w_]",
     }
+
+    local in_target_class = false
+    local class_depth = 0
+    local brace_depth = 0
+    local hits = {} -- matcher name -> { line_num, col }
 
     for line_num, line in ipairs(lines) do
         -- Check if we found the target class/record (optimized)
@@ -103,40 +222,29 @@ local function find_field_position(bufnr, class_name, field_name)
         local close_count = select(2, line:gsub("[})]", ""))
         brace_depth = brace_depth + open_count - close_count
 
-        -- If we're in the target class, search for the field/method
+        -- While inside the target class, record the first hit of each matcher.
         if in_target_class then
-            -- Try patterns in order of likelihood (fields first, then getters, then setters)
-            -- For enums, use enum_pattern which doesn't require a symbol after the name
-            local col = line:find(field_pattern) or line:find(enum_pattern) or line:find(record_field_pattern)
-
-            if col then
-                local name_start = line:find(escaped_field_name, col)
-                return line_num, name_start and name_start - 1 or col - 1
-            end
-
-            col = line:find(getter_pattern) or line:find(method_pattern) or line:find(setter_pattern)
-            if col then
-                return line_num, col - 1
-            end
-
-            -- Builder pattern needs special handling for column
-            col = line:find(builder_pattern)
-            if col then
-                local name_start = line:find(escaped_field_name, col)
-                return line_num, name_start and name_start - 1 or col - 1
-            end
-
-            -- Fluent pattern
-            col = line:find(fluent_pattern)
-            if col then
-                local name_start = line:find(escaped_field_name, col)
-                return line_num, name_start and name_start - 1 or col - 1
+            for _, matcher in ipairs(order) do
+                if not hits[matcher.name] then
+                    local col = matcher.fn(line)
+                    if col then
+                        hits[matcher.name] = { line_num, col }
+                    end
+                end
             end
 
             -- Exit the target class when we close its braces
             if brace_depth < class_depth then
                 in_target_class = false
             end
+        end
+    end
+
+    -- Highest-priority matcher that hit wins.
+    for _, matcher in ipairs(order) do
+        local hit = hits[matcher.name]
+        if hit then
+            return hit[1], hit[2]
         end
     end
 
@@ -170,12 +278,13 @@ end
 
 -- Search for field and navigate to it
 -- Extracted to avoid code duplication
-local function navigate_to_field(simple_name, member_name, opts)
+---@param pref? { attribute_type?: "source"|"target", is_enum?: boolean } mapping side hint
+local function navigate_to_field(simple_name, member_name, opts, pref)
     opts = opts or {}
     vim.schedule(function()
         local attempts = 0
         while attempts < 2 do
-            local line_num, col = find_field_position(0, simple_name, member_name)
+            local line_num, col = find_field_position(0, simple_name, member_name, pref)
 
             if line_num then
                 if opts.push_jump ~= false then
@@ -323,7 +432,8 @@ end
 ---@param simple_name string
 ---@param member_name string
 ---@param opts table
-local function open_class_member(class_fqn, simple_name, member_name, opts)
+---@param pref? { attribute_type?: "source"|"target", is_enum?: boolean } mapping side hint
+local function open_class_member(class_fqn, simple_name, member_name, opts, pref)
     jdtls_util.jdt_load_unique_class(class_fqn, function(class_result)
         if not class_result or not class_result.location then
             vim.notify("[MapStruct] Could not load class: " .. class_fqn, vim.log.levels.ERROR)
@@ -340,7 +450,7 @@ local function open_class_member(class_fqn, simple_name, member_name, opts)
             vim.lsp.util.show_document(class_result.location, "utf-8", { focus = true })
         end
 
-        navigate_to_field(simple_name, member_name, { push_jump = false })
+        navigate_to_field(simple_name, member_name, { push_jump = false }, pref)
     end)
 end
 
@@ -369,7 +479,11 @@ local function navigate_to_direct_source_field(current_path, completion_ctx, opt
         return false
     end
 
-    open_class_member(class_fqn, simple_name, current_path.member, opts)
+    -- Direct source field: a `source` path, so prefer the getter.
+    open_class_member(class_fqn, simple_name, current_path.member, opts, {
+        attribute_type = "source",
+        is_enum = completion_ctx.is_enum,
+    })
     return true
 end
 
@@ -536,6 +650,16 @@ function M.goto_path_item_definitions(opts)
 
     local context_result = mapstruct.get_context(params)
 
+    -- Mapping side (source→getter / target→setter) so the landing prefers the right
+    -- accessor over the (snake_case, unreliable) field declaration in generated types.
+    local pref = context_result.ok
+            and context_result.value
+            and {
+                attribute_type = context_result.value.attribute_type,
+                is_enum = context_result.value.is_enum,
+            }
+        or nil
+
     if not current_path.path then
         if
             context_result.ok
@@ -585,7 +709,7 @@ function M.goto_path_item_definitions(opts)
             -- vim.notify("local search")
         else ]]
         -- Slow path: Use jdtls to load the class (JAR dependencies, external libs)
-        open_class_member(class_fqn, simple_name, current_path.member, opts)
+        open_class_member(class_fqn, simple_name, current_path.member, opts, pref)
         -- end
     end)
 end
