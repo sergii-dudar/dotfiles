@@ -147,9 +147,17 @@ local function copy_file_path(path_modifier, label)
     vim.notify("Copied: " .. path, vim.log.levels.INFO)
 end
 
+local function copy_file_name(path_modifier)
+    local name = vim.fn.expand("%:t:r")
+    vim.fn.setreg("+", name)
+    vim.notify("Copied: " .. name, vim.log.levels.INFO)
+end
+
 -- stylua: ignore start
 map("n", "<leader>yf", function() copy_file_path(":.", "relative") end, { desc = "Copy relative file path" })
 map("n", "<leader>yF", function() copy_file_path(":p", "absolute") end, { desc = "Copy absolute file path" })
+map("n", "<leader>yn", function() copy_file_name("%:t:r") end, { desc = "Copy file name without ext" })
+map("n", "<leader>yN", function() copy_file_name("%:t") end, { desc = "Copy file name" })
 -- stylua: ignore end
 
 --start replacing word under cursonr

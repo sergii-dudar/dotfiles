@@ -112,6 +112,28 @@ local function try_handler(handler, ctx)
     return handled == true
 end
 
+--- Center the view (`zz`) once the cursor lands on the navigation target.
+--- Navigation is asynchronous (LSP request), so we cannot center inline; instead
+--- we arm a one-shot `CursorMoved` autocmd that fires when the cursor actually
+--- jumps, centers the destination window, and tears itself down. A timer guards
+--- against the case where the cursor never moves (already at the target, or the
+--- request found nothing) so the autocmd never centers on an unrelated later move.
+local function center_after_navigation()
+    local group = vim.api.nvim_create_augroup("LspNavigationCenter", { clear = true })
+
+    vim.api.nvim_create_autocmd("CursorMoved", {
+        group = group,
+        once = true,
+        callback = function()
+            vim.cmd("normal! zz")
+        end,
+    })
+
+    vim.defer_fn(function()
+        pcall(vim.api.nvim_del_augroup_by_id, group)
+    end, 1000)
+end
+
 --- Run custom handlers for a navigation method before the standard LSP request.
 ---@param method lang.LspNavigationMethod
 local function run(method)
@@ -157,6 +179,7 @@ end
 --- Used by `gd` mappings; falls back to `vim.lsp.buf.definition()` exactly once
 --- when no handler claims the request.
 function M.definition()
+    center_after_navigation()
     run("definition")
 end
 
@@ -164,6 +187,7 @@ end
 --- Used by `gD` mappings; falls back to `vim.lsp.buf.declaration()` exactly once
 --- when no handler claims the request.
 function M.declaration()
+    center_after_navigation()
     run("declaration")
 end
 
