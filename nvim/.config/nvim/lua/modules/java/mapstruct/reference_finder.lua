@@ -306,10 +306,12 @@ local function open_picker(mapping_items, native_items)
     })
 end
 
---- @Mapping-augmented `gr` for the field under the cursor. Discovers the mapper
---- `@Mapping` lines that reference the field, then opens Snacks' `lsp_references`
---- picker (which supplies the native references) with those lines injected on top.
---- Defers to `opts.fallback` only when there is no jdtls client / no symbol.
+--- @Mapping-augmented `gr` for the field under the cursor. Unions references for the
+--- symbol and its sibling accessors, resolves each generated-impl usage to the exact
+--- interface `@Mapping` (via its target sink), then opens a single SYNCHRONOUS Snacks
+--- picker over lists we own: `@Mapping` declarations on top, then source/test references
+--- (see `open_picker`). Defers to `opts.fallback` only when there is no jdtls client /
+--- no symbol under the cursor.
 ---@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun() }
 function M.find_references(opts)
     opts = opts or {}

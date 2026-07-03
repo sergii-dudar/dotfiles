@@ -342,6 +342,13 @@ end
 --- Interface `@Mapping` declarations for a resolved sink: only real (non-commented,
 --- tree-sitter parsed) `@Mapping` annotations on the method `method_name` with
 --- `param_count` parameters whose target first/last segment equals `sink`.
+---
+--- Limitation: the overridden interface method is re-bound by name + arity, not by
+--- parameter types. Mapper methods overloaded on parameter type with the SAME name AND
+--- SAME arity (e.g. `map(Person)` / `map(Employee)`) are both scanned, so a
+--- target-matching `@Mapping` from the wrong overload could surface. Rare in practice;
+--- the JDTLS reference site already pinned the exact impl method, so a future tightening
+--- could carry that method's parameter-type signature down here to disambiguate.
 ---@param iface_buf integer
 ---@param method_name string
 ---@param param_count integer
