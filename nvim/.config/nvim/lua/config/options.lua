@@ -29,7 +29,7 @@ vim.opt.swapfile = false
 
 vim.opt.hlsearch = true
 vim.opt.ignorecase = true
-vim.opt.smartcase = true -- in case search by mixed case text, apply case-sensitive search
+vim.opt.smartcase = false -- in case search by mixed case text, apply case-sensitive search (false, as in case pojo can be inconvenient to search getter\setter by field name etc)
 vim.opt.incsearch = true
 
 vim.opt.swapfile = false
@@ -137,7 +137,7 @@ function open_tree_on_start()
             vim.schedule(function()
                 vim.cmd("Neotree filesystem reveal left")
             end)
-         end
+        end
         -- Snacks.picker.explorer()
     end
 end
