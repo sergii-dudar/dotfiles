@@ -208,19 +208,41 @@ local function is_current_location(item, cur_file, cur_lnum)
     return false
 end
 
---- Build a Snacks picker item from a location-like table.
+--- Build a Snacks picker item from a location-like table. `end_pos` ({1-indexed lnum,
+--- 0-indexed exclusive end col}) makes the Snacks preview highlight the symbol span — the
+--- word itself, exactly as `Snacks.picker.lsp_references` does (`pos`→`end_pos` extmark in
+--- snacks/picker/core/preview.lua) — instead of only the result line.
 ---@param file string absolute path or jdt:// uri
 ---@param lnum integer 1-indexed line
 ---@param col integer 0-indexed column
 ---@param text string
+---@param end_pos? integer[] {lnum, col} end of the highlight span (exclusive col)
 ---@return snacks.picker.finder.Item
-local function make_item(file, lnum, col, text)
+local function make_item(file, lnum, col, text, end_pos)
     return {
         text = file .. " " .. (text or ""),
         file = file,
         pos = { lnum, col },
+        end_pos = end_pos,
         line = text,
     }
+end
+
+--- End of a native reference's highlight span (the symbol under the range), mirroring
+--- `Snacks.picker.source.lsp` (fix_locs): prefer the quickfix end when Neovim populated
+--- it, else derive a same-line end from the original LSP range carried in `user_data`.
+--- Returns nil when the span can't be determined (highlight falls back to the line).
+---@param qf vim.quickfix.entry
+---@return integer[]|nil # {lnum, col} exclusive end col (0-indexed)
+local function native_end_pos(qf)
+    if qf.end_lnum and qf.end_col then
+        return { qf.end_lnum, qf.end_col - 1 }
+    end
+    local range = qf.user_data and qf.user_data.range
+    if range and range.start.line == range["end"].line then
+        return { qf.lnum, (qf.col or 1) - 1 + (range["end"].character - range.start.character) }
+    end
+    return nil
 end
 
 --- Open the references picker over lists we fully control: `@Mapping` declarations
@@ -381,16 +403,21 @@ function M.find_references(opts)
 
     -- Resolve the (unioned) reference locations: build the native items, then map each
     -- generated-impl reference to the exact interface @Mapping via its target sink.
-    local function process(locations)
+    ---@param names table<string, boolean> field + accessor tokens, used to highlight the word in @Mapping lines
+    local function process(locations, names)
         -- Native reference items: drop the cursor's own location (Snacks
-        -- `include_current = false` behaviour) and dedup by file:line.
+        -- `include_current = false` behaviour) and dedup by file:line. `native_end_pos`
+        -- gives the symbol span so the preview highlights the word, not just the line.
         local native_items, seen_native = {}, {}
         for _, qf in ipairs(vim.lsp.util.locations_to_items(locations, encoding)) do
             if not is_current_location(qf, cur_file, cur_lnum) then
                 local key = qf.filename .. ":" .. qf.lnum
                 if not seen_native[key] then
                     seen_native[key] = true
-                    table.insert(native_items, make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text))
+                    table.insert(
+                        native_items,
+                        make_item(qf.filename, qf.lnum, (qf.col or 1) - 1, qf.text, native_end_pos(qf))
+                    )
                 end
             end
         end
@@ -474,14 +501,21 @@ function M.find_references(opts)
                             vim.fn.bufload(ibuf)
                             if declares_mapper(ibuf) then
                                 log.debug("impl", impl_uri, "-> @Mapper", iface.uri)
-                                local ok, mappings = pcall(reference_resolver.mappings_for_sinks, ibuf, sinks)
+                                local ok, mappings = pcall(reference_resolver.mappings_for_sinks, ibuf, sinks, names)
                                 if ok and mappings then
                                     local iface_file = vim.uri_to_fname(iface.uri)
                                     for _, mp in ipairs(mappings) do
                                         local dedup_key = iface.uri .. ":" .. mp.lnum
                                         if not seen_mapping[dedup_key] then
                                             seen_mapping[dedup_key] = true
-                                            table.insert(mapping_items, make_item(iface_file, mp.lnum, mp.col, mp.text))
+                                            -- Highlight the matched word (source/target segment)
+                                            -- when the resolver located it; else the line.
+                                            local pos_col = mp.hl_start or mp.col
+                                            local end_pos = mp.hl_end and { mp.lnum, mp.hl_end } or nil
+                                            table.insert(
+                                                mapping_items,
+                                                make_item(iface_file, mp.lnum, pos_col, mp.text, end_pos)
+                                            )
                                         end
                                     end
                                 elseif not ok then
@@ -545,7 +579,7 @@ function M.find_references(opts)
             show({}, {})
             return
         end
-        process(all_locations)
+        process(all_locations, names)
     end
 
     local function step_ref()

@@ -303,6 +303,39 @@ function M.resolve_sinks(buf, row, col)
     return out
 end
 
+--- Byte span (0-indexed start, exclusive end) of the searched token inside a
+--- `@Mapping` / `@ValueMapping` line, so the preview can highlight the exact word the way
+--- `Snacks.picker.lsp_references` highlights a symbol — not just the whole line. Only
+--- quoted `"…"` attribute values are scanned (attribute keywords and unquoted constant
+--- references are skipped); within a value we return the first dot-separated segment equal
+--- to one of `names`. Scanning every quoted value means the highlight lands on whichever
+--- side (`source` or `target`) actually carries the searched field. Returns nil when
+--- nothing matches, so the caller falls back to a line-only highlight.
+---@param line string full (untrimmed) buffer line
+---@param names table<string, boolean> tokens to highlight (field + accessors, or an enum constant)
+---@return integer? # 0-indexed start col
+---@return integer? # 0-indexed exclusive end col
+function M.matched_segment_span(line, names)
+    if not line or not names then
+        return nil
+    end
+    local from = 1
+    while true do
+        local q_start, q_end, value = line:find('"([^"]*)"', from)
+        if not q_start then
+            return nil
+        end
+        -- `value`'s content starts at 0-indexed line column `q_start` (one past the
+        -- opening quote, whose 1-indexed position is `q_start`).
+        for s_start, seg, s_end in value:gmatch("()([%w_$]+)()") do
+            if names[seg] then
+                return q_start + s_start - 1, q_start + s_end - 1
+            end
+        end
+        from = q_end + 1
+    end
+end
+
 --- Whether a MapStruct target path's first or last segment equals the sink property.
 --- (First covers a top-level setter feeding a nested target; last covers a nested-leaf
 --- setter — e.g. `item.details.detailName` matched by `detailName`.)
@@ -353,8 +386,9 @@ end
 ---@param method_name string
 ---@param param_count integer
 ---@param sink string
----@return { lnum: integer, col: integer, text: string }[]
-function M.find_method_mappings(iface_buf, method_name, param_count, sink)
+---@param names? table<string, boolean> tokens to highlight in the line (field + accessors)
+---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
+function M.find_method_mappings(iface_buf, method_name, param_count, sink, names)
     local results = {}
 
     for _, method in ipairs(all_methods(iface_buf)) do
@@ -368,10 +402,13 @@ function M.find_method_mappings(iface_buf, method_name, param_count, sink)
                             if target and M.target_matches(target, sink) then
                                 local srow, scol = ann:start()
                                 local line = vim.api.nvim_buf_get_lines(iface_buf, srow, srow + 1, false)[1]
+                                local hl_start, hl_end = M.matched_segment_span(line, names)
                                 results[#results + 1] = {
                                     lnum = srow + 1,
                                     col = scol,
                                     text = (line or text):gsub("^%s+", ""),
+                                    hl_start = hl_start,
+                                    hl_end = hl_end,
                                 }
                             end
                         end
@@ -393,7 +430,7 @@ end
 ---@param method_name string
 ---@param param_count integer
 ---@param value string
----@return { lnum: integer, col: integer, text: string }[]
+---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
 function M.find_method_value_mappings(iface_buf, method_name, param_count, value)
     local results = {}
 
@@ -409,10 +446,14 @@ function M.find_method_value_mappings(iface_buf, method_name, param_count, value
                             if source == value or target == value then
                                 local srow, scol = ann:start()
                                 local line = vim.api.nvim_buf_get_lines(iface_buf, srow, srow + 1, false)[1]
+                                -- Highlight the enum constant this @ValueMapping matched on.
+                                local hl_start, hl_end = M.matched_segment_span(line, { [value] = true })
                                 results[#results + 1] = {
                                     lnum = srow + 1,
                                     col = scol,
                                     text = (line or text):gsub("^%s+", ""),
+                                    hl_start = hl_start,
+                                    hl_end = hl_end,
                                 }
                             end
                         end
@@ -431,13 +472,14 @@ end
 --- `@ValueMapping(source|target == value)`.
 ---@param iface_buf integer
 ---@param sinks { method_name: string, param_count: integer, sink?: string, value?: string }[]
----@return { lnum: integer, col: integer, text: string }[]
-function M.mappings_for_sinks(iface_buf, sinks)
+---@param names? table<string, boolean> tokens to highlight in @Mapping lines (field + accessors)
+---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
+function M.mappings_for_sinks(iface_buf, sinks, names)
     local seen, out = {}, {}
     for _, s in ipairs(sinks) do
         local items
         if s.sink then
-            items = M.find_method_mappings(iface_buf, s.method_name, s.param_count, s.sink)
+            items = M.find_method_mappings(iface_buf, s.method_name, s.param_count, s.sink, names)
         elseif s.value then
             items = M.find_method_value_mappings(iface_buf, s.method_name, s.param_count, s.value)
         else

@@ -97,6 +97,44 @@ describe("modules.java.mapstruct.reference_resolver", function()
         end)
     end)
 
+    describe("matched_segment_span", function()
+        -- Assert the [start, end) byte span (0-indexed, exclusive end) selects `expected`.
+        local function assert_span(line, names, expected)
+            local s, e = resolver.matched_segment_span(line, names)
+            assert.is_not_nil(s)
+            assert.are.equal(expected, line:sub(s + 1, e))
+        end
+
+        it("highlights the field on the source side", function()
+            assert_span('@Mapping(target = "fullName", source = "name")', { name = true }, "name")
+        end)
+
+        it("highlights the field on the target side when that is where it appears", function()
+            assert_span('@Mapping(target = "name", source = "firstName")', { name = true }, "name")
+        end)
+
+        it("highlights the matching leaf segment of a nested source path", function()
+            assert_span(
+                '@Mapping(target = "productName", source = "orders.first.items.product.name")',
+                { name = true },
+                "name"
+            )
+        end)
+
+        it("highlights an enum constant for a @ValueMapping", function()
+            assert_span('@ValueMapping(source = "NEW", target = "PENDING")', { NEW = true }, "NEW")
+        end)
+
+        it("returns nil when no quoted segment matches a name", function()
+            assert.is_nil(resolver.matched_segment_span('@Mapping(target = "x", source = "y")', { name = true }))
+        end)
+
+        it("does not match attribute keywords outside the quotes", function()
+            -- `source` / `target` are unquoted keywords; only the quoted values count.
+            assert.is_nil(resolver.matched_segment_span('@Mapping(target = "a", source = "b")', { source = true }))
+        end)
+    end)
+
     describe("property_sibling_names", function()
         it("derives the field + JavaBeans accessors from a bare property", function()
             local names = resolver.property_sibling_names("name")

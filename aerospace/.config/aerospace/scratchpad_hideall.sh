@@ -17,4 +17,4 @@ for app_name in "$@"; do
     fi
 done
 
-sketchybar --trigger scratchpad_update
+# sketchybar --trigger scratchpad_update

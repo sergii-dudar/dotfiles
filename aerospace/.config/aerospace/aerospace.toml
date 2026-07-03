@@ -198,10 +198,9 @@ alt-shift-r = ['mode resize', 'exec-and-forget /opt/homebrew/bin/sketchybar --tr
 #cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
 
 cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
-cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi "Google Chat"'
+cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.pommaclcbfghclhalboakcipcmmndhcj "Google Chat 1"'
 cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"'
 cmd-shift-u = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna "Monkeytype"'
-cmd-shift-v = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh "VimHero"'
 #cmd-shift-m = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music'
 
 # quick naviagation
@@ -325,7 +324,7 @@ run = "move-node-to-workspace 9"
 # Force float all the windows (or windows of a particular app)
 [[on-window-detected]]
 # if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
-if.app-id = 'com.brave.Browser.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
+if.app-id = 'com.brave.Browser.app.pommaclcbfghclhalboakcipcmmndhcj' # Goodle Chat
 run = 'layout floating'
 #run = ['layout floating', 'move-node-to-workspace 9']
 
@@ -334,14 +333,14 @@ run = 'layout floating'
 if.app-id = 'com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
 run = 'layout floating'
 
-[[on-window-detected]]
-if.app-id = 'com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh' # VimHero
-run = 'layout floating'
-
-[[on-window-detected]]
-# if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
-if.app-id = 'com.brave.Browser.app.hklfmmehghkmgpoombkhphgoebceokhg'
-run = 'layout floating'
+# [[on-window-detected]]
+# if.app-id = 'com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh' # VimHero
+# run = 'layout floating'
+#
+# [[on-window-detected]]
+# # if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
+# if.app-id = 'com.brave.Browser.app.hklfmmehghkmgpoombkhphgoebceokhg'
+# run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.iCal'

@@ -47,6 +47,6 @@ function main() {
         focus_app
         "$CONFIG_DIR/size_and_center_float.sh" "$APP_NAME"
     fi
-    sketchybar --trigger scratchpad_update
+    # sketchybar --trigger scratchpad_update
 }
 main
