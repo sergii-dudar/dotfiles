@@ -105,19 +105,29 @@ local function find_fluent(line, esc)
     return c and c - 1 or nil
 end
 
---- Enum constant: bare name followed by `,` `;` `(` `)` — matches `NEW,` / `NEW;` /
---- `NEW(args)`. Only used when the attribute is an enum, so this never over-matches a
---- word buried inside a qualified name in ordinary types.
+--- Enum constant: a word-bounded name that is NOT part of a qualified name (`Foo.NEW`).
+--- Enum declarations end in a delimiter (`,` `;` `(` `{`), whitespace/comment, OR end of
+--- line — the last constant has no trailing comma (`… DELIVERED,` then `CANCELLED` then
+--- `}`), so we accept any following char except `.` rather than requiring a delimiter.
+--- Only used when the attribute type is an actual enum, so matching a bare UPPER_CASE
+--- token is safe (enum bodies declare constants before members).
 ---@param line string
 ---@param esc string vim.pesc'd member name
 ---@return integer|nil col 0-indexed
 local function find_enum_const(line, esc)
-    local c = line:find('[^"]%f[%w_]' .. esc .. "%f[^%w_]%s*[,;()]")
-    if c then
-        local name_start = line:find(esc, c)
-        return name_start and name_start - 1 or c - 1
+    local init = 1
+    while true do
+        local s, e = line:find("%f[%w_]" .. esc .. "%f[^%w_]", init)
+        if not s then
+            return nil
+        end
+        -- Skip qualified-name occurrences (`Status.CANCELLED.name()`); a constant
+        -- declaration is never immediately followed by a dot.
+        if line:sub(e + 1, e + 1) ~= "." then
+            return s - 1
+        end
+        init = e + 1
     end
-    return nil
 end
 
 -- Find the line number of a field or method (getter/setter/builder) in a Java class.
@@ -383,6 +393,67 @@ local function erase_type_arguments(type_name)
     end
 
     return table.concat(result):gsub("%s+", "")
+end
+
+-- JDK / primitive value types MapStruct maps `@ValueMapping` to/from that are NOT enums.
+-- A @ValueMapping value against one of these is a plain literal (e.g. `target = "N/A"`),
+-- so there is no enum constant / member to navigate to — unlike an enum-to-enum mapping.
+-- Simple names, matched after erasing generics and array brackets.
+local DEFAULT_NON_ENUM_TYPES = {
+    String = true,
+    CharSequence = true,
+    Object = true,
+    Number = true,
+    Integer = true,
+    Long = true,
+    Short = true,
+    Byte = true,
+    Double = true,
+    Float = true,
+    Boolean = true,
+    Character = true,
+    BigDecimal = true,
+    BigInteger = true,
+    -- primitives
+    ["int"] = true,
+    ["long"] = true,
+    ["short"] = true,
+    ["byte"] = true,
+    ["double"] = true,
+    ["float"] = true,
+    ["boolean"] = true,
+    ["char"] = true,
+}
+
+--- Whether a type is a default (non-enum) value type — String / Integer / primitive / etc.
+--- Used to skip the enum-constant goto for a @ValueMapping value whose type is not an enum.
+---@param type_name string|nil
+---@return boolean
+local function is_default_non_enum_type(type_name)
+    local erased = erase_type_arguments(type_name)
+    if not erased or erased == "" then
+        return false
+    end
+    erased = erased:gsub("%[%]$", "")
+    local simple = erased:match("[^%.%$]+$") or erased
+    return DEFAULT_NON_ENUM_TYPES[simple] == true
+end
+
+--- The type a @ValueMapping value refers to, for the attribute side under the cursor:
+--- `target` → the target type; `source` → the (single) source parameter's type.
+---@param ctx table|nil completion context value
+---@return string|nil
+local function value_mapping_type(ctx)
+    if not ctx then
+        return nil
+    end
+    if ctx.attribute_type == "target" then
+        return ctx.class_name
+    end
+    if ctx.attribute_type == "source" and ctx.sources and ctx.sources[1] then
+        return ctx.sources[1].type
+    end
+    return nil
 end
 
 --- Return source root when path is exactly a direct method-parameter object path.
@@ -659,6 +730,17 @@ function M.goto_path_item_definitions(opts)
                 is_enum = context_result.value.is_enum,
             }
         or nil
+
+    -- A @ValueMapping whose type is a default (non-enum) type — String/Integer/… — has a
+    -- literal value, not an enum constant, so there is nothing to navigate to. Skip the
+    -- (otherwise nonsensical) member search entirely.
+    if pref and pref.is_enum and is_default_non_enum_type(value_mapping_type(context_result.value)) then
+        vim.notify(
+            "[MapStruct] @ValueMapping value maps to a non-enum type; no definition to open",
+            vim.log.levels.INFO
+        )
+        return
+    end
 
     if not current_path.path then
         if
