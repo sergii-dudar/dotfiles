@@ -46,6 +46,27 @@ function M.snippets()
             t({ "throw new NotImplementedException();" }),
         }),
         s({
+            trig = "@sunused",
+            dscr = '@SuppressWarnings("unused")',
+            docstring = '@SuppressWarnings("unused")',
+        }, {
+            t('@SuppressWarnings("unused")'),
+        }),
+        s({
+            trig = "@sdeprecated",
+            dscr = '@SuppressWarnings("deprecation")',
+            docstring = '@SuppressWarnings("deprecation")',
+        }, {
+            t('@SuppressWarnings("deprecation")'),
+        }),
+        s({
+            trig = "@sunchecked",
+            dscr = '@SuppressWarnings("unchecked")',
+            docstring = '@SuppressWarnings("unchecked")',
+        }, {
+            t('@SuppressWarnings("unchecked")'),
+        }),
+        s({
             trig = "buildsnip",
             dscr = "Type.builder().<methods>.build();",
             docstring = "Type.builder().$1.build();",
