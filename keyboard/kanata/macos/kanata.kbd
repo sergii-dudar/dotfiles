@@ -90,6 +90,8 @@
 
   ;; Modifiers
   mlctl (multi lctl (layer-while-held l_ctl))
+  mlalt (multi lalt (layer-while-held l_alt))
+  
 
   ;; --- Homee row monds ---
   ma (tap-hold-release-keys $tap-time $hold-pinky (multi a @tap) @mlctl $left-hand-keys)
@@ -163,7 +165,7 @@
       tab    q    w    e    r   @mt   y    u    i    o    p    [    ]    \       del  end  @mralt
      @mcaps  @ma @ms   @md @mf   g    h    @mj  @mk  @ml  @m;  '         enter
       lsft   @mz  x    c    v    b    n    m    ,    .    @m/            rsft          ▲
-     @mlctl  lalt lmet             spc                    @mralt  rmet   rctl     ◀    ▼    ▶
+     @mlctl @mlalt lmet             spc                    @mralt  rmet   rctl     ◀    ▼    ▶
 )
 
 ;; --- Layer: Nomods (No mods layout, to advanced home row monds connfig) ---
@@ -255,23 +257,23 @@
 (deflayer l_ctl
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _   @mpdvd @mpds @mpdvi  ;;NUM
-   _     _     _     _     _     _     _     _     _     _     _     _     _     _   @mpdp  @mpdt @mpdn   ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _  (unmod volu)    (unmod mute)     _  ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _  (unmod voldwn)   _     _   ;;Q
    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
 ;;   _     _     _     _     _     _ (unmod ◀) (unmod ▼) (unmod ▲) (unmod ▶) _    _            _            ;;Z
    _     _     _     _     _     _     _     _     _     _                 _    _            _            ;;Z
    _     _     _                             _                       _     _     _    (unmod ◀◀)   (unmod ▶⏸)    (unmod ▶▶)     ;;MOD
 )
 
-;; (deflayer l_alt
-;;    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
-;;    _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
-;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
-;;    _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
-;;    _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
-;;    _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
-;;    _     _     _                             _                       _     _     _    @mpdvd _     @mpdvi ;;MOD
-;; )
+(deflayer l_alt
+   ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
+   _     _     _     _     _        _     _     _     _        _     _     _     _     _     _     _      ;;F1
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;NUM
+   _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _     _      ;;Q
+   _     _     _     _     _     _     _     _     _     _     _     _           _                        ;;A
+   _     _     _     _     _     _     _     _     _     _     _                 _           _            ;;Z
+   _     _     _                             _                       _     _     _ (unmod voldwn) (unmod mute) (unmod volu) ;;MOD
+)
 
 ;; --- TEMPLATES --- 
 ;; All transparent
