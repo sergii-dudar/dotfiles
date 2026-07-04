@@ -229,9 +229,13 @@ end
 
 --- Walk from a reference/call-site up to the enclosing `@Override` mapping method(s),
 --- collecting descriptors. A property `@Mapping` reference yields `{ …, sink }`; a
---- `@ValueMapping` enum-switch reference yields `{ …, value }`. A helper defers to its
---- callers; when the current statement is itself a sink (nested-target sub-helper), its
---- (leaf) property overrides the sink carried up from the caller.
+--- `@ValueMapping` enum-switch reference yields `{ …, value }`; a reference with no setter
+--- sink and no enum value (e.g. inside a `conditionExpression` guard or another
+--- `expression`) yields a method-only `{ method_name, param_count }` descriptor, so the
+--- caller can still match that method's `expression` / `conditionExpression` /
+--- `defaultExpression` attributes. A helper defers to its callers; when the current
+--- statement is itself a sink (nested-target sub-helper), its (leaf) property overrides
+--- the sink carried up from the caller.
 ---@param buf integer
 ---@param buf_lines string[]
 ---@param row integer
@@ -258,7 +262,11 @@ local function resolve(buf, buf_lines, row, col, visited, depth)
         if value then
             return { { method_name = info.name, param_count = info.param_count, value = value } }
         end
-        return {}
+        -- No sink and no enum value: the field is used somewhere other than a target
+        -- setter (typically inside a `conditionExpression` / `expression` `java(…)` guard,
+        -- which compiles to an `if (…)` rather than an assignment). Return a method-only
+        -- descriptor so the caller can match this method's expression-family attributes.
+        return { { method_name = info.name, param_count = info.param_count } }
     end
 
     if depth <= 0 or visited[info.name] then
@@ -466,10 +474,74 @@ function M.find_method_value_mappings(iface_buf, method_name, param_count, value
     return results
 end
 
+--- Whether a line carries a MapStruct expression-family attribute: `expression`,
+--- `conditionExpression`, or `defaultExpression` (all end in `Expression` / are
+--- `expression`). These hold embedded `java(…)` code that JDTLS treats as an opaque
+--- string, so field usages inside them are invisible to native references.
+---@param line string
+---@return boolean
+function M.is_expression_attribute_line(line)
+    return line:find("[Ee]xpression%s*=") ~= nil
+end
+
+--- Interface `@Mapping` declarations on `method_name`/`param_count` whose expression-family
+--- attribute (`expression` / `conditionExpression` / `defaultExpression`) references one of
+--- `names` (the field + its accessors) — e.g. `conditionExpression = "java(x.getType() …)"`.
+--- Reached via a method-only descriptor (a reference with no target sink). The annotation
+--- may span several lines, so we scan its full row range and emit the specific line that
+--- carries the expression attribute and the matched token (multi-line @Mapping is common
+--- for these). Matching is scoped to expression lines, so a plain `source`/`target` value
+--- with the same name is not mistaken for an expression usage.
+---@param iface_buf integer
+---@param method_name string
+---@param param_count integer
+---@param names? table<string, boolean>
+---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
+function M.find_method_expression_mappings(iface_buf, method_name, param_count, names)
+    local results = {}
+    if not names then
+        return results
+    end
+
+    for _, method in ipairs(all_methods(iface_buf)) do
+        if name_text(method, iface_buf) == method_name and count_params(method) == param_count then
+            for c in method:iter_children() do
+                if c:type() == "modifiers" then
+                    for ann in c:iter_children() do
+                        if ann:type() == "annotation" and name_text(ann, iface_buf) == "Mapping" then
+                            local srow, _ = ann:start()
+                            local erow, _ = ann:end_()
+                            local lines = vim.api.nvim_buf_get_lines(iface_buf, srow, erow + 1, false)
+                            for offset, line in ipairs(lines) do
+                                if M.is_expression_attribute_line(line) then
+                                    local hl_start, hl_end = M.matched_segment_span(line, names)
+                                    if hl_start then
+                                        results[#results + 1] = {
+                                            lnum = srow + offset,
+                                            col = hl_start,
+                                            text = line:gsub("^%s+", ""),
+                                            hl_start = hl_start,
+                                            hl_end = hl_end,
+                                        }
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return results
+end
+
 --- Convenience: all interface `@Mapping` / `@ValueMapping` items for a list of resolved
 --- descriptors, deduplicated by line. Dispatches on the descriptor shape: a property
 --- `sink` matches `@Mapping(target ~ sink)`; an enum `value` matches
---- `@ValueMapping(source|target == value)`.
+--- `@ValueMapping(source|target == value)`; a method-only descriptor (neither) matches the
+--- method's `expression` / `conditionExpression` / `defaultExpression` attributes.
 ---@param iface_buf integer
 ---@param sinks { method_name: string, param_count: integer, sink?: string, value?: string }[]
 ---@param names? table<string, boolean> tokens to highlight in @Mapping lines (field + accessors)
@@ -482,6 +554,10 @@ function M.mappings_for_sinks(iface_buf, sinks, names)
             items = M.find_method_mappings(iface_buf, s.method_name, s.param_count, s.sink, names)
         elseif s.value then
             items = M.find_method_value_mappings(iface_buf, s.method_name, s.param_count, s.value)
+        elseif s.method_name then
+            -- Method-only descriptor: field used with no target sink (e.g. inside a
+            -- conditionExpression). Match this method's expression-family attributes.
+            items = M.find_method_expression_mappings(iface_buf, s.method_name, s.param_count, names)
         else
             items = {}
         end

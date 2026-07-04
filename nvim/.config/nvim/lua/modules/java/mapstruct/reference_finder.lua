@@ -23,6 +23,10 @@
 --   resolve the mapper type, gate on @Mapper, then keep only that method's
 --   @Mapping(target ~ sink). So `gr` on `Product.name` no longer drags in `Country.name`,
 --   `Department.name`, or a target-side `name` from unrelated methods.
+-- A reference with no target setter — a field used inside a `conditionExpression` /
+-- `expression` / `defaultExpression` `java(…)` block (which compiles to an `if (…)` guard,
+-- not an assignment) — resolves to a method-only descriptor, and we surface that method's
+-- @Mapping lines whose expression-family attribute mentions the field.
 --
 -- Presentation — a single SYNCHRONOUS finder over lists we own: @Mapping declarations
 -- on top, source references next, test references at the bottom (hidden by default,

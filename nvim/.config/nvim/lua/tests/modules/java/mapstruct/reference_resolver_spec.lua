@@ -135,6 +135,18 @@ describe("modules.java.mapstruct.reference_resolver", function()
         end)
     end)
 
+    describe("is_expression_attribute_line", function()
+        it("detects expression / conditionExpression / defaultExpression attributes", function()
+            assert.is_true(resolver.is_expression_attribute_line('@Mapping(target = "x", expression = "java(f())")'))
+            assert.is_true(resolver.is_expression_attribute_line('        conditionExpression = "java(a.b())")'))
+            assert.is_true(resolver.is_expression_attribute_line('    defaultExpression = "java(0)")'))
+        end)
+
+        it("does not match plain source / target lines", function()
+            assert.is_false(resolver.is_expression_attribute_line('@Mapping(target = "nm", source = "accountId")'))
+        end)
+    end)
+
     describe("property_sibling_names", function()
         it("derives the field + JavaBeans accessors from a bare property", function()
             local names = resolver.property_sibling_names("name")
