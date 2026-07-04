@@ -46,8 +46,10 @@ local KEYWORDS = {
     ["synchronized"] = true,
 }
 
--- Guard against pathological (or cyclic) helper graphs.
+-- Guard against pathological (or cyclic) helper graphs. Also the cap beyond which a
+-- deeply-nested mapping path can no longer be resolved (the caller notifies the user).
 local MAX_DEPTH = 8
+M.MAX_DEPTH = MAX_DEPTH
 
 --- Parse a buffer with the Java tree-sitter grammar and return its root node.
 ---@param buf integer
@@ -240,10 +242,10 @@ end
 ---@param buf_lines string[]
 ---@param row integer
 ---@param col integer
----@param visited table<string, boolean>
+---@param state { visited: table<string, boolean>, truncated: boolean } cycle guard + depth-cap flag
 ---@param depth integer
 ---@return { method_name: string, param_count: integer, sink?: string, value?: string }[]
-local function resolve(buf, buf_lines, row, col, visited, depth)
+local function resolve(buf, buf_lines, row, col, state, depth)
     local info = M.enclosing_method_info(buf, row, col)
     if not info then
         return {}
@@ -269,14 +271,20 @@ local function resolve(buf, buf_lines, row, col, visited, depth)
         return { { method_name = info.name, param_count = info.param_count } }
     end
 
-    if depth <= 0 or visited[info.name] then
+    -- Depth cap: a helper chain deeper than MAX_DEPTH can't be resolved. Flag it (the
+    -- caller surfaces a notice) so the miss is never silent, then stop this branch.
+    if depth <= 0 then
+        state.truncated = true
         return {}
     end
-    visited[info.name] = true
+    if state.visited[info.name] then
+        return {}
+    end
+    state.visited[info.name] = true
 
     local collected = {}
     for _, cs in ipairs(M.find_call_sites(buf, buf_lines, info.name)) do
-        for _, s in ipairs(resolve(buf, buf_lines, cs.row, cs.col, visited, depth - 1)) do
+        for _, s in ipairs(resolve(buf, buf_lines, cs.row, cs.col, state, depth - 1)) do
             collected[#collected + 1] = {
                 method_name = s.method_name,
                 param_count = s.param_count,
@@ -285,7 +293,7 @@ local function resolve(buf, buf_lines, row, col, visited, depth)
         end
     end
 
-    visited[info.name] = nil
+    state.visited[info.name] = nil
     return collected
 end
 
@@ -295,10 +303,12 @@ end
 ---@param buf integer
 ---@param row integer 0-indexed
 ---@param col integer 0-indexed
----@return { method_name: string, param_count: integer, sink?: string, value?: string }[]
+---@return { method_name: string, param_count: integer, sink?: string, value?: string }[] descriptors
+---@return boolean truncated whether the helper walk hit the MAX_DEPTH cap (results may be incomplete)
 function M.resolve_sinks(buf, row, col)
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-    local raw = resolve(buf, buf_lines, row, col, {}, MAX_DEPTH)
+    local state = { visited = {}, truncated = false }
+    local raw = resolve(buf, buf_lines, row, col, state, MAX_DEPTH)
 
     local seen, out = {}, {}
     for _, s in ipairs(raw) do
@@ -308,7 +318,7 @@ function M.resolve_sinks(buf, row, col)
             out[#out + 1] = s
         end
     end
-    return out
+    return out, state.truncated
 end
 
 --- Byte span (0-indexed start, exclusive end) of the searched token inside a
@@ -344,19 +354,24 @@ function M.matched_segment_span(line, names)
     end
 end
 
---- Whether a MapStruct target path's first or last segment equals the sink property.
---- (First covers a top-level setter feeding a nested target; last covers a nested-leaf
---- setter — e.g. `item.details.detailName` matched by `detailName`.)
+--- Whether the sink property is ANY dot-separated segment of a MapStruct target path.
+--- MapStruct compiles a nested target (`othr.schmeNm.prtry`) into one setter statement per
+--- level (via helper methods), so a reference to any level's setter — first (`othr`), last
+--- (`prtry`), OR an intermediate (`setSchmeNm`) — resolves to that level's property. Only
+--- checking the first/last segment missed the intermediate ones, so we match any segment.
+--- The sink is already type-precise (it comes from a real setter reference in the generated
+--- impl), which keeps this scoped to the resolved method rather than re-introducing the old
+--- whole-file over-matching.
 ---@param target string
 ---@param sink string
 ---@return boolean
 function M.target_matches(target, sink)
-    local first, last
     for seg in target:gmatch("[%w_$]+") do
-        first = first or seg
-        last = seg
+        if seg == sink then
+            return true
+        end
     end
-    return first == sink or last == sink
+    return false
 end
 
 --- All `method_declaration` nodes in a buffer (interface or abstract-class mapper).

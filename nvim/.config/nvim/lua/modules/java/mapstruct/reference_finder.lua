@@ -456,8 +456,19 @@ function M.find_references(opts)
         -- keep only the @Mapping lines its reference sinks point at.
         local mapping_items, seen_mapping = {}, {}
         local pending = #impl_uris
+        -- Set when a helper walk hit MAX_DEPTH: some deeply-nested mapping may be missing,
+        -- so we tell the user rather than silently dropping it.
+        local depth_truncated = false
 
         local function finish()
+            if depth_truncated then
+                vim.notify(
+                    ("[MapStruct] Some deeply-nested mappings may be missing (path nesting deeper than %d levels)"):format(
+                        reference_resolver.MAX_DEPTH
+                    ),
+                    vim.log.levels.WARN
+                )
+            end
             show(mapping_items, native_items)
         end
 
@@ -482,7 +493,9 @@ function M.find_references(opts)
             local sinks = {}
             if pos then
                 for _, ref in ipairs(impl_refs[impl_uri]) do
-                    vim.list_extend(sinks, reference_resolver.resolve_sinks(mbuf, ref.line, ref.character))
+                    local part, truncated = reference_resolver.resolve_sinks(mbuf, ref.line, ref.character)
+                    vim.list_extend(sinks, part)
+                    depth_truncated = depth_truncated or truncated
                 end
             end
 

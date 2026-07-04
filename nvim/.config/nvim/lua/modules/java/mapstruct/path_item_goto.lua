@@ -558,38 +558,65 @@ local function navigate_to_direct_source_field(current_path, completion_ctx, opt
     return true
 end
 
---- Find a method parameter declaration near the mapping annotation.
+--- Identifier node naming a formal parameter (its `name` field, else the last identifier
+--- child — a parameter's name is the trailing identifier after its type).
+---@param param TSNode
+---@return TSNode|nil
+local function parameter_name_node(param)
+    local named = param:field("name")[1]
+    if named then
+        return named
+    end
+    local last
+    for child in param:iter_children() do
+        if child:type() == "identifier" then
+            last = child
+        end
+    end
+    return last
+end
+
+--- Find the declaration of a method parameter named `param_name` on the method whose
+--- annotations/signature enclose the cursor. Treesitter-based (walk up to the enclosing
+--- `method_declaration`, then scan its `formal_parameters`) so it is immune to the `(`
+--- inside a multi-line annotation's `conditionExpression = "java(…)"` — a plain forward
+--- text scan mistakes that paren for the parameter list and lands on the field named
+--- inside the expression instead of the real parameter.
 ---@param bufnr integer
 ---@param param_name string
----@param start_row integer
----@return integer|nil line_num
----@return integer|nil col
-local function find_method_parameter_position(bufnr, param_name, start_row)
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local max_line = math.min(#lines, start_row + 80)
-    local in_parameter_list = false
-    local escaped_name = vim.pesc(param_name)
+---@param row integer 0-indexed cursor row (inside the annotation)
+---@param col integer 0-indexed cursor col
+---@return integer|nil line_num 1-indexed
+---@return integer|nil col 0-indexed
+local function find_method_parameter_position(bufnr, param_name, row, col)
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    if not ok or not parser then
+        return nil, nil
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return nil, nil
+    end
 
-    for line_num = start_row + 1, max_line do
-        local line = lines[line_num] or ""
-        local search_start = 1
+    local node = tree:root():named_descendant_for_range(row, col, row, col)
+    while node and node:type() ~= "method_declaration" and node:type() ~= "constructor_declaration" do
+        node = node:parent()
+    end
+    if not node then
+        return nil, nil
+    end
 
-        if not in_parameter_list and not line:match("^%s*@") then
-            local open_paren = line:find("%(")
-            if open_paren then
-                in_parameter_list = true
-                search_start = open_paren + 1
-            end
-        end
-
-        if in_parameter_list then
-            local col = line:find("%f[%w_]" .. escaped_name .. "%f[^%w_]", search_start)
-            if col then
-                return line_num, col - 1
-            end
-
-            if line:find("%)") then
-                break
+    for child in node:iter_children() do
+        if child:type() == "formal_parameters" then
+            for param in child:iter_children() do
+                local pt = param:type()
+                if pt == "formal_parameter" or pt == "spread_parameter" then
+                    local name_node = parameter_name_node(param)
+                    if name_node and vim.treesitter.get_node_text(name_node, bufnr) == param_name then
+                        local nrow, ncol = name_node:start()
+                        return nrow + 1, ncol
+                    end
+                end
             end
         end
     end
@@ -598,13 +625,14 @@ local function find_method_parameter_position(bufnr, param_name, start_row)
 end
 
 --- Jump to the declaration of a source method parameter.
----@param params { bufnr?: integer, row?: integer }
+---@param params { bufnr?: integer, row?: integer, col?: integer }
 ---@param param_name string
 ---@return boolean
 local function navigate_to_source_parameter(params, param_name)
     local bufnr = params.bufnr or vim.api.nvim_get_current_buf()
     local start_row = params.row or (vim.api.nvim_win_get_cursor(0)[1] - 1)
-    local line_num, col = find_method_parameter_position(bufnr, param_name, start_row)
+    local start_col = params.col or vim.api.nvim_win_get_cursor(0)[2]
+    local line_num, col = find_method_parameter_position(bufnr, param_name, start_row, start_col)
 
     if not line_num then
         return false

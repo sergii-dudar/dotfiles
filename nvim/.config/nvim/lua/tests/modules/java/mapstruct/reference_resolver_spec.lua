@@ -90,6 +90,12 @@ describe("modules.java.mapstruct.reference_resolver", function()
             assert.is_true(resolver.target_matches("item.details.detailName", "detailName"))
         end)
 
+        it("matches on a middle segment (nested intermediate setter)", function()
+            -- `gr` on setSchmeNm must find @Mapping(target = "othr.schmeNm.prtry", …).
+            assert.is_true(resolver.target_matches("othr.schmeNm.prtry", "schmeNm"))
+            assert.is_true(resolver.target_matches("othr.id", "othr"))
+        end)
+
         it("does not match an unrelated target — the crux of the type-precision fix", function()
             -- `gr` on `name` must NOT surface `@Mapping(target = "fullName", source = "name")`.
             assert.is_false(resolver.target_matches("fullName", "name"))

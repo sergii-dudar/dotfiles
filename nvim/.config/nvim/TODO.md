@@ -40,3 +40,7 @@
      improve java-trace*.lua functionality
      cover utilities and modules where possible with unit tests
      jdtls, ability to go directly in file defided in static variable like .expectedEnvelopeXml(XPathUtil.builder(XML_ENVELOPE_ECB_PASS)
+
+      investigate issue with duplicated diagnostics with jdtls (looks after jdtls recovery)
+      continue testings mapstruct gr\gd
+      add lua snippets for java suppress warnings (unuded, deprecated, unchecked)
