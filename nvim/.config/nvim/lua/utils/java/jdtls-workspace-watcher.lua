@@ -64,7 +64,7 @@ local function client_java_buffer(client, preferred_bufnr)
         return preferred_bufnr
     end
 
-    for _, bufnr in ipairs(vim.lsp.get_buffers_by_client_id(client.id)) do
+    for bufnr in pairs(client.attached_buffers) do
         if
             vim.api.nvim_buf_is_valid(bufnr)
             and vim.api.nvim_buf_is_loaded(bufnr)
@@ -112,11 +112,7 @@ local function update_client_projects_config(client, bufnr, done)
             end, projects),
         }
         local notify_ok, notify_err = pcall(function()
-            if vim.fn.has("nvim-0.11") == 1 then
-                client:notify("java/projectConfigurationsUpdate", params)
-            else
-                client.notify("java/projectConfigurationsUpdate", params)
-            end
+            client:notify("java/projectConfigurationsUpdate", params)
         end)
         if not notify_ok then
             log.fmt_warn("client_id=%d project config notify failed: %s", client.id, tostring(notify_err))
@@ -203,6 +199,7 @@ function M.setup(client, bufnr)
     if client._patched_workspace_watcher then
         return
     end
+    ---@diagnostic disable-next-line: inject-field
     client._patched_workspace_watcher = true
 
     local recovery_reason = current_recovery_reason()
@@ -219,7 +216,7 @@ function M.setup(client, bufnr)
     local config_refresh_sent = false
     local recovery_build_sent = false
     local timer_closed = false
-    local idle_timer = vim.uv.new_timer()
+    local idle_timer = assert(vim.uv.new_timer())
 
     local on_idle
 

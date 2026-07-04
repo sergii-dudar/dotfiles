@@ -123,6 +123,7 @@ end
 
 ---@param symbol string
 ---@return { fqn: string } | nil
+---@diagnostic disable-next-line: unused-function
 local jdt_load_workspace_symbol_inner_sync = function(symbol)
     -- Request LSP to find the symbol
     local jdtls_client = lsp_util.get_client_by_name("jdtls")
@@ -694,7 +695,7 @@ function M.open_fqn_under_cursor()
 end
 
 --- Open class by FQN extracted from the current line, with a custom handler receiving the LSP result.
---- @param handler function(result) called with the workspace/symbol result after resolution
+--- @param handler? fun(result: any) called with the workspace/symbol result after resolution
 -- lua require("utils.java.jdtls-util").open_fqn_under_cursor_with_handler(function(r) dd(r) end)
 function M.open_fqn_under_cursor_with_handler(handler)
     local line = vim.api.nvim_get_current_line()
