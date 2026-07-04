@@ -116,7 +116,15 @@ return {
             -- you must run “:JdtUpdateConfig” so the Java LSP can download the new dependencies.
             -- { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
             { "<leader>jdu", function()
-                require("jdtls").update_project_config()
+                -- jdtls' update_project_config() sends the deprecated singular
+                -- `java/projectConfigurationUpdate` as an LSP *request*, but the server
+                -- implements it as a @JsonNotification -> newer lsp4j throws
+                -- "Local endpoint returned null from its request method". Send the
+                -- non-deprecated plural method as a notification, scoped to this buffer.
+                local client = require("utils.lsp-util").get_client_by_name("jdtls", { bufnr = 0 })
+                if client then
+                    client:notify("java/projectConfigurationsUpdate", { identifiers = { { uri = vim.uri_from_bufnr(0) } } })
+                end
                 require("modules.java.dependencies-search").reset()
             end, desc = "JDTLS Update Config [module of current buf]" },
             { "<leader>jdU", function()
