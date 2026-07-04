@@ -22,6 +22,7 @@ A custom completion source for [blink.cmp](https://github.com/saghen/blink.cmp) 
 The completion menu shows comprehensive information about each field:
 
 **Source Completions** (showing getters):
+
 ```
  firstName   String      Getter     [MS]
  address     Address     Getter     [MS]
@@ -29,6 +30,7 @@ The completion menu shows comprehensive information about each field:
 ```
 
 **Target Completions** (showing setters):
+
 ```
  setName     String      Setter     [MS]
  setAge      int         Setter     [MS]
@@ -36,6 +38,7 @@ The completion menu shows comprehensive information about each field:
 ```
 
 **Multi-parameter Mapper** (showing parameters):
+
 ```
  person      Person      Parameter  [MS]
  order       Order       Parameter  [MS]
@@ -118,6 +121,7 @@ mapstruct = {
 ### Basic Examples
 
 **Source Mapping** - Shows getters and fields:
+
 ```java
 @Mapper
 public interface UserMapper {
@@ -129,6 +133,7 @@ public interface UserMapper {
 ```
 
 **Target Mapping** - Shows setters and fields:
+
 ```java
 @Mapper
 public interface UserMapper {
@@ -139,6 +144,7 @@ public interface UserMapper {
 ```
 
 **Multi-parameter Mapper** - Shows parameter names first:
+
 ```java
 @Mapper
 public interface PersonMapper {
@@ -151,6 +157,7 @@ public interface PersonMapper {
 ```
 
 **@MappingTarget Support** - Handles void methods:
+
 ```java
 @Mapper
 public interface UserMapper {
@@ -182,26 +189,26 @@ vim.keymap.set('n', '<leader>mp', ':MapStructPing<CR>', { desc = 'MapStruct: Pin
 ## How It Works
 
 1. **jdtls Readiness Check**: Before starting the server, checks if jdtls is fully initialized and can provide classpath
-   - If jdtls is not ready, shows a warning and does NOT start the server
-   - User can try completion again after jdtls initializes (typically 5-15 seconds after opening Neovim)
-   - This prevents starting with incomplete classpath that would cause ClassNotFoundException
+    - If jdtls is not ready, shows a warning and does NOT start the server
+    - User can try completion again after jdtls initializes (typically 5-15 seconds after opening Neovim)
+    - This prevents starting with incomplete classpath that would cause ClassNotFoundException
 2. **Server Startup**: Starts Java IPC server with complete classpath from jdtls (all modules and dependencies)
 3. **Trigger**: When you type a dot (`.`) or any letter in a Java file within a MapStruct annotation
 4. **Context Detection**: Treesitter parses the Java AST to check if you're in a `@Mapping` or `@ValueMapping` annotation
 5. **Attribute Type Detection**: Determines if you're in `source`, `target`, or enum value context
 6. **Parameter Resolution**:
-   - For source mappings: Extracts all method parameters (excluding `@MappingTarget`)
-   - For target mappings: Uses method return type or `@MappingTarget` parameter type for void methods
-   - For multi-parameter mappers: Collects all source parameter names and types
+    - For source mappings: Extracts all method parameters (excluding `@MappingTarget`)
+    - For target mappings: Uses method return type or `@MappingTarget` parameter type for void methods
+    - For multi-parameter mappers: Collects all source parameter names and types
 7. **Path Extraction**: Determines what path you've typed so far (e.g., `person.address.`)
 8. **Server Request**: Sends IPC request with:
-   - Source parameters with names and fully qualified types
-   - Path expression
-   - Whether it's an enum value mapping
+    - Source parameters with names and fully qualified types
+    - Path expression
+    - Whether it's an enum value mapping
 9. **Response**: Server uses reflection to:
-   - Navigate through the object graph following the path
-   - Return appropriate members: getters for source, setters for target, parameters for empty multi-param paths
-   - Apply automatic GETTER→SETTER conversion for target context
+    - Navigate through the object graph following the path
+    - Return appropriate members: getters for source, setters for target, parameters for empty multi-param paths
+    - Apply automatic GETTER→SETTER conversion for target context
 10. **Auto-reconnection**: If server stops due to inactivity, automatically restarts on next completion request
 11. **Display**: Converts to blink.cmp format with appropriate icons and kind labels
 
@@ -231,8 +238,8 @@ opts = {
 ### No completions appearing
 
 1. **Check jdtls status first**: Run `:MapStructStatus` to see if jdtls is ready
-   - If "jdtls Ready: false", wait a few seconds for jdtls to initialize
-   - Try completion again after jdtls shows as ready
+    - If "jdtls Ready: false", wait a few seconds for jdtls to initialize
+    - Try completion again after jdtls shows as ready
 2. Check server status in the same `:MapStructStatus` output
 3. Verify jar path is correct in config
 4. Ensure you're in a `@Mapping` annotation
@@ -268,17 +275,17 @@ opts = {
 This happens when the server starts with incomplete classpath:
 
 1. **Most common cause**: Server started before jdtls was ready
-   - Solution: Wait for jdtls to initialize, then restart: `:MapStructRestart`
-   - The plugin now prevents this by refusing to start without jdtls
+    - Solution: Wait for jdtls to initialize, then restart: `:MapStructRestart`
+    - The plugin now prevents this by refusing to start without jdtls
 
 2. **Multi-module projects**: Test classes in different modules
-   - Ensure jdtls has loaded all project modules
-   - Check `:MapStructStatus` shows jdtls as ready
-   - Restart server to get fresh classpath: `:MapStructRestart`
+    - Ensure jdtls has loaded all project modules
+    - Check `:MapStructStatus` shows jdtls as ready
+    - Restart server to get fresh classpath: `:MapStructRestart`
 
 3. **Project not compiled**: Classes don't exist yet
-   - Build your project: `mvn compile` or `./gradlew build`
-   - Restart server: `:MapStructRestart`
+    - Build your project: `mvn compile` or `./gradlew build`
+    - Restart server: `:MapStructRestart`
 
 ## Development
 
@@ -305,7 +312,7 @@ Enable debug logging in `server.lua` by changing `vim.log.levels.DEBUG` to `vim.
 
 ## Requirements
 
-- Neovim 0.11+
+- Neovim 0.12.3+
 - Java 25+ (for Unix domain socket support and SequencedCollection support)
 - `mfussenegger/nvim-jdtls` (for automatic classpath resolution)
 - `saghen/blink.cmp`

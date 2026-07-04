@@ -62,7 +62,7 @@ diagnose. Remove with `cd ~/dotfiles && stow -D nvim`.
 
 ### Requirements
 
-- **Neovim ≥ 0.10** (0.11+ recommended)
+- **Neovim ≥ 0.12.3**
 - `git`, [`ripgrep`](https://github.com/BurntSushi/ripgrep), [`fd`](https://github.com/sharkdp/fd), a **Nerd Font**, and a C compiler (for treesitter)
 - **GNU Stow**
 - Per-language toolchains as needed: a JDK (e.g. via SDKMAN) for Java, `rustup` for
