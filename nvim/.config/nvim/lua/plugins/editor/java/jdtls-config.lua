@@ -334,6 +334,15 @@ return {
                 require("utils.java.jdtls-recovery").restart("JdtRestart command")
             end
 
+            --- Wipe the workspace cache and restart through the recovery module so old
+            --- diagnostics are cleared. Shadows nvim-jdtls' :JdtWipeDataAndRestart, which
+            --- starts a new client (new id -> new diagnostic namespace) without resetting
+            --- the old one, causing duplicates to stack on every restart.
+            local function wipe_and_restart_jdtls_from_buffer_command()
+                vim.notify("JDTLS: wiping workspace cache and restarting...", vim.log.levels.INFO)
+                require("utils.java.jdtls-recovery").hard_restart("JdtWipeDataAndRestart command")
+            end
+
             vim.api.nvim_create_autocmd("LspAttach", {
                 callback = function(args)
                     local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -347,6 +356,15 @@ return {
                             restart_jdtls_from_buffer_command,
                             {
                                 desc = "Restart JDTLS and clear stale diagnostics",
+                                force = true,
+                            }
+                        )
+                        vim.api.nvim_buf_create_user_command(
+                            args.buf,
+                            "JdtWipeDataAndRestart",
+                            wipe_and_restart_jdtls_from_buffer_command,
+                            {
+                                desc = "Wipe JDTLS workspace cache and restart, clearing stale diagnostics",
                                 force = true,
                             }
                         )
