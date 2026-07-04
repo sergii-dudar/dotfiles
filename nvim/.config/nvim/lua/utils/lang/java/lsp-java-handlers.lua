@@ -14,6 +14,11 @@ local M = {}
 --- format checks after diagnostic publishes, and removes empty hover responses
 --- while normalizing jdtls markdown links.
 function M.setup()
+    if M._installed then
+        return
+    end
+    M._installed = true
+
     local original_publish = vim.lsp.diagnostic.on_publish_diagnostics
     java_format_checker.setup()
     vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)

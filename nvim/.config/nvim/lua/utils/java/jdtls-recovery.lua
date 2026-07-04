@@ -125,9 +125,47 @@ local function java_buffers()
     return bufs
 end
 
+--- Clear diagnostics published by the supplied JDTLS client namespaces.
+---
+--- Neovim keys each LSP client's diagnostics by client id
+--- (`nvim.lsp.jdtls.<id>` for push, `nvim.lsp.jdtls.<id>.<pull_id>` for pull).
+--- nvim-jdtls' `:JdtRestart` stops the old client and starts a new one with a
+--- fresh id, so the old namespace lingers with stale diagnostics and each
+--- restart stacks another duplicate. We reset the active clients' namespaces
+--- and sweep every orphaned jdtls namespace so accumulated duplicates are
+--- purged too.
+---@param clients vim.lsp.Client[]
+local function clear_jdtls_diagnostics(clients)
+    local cleared = {}
+
+    local function reset(namespace)
+        if namespace and not cleared[namespace] then
+            pcall(vim.diagnostic.reset, namespace)
+            cleared[namespace] = true
+        end
+    end
+
+    for _, client in ipairs(clients) do
+        local ok, namespace = pcall(vim.lsp.diagnostic.get_namespace, client.id)
+        if ok then
+            reset(namespace)
+        end
+    end
+
+    -- Sweep orphaned namespaces from previously-stopped clients. The pattern is
+    -- unanchored at the tail so it also catches pull-diagnostic namespaces
+    -- (`nvim.lsp.jdtls.<id>.<pull_id>`) should jdtls ever advertise them.
+    for name, namespace in pairs(vim.api.nvim_get_namespaces()) do
+        if name:match("^nvim%.lsp%.jdtls%.%d+") then
+            reset(namespace)
+        end
+    end
+end
+
 --- Request graceful stop for every active JDTLS client.
 local function request_stop_jdtls_clients()
     local clients = lsp_util.get_clients_by_name("jdtls")
+    clear_jdtls_diagnostics(clients)
     for _, client in ipairs(clients) do
         local ok, err = pcall(function()
             if client.stop then
@@ -365,6 +403,22 @@ local function restart_all_jdtls(reason)
     wait_for_clients_to_close(request_stop_jdtls_clients(), function()
         reattach_java_buffers(bufs, reason)
     end)
+end
+
+--- Restart all loaded JDTLS workspaces through the diagnostic-cleaning path.
+---@param reason? string
+function M.restart(reason)
+    state.recovering = false
+    state.last_action_at = 0
+    restart_all_jdtls(reason or "manual")
+end
+
+--- Hard-restart all loaded JDTLS workspaces through the diagnostic-cleaning path.
+---@param reason? string
+function M.hard_restart(reason)
+    state.recovering = false
+    state.last_action_at = 0
+    hard_restart_all_jdtls(reason or "manual")
 end
 
 local function probe_client(client, done)
@@ -834,10 +888,8 @@ function M.setup(attach_fn)
     })
 
     vim.api.nvim_create_user_command("JdtlsRestart", function()
-        state.recovering = false
-        state.last_action_at = 0
         vim.notify("JDTLS: restarting...", vim.log.levels.INFO)
-        restart_all_jdtls("manual")
+        M.restart("manual")
     end, { desc = "Force-restart JDTLS for all Java buffers" })
 
     vim.api.nvim_create_user_command("JdtlsHealthCheck", function()
@@ -971,7 +1023,7 @@ function M.setup(attach_fn)
     -- workspace re-index, ~30-90s) but bypasses any corruption in the cache
     -- that survives ordinary restarts.
     vim.api.nvim_create_user_command("JdtlsHardRestart", function()
-        hard_restart_all_jdtls("manual")
+        M.hard_restart("manual")
     end, { desc = "Wipe JDTLS workspace cache and restart (slow, fixes cache corruption)" })
 end
 

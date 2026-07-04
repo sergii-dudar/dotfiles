@@ -328,6 +328,12 @@ return {
             -- Setup keymap and dap after the lsp is fully attached.
             -- https://github.com/mfussenegger/nvim-jdtls#nvim-dap-configuration
             -- https://neovim.io/doc/user/lsp.html#LspAttach
+            --- Restart JDTLS through the recovery module so old diagnostics are cleared.
+            local function restart_jdtls_from_buffer_command()
+                vim.notify("JDTLS: restarting...", vim.log.levels.INFO)
+                require("utils.java.jdtls-recovery").restart("JdtRestart command")
+            end
+
             vim.api.nvim_create_autocmd("LspAttach", {
                 callback = function(args)
                     local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -335,6 +341,15 @@ return {
                         -- Auto-refresh project config once workspace settles, so APT-generated
                         -- sources (MapStruct impls etc.) wiped during m2e configure get regenerated.
                         require("utils.java.jdtls-workspace-watcher").setup(client, args.buf)
+                        vim.api.nvim_buf_create_user_command(
+                            args.buf,
+                            "JdtRestart",
+                            restart_jdtls_from_buffer_command,
+                            {
+                                desc = "Restart JDTLS and clear stale diagnostics",
+                                force = true,
+                            }
+                        )
                         local wk = require("which-key")
                         wk.add({
                             {
