@@ -3,6 +3,7 @@
 -- Add any additional keymaps here
 
 local map = LazyVim.safe_keymap_set
+local keymap_actions = require("utils.keymap-actions")
 
 --Clear highlights on search when pressing <Esc> in normal mode
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
@@ -105,16 +106,7 @@ map("n", "<C-W>,", "<cmd>vertical resize -20<cr>", { desc = "Decrease width", no
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 
-map("n", "<leader>??", function()
-    local path = vim.fn.glob("$HOME/.config/nvim/cheat_sheet/vim_cheat_sheet.md")
-    vim.cmd("sp " .. path)
-    vim.schedule(function()
-        local bufnr = vim.api.nvim_get_current_buf()
-        vim.keymap.set("n", "q", function()
-            vim.api.nvim_buf_delete(bufnr, { force = true })
-        end, { buffer = bufnr, desc = "Close" })
-    end)
-end, { desc = "Personal Vim Cheat Sheet" })
+map("n", "<leader>??", keymap_actions.open_personal_vim_cheat_sheet, { desc = "Personal Vim Cheat Sheet" })
 
 -- map("n", "<S-h>", "^", { desc = "Prev Buffer" })
 -- map("n", "<S-l>", "$", { desc = "Next Buffer" })
@@ -122,9 +114,8 @@ end, { desc = "Personal Vim Cheat Sheet" })
 -- Snacks
 Snacks.toggle.zen():map("<leader>zz")
 
-vim.keymap.set("n", "<leader>N", function()
-    Snacks.scratch({ name = "CWD Notes", ft = "txt" })
-end, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J to 6jzz
+-- stylua: ignore start
+vim.keymap.set( "n", "<leader>N", keymap_actions.open_cwd_scratch_notes, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J to 6jzz
 
 --move selected block
 --vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
@@ -134,31 +125,11 @@ end, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J
 --vim.keymap.set({ "n", "v" }, "<leader>y", "\"+yy")
 --vim.keymap.set("n", "<leader>Y", "\"+y")
 
---- Copy current buffer file path to the system clipboard.
-local function copy_file_path(path_modifier, label)
-    local absolute_path = vim.api.nvim_buf_get_name(0)
-    if absolute_path == "" then
-        vim.notify("No file path for current buffer", vim.log.levels.WARN)
-        return
-    end
-
-    local path = vim.fn.fnamemodify(absolute_path, path_modifier)
-    vim.fn.setreg("+", path)
-    vim.notify("Copied: " .. path, vim.log.levels.INFO)
-end
-
-local function copy_file_name(path_modifier)
-    local name = vim.fn.expand("%:t:r")
-    vim.fn.setreg("+", name)
-    vim.notify("Copied: " .. name, vim.log.levels.INFO)
-end
-
--- stylua: ignore start
-map("n", "<leader>yf", function() copy_file_path(":.", "relative") end, { desc = "Copy relative file path" })
-map("n", "<leader>yF", function() copy_file_path(":p", "absolute") end, { desc = "Copy absolute file path" })
-map("n", "<leader>yn", function() copy_file_name("%:t:r") end, { desc = "Copy file name without ext" })
-map("n", "<leader>yN", function() copy_file_name("%:t") end, { desc = "Copy file name" })
--- stylua: ignore end
+map("n", "<leader>yf", keymap_actions.copy_relative_file_path, { desc = "Copy relative file path" })
+map("n", "<leader>yF", keymap_actions.copy_absolute_file_path, { desc = "Copy absolute file path" })
+map("n", "<leader>yp", keymap_actions.copy_absolute_file_path_with_position, { desc = "Copy absolute file path with position" })
+map("n", "<leader>yn", keymap_actions.copy_file_name_without_ext, { desc = "Copy file name without ext" })
+map("n", "<leader>yN", keymap_actions.copy_file_name, { desc = "Copy file name" })
 
 --start replacing word under cursonr
 --vim.keymap.set("n", "<leader>r", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
@@ -182,35 +153,17 @@ vim.api.nvim_set_keymap("v", "<leader>R", [["hy:%s/\V<C-r>=escape(@h, '/\')<CR>/
 -- mouse horisontal scrolling
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelUp>", "5zh", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<S-ScrollWheelDown>", "5zl", { noremap = true, silent = true })
--- stylua: ignore end
 
 -- Open a search prompt prefilled with the clipboard, escaping "/" and "\" so e.g.
 -- "folke/noice.nvim" becomes "folke\/noice.nvim" and searches literally for the slash.
 -- (Terminal intercepts <C-v> as paste, so we prefill instead of mapping inside the prompt.)
-vim.keymap.set("n", "g/", function()
-    local text = vim.fn.escape((vim.fn.getreg("+"):gsub("\n", "")), "/\\")
-    vim.fn.feedkeys("/" .. text, "n")
-end, { desc = "Search clipboard (slash-escaped)" })
+vim.keymap.set("n", "g/", keymap_actions.search_clipboard, { desc = "Search clipboard (slash-escaped)" })
 
 ------------------------------------------------------------
 -------------- convert Java toString() to JSON -------------
 
-vim.keymap.set("v", "<leader>Cjj", function()
-    -- Exit visual mode to set '< '> marks
-    local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-    vim.api.nvim_feedkeys(esc, "x", false)
-    require("utils.java.java-tostring-parser").convert_selection(false)
-end, { desc = "Convert Java toString to JSON (replace)" })
-vim.keymap.set("v", "<leader>Cjy", function()
-    local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-    vim.api.nvim_feedkeys(esc, "x", false)
-    require("utils.java.java-tostring-parser").convert_selection(true)
-end, { desc = "Convert Java toString to JSON (clipboard)" })
-vim.keymap.set("n", "<leader>Cjn", function()
-    require("utils.json.normalize").normalize_buffer()
-end, { desc = "Convert json to normalized" })
-vim.keymap.set("v", "<leader>Cjn", function()
-    local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-    vim.api.nvim_feedkeys(esc, "x", false)
-    require("utils.json.normalize").normalize_selection()
-end, { desc = "Convert selected json to normalized" })
+vim.keymap.set("v", "<leader>Cjj", keymap_actions.convert_java_tostring_to_json_replace, { desc = "Convert Java toString to JSON (replace)" })
+vim.keymap.set("v", "<leader>Cjy", keymap_actions.convert_java_tostring_to_json_clipboard, { desc = "Convert Java toString to JSON (clipboard)" })
+vim.keymap.set("n", "<leader>Cjn", keymap_actions.normalize_json_buffer, { desc = "Convert json to normalized" })
+vim.keymap.set("v", "<leader>Cjn", keymap_actions.normalize_json_selection, { desc = "Convert selected json to normalized" })
+-- stylua: ignore end
