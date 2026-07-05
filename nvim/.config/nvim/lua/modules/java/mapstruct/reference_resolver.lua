@@ -190,6 +190,33 @@ function M.extract_sink_property(line)
     return M.bean_property(prop)
 end
 
+--- Which side of a `@Mapping` a generated-impl reference represents: a target *write*
+--- (the sink setter itself) or a source *read* (a getter to the right of the sink).
+--- MapStruct compiles `dto.setX( src.getY() )` — the leftmost `var.member` is the target
+--- sink, and anything to its right (inside the argument expression) is a source read. This
+--- only matters when target and source share a name (`@Mapping(target="iban", source="iban")`):
+--- a `gr` from the source-type member lands on `src.getIban()` (a source read → highlight
+--- `source`), while one from the target-type member lands on `dto.setIban(…)` (the sink →
+--- highlight `target`). The reference column decides: at/left-of the sink member ⇒ target,
+--- strictly to its right ⇒ source. Returns nil when the line has no leading `var.member`
+--- sink (builder/field-assign edge shapes), so the caller keeps its left-to-right default.
+---@param line string reference line (untrimmed)
+---@param col integer 0-indexed reference column
+---@return "source"|"target"|nil
+function M.reference_side(line, col)
+    local lead = #(line:match("^%s*") or "")
+    local var = line:sub(lead + 1):match("^([%w_]+)%.[%w_]+")
+    if not var or KEYWORDS[var] then
+        return nil
+    end
+    -- 0-indexed column of the sink member identifier, one past `var.`.
+    local member_col = lead + #var + 1
+    if col > member_col then
+        return "source"
+    end
+    return "target"
+end
+
 --- The enum constant a `@ValueMapping` reference points at, or nil when the line is not a
 --- generated switch arm. `@ValueMapping(target=…, source=…)` compiles to
 --- `case NEW: … = Type.PENDING;` — both the source (`case NEW`) and an enum target
@@ -244,7 +271,7 @@ end
 ---@param col integer
 ---@param state { visited: table<string, boolean>, truncated: boolean } cycle guard + depth-cap flag
 ---@param depth integer
----@return { method_name: string, param_count: integer, sink?: string, value?: string }[]
+---@return { method_name: string, param_count: integer, sink?: string, value?: string, side?: "source"|"target" }[]
 local function resolve(buf, buf_lines, row, col, state, depth)
     local info = M.enclosing_method_info(buf, row, col)
     if not info then
@@ -256,7 +283,16 @@ local function resolve(buf, buf_lines, row, col, state, depth)
 
     if info.is_override then
         if own_sink then
-            return { { method_name = info.name, param_count = info.param_count, sink = own_sink } }
+            -- `side` tells the caller which attribute (`source`/`target`) actually carries
+            -- the searched field, so a field present on BOTH highlights the searched side.
+            return {
+                {
+                    method_name = info.name,
+                    param_count = info.param_count,
+                    sink = own_sink,
+                    side = M.reference_side(line, col),
+                },
+            }
         end
         -- @ValueMapping: enum switch arms (`case NEW: … = Type.PENDING;`) have no setter
         -- sink; the enum constant under the cursor keys the @ValueMapping instead.
@@ -303,7 +339,7 @@ end
 ---@param buf integer
 ---@param row integer 0-indexed
 ---@param col integer 0-indexed
----@return { method_name: string, param_count: integer, sink?: string, value?: string }[] descriptors
+---@return { method_name: string, param_count: integer, sink?: string, value?: string, side?: "source"|"target" }[] descriptors
 ---@return boolean truncated whether the helper walk hit the MAX_DEPTH cap (results may be incomplete)
 function M.resolve_sinks(buf, row, col)
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -321,34 +357,78 @@ function M.resolve_sinks(buf, row, col)
     return out, state.truncated
 end
 
+--- First dot-separated segment in `names` inside the quoted value whose opening quote sits
+--- at 1-indexed line position `q_start`. Returns the 0-indexed [start, end) byte span of the
+--- matched segment, or nil.
+---@param line string
+---@param q_start integer 1-indexed position of the opening quote
+---@param names table<string, boolean>
+---@return integer? # 0-indexed start col
+---@return integer? # 0-indexed exclusive end col
+local function segment_in_quoted_value(line, q_start, names)
+    local q_end = line:find('"', q_start + 1)
+    if not q_end then
+        return nil
+    end
+    local value = line:sub(q_start + 1, q_end - 1)
+    -- `value`'s content starts at 0-indexed line column `q_start` (one past the opening
+    -- quote, whose 1-indexed position is `q_start`).
+    for s_start, seg, s_end in value:gmatch("()([%w_$]+)()") do
+        if names[seg] then
+            return q_start + s_start - 1, q_start + s_end - 1
+        end
+    end
+    return nil
+end
+
 --- Byte span (0-indexed start, exclusive end) of the searched token inside a
 --- `@Mapping` / `@ValueMapping` line, so the preview can highlight the exact word the way
 --- `Snacks.picker.lsp_references` highlights a symbol — not just the whole line. Only
 --- quoted `"…"` attribute values are scanned (attribute keywords and unquoted constant
 --- references are skipped); within a value we return the first dot-separated segment equal
---- to one of `names`. Scanning every quoted value means the highlight lands on whichever
---- side (`source` or `target`) actually carries the searched field. Returns nil when
---- nothing matches, so the caller falls back to a line-only highlight.
+--- to one of `names`.
+---
+--- When `prefer_attr` (`"source"` / `"target"`) is given, that attribute's quoted value is
+--- scanned FIRST. This decides the highlight when a field appears on both sides
+--- (`@Mapping(target="iban", source="iban")`): a `gr` from the source-type member passes
+--- `"source"` and lands on the source value, one from the target-type member passes
+--- `"target"`. If the preferred attribute is absent or doesn't contain the field, it falls
+--- back to the general left-to-right scan (so callers with no side info are unaffected).
+--- Returns nil when nothing matches, so the caller falls back to a line-only highlight.
 ---@param line string full (untrimmed) buffer line
 ---@param names table<string, boolean> tokens to highlight (field + accessors, or an enum constant)
+---@param prefer_attr? "source"|"target" attribute to try before the left-to-right scan
 ---@return integer? # 0-indexed start col
 ---@return integer? # 0-indexed exclusive end col
-function M.matched_segment_span(line, names)
+function M.matched_segment_span(line, names, prefer_attr)
     if not line or not names then
         return nil
     end
+
+    -- Preferred side first: locate `<attr> = "` and scan that value before anything else.
+    if prefer_attr then
+        local attr_at = line:find(prefer_attr .. '%s*=%s*"')
+        if attr_at then
+            local q_open = line:find('"', attr_at)
+            if q_open then
+                local hs, he = segment_in_quoted_value(line, q_open, names)
+                if hs then
+                    return hs, he
+                end
+            end
+        end
+    end
+
+    -- Fallback: first matching quoted value, left to right.
     local from = 1
     while true do
-        local q_start, q_end, value = line:find('"([^"]*)"', from)
+        local q_start, q_end = line:find('"[^"]*"', from)
         if not q_start then
             return nil
         end
-        -- `value`'s content starts at 0-indexed line column `q_start` (one past the
-        -- opening quote, whose 1-indexed position is `q_start`).
-        for s_start, seg, s_end in value:gmatch("()([%w_$]+)()") do
-            if names[seg] then
-                return q_start + s_start - 1, q_start + s_end - 1
-            end
+        local hs, he = segment_in_quoted_value(line, q_start, names)
+        if hs then
+            return hs, he
         end
         from = q_end + 1
     end
@@ -410,8 +490,9 @@ end
 ---@param param_count integer
 ---@param sink string
 ---@param names? table<string, boolean> tokens to highlight in the line (field + accessors)
+---@param side? "source"|"target" which attribute to prefer when the field is on both sides
 ---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
-function M.find_method_mappings(iface_buf, method_name, param_count, sink, names)
+function M.find_method_mappings(iface_buf, method_name, param_count, sink, names, side)
     local results = {}
 
     for _, method in ipairs(all_methods(iface_buf)) do
@@ -425,7 +506,7 @@ function M.find_method_mappings(iface_buf, method_name, param_count, sink, names
                             if target and M.target_matches(target, sink) then
                                 local srow, scol = ann:start()
                                 local line = vim.api.nvim_buf_get_lines(iface_buf, srow, srow + 1, false)[1]
-                                local hl_start, hl_end = M.matched_segment_span(line, names)
+                                local hl_start, hl_end = M.matched_segment_span(line, names, side)
                                 results[#results + 1] = {
                                     lnum = srow + 1,
                                     col = scol,
@@ -558,7 +639,7 @@ end
 --- `@ValueMapping(source|target == value)`; a method-only descriptor (neither) matches the
 --- method's `expression` / `conditionExpression` / `defaultExpression` attributes.
 ---@param iface_buf integer
----@param sinks { method_name: string, param_count: integer, sink?: string, value?: string }[]
+---@param sinks { method_name: string, param_count: integer, sink?: string, value?: string, side?: "source"|"target" }[]
 ---@param names? table<string, boolean> tokens to highlight in @Mapping lines (field + accessors)
 ---@return { lnum: integer, col: integer, text: string, hl_start?: integer, hl_end?: integer }[]
 function M.mappings_for_sinks(iface_buf, sinks, names)
@@ -566,7 +647,7 @@ function M.mappings_for_sinks(iface_buf, sinks, names)
     for _, s in ipairs(sinks) do
         local items
         if s.sink then
-            items = M.find_method_mappings(iface_buf, s.method_name, s.param_count, s.sink, names)
+            items = M.find_method_mappings(iface_buf, s.method_name, s.param_count, s.sink, names, s.side)
         elseif s.value then
             items = M.find_method_value_mappings(iface_buf, s.method_name, s.param_count, s.value)
         elseif s.method_name then

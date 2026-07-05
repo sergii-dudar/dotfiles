@@ -139,6 +139,53 @@ describe("modules.java.mapstruct.reference_resolver", function()
             -- `source` / `target` are unquoted keywords; only the quoted values count.
             assert.is_nil(resolver.matched_segment_span('@Mapping(target = "a", source = "b")', { source = true }))
         end)
+
+        it("prefers the source side when the field is on both sides", function()
+            -- `@Mapping(target="iban", source="iban")`: a source-side `gr` must land on the
+            -- SOURCE `iban`, not the leftmost (target) one.
+            local line = '@Mapping(target = "iban", source = "iban")'
+            local s = resolver.matched_segment_span(line, { iban = true }, "source")
+            assert.is_not_nil(s)
+            assert.is_true(s > line:find('source = "') - 1)
+        end)
+
+        it("prefers the target side when asked", function()
+            local line = '@Mapping(target = "iban", source = "iban")'
+            local s = resolver.matched_segment_span(line, { iban = true }, "target")
+            assert.is_not_nil(s)
+            -- The target value comes before the `source` attribute.
+            assert.is_true(s < line:find("source") - 1)
+        end)
+
+        it("falls back to the left-to-right scan when the preferred side lacks the field", function()
+            -- Source side asked for, but only the target carries the field.
+            assert_span('@Mapping(target = "name", source = "firstName")', { name = true }, "name")
+            local s = resolver.matched_segment_span(
+                '@Mapping(target = "name", source = "firstName")',
+                { name = true },
+                "source"
+            )
+            assert.is_not_nil(s)
+        end)
+    end)
+
+    describe("reference_side", function()
+        it("classifies a source read (getter right of the sink)", function()
+            -- `dto.setIban( src.getIban() )` — reference on `getIban` (col ~ 22) is a read.
+            local line = "        dto.setIban( src.getIban() );"
+            assert.are.equal("source", resolver.reference_side(line, line:find("getIban") - 1))
+        end)
+
+        it("classifies a target write (the sink setter itself)", function()
+            local line = "        dto.setIban( src.getIban() );"
+            -- Reference on the sink member `setIban`.
+            assert.are.equal("target", resolver.reference_side(line, line:find("setIban") - 1))
+        end)
+
+        it("returns nil when the line has no leading var.member sink", function()
+            assert.is_nil(resolver.reference_side("        return src.getIban();", 20))
+            assert.is_nil(resolver.reference_side("        // a comment", 5))
+        end)
     end)
 
     describe("is_expression_attribute_line", function()
