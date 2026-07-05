@@ -283,16 +283,7 @@ local function resolve(buf, buf_lines, row, col, state, depth)
 
     if info.is_override then
         if own_sink then
-            -- `side` tells the caller which attribute (`source`/`target`) actually carries
-            -- the searched field, so a field present on BOTH highlights the searched side.
-            return {
-                {
-                    method_name = info.name,
-                    param_count = info.param_count,
-                    sink = own_sink,
-                    side = M.reference_side(line, col),
-                },
-            }
+            return { { method_name = info.name, param_count = info.param_count, sink = own_sink } }
         end
         -- @ValueMapping: enum switch arms (`case NEW: … = Type.PENDING;`) have no setter
         -- sink; the enum constant under the cursor keys the @ValueMapping instead.
@@ -346,11 +337,22 @@ function M.resolve_sinks(buf, row, col)
     local state = { visited = {}, truncated = false }
     local raw = resolve(buf, buf_lines, row, col, state, MAX_DEPTH)
 
+    -- `side` is a property of THIS reference (a getter read ⇒ source, a setter write ⇒
+    -- target), read straight off the original reference line — NOT of the mapping method's
+    -- declared types. So it is independent of how deeply the `@Mapping` path is composed
+    -- (`target = "parent.parent.iban"`, `source = "parent.another.account.iban"`): whatever
+    -- intermediate type owns the leaf, the generated code still writes it via a setter and
+    -- reads it via a getter, and that role is what we key on. Computing it here (once, at the
+    -- top of the walk) rather than inside `resolve` also covers nested-target paths, whose
+    -- setter lands in a generated helper method the walk climbs through.
+    local side = M.reference_side(buf_lines[row + 1] or "", col)
+
     local seen, out = {}, {}
     for _, s in ipairs(raw) do
         local key = s.method_name .. "#" .. s.param_count .. "#" .. (s.sink or "") .. "#" .. (s.value or "")
         if not seen[key] then
             seen[key] = true
+            s.side = s.side or side
             out[#out + 1] = s
         end
     end

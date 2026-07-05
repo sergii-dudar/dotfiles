@@ -149,6 +149,16 @@ describe("modules.java.mapstruct.reference_resolver", function()
             assert.is_true(s > line:find('source = "') - 1)
         end)
 
+        it("prefers the source-side leaf of composed paths present on both sides", function()
+            -- Deeply-nested target AND source paths, `iban` the leaf of both. A source-side
+            -- `gr` must highlight the `iban` inside the SOURCE path, not the target one.
+            local line = '@Mapping(target = "parent.parent.parent.iban", source = "parent.another.account.iban")'
+            local s, e = resolver.matched_segment_span(line, { iban = true }, "source")
+            assert.is_not_nil(s)
+            assert.are.equal("iban", line:sub(s + 1, e))
+            assert.is_true(s > line:find('source = "') - 1)
+        end)
+
         it("prefers the target side when asked", function()
             local line = '@Mapping(target = "iban", source = "iban")'
             local s = resolver.matched_segment_span(line, { iban = true }, "target")
