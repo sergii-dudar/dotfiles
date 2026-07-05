@@ -40,6 +40,8 @@
 -- client / no symbol under the cursor.
 
 local lsp_util = require("utils.lsp-util")
+local java_ts = require("utils.java.java-ts-util")
+local picker_util = require("utils.snacks-pickers-util")
 local reference_resolver = require("modules.java.mapstruct.reference_resolver")
 local spinner = require("utils.ui.spinner")
 local logging_util = require("utils.logging-util")
@@ -319,6 +321,10 @@ local function open_picker(mapping_items, native_items)
             list = { keys = { ["<c-t>"] = { "toggle_tests", mode = { "n" }, desc = "Toggle test references" } } },
         },
         actions = {
+            -- A `@Mapping` / reference can live in a `jdt://` (decompiled library) mapper,
+            -- whose source loads asynchronously; keep the jump position honest so we don't
+            -- get parked on line 1 (see snacks-pickers-util.reposition_after_jump).
+            confirm = picker_util.confirm_with_reposition,
             -- Flip the session-persistent flag so the choice carries to later pickers.
             toggle_tests = function(picker)
                 M.settings.show_test_references = not M.settings.show_test_references
@@ -352,6 +358,15 @@ function M.find_references(opts)
 
     local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
     if not client or field_name == "" then
+        fallback()
+        return
+    end
+
+    -- `gr` on a *type* name (a class / record / interface / enum, or a reference to one)
+    -- carries no MapStruct meaning — `@Mapping` paths address members, not types — so a
+    -- type would otherwise drag in every mapper `@Mapping` line touching that type's fields.
+    -- Defer to the plain reference search instead of augmenting.
+    if java_ts.is_type_symbol_at(bufnr, row, col) then
         fallback()
         return
     end

@@ -1,5 +1,132 @@
 local M = {}
 
+---Re-assert a picker's jump position across a short settle window.
+---
+---Some LSP navigation targets open in buffers whose content arrives AFTER the window is
+---shown: `jdt://` decompiled Java (nvim-jdtls `BufReadCmd` -> `java/classFileContents`),
+---and equivalents in other languages/LSPs. When Snacks confirms such a result it opens
+---the buffer and immediately calls `nvim_win_set_cursor{lnum,col}`; if the line isn't
+---there yet the call is out of range ("Invalid cursor line: out of range") and the window
+---is left on line 1, with the source arriving a beat later. The same end state also shows
+---up on an already-loaded virtual buffer (the position gets clobbered after Snacks set
+---it). Ordinary on-disk files load synchronously and are unaffected.
+---
+---Rather than special-casing a scheme, this keeps the cursor honest by polling the
+---jumped-to window:
+---  • while the buffer is still shorter than `lnum` (source not in yet), it waits;
+---  • once the buffer holds the line but the cursor sits on line 1 — the signature of
+---    both the cold race (the out-of-range set left us at the top) and a late content
+---    replace (`nvim_buf_set_lines(0,-1)` snapping the cursor to the top) — it sets the
+---    cursor to the intended `item.pos` (column clamped to the line) and centers;
+---  • if the cursor is on any OTHER line, that is a deliberate move, so it bails rather
+---    than yank the user back.
+---For an ordinary on-disk file the cursor is already correct on the first tick, so it
+---stops immediately and never moves anything. For a virtual buffer (`buftype ~= ""`, e.g.
+---`jdt://`) it keeps a short watch so a late async replace still gets corrected. Bounded
+---and self-terminating, so it is safe to run for every confirm, in any language / project.
+---@param item snacks.picker.finder.Item|nil the item the picker navigated to
+function M.reposition_after_jump(item)
+    if not (item and item.pos and item.pos[1] and item.pos[1] >= 1) then
+        return
+    end
+    local lnum = item.pos[1]
+    local col = item.pos[2] or 0
+
+    local max_attempts = 30 -- ceiling ~ 30 * 40ms = 1.2s (well within jdt_uri_timeout_ms)
+    local interval_ms = 40
+
+    -- The buffer the jump opened for this item. Resolve by the same normalized path Snacks
+    -- used to `bufadd` it, falling back to the raw `item.file`. We locate the *target* by
+    -- buffer — NOT by whatever window happens to be focused when our timer fires: right
+    -- after a jump focus can momentarily sit on the explorer/other window, and pinning that
+    -- would make us abandon the real target. `bufnr()` does prefix matching, so confirm the
+    -- resolved buffer's name actually matches before trusting it.
+    local want = (Snacks and Snacks.picker and Snacks.picker.util.path(item)) or item.file
+    if not want then
+        return
+    end
+
+    ---Find a normal (non-floating) window currently displaying the target buffer.
+    ---@return integer? win, integer? buf
+    local function locate()
+        local buf = vim.fn.bufnr(want)
+        if buf == -1 then
+            buf = vim.fn.bufnr(item.file)
+        end
+        if buf == -1 or not vim.api.nvim_buf_is_valid(buf) then
+            return nil, nil
+        end
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name ~= want and name ~= item.file then
+            return nil, nil -- prefix-matched a different buffer; ignore
+        end
+        for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+            if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_config(win).relative == "" then
+                return win, buf
+            end
+        end
+        return nil, buf
+    end
+
+    local function set_cursor(win, buf)
+        local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
+        pcall(vim.api.nvim_win_set_cursor, win, { lnum, math.min(col, #line) })
+        vim.api.nvim_win_call(win, function()
+            vim.cmd("normal! zzzv")
+        end)
+    end
+
+    local function attempt(n)
+        local win, buf = locate()
+        if win and buf and vim.api.nvim_buf_line_count(buf) >= lnum then
+            local cur = vim.api.nvim_win_get_cursor(win)[1]
+            if cur == lnum then
+                -- Correctly placed. On-disk files can't be clobbered afterwards, so stop;
+                -- virtual buffers keep the watch (a late replace can still snap the cursor
+                -- to the top).
+                if vim.bo[buf].buftype == "" then
+                    return
+                end
+            elseif cur == 1 then
+                -- Cold race or late content replace parked us at the top: correct it.
+                set_cursor(win, buf)
+            else
+                -- Cursor is on some other line: a deliberate move. Leave it be.
+                return
+            end
+        end
+
+        if n >= max_attempts then
+            return
+        end
+        vim.defer_fn(function()
+            attempt(n + 1)
+        end, interval_ms)
+    end
+
+    -- Scheduled so it runs after Snacks' own jump (which may itself defer when leaving
+    -- insert mode).
+    vim.schedule(function()
+        attempt(1)
+    end)
+end
+
+---Snacks picker `confirm` action: run the builtin jump, then keep the cursor on the
+---intended position (see `reposition_after_jump`). Drop-in `confirm` override for LSP
+---navigation pickers and our MapStruct `gr` picker; language-agnostic. Captures the
+---navigated item before jumping (the picker may close during the jump).
+---@param picker snacks.Picker
+---@param item snacks.picker.finder.Item
+---@param action snacks.picker.Action
+function M.confirm_with_reposition(picker, item, action)
+    local ok, selected = pcall(function()
+        return picker:selected({ fallback = true })
+    end)
+    local target = (ok and selected and selected[1]) or item
+    Snacks.picker.actions.jump(picker, item, action)
+    M.reposition_after_jump(target)
+end
+
 ---Close the active picker and schedule another picker to open.
 ---@param picker snacks.Picker
 ---@param open fun()

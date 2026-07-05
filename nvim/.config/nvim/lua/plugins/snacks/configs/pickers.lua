@@ -8,6 +8,17 @@ local layouts = require("plugins.snacks.configs.layouts")
 local layout_vertical = { layout = layouts.custom_vertical }
 local picker_util = require("utils.snacks-pickers-util")
 
+-- Confirm action for the LSP navigation pickers. Some targets open in buffers whose
+-- content loads AFTER the window is shown — `jdt://` decompiled Java (nvim-jdtls
+-- BufReadCmd -> java/classFileContents) and equivalents in other LSPs — so Snacks' immediate
+-- `nvim_win_set_cursor` can fire before the target line exists ("Invalid cursor line: out
+-- of range"), leaving the window on line 1. This jumps, then keeps the cursor on the
+-- intended position over a short settle window (see snacks-pickers-util.reposition_after_jump).
+-- Language-agnostic and a no-op for ordinary on-disk files, so it also benefits non-Java
+-- projects. Fresh table per source (never mutate the shared `layout_vertical`).
+local lsp_nav =
+    vim.tbl_extend("force", layout_vertical, { actions = { confirm = picker_util.confirm_with_reposition } })
+
 ---Toggle between horizontal and vertical layouts.
 ---@param picker snacks.Picker
 local function toggle_layout(picker)
@@ -342,14 +353,14 @@ M.picker = {
         git_stash = layout_vertical,
         git_diff = layout_vertical,
         git_log_file = layout_vertical,
-        lsp_declarations = layout_vertical,
-        lsp_definitions = layout_vertical,
-        lsp_implementations = layout_vertical,
+        lsp_declarations = lsp_nav,
+        lsp_definitions = lsp_nav,
+        lsp_implementations = lsp_nav,
         lsp_incoming_calls = layout_vertical,
         lsp_outgoing_calls = layout_vertical,
-        lsp_references = layout_vertical,
+        lsp_references = lsp_nav,
         lsp_symbols = layout_vertical,
-        lsp_type_definitions = layout_vertical,
+        lsp_type_definitions = lsp_nav,
         lsp_workspace_symbols = layout_vertical,
         marks = layout_vertical,
         projects = {

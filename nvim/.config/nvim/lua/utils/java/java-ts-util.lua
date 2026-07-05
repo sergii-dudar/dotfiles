@@ -6,6 +6,7 @@
 -- • get_root_class_with_abstract — top-level class name + abstract
 -- • get_method_name_only — method name at cursor
 -- • get_enclosing_method_name_pos — method name pos + start row for a bufnr/position
+-- • is_type_symbol_at — symbol at a bufnr/position is a type name (not a member)
 -- • get_method_signature — method name with descriptor
 -- • get_full_method — package.Class.method
 -- • get_full_method_with_params — full method with parameter types
@@ -282,6 +283,57 @@ function M.get_enclosing_method_name_pos(bufnr, row, col)
     end
 
     return nil
+end
+
+-- ---------------------------------------------------------
+--  TYPE-SYMBOL DETECTION (gr gating)
+-- ---------------------------------------------------------
+-- Declaration node kinds whose `name` identifier denotes a *type*, not a member.
+local TYPE_DECLARATIONS = {
+    class_declaration = true,
+    interface_declaration = true,
+    enum_declaration = true,
+    record_declaration = true,
+    annotation_type_declaration = true,
+}
+
+--- Whether the symbol at a position denotes a Java *type* (a class / record / interface /
+--- enum / annotation name, or a reference to one) rather than a member (field / getter /
+--- setter / record accessor / parameter / local). MapStruct `@Mapping` paths address
+--- members only, so the MapStruct-aware `gr` skips its augmentation for types.
+--- Detects both a type *reference* (`type_identifier` / `scoped_type_identifier` — e.g. a
+--- parameter/return/field type or `new Foo()`) and a type *declaration name* (the
+--- `identifier` naming a class/record/interface/enum/annotation). Operates on an arbitrary
+--- buffer/position (the current model buffer where `gr` was invoked).
+---@param bufnr integer
+---@param row integer 0-indexed row
+---@param col integer 0-indexed column
+---@return boolean
+function M.is_type_symbol_at(bufnr, row, col)
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    if not ok or not parser then
+        return false
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return false
+    end
+    local node = tree:root():named_descendant_for_range(row, col, row, col)
+    if not node then
+        return false
+    end
+    local t = node:type()
+    if t == "type_identifier" or t == "scoped_type_identifier" then
+        return true
+    end
+    if t == "identifier" then
+        local parent = node:parent()
+        if parent and TYPE_DECLARATIONS[parent:type()] then
+            local name = parent:field("name")[1]
+            return name ~= nil and name:id() == node:id()
+        end
+    end
+    return false
 end
 
 -- ---------------------------------------------------------
