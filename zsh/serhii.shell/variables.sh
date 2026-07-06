@@ -50,6 +50,9 @@ if isMacOs; then
 
     # dotnet
     # export DOTNET_ROOT="$(dirname $(which dotnet))"
+
+    # brew
+    export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
 else
 
     alias out="sudo pkill -KILL -u serhii"

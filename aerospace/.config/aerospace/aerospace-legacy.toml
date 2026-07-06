@@ -1,21 +1,38 @@
-config-version = 2
+# config-version = 2
 
 # In i3, all workspaces are phantom
-# Version 1 inferred these from workspace bindings; version 2 requires explicit persistence.
-persistent-workspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+# persistent-workspaces = []
 
 # It's not necessary to copy all keys to your config.
 # If the key is missing in your config, "default-config.toml" will serve as a fallback
 
+# You can use it to add commands that run after login to macOS user session.
+# 'start-at-login' needs to be 'true' for 'after-login-command' to work
+# Available commands: https://nikitabobko.github.io/AeroSpace/commands
+after-login-command = []
+
+# You can use it to add commands that run after AeroSpace startup.
+# 'after-startup-command' is run after 'after-login-command'
+# Available commands : https://nikitabobko.github.io/AeroSpace/commands
+
+# Run Sketchybar together with AeroSpace
+# sketchbar has a built-in detection of already running process,
+# so it won't be run twice on AeroSpace restart
+after-startup-command = [
+    'exec-and-forget sketchybar',
+    # 'exec-and-forget borders'
+]
+
+# Notify Sketchybar about workspace change
+exec-on-workspace-change = ['/opt/homebrew/bin/bash', '-c',
+    # '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
+ 
+    # trigger only new and prev ws helps to sketchybar ws item works much faster, as we reloading only 2 sub-items, instead all ws items
+    '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change_$AEROSPACE_FOCUSED_WORKSPACE FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE ; /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_change_$AEROSPACE_PREV_WORKSPACE FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
+]
+
 # Start AeroSpace at login
 start-at-login = true
-
-# Automatically reload the config when the config file is saved.
-# Reload once manually after setting this to true.
-auto-reload-config = true
-
-# Set true if cmd-h ever leaks through and hides apps
-automatically-unhide-macos-hidden-apps = false
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
@@ -34,7 +51,7 @@ default-root-container-layout = 'accordion'
 #               tall monitor (anything higher than wide) gets vertical orientation
 default-root-container-orientation = 'auto'
 
-# Possible values: (qwerty|dvorak|colemak)
+# Possible values: (qwerty|dvorak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 key-mapping.preset = 'qwerty'
 
@@ -64,6 +81,7 @@ inner.vertical = 0
 outer.left = 0
 outer.right = 0
 outer.bottom = 0
+# outer.top = 27 # in case sketchybar enabled
 outer.top = 0
 
 # 'main' binding mode declaration
@@ -145,7 +163,7 @@ alt-shift-8 = ['move-node-to-workspace 8', 'workspace 8']
 alt-shift-9 = ['move-node-to-workspace 9', 'workspace 9']
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-alt-tab = 'focus-back-and-forth || workspace-back-and-forth'
+alt-tab = 'workspace-back-and-forth'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
@@ -157,21 +175,17 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 #alt-left = 'workspace prev'
 
 # alt-shift-f = 'fullscreen'
+alt-shift-f = 'fullscreen --no-outer-gaps'
 alt-shift-h = 'macos-native-minimize'
-# alt-shift-f = 'macos-native-fullscreen'
-alt-f = 'fullscreen --no-outer-gaps'
-
-
-# alt-, = 'focus-monitor prev'
-# lt-. = 'focus-monitor next'
+alt-f = 'fullscreen'
 
 ################################################################
 # -------------------------- Modes-----------------------------#
 ################################################################
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
-alt-shift-semicolon = 'mode service'
-alt-shift-r = 'mode resize'
+alt-shift-semicolon = ['mode service', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+alt-shift-r = ['mode resize', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
 #alt- = 'mode scratchpad'
 
 ################################################################
@@ -233,26 +247,27 @@ b = 'balance-sizes'
 # See: https://nikitabobko.github.io/AeroSpace/commands#resize
 minus = 'resize smart -50'
 equal = 'resize smart +50'
-enter = 'mode main'
-esc = 'mode main'
+enter = ['mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+esc = ['mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
-esc = ['reload-config', 'mode main']
-r = ['flatten-workspace-tree', 'mode main'] # reset layout
+esc = ['reload-config', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+r = ['flatten-workspace-tree', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update'] # reset layout
 #s = ['layout sticky tiling', 'mode main'] # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
 # f = [
 #     'layout floating tiling',
 #     'mode main',
+#     'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update'
 # ] # Toggle between floating and tiling layout
-backspace = ['close-all-windows-but-current', 'mode main']
+backspace = ['close-all-windows-but-current', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
 
 # https://nikitabobko.github.io/AeroSpace/commands#join-with
-alt-shift-h = ['join-with left', 'mode main']
-alt-shift-j = ['join-with down', 'mode main']
-alt-shift-k = ['join-with up', 'mode main']
-alt-shift-l = ['join-with right', 'mode main']
+alt-shift-h = ['join-with left', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+alt-shift-j = ['join-with down', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+alt-shift-k = ['join-with up', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
+alt-shift-l = ['join-with right', 'mode main', 'exec-and-forget /opt/homebrew/bin/sketchybar --trigger keymode_update']
 
 
 ################################################################
@@ -262,35 +277,35 @@ alt-shift-l = ['join-with right', 'mode main']
 # aerospace list-apps
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = net.kovidgoyal.kitty'
+if.app-id = 'net.kovidgoyal.kitty'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.mitchellh.ghostty'
+if.app-id = 'com.mitchellh.ghostty'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.github.wez.wezterm'
+if.app-id = 'com.github.wez.wezterm'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.jetbrains.intellij'
+if.app-id = 'com.jetbrains.intellij'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.jetbrains.intellij.ce'
+if.app-id = 'com.jetbrains.intellij.ce'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.microsoft.VSCode'
+if.app-id = 'com.microsoft.VSCode'
 run = "move-node-to-workspace 1"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.google.Chrome'
+if.app-id = 'com.google.Chrome'
 run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.brave.Browser'
+if.app-id = 'com.brave.Browser'
 run = "move-node-to-workspace 2"
 
 # second monitor configuration: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
@@ -298,73 +313,73 @@ run = "move-node-to-workspace 2"
 9 = 'secondary'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.microsoft.teams2'
+if.app-id = 'com.microsoft.teams2'
 run = "move-node-to-workspace 9"
 
 # Force tile all the windows (or windows of a particular app)
 # [[on-window-detected]]
-# if = 'test %{app-bundle-id} = ...'
+# if.app-id = '...'
 # run = 'layout tiling'
 
 # Force float all the windows (or windows of a particular app)
 [[on-window-detected]]
-# if = 'test %{app-bundle-id} = com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
-if = 'test %{app-bundle-id} = com.brave.Browser.app.pommaclcbfghclhalboakcipcmmndhcj' # Goodle Chat
+# if.app-id = 'com.google.Chrome.app.mdpkiolbdkhdjpekfbkbmhigcaggjagi' # Goodle Chat
+if.app-id = 'com.brave.Browser.app.pommaclcbfghclhalboakcipcmmndhcj' # Goodle Chat
 run = 'layout floating'
 #run = ['layout floating', 'move-node-to-workspace 9']
 
 [[on-window-detected]]
-# if = 'test %{app-bundle-id} = com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
-if = 'test %{app-bundle-id} = com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
+# if.app-id = 'com.google.Chrome.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
+if.app-id = 'com.brave.Browser.app.picebhhlijnlefeleilfbanaghjlkkna' # Monkeytype
 run = 'layout floating'
 
 # [[on-window-detected]]
-# if = 'test %{app-bundle-id} = com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh' # VimHero
+# if.app-id = 'com.brave.Browser.app.gpkmanblioapcnifgdalafnclogeoebh' # VimHero
 # run = 'layout floating'
 #
 # [[on-window-detected]]
-# # if = 'test %{app-bundle-id} = com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
-# if = 'test %{app-bundle-id} = com.brave.Browser.app.hklfmmehghkmgpoombkhphgoebceokhg'
+# # if.app-id = 'com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg' # Text Compare
+# if.app-id = 'com.brave.Browser.app.hklfmmehghkmgpoombkhphgoebceokhg'
 # run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.iCal'
+if.app-id = 'com.apple.iCal'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.finder'
+if.app-id = 'com.apple.finder'
 run = 'layout floating'
 
 # [[on-window-detected]]
-# if = 'test %{app-bundle-id} = com.sublimetext.4'
+# if.app-id = 'com.sublimetext.4'
 # #run = "move-node-to-workspace 3"
 # run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.googlecode.iterm2'
+if.app-id = 'com.googlecode.iterm2'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.ActivityMonitor'
+if.app-id = 'com.apple.ActivityMonitor'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.clock'
+if.app-id = 'com.apple.clock'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.Automator'
+if.app-id = 'com.apple.Automator'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.ScriptEditor2'
+if.app-id = 'com.apple.ScriptEditor2'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.weather'
+if.app-id = 'com.apple.weather'
 run = 'layout floating'
 
 [[on-window-detected]]
-if = 'test %{app-bundle-id} = com.apple.Music'
+if.app-id = 'com.apple.Music'
 #run = 'layout floating'
 run = "move-node-to-workspace 9"
