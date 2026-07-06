@@ -161,9 +161,8 @@ alt-shift-h = 'macos-native-minimize'
 # alt-shift-f = 'macos-native-fullscreen'
 alt-f = 'fullscreen --no-outer-gaps'
 
-
-# alt-, = 'focus-monitor prev'
-# lt-. = 'focus-monitor next'
+alt-comma = 'focus-monitor --wrap-around prev'
+alt-period = 'focus-monitor --wrap-around next'
 
 ################################################################
 # -------------------------- Modes-----------------------------#
