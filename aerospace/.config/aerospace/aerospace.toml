@@ -88,14 +88,6 @@ gaps.outer.right =      0
 # gaps.outer.right = 3
 # gaps.outer.bottom = 2
 
-# Previous table-style gap examples, preserved for reference
-# [gaps]
-# inner.horizontal = 5
-# inner.vertical = 5
-# outer.left = 3
-# outer.right = 3
-# outer.bottom = 2
-
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
@@ -128,9 +120,6 @@ gaps.outer.right =      0
     #     activate
     # end tell'
     # '''
-    # Local terminal examples:
-    # alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
-    # alt-enter = 'exec-and-forget open -n "/Volumes/Macintosh HD/Applications/kitty11.app"'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
     # alt-slash = 'layout tiles horizontal vertical'
@@ -141,10 +130,6 @@ gaps.outer.right =      0
     alt-shift-e = 'layout floating tiling' # 'floating toggle' in i3
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#focus
-    # alt-h = 'focus left'
-    # alt-j = 'focus down'
-    # alt-k = 'focus up'
-    # alt-l = 'focus right'
     cmd-h = 'focus left'
     cmd-j = 'focus down'
     cmd-k = 'focus up'
@@ -155,10 +140,6 @@ gaps.outer.right =      0
     cmd-shift-j = 'move down'
     cmd-shift-k = 'move up'
     cmd-shift-l = 'move right'
-    # alt-shift-h = 'move left'
-    # alt-shift-j = 'move down'
-    # alt-shift-k = 'move up'
-    # alt-shift-l = 'move right'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#resize
     # alt-minus = 'resize smart -50'
@@ -192,15 +173,7 @@ gaps.outer.right =      0
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
     alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
-    # alt-n = 'workspace next'
-    # alt-p = 'workspace prev'
-
-    # left, down, up, right
-    # alt-right = 'workspace next'
-    # alt-left = 'workspace prev'
-
     # See: https://nikitabobko.github.io/AeroSpace/commands#fullscreen
-    # alt-shift-f = 'fullscreen'
     alt-shift-h = 'macos-native-minimize'
     # alt-shift-f = 'macos-native-fullscreen'
     alt-f = 'fullscreen --no-outer-gaps'
@@ -214,11 +187,10 @@ gaps.outer.right =      0
     alt-shift-r = 'mode resize'
     # alt- = 'mode scratchpad'
 
-    # Scratchpads
-    # cmd-shift-a = 'exec-and-forget /Users/me/.config/scratchpad/scratchpad.sh com.aptakube.Aptakube Aptakube'
-    # cmd-shift-s = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh org.whispersystems.signal-desktop Signal'
-    # cmd-shift-e = 'exec-and-forget /Users/me/.config/scratchpad/scratchpad.sh org.gnu.Emacs Emacs'
-    # cmd-shift-y = 'exec-and-forget /Users/serhii/dotfiles/aerospace/.config/aerospace/scratchpad.sh net.kovidgoyal.kitty file_namager'
+    ################################################################
+    # ------------------------- Scratchpads -----------------------#
+    ################################################################
+
     cmd-shift-y = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm iTerm'
     cmd-shift-g = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.brave.Browser.app.pommaclcbfghclhalboakcipcmmndhcj "Google Chat" "Google Chat 1"'
     cmd-shift-s = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text" "Sublime Text"'
@@ -228,52 +200,27 @@ gaps.outer.right =      0
     # Quick navigation
     cmd-b = 'exec-and-forget open -a Brave\ Browser'
     cmd-i = 'exec-and-forget open -a IntelliJ\ IDEA'
-    cmd-t = 'exec-and-forget open -a Ghostty'
-
-    # need terminal that all the time planning to be used only in float\scratchpad mode,
-    # unfortunatelly in macos impossible to attatch to terminal random title\app-id by normal way as for example for `kitty` in `linux`
-    # for me it's iterm2 :)
-    # alt-t = 'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm'
-
-    # NOTE: not that script not centering scratchpad floadtin window, you need do it manually (one time if need)
-    # the sortest way: `option` + mouse left double click (to full), then in the corner hold `option` + mouse left click and hold move to centeres size
+    # cmd-t = 'exec-and-forget open -a Ghostty'
+    cmd-t = 'exec-and-forget open -a Alacritty'
 
     # TODO:
-    # ctrl-shift-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm", "Google Chat", "Sublime Text", "Music"'
     cmd-ctrl-r = 'exec-and-forget ~/.config/aerospace/scratchpad_hideall.sh "iTerm" "Google Chat" "Sublime Text" "Music"'
 
-    # [mode.scratchpad.binding]
-    # t = [
-    #     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.googlecode.iterm2 iTerm',
-    #     #'mode main',
-    # ]
-    # g = [
-    #     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.google.Chrome.app.hklfmmehghkmgpoombkhphgoebceokhg "Google Chat"',
-    #     #'mode main',
-    # ]
-    # s = [
-    #     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.sublimetext.4 "Sublime Text"',
-    #     #'mode main',
-    # ]
-    # m = [
-    #     'exec-and-forget ~/.config/aerospace/scratchpad.sh com.apple.Music Music',
-    #     #'mode main',
-    # ]
-    # esc = 'mode main'
+################################################################
+# -------------------------- Modes-----------------------------#
+################################################################
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
     esc = ['reload-config', 'mode main']
     r = ['flatten-workspace-tree', 'mode main'] # reset layout
-    # s = ['layout sticky tiling', 'mode main'] # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
-    # f = [
-    #     'layout floating tiling',
-    #     'mode main',
-    # ] # Toggle between floating and tiling layout
+    f = ['layout floating tiling', 'mode main'] # Toggle between floating and tiling layout
     backspace = ['close-all-windows-but-current', 'mode main']
 
-    # https://nikitabobko.github.io/AeroSpace/commands#join-with
+    # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
+    #s = ['layout sticky tiling', 'mode main']
+
     alt-shift-h = ['join-with left', 'mode main']
     alt-shift-j = ['join-with down', 'mode main']
     alt-shift-k = ['join-with up', 'mode main']
