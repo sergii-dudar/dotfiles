@@ -43,3 +43,4 @@
       investigate issue with duplicated diagnostics with jdtls (looks after jdtls recovery)
       continue testings mapstruct gr\gd
       add lua snippets for java suppress warnings (unuded, deprecated, unchecked)
+     jdtls, recovery - generated code by AI or any anoher not directly by nvim way, making not able to use this code by navigation (maybe completion), not critical but maybe good to investigate and provide some autocmd to resolve
