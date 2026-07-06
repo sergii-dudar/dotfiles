@@ -3,24 +3,18 @@
 -- Add any additional options here
 
 vim.opt.tabstop = 4 -- spaces for tabs (prettier default)
-vim.opt.shiftwidth = 4 -- 2 spaces for indent width
+vim.opt.shiftwidth = 4 -- spaces for indent width
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
 vim.opt.autoindent = true -- copy indent from current line when starting new one
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
-vim.g.background = "light"
 vim.g.have_nerd_font = true
 vim.g.lazyvim_picker = "snacks"
 -- vim.o.mousemoveevent = true
 
-vim.scriptencoding = "utf-8"
-vim.opt.encoding = "utf-8"
-vim.opt.fileencoding = "utf-8"
-
 vim.opt.wrap = false
-vim.opt.swapfile = false
 -- vim.opt.showtabline = 2
 -- vim.opt.cursorcolumn = true
 
@@ -34,7 +28,6 @@ vim.opt.incsearch = true
 
 vim.opt.swapfile = false
 vim.opt.number = true
-vim.wo.number = true
 vim.opt.relativenumber = true
 vim.opt.numberwidth = 2 -- set width of line number column
 vim.opt.backup = false
@@ -65,9 +58,8 @@ vim.opt.inccommand = "split"
 
 vim.opt.showmode = false
 --vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
-vim.opt.sidescrolloff = 8 -- number of columns to keep to the left/right of cursor
+vim.opt.sidescrolloff = 2 -- number of columns to keep to the left/right of cursor
 vim.opt.scrolloff = 0
-vim.opt.sidescrolloff = 0
 vim.opt.signcolumn = "yes"
 vim.opt.smartindent = true -- enable smart indentation
 vim.opt.breakindent = true -- enable line breaking indentation
