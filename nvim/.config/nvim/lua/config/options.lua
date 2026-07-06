@@ -2,7 +2,7 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 
-vim.opt.tabstop = 4 -- spaces for tabs (prettier default)
+vim.opt.tabstop = 4 -- spaces for tabs
 vim.opt.shiftwidth = 4 -- spaces for indent width
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
@@ -79,6 +79,7 @@ vim.opt.splitbelow = true -- split horizontal window to the bottom
 
 -- Set borders for all floating windows
 vim.o.winborder = "rounded"
+vim.opt.pumborder = "rounded" -- border for native popup-menu (completion/wildmenu/mouse popup), see :help 'pumborder'
 
 -- Save undo history
 vim.opt.undofile = true
@@ -112,7 +113,7 @@ vim.opt.keymap = "ukrainian-custom"
 vim.opt.iminsert = 0 -- English by default
 vim.opt.imsearch = 0 -- English in search by default
 
-function open_tree_on_start()
+local function open_tree_on_start()
     local project_util = require("utils.project-util")
     if project_util.is_multifile_proj() then
         -- restore current proj session
