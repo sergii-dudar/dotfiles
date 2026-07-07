@@ -116,21 +116,23 @@ vim.opt.imsearch = 0 -- English in search by default
 local function open_tree_on_start()
     local project_util = require("utils.project-util")
     if project_util.is_multifile_proj() then
-        -- restore current proj session
-        --if vim.fn.argc(-1) == 0 and not vim.g.using_stdin then
-        -- Save these to a different directory, so our manual sessions don't get polluted
-        -- require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
-        if global.is_not_limited then
-            require("persistence").load()
-        end
-        vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
-
         -- vim.notify("opening neo tree...", vim.log.levels.INFO)
         if global.is_not_limited and project_util.is_init_open_neotree() then
             vim.schedule(function()
                 vim.cmd("Neotree filesystem reveal left")
             end)
         end
+
+        -- restore current proj session
+        --if vim.fn.argc(-1) == 0 and not vim.g.using_stdin then
+        -- Save these to a different directory, so our manual sessions don't get polluted
+        -- require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
+
+        if global.is_not_limited then
+            require("persistence").load()
+        end
+        vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
+
         -- Snacks.picker.explorer()
     end
 end
