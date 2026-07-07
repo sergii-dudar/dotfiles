@@ -41,12 +41,56 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
 
         -- then
         assert.are.same({
-            { name = "ignore all: mapstruct", kind = "ignore_all" },
-            { name = "add mapping to all: mapstruct", kind = "map_all" },
-            { name = "ignore `instructionType`: mapstruct", kind = "ignore", property = "instructionType" },
-            { name = "ignore `originalUetr`: mapstruct", kind = "ignore", property = "originalUetr" },
-            { name = "map `instructionType`: mapstruct", kind = "map", property = "instructionType" },
-            { name = "map `originalUetr`: mapstruct", kind = "map", property = "originalUetr" },
+            {
+                name = "Add all unmapped target properties",
+                kind = "map_all",
+                chunks = { { "Add", "DiagnosticOk" }, { " all unmapped target properties" } },
+            },
+            {
+                name = "Add unmapped target property: instructionType",
+                kind = "map",
+                property = "instructionType",
+                chunks = {
+                    { "Add", "DiagnosticOk" },
+                    { " unmapped target property: " },
+                    { "instructionType", "Identifier" },
+                },
+            },
+            {
+                name = "Add unmapped target property: originalUetr",
+                kind = "map",
+                property = "originalUetr",
+                chunks = {
+                    { "Add", "DiagnosticOk" },
+                    { " unmapped target property: " },
+                    { "originalUetr", "Identifier" },
+                },
+            },
+            {
+                name = "Ignore all unmapped target properties",
+                kind = "ignore_all",
+                chunks = { { "Ignore", "DiagnosticWarn" }, { " all unmapped target properties" } },
+            },
+            {
+                name = "Ignore unmapped target property: instructionType",
+                kind = "ignore",
+                property = "instructionType",
+                chunks = {
+                    { "Ignore", "DiagnosticWarn" },
+                    { " unmapped target property: " },
+                    { "instructionType", "Identifier" },
+                },
+            },
+            {
+                name = "Ignore unmapped target property: originalUetr",
+                kind = "ignore",
+                property = "originalUetr",
+                chunks = {
+                    { "Ignore", "DiagnosticWarn" },
+                    { " unmapped target property: " },
+                    { "originalUetr", "Identifier" },
+                },
+            },
         }, choices)
     end)
 
@@ -62,7 +106,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
         )
     end)
 
-    it("inserts selected ignore-all mappings above the diagnostic method", function()
+    it("inserts selected add-all mappings above the diagnostic method", function()
         -- given
         state.buffer_lines[1] = {
             "package com.acme;",
@@ -138,8 +182,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
             "",
             "@Mapper",
             "public interface FooMapper {",
-            '    @Mapping(target = "first", ignore = true)',
-            '    @Mapping(target = "second", ignore = true)',
+            '    @Mapping(target = "first", source = "")',
+            '    @Mapping(target = "second", source = "")',
             "    Target map(Source source);",
             "}",
         }, state.buffer_lines[1])

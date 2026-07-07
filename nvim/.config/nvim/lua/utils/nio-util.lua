@@ -19,6 +19,7 @@ end, 2)
 
 --- Multi-select picker bridged to nio.
 --- Items must have a `.name` field for display.
+--- Optional item `.chunks` or `.format()` customizes Snacks-highlighted display.
 --- Tab toggles selection, Enter confirms.
 --- Returns selected items list or nil on cancel.
 ---@param items table[]
@@ -43,6 +44,13 @@ M.multi_select = nio.wrap(function(items, prompt, callback)
             return { text = item.name, item = item }
         end, items),
         format = function(picker_item)
+            local item = picker_item.item or {}
+            if type(item.format) == "function" then
+                return item.format(item, picker_item)
+            end
+            if type(item.chunks) == "table" then
+                return item.chunks
+            end
             return { { picker_item.text } }
         end,
         confirm = function(picker, _)

@@ -133,6 +133,29 @@ describe("utils.nio-util", function()
         assert.is_nil(result)
     end)
 
+    it("uses highlighted item chunks for multi-select display when present", function()
+        -- given
+        local chunks = {
+            { "Add", "DiagnosticOk" },
+            { " unmapped target property: " },
+            { "hiddenDebtor", "Identifier" },
+        }
+        local rendered
+        Snacks.picker.pick = function(config)
+            rendered = config.format(config.items[1])
+            config.on_close()
+        end
+
+        -- when
+        local result = nio_util.multi_select({
+            { name = "Add unmapped target property: hiddenDebtor", chunks = chunks },
+        }, "Pick values")
+
+        -- then
+        assert.is_nil(result)
+        assert.are.same(chunks, rendered)
+    end)
+
     it("delegates run to nio.run", function()
         -- given
         local callback = function() end

@@ -8,6 +8,24 @@ local nio_util = require("utils.nio-util")
 local M = {}
 
 local MAPPING_IMPORT = "import org.mapstruct.Mapping;"
+local ADD_HL = "DiagnosticOk"
+local IGNORE_HL = "DiagnosticWarn"
+local PROPERTY_HL = "Identifier"
+
+--- Build one resolver picker choice.
+---@param message string
+---@param kind string
+---@param chunks table[]
+---@param property? string
+---@return table
+local function choice(message, kind, chunks, property)
+    return {
+        name = message,
+        kind = kind,
+        property = property,
+        chunks = chunks,
+    }
+end
 
 --- Parse unmapped MapStruct target properties from a diagnostic message.
 ---@param message string
@@ -33,24 +51,31 @@ end
 ---@return table[]
 function M.build_choices(properties)
     local choices = {
-        { name = "ignore all: mapstruct", kind = "ignore_all" },
-        { name = "add mapping to all: mapstruct", kind = "map_all" },
+        choice("Add all unmapped target properties", "map_all", {
+            { "Add", ADD_HL },
+            { " all unmapped target properties" },
+        }),
     }
 
     for _, property in ipairs(properties) do
-        choices[#choices + 1] = {
-            name = "ignore `" .. property .. "`: mapstruct",
-            kind = "ignore",
-            property = property,
-        }
+        choices[#choices + 1] = choice("Add unmapped target property: " .. property, "map", {
+            { "Add", ADD_HL },
+            { " unmapped target property: " },
+            { property, PROPERTY_HL },
+        }, property)
     end
 
+    choices[#choices + 1] = choice("Ignore all unmapped target properties", "ignore_all", {
+        { "Ignore", IGNORE_HL },
+        { " all unmapped target properties" },
+    })
+
     for _, property in ipairs(properties) do
-        choices[#choices + 1] = {
-            name = "map `" .. property .. "`: mapstruct",
-            kind = "map",
-            property = property,
-        }
+        choices[#choices + 1] = choice("Ignore unmapped target property: " .. property, "ignore", {
+            { "Ignore", IGNORE_HL },
+            { " unmapped target property: " },
+            { property, PROPERTY_HL },
+        }, property)
     end
 
     return choices
