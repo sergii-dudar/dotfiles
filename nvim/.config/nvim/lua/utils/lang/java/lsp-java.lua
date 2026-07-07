@@ -23,6 +23,8 @@ M.code_action_auto_resolve_match_names = {
     "Change type of '",
     "Create method '",
     "Add unimplemented methods",
+    -- "Remove unused import",
+    "Remove all unused imports",
 }
 
 --- Build a MapStruct path navigation handler for Java LSP go-to mappings.
