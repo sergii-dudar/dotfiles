@@ -38,9 +38,9 @@ local function showInputSource()
         pendingTimer = nil
         local name = inputName()
 
-        -- Big short overlay in the middle of every screen
+        -- Big short overlay near the top of every screen
         for _, scr in ipairs(hs.screen.allScreens()) do
-            currentAlerts[#currentAlerts + 1] = hs.alert.show(name, { textSize = 48 }, scr, 0.4)
+            currentAlerts[#currentAlerts + 1] = hs.alert.show(name, { textSize = 48, atScreenEdge = 1 }, scr, 0.4)
         end
 
         -- Optional macOS Notification Center banner
