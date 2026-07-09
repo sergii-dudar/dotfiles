@@ -12,6 +12,7 @@ i3lock-color
 libgdata
 libjpeg6-turbo-bin
 libsoup
+mbedtls2
 networkmanager-dmenu-git
 openssl-1.1
 python-imageio-ffmpeg

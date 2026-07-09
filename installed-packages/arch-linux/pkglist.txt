@@ -156,6 +156,7 @@ noto-fonts-cjk
 ntfs-3g
 nvidia-open-dkms
 nwg-look
+openai-codex
 pamixer
 pavucontrol
 picom
