@@ -84,6 +84,7 @@ return {
                 --     model_id = "claude-sonnet-4-6",
                 -- },
                 copilot = {
+                    url = "https://api.business.githubcopilot.com/chat/completions",
                     -- model_id = "gpt-5.1",
                     -- model_id = "gpt-5.2",
                     -- model_id = "gpt-5.4", -- not yet accessible by api
