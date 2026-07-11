@@ -72,7 +72,7 @@ return {
         opts = {
             popup_type = "horizontal", -- "popup" | "horizontal" | "vertical",
             -- provider = "anthropic", -- "anthropic" | "copilot" | "deepseek" | "gemini" | "grok" | "ollama" | "openai",
-            provider = "copilot",
+            provider = "copilot", -- anthropic | copilot | openai
             providers = {
                 -- anthropic = {
                 --     url = "https://genai-sbox.rbi.tech/v1/messages",
@@ -89,10 +89,13 @@ return {
                     -- model_id = "gpt-5.2",
                     -- model_id = "gpt-5.4", -- not yet accessible by api
                     -- model_id = "claude-haiku-4.5",
-                    model_id = "claude-sonnet-4.5",
-                    -- model_id = "claude-sonnet-4.6",
+                    -- model_id = "claude-sonnet-4.5",
+                    model_id = "claude-sonnet-4.6",
                     -- model_id = "claude-opus-4.6",
                 },
+                -- openai = {
+                --     model_id = "gpt-5.4-mini", -- gpt-5.5, gpt-5.4,
+                -- },
             },
             search_engine = "google", -- "google" | "duck_duck_go" | "stack_overflow" | "github" | "phind" | "perplexity",
             picker = "snacks", -- "telescope" | "snacks" | "fzf-lua",
