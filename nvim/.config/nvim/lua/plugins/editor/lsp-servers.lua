@@ -24,7 +24,7 @@ return {
                         yaml = {
                             format = {
                                 printWidth = 300,
-                                singleQuote = true
+                                singleQuote = true,
                             },
                             validate = true, -- temp disabled because of issues with schemas for application.yml [ Property ... is not allowed ]
                         },
@@ -54,5 +54,16 @@ return {
         build = "go install .",
         ft = { "yaml" },
         lazy = true,
+    },
+    {
+        "neovim/nvim-lspconfig",
+        opts = function(_, opts)
+            local is_java = global.is_all or require("utils.lang.lang-project").is("java")
+            if not is_java then
+                -- hard disable starting jdtls on java buffer types
+                opts.servers.jdtls = { enabled = false }
+                opts.setup.jdtls = nil
+            end
+        end,
     },
 }

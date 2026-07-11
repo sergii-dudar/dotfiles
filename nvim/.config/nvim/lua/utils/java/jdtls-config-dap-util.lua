@@ -48,7 +48,8 @@ function M.run_current_main_class()
     end
 
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method_table()
-    -- local module_name = project_name_resolver.resolve_project_name()
+    local module_name = project_name_resolver.resolve_project_name()
+    -- require("utils.java.project_name_resolver").resolve_project_name()
     -- print(project_name_resolver.resolve_project_name())
 
     last_runned_dap_config = {
@@ -57,7 +58,7 @@ function M.run_current_main_class()
         classPaths = classpath,
 
         -- If using multi-module projects, remove otherwise.
-        -- projectName = module_name, -- "payment-norkom-adapter-service",
+        projectName = module_name, -- "payment-norkom-adapter-service",
         javaExec = java_bin,
         mainClass = class_name,
 
@@ -78,6 +79,7 @@ function M.attach_to_remote(port, delay_ms)
     port = port or M.default_dap_port
     local config = vim.deepcopy(default_attach_config)
     config.port = port
+    config.projectName = require("utils.java.project_name_resolver").resolve_project_name()
     if delay_ms then
         vim.defer_fn(function()
             require("dap").run(config)
