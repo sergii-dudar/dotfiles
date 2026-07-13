@@ -131,7 +131,7 @@ local function open_tree_on_start()
         if global.is_not_limited then
             require("persistence").load()
         end
-        vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
+        -- vim.cmd("clearjumps") -- clear jumplist from previous sessions so <C-o>/<C-i> stay within current project
 
         -- Snacks.picker.explorer()
     end

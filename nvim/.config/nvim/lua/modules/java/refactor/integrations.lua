@@ -115,6 +115,7 @@ function M.setup_fyler_autocmd()
                 callback = function()
                     vim.notify("Fyler: fixing after move is running...")
                     require("modules.java.refactor").process_registerd_changes()
+                    vim.cmd("clearjumps")
                     vim.notify("Fyler: fixing after move was finished!")
                 end,
             })
