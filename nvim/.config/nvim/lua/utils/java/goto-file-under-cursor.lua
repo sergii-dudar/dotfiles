@@ -361,6 +361,21 @@ local function open_file(file)
     vim.api.nvim_win_set_buf(0, bufnr)
 end
 
+--- Warn that a resolved path string didn't match an existing file.
+---@param path string
+local function warn_missing(path)
+    vim.notify("⚠️ No file found for resolved path: " .. path, vim.log.levels.WARN)
+end
+
+--- Try Vim's built-in `gf` on the cursor (open the file whose name is under it). `gf` is a
+--- jump, so it records the origin in the jumplist itself. Returns true if a file opened.
+---@return boolean
+local function try_gf()
+    local before = vim.api.nvim_get_current_buf()
+    local ok = pcall(vim.cmd, "normal! gf")
+    return ok and vim.api.nvim_get_current_buf() ~= before
+end
+
 -- ---------------------------------------------------------------------------
 --  dispatch
 -- ---------------------------------------------------------------------------
@@ -421,27 +436,28 @@ local function cursor_on_string()
 end
 
 --- Resolve a path-valued reference under the cursor and open the file it points to.
----@return boolean handled whether a file was opened
+--- On failure, the second return value is the path we resolved but couldn't locate (or nil
+--- when nothing resolved), so the caller can decide whether/when to warn.
+---@return boolean handled, string|nil unresolved_path
 local function resolve_and_open()
     local node = vim.treesitter.get_node()
     if not node then
-        return false
+        return false, nil
     end
 
     local bufnr = vim.api.nvim_get_current_buf()
     local resolved = resolve_value(bufnr, node, 0, {})
     if not resolved then
-        return false
+        return false, nil
     end
 
     local file = resolve_existing_file(resolved, bufnr)
     if not file then
-        vim.notify("⚠️ No file found for resolved path: " .. resolved, vim.log.levels.WARN)
-        return false
+        return false, resolved
     end
 
     open_file(file)
-    return true
+    return true, nil
 end
 
 --- Keymap entry point for `<leader>jj`.
@@ -456,17 +472,29 @@ function M.goto_under_cursor()
     end
 
     -- Value reference (field / variable / string): try to resolve a file path and open it.
-    if resolve_and_open() then
+    local opened, missing = resolve_and_open()
+    if opened then
         return
     end
 
     -- Resolution failed (no string resolved, or resolved one but no file matched it).
     -- Pick the fallback by what the cursor sits on:
-    --   • a string literal is not a go-to-definition target → keep the FQN opener,
+    --   • a string literal → try Vim's `gf` first (the cursor may already sit on a plain
+    --     path that `gf`'s own search knows about), then fall back to the FQN opener; a
+    --     literal is not a go-to-definition target.
     --   • a variable/field reference → go-to-definition lands on its declaration.
     if cursor_on_string() then
+        if try_gf() then
+            return
+        end
+        if missing then
+            warn_missing(missing)
+        end
         jdtls_util.open_fqn_under_cursor()
     else
+        if missing then
+            warn_missing(missing)
+        end
         vim.lsp.buf.definition()
     end
 end
