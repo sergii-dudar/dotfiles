@@ -347,6 +347,11 @@ return {
                 callback = function(args)
                     local client = vim.lsp.get_client_by_id(args.data.client_id)
                     if client and client.name == "jdtls" then
+                        -- nvim-jdtls clobbers buffer-local 'path' with one module's source dirs
+                        -- and stamps it onto every jdtls buffer, breaking cross-module `gf` on
+                        -- classpath resources. Re-append a repo-root recursive entry to fix it.
+                        require("utils.java.jdtls-gf-path").restore_multimodule_gf_path(args.buf)
+
                         -- Auto-refresh project config once workspace settles, so APT-generated
                         -- sources (MapStruct impls etc.) wiped during m2e configure get regenerated.
                         require("utils.java.jdtls-workspace-watcher").setup(client, args.buf)
