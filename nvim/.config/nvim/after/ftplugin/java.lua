@@ -22,22 +22,6 @@ vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.breakindent = true
 vim.opt.wrap = false
-vim.opt_local.includeexpr = "v:lua.require'utils.java.gf-includeexpr'.transform(v:fname)"
-
-local gf_path_dirs = {}
-local resource_dirs = require("utils.resource-cwd-resolver").resolve(0)
-if resource_dirs and resource_dirs.dirs then
-    vim.list_extend(gf_path_dirs, resource_dirs.dirs)
-end
-
-local module_root = require("utils.java.java-common").get_buffer_project_path(0)
-if module_root then
-    table.insert(gf_path_dirs, module_root)
-end
-
-for index = #gf_path_dirs, 1, -1 do
-    vim.opt_local.path:prepend(gf_path_dirs[index])
-end
 
 -- Set shift width
 --vim.opt.shiftwidth = 8
