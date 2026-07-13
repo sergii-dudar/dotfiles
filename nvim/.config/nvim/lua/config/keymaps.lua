@@ -107,6 +107,12 @@ map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
 
 map("n", "<leader>??", keymap_actions.open_personal_vim_cheat_sheet, { desc = "Personal Vim Cheat Sheet" })
+map("n", "<leader>?v", function()
+    vim.ui.open("https://neovimcheatsheet.com/")
+end, { desc = "Web Vim Cheat Sheet" })
+-- map("n", "<leader>?t", function()
+--     vim.ui.open("https://tmuxcheatsheet.org/")
+-- end, { desc = "Web Tmux Cheat Sheet" })
 
 -- map("n", "<S-h>", "^", { desc = "Prev Buffer" })
 -- map("n", "<S-l>", "$", { desc = "Next Buffer" })
