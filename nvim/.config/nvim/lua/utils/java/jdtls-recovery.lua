@@ -865,23 +865,19 @@ end
 ---@param reason string
 local function stop_all_jdtls(reason)
     if state.recovering then
+        vim.notify("JDTLS stop: recovery is already in progress", vim.log.levels.WARN)
         return
     end
 
     local clients = lsp_util.get_clients_by_name("jdtls")
-    local ctx = collect_restart_context()
-    state.stopped_ctx = ctx
-
     if #clients == 0 then
-        logger.fmt_warn(
-            "stop (%s): no active jdtls clients; saved context has %d project java buffers, %d jdt uri buffers",
-            reason,
-            #ctx.project_bufs,
-            #ctx.jdt_uri_bufs
-        )
-        vim.notify("JDTLS stop: no active clients; saved current Java buffer context", vim.log.levels.WARN)
+        logger.fmt_info("stop (%s): already stopped; no active jdtls clients", reason)
+        vim.notify("JDTLS is already stopped", vim.log.levels.INFO)
         return
     end
+
+    local ctx = collect_restart_context()
+    state.stopped_ctx = ctx
 
     state.recovering = true
     mark_action()
@@ -909,6 +905,18 @@ end
 ---@param reason string
 local function start_all_jdtls(reason)
     if state.recovering then
+        vim.notify("JDTLS start: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
+
+    local clients = lsp_util.get_clients_by_name("jdtls")
+    if #clients > 0 then
+        state.stopped_ctx = nil
+        logger.fmt_info("start (%s): already running with %d active jdtls client(s)", reason, #clients)
+        vim.notify(
+            string.format("JDTLS is already running (%d client%s)", #clients, #clients == 1 and "" or "s"),
+            vim.log.levels.INFO
+        )
         return
     end
 
