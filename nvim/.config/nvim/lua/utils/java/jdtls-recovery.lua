@@ -83,6 +83,9 @@ local state = {
     buf_last_soft = {},
     -- gap health check deferred until the user enters a Java buffer
     pending_gap = nil,
+    -- context captured by :JdtlsStop so :JdtlsStart can reattach the same
+    -- project and virtual buffers later.
+    stopped_ctx = nil,
 }
 
 local function in_cooldown()
@@ -858,6 +861,106 @@ local function restart_all_jdtls(reason)
     end)
 end
 
+--- Stop all active JDTLS clients while preserving restart context for later start.
+---@param reason string
+local function stop_all_jdtls(reason)
+    if state.recovering then
+        return
+    end
+
+    local clients = lsp_util.get_clients_by_name("jdtls")
+    local ctx = collect_restart_context()
+    state.stopped_ctx = ctx
+
+    if #clients == 0 then
+        logger.fmt_warn(
+            "stop (%s): no active jdtls clients; saved context has %d project java buffers, %d jdt uri buffers",
+            reason,
+            #ctx.project_bufs,
+            #ctx.jdt_uri_bufs
+        )
+        vim.notify("JDTLS stop: no active clients; saved current Java buffer context", vim.log.levels.WARN)
+        return
+    end
+
+    state.recovering = true
+    mark_action()
+
+    logger.fmt_info(
+        "stop (%s): %d clients, %d project java buffers, %d jdt uri buffers",
+        reason,
+        #clients,
+        #ctx.project_bufs,
+        #ctx.jdt_uri_bufs
+    )
+
+    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
+        set_tick()
+        state.recovering = false
+        refresh_blink_lsp("stop: " .. reason)
+        vim.notify(
+            string.format("JDTLS stopped (%s, %d project buffers saved)", reason, #ctx.project_bufs),
+            vim.log.levels.INFO
+        )
+    end)
+end
+
+--- Start JDTLS from the last stopped context or current loaded Java buffers.
+---@param reason string
+local function start_all_jdtls(reason)
+    if state.recovering then
+        return
+    end
+
+    local using_stopped_ctx = state.stopped_ctx ~= nil
+    local ctx = state.stopped_ctx or collect_restart_context()
+
+    if #ctx.project_bufs == 0 then
+        if #ctx.jdt_uri_bufs == 0 then
+            logger.fmt_warn("start (%s): no Java buffers found", reason)
+            vim.notify("JDTLS start: no Java buffers found", vim.log.levels.WARN)
+            state.stopped_ctx = nil
+            return
+        end
+
+        state.recovering = true
+        mark_action()
+        logger.fmt_warn(
+            "start (%s): no real Java project buffers; trying saved config for %d jdt uri buffers",
+            reason,
+            #ctx.jdt_uri_bufs
+        )
+        reattach_jdt_uri_buffers(ctx, "start: " .. reason, function(jdt_attached, jdt_kept)
+            set_tick()
+            state.recovering = false
+            refresh_blink_lsp("start: " .. reason)
+            if jdt_attached > 0 and jdt_kept == 0 then
+                state.stopped_ctx = nil
+            elseif not using_stopped_ctx then
+                state.stopped_ctx = nil
+            end
+            vim.notify(
+                string.format("JDTLS started from jdt:// context (%d reattached, %d kept)", jdt_attached, jdt_kept),
+                jdt_kept > 0 and vim.log.levels.WARN or vim.log.levels.INFO
+            )
+        end)
+        return
+    end
+
+    state.recovering = true
+    mark_action()
+
+    logger.fmt_info(
+        "start (%s): %d project java buffers, %d jdt uri buffers",
+        reason,
+        #ctx.project_bufs,
+        #ctx.jdt_uri_bufs
+    )
+
+    state.stopped_ctx = nil
+    reattach_java_buffers(ctx, "start: " .. reason)
+end
+
 --- Restart all loaded JDTLS workspaces through the diagnostic-cleaning path.
 ---@param reason? string
 function M.restart(reason)
@@ -872,6 +975,22 @@ function M.hard_restart(reason)
     state.recovering = false
     state.last_action_at = 0
     hard_restart_all_jdtls(reason or "manual")
+end
+
+--- Stop all active JDTLS clients and remember the current restart context.
+---@param reason? string
+function M.stop(reason)
+    state.recovering = false
+    state.last_action_at = 0
+    stop_all_jdtls(reason or "manual")
+end
+
+--- Start JDTLS from the last stopped context or currently loaded Java buffers.
+---@param reason? string
+function M.start(reason)
+    state.recovering = false
+    state.last_action_at = 0
+    start_all_jdtls(reason or "manual")
 end
 
 local function probe_client(client, done)
@@ -1359,6 +1478,16 @@ function M.setup(attach_fn)
         vim.notify("JDTLS: restarting...", vim.log.levels.INFO)
         M.restart("manual")
     end, { desc = "Force-restart JDTLS for all Java buffers" })
+
+    vim.api.nvim_create_user_command("JdtlsStop", function()
+        vim.notify("JDTLS: stopping...", vim.log.levels.INFO)
+        M.stop("manual")
+    end, { desc = "Stop JDTLS and remember loaded Java buffers for :JdtlsStart" })
+
+    vim.api.nvim_create_user_command("JdtlsStart", function()
+        vim.notify("JDTLS: starting...", vim.log.levels.INFO)
+        M.start("manual")
+    end, { desc = "Start JDTLS for stopped/current Java buffers" })
 
     vim.api.nvim_create_user_command("JdtlsHealthCheck", function()
         local clients = lsp_util.get_clients_by_name("jdtls")

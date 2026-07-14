@@ -113,6 +113,8 @@ return {
             { "<leader>jci", ":JdtCompile incremental<CR>", desc = "JDTLS [C]ompile [I]ncremental" },
             -- In general, when something is not working, “:JdtRestart” might fix things.
             { "<leader>jdr", ":JdtRestart<CR>", desc = "JDTLS [R]estart" },
+            { "<leader>jds", ":JdtlsStop<CR>", desc = "JDTLS [S]top" },
+            { "<leader>jdS", ":JdtlsStart<CR>", desc = "JDTLS [S]start" },
             -- If you add a dependency to the POM or change one of the existing dependencies version, 
             -- you must run “:JdtUpdateConfig” so the Java LSP can download the new dependencies.
             -- { "<leader>jdu", ":JdtUpdateConfig<CR>", desc = "JDTLS Update Config" },
