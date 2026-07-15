@@ -76,54 +76,9 @@ run_segment() {
                     fi
                     ;;
                 "wayland")
-                    # Wayland has no global API to query the active keyboard layout
-                    # from a non-focused client, so each compositor is queried via its
-                    # own IPC and normalized to a short code below. Detection prefers
-                    # exported env vars, then falls back to discovering the live socket
-                    # under $XDG_RUNTIME_DIR (env vars are not always inherited by the
-                    # long-lived tmux server).
-                    local runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-                    local layout_name=""
-
-                    if [ -z "$SWAYSOCK" ]; then
-                        for _sock in "$runtime_dir"/sway-ipc.*.sock; do
-                            [ -S "$_sock" ] && SWAYSOCK="$_sock"
-                        done
-                    fi
-                    if [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-                        for _dir in "$runtime_dir"/hypr/*/; do
-                            [ -d "$_dir" ] && HYPRLAND_INSTANCE_SIGNATURE="$(basename "$_dir")"
-                        done
-                    fi
-
-                    if [ -n "$SWAYSOCK" ] && command -v swaymsg &>/dev/null; then
-                        export SWAYSOCK
-                        layout_name=$(swaymsg -t get_inputs 2>/dev/null |
-                            jq -r 'first(.[] | select(.type=="keyboard") | .xkb_active_layout_name) // empty')
-                    fi
-
-                    if { [ -z "$layout_name" ] || [ "$layout_name" = "null" ]; } &&
-                        [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && command -v hyprctl &>/dev/null; then
-                        export HYPRLAND_INSTANCE_SIGNATURE
-                        layout_name=$(hyprctl devices -j 2>/dev/null |
-                            jq -r '.keyboards[] | .active_keymap' | tail -n1)
-                    fi
-
-                    # dwl (and any compositor whose xkb patch writes the shared file).
-                    if { [ -z "$layout_name" ] || [ "$layout_name" = "null" ]; } && [ -r /tmp/dwl-keymap ]; then
-                        layout_name=$(cat /tmp/dwl-keymap)
-                    fi
-
-                    if [ -z "$layout_name" ] || [ "$layout_name" = "null" ]; then
-                        return 1
-                    fi
-
-                    case "$layout_name" in
-                        us | US | "English (US)" | English*) cur_layout="US" ;;
-                        ua | UA | Ukrainian*) cur_layout="UA" ;;
-                        *) cur_layout=$(echo "$layout_name" | cut -c1-2 | tr '[:lower:]' '[:upper:]') ;;
-                    esac
-
+                    # Wayland has no compositor-agnostic layout API; the per-compositor
+                    # dispatch lives in xkb_layout_wayland.sh and prints a short code.
+                    cur_layout=$("$HOME/.config/tmux-powerline/segments/xkb_layout_wayland.sh") || return 1
                     echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $cur_layout"
                     ;;
                 *)
