@@ -58,6 +58,7 @@ gdu
 ghostty
 git
 git-delta
+github-cli
 glow
 gnome-backgrounds
 gnome-calculator
