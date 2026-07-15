@@ -73,7 +73,7 @@ _xkb_layout_dwl() {
 
 # Dispatcher: prints the normalized code, or returns non-zero if unknown.
 xkb_wayland_layout() {
-    _xkb_layout_dwl || _xkb_layout_sway || _xkb_layout_hyprland
+    _xkb_layout_sway || _xkb_layout_hyprland || _xkb_layout_dwl
 }
 
 # Only auto-run when executed directly, not when sourced.
