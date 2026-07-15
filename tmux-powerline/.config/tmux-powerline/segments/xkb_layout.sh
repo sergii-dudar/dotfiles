@@ -22,7 +22,6 @@ EORC
     echo "$rccontents"
 }
 
-
 # OS_TYPE=$(uname)
 # function isMacOs() {
 #     if [[ "$OS_TYPE" == "Darwin" ]]; then
@@ -33,6 +32,24 @@ EORC
 #         return 1  # false
 #     fi
 # }
+
+get_macos_input_source_label() {
+    local source_id
+
+    source_id=$(defaults read "$HOME/Library/Preferences/com.apple.HIToolbox.plist" AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null) || return 1
+
+    case "$source_id" in
+        com.apple.keylayout.ABC)
+            echo "US"
+            ;;
+        com.apple.keylayout.Ukrainian-PC)
+            echo "UA"
+            ;;
+        *)
+            echo "${source_id##*.}"
+            ;;
+    esac
+}
 
 run_segment() {
     if shell_is_linux; then
@@ -55,7 +72,9 @@ run_segment() {
             return 1
         fi
     elif [[ "$(uname)" == "Darwin" ]]; then
-        echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "UA" | tr '[:lower:]' '[:upper:]')"
+        cur_layout=$(get_macos_input_source_label) || return 1
+
+        echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
     else
         return 1
     fi
