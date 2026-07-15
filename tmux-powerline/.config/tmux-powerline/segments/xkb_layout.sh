@@ -22,27 +22,66 @@ EORC
     echo "$rccontents"
 }
 
+
+# OS_TYPE=$(uname)
+# function isMacOs() {
+#     if [[ "$OS_TYPE" == "Darwin" ]]; then
+#         #echo "current is MacOs..."
+#         return 0  # true
+#     else
+#         #echo "current is Linux..."
+#         return 1  # false
+#     fi
+# }
+
 run_segment() {
-    if ! shell_is_linux; then
-        return 1
-    fi
+    if shell_is_linux; then
+        if [ "$XDG_SESSION_TYPE" != "x11" ]; then
+            return 1
+        fi
 
-    if [ "$XDG_SESSION_TYPE" != "x11" ]; then
-        return 1
-    fi
+        cd "$TMUX_POWERLINE_DIR_SEGMENTS" || return
+        if [ ! -x "xkb_layout" ]; then
+            make clean xkb_layout &>/dev/null
+        fi
 
-    cd "$TMUX_POWERLINE_DIR_SEGMENTS" || return
-    if [ ! -x "xkb_layout" ]; then
-        make clean xkb_layout &>/dev/null
-    fi
+        if [ -x ./xkb_layout ]; then
+            cur_layout_nbr=$(./xkb_layout)
+            IFS=$',' read -r -a layouts < <(setxkbmap -query | grep layout | sed 's/layout:\s\+//g')
+            cur_layout="${layouts[$cur_layout_nbr]}"
 
-    if [ -x ./xkb_layout ]; then
-        cur_layout_nbr=$(./xkb_layout)
-        IFS=$',' read -r -a layouts < <(setxkbmap -query | grep layout | sed 's/layout:\s\+//g')
-        cur_layout="${layouts[$cur_layout_nbr]}"
-
-        echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+            echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+        else
+            return 1
+        fi
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "UA" | tr '[:lower:]' '[:upper:]')"
     else
         return 1
     fi
 }
+
+# run_segment() {
+#     if ! shell_is_linux; then
+#         return 1
+#     fi
+#
+#     if [ "$XDG_SESSION_TYPE" != "x11" ]; then
+#         return 1
+#     fi
+#
+#     cd "$TMUX_POWERLINE_DIR_SEGMENTS" || return
+#     if [ ! -x "xkb_layout" ]; then
+#         make clean xkb_layout &>/dev/null
+#     fi
+#
+#     if [ -x ./xkb_layout ]; then
+#         cur_layout_nbr=$(./xkb_layout)
+#         IFS=$',' read -r -a layouts < <(setxkbmap -query | grep layout | sed 's/layout:\s\+//g')
+#         cur_layout="${layouts[$cur_layout_nbr]}"
+#
+#         echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+#     else
+#         return 1
+#     fi
+# }
