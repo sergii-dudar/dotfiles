@@ -32,6 +32,7 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 [opener]
 edit = [
     { run = 'if [ "$#" -eq 1 ] && [ -d "$1" ]; then cd "$1" && nvim; else LIMITED=Y nvim -p "$@"; fi', desc = "NeoVim [folder/files]", block = true, for = "unix" },
+    { run = 'if [ "$#" -eq 1 ] && [ -d "$1" ]; then dir="$1"; name="$(basename "$dir")"; tmux has-session -t "=$name" 2>/dev/null || tmux new-session -d -s "$name" -n "$name" -c "$dir"; if [ -n "$TMUX" ]; then tmux switch-client -t "=$name"; else tmux attach-session -t "=$name"; fi; fi', desc = "Create tmux session & switch", block = true, for = "unix" },
     { run = 'sudo ${EDITOR:=vi} "$@"', desc = "Sudo NeoVim [selected file]", block = true, for = "unix" },
     { run = 'subl "$@"', desc = "Sublime", for = "unix" },
     { run = 'code %*', orphan = true, desc = "code", for = "windows" },
