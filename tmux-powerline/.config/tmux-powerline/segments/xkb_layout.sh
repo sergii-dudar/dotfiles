@@ -40,10 +40,10 @@ get_macos_input_source_label() {
 
     case "$source_id" in
         com.apple.keylayout.ABC)
-            echo "US"
+            echo " US"
             ;;
         com.apple.keylayout.Ukrainian-PC)
-            echo "UA"
+            echo " UA"
             ;;
         *)
             echo "${source_id##*.}"
@@ -55,7 +55,8 @@ run_segment() {
     case "$(uname)" in
         "Darwin")
             cur_layout=$(get_macos_input_source_label) || return 1
-            echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+            # echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+            echo "$cur_layout"
             ;;
         "Linux")
             case "$XDG_SESSION_TYPE" in
