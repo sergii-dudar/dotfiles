@@ -6,7 +6,6 @@ TestDevAppRunner.java
 **/dev_http_requests
 application-work.yaml
 **/local/dev/**
-.gitignore
 .project
 .classpath
 .classpath.cache
