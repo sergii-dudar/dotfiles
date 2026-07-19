@@ -1001,6 +1001,22 @@ function M.start(reason)
     start_all_jdtls(reason or "manual")
 end
 
+--- Toggle JDTLS by stopping active clients or starting from saved/current context.
+---@param reason? string
+function M.toggle(reason)
+    if state.recovering then
+        vim.notify("JDTLS toggle: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
+
+    if #lsp_util.get_clients_by_name("jdtls") > 0 then
+        stop_all_jdtls(reason or "toggle")
+        return
+    end
+
+    start_all_jdtls(reason or "toggle")
+end
+
 local function probe_client(client, done)
     local responded = false
     local ok, req_id = client:request("workspace/executeCommand", {
@@ -1488,14 +1504,16 @@ function M.setup(attach_fn)
     end, { desc = "Force-restart JDTLS for all Java buffers" })
 
     vim.api.nvim_create_user_command("JdtlsStop", function()
-        vim.notify("JDTLS: stopping...", vim.log.levels.INFO)
         M.stop("manual")
     end, { desc = "Stop JDTLS and remember loaded Java buffers for :JdtlsStart" })
 
     vim.api.nvim_create_user_command("JdtlsStart", function()
-        vim.notify("JDTLS: starting...", vim.log.levels.INFO)
         M.start("manual")
     end, { desc = "Start JDTLS for stopped/current Java buffers" })
+
+    vim.api.nvim_create_user_command("JdtlsToggle", function()
+        M.toggle("manual toggle")
+    end, { desc = "Toggle JDTLS start/stop using the recovery context" })
 
     vim.api.nvim_create_user_command("JdtlsHealthCheck", function()
         local clients = lsp_util.get_clients_by_name("jdtls")
