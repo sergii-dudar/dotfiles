@@ -33,6 +33,33 @@ local function exit_visual_mode()
     vim.api.nvim_feedkeys(esc, "x", false)
 end
 
+--- Return the current visual selection as a line/column range string.
+---@return string
+local function visual_selection_position()
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+    local start_line = start_pos[2]
+    local start_col = start_pos[3]
+    local end_line = end_pos[2]
+    local end_col = end_pos[3]
+
+    if start_line > end_line or (start_line == end_line and start_col > end_col) then
+        start_line, end_line = end_line, start_line
+        start_col, end_col = end_col, start_col
+    end
+
+    if end_col >= 2147483647 then
+        local end_line_text = vim.api.nvim_buf_get_lines(0, end_line - 1, end_line, false)[1] or ""
+        end_col = #end_line_text
+    end
+
+    if start_line == end_line then
+        return ("%d:%d-%d"):format(start_line, start_col, end_col)
+    end
+
+    return ("%d:%d-%d:%d"):format(start_line, start_col, end_line, end_col)
+end
+
 --- Add a buffer-local close keymap for the opened cheat sheet.
 ---@param bufnr integer
 local function configure_cheat_sheet_close_key(bufnr)
@@ -77,15 +104,24 @@ function M.copy_absolute_file_path()
     M.copy_file_path(":p")
 end
 
---- Copy the current buffer absolute file path with cursor line and column.
-function M.copy_absolute_file_path_with_position()
+--- Copy the current buffer absolute file path with cursor position or visual range.
+---@param use_visual_selection boolean|nil
+function M.copy_absolute_file_path_with_position(use_visual_selection)
     local absolute_path = current_buffer_path()
     if not absolute_path then
         return
     end
 
-    local cursor = vim.api.nvim_win_get_cursor(0)
-    local path_with_position = ("%s:%d:%d"):format(vim.fn.fnamemodify(absolute_path, ":p"), cursor[1], cursor[2] + 1)
+    local path = vim.fn.fnamemodify(absolute_path, ":p")
+    local path_with_position
+    if use_visual_selection then
+        exit_visual_mode()
+        path_with_position = ("%s:%s"):format(path, visual_selection_position())
+    else
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        path_with_position = ("%s:%d:%d"):format(path, cursor[1], cursor[2] + 1)
+    end
+
     copy_to_clipboard(path_with_position)
 end
 

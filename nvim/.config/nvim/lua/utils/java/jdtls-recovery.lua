@@ -86,6 +86,9 @@ local state = {
     -- context captured by :JdtlsStop so :JdtlsStart can reattach the same
     -- project and virtual buffers later.
     stopped_ctx = nil,
+    -- User explicitly stopped JDTLS; idle/focus recovery must not auto-start it
+    -- until an explicit start/restart/toggle-on clears this flag.
+    manual_stopped = false,
 }
 
 local function in_cooldown()
@@ -871,6 +874,7 @@ local function stop_all_jdtls(reason)
 
     local clients = lsp_util.get_clients_by_name("jdtls")
     if #clients == 0 then
+        state.manual_stopped = true
         logger.fmt_info("stop (%s): already stopped; no active jdtls clients", reason)
         vim.notify("JDTLS is already stopped", vim.log.levels.INFO)
         return
@@ -878,6 +882,7 @@ local function stop_all_jdtls(reason)
 
     local ctx = collect_restart_context()
     state.stopped_ctx = ctx
+    state.manual_stopped = true
 
     state.recovering = true
     mark_action()
@@ -912,6 +917,7 @@ local function start_all_jdtls(reason)
     local clients = lsp_util.get_clients_by_name("jdtls")
     if #clients > 0 then
         state.stopped_ctx = nil
+        state.manual_stopped = false
         logger.fmt_info("start (%s): already running with %d active jdtls client(s)", reason, #clients)
         vim.notify(
             string.format("JDTLS is already running (%d client%s)", #clients, #clients == 1 and "" or "s"),
@@ -922,6 +928,7 @@ local function start_all_jdtls(reason)
 
     local using_stopped_ctx = state.stopped_ctx ~= nil
     local ctx = state.stopped_ctx or collect_restart_context()
+    state.manual_stopped = false
 
     if #ctx.project_bufs == 0 then
         if #ctx.jdt_uri_bufs == 0 then
@@ -974,6 +981,7 @@ end
 function M.restart(reason)
     state.recovering = false
     state.last_action_at = 0
+    state.manual_stopped = false
     restart_all_jdtls(reason or "manual")
 end
 
@@ -982,6 +990,7 @@ end
 function M.hard_restart(reason)
     state.recovering = false
     state.last_action_at = 0
+    state.manual_stopped = false
     hard_restart_all_jdtls(reason or "manual")
 end
 
@@ -1353,6 +1362,10 @@ local function recover_after_gap(gap, source)
     local gap_label = string.format("%ds/%s", math.floor(gap / 1000), source)
 
     if #clients == 0 then
+        if state.manual_stopped then
+            logger.fmt_info("gap %s: jdtls manually stopped -> skipping auto restart", gap_label)
+            return
+        end
         restart_all_jdtls("gap " .. gap_label .. ", no client")
         return
     end

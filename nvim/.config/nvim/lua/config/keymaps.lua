@@ -134,6 +134,9 @@ vim.keymap.set( "n", "<leader>N", keymap_actions.open_cwd_scratch_notes, { desc 
 map("n", "<leader>yf", keymap_actions.copy_relative_file_path, { desc = "Copy relative file path" })
 map("n", "<leader>yF", keymap_actions.copy_absolute_file_path, { desc = "Copy absolute file path" })
 map("n", "<leader>yp", keymap_actions.copy_absolute_file_path_with_position, { desc = "Copy absolute file path with position" })
+map("v", "<leader>yp", function()
+    keymap_actions.copy_absolute_file_path_with_position(true)
+end, { desc = "Copy absolute file path with selection position" })
 map("n", "<leader>yn", keymap_actions.copy_file_name_without_ext, { desc = "Copy file name without ext" })
 map("n", "<leader>yN", keymap_actions.copy_file_name, { desc = "Copy file name" })
 

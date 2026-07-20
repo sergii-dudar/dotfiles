@@ -32,6 +32,7 @@ EORC
 #         return 1  # false
 #     fi
 # }
+# flags:    UA
 
 get_macos_input_source_label() {
     local source_id
@@ -40,10 +41,10 @@ get_macos_input_source_label() {
 
     case "$source_id" in
         com.apple.keylayout.ABC)
-            echo " US"
+            echo " US"
             ;;
         com.apple.keylayout.Ukrainian-PC)
-            echo " UA"
+            echo " UA"
             ;;
         *)
             echo "${source_id##*.}"
