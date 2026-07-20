@@ -72,7 +72,8 @@ run_segment() {
                         IFS=$',' read -r -a layouts < <(setxkbmap -query | grep layout | sed 's/layout:\s\+//g')
                         cur_layout="${layouts[$cur_layout_nbr]}"
 
-                        echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+                        # echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $(echo "$cur_layout" | tr '[:lower:]' '[:upper:]')"
+                        echo "$cur_layout"
                     else
                         return 1
                     fi
@@ -81,7 +82,8 @@ run_segment() {
                     # Wayland has no compositor-agnostic layout API; the per-compositor
                     # dispatch lives in xkb_layout_wayland.sh and prints a short code.
                     cur_layout=$("$HOME/.config/tmux-powerline/segments/xkb_layout_wayland.sh") || return 1
-                    echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $cur_layout"
+                    # echo "$TMUX_POWERLINE_SEG_XKB_LAYOUT_ICON $cur_layout"
+                    echo "$cur_layout"
                     ;;
                 *)
                     return 1

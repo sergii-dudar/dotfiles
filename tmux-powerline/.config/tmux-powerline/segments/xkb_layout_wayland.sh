@@ -21,8 +21,8 @@ _xkb_runtime_dir() {
 # an empty/null value so callers can fall through to the next resolver.
 _xkb_normalize_layout() {
     case "$1" in
-        "English (US)" | English*) echo "US" ;;
-        Ukrainian*) echo "UA" ;;
+        "English (US)" | English*) echo " US" ;;
+        Ukrainian*) echo " UA" ;;
         "" | null) return 1 ;;
         *) echo "$1" | cut -c1-2 | tr '[:lower:]' '[:upper:]' ;;
     esac
