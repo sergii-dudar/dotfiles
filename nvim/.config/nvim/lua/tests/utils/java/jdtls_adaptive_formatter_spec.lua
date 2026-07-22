@@ -301,7 +301,7 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(10, requests[2].params.range.start.line)
     end)
 
-    it("re-wraps a manually wrapped string concatenation", function()
+    it("preserves a manually wrapped string concatenation", function()
         local declarator = fake_node("variable_declarator", { 3, 8, 6, 40 })
         local concatenation = fake_binary(
             { 3, 23, 6, 39 },
@@ -319,16 +319,17 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(3, requests[2].params.range.start.line)
         assert.are.equal(6, requests[2].params.range["end"].line)
         assert.are.equal(
-            "49",
+            "16",
             requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_string_concatenation"]
         )
         assert.are.equal(
             "true",
             requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_string_concatenation"]
         )
+        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
     end)
 
-    it("re-wraps a manually wrapped numeric additive expression", function()
+    it("preserves a manually wrapped numeric additive expression", function()
         local declarator = fake_node("variable_declarator", { 3, 8, 5, 18 })
         local numeric = fake_binary({ 3, 16, 5, 17 }, "+", {
             left = fake_operand("decimal_integer_literal", { 3, 16, 3, 17 }),
@@ -342,16 +343,17 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal("textDocument/formatting", requests[1].method)
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(
-            "49",
+            "16",
             requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_additive_operator"]
         )
         assert.are.equal(
             "false",
             requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_additive_operator"]
         )
+        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
     end)
 
-    it("re-wraps a manually wrapped boolean logical expression", function()
+    it("preserves a manually wrapped boolean logical expression", function()
         local declarator = fake_node("variable_declarator", { 3, 8, 5, 25 })
         local logical = fake_binary({ 3, 20, 5, 24 }, "&&", {
             left = fake_operand("identifier", { 3, 20, 3, 21 }),
@@ -364,13 +366,14 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(2, #requests)
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(
-            "49",
+            "16",
             requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_logical_operator"]
         )
         assert.are.equal(
             "true",
             requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_logical_operator"]
         )
+        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
     end)
 
     it("ignores single-line and unsupported binary expressions", function()

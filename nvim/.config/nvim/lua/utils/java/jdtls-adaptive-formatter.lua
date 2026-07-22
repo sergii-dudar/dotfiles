@@ -5,11 +5,14 @@
 --     parameter starts on the line after the opening parenthesis;
 --   * binary expressions -- the base profile joins manually wrapped arithmetic
 --     (`+ - * / %`), boolean (`&& || < > <= >= == !=`) and string-concatenation
---     expressions back onto one line, so an expression the author split across
---     lines is re-wrapped one operand per line instead. Each operator category
---     is forced explicitly per request (`alignment_for_<category>` plus its
---     `wrap_before_<category>` placement) so the result does not depend on the
---     formatter profile the language server happens to have cached.
+--     expressions back onto one line. Instead, a manually wrapped expression
+--     keeps the author's own line breaks and operator placement (like IntelliJ's
+--     "keep line breaks"), while an expression written on one line stays on one
+--     line. This uses Eclipse's compact-split alignment (16) with
+--     `join_wrapped_lines=false`; string concatenation additionally needs
+--     `wrap_before_string_concatenation=true` for the same setting to take
+--     effect. Every option is passed per request so the result does not depend
+--     on the formatter profile the language server happens to have cached.
 --
 -- Performance: formatting always makes the normal JDTLS request, then one
 -- additional synchronous range-formatting request for every matched range. Add
@@ -27,13 +30,18 @@ local METHOD_PARAMETERS_ALIGNMENT = "org.eclipse.jdt.core.formatter.alignment_fo
 local CONSTRUCTOR_PARAMETERS_ALIGNMENT =
     "org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration"
 local DEFAULT_INDENT_ALIGNMENT = "16"
--- One operand per line (48), forced (+1), so the joined base output is re-wrapped.
-local WRAP_ONE_PER_LINE = "49"
+-- Compact split (16): wrap only when a line overflows, otherwise keep the source
+-- layout. Combined with `join_wrapped_lines=false` this preserves the author's
+-- manual line breaks instead of reflowing to one operand per line.
+local PRESERVE_WRAPPING_ALIGNMENT = "16"
+local JOIN_WRAPPED_LINES = "org.eclipse.jdt.core.formatter.join_wrapped_lines"
 
--- Force-wrap settings per Eclipse operator category. `align` forces one operand
--- per line; `wrap_before` / `wrap_before_value` pin the operator placement so the
--- style stays stable regardless of the profile the server has cached (arithmetic
--- and relational operators trail the line, boolean and string operators lead it).
+-- Preserve settings per Eclipse operator category. `align` selects compact split;
+-- `wrap_before` / `wrap_before_value` pin the operator placement used when the
+-- formatter itself has to wrap an overflowing line the author left unwrapped
+-- (arithmetic and relational operators trail the line, boolean and string
+-- operators lead it). String concatenation ignores the alignment unless its
+-- `wrap_before` is enabled, so it must stay `true`.
 local OPERATOR_CATEGORIES = {
     string_concatenation = {
         align = "org.eclipse.jdt.core.formatter.alignment_for_string_concatenation",
@@ -289,8 +297,9 @@ local function binary_expression_overrides(node, bufnr)
     end
     local settings = OPERATOR_CATEGORIES[category]
     return {
-        [settings.align] = WRAP_ONE_PER_LINE,
+        [settings.align] = PRESERVE_WRAPPING_ALIGNMENT,
         [settings.wrap_before] = settings.wrap_before_value,
+        [JOIN_WRAPPED_LINES] = "false",
     }
 end
 
