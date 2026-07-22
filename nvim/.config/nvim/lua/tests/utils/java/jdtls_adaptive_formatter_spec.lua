@@ -24,66 +24,6 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         }
     end
 
-    --- Build a string-literal node for concatenation tests.
-    local function fake_literal(range)
-        return {
-            type = function()
-                return "string_literal"
-            end,
-            range = function()
-                return unpack(range)
-            end,
-            named_child = function()
-                return nil
-            end,
-            parent = function()
-                return nil
-            end,
-            field = function()
-                return {}
-            end,
-        }
-    end
-
-    --- Build a non-string operand node (e.g. an identifier) for concatenation tests.
-    local function fake_operand(node_type, range)
-        local node = fake_literal(range)
-        node.type = function()
-            return node_type
-        end
-        return node
-    end
-
-    --- Build a `+` binary-expression node with the fields the formatter reads.
-    local function fake_binary(range, operator_text, operands, parent)
-        return {
-            type = function()
-                return "binary_expression"
-            end,
-            range = function()
-                return unpack(range)
-            end,
-            named_child = function()
-                return nil
-            end,
-            parent = function()
-                return parent
-            end,
-            field = function(_, name)
-                if name == "operator" then
-                    return { { __text = operator_text } }
-                end
-                if name == "left" then
-                    return operands.left and { operands.left } or {}
-                end
-                if name == "right" then
-                    return operands.right and { operands.right } or {}
-                end
-                return {}
-            end,
-        }
-    end
-
     --- Install a deterministic Java parser and query result for a test.
     local function stub_tree(parameters)
         vim.treesitter = {
@@ -115,9 +55,6 @@ describe("utils.java.jdtls-adaptive-formatter", function()
                     }
                 end,
             },
-            get_node_text = function(node)
-                return node and node.__text
-            end,
         }
     end
 
@@ -248,6 +185,16 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(3, #requests)
         assert.are.equal(7, requests[1].bufnr)
         assert.are.equal("textDocument/formatting", requests[1].method)
+        -- The base request carries the global binary-expression preserve overrides.
+        assert.are.equal(
+            "16",
+            requests[1].params.options["org.eclipse.jdt.core.formatter.alignment_for_additive_operator"]
+        )
+        assert.are.equal(
+            "true",
+            requests[1].params.options["org.eclipse.jdt.core.formatter.wrap_before_additive_operator"]
+        )
+        assert.are.equal("false", requests[1].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(10, requests[2].params.range.start.line)
         assert.are.equal(
@@ -299,125 +246,5 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(8, requests[1].params.range.start.line)
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(10, requests[2].params.range.start.line)
-    end)
-
-    it("preserves a manually wrapped string concatenation", function()
-        local declarator = fake_node("variable_declarator", { 3, 8, 6, 40 })
-        local concatenation = fake_binary(
-            { 3, 23, 6, 39 },
-            "+",
-            { left = fake_literal({ 3, 23, 3, 29 }), right = fake_literal({ 6, 26, 6, 39 }) },
-            declarator
-        )
-        stub_tree({ concatenation })
-
-        formatter.format(7)
-
-        assert.are.equal(2, #requests)
-        assert.are.equal("textDocument/formatting", requests[1].method)
-        assert.are.equal("textDocument/rangeFormatting", requests[2].method)
-        assert.are.equal(3, requests[2].params.range.start.line)
-        assert.are.equal(6, requests[2].params.range["end"].line)
-        assert.are.equal(
-            "16",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_string_concatenation"]
-        )
-        assert.are.equal(
-            "true",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_string_concatenation"]
-        )
-        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
-    end)
-
-    it("preserves a manually wrapped numeric additive expression", function()
-        local declarator = fake_node("variable_declarator", { 3, 8, 5, 18 })
-        local numeric = fake_binary({ 3, 16, 5, 17 }, "+", {
-            left = fake_operand("decimal_integer_literal", { 3, 16, 3, 17 }),
-            right = fake_operand("decimal_integer_literal", { 5, 16, 5, 17 }),
-        }, declarator)
-        stub_tree({ numeric })
-
-        formatter.format(7)
-
-        assert.are.equal(2, #requests)
-        assert.are.equal("textDocument/formatting", requests[1].method)
-        assert.are.equal("textDocument/rangeFormatting", requests[2].method)
-        assert.are.equal(
-            "16",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_additive_operator"]
-        )
-        assert.are.equal(
-            "false",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_additive_operator"]
-        )
-        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
-    end)
-
-    it("preserves a manually wrapped boolean logical expression", function()
-        local declarator = fake_node("variable_declarator", { 3, 8, 5, 25 })
-        local logical = fake_binary({ 3, 20, 5, 24 }, "&&", {
-            left = fake_operand("identifier", { 3, 20, 3, 21 }),
-            right = fake_operand("identifier", { 5, 16, 5, 24 }),
-        }, declarator)
-        stub_tree({ logical })
-
-        formatter.format(7)
-
-        assert.are.equal(2, #requests)
-        assert.are.equal("textDocument/rangeFormatting", requests[2].method)
-        assert.are.equal(
-            "16",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_logical_operator"]
-        )
-        assert.are.equal(
-            "true",
-            requests[2].params.options["org.eclipse.jdt.core.formatter.wrap_before_logical_operator"]
-        )
-        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
-    end)
-
-    it("ignores single-line and unsupported binary expressions", function()
-        local inline = fake_binary(
-            { 3, 23, 3, 39 },
-            "+",
-            { left = fake_literal({ 3, 23, 3, 29 }), right = fake_literal({ 3, 33, 3, 39 }) },
-            fake_node("variable_declarator", { 3, 8, 3, 40 })
-        )
-        local bitwise = fake_binary({ 5, 16, 7, 18 }, "&", {
-            left = fake_operand("identifier", { 5, 16, 5, 17 }),
-            right = fake_operand("identifier", { 7, 16, 7, 18 }),
-        }, fake_node("variable_declarator", { 5, 8, 7, 18 }))
-        stub_tree({ inline, bitwise })
-
-        formatter.format(7)
-
-        assert.are.equal(1, #requests)
-        assert.are.equal("textDocument/formatting", requests[1].method)
-    end)
-
-    it("skips nested inner concatenations, keeping only the outermost range", function()
-        local declarator = fake_node("variable_declarator", { 3, 8, 5, 30 })
-        local outer = fake_binary({ 3, 23, 5, 29 }, "+", {}, declarator)
-        local inner = fake_binary({ 3, 23, 4, 29 }, "+", { left = fake_literal({ 3, 23, 3, 29 }) }, outer)
-        outer.field = function(_, name)
-            if name == "operator" then
-                return { { __text = "+" } }
-            end
-            if name == "left" then
-                return { inner }
-            end
-            if name == "right" then
-                return { fake_literal({ 5, 23, 5, 29 }) }
-            end
-            return {}
-        end
-        stub_tree({ outer, inner })
-
-        formatter.format(7)
-
-        assert.are.equal(2, #requests)
-        assert.are.equal("textDocument/rangeFormatting", requests[2].method)
-        assert.are.equal(3, requests[2].params.range.start.line)
-        assert.are.equal(5, requests[2].params.range["end"].line)
     end)
 end)

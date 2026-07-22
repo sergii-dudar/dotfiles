@@ -1,28 +1,29 @@
 -- JDTLS formatter adapter: keep the base profile's behaviour, but override the
--- Eclipse formatter for selected Tree-sitter ranges so that manual wrapping is
--- respected. Two rules are active:
---   * declaration parameters -- retain on-column wrapping unless the first
---     parameter starts on the line after the opening parenthesis;
+-- Eclipse formatter so that manual wrapping is respected. Two rules are active:
 --   * binary expressions -- the base profile joins manually wrapped arithmetic
---     (`+ - * / %`), boolean (`&& || < > <= >= == !=`) and string-concatenation
---     expressions back onto one line. Instead, a manually wrapped expression
+--     (`+ - * / %`), boolean (`&& || < > <= >= == !=`), bitwise/shift
+--     (`& | ^ << >> >>>`) and string-concatenation expressions back onto one
+--     line. Instead, a manually wrapped expression
 --     keeps the author's own line breaks and operator placement (like IntelliJ's
 --     "keep line breaks"), while an expression written on one line stays on one
---     line. This uses Eclipse's compact-split alignment (16) with
---     `join_wrapped_lines=false`; string concatenation additionally needs
---     `wrap_before_string_concatenation=true` for the same setting to take
---     effect. Every option is passed per request so the result does not depend
---     on the formatter profile the language server happens to have cached.
+--     line. This is achieved with global compact-split overrides
+--     (`BINARY_PRESERVE_OVERRIDES`) added to the single base format request, so
+--     it costs no extra requests and also covers nested / mixed-precedence
+--     expressions.
+--   * declaration parameters -- retain on-column wrapping unless the first
+--     parameter starts on the line after the opening parenthesis. This is
+--     conditional per declaration, so it still needs one range-formatting request
+--     per matched parameter list.
 --
--- Performance: formatting always makes the normal JDTLS request, then one
--- additional synchronous range-formatting request for every matched range. Add
--- more adaptive rules only when their formatting benefit justifies the extra
--- latency, especially for patterns that may occur many times in a file.
+-- Performance: formatting makes the normal JDTLS request (carrying the binary
+-- overrides), then one additional synchronous range-formatting request only for
+-- each parameter list that matches the parameter rule -- typically none. Add more
+-- adaptive rules only when their formatting benefit justifies the extra latency.
 --
--- Extension: other Eclipse formatter options can be overridden for selected
--- Tree-sitter ranges in the same way. Keep every request on the original
--- document version, resolve overlapping rule ranges explicitly, and apply the
--- merged edits once.
+-- Extension: further Eclipse formatter options can be overridden globally on the
+-- base request, or per Tree-sitter range like the parameter rule. Keep every
+-- request on the original document version, resolve overlapping rule ranges
+-- explicitly, and apply the merged edits once.
 
 local M = {}
 
@@ -30,63 +31,42 @@ local METHOD_PARAMETERS_ALIGNMENT = "org.eclipse.jdt.core.formatter.alignment_fo
 local CONSTRUCTOR_PARAMETERS_ALIGNMENT =
     "org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration"
 local DEFAULT_INDENT_ALIGNMENT = "16"
--- Compact split (16): wrap only when a line overflows, otherwise keep the source
--- layout. Combined with `join_wrapped_lines=false` this preserves the author's
--- manual line breaks instead of reflowing to one operand per line.
-local PRESERVE_WRAPPING_ALIGNMENT = "16"
-local JOIN_WRAPPED_LINES = "org.eclipse.jdt.core.formatter.join_wrapped_lines"
 
--- Preserve settings per Eclipse operator category. `align` selects compact split;
--- `wrap_before` / `wrap_before_value` pin the operator placement used when the
--- formatter itself has to wrap an overflowing line the author left unwrapped
--- (arithmetic and relational operators trail the line, boolean and string
--- operators lead it). String concatenation ignores the alignment unless its
--- `wrap_before` is enabled, so it must stay `true`.
-local OPERATOR_CATEGORIES = {
-    string_concatenation = {
-        align = "org.eclipse.jdt.core.formatter.alignment_for_string_concatenation",
-        wrap_before = "org.eclipse.jdt.core.formatter.wrap_before_string_concatenation",
-        wrap_before_value = "true",
-    },
-    additive = {
-        align = "org.eclipse.jdt.core.formatter.alignment_for_additive_operator",
-        wrap_before = "org.eclipse.jdt.core.formatter.wrap_before_additive_operator",
-        wrap_before_value = "false",
-    },
-    multiplicative = {
-        align = "org.eclipse.jdt.core.formatter.alignment_for_multiplicative_operator",
-        wrap_before = "org.eclipse.jdt.core.formatter.wrap_before_multiplicative_operator",
-        wrap_before_value = "false",
-    },
-    logical = {
-        align = "org.eclipse.jdt.core.formatter.alignment_for_logical_operator",
-        wrap_before = "org.eclipse.jdt.core.formatter.wrap_before_logical_operator",
-        wrap_before_value = "true",
-    },
-    relational = {
-        align = "org.eclipse.jdt.core.formatter.alignment_for_relational_operator",
-        wrap_before = "org.eclipse.jdt.core.formatter.wrap_before_relational_operator",
-        wrap_before_value = "false",
-    },
+-- Global preserve overrides for binary expressions, applied to the single base
+-- format request (not per range). Compact split (16) wraps only when a line
+-- overflows and, with `join_wrapped_lines=false`, keeps the author's own line
+-- breaks and grouping; an expression written on one line stays on one line.
+-- `wrap_before_*` is `true` for every operator category: it is both the operator
+-- placement used when the formatter has to wrap an overflowing line (operator
+-- leads the continuation line, matching the string/boolean style) and, crucially,
+-- the setting that lets a manual break placed *before* an operator (`a\n+ b`) be
+-- preserved -- with `false` such leading breaks are normalised away and the
+-- operands join back onto one line. Leading placement still preserves existing
+-- trailing breaks (`a +\nb`), so it is strictly the better choice for keeping
+-- manual wrapping. String concatenation additionally requires its `wrap_before`
+-- to be enabled for the alignment to take effect at all. Every option is passed
+-- per request so the result does not depend on the profile the language server
+-- happens to have cached. Applying these globally is safe because compact split
+-- never reflows expressions that already fit, and it also covers nested and
+-- mixed-precedence expressions that a single-operator range pass would miss.
+local BINARY_PRESERVE_OVERRIDES = {
+    ["org.eclipse.jdt.core.formatter.alignment_for_string_concatenation"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_string_concatenation"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_additive_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_additive_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_multiplicative_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_multiplicative_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_logical_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_logical_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_relational_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_relational_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_bitwise_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_bitwise_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.alignment_for_shift_operator"] = "16",
+    ["org.eclipse.jdt.core.formatter.wrap_before_shift_operator"] = "true",
+    ["org.eclipse.jdt.core.formatter.join_wrapped_lines"] = "false",
 }
 
--- Java binary operators mapped to their Eclipse category. `+` is resolved at
--- runtime: string concatenation when a string literal participates, else additive.
-local OPERATOR_CATEGORY = {
-    ["+"] = "additive",
-    ["-"] = "additive",
-    ["*"] = "multiplicative",
-    ["/"] = "multiplicative",
-    ["%"] = "multiplicative",
-    ["&&"] = "logical",
-    ["||"] = "logical",
-    ["<"] = "relational",
-    [">"] = "relational",
-    ["<="] = "relational",
-    [">="] = "relational",
-    ["=="] = "relational",
-    ["!="] = "relational",
-}
 local FORMAT_TIMEOUT_MS = 3000
 
 local PARAMETERS_QUERY = [[
@@ -94,10 +74,6 @@ local PARAMETERS_QUERY = [[
         (method_declaration parameters: (formal_parameters) @parameters)
         (constructor_declaration parameters: (formal_parameters) @parameters)
     ]
-]]
-
-local BINARY_EXPRESSION_QUERY = [[
-    (binary_expression) @expression
 ]]
 
 local query_cache = {}
@@ -235,107 +211,6 @@ local function get_adaptive_ranges(bufnr, selection)
     return ranges
 end
 
---- Report whether any ancestor is itself a binary expression (i.e. not outermost).
----@param node TSNode
----@return boolean
-local function has_binary_expression_ancestor(node)
-    local parent = node:parent()
-    while parent do
-        if parent:type() == "binary_expression" then
-            return true
-        end
-        parent = parent:parent()
-    end
-    return false
-end
-
---- Report whether a `+` expression concatenates at least one string literal,
---- recursing only through the operands of nested `+` expressions.
----@param node TSNode
----@return boolean
-local function concatenates_string_literal(node)
-    local node_type = node:type()
-    if node_type == "string_literal" then
-        return true
-    end
-    if node_type ~= "binary_expression" then
-        return false
-    end
-    for _, field in ipairs({ "left", "right" }) do
-        local operand = node:field(field)[1]
-        if operand and concatenates_string_literal(operand) then
-            return true
-        end
-    end
-    return false
-end
-
---- Resolve formatter overrides for an outermost, manually wrapped binary
---- expression, or nil when the base formatter should keep ownership.
----@param node TSNode
----@param bufnr integer
----@return table<string, string>|nil
-local function binary_expression_overrides(node, bufnr)
-    if node:type() ~= "binary_expression" then
-        return nil
-    end
-    local start_row, _, end_row = node:range()
-    if start_row >= end_row then
-        return nil
-    end
-    if has_binary_expression_ancestor(node) then
-        return nil
-    end
-    local operator = node:field("operator")[1]
-    local operator_text = operator and vim.treesitter.get_node_text(operator, bufnr)
-    local category = operator_text and OPERATOR_CATEGORY[operator_text]
-    if not category then
-        return nil
-    end
-    if operator_text == "+" and concatenates_string_literal(node) then
-        category = "string_concatenation"
-    end
-    local settings = OPERATOR_CATEGORIES[category]
-    return {
-        [settings.align] = PRESERVE_WRAPPING_ALIGNMENT,
-        [settings.wrap_before] = settings.wrap_before_value,
-        [JOIN_WRAPPED_LINES] = "false",
-    }
-end
-
---- Collect manually wrapped arithmetic/boolean/string expressions to re-wrap.
----@param bufnr integer
----@param selection lsp.Range|nil
----@return { range: lsp.Range, overrides: table<string, string> }[]
-local function get_binary_expression_ranges(bufnr, selection)
-    local query = get_query(BINARY_EXPRESSION_QUERY)
-    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
-    if not query or not ok or not parser then
-        return {}
-    end
-
-    local trees = parser:parse()
-    if not trees or not trees[1] then
-        return {}
-    end
-
-    local ranges = {}
-    for _, expression in query:iter_captures(trees[1]:root(), bufnr, 0, -1) do
-        local overrides = binary_expression_overrides(expression, bufnr)
-        if overrides then
-            local start_row, start_col, end_row, end_col = expression:range()
-            local range = {
-                start = { line = start_row, character = start_col },
-                ["end"] = { line = end_row, character = end_col },
-            }
-            if is_in_selection(range, selection) then
-                ranges[#ranges + 1] = { range = range, overrides = overrides }
-            end
-        end
-    end
-    return ranges
-end
-
 --- Convert a byte-based Tree-sitter position to the JDTLS character encoding.
 ---@param bufnr integer
 ---@param position lsp.Position
@@ -449,10 +324,12 @@ function M.format(bufnr)
 
     local selection = get_visual_range(bufnr)
     local adaptive_ranges = get_adaptive_ranges(bufnr, selection)
-    vim.list_extend(adaptive_ranges, get_binary_expression_ranges(bufnr, selection))
     local base_method = selection and "textDocument/rangeFormatting" or "textDocument/formatting"
     local base_range = selection and to_lsp_range(bufnr, selection, client.offset_encoding) or nil
-    local base_edits = request_edits(client, bufnr, base_method, base_range, formatting_options(bufnr))
+    -- Binary-expression wrapping is preserved through global overrides on this one
+    -- request; only the parameter rule still needs per-declaration range requests.
+    local base_edits =
+        request_edits(client, bufnr, base_method, base_range, formatting_options(bufnr, BINARY_PRESERVE_OVERRIDES))
 
     local adaptive_edits = {}
     local accepted_ranges = {}
