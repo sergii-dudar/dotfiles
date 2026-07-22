@@ -204,7 +204,10 @@ return {
                 --#####################################
             }
         end,
+        --- Configure nvim-jdtls, Java tooling bundles, and the adaptive formatter.
         config = function(_, opts)
+            require("utils.java.jdtls-adaptive-formatter").setup()
+
             -- Find the extra bundles that should be passed on the jdtls command-line
             -- if nvim-dap is enabled with java debug/test.
             local bundles = {} ---@type string[]
