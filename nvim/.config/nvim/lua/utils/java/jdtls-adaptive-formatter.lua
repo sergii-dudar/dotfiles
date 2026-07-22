@@ -1,5 +1,15 @@
 -- JDTLS formatter adapter: retain on-column wrapping unless a declaration's
 -- first parameter starts on the line after the opening parenthesis.
+--
+-- Performance: formatting always makes the normal JDTLS request, then one
+-- additional synchronous range-formatting request for every matched parameter
+-- list. Add more adaptive rules only when their formatting benefit justifies
+-- the extra latency, especially for patterns that may occur many times in a file.
+--
+-- Extension: other Eclipse formatter options can be overridden for selected
+-- Tree-sitter ranges in the same way. Keep every request on the original
+-- document version, resolve overlapping rule ranges explicitly, and apply the
+-- merged edits once.
 
 local M = {}
 
