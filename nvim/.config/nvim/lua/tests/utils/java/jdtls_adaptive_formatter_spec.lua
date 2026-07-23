@@ -162,7 +162,7 @@ describe("utils.java.jdtls-adaptive-formatter", function()
 
         formatter.setup()
 
-        assert.are.equal("JDTLS adaptive parameters", registered.name)
+        assert.are.equal("JDTLS adaptive Java", registered.name)
         assert.are.equal(110, registered.priority)
         assert.is_true(registered.primary)
         assert.are.same({ "jdtls" }, registered.sources(7))
@@ -197,6 +197,11 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal("false", requests[1].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(10, requests[2].params.range.start.line)
+        assert.are.equal(
+            "16",
+            requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_additive_operator"]
+        )
+        assert.are.equal("false", requests[2].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
         assert.are.equal(
             "16",
             requests[2].params.options["org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration"]

@@ -1,28 +1,29 @@
--- JDTLS formatter adapter: keep the base profile's behaviour, but override the
--- Eclipse formatter so that manual wrapping is respected. Two rules are active:
+-- JDTLS formatter adapter: build on the base profile while overriding selected
+-- Eclipse options so that manual wrapping is respected. Two rules are active:
 --   * binary expressions -- the base profile joins manually wrapped arithmetic
 --     (`+ - * / %`), boolean (`&& || < > <= >= == !=`), bitwise/shift
 --     (`& | ^ << >> >>>`) and string-concatenation expressions back onto one
 --     line. Instead, a manually wrapped expression
 --     keeps the author's own line breaks and operator placement (like IntelliJ's
---     "keep line breaks"), while an expression written on one line stays on one
---     line. This is achieved with global compact-split overrides
---     (`BINARY_PRESERVE_OVERRIDES`) added to the single base format request, so
---     it costs no extra requests and also covers nested / mixed-precedence
---     expressions.
+--     "keep line breaks"), while an expression that fits stays on one line and an
+--     overflowing expression uses compact wrapping. This is achieved with global
+--     compact-split overrides (`BINARY_PRESERVE_OVERRIDES`) added to every
+--     formatter request, so binary preservation costs no separate requests and
+--     also covers nested / mixed-precedence expressions.
 --   * declaration parameters -- retain on-column wrapping unless the first
 --     parameter starts on the line after the opening parenthesis. This is
 --     conditional per declaration, so it still needs one range-formatting request
 --     per matched parameter list.
 --
--- Performance: formatting makes the normal JDTLS request (carrying the binary
--- overrides), then one additional synchronous range-formatting request only for
--- each parameter list that matches the parameter rule -- typically none. Add more
--- adaptive rules only when their formatting benefit justifies the extra latency.
+-- Performance: formatting makes the normal JDTLS request, then one additional
+-- synchronous range-formatting request only for each parameter list that matches
+-- the parameter rule -- typically none. Every request carries the binary
+-- overrides. Add more adaptive rules only when their formatting benefit justifies
+-- the extra latency.
 --
--- Extension: further Eclipse formatter options can be overridden globally on the
--- base request, or per Tree-sitter range like the parameter rule. Keep every
--- request on the original document version, resolve overlapping rule ranges
+-- Extension: further Eclipse formatter options can be overridden globally on
+-- every request, or layered on a Tree-sitter range like the parameter rule. Keep
+-- every request on the original document version, resolve overlapping rule ranges
 -- explicitly, and apply the merged edits once.
 
 local M = {}
@@ -32,10 +33,10 @@ local CONSTRUCTOR_PARAMETERS_ALIGNMENT =
     "org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration"
 local DEFAULT_INDENT_ALIGNMENT = "16"
 
--- Global preserve overrides for binary expressions, applied to the single base
--- format request (not per range). Compact split (16) wraps only when a line
+-- Global preserve overrides for binary expressions, applied to every formatter
+-- request, including adaptive ranges. Compact split (16) wraps only when a line
 -- overflows and, with `join_wrapped_lines=false`, keeps the author's own line
--- breaks and grouping; an expression written on one line stays on one line.
+-- breaks and grouping; an expression that fits stays on one line.
 -- `wrap_before_*` is `true` for every operator category: it is both the operator
 -- placement used when the formatter has to wrap an overflowing line (operator
 -- leads the continuation line, matching the string/boolean style) and, crucially,
@@ -46,9 +47,10 @@ local DEFAULT_INDENT_ALIGNMENT = "16"
 -- manual wrapping. String concatenation additionally requires its `wrap_before`
 -- to be enabled for the alignment to take effect at all. Every option is passed
 -- per request so the result does not depend on the profile the language server
--- happens to have cached. Applying these globally is safe because compact split
--- never reflows expressions that already fit, and it also covers nested and
--- mixed-precedence expressions that a single-operator range pass would miss.
+-- happens to have cached. Applying these globally is deliberate: compact split
+-- preserves expressions that already fit, uses compact wrapping for overflowing
+-- expressions, and covers nested and mixed-precedence expressions that a
+-- single-operator range pass would miss.
 local BINARY_PRESERVE_OVERRIDES = {
     ["org.eclipse.jdt.core.formatter.alignment_for_string_concatenation"] = "16",
     ["org.eclipse.jdt.core.formatter.wrap_before_string_concatenation"] = "true",
@@ -235,7 +237,7 @@ local function to_lsp_range(bufnr, range, encoding)
     }
 end
 
---- Build formatting options for the target buffer with optional Eclipse overrides.
+--- Build formatting options with global binary preservation and optional range overrides.
 ---@param bufnr integer
 ---@param overrides table<string, string>|nil
 ---@return table
@@ -243,7 +245,7 @@ local function formatting_options(bufnr, overrides)
     return vim.tbl_extend("force", {
         tabSize = vim.lsp.util.get_effective_tabstop(bufnr),
         insertSpaces = vim.bo[bufnr].expandtab,
-    }, overrides or {})
+    }, BINARY_PRESERVE_OVERRIDES, overrides or {})
 end
 
 --- Request formatter edits without applying them to the buffer.
@@ -326,10 +328,9 @@ function M.format(bufnr)
     local adaptive_ranges = get_adaptive_ranges(bufnr, selection)
     local base_method = selection and "textDocument/rangeFormatting" or "textDocument/formatting"
     local base_range = selection and to_lsp_range(bufnr, selection, client.offset_encoding) or nil
-    -- Binary-expression wrapping is preserved through global overrides on this one
+    -- Binary-expression wrapping is preserved through global overrides on every
     -- request; only the parameter rule still needs per-declaration range requests.
-    local base_edits =
-        request_edits(client, bufnr, base_method, base_range, formatting_options(bufnr, BINARY_PRESERVE_OVERRIDES))
+    local base_edits = request_edits(client, bufnr, base_method, base_range, formatting_options(bufnr))
 
     local adaptive_edits = {}
     local accepted_ranges = {}
@@ -373,7 +374,7 @@ function M.setup()
     end
     M._registered = true
     LazyVim.format.register({
-        name = "JDTLS adaptive parameters",
+        name = "JDTLS adaptive Java",
         primary = true,
         priority = 110,
         format = M.format,
