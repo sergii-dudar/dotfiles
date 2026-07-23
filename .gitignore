@@ -17,6 +17,10 @@ target/
 **/venv
 **/DO_NOT_MODIFY_ANYTHING_IN_THIS_DIRECTORY
 **/LICENSE
+nvim.log
+
+!AGENTS.md
+!CLAUDE.md
 
 #awesome/.config/awesome/themes
 ranger/.config/ranger/plugins
