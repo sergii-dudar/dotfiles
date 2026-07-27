@@ -59,7 +59,6 @@ local COMPLETION_PROBE_TIMEOUT_MS = 5000
 local COMPLETION_EMPTY_RETRY_DELAY_MS = 250
 local ACTION_COOLDOWN_MS = 30 * 1000
 local BUF_SOFT_COOLDOWN_MS = 10 * 1000
-local PENDING_GAP_TTL_MS = 10 * 60 * 1000
 local RESTART_SHUTDOWN_TIMEOUT_MS = 10 * 1000
 local RESTART_ATTACH_GRACE_MS = 1000
 local RESTART_ATTACH_POLL_MS = 200
@@ -94,6 +93,8 @@ local state = {
 local function in_cooldown()
     return (vim.uv.now() - state.last_action_at) < ACTION_COOLDOWN_MS
 end
+
+local summarize_completion_result
 
 local function mark_action()
     state.last_action_at = vim.uv.now()
@@ -351,12 +352,18 @@ local function wait_for_clients_to_close(clients, done)
     poll()
 end
 
---- Clear blink.cmp's active LSP completion queue and cached LSP source items.
+--- Clear blink.cmp completion state and force its LSP provider to be recreated.
 local function reset_blink_lsp_state(reason)
     local trigger_ok, trigger = pcall(require, "blink.cmp.completion.trigger")
     if trigger_ok then
         local hide_ok, hide_err = pcall(function()
             trigger.hide()
+            trigger.context = nil
+            if trigger.buffer_events then
+                trigger.buffer_events.last_char = ""
+                trigger.buffer_events.ignore_next_text_changed = false
+                trigger.buffer_events.ignore_next_cursor_moved = false
+            end
         end)
         if not hide_ok then
             logger.fmt_warn("blink trigger reset failed (%s): %s", reason, tostring(hide_err))
@@ -367,6 +374,10 @@ local function reset_blink_lsp_state(reason)
     if list_ok then
         local hide_ok, hide_err = pcall(function()
             list.hide()
+            list.context = nil
+            list.items = {}
+            list.selected_item_idx = nil
+            list.preview_undo = nil
         end)
         if not hide_ok then
             logger.fmt_warn("blink list reset failed (%s): %s", reason, tostring(hide_err))
@@ -400,6 +411,9 @@ local function reset_blink_lsp_state(reason)
         end
         provider.resolve_cache_context_id = nil
         provider.resolve_cache = {}
+    end
+    if sources.providers then
+        sources.providers.lsp = nil
     end
 
     local ok_cache, cache = pcall(require, "blink.cmp.sources.lsp.cache")
@@ -435,6 +449,70 @@ end
 --- Refresh blink.cmp's LSP source after external JDTLS workspace events.
 function M.refresh_blink_lsp(reason)
     refresh_blink_lsp(reason or "external")
+end
+
+--- Probe blink.cmp's LSP source directly, bypassing the completion menu.
+local function probe_blink_lsp_completion(done)
+    local buf = vim.api.nvim_get_current_buf()
+    if vim.bo[buf].filetype ~= "java" then
+        done({ status = "skipped", reason = "current buffer is not Java" })
+        return
+    end
+
+    local context_ok, context_mod = pcall(require, "blink.cmp.completion.trigger.context")
+    if not context_ok then
+        done({ status = "error", error = context_mod })
+        return
+    end
+
+    local source_ok, lsp_source = pcall(require, "blink.cmp.sources.lsp")
+    if not source_ok then
+        done({ status = "error", error = lsp_source })
+        return
+    end
+
+    local context = context_mod.new({
+        id = math.floor(vim.uv.now()),
+        providers = { "lsp" },
+        initial_trigger_kind = "manual",
+        trigger_kind = "manual",
+    })
+
+    local responded = false
+    local start = vim.uv.now()
+    local source = lsp_source.new({})
+    local ok, cancel = pcall(function()
+        return source:get_completions(context, function(response)
+            if responded then
+                return
+            end
+            responded = true
+
+            local elapsed = vim.uv.now() - start
+            local count, preview = summarize_completion_result(response and response.items or response)
+            done({
+                status = count > 0 and "ok" or "empty",
+                elapsed = elapsed,
+                count = count,
+                preview = preview,
+            })
+        end)
+    end)
+    if not ok then
+        done({ status = "error", error = cancel })
+        return
+    end
+
+    vim.defer_fn(function()
+        if responded then
+            return
+        end
+        responded = true
+        if type(cancel) == "function" then
+            pcall(cancel)
+        end
+        done({ status = "timeout", elapsed = COMPLETION_PROBE_TIMEOUT_MS })
+    end, COMPLETION_PROBE_TIMEOUT_MS)
 end
 
 --- Return whether a JDTLS client is the new owner for a virtual URI buffer.
@@ -1115,7 +1193,7 @@ local function probe_buffer(client, buf, done)
 end
 
 --- Extract item count and preview labels from a completion response.
-local function summarize_completion_result(result)
+function summarize_completion_result(result)
     local items = result
     if type(result) == "table" and result.items then
         items = result.items
@@ -1416,14 +1494,13 @@ local function run_pending_gap_on_java_bufenter()
     end
 
     state.pending_gap = nil
-    if (vim.uv.now() - pending.at) > PENDING_GAP_TTL_MS then
-        logger.fmt_info(
-            "dropping pending gap %ds/%s after Java BufEnter: expired",
-            math.floor(pending.gap / 1000),
-            pending.source
-        )
-        return
-    end
+    local pending_age = vim.uv.now() - pending.at
+    logger.fmt_info(
+        "running pending gap %ds/%s after Java BufEnter (deferred %ds)",
+        math.floor(pending.gap / 1000),
+        pending.source,
+        math.floor(pending_age / 1000)
+    )
 
     vim.defer_fn(function()
         recover_after_gap(pending.gap, pending.source .. "+java")
@@ -1593,6 +1670,12 @@ function M.setup(attach_fn)
         refresh_blink_lsp("manual blink reset")
         vim.notify("JDTLS: blink LSP completion state reset", vim.log.levels.INFO)
     end, { desc = "Reset blink.cmp LSP state without restarting JDTLS" })
+
+    vim.api.nvim_create_user_command("JdtlsBlinkLspProbe", function()
+        probe_blink_lsp_completion(function(result)
+            vim.notify("JdtlsBlinkLspProbe: " .. format_completion_probe_result(result), completion_probe_level(result))
+        end)
+    end, { desc = "Probe blink.cmp LSP source directly without opening the completion menu" })
 
     -- Manually send a real textDocument/completion request at the cursor and
     -- report the raw result. Use this when completion feels broken — it tells

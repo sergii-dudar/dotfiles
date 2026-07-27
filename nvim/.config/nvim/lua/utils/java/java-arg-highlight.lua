@@ -210,6 +210,33 @@ local HANDLERS = {
             }
         end,
     },
+
+    -- "ACCEPTED cannot be resolved to a variable" — missing static import, highlight the token
+    {
+        needle = "cannot be resolved to a variable",
+        --- Highlight an unresolved variable at the exact JDTLS diagnostic range.
+        process = function(_, diag, out)
+            local variable_name = diag.message:match("^([%w_%.]+) cannot be resolved to a variable")
+            if not variable_name then
+                return
+            end
+
+            local row = diag.range and diag.range.start and diag.range.start.line or 0
+            local col = diag.range and diag.range.start and diag.range.start.character or 0
+            local end_row = diag.range and diag.range["end"] and diag.range["end"].line or row
+            local end_col = diag.range and diag.range["end"] and diag.range["end"].character or (col + #variable_name)
+
+            out[#out + 1] = {
+                lnum = row,
+                col = col,
+                end_lnum = end_row,
+                end_col = end_col,
+                severity = vim.diagnostic.severity.WARN,
+                message = string.format("need explicitly import %s", variable_name),
+                source = "jdtls-arg",
+            }
+        end,
+    },
 }
 
 local function diag_matches_any_handler(msg)
