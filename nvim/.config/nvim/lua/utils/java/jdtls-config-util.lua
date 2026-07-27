@@ -197,6 +197,7 @@ M.jdtls_settings = {
                 "org.mockito.Mockito.never",
                 "org.springframework.http.HttpHeaders.*",
                 "org.springframework.http.HttpStatus.*",
+                "org.springframework.http.MediaType.*",
                 "java.time.temporal.ChronoUnit.*",
                 "org.apache.commons.collections4.CollectionUtils",
                 "org.apache.commons.collections4.IterableUtils",
