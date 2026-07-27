@@ -1,7 +1,7 @@
--- Java argument mismatch highlighter: show inline type annotations on method call arguments.
--- Parses LSP "applicable method" diagnostics and overlays expected vs actual types.
+-- Java diagnostic highlighter: pinpoint argument, type, and unresolved-symbol errors.
+-- Parses selected JDTLS diagnostics and overlays focused expected-vs-actual highlights.
 --
--- • apply — parse diagnostics and render argument type highlights for a buffer
+-- • apply — parse diagnostics and render focused Java highlights for a buffer
 
 local M = {}
 
@@ -15,6 +15,21 @@ local HL_NS = vim.api.nvim_create_namespace("java_arg_mismatch_hl")
 local BYTE_LT = string.byte("<")
 local BYTE_GT = string.byte(">")
 local BYTE_COMMA = string.byte(",")
+
+local RESULT_TYPE_FROM_ARGUMENT_METHODS = {
+    cast = true,
+    concatMap = true,
+    flatMap = true,
+    flatMapMany = true,
+    handle = true,
+    map = true,
+    ofType = true,
+    switchMap = true,
+    ["then"] = true,
+    thenReturn = true,
+    transform = true,
+    transformDeferred = true,
+}
 
 local function parse_type_list(s)
     local types = {}
@@ -112,14 +127,73 @@ local function collect_arg_nodes(arg_list)
     return args
 end
 
+--- Return the expression or block that supplies a lambda's result.
+local function lambda_result_node(node)
+    if node:type() ~= "lambda_expression" then
+        return node
+    end
+
+    local result
+    for child in node:iter_children() do
+        if child:named() then
+            result = child
+        end
+    end
+    return result or node
+end
+
+--- Narrow a multiline fluent-chain mismatch to its final result-shaping argument.
+local function find_type_mismatch_target(bufnr, root, diag)
+    local range = diag.range
+    if not range or not range.start or not range["end"] then
+        return nil
+    end
+
+    local start = range.start
+    local finish = range["end"]
+    local node = root:named_descendant_for_range(start.line, start.character, finish.line, finish.character)
+    if not node then
+        return nil
+    end
+
+    if node:type() ~= "method_invocation" or start.line == finish.line then
+        return node
+    end
+
+    local objects = node:field("object")
+    local names = node:field("name")
+    local object = objects and objects[1]
+    local name = names and names[1]
+    if not object or object:type() ~= "method_invocation" or not name then
+        return node
+    end
+
+    local method_name = vim.treesitter.get_node_text(name, bufnr)
+    if not RESULT_TYPE_FROM_ARGUMENT_METHODS[method_name] then
+        return node
+    end
+
+    for child in node:iter_children() do
+        if child:type() == "argument_list" then
+            local args = collect_arg_nodes(child)
+            if #args == 1 then
+                return lambda_result_node(args[1])
+            end
+            break
+        end
+    end
+
+    return node
+end
+
 -- ---------------------------------------------------------------------------
 -- Diagnostic message handlers
 --
--- Each handler describes how to produce per-argument highlights from a specific
+-- Each handler describes how to produce focused highlights from a specific
 -- JDTLS diagnostic message. To support a new message format, add a new entry.
 --
 --   needle:   cheap literal substring used for fast pre-filtering
---   process:  function(root, diag, out) — appends highlight entries to `out`
+--   process:  function(root, diag, out, bufnr) — appends highlight entries to `out`
 -- ---------------------------------------------------------------------------
 local HANDLERS = {
     -- "The method foo(A, B) in the type Bar is not applicable for the arguments (A, C)"
@@ -182,6 +256,34 @@ local HANDLERS = {
                     source = "jdtls-arg",
                 }
             end
+        end,
+    },
+
+    -- "Type mismatch: cannot convert from Mono<Object> to Mono<? extends Response>"
+    {
+        needle = "Type mismatch: cannot convert from",
+        --- Highlight the expression responsible for a JDTLS type mismatch.
+        process = function(root, diag, out, bufnr)
+            local provided, expected = diag.message:match("^Type mismatch: cannot convert from (.-) to (.+)$")
+            if not provided or not expected then
+                return
+            end
+
+            local target = find_type_mismatch_target(bufnr, root, diag)
+            if not target then
+                return
+            end
+
+            local sr, sc, er, ec = target:range()
+            out[#out + 1] = {
+                lnum = sr,
+                col = sc,
+                end_lnum = er,
+                end_col = ec,
+                severity = vim.diagnostic.severity.ERROR,
+                message = string.format("expected %s, got %s", expected, provided),
+                source = "jdtls-type",
+            }
         end,
     },
 
@@ -248,15 +350,15 @@ local function diag_matches_any_handler(msg)
     return false
 end
 
--- Dispatch a single diagnostic to every matching handler.
-local function process_diag(root, diag, out)
+--- Dispatch a single diagnostic to every matching handler.
+local function process_diag(bufnr, root, diag, out)
     local msg = diag.message
     if not msg then
         return
     end
     for _, h in ipairs(HANDLERS) do
         if msg:find(h.needle, 1, true) then
-            h.process(root, diag, out)
+            h.process(root, diag, out, bufnr)
         end
     end
 end
@@ -289,7 +391,7 @@ local function build_arg_diags(bufnr, lsp_diagnostics)
 
     local result = {}
     for _, diag in ipairs(lsp_diagnostics) do
-        process_diag(root, diag, result)
+        process_diag(bufnr, root, diag, result)
     end
     return result
 end
