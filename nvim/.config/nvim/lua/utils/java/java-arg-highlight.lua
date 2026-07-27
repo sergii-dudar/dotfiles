@@ -193,12 +193,14 @@ end
 -- JDTLS diagnostic message. To support a new message format, add a new entry.
 --
 --   needle:   cheap literal substring used for fast pre-filtering
+--   priority: higher-priority overlapping diagnostics suppress this handler
 --   process:  function(root, diag, out, bufnr) — appends highlight entries to `out`
 -- ---------------------------------------------------------------------------
 local HANDLERS = {
     -- "The method foo(A, B) in the type Bar is not applicable for the arguments (A, C)"
     {
         needle = "is not applicable for the arguments",
+        priority = 50,
         process = function(root, diag, out)
             local msg = diag.message
             local expected_str, provided_str = msg:match(
@@ -262,6 +264,7 @@ local HANDLERS = {
     -- "Type mismatch: cannot convert from Mono<Object> to Mono<? extends Response>"
     {
         needle = "Type mismatch: cannot convert from",
+        priority = 10,
         --- Highlight the expression responsible for a JDTLS type mismatch.
         process = function(root, diag, out, bufnr)
             local provided, expected = diag.message:match("^Type mismatch: cannot convert from (.-) to (.+)$")
@@ -290,6 +293,7 @@ local HANDLERS = {
     -- "Amount cannot be resolved to a type" — missing import, highlight the token
     {
         needle = "cannot be resolved to a type",
+        priority = 100,
         process = function(_, diag, out)
             local type_name = diag.message:match("^([%w_%.]+) cannot be resolved to a type")
             if not type_name then
@@ -316,6 +320,7 @@ local HANDLERS = {
     -- "ACCEPTED cannot be resolved to a variable" — missing static import, highlight the token
     {
         needle = "cannot be resolved to a variable",
+        priority = 100,
         --- Highlight an unresolved variable at the exact JDTLS diagnostic range.
         process = function(_, diag, out)
             local variable_name = diag.message:match("^([%w_%.]+) cannot be resolved to a variable")
@@ -341,19 +346,61 @@ local HANDLERS = {
     },
 }
 
-local function diag_matches_any_handler(msg)
+--- Return the highest handler priority matching a diagnostic message.
+local function diag_handler_priority(msg)
+    local priority
     for _, h in ipairs(HANDLERS) do
-        if msg:find(h.needle, 1, true) then
-            return true
+        local handler_priority = h.priority or 0
+        if msg:find(h.needle, 1, true) and (not priority or handler_priority > priority) then
+            priority = handler_priority
+        end
+    end
+    return priority
+end
+
+--- Return whether one zero-indexed LSP position is strictly before another.
+local function position_before(left, right)
+    if left.line ~= right.line then
+        return left.line < right.line
+    end
+    return (left.character or 0) < (right.character or 0)
+end
+
+--- Return whether two end-exclusive LSP diagnostic ranges overlap.
+local function diagnostic_ranges_overlap(left, right)
+    if not left or not left.start or not left["end"] or not right or not right.start or not right["end"] then
+        return false
+    end
+    return position_before(left.start, right["end"]) and position_before(right.start, left["end"])
+end
+
+--- Return whether an overlapping diagnostic has a more targeted handler.
+local function has_higher_priority_overlap(diag, lsp_diagnostics)
+    local priority = diag.message and diag_handler_priority(diag.message)
+    if not priority then
+        return false
+    end
+
+    for _, other in ipairs(lsp_diagnostics) do
+        if other ~= diag and other.message then
+            local other_priority = diag_handler_priority(other.message)
+            if other_priority and other_priority > priority and diagnostic_ranges_overlap(diag.range, other.range) then
+                return true
+            end
         end
     end
     return false
 end
 
---- Dispatch a single diagnostic to every matching handler.
-local function process_diag(bufnr, root, diag, out)
+--- Return whether any custom highlighter handles a diagnostic message.
+local function diag_matches_any_handler(msg)
+    return diag_handler_priority(msg) ~= nil
+end
+
+--- Dispatch a diagnostic unless a more targeted overlapping diagnostic supersedes it.
+local function process_diag(bufnr, root, diag, lsp_diagnostics, out)
     local msg = diag.message
-    if not msg then
+    if not msg or has_higher_priority_overlap(diag, lsp_diagnostics) then
         return
     end
     for _, h in ipairs(HANDLERS) do
@@ -363,7 +410,7 @@ local function process_diag(bufnr, root, diag, out)
     end
 end
 
--- Process LSP-format diagnostics for one buffer and return per-argument diagnostics
+-- Process LSP-format diagnostics for one buffer and return focused diagnostics
 -- in Neovim native format (lnum/col/end_lnum/end_col).
 local function build_arg_diags(bufnr, lsp_diagnostics)
     -- Pre-scan: bail out before touching treesitter if no matching diagnostics
@@ -391,13 +438,13 @@ local function build_arg_diags(bufnr, lsp_diagnostics)
 
     local result = {}
     for _, diag in ipairs(lsp_diagnostics) do
-        process_diag(bufnr, root, diag, result)
+        process_diag(bufnr, root, diag, lsp_diagnostics, result)
     end
     return result
 end
 
 -- Entry point: call from publishDiagnostics handler with pre-filtered Java diagnostics.
---- Render argument type highlights from diagnostics.
+--- Render focused highlights from selected Java diagnostics.
 function M.apply(bufnr, lsp_diagnostics)
     if not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
         return
