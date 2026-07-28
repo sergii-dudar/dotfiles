@@ -199,6 +199,7 @@ M.jdtls_settings = {
                 "org.springframework.http.HttpStatus.*",
                 "org.springframework.http.MediaType.*",
                 "java.time.temporal.ChronoUnit.*",
+                "java.math.BigDecimal.*",
                 "org.apache.commons.collections4.CollectionUtils",
                 "org.apache.commons.collections4.IterableUtils",
                 "org.apache.commons.collections4.ComparatorUtils",

@@ -1,7 +1,7 @@
 -- Lombok builder navigation utilities: map generated builder setter calls back
 -- to their source Java fields or record components.
 --
--- - goto_definition - resolve builder-chain and builder method-reference field navigation through LSP
+-- - goto_definition - resolve builder setter invocations and method references through LSP
 
 local M = {}
 
@@ -41,32 +41,6 @@ local function skip_spaces(line, idx, step)
     return idx
 end
 
---- Skip a Java generic type argument block starting at `<`.
----@param line string
----@param idx integer
----@return integer
-local function skip_java_type_arguments(line, idx)
-    if char_at(line, idx) ~= "<" then
-        return idx
-    end
-
-    local depth = 0
-    while idx <= #line do
-        local ch = char_at(line, idx)
-        if ch == "<" then
-            depth = depth + 1
-        elseif ch == ">" then
-            depth = depth - 1
-            if depth == 0 then
-                return idx + 1
-            end
-        end
-        idx = idx + 1
-    end
-
-    return idx
-end
-
 --- Check whether a Java identifier is builder-related.
 ---@param name string
 ---@return boolean
@@ -98,61 +72,12 @@ local function builder_method_reference_receiver_col(line, method_start_idx)
     return nil
 end
 
---- Check whether a line starts or continues a Lombok builder chain.
----@param line string
----@return boolean
-local function line_has_builder_chain_start(line)
-    local dot_idx = line:find("%.")
-    while dot_idx do
-        local idx = skip_spaces(line, dot_idx + 1, 1)
-        idx = skip_java_type_arguments(line, idx)
-        idx = skip_spaces(line, idx, 1)
-
-        local start_idx = idx
-        while idx <= #line and is_identifier_char(char_at(line, idx)) do
-            idx = idx + 1
-        end
-
-        local name = line:sub(start_idx, idx - 1)
-        idx = skip_spaces(line, idx, 1)
-        if is_builder_related_identifier(name) and char_at(line, idx) == "(" then
-            return true
-        end
-
-        dot_idx = line:find("%.", dot_idx + 1)
-    end
-
-    return false
-end
-
---- Check whether a buffer line is inside a nearby Lombok builder call chain.
----@param bufnr integer
----@param lnum integer
----@return boolean
-local function is_inside_builder_chain(bufnr, lnum)
-    local start_lnum = math.max(lnum - 50, 1)
-    local lines = vim.api.nvim_buf_get_lines(bufnr, start_lnum - 1, lnum, false)
-
-    for idx = #lines, 1, -1 do
-        local line = lines[idx]
-        if line_has_builder_chain_start(line) then
-            return true
-        end
-
-        if idx ~= #lines and line:find(";") then
-            return false
-        end
-    end
-
-    return false
-end
-
 ---@class java.BuilderNavigationTarget
 ---@field field_name string
 ---@field receiver_row? integer Zero-based row of a method-reference receiver.
 ---@field receiver_byte_col? integer Zero-based byte column of a method-reference receiver.
 
---- Return the Java builder method invocation or method reference under the cursor.
+--- Return a Java member invocation or builder method reference under the cursor.
 ---@return java.BuilderNavigationTarget|nil
 local function get_builder_navigation_target_under_cursor()
     local lnum, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -194,10 +119,6 @@ local function get_builder_navigation_target_under_cursor()
 
     local next_idx = skip_spaces(line, end_idx + 1, 1)
     if char_at(line, next_idx) ~= "(" then
-        return nil
-    end
-
-    if not is_inside_builder_chain(vim.api.nvim_get_current_buf(), lnum) then
         return nil
     end
 
