@@ -1,7 +1,7 @@
 -- Lombok builder navigation utilities: map generated builder setter calls back
 -- to their source Java fields or record components.
 --
--- - goto_definition - resolve builder-chain field navigation through LSP
+-- - goto_definition - resolve builder-chain and builder method-reference field navigation through LSP
 
 local M = {}
 
@@ -67,11 +67,35 @@ local function skip_java_type_arguments(line, idx)
     return idx
 end
 
---- Check whether a method name starts or returns a Lombok builder chain.
+--- Check whether a Java identifier is builder-related.
 ---@param name string
 ---@return boolean
-local function is_builder_chain_start_method(name)
+local function is_builder_related_identifier(name)
     return name:lower():find("builder", 1, true) ~= nil
+end
+
+--- Return the byte column of a builder-named method-reference receiver.
+---@param line string
+---@param method_start_idx integer
+---@return integer|nil
+local function builder_method_reference_receiver_col(line, method_start_idx)
+    local separator_end_idx = skip_spaces(line, method_start_idx - 1, -1)
+    if char_at(line, separator_end_idx) ~= ":" or char_at(line, separator_end_idx - 1) ~= ":" then
+        return nil
+    end
+
+    local receiver_end_idx = skip_spaces(line, separator_end_idx - 2, -1)
+    local receiver_start_idx = receiver_end_idx
+    while receiver_start_idx > 1 and is_identifier_char(char_at(line, receiver_start_idx - 1)) do
+        receiver_start_idx = receiver_start_idx - 1
+    end
+
+    local receiver_name = line:sub(receiver_start_idx, receiver_end_idx)
+    if receiver_name ~= "" and is_builder_related_identifier(receiver_name) then
+        return receiver_start_idx - 1
+    end
+
+    return nil
 end
 
 --- Check whether a line starts or continues a Lombok builder chain.
@@ -91,7 +115,7 @@ local function line_has_builder_chain_start(line)
 
         local name = line:sub(start_idx, idx - 1)
         idx = skip_spaces(line, idx, 1)
-        if is_builder_chain_start_method(name) and char_at(line, idx) == "(" then
+        if is_builder_related_identifier(name) and char_at(line, idx) == "(" then
             return true
         end
 
@@ -123,9 +147,14 @@ local function is_inside_builder_chain(bufnr, lnum)
     return false
 end
 
---- Return the chained Java method call under the cursor, if it looks builder-like.
----@return string|nil
-local function get_chained_method_name_under_cursor()
+---@class java.BuilderNavigationTarget
+---@field field_name string
+---@field receiver_row? integer Zero-based row of a method-reference receiver.
+---@field receiver_byte_col? integer Zero-based byte column of a method-reference receiver.
+
+--- Return the Java builder method invocation or method reference under the cursor.
+---@return java.BuilderNavigationTarget|nil
+local function get_builder_navigation_target_under_cursor()
     local lnum, col = unpack(vim.api.nvim_win_get_cursor(0))
     local line = vim.api.nvim_get_current_line()
     local cursor_idx = col + 1
@@ -150,6 +179,15 @@ local function get_chained_method_name_under_cursor()
     end
 
     local prev_idx = skip_spaces(line, start_idx - 1, -1)
+    local receiver_byte_col = builder_method_reference_receiver_col(line, start_idx)
+    if receiver_byte_col then
+        return {
+            field_name = name,
+            receiver_row = lnum - 1,
+            receiver_byte_col = receiver_byte_col,
+        }
+    end
+
     if char_at(line, prev_idx) ~= "." then
         return nil
     end
@@ -163,7 +201,7 @@ local function get_chained_method_name_under_cursor()
         return nil
     end
 
-    return name
+    return { field_name = name }
 end
 
 --- Return the net brace balance for one source line.
@@ -446,9 +484,51 @@ local function apply_definition_list(options, field_name, win, tagname, from)
     jump_from_builder_annotation_to_field(win, bufnr, field_name)
 end
 
---- Navigate from a Lombok builder setter call to its source field.
---- Runs standard LSP definition first, then redirects hits on a generated
---- `@Builder` annotation to the matching Java class field or record component.
+--- Request type-definition at an explicit buffer position and pass converted locations to a list handler.
+---@param bufnr integer
+---@param row integer
+---@param byte_col integer
+---@param on_list fun(options: vim.lsp.LocationOpts.OnList)
+local function request_type_definition_at(bufnr, row, byte_col, on_list)
+    local method = "textDocument/typeDefinition"
+    local clients = vim.lsp.get_clients({ bufnr = bufnr, method = method })
+    if vim.tbl_isempty(clients) then
+        on_list({ title = "LSP locations", items = {}, context = { bufnr = bufnr, method = method } })
+        return
+    end
+
+    vim.lsp.buf_request_all(bufnr, method, function(client)
+        local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
+        return {
+            textDocument = vim.lsp.util.make_text_document_params(bufnr),
+            position = {
+                line = row,
+                character = vim.str_utfindex(line, client.offset_encoding, byte_col, false),
+            },
+        }
+    end, function(results)
+        local items = {}
+
+        for client_id, response in pairs(results) do
+            local client = vim.lsp.get_client_by_id(client_id)
+            local result = response and response.result
+            if client and result then
+                local locations = (result.uri or result.targetUri) and { result } or result
+                vim.list_extend(items, vim.lsp.util.locations_to_items(locations, client.offset_encoding))
+            end
+        end
+
+        on_list({
+            title = "LSP locations",
+            items = items,
+            context = { bufnr = bufnr, method = method },
+        })
+    end)
+end
+
+--- Navigate from a Lombok builder setter invocation or method reference to its source field.
+--- Resolves setter invocations directly and method references through their
+--- receiver type, then redirects `@Builder` hits to the matching source field.
 ---@param ctx lang.LspNavigationContext
 ---@return boolean
 function M.goto_definition(ctx)
@@ -456,21 +536,25 @@ function M.goto_definition(ctx)
         return false
     end
 
-    local field_name = get_chained_method_name_under_cursor()
-    if not field_name then
+    local target = get_builder_navigation_target_under_cursor()
+    if not target then
         return false
     end
 
     local win = vim.api.nvim_get_current_win()
     local from = vim.fn.getpos(".")
     from[1] = ctx.bufnr
-    local tagname = field_name
+    local tagname = target.field_name
 
-    vim.lsp.buf.definition({
-        on_list = function(options)
-            apply_definition_list(options, field_name, win, tagname, from)
-        end,
-    })
+    local on_list = function(options)
+        apply_definition_list(options, target.field_name, win, tagname, from)
+    end
+
+    if target.receiver_row and target.receiver_byte_col then
+        request_type_definition_at(ctx.bufnr, target.receiver_row, target.receiver_byte_col, on_list)
+    else
+        vim.lsp.buf.definition({ on_list = on_list })
+    end
 
     return true
 end
