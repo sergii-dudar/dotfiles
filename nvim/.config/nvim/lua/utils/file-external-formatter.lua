@@ -19,6 +19,10 @@ local formatters_by_filetype = {
         command = "jq",
         args = { "." },
     },
+    jsonc = {
+        command = "prettier",
+        args = { "--parser", "jsonc" },
+    },
     xml = {
         command = "xmllint",
         args = { "--format", "-" },

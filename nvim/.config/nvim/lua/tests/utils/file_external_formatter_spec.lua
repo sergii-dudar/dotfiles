@@ -47,6 +47,36 @@ describe("utils.file-external-formatter", function()
         assert.matches("Formatted buffer with jq", state.notifications[#state.notifications].message)
     end)
 
+    it("formats JSONC with Prettier", function()
+        state.buffer_options[7].filetype = "jsonc"
+        state.buffer_lines[7] = {
+            "{",
+            "// owner",
+            '"name":"Ada",',
+            "}",
+        }
+        vim.system = function(command, opts, callback)
+            assert.are.same({ "prettier", "--parser", "jsonc" }, command)
+            assert.are.equal('{\n// owner\n"name":"Ada",\n}', opts.stdin)
+            callback({
+                code = 0,
+                stdout = '{\n  // owner\n  "name": "Ada",\n}\n',
+                stderr = "",
+            })
+            return {}
+        end
+
+        formatter.format_current_buffer()
+
+        assert.are.same({
+            "{",
+            "  // owner",
+            '  "name": "Ada",',
+            "}",
+        }, state.buffer_lines[7])
+        assert.matches("Formatted buffer with prettier", state.notifications[#state.notifications].message)
+    end)
+
     it("formats XML with xmllint", function()
         state.buffer_options[7].filetype = "xml"
         state.buffer_lines[7] = { "<root><item>value</item></root>" }
@@ -126,7 +156,7 @@ describe("utils.file-external-formatter", function()
         local notification = state.notifications[#state.notifications]
         assert.are.equal(vim.log.levels.WARN, notification.level)
         assert.matches("filetype 'yaml'", notification.message)
-        assert.matches("json, xml", notification.message)
+        assert.matches("json, jsonc, xml", notification.message)
     end)
 
     it("reports a missing formatter executable", function()
