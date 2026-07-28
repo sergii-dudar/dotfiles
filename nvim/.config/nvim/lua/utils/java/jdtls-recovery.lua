@@ -14,11 +14,13 @@
 --   2. workspace alive → probe raw `textDocument/completion` on the current
 --      Java buffer, but only when that buffer already has an attached jdtls
 --      client, so the server has received didOpen for the URI.
---   3. completion healthy → reset blink.cmp LSP state only; do not restart
---      jdtls. This handles stale client-side completion wiring cheaply.
---   4. completion empty/error/timeout → restart jdtls. After a very long gap,
---      always use a hard restart because stale workspace/APT/client state can
---      survive healthy-looking probes and ordinary restarts.
+--   3. raw completion healthy → probe Blink's configured LSP provider and
+--      request queue on the exact same real Java buffer and cursor context.
+--   4. Blink failure → reset and re-probe Blink only. Empty raw completion is
+--      inconclusive and never restarts jdtls.
+--   5. workspace/raw completion error or timeout → restart jdtls. A hard
+--      restart is used after a very long gap only when one of those server-side
+--      health checks actually fails.
 --
 -- Why completion probing is guarded: sending completion to a URI that jdtls
 -- has not yet received didOpen for can crash the jdtls message loop. The
@@ -57,6 +59,7 @@ local PROBE_TIMEOUT_MS = 3000
 local BUF_PROBE_TIMEOUT_MS = 2000
 local COMPLETION_PROBE_TIMEOUT_MS = 5000
 local COMPLETION_EMPTY_RETRY_DELAY_MS = 250
+local BLINK_REPROBE_DELAY_MS = 100
 local ACTION_COOLDOWN_MS = 30 * 1000
 local BUF_SOFT_COOLDOWN_MS = 10 * 1000
 local RESTART_SHUTDOWN_TIMEOUT_MS = 10 * 1000
@@ -77,9 +80,18 @@ local state = {
     attach_fn = nil,
     recovering = false,
     probing = false,
+    -- Monotonically increasing operation token. Every asynchronous callback
+    -- must still own this token before it mutates recovery state.
+    operation_id = 0,
+    -- Blink's normal context ids are small increasing integers. Negative ids
+    -- keep diagnostic requests isolated from live completion contexts.
+    next_blink_probe_context_id = -1,
     last_action_at = 0,
     -- per-buffer cooldown timestamps for soft recovery
     buf_last_soft = {},
+    -- last real Java buffer entered by the user; used by manual probes when
+    -- notifications or popups temporarily own the current window.
+    last_java_buf = nil,
     -- gap health check deferred until the user enters a Java buffer
     pending_gap = nil,
     -- context captured by :JdtlsStop so :JdtlsStart can reattach the same
@@ -100,6 +112,25 @@ local function mark_action()
     state.last_action_at = vim.uv.now()
 end
 
+--- Start a new asynchronous operation and invalidate callbacks from older work.
+---@param clear_pending? boolean
+---@return integer
+local function begin_operation(clear_pending)
+    state.operation_id = state.operation_id + 1
+    state.probing = false
+    if clear_pending then
+        state.pending_gap = nil
+    end
+    return state.operation_id
+end
+
+--- Return whether an asynchronous callback still owns the active operation.
+---@param operation_id integer
+---@return boolean
+local function operation_is_current(operation_id)
+    return state.operation_id == operation_id
+end
+
 --- Return current wall-clock time in milliseconds.
 local function wall_now_ms()
     return os.time() * 1000
@@ -109,6 +140,20 @@ end
 local function set_tick()
     state.last_tick = wall_now_ms()
     state.last_mono_tick = vim.uv.now()
+end
+
+--- Finish the active lifecycle operation.
+---@param operation_id integer
+---@return boolean
+local function finish_operation(operation_id)
+    if not operation_is_current(operation_id) then
+        return false
+    end
+
+    set_tick()
+    state.recovering = false
+    state.probing = false
+    return true
 end
 
 --- Update sleep-detection ticks and return wall-clock/monotonic gaps.
@@ -156,6 +201,48 @@ local function java_buffers()
         end
     end
     return bufs
+end
+
+--- Return whether a loaded buffer is a real Java project file.
+---@param buf integer
+---@return boolean
+local function is_real_java_buffer(buf)
+    return vim.api.nvim_buf_is_loaded(buf)
+        and vim.bo[buf].filetype == "java"
+        and not is_jdt_uri_name(vim.api.nvim_buf_get_name(buf))
+end
+
+--- Return all loaded real Java project buffers.
+---@return integer[]
+local function real_java_buffers()
+    local bufs = {}
+    for _, buf in ipairs(java_buffers()) do
+        if is_real_java_buffer(buf) then
+            table.insert(bufs, buf)
+        end
+    end
+    return bufs
+end
+
+--- Return a Java buffer suitable for manual diagnostics.
+local function manual_java_probe_buffer()
+    local cur = vim.api.nvim_get_current_buf()
+    if is_real_java_buffer(cur) and lsp_util.get_client_by_name("jdtls", { bufnr = cur }) then
+        return cur
+    end
+
+    local last = state.last_java_buf
+    if last and is_real_java_buffer(last) and lsp_util.get_client_by_name("jdtls", { bufnr = last }) then
+        return last
+    end
+
+    for _, buf in ipairs(real_java_buffers()) do
+        if lsp_util.get_client_by_name("jdtls", { bufnr = buf }) then
+            return buf
+        end
+    end
+
+    return nil
 end
 
 --- Extract the JDTLS project segment embedded in a `jdt://` URI.
@@ -266,6 +353,40 @@ local function collect_restart_context()
     return ctx
 end
 
+--- Merge saved and currently loaded restart contexts without duplicating buffers.
+---@param first table
+---@param second table
+---@return table
+local function merge_restart_contexts(first, second)
+    local merged = {
+        project_bufs = {},
+        jdt_uri_bufs = {},
+        client_configs = {},
+    }
+    local project_seen = {}
+    local jdt_uri_seen = {}
+
+    for _, ctx in ipairs({ first, second }) do
+        for _, buf in ipairs(ctx.project_bufs or {}) do
+            if not project_seen[buf] then
+                project_seen[buf] = true
+                table.insert(merged.project_bufs, buf)
+            end
+        end
+        for _, target in ipairs(ctx.jdt_uri_bufs or {}) do
+            if target and not jdt_uri_seen[target.buf] then
+                jdt_uri_seen[target.buf] = true
+                table.insert(merged.jdt_uri_bufs, target)
+            end
+        end
+        for root_dir, config in pairs(ctx.client_configs or {}) do
+            merged.client_configs[root_dir] = config
+        end
+    end
+
+    return merged
+end
+
 --- Clear diagnostics published by the supplied JDTLS client namespaces.
 ---
 --- Neovim keys each LSP client's diagnostics by client id
@@ -333,10 +454,16 @@ local function clients_are_closing(clients)
 end
 
 --- Poll until supplied clients close or the restart timeout is reached.
-local function wait_for_clients_to_close(clients, done)
+---@param clients vim.lsp.Client[]
+---@param operation_id integer
+---@param done fun(closed: boolean)
+local function wait_for_clients_to_close(clients, operation_id, done)
     local deadline = vim.uv.now() + RESTART_SHUTDOWN_TIMEOUT_MS + RESTART_ATTACH_GRACE_MS
 
     local function poll()
+        if not operation_is_current(operation_id) then
+            return
+        end
         if clients_are_closing(clients) then
             done(true)
             return
@@ -451,11 +578,23 @@ function M.refresh_blink_lsp(reason)
     refresh_blink_lsp(reason or "external")
 end
 
---- Probe blink.cmp's LSP source directly, bypassing the completion menu.
-local function probe_blink_lsp_completion(done)
-    local buf = vim.api.nvim_get_current_buf()
-    if vim.bo[buf].filetype ~= "java" then
-        done({ status = "skipped", reason = "current buffer is not Java" })
+--- Return whether the user explicitly stopped JDTLS.
+---@return boolean
+function M.is_manually_stopped()
+    return state.manual_stopped
+end
+
+--- Probe Blink's configured LSP provider and request queue on one Java buffer.
+---@param buf integer
+---@param done fun(result: table)
+local function probe_blink_lsp_completion(buf, done)
+    if not is_real_java_buffer(buf) then
+        done({ status = "skipped", reason = "no real Java buffer found" })
+        return
+    end
+    local jdtls_client = lsp_util.get_client_by_name("jdtls", { bufnr = buf })
+    if not jdtls_client then
+        done({ status = "skipped", reason = "no jdtls client on probe buffer" })
         return
     end
 
@@ -465,41 +604,86 @@ local function probe_blink_lsp_completion(done)
         return
     end
 
-    local source_ok, lsp_source = pcall(require, "blink.cmp.sources.lsp")
-    if not source_ok then
-        done({ status = "error", error = lsp_source })
+    local sources_ok, sources = pcall(require, "blink.cmp.sources.lib")
+    if not sources_ok then
+        done({ status = "error", error = sources })
         return
     end
 
-    local context = context_mod.new({
-        id = math.floor(vim.uv.now()),
-        providers = { "lsp" },
-        initial_trigger_kind = "manual",
-        trigger_kind = "manual",
-    })
+    local context_id = state.next_blink_probe_context_id
+    state.next_blink_probe_context_id = state.next_blink_probe_context_id - 1
 
-    local responded = false
-    local start = vim.uv.now()
-    local source = lsp_source.new({})
-    local ok, cancel = pcall(function()
-        return source:get_completions(context, function(response)
-            if responded then
-                return
+    local context
+    local setup_ok, setup_err = pcall(function()
+        vim.api.nvim_buf_call(buf, function()
+            local provider = sources.get_provider_by_id("lsp")
+            if not provider:enabled() then
+                error("configured lsp provider is disabled")
             end
-            responded = true
 
-            local elapsed = vim.uv.now() - start
-            local count, preview = summarize_completion_result(response and response.items or response)
-            done({
-                status = count > 0 and "ok" or "empty",
-                elapsed = elapsed,
-                count = count,
-                preview = preview,
+            context = context_mod.new({
+                id = context_id,
+                providers = { "lsp" },
+                initial_trigger_kind = "manual",
+                trigger_kind = "manual",
             })
         end)
     end)
-    if not ok then
-        done({ status = "error", error = cancel })
+    if not setup_ok then
+        done({ status = "error", error = setup_err })
+        return
+    end
+
+    local responded = false
+    local start = vim.uv.now()
+    local listener
+
+    local function cleanup()
+        if listener then
+            sources.completions_emitter:off(listener)
+        end
+        if sources.completions_queue and sources.completions_queue.id == context_id then
+            sources.cancel_completions()
+        end
+    end
+
+    local function finish(result)
+        if responded then
+            return
+        end
+        responded = true
+        cleanup()
+        done(result)
+    end
+
+    listener = function(event)
+        if not event.context or event.context.id ~= context_id then
+            return
+        end
+
+        local elapsed = vim.uv.now() - start
+        local lsp_items = event.items and event.items.lsp or {}
+        local jdtls_items = vim.tbl_filter(function(item)
+            return item.client_id == jdtls_client.id
+        end, lsp_items)
+        local count, preview = summarize_completion_result(jdtls_items)
+        finish({
+            status = count > 0 and "ok" or "empty",
+            elapsed = elapsed,
+            count = count,
+            preview = preview,
+        })
+    end
+    sources.completions_emitter:on(listener)
+
+    local request_ok, request_err = pcall(function()
+        sources.cancel_completions()
+        vim.api.nvim_buf_call(buf, function()
+            sources.request_completions(context)
+        end)
+    end)
+    if not request_ok then
+        finish({ status = "error", error = request_err })
         return
     end
 
@@ -507,11 +691,11 @@ local function probe_blink_lsp_completion(done)
         if responded then
             return
         end
-        responded = true
-        if type(cancel) == "function" then
-            pcall(cancel)
+        if sources.completions_queue and sources.completions_queue.id ~= context_id then
+            finish({ status = "skipped", reason = "superseded by live Blink completion" })
+            return
         end
-        done({ status = "timeout", elapsed = COMPLETION_PROBE_TIMEOUT_MS })
+        finish({ status = "timeout", elapsed = COMPLETION_PROBE_TIMEOUT_MS })
     end, COMPLETION_PROBE_TIMEOUT_MS)
 end
 
@@ -711,8 +895,9 @@ end
 --- Retry attaching existing `jdt://` buffers to recreated JDTLS clients.
 ---@param ctx table
 ---@param reason string
+---@param operation_id integer
 ---@param done fun(attached: integer, kept: integer)
-local function reattach_jdt_uri_buffers(ctx, reason, done)
+local function reattach_jdt_uri_buffers(ctx, reason, operation_id, done)
     local targets = ctx.jdt_uri_bufs or {}
     if #targets == 0 then
         done(0, 0)
@@ -727,6 +912,10 @@ local function reattach_jdt_uri_buffers(ctx, reason, done)
     local deadline = vim.uv.now() + JDT_URI_REATTACH_TIMEOUT_MS
 
     local function poll()
+        if not operation_is_current(operation_id) then
+            return
+        end
+
         local allow_start = vim.uv.now() >= deadline
         local remaining = {}
         local last_reason = {}
@@ -789,7 +978,14 @@ local function attach_jdt_uri_buffer(buf, reason)
 end
 
 --- Reattach JDTLS to loaded Java project buffers and finish the recovery cycle.
-local function reattach_java_buffers(ctx, reason)
+---@param ctx table
+---@param reason string
+---@param operation_id integer
+local function reattach_java_buffers(ctx, reason, operation_id)
+    if not operation_is_current(operation_id) then
+        return
+    end
+
     pcall(function()
         require("utils.java.jdtls-workspace-watcher").mark_recovery_refresh(reason)
     end)
@@ -797,36 +993,47 @@ local function reattach_java_buffers(ctx, reason)
     local attached = 0
     for _, buf in ipairs(ctx.project_bufs) do
         if vim.api.nvim_buf_is_loaded(buf) then
-            vim.api.nvim_buf_call(buf, function()
-                state.attach_fn(buf)
+            local ok, err = pcall(function()
+                vim.api.nvim_buf_call(buf, function()
+                    state.attach_fn(buf)
+                end)
             end)
-            attached = attached + 1
+            if ok then
+                attached = attached + 1
+            else
+                logger.fmt_warn("failed to reattach Java buffer %d after %s: %s", buf, reason, tostring(err))
+            end
         end
     end
-    -- Reset the sleep detector after reattach so the next event does not reuse
-    -- the stale pre-recovery timestamp.
-    set_tick()
-    state.recovering = false
-    if attached > 0 then
-        vim.defer_fn(function()
-            reattach_jdt_uri_buffers(ctx, reason, function(jdt_attached, jdt_kept)
-                refresh_blink_lsp(reason)
-                if jdt_attached > 0 or jdt_kept > 0 then
-                    vim.notify(
-                        string.format(
-                            "JDTLS recovered (%s, %d project buffers, %d jdt:// reattached, %d jdt:// kept)",
-                            reason,
-                            attached,
-                            jdt_attached,
-                            jdt_kept
-                        ),
-                        vim.log.levels.INFO
-                    )
-                end
-            end)
-        end, RESTART_ATTACH_GRACE_MS)
-        vim.notify(string.format("JDTLS recovered (%s, %d project buffers)", reason, attached), vim.log.levels.INFO)
-    end
+
+    vim.defer_fn(function()
+        if not operation_is_current(operation_id) then
+            return
+        end
+
+        reattach_jdt_uri_buffers(ctx, reason, operation_id, function(jdt_attached, jdt_kept)
+            if not operation_is_current(operation_id) then
+                return
+            end
+
+            refresh_blink_lsp(reason)
+            if not finish_operation(operation_id) then
+                return
+            end
+
+            local message = string.format("JDTLS recovered (%s, %d project buffers)", reason, attached)
+            if jdt_attached > 0 or jdt_kept > 0 then
+                message = string.format(
+                    "JDTLS recovered (%s, %d project buffers, %d jdt:// reattached, %d jdt:// kept)",
+                    reason,
+                    attached,
+                    jdt_attached,
+                    jdt_kept
+                )
+            end
+            vim.notify(message, jdt_kept > 0 and vim.log.levels.WARN or vim.log.levels.INFO)
+        end)
+    end, RESTART_ATTACH_GRACE_MS)
 end
 
 --- Extract JDTLS cache project names from client root directories.
@@ -837,6 +1044,50 @@ local function project_names_from_clients(clients)
             names[vim.fs.basename(client.config.root_dir)] = true
         end
     end
+    return names
+end
+
+--- Add JDTLS cache project names from client configs keyed by root directory.
+---@param names table<string, boolean>
+---@param configs table<string, vim.lsp.ClientConfig>|nil
+local function add_project_names_from_configs(names, configs)
+    for root_dir in pairs(configs or {}) do
+        names[vim.fs.basename(root_dir)] = true
+    end
+end
+
+--- Derive a JDTLS cache project name from a real Java buffer.
+---@param buf integer
+---@return string|nil
+local function project_name_from_buffer(buf)
+    if not is_real_java_buffer(buf) then
+        return nil
+    end
+
+    local jdtls_config = vim.lsp.config and vim.lsp.config.jdtls or nil
+    local markers = jdtls_config and jdtls_config.root_markers
+        or { ".git", "mvnw", "gradlew", "pom.xml", "build.gradle", "build.gradle.kts" }
+    local root_dir = vim.fs.root(vim.api.nvim_buf_get_name(buf), markers)
+    return root_dir and vim.fs.basename(root_dir) or nil
+end
+
+--- Resolve only the cache project names owned by a restart context.
+---@param ctx table
+---@param clients vim.lsp.Client[]
+---@return table<string, boolean>
+local function project_names_from_restart_context(ctx, clients)
+    local names = project_names_from_clients(clients)
+    add_project_names_from_configs(names, ctx.client_configs)
+
+    if next(names) == nil then
+        for _, buf in ipairs(ctx.project_bufs or {}) do
+            local project_name = project_name_from_buffer(buf)
+            if project_name then
+                names[project_name] = true
+            end
+        end
+    end
+
     return names
 end
 
@@ -851,11 +1102,6 @@ local function wipe_jdtls_cache(project_names)
             vim.fn.delete(path, "rf")
             table.insert(wiped, project_name)
         end
-    end
-
-    if #wiped == 0 and next(project_names) == nil and vim.fn.isdirectory(cache_dir) == 1 then
-        vim.fn.delete(cache_dir, "rf")
-        table.insert(wiped, "<all jdtls cache>")
     end
 
     return wiped
@@ -883,8 +1129,14 @@ local function hard_restart_all_jdtls(reason)
     end
 
     local clients = lsp_util.get_clients_by_name("jdtls")
-    local project_names = project_names_from_clients(clients)
+    local project_names = project_names_from_restart_context(ctx, clients)
+    if next(ctx.client_configs) == nil and state.stopped_ctx then
+        ctx.client_configs = vim.deepcopy(state.stopped_ctx.client_configs or {})
+    end
+    state.stopped_ctx = nil
 
+    local operation_id = begin_operation(true)
+    state.manual_stopped = false
     state.recovering = true
     mark_action()
 
@@ -895,15 +1147,22 @@ local function hard_restart_all_jdtls(reason)
         #ctx.jdt_uri_bufs
     )
 
-    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
+    wait_for_clients_to_close(request_stop_jdtls_clients(), operation_id, function()
+        if not operation_is_current(operation_id) then
+            return
+        end
+
         local wiped = wipe_jdtls_cache(project_names)
         if #wiped > 0 then
             logger.fmt_info("hard restart (%s): wiped cache for %s", reason, table.concat(wiped, ", "))
             vim.notify("JDTLS hard restart: wiped cache for " .. table.concat(wiped, ", "), vim.log.levels.INFO)
+        elseif next(project_names) == nil then
+            logger.fmt_warn("hard restart (%s): project could not be identified; skipped cache deletion", reason)
+            vim.notify("JDTLS hard restart: project unknown, cache deletion skipped", vim.log.levels.WARN)
         else
             logger.fmt_warn("hard restart (%s): no cache directories found to wipe", reason)
         end
-        reattach_java_buffers(ctx, "hard restart: " .. reason)
+        reattach_java_buffers(ctx, "hard restart: " .. reason, operation_id)
     end)
 end
 
@@ -927,6 +1186,14 @@ local function restart_all_jdtls(reason)
         end
         return
     end
+
+    if next(ctx.client_configs) == nil and state.stopped_ctx then
+        ctx.client_configs = vim.deepcopy(state.stopped_ctx.client_configs or {})
+    end
+    state.stopped_ctx = nil
+
+    local operation_id = begin_operation(true)
+    state.manual_stopped = false
     state.recovering = true
     mark_action()
 
@@ -937,8 +1204,11 @@ local function restart_all_jdtls(reason)
         #ctx.jdt_uri_bufs
     )
 
-    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
-        reattach_java_buffers(ctx, reason)
+    wait_for_clients_to_close(request_stop_jdtls_clients(), operation_id, function()
+        if not operation_is_current(operation_id) then
+            return
+        end
+        reattach_java_buffers(ctx, reason, operation_id)
     end)
 end
 
@@ -952,7 +1222,9 @@ local function stop_all_jdtls(reason)
 
     local clients = lsp_util.get_clients_by_name("jdtls")
     if #clients == 0 then
+        begin_operation(true)
         state.manual_stopped = true
+        state.stopped_ctx = state.stopped_ctx or collect_restart_context()
         logger.fmt_info("stop (%s): already stopped; no active jdtls clients", reason)
         vim.notify("JDTLS is already stopped", vim.log.levels.INFO)
         return
@@ -962,6 +1234,7 @@ local function stop_all_jdtls(reason)
     state.stopped_ctx = ctx
     state.manual_stopped = true
 
+    local operation_id = begin_operation(true)
     state.recovering = true
     mark_action()
 
@@ -973,10 +1246,15 @@ local function stop_all_jdtls(reason)
         #ctx.jdt_uri_bufs
     )
 
-    wait_for_clients_to_close(request_stop_jdtls_clients(), function()
-        set_tick()
-        state.recovering = false
+    wait_for_clients_to_close(request_stop_jdtls_clients(), operation_id, function()
+        if not operation_is_current(operation_id) then
+            return
+        end
+
         refresh_blink_lsp("stop: " .. reason)
+        if not finish_operation(operation_id) then
+            return
+        end
         vim.notify(
             string.format("JDTLS stopped (%s, %d project buffers saved)", reason, #ctx.project_bufs),
             vim.log.levels.INFO
@@ -1005,17 +1283,18 @@ local function start_all_jdtls(reason)
     end
 
     local using_stopped_ctx = state.stopped_ctx ~= nil
-    local ctx = state.stopped_ctx or collect_restart_context()
-    state.manual_stopped = false
+    local current_ctx = collect_restart_context()
+    local ctx = using_stopped_ctx and merge_restart_contexts(state.stopped_ctx, current_ctx) or current_ctx
 
     if #ctx.project_bufs == 0 then
         if #ctx.jdt_uri_bufs == 0 then
             logger.fmt_warn("start (%s): no Java buffers found", reason)
             vim.notify("JDTLS start: no Java buffers found", vim.log.levels.WARN)
-            state.stopped_ctx = nil
             return
         end
 
+        local operation_id = begin_operation(true)
+        state.manual_stopped = false
         state.recovering = true
         mark_action()
         logger.fmt_warn(
@@ -1023,10 +1302,15 @@ local function start_all_jdtls(reason)
             reason,
             #ctx.jdt_uri_bufs
         )
-        reattach_jdt_uri_buffers(ctx, "start: " .. reason, function(jdt_attached, jdt_kept)
-            set_tick()
-            state.recovering = false
+        reattach_jdt_uri_buffers(ctx, "start: " .. reason, operation_id, function(jdt_attached, jdt_kept)
+            if not operation_is_current(operation_id) then
+                return
+            end
+
             refresh_blink_lsp("start: " .. reason)
+            if not finish_operation(operation_id) then
+                return
+            end
             if jdt_attached > 0 and jdt_kept == 0 then
                 state.stopped_ctx = nil
             elseif not using_stopped_ctx then
@@ -1040,6 +1324,8 @@ local function start_all_jdtls(reason)
         return
     end
 
+    local operation_id = begin_operation(true)
+    state.manual_stopped = false
     state.recovering = true
     mark_action()
 
@@ -1051,40 +1337,46 @@ local function start_all_jdtls(reason)
     )
 
     state.stopped_ctx = nil
-    reattach_java_buffers(ctx, "start: " .. reason)
+    reattach_java_buffers(ctx, "start: " .. reason, operation_id)
 end
 
 --- Restart all loaded JDTLS workspaces through the diagnostic-cleaning path.
 ---@param reason? string
 function M.restart(reason)
-    state.recovering = false
-    state.last_action_at = 0
-    state.manual_stopped = false
+    if state.recovering then
+        vim.notify("JDTLS restart: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
     restart_all_jdtls(reason or "manual")
 end
 
 --- Hard-restart all loaded JDTLS workspaces through the diagnostic-cleaning path.
 ---@param reason? string
 function M.hard_restart(reason)
-    state.recovering = false
-    state.last_action_at = 0
-    state.manual_stopped = false
+    if state.recovering then
+        vim.notify("JDTLS hard restart: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
     hard_restart_all_jdtls(reason or "manual")
 end
 
 --- Stop all active JDTLS clients and remember the current restart context.
 ---@param reason? string
 function M.stop(reason)
-    state.recovering = false
-    state.last_action_at = 0
+    if state.recovering then
+        vim.notify("JDTLS stop: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
     stop_all_jdtls(reason or "manual")
 end
 
 --- Start JDTLS from the last stopped context or currently loaded Java buffers.
 ---@param reason? string
 function M.start(reason)
-    state.recovering = false
-    state.last_action_at = 0
+    if state.recovering then
+        vim.notify("JDTLS start: recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
     start_all_jdtls(reason or "manual")
 end
 
@@ -1208,11 +1500,13 @@ function summarize_completion_result(result)
     return count, preview
 end
 
---- Return the current Java buffer and attached JDTLS client for safe completion probing.
-local function completion_probe_target()
-    local buf = vim.api.nvim_get_current_buf()
-    if vim.bo[buf].filetype ~= "java" then
-        return nil, nil, "current buffer is not Java"
+--- Return a real Java buffer and its attached JDTLS client for safe completion probing.
+---@param buf? integer
+---@return integer|nil, vim.lsp.Client|nil, string|nil
+local function completion_probe_target(buf)
+    buf = buf or vim.api.nvim_get_current_buf()
+    if not is_real_java_buffer(buf) then
+        return nil, nil, "current buffer is not a real Java project buffer"
     end
 
     local client = lsp_util.get_client_by_name("jdtls", { bufnr = buf })
@@ -1240,9 +1534,11 @@ local function probe_completion(client, buf, done)
         return
     end
 
-    local params_ok, params = pcall(function()
+    local params_ok, params, probe_cursor, probe_changedtick = pcall(function()
         return vim.api.nvim_buf_call(buf, function()
-            return vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16")
+            return vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16"),
+                vim.api.nvim_win_get_cursor(0),
+                vim.api.nvim_buf_get_changedtick(buf)
         end)
     end)
     if not params_ok then
@@ -1263,6 +1559,15 @@ local function probe_completion(client, buf, done)
 
         local elapsed = vim.uv.now() - start
         if err then
+            local error_codes = vim.lsp.protocol.ErrorCodes or {}
+            if err.code == error_codes.RequestCancelled or err.code == error_codes.ContentModified then
+                done({
+                    status = "skipped",
+                    elapsed = elapsed,
+                    reason = string.format("completion request superseded (%s)", tostring(err.code)),
+                })
+                return
+            end
             done({ status = "error", elapsed = elapsed, error = err })
             return
         end
@@ -1273,6 +1578,8 @@ local function probe_completion(client, buf, done)
             elapsed = elapsed,
             count = count,
             preview = preview,
+            probe_cursor = probe_cursor,
+            probe_changedtick = probe_changedtick,
         })
     end, buf)
 
@@ -1305,20 +1612,43 @@ local function probe_current_completion(done)
 end
 
 --- Probe completion and retry once when JDTLS returns an empty list.
-local function probe_current_completion_for_recovery(done)
-    probe_current_completion(function(first)
+---@param client vim.lsp.Client
+---@param buf integer
+---@param done fun(result: table)
+local function probe_completion_for_recovery(client, buf, done)
+    probe_completion(client, buf, function(first)
         if first.status ~= "empty" then
             done(first)
             return
         end
 
         vim.defer_fn(function()
-            probe_current_completion(function(second)
+            probe_completion(client, buf, function(second)
                 second.first_empty = first
                 done(second)
             end)
         end, COMPLETION_EMPTY_RETRY_DELAY_MS)
     end)
+end
+
+--- Return whether a completion probe still describes the buffer's current text and cursor.
+---@param buf integer
+---@param result table
+---@return boolean
+local function completion_probe_context_is_current(buf, result)
+    if not vim.api.nvim_buf_is_loaded(buf) or not result.probe_cursor or not result.probe_changedtick then
+        return false
+    end
+    if vim.api.nvim_buf_get_changedtick(buf) ~= result.probe_changedtick then
+        return false
+    end
+
+    local ok, cursor = pcall(function()
+        return vim.api.nvim_buf_call(buf, function()
+            return vim.api.nvim_win_get_cursor(0)
+        end)
+    end)
+    return ok and cursor[1] == result.probe_cursor[1] and cursor[2] == result.probe_cursor[2]
 end
 
 --- Format a completion probe result for logs and notifications.
@@ -1355,9 +1685,11 @@ local function completion_probe_level(result)
     return vim.log.levels.ERROR
 end
 
---- Return whether a completion probe result proves JDTLS needs a restart.
+--- Return whether a completion probe failed rather than returning an inconclusive empty result.
+---@param result table
+---@return boolean
 local function completion_probe_failed(result)
-    return result.status ~= "ok" and result.status ~= "skipped"
+    return result.status ~= "ok" and result.status ~= "empty" and result.status ~= "skipped"
 end
 
 --- Remember a gap that should be health-checked on the next Java buffer.
@@ -1394,6 +1726,10 @@ end
 --- workspace is healthy but the buffer-specific didOpen state has been lost
 --- (silent post-sleep failure).
 local function soft_recover_buffer(buf, reason)
+    if state.recovering then
+        vim.notify("JDTLS soft recovery: another recovery is already in progress", vim.log.levels.WARN)
+        return
+    end
     if not vim.api.nvim_buf_is_loaded(buf) then
         return
     end
@@ -1403,25 +1739,83 @@ local function soft_recover_buffer(buf, reason)
     end
     state.buf_last_soft[buf] = now
 
+    local operation_id = begin_operation(true)
+    state.recovering = true
+
     for _, c in ipairs(lsp_util.get_clients_by_name("jdtls", { bufnr = buf })) do
         pcall(vim.lsp.buf_detach_client, buf, c.id)
     end
     vim.defer_fn(function()
-        if vim.api.nvim_buf_is_loaded(buf) then
-            local name = vim.api.nvim_buf_get_name(buf)
-            if is_jdt_uri_name(name) then
-                attach_jdt_uri_buffer(buf, "soft recover: " .. reason)
-            else
-                vim.api.nvim_buf_call(buf, function()
-                    state.attach_fn(buf)
-                end)
-            end
-            local buf_name = vim.api.nvim_buf_get_name(buf)
-            local msg = string.format("soft-recover buf %d (%s): %s", buf, vim.fs.basename(buf_name), reason)
-            logger.info(msg)
-            -- vim.notify("JDTLS " .. msg, vim.log.levels.INFO)
+        if not operation_is_current(operation_id) then
+            return
         end
+
+        local ok, err = pcall(function()
+            if vim.api.nvim_buf_is_loaded(buf) then
+                local name = vim.api.nvim_buf_get_name(buf)
+                if is_jdt_uri_name(name) then
+                    attach_jdt_uri_buffer(buf, "soft recover: " .. reason)
+                else
+                    vim.api.nvim_buf_call(buf, function()
+                        state.attach_fn(buf)
+                    end)
+                end
+                local buf_name = vim.api.nvim_buf_get_name(buf)
+                local msg = string.format("soft-recover buf %d (%s): %s", buf, vim.fs.basename(buf_name), reason)
+                logger.info(msg)
+                -- vim.notify("JDTLS " .. msg, vim.log.levels.INFO)
+            end
+        end)
+        if not ok then
+            logger.fmt_warn("soft recovery failed for buffer %d (%s): %s", buf, reason, tostring(err))
+        end
+        refresh_blink_lsp("soft recovery: " .. reason)
+        finish_operation(operation_id)
     end, 200)
+end
+
+--- Reset Blink after a provider-pipeline failure and verify the rebuilt provider once.
+---@param buf integer
+---@param operation_id integer
+---@param gap_label string
+---@param first_result table
+local function reset_and_reprobe_blink(buf, operation_id, gap_label, first_result)
+    local first_probe = format_completion_probe_result(first_result)
+    logger.fmt_warn("gap %s: Blink LSP pipeline unhealthy (%s) -> resetting Blink only", gap_label, first_probe)
+    refresh_blink_lsp("gap " .. gap_label .. ", Blink probe " .. first_probe)
+
+    vim.defer_fn(function()
+        if not operation_is_current(operation_id) then
+            return
+        end
+
+        probe_blink_lsp_completion(buf, function(second_result)
+            if not operation_is_current(operation_id) then
+                return
+            end
+
+            state.probing = false
+            local second_probe = format_completion_probe_result(second_result)
+            if second_result.status == "ok" then
+                logger.fmt_info("gap %s: Blink LSP pipeline recovered after reset (%s)", gap_label, second_probe)
+                return
+            end
+            if second_result.status == "skipped" then
+                logger.fmt_info("gap %s: Blink re-probe skipped after reset (%s)", gap_label, second_probe)
+                return
+            end
+
+            logger.fmt_warn(
+                "gap %s: Blink LSP pipeline still unhealthy after reset (%s); JDTLS remains running",
+                gap_label,
+                second_probe
+            )
+            vim.notify(
+                "JDTLS is healthy, but Blink LSP completion did not recover: " .. second_probe,
+                vim.log.levels.WARN
+            )
+        end)
+    end, BLINK_REPROBE_DELAY_MS)
 end
 
 --- Recover JDTLS after a detected wall-clock gap.
@@ -1432,7 +1826,7 @@ local function recover_after_gap(gap, source)
     if state.recovering or state.probing or in_cooldown() then
         return
     end
-    if #java_buffers() == 0 then
+    if #real_java_buffers() == 0 then
         return
     end
 
@@ -1448,22 +1842,37 @@ local function recover_after_gap(gap, source)
         return
     end
 
+    local probe_buf = select(1, completion_probe_target())
+    local operation_id = begin_operation(probe_buf ~= nil)
     state.probing = true
     probe_all_clients(clients, function(any_dead)
+        if not operation_is_current(operation_id) then
+            return
+        end
+
         state.probing = false
         if any_dead then
             restart_after_failed_health_check(gap, gap_label, "workspace probe failed")
             return
         end
 
-        if gap >= HARD_RESTART_GAP_MS then
-            logger.fmt_info("gap %s: workspace healthy but very long gap -> hard restart", gap_label)
-            hard_restart_all_jdtls("gap " .. gap_label .. ", long idle workspace refresh")
+        if not probe_buf then
+            defer_gap_until_java_buffer(gap, source, "current buffer is not a real attached Java project buffer")
+            return
+        end
+
+        local target_buf, target_client, target_reason = completion_probe_target(probe_buf)
+        if not target_buf or not target_client then
+            defer_gap_until_java_buffer(gap, source, target_reason or "probe buffer lost its jdtls client")
             return
         end
 
         state.probing = true
-        probe_current_completion_for_recovery(function(result)
+        probe_completion_for_recovery(target_client, target_buf, function(result)
+            if not operation_is_current(operation_id) then
+                return
+            end
+
             state.probing = false
             if result.status == "skipped" then
                 defer_gap_until_java_buffer(gap, source, result.reason or result.status)
@@ -1476,12 +1885,55 @@ local function recover_after_gap(gap, source)
                 return
             end
 
+            if result.status == "empty" then
+                logger.fmt_info(
+                    "gap %s: workspace healthy; raw completion inconclusive (%s) -> no recovery action",
+                    gap_label,
+                    probe_result
+                )
+                return
+            end
+
+            if not completion_probe_context_is_current(target_buf, result) then
+                logger.fmt_info(
+                    "gap %s: raw completion succeeded, but the probe buffer changed -> no recovery action",
+                    gap_label
+                )
+                return
+            end
+
             logger.fmt_info(
-                "gap %s: workspace and completion healthy (%s) -> blink refresh only",
+                "gap %s: workspace and raw completion healthy (%s) -> probing configured Blink LSP pipeline",
                 gap_label,
                 probe_result
             )
-            refresh_blink_lsp("gap " .. gap_label .. ", completion healthy")
+            state.probing = true
+            probe_blink_lsp_completion(target_buf, function(blink_result)
+                if not operation_is_current(operation_id) then
+                    return
+                end
+
+                state.probing = false
+                local blink_probe_result = format_completion_probe_result(blink_result)
+                if blink_result.status == "skipped" then
+                    logger.fmt_info("gap %s: configured Blink LSP probe skipped (%s)", gap_label, blink_probe_result)
+                    return
+                end
+
+                if blink_result.status ~= "ok" then
+                    state.probing = true
+                    reset_and_reprobe_blink(target_buf, operation_id, gap_label, blink_result)
+                    return
+                end
+
+                logger.fmt_info(
+                    "gap %s: workspace, raw completion, and configured Blink LSP healthy (%s; blink %s)"
+                        .. " -> no recovery action",
+                    gap_label,
+                    probe_result,
+                    blink_probe_result
+                )
+            end)
         end)
     end)
 end
@@ -1547,7 +1999,11 @@ local function on_java_bufenter()
         if not lsp_util.get_client_by_name("jdtls", { bufnr = buf }) and lsp_util.get_client_by_name("jdtls") then
             attach_jdt_uri_buffer(buf, "BufEnter")
         end
-        run_pending_gap_on_java_bufenter()
+        return
+    end
+    state.last_java_buf = buf
+
+    if state.manual_stopped then
         return
     end
 
@@ -1576,8 +2032,8 @@ function M.setup(attach_fn)
         callback = check_gap,
     })
 
-    -- Keep the tick fresh during normal editing so reading code for >2 min
-    -- does not trigger a false gap detection.
+    -- Keep the tick fresh during normal editing so ordinary idle time below the
+    -- recovery threshold does not trigger a false gap detection.
     vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter" }, {
         group = group,
         callback = update_tick,
@@ -1672,10 +2128,16 @@ function M.setup(attach_fn)
     end, { desc = "Reset blink.cmp LSP state without restarting JDTLS" })
 
     vim.api.nvim_create_user_command("JdtlsBlinkLspProbe", function()
-        probe_blink_lsp_completion(function(result)
+        local buf = manual_java_probe_buffer()
+        if not buf then
+            vim.notify("JdtlsBlinkLspProbe: no attached real Java buffer found", vim.log.levels.WARN)
+            return
+        end
+
+        probe_blink_lsp_completion(buf, function(result)
             vim.notify("JdtlsBlinkLspProbe: " .. format_completion_probe_result(result), completion_probe_level(result))
         end)
-    end, { desc = "Probe blink.cmp LSP source directly without opening the completion menu" })
+    end, { desc = "Probe Blink's configured LSP provider pipeline without opening the completion menu" })
 
     -- Manually send a real textDocument/completion request at the cursor and
     -- report the raw result. Use this when completion feels broken — it tells
@@ -1698,6 +2160,18 @@ function M.setup(attach_fn)
         table.insert(lines, "=== JDTLS Diag ===")
         table.insert(lines, "cwd: " .. vim.fn.getcwd())
         table.insert(lines, string.format("current buf: %d (%s, ft=%s)", cur, cur_name, vim.bo[cur].filetype))
+        table.insert(
+            lines,
+            string.format(
+                "recovery: operation=%d recovering=%s probing=%s manual_stopped=%s pending_gap=%s last_java_buf=%s",
+                state.operation_id,
+                tostring(state.recovering),
+                tostring(state.probing),
+                tostring(state.manual_stopped),
+                state.pending_gap and "yes" or "no",
+                tostring(state.last_java_buf)
+            )
+        )
 
         local cur_clients = lsp_util.get_clients_by_name("jdtls", { bufnr = cur })
         table.insert(lines, "jdtls clients on current buf: " .. #cur_clients)

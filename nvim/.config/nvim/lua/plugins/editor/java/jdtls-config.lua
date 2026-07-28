@@ -15,6 +15,65 @@ local function extend_or_override(config, custom, ...)
     return config
 end
 
+local logger = require("utils.logging-util").new({
+    name = "jdtls-config",
+    filename = "jdtls-config.log",
+})
+
+--- Return the major/minor ASM version bundled with Mason JDTLS.
+local function jdtls_asm_version()
+    local jars = vim.fn.glob("$MASON/packages/jdtls/plugins/org.objectweb.asm_*.jar", false, true)
+    local jar = jars[1]
+    if not jar then
+        return nil
+    end
+
+    return vim.fn.fnamemodify(jar, ":t"):match("org%.objectweb%.asm_([%d%.]+)%.jar")
+end
+
+--- Return whether a dotted version is at least the supplied major/minor version.
+local function version_at_least(version, major, minor)
+    local version_major, version_minor = (version or ""):match("^(%d+)%.(%d+)")
+    version_major = tonumber(version_major)
+    version_minor = tonumber(version_minor)
+    if not version_major or not version_minor then
+        return false
+    end
+
+    return version_major > major or (version_major == major and version_minor >= minor)
+end
+
+--- Return a jar manifest as whitespace-normalized text.
+local function jar_manifest_text(jar)
+    local lines = vim.fn.systemlist({ "unzip", "-p", jar, "META-INF/MANIFEST.MF" })
+    if vim.v.shell_error ~= 0 then
+        return ""
+    end
+
+    return table.concat(lines, ""):gsub("%s+", "")
+end
+
+--- Return whether a Java test bundle requires an ASM range incompatible with JDTLS ASM 9.10+.
+local function java_test_bundle_requires_old_asm(jar)
+    local manifest = jar_manifest_text(jar)
+    return manifest:find("org.objectweb.asm", 1, true)
+        and (manifest:find("[9.9.0,9.10)", 1, true) ~= nil or manifest:find("[9.9.0,9.10.0)", 1, true) ~= nil)
+end
+
+--- Return whether a Mason java-test jar should be passed as a JDTLS extension bundle.
+local function should_skip_java_test_bundle(jar, asm_version)
+    local name = vim.fn.fnamemodify(jar, ":t")
+    if name == "jacocoagent.jar" or name:match("%-jar%-with%-dependencies%.jar$") then
+        return true, "runtime payload"
+    end
+
+    if version_at_least(asm_version, 9, 10) and java_test_bundle_requires_old_asm(jar) then
+        return true, string.format("requires ASM < 9.10 but JDTLS has ASM %s", asm_version)
+    end
+
+    return false, nil
+end
+
 return {
     recommended = function()
         return LazyVim.extras.wants({
@@ -226,12 +285,22 @@ return {
                         -- (CoreException: Failed to load extension bundles).
                         -- The test runner jar and jacoco agent jar are runtime
                         -- payloads injected into test JVMs, not JDTLS bundles.
+                        local asm_version = jdtls_asm_version()
+                        local skipped_java_test_bundles = {}
                         for _, jar in ipairs(vim.fn.glob("$MASON/share/java-test/*.jar", false, true)) do
                             local name = vim.fn.fnamemodify(jar, ":t")
-                            -- TODO: better testings
-                            if name ~= "jacocoagent.jar" and not name:match("%-jar%-with%-dependencies%.jar$") then
+                            local skip, skip_reason = should_skip_java_test_bundle(jar, asm_version)
+                            if skip then
+                                table.insert(skipped_java_test_bundles, string.format("%s (%s)", name, skip_reason))
+                            else
                                 table.insert(bundles, jar)
                             end
+                        end
+                        if #skipped_java_test_bundles > 0 then
+                            logger.fmt_warn(
+                                "skipped java-test bundles: %s",
+                                table.concat(skipped_java_test_bundles, ", ")
+                            )
                         end
                         -- ============== <<< Recover JDTLS end (1)
                     end
@@ -293,7 +362,13 @@ return {
             --################ END ################
             --#####################################
 
+            --- Attach JDTLS to the current Java buffer unless it was manually stopped.
             local function attach_jdtls()
+                local recovery = require("utils.java.jdtls-recovery")
+                if recovery.is_manually_stopped() then
+                    return
+                end
+
                 local fname = vim.api.nvim_buf_get_name(0)
                 -- Don't attach LSP to Java files outside current working directory
                 if require("utils.java.java-common").if_java_file_outside() then

@@ -31,6 +31,7 @@ local M = {}
 local METHOD_PARAMETERS_ALIGNMENT = "org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration"
 local CONSTRUCTOR_PARAMETERS_ALIGNMENT =
     "org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration"
+local RECORD_COMPONENTS_ALIGNMENT = "org.eclipse.jdt.core.formatter.alignment_for_record_components"
 local DEFAULT_INDENT_ALIGNMENT = "16"
 
 -- Global preserve overrides for binary expressions, applied to every formatter
@@ -75,6 +76,7 @@ local PARAMETERS_QUERY = [[
     [
         (method_declaration parameters: (formal_parameters) @parameters)
         (constructor_declaration parameters: (formal_parameters) @parameters)
+        (record_declaration parameters: (formal_parameters) @parameters)
     ]
 ]]
 
@@ -202,9 +204,9 @@ local function get_adaptive_ranges(bufnr, selection)
             local first_row = first_parameter:range()
             if first_row > start_row and is_in_selection(range, selection) then
                 local parent = parameters:parent()
-                local option = parent
-                        and parent:type() == "constructor_declaration"
-                        and CONSTRUCTOR_PARAMETERS_ALIGNMENT
+                local parent_type = parent and parent:type()
+                local option = parent_type == "constructor_declaration" and CONSTRUCTOR_PARAMETERS_ALIGNMENT
+                    or parent_type == "record_declaration" and RECORD_COMPONENTS_ALIGNMENT
                     or METHOD_PARAMETERS_ALIGNMENT
                 ranges[#ranges + 1] = { range = range, overrides = { [option] = DEFAULT_INDENT_ALIGNMENT } }
             end

@@ -125,6 +125,13 @@ describe("utils.java.jdtls-adaptive-formatter", function()
                                 },
                                 newText = "base-constructor-overlap",
                             },
+                            {
+                                range = {
+                                    start = { line = 31, character = 0 },
+                                    ["end"] = { line = 31, character = 1 },
+                                },
+                                newText = "base-record-overlap",
+                            },
                         },
                     }
                 end
@@ -171,18 +178,21 @@ describe("utils.java.jdtls-adaptive-formatter", function()
     it("merges default edits with continuation-indented declaration ranges", function()
         local method_parent = fake_node("method_declaration", { 0, 0, 0, 0 })
         local constructor_parent = fake_node("constructor_declaration", { 0, 0, 0, 0 })
+        local record_parent = fake_node("record_declaration", { 0, 0, 0, 0 })
         local same_line_first = fake_node("formal_parameter", { 3, 20, 3, 30 })
         local next_line_first = fake_node("formal_parameter", { 11, 12, 11, 20 })
         local constructor_first = fake_node("formal_parameter", { 21, 12, 21, 20 })
+        local record_first = fake_node("formal_parameter", { 31, 12, 31, 20 })
         stub_tree({
             fake_node("formal_parameters", { 3, 19, 5, 40 }, same_line_first, method_parent),
             fake_node("formal_parameters", { 10, 80, 15, 45 }, next_line_first, method_parent),
             fake_node("formal_parameters", { 20, 24, 23, 30 }, constructor_first, constructor_parent),
+            fake_node("formal_parameters", { 30, 32, 33, 30 }, record_first, record_parent),
         })
 
         formatter.format(0)
 
-        assert.are.equal(3, #requests)
+        assert.are.equal(4, #requests)
         assert.are.equal(7, requests[1].bufnr)
         assert.are.equal("textDocument/formatting", requests[1].method)
         -- The base request carries the global binary-expression preserve overrides.
@@ -212,12 +222,19 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             "16",
             requests[3].params.options["org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration"]
         )
+        assert.are.equal("textDocument/rangeFormatting", requests[4].method)
+        assert.are.equal(30, requests[4].params.range.start.line)
+        assert.are.equal(
+            "16",
+            requests[4].params.options["org.eclipse.jdt.core.formatter.alignment_for_record_components"]
+        )
         assert.are.equal(1, #state.applied_edits)
         assert.are.equal(7, state.applied_edits[1].bufnr)
-        assert.are.equal(3, #state.applied_edits[1].edits)
+        assert.are.equal(4, #state.applied_edits[1].edits)
         assert.are.equal("base-kept", state.applied_edits[1].edits[1].newText)
         assert.are.equal("adaptive-10", state.applied_edits[1].edits[2].newText)
         assert.are.equal("adaptive-20", state.applied_edits[1].edits[3].newText)
+        assert.are.equal("adaptive-30", state.applied_edits[1].edits[4].newText)
     end)
 
     it("keeps adaptive range formatting inside a visual selection", function()
