@@ -3,6 +3,7 @@
 -- Add any additional keymaps here
 
 local map = LazyVim.safe_keymap_set
+local file_external_formatter = require("utils.file-external-formatter")
 local keymap_actions = require("utils.keymap-actions")
 
 --Clear highlights on search when pressing <Esc> in normal mode
@@ -105,6 +106,8 @@ map("n", "<C-W>,", "<cmd>vertical resize -20<cr>", { desc = "Decrease width", no
 -- standard vim quickfix (ad default replaced to trouble.nvim)
 map("n", "<leader>xL", "<cmd>lopen<cr>", { desc = "Location List" })
 map("n", "<leader>xQ", "<cmd>copen<cr>", { desc = "Quickfix List" })
+
+map("n", "<leader>jf", file_external_formatter.format_current_buffer, { desc = "Format file with external formatter" })
 
 map("n", "<leader>??", keymap_actions.open_personal_vim_cheat_sheet, { desc = "Personal Vim Cheat Sheet" })
 -- map("n", "<leader>?v", function()
