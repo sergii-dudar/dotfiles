@@ -53,9 +53,10 @@ describe("utils.file-external-formatter", function()
         vim.system = function(command, opts, callback)
             assert.are.same({ "xmllint", "--format", "-" }, command)
             assert.are.equal("<root><item>value</item></root>", opts.stdin)
+            assert.are.same({ XMLLINT_INDENT = string.rep(" ", 4) }, opts.env)
             callback({
                 code = 0,
-                stdout = '<?xml version="1.0"?>\n<root>\n  <item>value</item>\n</root>\n',
+                stdout = '<?xml version="1.0"?>\n<root>\n    <item>value</item>\n</root>\n',
                 stderr = "",
             })
             return {}
@@ -66,7 +67,7 @@ describe("utils.file-external-formatter", function()
         assert.are.same({
             '<?xml version="1.0"?>',
             "<root>",
-            "  <item>value</item>",
+            "    <item>value</item>",
             "</root>",
         }, state.buffer_lines[7])
     end)

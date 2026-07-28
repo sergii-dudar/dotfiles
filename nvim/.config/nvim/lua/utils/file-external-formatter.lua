@@ -11,6 +11,7 @@ local max_error_length = 1000
 ---@class FileFormatterConfig
 ---@field command string Executable name.
 ---@field args string[] Command arguments.
+---@field env? table<string, string|number> Environment variables merged into the formatter process.
 
 ---@type table<string, FileFormatterConfig>
 local formatters_by_filetype = {
@@ -21,6 +22,9 @@ local formatters_by_filetype = {
     xml = {
         command = "xmllint",
         args = { "--format", "-" },
+        env = {
+            XMLLINT_INDENT = string.rep(" ", 4),
+        },
     },
 }
 
@@ -182,7 +186,12 @@ function M.format_current_buffer()
     running_buffers[bufnr] = true
     notify("Formatting buffer with " .. formatter.command .. "…", vim.log.levels.INFO)
 
-    local ok, system_error = pcall(vim.system, command, { stdin = content, text = true }, function(result)
+    local system_opts = {
+        stdin = content,
+        text = true,
+        env = formatter.env,
+    }
+    local ok, system_error = pcall(vim.system, command, system_opts, function(result)
         vim.schedule(function()
             apply_result(bufnr, changedtick, formatter, result)
         end)
