@@ -1,5 +1,12 @@
 -- External file formatting for buffers that LSP/Conform cannot handle reliably.
 --
+-- Supported Neovim filetypes and formatters:
+-- • json (including *.avsc) — jq
+-- • jsonc, graphql, yaml, html — prettierd
+-- • javascript, javascriptreact (JSX) — prettierd
+-- • typescript, typescriptreact (TSX) — prettierd
+-- • xml — xmllint with four-space indentation
+--
 -- Add future formatters to `formatters_by_filetype`; commands receive the full
 -- buffer through stdin and must write the formatted content to stdout.
 
@@ -10,19 +17,51 @@ local max_error_length = 1000
 
 ---@class FileFormatterConfig
 ---@field command string Executable name.
----@field args string[] Command arguments.
+---@field args string[]|fun(bufnr: integer): string[] Command arguments or a buffer-aware argument builder.
 ---@field env? table<string, string|number> Environment variables merged into the formatter process.
+---@field mason_bin? boolean Prefer the executable symlink from Mason's shared bin directory.
+
+--- Return a real or synthetic filepath that lets prettierd infer the parser.
+---@param bufnr integer
+---@param fallback_extension string
+---@return string
+local function prettierd_filepath(bufnr, fallback_extension)
+    local filepath = vim.api.nvim_buf_get_name(bufnr)
+    if filepath == "" then
+        return vim.fs.joinpath(vim.fn.getcwd(), "untitled." .. fallback_extension)
+    end
+    if vim.fn.fnamemodify(filepath, ":e") == "" then
+        return filepath .. "." .. fallback_extension
+    end
+    return filepath
+end
+
+--- Create a prettierd formatter definition for a filetype.
+---@param fallback_extension string
+---@return FileFormatterConfig
+local function prettierd_formatter(fallback_extension)
+    return {
+        command = "prettierd",
+        args = function(bufnr)
+            return { prettierd_filepath(bufnr, fallback_extension) }
+        end,
+        mason_bin = true,
+    }
+end
 
 ---@type table<string, FileFormatterConfig>
 local formatters_by_filetype = {
+    graphql = prettierd_formatter("graphql"),
+    html = prettierd_formatter("html"),
+    javascript = prettierd_formatter("js"),
+    javascriptreact = prettierd_formatter("jsx"),
     json = {
         command = "jq",
         args = { "." },
     },
-    jsonc = {
-        command = "prettier",
-        args = { "--parser", "jsonc" },
-    },
+    jsonc = prettierd_formatter("jsonc"),
+    typescript = prettierd_formatter("ts"),
+    typescriptreact = prettierd_formatter("tsx"),
     xml = {
         command = "xmllint",
         args = { "--format", "-" },
@@ -30,6 +69,7 @@ local formatters_by_filetype = {
             XMLLINT_INDENT = string.rep(" ", 4),
         },
     },
+    yaml = prettierd_formatter("yaml"),
 }
 
 ---@type table<integer, boolean>
@@ -53,11 +93,31 @@ local function supported_filetypes()
     return filetypes
 end
 
+--- Resolve a formatter executable, preferring Mason's shared bin directory.
+---@param formatter FileFormatterConfig
+---@return string|nil
+local function formatter_executable(formatter)
+    if formatter.mason_bin then
+        local mason_bin_executable = vim.fs.joinpath(vim.fn.stdpath("data"), "mason", "bin", formatter.command)
+        if vim.fn.executable(mason_bin_executable) == 1 then
+            return mason_bin_executable
+        end
+    end
+
+    if vim.fn.executable(formatter.command) == 1 then
+        return formatter.command
+    end
+    return nil
+end
+
 --- Build argv for a formatter without invoking a shell.
 ---@param formatter FileFormatterConfig
+---@param executable string
+---@param bufnr integer
 ---@return string[]
-local function formatter_command(formatter)
-    return vim.list_extend({ formatter.command }, formatter.args)
+local function formatter_command(formatter, executable, bufnr)
+    local args = type(formatter.args) == "function" and formatter.args(bufnr) or formatter.args
+    return vim.list_extend({ executable }, args)
 end
 
 --- Convert formatter stdout to Neovim buffer lines.
@@ -175,8 +235,10 @@ function M.format_current_buffer()
         notify("Cannot format: buffer is not modifiable", vim.log.levels.ERROR)
         return
     end
-    if vim.fn.executable(formatter.command) ~= 1 then
-        notify("External formatter is not executable: " .. formatter.command, vim.log.levels.ERROR)
+    local executable = formatter_executable(formatter)
+    if not executable then
+        local source = formatter.mason_bin and " (checked Mason bin and PATH)" or ""
+        notify("External formatter is not executable: " .. formatter.command .. source, vim.log.levels.ERROR)
         return
     end
     if running_buffers[bufnr] then
@@ -186,7 +248,7 @@ function M.format_current_buffer()
 
     local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
     local changedtick = vim.api.nvim_buf_get_changedtick(bufnr)
-    local command = formatter_command(formatter)
+    local command = formatter_command(formatter, executable, bufnr)
     running_buffers[bufnr] = true
     notify("Formatting buffer with " .. formatter.command .. "…", vim.log.levels.INFO)
 

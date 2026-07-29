@@ -1,6 +1,7 @@
 local helper = require("tests.utils.spec_helper")
 
 describe("utils.file-external-formatter", function()
+    local mason_prettierd = "/tmp/nvim-test-data/mason/bin/prettierd"
     local formatter
     local state
     local changedtick
@@ -18,8 +19,8 @@ describe("utils.file-external-formatter", function()
         vim.api.nvim_buf_get_changedtick = function()
             return changedtick
         end
-        vim.fn.executable = function()
-            return 1
+        vim.fn.executable = function(command)
+            return (command == "jq" or command == "xmllint" or command == mason_prettierd) and 1 or 0
         end
         formatter = helper.reload("utils.file-external-formatter")
     end)
@@ -47,7 +48,7 @@ describe("utils.file-external-formatter", function()
         assert.matches("Formatted buffer with jq", state.notifications[#state.notifications].message)
     end)
 
-    it("formats JSONC with Prettier", function()
+    it("formats JSONC with prettierd from Mason's shared bin directory", function()
         state.buffer_options[7].filetype = "jsonc"
         state.buffer_lines[7] = {
             "{",
@@ -56,7 +57,7 @@ describe("utils.file-external-formatter", function()
             "}",
         }
         vim.system = function(command, opts, callback)
-            assert.are.same({ "prettier", "--parser", "jsonc" }, command)
+            assert.are.same({ mason_prettierd, "/workspace/untitled.jsonc" }, command)
             assert.are.equal('{\n// owner\n"name":"Ada",\n}', opts.stdin)
             callback({
                 code = 0,
@@ -74,7 +75,55 @@ describe("utils.file-external-formatter", function()
             '  "name": "Ada",',
             "}",
         }, state.buffer_lines[7])
-        assert.matches("Formatted buffer with prettier", state.notifications[#state.notifications].message)
+        assert.matches("Formatted buffer with prettierd", state.notifications[#state.notifications].message)
+    end)
+
+    it("routes supported web filetypes through prettierd with parser-specific fallback filenames", function()
+        local cases = {
+            { filetype = "graphql", extension = "graphql" },
+            { filetype = "yaml", extension = "yaml" },
+            { filetype = "html", extension = "html" },
+            { filetype = "javascript", extension = "js" },
+            { filetype = "javascriptreact", extension = "jsx" },
+            { filetype = "typescript", extension = "ts" },
+            { filetype = "typescriptreact", extension = "tsx" },
+        }
+
+        for _, case in ipairs(cases) do
+            state.buffer_options[7].filetype = case.filetype
+            state.buffer_lines[7] = { "unformatted" }
+            vim.system = function(command, _, callback)
+                assert.are.same({ mason_prettierd, "/workspace/untitled." .. case.extension }, command)
+                callback({
+                    code = 0,
+                    stdout = "formatted\n",
+                    stderr = "",
+                })
+                return {}
+            end
+
+            formatter.format_current_buffer()
+
+            assert.are.same({ "formatted" }, state.buffer_lines[7])
+        end
+    end)
+
+    it("passes the real buffer path to prettierd", function()
+        state.buffer_options[7].filetype = "typescript"
+        state.buffer_names[7] = "/workspace/src/app.ts"
+        vim.system = function(command, _, callback)
+            assert.are.same({ mason_prettierd, "/workspace/src/app.ts" }, command)
+            callback({
+                code = 0,
+                stdout = "const value = 1;\n",
+                stderr = "",
+            })
+            return {}
+        end
+
+        formatter.format_current_buffer()
+
+        assert.are.same({ "const value = 1;" }, state.buffer_lines[7])
     end)
 
     it("formats XML with xmllint", function()
@@ -144,7 +193,7 @@ describe("utils.file-external-formatter", function()
     end)
 
     it("reports unsupported filetypes without starting a process", function()
-        state.buffer_options[7].filetype = "yaml"
+        state.buffer_options[7].filetype = "toml"
         local started = false
         vim.system = function()
             started = true
@@ -155,8 +204,11 @@ describe("utils.file-external-formatter", function()
         assert.is_false(started)
         local notification = state.notifications[#state.notifications]
         assert.are.equal(vim.log.levels.WARN, notification.level)
-        assert.matches("filetype 'yaml'", notification.message)
-        assert.matches("json, jsonc, xml", notification.message)
+        assert.matches("filetype 'toml'", notification.message)
+        assert.matches(
+            "graphql, html, javascript, javascriptreact, json, jsonc, typescript, typescriptreact, xml, yaml",
+            notification.message
+        )
     end)
 
     it("reports a missing formatter executable", function()
