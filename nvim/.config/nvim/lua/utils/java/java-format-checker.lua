@@ -179,7 +179,7 @@ end
 -- ---------------------------------------------------------------------------
 
 --- Strip surrounding quotes from a string node's raw text.
---- Returns (content, quote_prefix_len).
+--- Returns (content, quote_prefix_len, content_starts_on_next_line).
 ---   string_literal  "…"   → (inner, 1)
 ---   text_block      """…""" → (inner after first newline, offset to content start)
 local function strip_quotes(raw_text)
@@ -190,14 +190,14 @@ local function strip_quotes(raw_text)
         if nl then
             local content = after_open:sub(nl + 1)
             content = content:gsub('"""%s*$', "")
-            return content, 3 + nl -- bytes before content start in raw text
+            return content, 3 + nl, true -- bytes before content start in raw text
         end
         -- Degenerate text block without newline
         local content = after_open:gsub('"""%s*$', "")
-        return content, 3
+        return content, 3, false
     end
     -- Regular string literal
-    return raw_text:sub(2, -2), 1
+    return raw_text:sub(2, -2), 1, false
 end
 
 -- ---------------------------------------------------------------------------
@@ -244,7 +244,7 @@ local function classify_invocation(node, bufnr)
         return nil
     end
 
-    local content, quote_len = strip_quotes(raw_text)
+    local content, quote_len, content_starts_on_next_line = strip_quotes(raw_text)
     local printf_pos = find_printf_positions(content)
     local slf4j_pos = find_slf4j_positions(content)
 
@@ -269,6 +269,7 @@ local function classify_invocation(node, bufnr)
         fmt_node = fmt_node,
         content = content,
         quote_len = quote_len,
+        content_starts_on_next_line = content_starts_on_next_line,
         printf_pos = printf_pos,
         slf4j_pos = slf4j_pos,
         placeholder_count = placeholder_count,
@@ -284,10 +285,9 @@ end
 -- ---------------------------------------------------------------------------
 
 --- Map a content byte-offset to buffer (row, col) for a format string node.
---- For string_literal: single-line, pure arithmetic.
---- For text_block: walks content bytes up to the offset (rare path).
-local function content_to_bufpos(sr, sc, node_type, content, quote_len, offset)
-    if node_type ~= "text_block" then
+--- Regular strings use direct arithmetic; triple-quoted text blocks walk lines.
+local function content_to_bufpos(sr, sc, content, quote_len, content_starts_on_next_line, offset)
+    if not content_starts_on_next_line then
         return sr, sc + quote_len + offset
     end
     -- text_block multi-line: count newlines before the offset
@@ -334,9 +334,9 @@ end
 local function process_result(bufnr, result, diagnostics)
     local has_wrong = result.wrong_style and result.wrong_style ~= false
     local sr, sc = result.fmt_node:range()
-    local node_type = result.fmt_node:type()
     local content = result.content
     local ql = result.quote_len
+    local content_starts_on_next_line = result.content_starts_on_next_line
 
     -- Choose correct-kind and wrong-kind position lists
     local correct_pos, wrong_pos
@@ -370,7 +370,7 @@ local function process_result(bufnr, result, diagnostics)
     -- 1. Wrong-kind placeholders → always red
     if wrong_pos then
         for _, pos in ipairs(wrong_pos) do
-            local row, col = content_to_bufpos(sr, sc, node_type, content, ql, pos.offset)
+            local row, col = content_to_bufpos(sr, sc, content, ql, content_starts_on_next_line, pos.offset)
             local ec = col + pos.length
             set_hl(bufnr, row, col, ec, "JavaFormatBad")
             if msg and not diag_done then
@@ -384,7 +384,7 @@ local function process_result(bufnr, result, diagnostics)
     for i, pos in ipairs(correct_pos) do
         local matched = i <= result.arg_count
         local hl = matched and "JavaFormatOk" or "JavaFormatBad"
-        local row, col = content_to_bufpos(sr, sc, node_type, content, ql, pos.offset)
+        local row, col = content_to_bufpos(sr, sc, content, ql, content_starts_on_next_line, pos.offset)
         local ec = col + pos.length
         set_hl(bufnr, row, col, ec, hl)
         if not matched and msg and not diag_done then
