@@ -1,11 +1,39 @@
--- Neo-tree shared clipboard: cross-instance copy/paste via filesystem-backed clipboard directory.
+-- Neo-tree helpers: context-aware explorer routing and cross-instance shared clipboard.
 --
+-- • toggle_context_explorer — route special buffers to their explorer, otherwise reveal them in Neo-tree
 -- • copy_to_shared_clipboard — copy file/dir to shared clipboard
 -- • paste_from_shared_clipboard — paste from shared clipboard into neo-tree target
 -- • shared_copy / shared_copy_visual — copy current/selected buffer lines to clipboard file
 -- • shared_paste — paste from clipboard file into current buffer
 
 local M = {}
+
+---@class NeoTreeExplorerContext
+---@field bufnr integer
+---@field filetype string
+---@field name string
+
+---@class NeoTreeExplorerRoute
+---@field matches fun(context: NeoTreeExplorerContext): boolean
+---@field toggle fun(context: NeoTreeExplorerContext)
+
+---@type NeoTreeExplorerRoute[]
+local explorer_routes = {
+    {
+        --- Check whether the current buffer is a Java dependency opened by JDTLS.
+        ---@param context NeoTreeExplorerContext
+        ---@return boolean
+        matches = function(context)
+            return context.filetype == "java" and vim.startswith(context.name, "jdt://")
+        end,
+        --- Open the Java dependency outline, recreating it when already open.
+        toggle = function()
+            local java_deps = require("java-deps")
+            java_deps.toggle_outline()
+            java_deps.open_outline()
+        end,
+    },
+}
 
 local clipboard_dir = vim.fn.stdpath("data") .. "/neo-tree-clipboard"
 
@@ -25,6 +53,25 @@ local function get_folder_for_node(node)
         return node:get_id()
     end
     return vim.fn.fnamemodify(node:get_id(), ":h")
+end
+
+--- Toggle the explorer registered for the current buffer, or reveal it in Neo-tree.
+function M.toggle_context_explorer()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local context = {
+        bufnr = bufnr,
+        filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr }),
+        name = vim.api.nvim_buf_get_name(bufnr),
+    }
+
+    for _, route in ipairs(explorer_routes) do
+        if route.matches(context) then
+            route.toggle(context)
+            return
+        end
+    end
+
+    vim.cmd("Neotree reveal show")
 end
 
 --- Copy files or directories to the shared clipboard.

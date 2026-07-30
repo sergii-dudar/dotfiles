@@ -4,9 +4,10 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     -- cond = require("utils.project-util").is_multifile_proj,
     keys = {
-        -- same as default, just swapped [ <leader>E ] with [ <leader>e]
+        -- Keep <leader>E as cwd Neo-tree and make <leader>e context-aware with reveal as its fallback.
         -- { "<leader>E", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
-        { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
+        { "<leader>e", neotree_util.toggle_context_explorer, desc = "Toggle Context Explorer" },
+        -- { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
         { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
     },
     opts = {
