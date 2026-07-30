@@ -26,8 +26,8 @@ return {
 
             { "<leader>rc", function() require('kulala').copy() end, desc = "Copy as cURL (http)", ft = "http" },
             { "<leader>rC", function() require('kulala').from_curl() end, desc = "Paste from curl (http)", ft = "http" },
-            { "<leader>rw", function() require("utils.kulala-wget-util").copy_as_wget() end, desc = "Copy as wget (http)", ft = "http" },
-            { "<leader>rW", function() require("utils.kulala-wget-util").from_wget() end, desc = "Paste from wget (http)", ft = "http" },
+            { "<leader>rw", function() require("utils.kulala-wget-util").copy_as_wget({ insecure = true }) end, desc = "Copy as wget (http)", ft = "http" },
+            -- { "<leader>rW", function() require("utils.kulala-wget-util").from_wget() end, desc = "Paste from wget (http)", ft = "http" },
             { "<leader>re", function() require('kulala').set_selected_env() end, desc = "Set environment (http)", ft = "http" },
             { "<leader>rg", function() require('kulala').download_graphql_schema() end, desc = "Download GraphQL schema (http)", ft = "http", },
             { "<leader>ri", function() require('kulala').inspect() end, desc = "Inspect current request (http)", ft = "http" },

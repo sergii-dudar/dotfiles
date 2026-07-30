@@ -4,6 +4,7 @@ local M = {}
 
 ---@class KulalaWgetOptions
 ---@field insecure? boolean Force certificate verification off in the converted command.
+---@field resolve_authorization? boolean Resolve an empty Authorization header from Kulala's active request.
 
 local curl_ignored_long_flags = {
     ["--compressed"] = true,
@@ -259,6 +260,76 @@ local function set_body(request, value, allow_file)
         request.body_data = value
     end
     return nil
+end
+
+--- Split an HTTP header line into its trimmed name and value.
+---@param header string
+---@return string|nil name
+---@return string|nil value
+local function split_header(header)
+    local name, value = header:match("^%s*([^:]+)%s*:%s*(.-)%s*$")
+    return name, value
+end
+
+--- Check whether an Authorization value is missing its credential.
+---@param value string|nil
+---@return boolean
+local function authorization_is_incomplete(value)
+    if type(value) ~= "string" then
+        return true
+    end
+
+    local trimmed = value:match("^%s*(.-)%s*$")
+    return trimmed == "" or trimmed:lower() == "bearer"
+end
+
+--- Resolve the current document's Authorization value through Kulala's environment and OAuth cache.
+---@return string|nil
+local function current_request_authorization()
+    require("kulala.db").set_current_buffer(vim.api.nvim_get_current_buf())
+    local document = require("kulala.parser.document")
+    local requests = document.get_document()
+    if type(requests) ~= "table" then
+        return nil
+    end
+
+    local selected = document.get_request_at(requests, vim.api.nvim_win_get_cursor(0)[1]) or {}
+    local env = require("kulala.parser.env").get_env() or {}
+    local variables_parser = require("kulala.parser.string_variables_parser")
+
+    for request_index = #selected, 1, -1 do
+        local request = selected[request_index]
+        for name, value in pairs((type(request) == "table" and request.headers) or {}) do
+            if type(name) == "string" and name:lower() == "authorization" and type(value) == "string" then
+                local authorization = variables_parser.parse(value, request.variables or {}, env, true)
+                if not authorization_is_incomplete(authorization) then
+                    return authorization:match("^%s*(.-)%s*$")
+                end
+            end
+        end
+    end
+    return nil
+end
+
+--- Fill incomplete Authorization headers without touching a value already exported by cURL.
+---@param headers string[]
+---@return boolean
+local function resolve_incomplete_authorization(headers)
+    local authorization
+    for index, header in ipairs(headers) do
+        local name, value = split_header(header)
+        if name and name:lower() == "authorization" and authorization_is_incomplete(value) then
+            if authorization == nil then
+                local resolved
+                resolved, authorization = pcall(current_request_authorization)
+                if not resolved or not authorization then
+                    return false
+                end
+            end
+            headers[index] = name .. ": " .. authorization
+        end
+    end
+    return true
 end
 
 --- Check whether a line contains Kulala's insecure cURL metadata.
@@ -841,6 +912,9 @@ function M.curl_to_wget(command, opts)
     if opts and opts.insecure then
         request.insecure = true
     end
+    if opts and opts.resolve_authorization and not resolve_incomplete_authorization(request.headers) then
+        return nil, "Active bearer token is unavailable; acquire or refresh it in Kulala, then retry"
+    end
     return render_wget(request)
 end
 
@@ -888,7 +962,10 @@ function M.copy_as_wget(opts)
 
     local wget
     local insecure = (opts and opts.insecure) or current_request_is_insecure()
-    wget, err = M.curl_to_wget(curl, { insecure = insecure })
+    wget, err = M.curl_to_wget(curl, {
+        insecure = insecure,
+        resolve_authorization = true,
+    })
     if not wget then
         return logger.error(err or "Failed to convert request to wget")
     end

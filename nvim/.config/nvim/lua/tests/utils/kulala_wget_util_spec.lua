@@ -13,8 +13,12 @@ describe("utils.kulala-wget-util", function()
         helper.clear_stub_modules({
             "utils.kulala-wget-util",
             "kulala.cmd.kulala_core_bridge",
+            "kulala.db",
             "kulala.globals",
             "kulala.logger",
+            "kulala.parser.document",
+            "kulala.parser.env",
+            "kulala.parser.string_variables_parser",
         })
     end)
 
@@ -155,6 +159,168 @@ describe("utils.kulala-wget-util", function()
             state.registers["+"]
         )
         assert.are.equal("Copied wget command to clipboard", info_message)
+    end)
+
+    it("forces insecure mode when copying with the option enabled", function()
+        -- given
+        state.buffer_lines[1] = {
+            "GET https://example.com",
+        }
+        helper.stub_module("kulala.cmd.kulala_core_bridge", {
+            enabled = function()
+                return true
+            end,
+            to_curl_at_cursor = function()
+                return [[curl 'https://example.com']]
+            end,
+        })
+        helper.stub_module("kulala.globals", {
+            NAME = "kulala.nvim",
+            VERSION = "7.0.0",
+        })
+        helper.stub_module("kulala.logger", {
+            error = function(message)
+                error(message)
+            end,
+            info = function() end,
+        })
+
+        -- when
+        kulala_util.copy_as_wget({ insecure = true })
+
+        -- then
+        assert.are.equal(
+            [[wget --quiet --output-document=- --no-check-certificate 'https://example.com']],
+            state.registers["+"]
+        )
+    end)
+
+    it("fills an empty bearer header from Kulala's active request", function()
+        -- given
+        state.buffer_lines[1] = {
+            "GET https://example.com",
+            [[Authorization: Bearer {{$auth.token("example")}}]],
+        }
+        helper.stub_module("kulala.cmd.kulala_core_bridge", {
+            enabled = function()
+                return true
+            end,
+            to_curl_at_cursor = function()
+                return [[curl -H 'Authorization: Bearer ' 'https://example.com']]
+            end,
+        })
+        helper.stub_module("kulala.globals", {
+            NAME = "kulala.nvim",
+            VERSION = "7.0.0",
+        })
+        helper.stub_module("kulala.db", {
+            set_current_buffer = function() end,
+        })
+        helper.stub_module("kulala.parser.document", {
+            get_document = function()
+                return { {} }
+            end,
+            get_request_at = function()
+                return {
+                    {
+                        variables = {},
+                        headers = {
+                            Authorization = [[Bearer {{$auth.token("example")}}]],
+                        },
+                    },
+                }
+            end,
+        })
+        helper.stub_module("kulala.parser.env", {
+            get_env = function()
+                return {}
+            end,
+        })
+        helper.stub_module("kulala.parser.string_variables_parser", {
+            parse = function()
+                return "Bearer live-token"
+            end,
+        })
+        helper.stub_module("kulala.logger", {
+            error = function(message)
+                error(message)
+            end,
+            info = function() end,
+        })
+
+        -- when
+        kulala_util.copy_as_wget()
+
+        -- then
+        assert.are.equal(
+            [[wget --quiet --output-document=- --header='Authorization: Bearer live-token' 'https://example.com']],
+            state.registers["+"]
+        )
+    end)
+
+    it("does not copy an empty bearer header when no active token is available", function()
+        -- given
+        state.buffer_lines[1] = {
+            "GET https://example.com",
+            [[Authorization: Bearer {{$auth.token("example")}}]],
+        }
+        helper.stub_module("kulala.cmd.kulala_core_bridge", {
+            enabled = function()
+                return true
+            end,
+            to_curl_at_cursor = function()
+                return [[curl -H 'Authorization: Bearer ' 'https://example.com']]
+            end,
+        })
+        helper.stub_module("kulala.globals", {
+            NAME = "kulala.nvim",
+            VERSION = "7.0.0",
+        })
+        helper.stub_module("kulala.db", {
+            set_current_buffer = function() end,
+        })
+        helper.stub_module("kulala.parser.document", {
+            get_document = function()
+                return { {} }
+            end,
+            get_request_at = function()
+                return {
+                    {
+                        variables = {},
+                        headers = {
+                            Authorization = [[Bearer {{$auth.token("example")}}]],
+                        },
+                    },
+                }
+            end,
+        })
+        helper.stub_module("kulala.parser.env", {
+            get_env = function()
+                return {}
+            end,
+        })
+        helper.stub_module("kulala.parser.string_variables_parser", {
+            parse = function()
+                return "Bearer "
+            end,
+        })
+        local error_message
+        helper.stub_module("kulala.logger", {
+            error = function(message)
+                error_message = message
+            end,
+            info = function() end,
+        })
+
+        -- when
+        kulala_util.copy_as_wget()
+
+        -- then
+        assert.are.equal(
+            "Active bearer token is unavailable; acquire or refresh it in Kulala, then retry",
+            error_message
+        )
+        assert.is_nil(state.registers["+"])
     end)
 
     it("imports a wget command through Kulala's cURL parser", function()
