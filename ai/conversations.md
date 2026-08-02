@@ -16,8 +16,11 @@
 # nvim custom `gr` - /mapstruct/reference_finder
     copilot --resume=ec4e7239-b8a0-41eb-b3ab-32d3061ffaa0
 
-jdtls-adaptive-formatter
+# jdtls-adaptive-formatter
     copilot --resume=64c9ab05-28ab-4462-ba3b-268bd66ba329
+
+# nvim modules/common/file-template & utils/java/class-record-converter.lua
+    copilot --resume=600bd1b8-fa63-4b7b-b0f2-d81eed34d8ad
 
 ```
 
