@@ -63,6 +63,13 @@ matcher field present must match (AND); globs inside one field are alternatives
 | `source_set` | maven/gradle source set (`main`, `test`, …)| insensitive  |
 | `when`       | `fun(ctx): boolean`                        | —            |
 
+`package` holds whatever notation the language uses — the core only glob-matches
+a string, it has no idea what a "package" is. Java's adapter produces a dotted
+package, so its rules use `*.listeners`. A Go adapter would naturally expose the
+slash path (`internal/handlers/kafka`) and its rules would read `*/handlers`;
+Rust `*::handlers`; Python dotted again. `path` (always slash-separated) is
+available in every language as a fallback matcher.
+
 Extras: `choice` preselects an index on the template's **first** choice node
 (e.g. `component` → 1 `@Component`, 2 `@Configuration`, 3 `@Service`,
 4 `@Repository`), and `desc` labels the entry in the picker.

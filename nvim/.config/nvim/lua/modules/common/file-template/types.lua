@@ -15,7 +15,7 @@
 ---@field filename string File name including extension, e.g. `UserService.java`.
 ---@field basename string File name without extension, e.g. `UserService`.
 ---@field ext string File extension without the leading dot, e.g. `java`.
----@field package? string Language package/namespace of the file, when the adapter can resolve one.
+---@field package? string Language package/namespace, in whatever notation that language uses — the core only glob-matches the string. Java: dotted (`com.acme.listeners`); a Go adapter would naturally use the slash path (`internal/handlers/kafka`), Rust `::`, Python dotted. Rules follow the adapter's choice: `*/handlers`, `*::handlers`, `*.handlers`.
 ---@field source_set? string Build source set the file belongs to, e.g. `main` or `test`.
 ---@field is_test? boolean Whether the file belongs to a test source set.
 
