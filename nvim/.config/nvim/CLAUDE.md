@@ -133,6 +133,12 @@ Java helpers under `utils/java/`:
 - `java-trace.lua` — Parse Java stack traces to quickfix list, highlight traces in buffers
 - `maven-util.lua`, `maven-compile.lua` — Maven build integration
 - `javap-util.lua` — Resolve parametrized method signatures via `javap`
+- `class-record-converter.lua` — Treesitter-based class <-> record conversion
+  (`<leader>jC`). class→record turns instance fields into components, the
+  canonical constructor into a compact one, drops trivial accessors and strips
+  Lombok annotations records reject; record→class produces a Lombok `@Value`
+  class. All other annotations (`@Builder`, `@Slf4j`, Spring/Jackson, …)
+  round-trip untouched
 
 Language registry layer under `utils/lang/`:
 

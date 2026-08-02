@@ -22,6 +22,9 @@ vim.keymap.set("n", "<leader>jla", function() require("utils.java.jdtls-util").e
 vim.keymap.set("n", "<leader>jlc", function() require("utils.java.jdtls-util").extract_and_open_cursor_position_jdt_link() end, { desc = "Open [j]dt [l]ink Under [c]ursor" })
 vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").extract_and_open_current_line_first_jdt_link() end, { desc = "Open [j]dt [l]ink [f]irst" })
 
+-- ---------------------------- class <-> record conversion (treesitter based)
+vim.keymap.set("n", "<leader>jC", function() require("utils.java.class-record-converter").toggle() end, { desc = "[J]ava toggle [C]lass <-> record" })
+
 -- ---------------------------- code actions & lsp based extensions
 -- vim.keymap.set("n", "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, { desc = "[I]mport fqn class package and apply simple name" })
 -- -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", }),
