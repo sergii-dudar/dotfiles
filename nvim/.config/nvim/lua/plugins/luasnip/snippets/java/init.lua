@@ -57,6 +57,11 @@ function M.setup()
     java_snippets = vim.list_extend(java_snippets, junit_snips)
     java_snippets = vim.list_extend(java_snippets, general_snips)
     ls.add_snippets("java", java_snippets)
+
+    -- Whole-file templates for `modules/common/file-template`. Registered under a
+    -- synthetic filetype so they stay out of normal java completion.
+    local template_snips = require("plugins.luasnip.snippets.java.snippets-java-templates").snippets()
+    ls.add_snippets("java-template", template_snips)
 end
 
 return M

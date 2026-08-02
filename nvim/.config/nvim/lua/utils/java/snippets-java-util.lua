@@ -26,6 +26,14 @@ function M.current_java_package()
     return ""
 end
 
+--- Get the current Java class name (filename without extension, no trailing space).
+--- Unlike `current_java_file_name` this is safe to concatenate directly, e.g.
+--- `public record <Name>(` or `public class <Name> extends ...`.
+function M.current_java_class_name()
+    local file = vim.api.nvim_buf_get_name(0)
+    return vim.fn.fnamemodify(file, ":t:r") or ""
+end
+
 --- Get the current Java filename without extension.
 function M.current_java_file_name()
     local file = vim.api.nvim_buf_get_name(0)

@@ -93,6 +93,16 @@ emits diagnostics + signs into the buffer, opens Trouble view).
   `README.md` / `*_TESTS.md` next to the module
 - `common/test-report/` — shared test-report infrastructure used by all
   language adapters (tree view, diagnostic namespace, Trouble registration)
+- `common/file-template/` — generic new-file template engine: fills a freshly
+  created empty buffer with a LuaSnip template chosen by ordered per-language
+  rules. Triggered from the buffer itself (blank buffer + empty/missing file),
+  so it works with neo-tree, fyler, oil, snacks explorer and plain `:e` alike.
+  `:FileTemplate [trigger]` applies one manually. See its `README.md`
+- `java/file-template/` — Java adapter: resolves package + maven/gradle source
+  set, and maps package/class-name globs to snippet triggers in
+  `rules.lua` (e.g. `*.util` → `util`, `*.service` → `component` with `@Service`,
+  `*Test` → `test`). Whole-file templates live under the `java-template` LuaSnip
+  filetype so they stay out of normal completion
 - `blink/mapstruct-source/` — blink.cmp source adapter for the
   `java/mapstruct` engine
 

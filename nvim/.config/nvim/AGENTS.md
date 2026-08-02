@@ -4,7 +4,7 @@
 
 This is a LazyVim-based Neovim configuration. `init.lua` loads shared globals and bootstraps `lua/config/lazy.lua`. Core settings live in `lua/config/`: options, keymaps, autocmds, and plugin imports. Plugin specs are grouped under `lua/plugins/` by purpose, such as `editor/`, `ui/`, `navigation/`, `overseer/`, `snacks/`, and `tools/`.
 
-Custom language features live in `lua/modules/<lang>/`, with shared test-report infrastructure in `lua/modules/common/test-report/`. General helpers are in `lua/utils/`; Java-specific helpers are in `lua/utils/java/`, and language detection/LSP helpers are in `lua/utils/lang/`. Snippets live in `lua/plugins/luasnip/snippets/` and `snippets/`. Disabled experiments are kept in `lua/plugins/archive/`.
+Custom language features live in `lua/modules/<lang>/`, with shared test-report infrastructure in `lua/modules/common/test-report/` and the shared new-file template engine in `lua/modules/common/file-template/`. General helpers are in `lua/utils/`; Java-specific helpers are in `lua/utils/java/`, and language detection/LSP helpers are in `lua/utils/lang/`. Snippets live in `lua/plugins/luasnip/snippets/` and `snippets/`. Disabled experiments are kept in `lua/plugins/archive/`.
 
 ## Build, Test, and Development Commands
 

@@ -114,7 +114,7 @@ function M.snippets()
             t({ "", "" }),
             t({ "public class " }),
             f(snip_utils.current_java_file_name),
-            t({ " {", "", "\t" }),
+            t({ "{", "", "\t" }),
             t("public static "),
             i(1, "Result"),
             t(" "),

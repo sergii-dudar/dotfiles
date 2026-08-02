@@ -290,3 +290,11 @@ vim.api.nvim_create_user_command("DisableBinary", function()
     vim.opt.fixeol = true
     vim.cmd("update")
 end, {})
+
+-------------------------------------------------------------
+------------------ new file templates ------------------------
+--- Fill a freshly created empty file with its language template
+--- (java: package/class-name matchers -> luasnip template snippet).
+--- See lua/modules/common/file-template + lua/modules/<lang>/file-template.
+
+require("modules.common.file-template").setup()
