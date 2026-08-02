@@ -27,7 +27,15 @@
 ---@type file_template.Rule[]
 return {
     -- ── class-name driven (strongest signal, wins over the package) ──────────
-    { snippet = "test", filename = { "*Test", "*Tests", "*TestCase", "*IT", "*ITCase" }, desc = "JUnit 5 test class" },
+    -- `source_set` guards against a `*Test` named production class: the file must
+    -- live in a test source set (`src/test/java`, `src/integrationTest/java`, ...),
+    -- not in `src/main/java`.
+    {
+        snippet = "test",
+        filename = { "*Test", "*Tests", "*TestCase", "*IT", "*ITCase" },
+        source_set = { "*test*" },
+        desc = "JUnit 5 test class",
+    },
     { snippet = "exception", filename = { "*Exception", "*Error" }, desc = "Exception class" },
     { snippet = "controller", filename = { "*Controller", "*Resource", "*Endpoint" }, desc = "Spring @RestController" },
     { snippet = "mapper", filename = { "*Mapper" }, desc = "MapStruct @Mapper" },
