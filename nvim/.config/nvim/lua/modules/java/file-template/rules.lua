@@ -15,7 +15,26 @@
 --   choice      index preselected on the template's FIRST choice node
 --   desc        label shown by the `:FileTemplate` picker
 --
--- Glob syntax: `*` = any characters, `?` = one character, anchored on both ends.
+-- Glob syntax: `*` = any characters (dots included), `?` = exactly one character.
+-- Patterns are anchored on BOTH ends, so `*` is needed on every open side and may
+-- be used on either side, or both:
+--
+--   "*.listeners"      com.acme.listeners            ✓
+--                      com.acme.kafka.listeners      ✓  (`*` spans dots)
+--                      com.acme.listeners.internal   ✗  (anchored at the end)
+--                      com.acme.mylisteners          ✗  (the dot is literal)
+--                      listeners                     ✗  (no leading dot to match)
+--   "*.listeners.*"    com.acme.listeners.internal   ✓  sub-packages only
+--   "*.listeners*"     both of the above             ✓  plus com.acme.listenersX
+--   "*listeners"       com.acme.mylisteners          ✓  suffix, ignores segments
+--   "listeners"        listeners                     ✓  exact, top-level package
+--   "*.a.b.listeners"  segments must be adjacent: com.a.b.listeners ✓, com.a.x.b.listeners ✗
+--
+-- List several alternatives instead of over-widening one glob:
+--   packages = { "*.listeners", "*.listeners.*" }
+--
+-- `packages` and `source_set` are matched case-insensitively; `filename` and
+-- `path` are case-sensitive.
 --
 -- `choice` indexes for the reused Spring/Lombok snippets:
 --   component -> 1 @Component | 2 @Configuration | 3 @Service | 4 @Repository

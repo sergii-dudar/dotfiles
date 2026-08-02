@@ -1,9 +1,17 @@
 -- Glob matching used to resolve file-template rules.
 --
 -- Supported glob syntax (translated to anchored Lua patterns):
---   *  any sequence of characters, including none
+--   *  any sequence of characters, including none — crosses `.` and `/`
 --   ?  exactly one character
 -- Everything else matches literally.
+--
+-- Patterns are anchored on BOTH ends, so `*` is needed on every open side and may
+-- appear on either side or both:
+--   "*.listeners"    matches com.acme.listeners and com.acme.kafka.listeners,
+--                    but not com.acme.listeners.internal or com.acme.mylisteners
+--   "*.listeners.*"  matches sub-packages of a `listeners` package only
+--   "*listeners"     matches any package ending in `listeners`, dot or not
+--   "listeners"      exact match only
 
 require("modules.common.file-template.types")
 

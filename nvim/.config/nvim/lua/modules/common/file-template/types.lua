@@ -22,6 +22,11 @@
 ---A single template rule. All matcher fields present on the rule must match
 ---(logical AND); the globs listed inside one field are alternatives (OR).
 ---A rule without any matcher field is a catch-all.
+---
+---Globs are anchored on both ends; `*` matches any characters (dots included)
+---and `?` exactly one. A `*` may be used on either side or both, e.g.
+---`*.listeners` (a `listeners` segment at the end), `*.listeners.*`
+---(sub-packages of it), `*.listeners*` (either) or `listeners` (exact).
 ---@class file_template.Rule
 ---@field snippet string LuaSnip trigger of the template to expand.
 ---@field packages? string[] Globs matched case-insensitively against `Context.package`.

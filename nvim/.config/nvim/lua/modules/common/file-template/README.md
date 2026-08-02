@@ -67,7 +67,21 @@ Extras: `choice` preselects an index on the template's **first** choice node
 (e.g. `component` → 1 `@Component`, 2 `@Configuration`, 3 `@Service`,
 4 `@Repository`), and `desc` labels the entry in the picker.
 
-Globs: `*` = any characters, `?` = one character, anchored on both ends.
+Globs: `*` matches any characters (**dots included**), `?` matches exactly one.
+Patterns are anchored on **both ends**, so a `*` is required on every open side —
+and can be used on either side or both:
+
+| glob | matches | does not match |
+| ---- | ------- | -------------- |
+| `*.listeners` | `com.acme.listeners`, `com.acme.kafka.listeners` | `com.acme.listeners.internal`, `com.acme.mylisteners`, `listeners` |
+| `*.listeners.*` | `com.acme.listeners.internal` | `com.acme.listeners` |
+| `*.listeners*` | both of the above, `com.acme.listenersX` | `listeners` |
+| `*listeners` | `com.acme.mylisteners` | — |
+| `listeners` | `listeners` (top-level package) | `com.acme.listeners` |
+| `*.a.b.listeners` | `com.a.b.listeners` | `com.a.x.b.listeners` (segments must be adjacent) |
+
+Prefer listing alternatives over one over-wide glob:
+`packages = { "*.listeners", "*.listeners.*" }`.
 
 ## Manual use
 
