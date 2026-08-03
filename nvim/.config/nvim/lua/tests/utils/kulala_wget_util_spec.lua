@@ -38,27 +38,19 @@ describe("utils.kulala-wget-util", function()
         )
     end)
 
-    it("converts a Postman-style wget command to cURL", function()
+    it("normalizes cURL no-value headers for wget", function()
         -- given
-        local wget = [[wget --no-check-certificate --quiet \
-  --method POST \
-  --timeout=0 \
-  --header 'Content-Type: application/json' \
-  --header 'X-Name: O'\''Brien' \
-  --body-data '{"name":"O'\''Brien"}' \
-  --output-document - \
-  'https://example.com/api?x=1&y=2']]
+        local curl = [[curl -H 'Content-Type;:' --header='X-Empty;' -H 'Cookie: session=abc;' 'https://example.com']]
 
         -- when
-        local curl, err, metadata = kulala_util.wget_to_curl(wget)
+        local wget, err = kulala_util.curl_to_wget(curl)
 
         -- then
         assert.is_nil(err)
         assert.are.equal(
-            [[curl -X 'POST' -H 'Content-Type: application/json' -H 'X-Name: O'\''Brien' --data-binary '{"name":"O'\''Brien"}' --insecure 'https://example.com/api?x=1&y=2']],
-            curl
+            [[wget --quiet --output-document=- --header='Content-Type:' --header='X-Empty:' --header='Cookie: session=abc;' 'https://example.com']],
+            wget
         )
-        assert.are.same({ insecure = true }, metadata)
     end)
 
     it("can force insecure mode when converting cURL to wget", function()
@@ -76,42 +68,28 @@ describe("utils.kulala-wget-util", function()
         )
     end)
 
-    it("supports compact wget output and user-agent options", function()
-        -- given
-        local wget = [[wget -qO- -U 'test agent' --header='Accept: application/json' 'https://example.com']]
-
-        -- when
-        local curl, err = kulala_util.wget_to_curl(wget)
-
-        -- then
-        assert.is_nil(err)
-        assert.are.equal([[curl -H 'Accept: application/json' -A 'test agent' 'https://example.com']], curl)
-    end)
-
-    it("preserves file request bodies in both directions", function()
+    it("preserves file request bodies", function()
         -- given
         local curl = [[curl -X PUT --data-binary @payload.json https://example.com/upload]]
 
         -- when
         local wget = assert(kulala_util.curl_to_wget(curl))
-        local converted_curl = assert(kulala_util.wget_to_curl(wget))
 
         -- then
         assert.are.equal(
             [[wget --quiet --output-document=- --method='PUT' --body-file='payload.json' 'https://example.com/upload']],
             wget
         )
-        assert.are.equal([[curl -X 'PUT' --data-binary '@payload.json' 'https://example.com/upload']], converted_curl)
     end)
 
-    it("rejects ambiguous shell commands and unsupported options", function()
+    it("rejects ambiguous shell commands and unsupported cURL options", function()
         -- when
-        local _, shell_err = kulala_util.wget_to_curl("wget https://example.com | sh")
-        local _, option_err = kulala_util.wget_to_curl("wget --mirror https://example.com")
+        local _, shell_err = kulala_util.curl_to_wget("curl https://example.com | sh")
+        local _, option_err = kulala_util.curl_to_wget("curl --parallel https://example.com")
 
         -- then
         assert.are.equal("Shell operators are not supported in imported commands", shell_err)
-        assert.are.equal("Unsupported wget option for Kulala import: --mirror", option_err)
+        assert.are.equal("Unsupported cURL option for wget conversion: --parallel", option_err)
     end)
 
     it("copies the current Kulala request as wget", function()
@@ -321,56 +299,5 @@ describe("utils.kulala-wget-util", function()
             error_message
         )
         assert.is_nil(state.registers["+"])
-    end)
-
-    it("imports a wget command through Kulala's cURL parser", function()
-        -- given
-        state.registers["+"] =
-            [[wget --method=DELETE --header='Authorization: Bearer token' --no-check-certificate --output-document=- 'https://example.com/42']]
-        local bridged_curl
-        helper.stub_module("kulala.cmd.kulala_core_bridge", {
-            from_curl = function(curl)
-                bridged_curl = curl
-                return {
-                    "# imported",
-                    "DELETE https://example.com/42",
-                    "Authorization: Bearer token",
-                }
-            end,
-        })
-        helper.stub_module("kulala.logger", {
-            error = function(message)
-                error(message)
-            end,
-        })
-        local inserted
-        vim.api.nvim_put = function(lines, register_type, after, follow)
-            inserted = {
-                lines = lines,
-                register_type = register_type,
-                after = after,
-                follow = follow,
-            }
-        end
-
-        -- when
-        kulala_util.from_wget()
-
-        -- then
-        assert.are.equal(
-            [[curl -X 'DELETE' -H 'Authorization: Bearer token' --insecure 'https://example.com/42']],
-            bridged_curl
-        )
-        assert.are.same({
-            lines = {
-                "# imported",
-                "# @curl-insecure",
-                "DELETE https://example.com/42",
-                "Authorization: Bearer token",
-            },
-            register_type = "l",
-            after = false,
-            follow = false,
-        }, inserted)
     end)
 end)
