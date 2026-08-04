@@ -73,6 +73,7 @@ return {
                 end,
             },
             ui = {
+                max_response_size = 1024 * 1024, -- 1 MiB
                 winbar = true,
                 pickers = {
                     snacks = {
