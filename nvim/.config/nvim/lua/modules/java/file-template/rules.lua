@@ -59,7 +59,17 @@ return {
     { snippet = "controller", filename = { "*Controller", "*Resource", "*Endpoint" }, desc = "Spring @RestController" },
     { snippet = "mapper", filename = { "*Mapper" }, desc = "MapStruct @Mapper" },
     { snippet = "repository", filename = { "*Repository", "*Dao" }, desc = "Spring Data repository" },
-    { snippet = "properties", filename = { "*Properties" }, desc = "Spring @ConfigurationProperties record" },
+    {
+        snippet = "properties",
+        filename = {
+
+            "*.property",
+            "*.properties",
+            "*.prop",
+            "*.props",
+        },
+        desc = "Spring @ConfigurationProperties record",
+    },
     { snippet = "component", filename = { "*Config", "*Configuration" }, choice = 2, desc = "Spring @Configuration" },
     { snippet = "component", filename = { "*Service", "*ServiceImpl" }, choice = 3, desc = "Spring @Service" },
     { snippet = "usecase", filename = { "*UseCase", "*Usecase", "*Interactor" }, desc = "Use case component" },
@@ -134,9 +144,24 @@ return {
         choice = 1,
         desc = "Spring @Component",
     },
+    -- {
+    --     snippet = "record",
+    --     packages = {
+    --         "*.property",
+    --         "*.properties",
+    --         "*.prop",
+    --         "*.props",
+    --     },
+    --     desc = "Java record",
+    -- },
     {
-        snippet = "record",
+        snippet = "immutable",
         packages = {
+            "*.model",
+            "*.models",
+            "*.domain",
+            "*.value",
+            "*.vo",
             "*.dto",
             "*.dtos",
             "*.request",
@@ -152,17 +177,21 @@ return {
             "*.event",
             "*.events",
         },
-        desc = "Java record",
-    },
-    {
-        snippet = "immutable",
-        packages = { "*.model", "*.models", "*.domain", "*.value", "*.vo" },
         desc = "Lombok @Value + @Builder",
     },
     { snippet = "mutable", packages = { "*.entity", "*.entities" }, desc = "Lombok @Data + @Builder" },
     {
         snippet = "enum",
-        packages = { "*.enum", "*.enums", "*.type", "*.types", "*.status", "*.statuses" },
+        packages = {
+            "*.enum",
+            "*.enums",
+            "*.enumeraion",
+            "*.enumerations",
+            "*.type",
+            "*.types",
+            "*.status",
+            "*.statuses",
+        },
         desc = "Enum",
     },
     {
