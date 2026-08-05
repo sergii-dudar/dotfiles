@@ -248,7 +248,17 @@ return {
                         async = true,
                         opts = {
                             -- Shared defaults live in modules.java.mapstruct.config.
-                            log_level = vim.log.levels.DEBUG,
+                            --
+                            -- Keep this at WARN. The level is forwarded to the out-of-process Java
+                            -- server via -Dmapstruct.log.level, and at DEBUG the server dumps its
+                            -- entire project classpath (~334 lines) on *every* explore_path request.
+                            -- Neovim then mirrors all of that server stdout to disk on its event loop
+                            -- (server.lua on_stdout -> log.debug -> io.open/write/close per line),
+                            -- which starves the socket-read/response callbacks and makes completion
+                            -- feel slow even though the server answers in ~10ms. WARN silences the
+                            -- per-request firehose on both sides. Raise to DEBUG only when actively
+                            -- troubleshooting the MapStruct engine.
+                            log_level = vim.log.levels.WARN,
                         },
                     },
                 },
