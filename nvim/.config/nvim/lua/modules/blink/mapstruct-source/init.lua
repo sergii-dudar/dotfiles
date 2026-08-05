@@ -10,12 +10,34 @@ local log = logging_util.new({ name = "MapStruct.BlinkSource", filename = "mapst
 local source = {}
 local completion_item_kind = nil
 
+--- Suppress blink.cmp's manual-trigger "Loading..." placeholder menu (idempotent).
+---
+--- On a manual (`<C-space>`) trigger, blink arms a 500ms timer that draws a "Loading..."
+--- item until a source answers (blink/cmp/completion/init.lua -> menu.open_loading). The
+--- MapStruct source is IPC/JDTLS-backed: it can be slow, and on a stalled type resolution
+--- it may never answer for a given context id, leaving that placeholder stranded on screen
+--- with no way to clear it. There is no config knob for the loading menu, so we replace
+--- menu.open_loading with a no-op: nothing is shown until real items arrive (which still
+--- render normally via menu.open_with_items). The patch is global once applied, which is
+--- exactly the desired "never show Loading..." behaviour.
+local function suppress_loading_menu()
+    local ok, menu = pcall(require, "blink.cmp.completion.windows.menu")
+    if ok and not menu.__mapstruct_loading_suppressed then
+        menu.__mapstruct_loading_suppressed = true
+        menu.open_loading = function() end
+    end
+end
+
 --- Initialize the blink.cmp MapStruct source.
 ---@param opts? table
 ---@return table
 function source.new(opts)
     local self = setmetatable({}, { __index = source })
     self.opts = opts or {}
+
+    -- blink core is loaded by the time it instantiates this source, so it is safe to
+    -- reach into its menu window module here.
+    suppress_loading_menu()
 
     -- Initialize the underlying MapStruct module (commands are set up automatically)
     local success = mapstruct.setup(self.opts)
@@ -160,16 +182,26 @@ function source:get_completions(ctx, callback)
     ctx = ctx or {}
     local cursor = ctx.cursor or vim.api.nvim_win_get_cursor(0)
 
+    -- Cancellation token handed to the engine: blink calls the returned cancel function when
+    -- this request is superseded (new context) or the menu is closed. The engine checks it
+    -- before answering and before scheduling a retry, so a stale request cannot resurface.
+    local token = { cancelled = false }
+
     -- Get cursor position (ctx uses 1-indexed line, 0-indexed character)
     local params = {
         bufnr = ctx.bufnr or vim.api.nvim_get_current_buf(),
         row = cursor[1] - 1, -- Convert to 0-indexed
         col = cursor[2], -- Already 0-indexed
+        cancel_token = token,
     }
 
     -- Get completions from MapStruct module
     -- Note: get_completions will internally call get_completion_context
     mapstruct.get_completions(params, function(result, err)
+        if token.cancelled then
+            return
+        end
+
         if err then
             log.warn("get_completions failed:", err)
             callback({ items = {}, is_incomplete_forward = false, is_incomplete_backward = false })
@@ -189,7 +221,7 @@ function source:get_completions(ctx, callback)
 
     -- Return cancel function
     return function()
-        -- TODO: Implement request cancellation if needed
+        token.cancelled = true
     end
 end
 

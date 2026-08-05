@@ -11,6 +11,14 @@ local CACHE_TTL = 300
 -- Cleanup interval in milliseconds - run cleanup every 60 seconds
 local CLEANUP_INTERVAL_MS = 60000
 
+-- Upper bound (ms) on a single async warm step in get_completion_context_async. A warm
+-- primitive that never calls its `done` callback (e.g. a jdtls `request` that is never
+-- answered — unlike `request_sync` it carries no timeout) would otherwise leave blink's
+-- async completion task unresolved and strand the menu on "Loading..." forever. Matches
+-- the 5000ms that the blocking `request_sync` path used, so a slow-but-valid JDTLS still
+-- resolves. Real warms complete well under a second.
+local WARM_TIMEOUT_MS = 5000
+
 -- Cache for type source paths: typeName -> {value, last_used}
 local type_source_cache = {}
 
@@ -18,10 +26,25 @@ local type_source_cache = {}
 -- Key format: "methodName|ReturnType|param1Type:param1Name,param2Type:param2Name"
 local method_params_cache = {}
 
--- Cache of FQNs verified to exist via JDTLS workspace/symbol.
--- Key is the FQN itself (e.g. "com.example.Foo"), so entries are safe to share across
--- buffers with different imports. Stores { last_used = ts } for TTL cleanup.
+-- Cache of FQNs verified via JDTLS workspace/symbol.
+-- Key is the candidate FQN itself (e.g. "com.example.Foo"), so entries are safe to share
+-- across buffers with different imports. Stores { exists = boolean, last_used = ts }.
+-- `exists = false` records a candidate proven absent, so the async resolver does not keep
+-- re-warming it; legacy entries with no `exists` field are treated as present.
 local verified_fqn_cache = {}
+
+-- Cache of raw `javap` stdout per fully-qualified class name: fqcn -> { value, last_used }.
+-- `value = false` records a failed/empty javap run. Only needed to bridge a single async
+-- warm→replay within one completion request (the parsed result lands in method_params_cache).
+local javap_output_cache = {}
+
+-- When true, the three main-loop-blocking resolution primitives (get_class_source_path's
+-- vim.wait, resolve_type_fqn's workspace/symbol request_sync, and javap's io.popen) must NOT
+-- block. Instead, on a cache miss they raise a `{ __mapstruct_warm = fn }` error which the
+-- async driver (M.get_completion_context_async) catches, warms off the hot path, then replays.
+-- This keeps blink's completion context id from advancing mid-request (which stranded the
+-- loading menu). Sync callers (goto/debug) leave it false and block as before.
+local resolve_cache_only = false
 
 -- Timer handle for cleanup scheduler
 local cleanup_timer = nil
@@ -48,6 +71,7 @@ local function cleanup_all_caches()
     cleanup_cache(type_source_cache, "type_source")
     cleanup_cache(method_params_cache, "method_params")
     cleanup_cache(verified_fqn_cache, "verified_fqn")
+    cleanup_cache(javap_output_cache, "javap_output")
 end
 
 -- Start automatic cache cleanup timer
@@ -101,6 +125,7 @@ function M.clear_all_caches()
     type_source_cache = {}
     method_params_cache = {}
     verified_fqn_cache = {}
+    javap_output_cache = {}
     log.info("All caches cleared")
 end
 
@@ -153,12 +178,47 @@ local function get_class_source_path(type_name)
     -- Check cache first and update last_used timestamp
     local cached_entry = type_source_cache[base_type]
     if cached_entry then
-        log.debug("Cache hit for type:", base_type, "->", cached_entry.value)
         cached_entry.last_used = os.time()
+        if cached_entry.value == false then
+            -- Negative cache: async warm already tried and found no source path.
+            log.debug("Cache hit (negative) for type:", base_type)
+            return nil
+        end
+        log.debug("Cache hit for type:", base_type, "->", cached_entry.value)
         return cached_entry.value
     end
 
     log.debug("Cache miss for type:", base_type, "- fetching from server...")
+
+    -- Non-blocking mode: hand the async warm back to the driver instead of vim.wait-ing.
+    if resolve_cache_only then
+        error({
+            __mapstruct_warm = function(done)
+                local ok, mapstruct = pcall(require, "modules.java.mapstruct")
+                if not ok then
+                    log.error("Failed to load mapstruct module for async type source:", mapstruct)
+                    type_source_cache[base_type] = { value = false, last_used = os.time() }
+                    done()
+                    return
+                end
+
+                mapstruct.explore_type_source({ typeName = base_type }, function(res, err)
+                    if res and res.sourcePath then
+                        log.info("Got source path (async) for type:", base_type, "->", res.sourcePath)
+                        type_source_cache[base_type] = { value = res.sourcePath, last_used = os.time() }
+                    else
+                        if err then
+                            log.warn("Async source path failed for type:", base_type, "error:", err)
+                        else
+                            log.warn("No source path returned (async) for type:", base_type)
+                        end
+                        type_source_cache[base_type] = { value = false, last_used = os.time() }
+                    end
+                    done()
+                end)
+            end,
+        })
+    end
 
     -- Get the mapstruct module to make IPC request
     -- Use pcall to avoid circular dependency issues
@@ -740,12 +800,62 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
         -- safe to share across buffers with different imports.
         local cached = verified_fqn_cache[candidate_fqn]
         if cached then
-            log.debug("Verified FQN cache hit:", candidate_fqn)
             cached.last_used = os.time()
-            return candidate_fqn .. generics .. array_brackets
+            -- Legacy entries have no `exists` field and are treated as present.
+            if cached.exists ~= false then
+                log.debug("Verified FQN cache hit:", candidate_fqn)
+                return candidate_fqn .. generics .. array_brackets
+            end
+            -- Known-absent candidate: skip to the next wildcard package.
+            log.debug("Verified FQN cache hit (absent):", candidate_fqn)
+            goto continue_wildcard
         end
 
         log.debug("Trying wildcard import:", candidate_fqn)
+
+        -- Non-blocking mode: warm this candidate via an async workspace/symbol request.
+        if resolve_cache_only then
+            error({
+                __mapstruct_warm = function(done)
+                    local sent = jdtls_client:request(
+                        "workspace/symbol",
+                        { query = candidate_fqn },
+                        function(err, symbols)
+                            local exists = false
+                            if not err and type(symbols) == "table" then
+                                for _, symbol in ipairs(symbols) do
+                                    local symbol_fqn
+                                    if symbol.containerName and symbol.containerName ~= "" then
+                                        symbol_fqn = symbol.containerName .. "." .. symbol.name
+                                    else
+                                        symbol_fqn = symbol.name
+                                    end
+                                    if
+                                        symbol_fqn == candidate_fqn
+                                        or (symbol.name == base_type and symbol.containerName == package)
+                                    then
+                                        exists = true
+                                        break
+                                    end
+                                end
+                            end
+                            verified_fqn_cache[candidate_fqn] = { exists = exists, last_used = os.time() }
+                            done()
+                        end,
+                        bufnr
+                    )
+
+                    -- `request` returns false when the message could not be sent (client
+                    -- detached / shutting down). Its handler never fires in that case, so
+                    -- settle the warm here — otherwise the driver waits out the watchdog.
+                    if not sent then
+                        log.warn("workspace/symbol request was not sent for:", candidate_fqn)
+                        verified_fqn_cache[candidate_fqn] = { exists = false, last_used = os.time() }
+                        done()
+                    end
+                end,
+            })
+        end
 
         local result = jdtls_client:request_sync("workspace/symbol", { query = candidate_fqn }, 5000, bufnr)
         if result and result.result and #result.result > 0 then
@@ -766,7 +876,7 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
                 -- Check for exact match
                 if symbol_fqn == candidate_fqn or symbol.name == base_type and symbol.containerName == package then
                     log.debug("Exact match found via wildcard import:", candidate_fqn)
-                    verified_fqn_cache[candidate_fqn] = { last_used = os.time() }
+                    verified_fqn_cache[candidate_fqn] = { exists = true, last_used = os.time() }
                     return candidate_fqn .. generics .. array_brackets
                 end
             end
@@ -778,6 +888,8 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
                 "results but none matched exactly"
             )
         end
+
+        ::continue_wildcard::
     end
 
     -- Same-package fallback. Not cached: the result is per-file (depends on the
@@ -937,18 +1049,44 @@ local function get_all_method_parameters_javap(bufnr, method_name, method_node, 
 
     -- Run javap WITHOUT verbose flag (10x faster!)
     -- We don't need -v because @MappingTarget is detected via Treesitter
-    local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
-    log.debug(string.format("Running: javap -cp <classpath> %s", fqcn))
+    local output
 
-    local handle = io.popen(cmd)
-    if not handle then
-        log.error("Failed to run javap")
-        vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
-        return nil
+    local cached_javap = javap_output_cache[fqcn]
+    if cached_javap then
+        cached_javap.last_used = os.time()
+        -- Negative cache (value == false): a prior run produced no usable output.
+        output = cached_javap.value or ""
+    elseif resolve_cache_only then
+        -- Non-blocking mode: warm the javap output asynchronously via vim.system,
+        -- then let the driver replay this sync path against the populated cache.
+        error({
+            __mapstruct_warm = function(done)
+                vim.system({ "javap", "-cp", classpath, fqcn }, { text = true }, function(res)
+                    local out = (res.code == 0 and res.stdout and res.stdout ~= "") and res.stdout or nil
+                    javap_output_cache[fqcn] = { value = out or false, last_used = os.time() }
+                    done()
+                end)
+            end,
+        })
+    else
+        local cmd = string.format("javap -cp '%s' '%s'", classpath, fqcn)
+        log.debug(string.format("Running: javap -cp <classpath> %s", fqcn))
+
+        local handle = io.popen(cmd)
+        if not handle then
+            log.error("Failed to run javap")
+            vim.notify("[MapStruct Context] Failed to run javap", vim.log.levels.ERROR)
+            return nil
+        end
+
+        output = handle:read("*a")
+        handle:close()
+
+        javap_output_cache[fqcn] = {
+            value = (output and output ~= "") and output or false,
+            last_used = os.time(),
+        }
     end
-
-    local output = handle:read("*a")
-    handle:close()
 
     if not output or output == "" then
         log.warn("javap returned empty output")
@@ -1234,6 +1372,104 @@ local function convert_to_java_inner_class_notation(fqn)
 
     -- No inner class detected, return as-is
     return fqn
+end
+
+-- Async, non-blocking variant of M.get_completion_context.
+--
+-- The sync resolution primitives (type source path, wildcard-import FQN
+-- verification, javap) all used to block the main loop (vim.wait / request_sync
+-- / io.popen). Doing that from blink's completion hot path advances blink's
+-- context id mid-request and strands the loading menu. Instead of threading
+-- callbacks through the entire resolver (deep CPS rewrite), we drive the
+-- existing sync code in a "collect-warm-replay" loop:
+--
+--   1. Set `resolve_cache_only` and pcall M.get_completion_context. Any primitive
+--      that would block on a cache miss raises `error({ __mapstruct_warm = fn })`.
+--   2. Catch that, run the async warm `fn` (which populates a cache — including a
+--      negative entry on failure, guaranteeing progress), then re-attempt.
+--   3. Repeat until the sync pass completes against fully-warmed caches, or we hit
+--      the iteration cap (defensive: negative caching should always converge).
+--
+-- The callback receives the same result table shape as M.get_completion_context.
+---@param bufnr integer
+---@param row integer
+---@param col integer
+---@param callback fun(result: table)
+function M.get_completion_context_async(bufnr, row, col, callback)
+    local iterations = 0
+    -- Each attempt warms exactly one cache miss (one type-source lookup, one wildcard
+    -- FQN candidate, or one javap run), so a cold-cache mapper with several parameter
+    -- types probed across multiple wildcard packages needs many attempts. Convergence
+    -- is guaranteed anyway — every warm writes a positive or negative cache entry the
+    -- replay will hit — so this cap is only a backstop against a logic bug.
+    local MAX_ITERATIONS = 48
+
+    local function attempt()
+        iterations = iterations + 1
+
+        resolve_cache_only = true
+        local ok, result = pcall(M.get_completion_context, bufnr, row, col)
+        resolve_cache_only = false
+
+        if ok then
+            callback(result)
+            return
+        end
+
+        -- A blocking primitive requested an async warm; run it, then replay.
+        if type(result) == "table" and result.__mapstruct_warm then
+            if iterations > MAX_ITERATIONS then
+                log.error("MapStruct async context did not converge after", MAX_ITERATIONS, "warm iterations")
+                callback({
+                    ok = false,
+                    reason = "invalid_context",
+                    message = "Type resolution did not converge",
+                })
+                return
+            end
+
+            -- Exactly one of {warm settled via done(), warm raised, watchdog timeout}
+            -- must advance the driver. Without this guard a warm that never calls its
+            -- `done` callback leaves blink's async completion task unresolved and the
+            -- menu strands on "Loading..." forever (there is no upstream timeout for
+            -- async sources). `settled` collapses all three into a single transition.
+            local settled = false
+            local function resume()
+                if settled then
+                    return
+                end
+                settled = true
+                vim.schedule(attempt)
+            end
+            local function fail(message)
+                if settled then
+                    return
+                end
+                settled = true
+                log.error("MapStruct async warm did not settle:", message)
+                callback({ ok = false, reason = "invalid_context", message = message })
+            end
+
+            -- Watchdog: a warm that neither calls done() nor raises within the bound
+            -- fails gracefully so the loading menu can always resolve. The timer still
+            -- fires after a normal resume(), but fail() no-ops once settled.
+            vim.defer_fn(function()
+                fail("Type resolution timed out")
+            end, WARM_TIMEOUT_MS)
+
+            local warm_ok, warm_err = pcall(result.__mapstruct_warm, resume)
+            if not warm_ok then
+                fail("Type resolution failed: " .. tostring(warm_err))
+            end
+            return
+        end
+
+        -- Genuine Lua error inside the resolver.
+        log.error("MapStruct context resolution error:", result)
+        callback({ ok = false, reason = "invalid_context", message = tostring(result) })
+    end
+
+    attempt()
 end
 
 -- Extract completion context from the current cursor position using Treesitter

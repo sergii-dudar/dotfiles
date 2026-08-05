@@ -237,6 +237,15 @@ return {
                     mapstruct = {
                         name = "mapstruct",
                         module = "modules.blink.mapstruct-source",
+                        -- The source is IPC-backed (out-of-process Java server) and its context
+                        -- resolution warms caches off the main loop, so it answers late relative
+                        -- to the keystroke that triggered it. Declaring it async makes blink emit
+                        -- list.show/hide at request time, which stops the 500ms loading timer up
+                        -- front — otherwise a response that arrives after the context id has moved
+                        -- on (e.g. you keep typing past the `.`) is silently dropped and the
+                        -- `󰦗 Loading...` menu strands forever. This is only safe now that the
+                        -- resolver no longer blocks the main loop (see modules/java/mapstruct/context.lua).
+                        async = true,
                         opts = {
                             -- Shared defaults live in modules.java.mapstruct.config.
                             log_level = vim.log.levels.DEBUG,

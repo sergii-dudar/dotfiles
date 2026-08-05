@@ -24,8 +24,15 @@ M.defaults = {
     request_timeout_ms = 5000,
 
     -- Completion retry policy for temporary classpath/compiler states.
-    path_retry_max_attempts = 5,
-    path_retry_initial_delay_ms = 2000,
+    -- Delays back off exponentially: 250ms, 500ms -> ~750ms total. Kept short so a
+    -- completion request never outlives the user's typing; longer compile windows are
+    -- handled by simply re-triggering completion.
+    path_retry_max_attempts = 3,
+    path_retry_initial_delay_ms = 250,
+
+    -- Verbose IPC payload dumps (vim.inspect of every request/response). Opt-in: very
+    -- noisy (hundreds of log lines per completion response).
+    log_ipc_payloads = false,
 }
 
 --- Return a copy of the default MapStruct options.

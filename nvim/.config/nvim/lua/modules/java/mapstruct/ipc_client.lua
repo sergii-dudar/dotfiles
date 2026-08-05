@@ -33,6 +33,7 @@ local config = {
     request_timeout_ms = mapstruct_config.defaults.request_timeout_ms,
     connect_timeout_ms = mapstruct_config.defaults.connect_timeout_ms,
     connect_poll_interval_ms = mapstruct_config.defaults.connect_poll_interval_ms,
+    log_ipc_payloads = mapstruct_config.defaults.log_ipc_payloads,
 }
 
 --- Generate unique request ID.
@@ -97,6 +98,56 @@ local function handle_data(data)
     end
 end
 
+--- Build a compact one-line summary of a response result for logging.
+---@param result table|any
+---@return string
+local function summarize_result(result)
+    if type(result) ~= "table" then
+        return tostring(result)
+    end
+
+    local parts = {}
+    if type(result.className) == "string" then
+        table.insert(parts, "class=" .. result.className)
+    end
+    if type(result.completions) == "table" then
+        table.insert(parts, "completions=" .. tostring(#result.completions))
+    end
+
+    if #parts == 0 then
+        -- Unknown shape (ping/heartbeat/shutdown, ...): keys are cheap enough to list.
+        return "{" .. table.concat(vim.tbl_keys(result), ",") .. "}"
+    end
+
+    return table.concat(parts, " ")
+end
+
+--- Build a compact one-line summary of request params for logging.
+---@param method string
+---@param params table|nil
+---@return string
+local function summarize_params(method, params)
+    local parts = { method }
+
+    if type(params) == "table" then
+        if params.sources then
+            local names = {}
+            for _, src in ipairs(params.sources) do
+                table.insert(names, tostring(src.name) .. ":" .. tostring(src.type))
+            end
+            table.insert(parts, "sources=[" .. table.concat(names, ", ") .. "]")
+        end
+        if params.pathExpression ~= nil then
+            table.insert(parts, "path='" .. tostring(params.pathExpression) .. "'")
+        end
+        if params.typeName then
+            table.insert(parts, "typeName=" .. tostring(params.typeName))
+        end
+    end
+
+    return table.concat(parts, " ")
+end
+
 --- Handle a complete JSON response.
 ---@param json_str string
 handle_response = function(json_str)
@@ -111,7 +162,13 @@ handle_response = function(json_str)
     if response.error then
         log.info("<<< RESPONSE ERROR: " .. response.error)
     elseif response.result then
-        log.info("<<< RESPONSE: " .. vim.inspect(response.result))
+        -- Full payloads are huge (hundreds of lines per completion response) and this runs on
+        -- the completion hot path, so only a compact summary is logged unless opted in.
+        if config.log_ipc_payloads then
+            log.info("<<< RESPONSE: " .. vim.inspect(response.result))
+        else
+            log.info("<<< RESPONSE: " .. summarize_result(response.result))
+        end
     end
 
     local request_id = response.id
@@ -177,6 +234,7 @@ function M.configure(opts)
     config.request_timeout_ms = opts.request_timeout_ms
     config.connect_timeout_ms = opts.connect_timeout_ms
     config.connect_poll_interval_ms = opts.connect_poll_interval_ms
+    config.log_ipc_payloads = opts.log_ipc_payloads == true
 
     if heartbeat_changed and state.heartbeat_timer then
         stop_heartbeat()
@@ -327,7 +385,11 @@ function M.request(method, params, callback)
     local json_str = vim.json.encode(request) .. "\n"
 
     -- Log request params only
-    log.info(">>> REQUEST: " .. vim.inspect(params))
+    if config.log_ipc_payloads then
+        log.info(">>> REQUEST: " .. vim.inspect(params))
+    else
+        log.info(">>> REQUEST: " .. summarize_params(method, params))
+    end
 
     -- Store callback for this request
     if callback then

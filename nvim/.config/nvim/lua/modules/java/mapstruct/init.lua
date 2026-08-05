@@ -426,7 +426,7 @@ local function prepare_source_request_for_path(sources, path_expression)
 end
 
 --- Get completions for MapStruct @Mapping annotations.
----@param params? { bufnr?: integer, row?: integer, col?: integer, path_expression?: string }
+---@param params? { bufnr?: integer, row?: integer, col?: integer, path_expression?: string, cancel_token?: { cancelled: boolean } }
 ---@param callback fun(result?: table, err?: string)
 function M.get_completions(params, callback)
     -- Auto-initialize if needed
@@ -442,101 +442,129 @@ function M.get_completions(params, callback)
     local row = params.row or (vim.api.nvim_win_get_cursor(0)[1] - 1) -- 0-indexed
     local col = params.col or vim.api.nvim_win_get_cursor(0)[2] -- 0-indexed
 
-    -- Extract completion context using Treesitter
-    local completion_ctx_result = context.get_completion_context(bufnr, row, col)
+    -- Optional cancellation token owned by the caller (e.g. the blink.cmp source): once
+    -- flipped, we stop answering and stop scheduling retries for this request.
+    local cancel_token = params.cancel_token
 
-    if not completion_ctx_result.ok then
-        -- Not in a valid MapStruct context
-        local msg = completion_ctx_result.message or "Not in a valid MapStruct @Mapping context"
+    ---@return boolean
+    local function cancelled()
+        return cancel_token ~= nil and cancel_token.cancelled == true
+    end
 
-        -- Only show notification for jdtls_not_ready, others are expected (cursor not in right place)
-        if completion_ctx_result.reason == "jdtls_not_ready" then
-            vim.notify("[MapStruct] " .. msg, vim.log.levels.WARN)
+    -- Extract completion context using Treesitter. Runs off the main loop: the
+    -- resolver may warm caches (type source paths, wildcard FQN verification,
+    -- javap) asynchronously before it can answer, and blocking here would advance
+    -- blink's context id and strand its loading menu.
+    local function on_context(completion_ctx_result)
+        if cancelled() then
+            return
         end
 
-        callback(nil, msg)
-        return
-    end
+        if not completion_ctx_result.ok then
+            -- Not in a valid MapStruct context
+            local msg = completion_ctx_result.message or "Not in a valid MapStruct @Mapping context"
 
-    local completion_ctx = completion_ctx_result.value
-    local path_expression = params.path_expression
-    if path_expression == nil then
-        path_expression = completion_ctx.path_expression
-    end
-
-    -- Build request based on attribute type
-    local request_params
-    if completion_ctx.attribute_type == "target" then
-        -- Target: navigate directly into the target class fields
-        request_params = {
-            sources = { { name = "$target", type = completion_ctx.class_name } },
-            pathExpression = path_expression,
-            isEnum = completion_ctx.is_enum or false,
-        }
-    else
-        -- Source: use new protocol with sources array
-        local sources, source_path_expression = prepare_source_request_for_path(completion_ctx.sources, path_expression)
-        request_params = {
-            sources = sources,
-            pathExpression = source_path_expression,
-            isEnum = completion_ctx.is_enum or false,
-        }
-    end
-
-    -- Make request using base request logic with retry on compilation errors
-    local max_retries = state.opts.path_retry_max_attempts
-    local retry_delay_ms = state.opts.path_retry_initial_delay_ms
-    local attempt = 0
-
-    local function make_request_with_retry()
-        attempt = attempt + 1
-
-        make_ipc_request("explore_path", request_params, function(result, err)
-            if result then
-                -- Attach completion context to result for consumers
-                result.completion_ctx = completion_ctx
-                callback(result, err)
-                return
+            -- Only show notification for jdtls_not_ready, others are expected (cursor not in right place)
+            if completion_ctx_result.reason == "jdtls_not_ready" then
+                vim.notify("[MapStruct] " .. msg, vim.log.levels.WARN)
             end
 
-            -- Check if this is a compilation/classpath error that might resolve with a retry
-            if err and type(err) == "string" and err:match("Error exploring path") then
-                if attempt <= max_retries then
-                    -- log.warn(
-                    vim.notify(
-                        string.format(
-                            "Path exploration failed (attempt %d/%d), retrying in %dms: %s",
-                            attempt,
-                            max_retries,
-                            retry_delay_ms,
-                            err
+            callback(nil, msg)
+            return
+        end
+
+        local completion_ctx = completion_ctx_result.value
+        local path_expression = params.path_expression
+        if path_expression == nil then
+            path_expression = completion_ctx.path_expression
+        end
+
+        -- Build request based on attribute type
+        local request_params
+        if completion_ctx.attribute_type == "target" then
+            -- Target: navigate directly into the target class fields
+            request_params = {
+                sources = { { name = "$target", type = completion_ctx.class_name } },
+                pathExpression = path_expression,
+                isEnum = completion_ctx.is_enum or false,
+            }
+        else
+            -- Source: use new protocol with sources array
+            local sources, source_path_expression =
+                prepare_source_request_for_path(completion_ctx.sources, path_expression)
+            request_params = {
+                sources = sources,
+                pathExpression = source_path_expression,
+                isEnum = completion_ctx.is_enum or false,
+            }
+        end
+
+        -- Make request using base request logic with retry on compilation errors
+        local max_retries = state.opts.path_retry_max_attempts
+        local retry_delay_ms = state.opts.path_retry_initial_delay_ms
+        local attempt = 0
+
+        local function make_request_with_retry()
+            attempt = attempt + 1
+
+            make_ipc_request("explore_path", request_params, function(result, err)
+                -- Request superseded or menu closed: drop the response, do not retry.
+                if cancelled() then
+                    log.debug("Path exploration cancelled, dropping response (attempt", attempt, ")")
+                    return
+                end
+
+                if result then
+                    -- Attach completion context to result for consumers
+                    result.completion_ctx = completion_ctx
+                    callback(result, err)
+                    return
+                end
+
+                -- Check if this is a compilation/classpath error that might resolve with a retry
+                if err and type(err) == "string" and err:match("Error exploring path") then
+                    if attempt <= max_retries then
+                        log.warn(
+                            string.format(
+                                "Path exploration failed (attempt %d/%d), retrying in %dms: %s",
+                                attempt,
+                                max_retries,
+                                retry_delay_ms,
+                                err
+                            )
                         )
-                    )
 
-                    -- Schedule retry with delay
-                    vim.defer_fn(function()
-                        make_request_with_retry()
-                    end, retry_delay_ms)
+                        -- Schedule retry with delay
+                        vim.defer_fn(function()
+                            if cancelled() then
+                                log.debug("Path exploration cancelled, skipping retry", attempt + 1)
+                                return
+                            end
+                            make_request_with_retry()
+                        end, retry_delay_ms)
 
-                    -- Increase delay for next retry (exponential backoff)
-                    retry_delay_ms = retry_delay_ms * 2
+                        -- Increase delay for next retry (exponential backoff)
+                        retry_delay_ms = retry_delay_ms * 2
+                    else
+                        -- Max retries exceeded, return the error
+                        log.error(string.format("Path exploration failed after %d attempts: %s", max_retries, err))
+                        vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
+                        callback(result, err)
+                    end
                 else
-                    -- Max retries exceeded, return the error
-                    log.error(string.format("Path exploration failed after %d attempts: %s", max_retries, err))
-                    vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
+                    -- Other error, don't retry
+                    if err then
+                        vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
+                    end
                     callback(result, err)
                 end
-            else
-                -- Other error, don't retry
-                if err then
-                    vim.notify("[MapStruct] " .. err, vim.log.levels.ERROR)
-                end
-                callback(result, err)
-            end
-        end)
+            end)
+        end
+
+        make_request_with_retry()
     end
 
-    make_request_with_retry()
+    context.get_completion_context_async(bufnr, row, col, on_context)
 end
 
 --- Explore type source location.
