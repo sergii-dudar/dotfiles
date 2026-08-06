@@ -14,6 +14,11 @@ describe("modules.java.diagnostics-resolver", function()
                 dispatched = ctx
             end,
         })
+        helper.stub_module("modules.java.diagnostics-resolver.mapstruct-mapping-method", {
+            resolve = function(ctx)
+                dispatched = ctx
+            end,
+        })
 
         state.current_buf = 7
         state.cursor = { 3, 4 }
@@ -33,6 +38,7 @@ describe("modules.java.diagnostics-resolver", function()
     after_each(function()
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver",
+            "modules.java.diagnostics-resolver.mapstruct-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
         })
     end)
@@ -67,6 +73,27 @@ describe("modules.java.diagnostics-resolver", function()
         assert.is_true(resolved)
         assert.are.equal('Unmapped target property: "instructedAmount"', dispatched.diagnostic.message)
         assert.are.equal("Unmapped target property: .*", dispatched.pattern)
+    end)
+
+    it("dispatches the resolver for a suggested MapStruct mapping method", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'Can\'t map property "Duration ttl" to "long ttl". '
+                        .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal("Can't map property .*Consider to declare/implement a mapping method: .*", dispatched.pattern)
     end)
 
     it("notifies when no current-line diagnostic is supported", function()

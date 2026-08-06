@@ -4,6 +4,7 @@
 --- above the method that owns the diagnostic.
 
 local nio_util = require("utils.nio-util")
+local java_context = require("modules.java.diagnostics-resolver.java-context")
 
 local M = {}
 
@@ -140,46 +141,6 @@ local function selected_annotations(selections, properties)
     return lines
 end
 
---- Return the Java Tree-sitter root for a buffer.
----@param bufnr integer
----@return TSNode|nil
-local function java_root(bufnr)
-    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
-    if not ok or not parser then
-        return nil
-    end
-    local tree = parser:parse()[1]
-    return tree and tree:root() or nil
-end
-
---- Find the method declaration owning a diagnostic position.
----@param bufnr integer
----@param diagnostic table
----@return TSNode|nil
-local function diagnostic_method(bufnr, diagnostic)
-    local root = java_root(bufnr)
-    if not root then
-        return nil
-    end
-
-    local row = diagnostic.lnum or vim.api.nvim_win_get_cursor(0)[1] - 1
-    local col = diagnostic.col or 0
-    local node = root:named_descendant_for_range(row, col, row, col)
-    while node and node:type() ~= "method_declaration" do
-        node = node:parent()
-    end
-    return node
-end
-
---- Return the indentation prefix from the method declaration line.
----@param bufnr integer
----@param row integer
----@return string
-local function method_indent(bufnr, row)
-    local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
-    return line:match("^%s*") or ""
-end
-
 --- Insert missing MapStruct import when the file does not already contain it.
 ---@param bufnr integer
 ---@return integer|nil inserted_row zero-based row where the import was inserted
@@ -212,7 +173,7 @@ end
 ---@param lines string[]
 ---@return boolean
 local function insert_annotations(bufnr, diagnostic, lines)
-    local method = diagnostic_method(bufnr, diagnostic)
+    local method = java_context.method_at_diagnostic(bufnr, diagnostic)
     if not method then
         vim.notify("[MapStruct] Could not find method for diagnostic", vim.log.levels.WARN)
         return false
@@ -224,7 +185,7 @@ local function insert_annotations(bufnr, diagnostic, lines)
         start_row = start_row + 1
     end
 
-    local indent = method_indent(bufnr, start_row)
+    local indent = java_context.line_indent(bufnr, start_row)
     local insert_lines = vim.tbl_map(function(line)
         return indent .. line
     end, lines)

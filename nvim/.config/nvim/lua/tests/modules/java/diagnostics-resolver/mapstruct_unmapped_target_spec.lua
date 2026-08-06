@@ -19,6 +19,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
 
     after_each(function()
         helper.clear_stub_modules({
+            "modules.java.diagnostics-resolver.java-context",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
             "utils.nio-util",
         })

@@ -63,5 +63,9 @@ M.register(
     "Unmapped target property: .*",
     require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
 )
+M.register(
+    "Can't map property .*Consider to declare/implement a mapping method: .*",
+    require("modules.java.diagnostics-resolver.mapstruct-mapping-method").resolve
+)
 
 return M
