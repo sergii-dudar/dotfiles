@@ -70,27 +70,59 @@ local function method_exists(bufnr, signature)
     return false
 end
 
+--- Add resolved generic arguments to the import plan for one method type.
+---@param imports table[]
+---@param key string
+---@param arguments JavaResolvedType[]|nil
+local function add_argument_imports(imports, key, arguments)
+    for index, argument in ipairs(arguments or {}) do
+        imports[#imports + 1] = { key = key .. "_argument_" .. index, type = argument }
+    end
+end
+
+--- Render a planned type reference with its resolved generic arguments.
+---@param references table<string, string>
+---@param key string
+---@param arguments JavaResolvedType[]|nil
+---@return string
+local function render_type_reference(references, key, arguments)
+    local argument_references = {}
+    for index, _ in ipairs(arguments or {}) do
+        argument_references[#argument_references + 1] = references[key .. "_argument_" .. index]
+    end
+    if #argument_references == 0 then
+        return references[key]
+    end
+    return references[key] .. "<" .. table.concat(argument_references, ", ") .. ">"
+end
+
 --- Insert a suggested mapping method into its owning mapper type.
 ---@param bufnr integer
 ---@param diagnostic table
 ---@param suggested MapStructSuggestedMethod
----@param resolved_types { source: JavaResolvedType, target: JavaResolvedType }
+---@param resolved_types { source: JavaResolvedType, source_arguments?: JavaResolvedType[], target: JavaResolvedType, target_arguments?: JavaResolvedType[] }
 ---@return boolean
 local function insert_mapping_method(bufnr, diagnostic, suggested, resolved_types)
-    local references, imports_or_error = java_import_resolver.plan(bufnr, {
+    local imports = {
         { key = "parameter", type = resolved_types.source },
         { key = "return", type = resolved_types.target },
-    })
+    }
+    add_argument_imports(imports, "parameter", resolved_types.source_arguments)
+    add_argument_imports(imports, "return", resolved_types.target_arguments)
+
+    local references, imports_or_error = java_import_resolver.plan(bufnr, imports)
     if not references then
         vim.notify("[MapStruct] Could not plan mapping method imports: " .. imports_or_error, vim.log.levels.WARN)
         return false
     end
 
-    local signature = references["return"]
+    local return_type = render_type_reference(references, "return", resolved_types.target_arguments)
+    local parameter_type = render_type_reference(references, "parameter", resolved_types.source_arguments)
+    local signature = return_type
         .. " "
         .. suggested.name
         .. "("
-        .. references.parameter
+        .. parameter_type
         .. " "
         .. suggested.parameter_name
         .. ")"

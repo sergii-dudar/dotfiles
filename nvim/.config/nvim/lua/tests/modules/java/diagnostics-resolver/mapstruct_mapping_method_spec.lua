@@ -4,6 +4,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
     local resolver
     local state
     local path_requests
+    local generic_types
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param owner_kind string
@@ -62,6 +63,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
     before_each(function()
         _, state = helper.reset_vim()
         path_requests = {}
+        generic_types = false
         helper.stub_module("modules.java.mapstruct", {
             get_method_types = function(_, callback)
                 callback({
@@ -71,6 +73,16 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             end,
             resolve_path_type = function(params, callback)
                 path_requests[#path_requests + 1] = vim.deepcopy(params)
+                if generic_types then
+                    if params.sources[1].name == "$target" then
+                        callback({ className = "core.Amount", simpleName = "Amount", packageName = "core" })
+                    elseif params.path_expression == "balances.first." then
+                        callback({ className = "api.Balance", simpleName = "Balance", packageName = "api" })
+                    else
+                        callback({ className = "java.util.List", simpleName = "List", packageName = "java.util" })
+                    end
+                    return
+                end
                 if params.sources[1].name == "$target" then
                     callback({ className = "long", simpleName = "long", packageName = "" })
                 else
@@ -219,5 +231,65 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         -- then
         assert.is_true(resolved)
         assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][11])
+    end)
+
+    it("generates a method with a resolved generic parameter type", function()
+        -- given
+        generic_types = true
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import api.AccountBrief;",
+            "import example.AccountInfo;",
+            "import org.mapstruct.Mapper;",
+            "",
+            "public interface AccountInfoGatewayMapper {",
+            "    AccountInfo toAccountInfo(AccountBrief source);",
+            "",
+            "    String existing();",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 7, 10)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 7,
+                col = 24,
+                message = 'Can\'t map property "List<Balance> balances" to "Amount availableAmount". '
+                    .. 'Consider to declare/implement a mapping method: "Amount map(List<Balance> value)"',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.same({
+            "package example.mapper;",
+            "",
+            "import api.AccountBrief;",
+            "import api.Balance;",
+            "import core.Amount;",
+            "import example.AccountInfo;",
+            "import org.mapstruct.Mapper;",
+            "",
+            "import java.util.List;",
+            "",
+            "public interface AccountInfoGatewayMapper {",
+            "    AccountInfo toAccountInfo(AccountBrief source);",
+            "",
+            "    default Amount map(List<Balance> value) {",
+            "        return ;",
+            "    }",
+            "",
+            "    String existing();",
+            "}",
+        }, state.buffer_lines[1])
+        assert.are.same({ 15, 15 }, state.cursor)
+        assert.are.equal("startinsert", state.commands[#state.commands])
+        assert.are.equal(3, #path_requests)
+        assert.are.equal("balances.", path_requests[1].path_expression)
+        assert.are.equal("balances.first.", path_requests[2].path_expression)
+        assert.are.equal("availableAmount.", path_requests[3].path_expression)
     end)
 end)
