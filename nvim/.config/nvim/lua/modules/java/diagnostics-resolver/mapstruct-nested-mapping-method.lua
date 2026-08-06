@@ -6,6 +6,7 @@
 
 local java_context = require("modules.java.diagnostics-resolver.java-context")
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
+local mapstruct_method_type_resolver = require("modules.java.diagnostics-resolver.mapstruct-method-type-resolver")
 
 local M = {}
 
@@ -87,10 +88,28 @@ end
 ---@param bufnr integer
 ---@param diagnostic table
 ---@param mapping MapStructNestedMappingMethod
+---@param resolved_types { source: JavaResolvedType, target: JavaResolvedType }
 ---@return boolean
-local function insert_mapping_method(bufnr, diagnostic, mapping)
-    if method_exists(bufnr, mapping.signature) then
-        vim.notify("[MapStruct] Nested mapping method already exists: " .. mapping.signature, vim.log.levels.INFO)
+local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
+    local references, imports_or_error = java_import_resolver.plan(bufnr, {
+        { key = "source", type = resolved_types.source },
+        { key = "target", type = resolved_types.target },
+    })
+    if not references then
+        vim.notify("[MapStruct] Could not plan nested mapping imports: " .. imports_or_error, vim.log.levels.WARN)
+        return false
+    end
+
+    local signature = references.target
+        .. " "
+        .. mapping.method_name
+        .. "("
+        .. references.source
+        .. " "
+        .. mapping.source_property
+        .. ")"
+    if method_exists(bufnr, signature) then
+        vim.notify("[MapStruct] Nested mapping method already exists: " .. signature, vim.log.levels.INFO)
         return false
     end
 
@@ -112,16 +131,15 @@ local function insert_mapping_method(bufnr, diagnostic, mapping)
     end
 
     local modifier = owner:type() == "interface_declaration" and "" or "protected abstract "
-    local declaration = member_indent .. modifier .. mapping.signature .. ";"
+    local declaration = member_indent .. modifier .. signature .. ";"
     local _, _, owner_end_row = owner:range()
     vim.api.nvim_buf_set_lines(bufnr, owner_end_row, owner_end_row, false, { "", declaration })
 
-    local method_line = owner_end_row + 2
-    local target_type_start = declaration:find(mapping.target_type, 1, true)
+    local inserted_import_lines = java_import_resolver.apply(bufnr, imports_or_error)
+    local method_line = owner_end_row + 2 + inserted_import_lines
     local method_name_start = declaration:find(mapping.method_name, 1, true)
     vim.api.nvim_win_set_cursor(0, { method_line, method_name_start and method_name_start - 1 or 0 })
-    vim.notify("[MapStruct] Added nested mapping method: " .. mapping.signature, vim.log.levels.INFO)
-    java_import_resolver.resolve_at(bufnr, target_type_start and { method_line, target_type_start - 1 } or nil)
+    vim.notify("[MapStruct] Added nested mapping method: " .. signature, vim.log.levels.INFO)
     return true
 end
 
@@ -134,7 +152,22 @@ function M.resolve(ctx)
         vim.notify("[MapStruct] Could not parse nested mapping types", vim.log.levels.WARN)
         return false
     end
-    return insert_mapping_method(ctx.bufnr, ctx.diagnostic, mapping)
+
+    mapstruct_method_type_resolver.resolve(ctx, mapping, function(resolved_types, err)
+        if not resolved_types then
+            vim.notify(
+                "[MapStruct] Could not resolve nested mapping types: " .. (err or "unknown error"),
+                vim.log.levels.WARN
+            )
+            return
+        end
+        if vim.api.nvim_get_current_buf() ~= ctx.bufnr then
+            vim.notify("[MapStruct] Mapper buffer is no longer active", vim.log.levels.WARN)
+            return
+        end
+        insert_mapping_method(ctx.bufnr, ctx.diagnostic, mapping, resolved_types)
+    end)
+    return true
 end
 
 return M

@@ -3,9 +3,7 @@ local helper = require("tests.utils.spec_helper")
 describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function()
     local resolver
     local state
-    local resolve_imports_calls
-    local resolve_imports_cursor
-    local resolve_imports_delay
+    local path_requests
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param owner_kind string
@@ -60,17 +58,21 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
 
     before_each(function()
         _, state = helper.reset_vim()
-        resolve_imports_calls = 0
-        resolve_imports_cursor = nil
-        resolve_imports_delay = nil
-        vim.defer_fn = function(callback, delay)
-            resolve_imports_delay = delay
-            callback()
-        end
-        helper.stub_module("utils.lang.java.lsp-java", {
-            resolve_imports = function()
-                resolve_imports_calls = resolve_imports_calls + 1
-                resolve_imports_cursor = vim.deepcopy(state.cursor)
+        path_requests = {}
+        helper.stub_module("modules.java.mapstruct", {
+            get_method_types = function(_, callback)
+                callback({
+                    sources = { { name = "source", type = "example.Source" } },
+                    target_type = "example.Target",
+                })
+            end,
+            resolve_path_type = function(params, callback)
+                path_requests[#path_requests + 1] = vim.deepcopy(params)
+                if params.sources[1].name == "$target" then
+                    callback({ className = "long", simpleName = "long", packageName = "" })
+                else
+                    callback({ className = "java.time.Duration", simpleName = "Duration", packageName = "java.time" })
+                end
             end,
         })
 
@@ -99,8 +101,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver.java-context",
             "modules.java.diagnostics-resolver.java-import-resolver",
+            "modules.java.diagnostics-resolver.mapstruct-method-type-resolver",
             "modules.java.diagnostics-resolver.mapstruct-mapping-method",
-            "utils.lang.java.lsp-java",
+            "modules.java.mapstruct",
         })
     end)
 
@@ -118,24 +121,35 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             return_type = "long",
             name = "map",
             parameters = "(Duration value)",
+            parameter_type = "Duration",
+            parameter_name = "value",
+            source_type = "Duration",
+            source_property = "ttl",
+            target_type = "long",
+            target_property = "ttl",
         }, suggested)
     end)
 
     it("inserts a protected mapping method into an abstract mapper class", function()
         -- given
         state.buffer_lines[1] = {
+            "package example;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
+            "",
             "public abstract class FooMapper {",
             "",
             "    public abstract Target map(Source source);",
             "}",
         }
-        stub_java_tree("class_declaration", 2, 3)
+        stub_java_tree("class_declaration", 7, 8)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 2,
+                lnum = 7,
                 col = 30,
                 message = 'Can\'t map property "Duration ttl" to "long ttl". '
                     .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
@@ -145,6 +159,13 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         -- then
         assert.is_true(resolved)
         assert.are.same({
+            "package example;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
+            "",
+            "import java.time.Duration;",
+            "",
             "public abstract class FooMapper {",
             "",
             "    public abstract Target map(Source source);",
@@ -154,27 +175,34 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             "    }",
             "}",
         }, state.buffer_lines[1])
-        assert.are.same({ 6, 15 }, state.cursor)
+        assert.are.same({ 13, 15 }, state.cursor)
         assert.are.equal("startinsert", state.commands[#state.commands])
-        assert.are.equal(1, resolve_imports_calls)
-        assert.are.same({ 5, 23 }, resolve_imports_cursor)
-        assert.are.equal(250, resolve_imports_delay)
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("ttl.", path_requests[1].path_expression)
+        assert.are.equal("source", path_requests[1].sources[1].name)
+        assert.are.equal("ttl.", path_requests[2].path_expression)
+        assert.are.equal("$target", path_requests[2].sources[1].name)
     end)
 
     it("uses a default method for a mapper interface", function()
         -- given
         state.buffer_lines[1] = {
+            "package example;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
+            "",
             "public interface FooMapper {",
             "    Target map(Source source);",
             "}",
         }
-        stub_java_tree("interface_declaration", 1, 2)
+        stub_java_tree("interface_declaration", 6, 7)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 1,
+                lnum = 6,
                 col = 20,
                 message = 'Can\'t map property "Duration ttl" to "long ttl". '
                     .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
@@ -183,6 +211,6 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
 
         -- then
         assert.is_true(resolved)
-        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][4])
+        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][11])
     end)
 end)

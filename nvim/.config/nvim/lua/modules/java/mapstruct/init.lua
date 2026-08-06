@@ -567,6 +567,62 @@ function M.get_completions(params, callback)
     context.get_completion_context_async(bufnr, row, col, on_context)
 end
 
+--- Resolve source and target root types for the mapper method at a position.
+---@param params? { bufnr?: integer, row?: integer, col?: integer }
+---@param callback fun(result?: { method_name: string, sources: table[], target_type: string }, err?: string)
+function M.get_method_types(params, callback)
+    params = params or {}
+    local bufnr = params.bufnr or vim.api.nvim_get_current_buf()
+    local row = params.row or (vim.api.nvim_win_get_cursor(0)[1] - 1)
+    local col = params.col or vim.api.nvim_win_get_cursor(0)[2]
+
+    context.get_method_type_context_async(bufnr, row, col, function(result)
+        if not result.ok then
+            callback(nil, result.message or "Could not resolve mapper method types")
+            return
+        end
+        callback(result.value, nil)
+    end)
+end
+
+--- Resolve the Java type reached by a MapStruct property path.
+---@param params { sources: table[], path_expression: string }
+---@param callback fun(result?: { className: string, simpleName: string, packageName: string }, err?: string)
+function M.resolve_path_type(params, callback)
+    ensure_initialized()
+    if not state.initialized then
+        callback(nil, "MapStruct module failed to initialize")
+        return
+    end
+
+    params = params or {}
+    if type(params.sources) ~= "table" or #params.sources == 0 then
+        callback(nil, "Missing required parameter: sources")
+        return
+    end
+    if type(params.path_expression) ~= "string" then
+        callback(nil, "Missing required parameter: path_expression")
+        return
+    end
+
+    local sources, path_expression = prepare_source_request_for_path(params.sources, params.path_expression)
+    make_ipc_request("explore_path", {
+        sources = sources,
+        pathExpression = path_expression,
+        isEnum = false,
+    }, function(result, err)
+        if not result then
+            callback(nil, err)
+            return
+        end
+        if type(result.className) ~= "string" or result.className == "" then
+            callback(nil, "MapStruct did not resolve a type for path: " .. params.path_expression)
+            return
+        end
+        callback(result, nil)
+    end)
+end
+
 --- Explore type source location.
 ---@param params? { typeName?: string }
 ---@param callback fun(result?: table, err?: string)

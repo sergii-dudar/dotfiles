@@ -1391,11 +1391,9 @@ end
 --      the iteration cap (defensive: negative caching should always converge).
 --
 -- The callback receives the same result table shape as M.get_completion_context.
----@param bufnr integer
----@param row integer
----@param col integer
+---@param resolve fun(): table
 ---@param callback fun(result: table)
-function M.get_completion_context_async(bufnr, row, col, callback)
+local function resolve_context_async(resolve, callback)
     local iterations = 0
     -- Each attempt warms exactly one cache miss (one type-source lookup, one wildcard
     -- FQN candidate, or one javap run), so a cold-cache mapper with several parameter
@@ -1408,7 +1406,7 @@ function M.get_completion_context_async(bufnr, row, col, callback)
         iterations = iterations + 1
 
         resolve_cache_only = true
-        local ok, result = pcall(M.get_completion_context, bufnr, row, col)
+        local ok, result = pcall(resolve)
         resolve_cache_only = false
 
         if ok then
@@ -1470,6 +1468,16 @@ function M.get_completion_context_async(bufnr, row, col, callback)
     end
 
     attempt()
+end
+
+---@param bufnr integer
+---@param row integer
+---@param col integer
+---@param callback fun(result: table)
+function M.get_completion_context_async(bufnr, row, col, callback)
+    resolve_context_async(function()
+        return M.get_completion_context(bufnr, row, col)
+    end, callback)
 end
 
 -- Extract completion context from the current cursor position using Treesitter
@@ -1694,6 +1702,88 @@ function M.get_completion_context(bufnr, row, col)
         log.error("Unknown attribute type:", attribute_type)
         return { ok = false, reason = "invalid_context", message = "Unknown attribute type: " .. attribute_type }
     end
+end
+
+--- Resolve the source and target root types for the mapper method at a position.
+---@param bufnr integer
+---@param row integer zero-based row
+---@param col integer zero-based column
+---@return table result `{ ok = true, value = { sources, target_type, method_name } }` on success
+function M.get_method_type_context(bufnr, row, col)
+    start_cleanup_timer()
+
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    if vim.bo[bufnr].filetype ~= "java" then
+        return { ok = false, reason = "not_java_file", message = "Not a Java file" }
+    end
+
+    local classpath_util = require("utils.java.jdtls-classpath-util")
+    if not classpath_util.is_jdtls_ready(bufnr) then
+        return {
+            ok = false,
+            reason = "jdtls_not_ready",
+            message = "JDTLS is still initializing or compiling. Please wait and try again.",
+        }
+    end
+
+    local node = get_node_at_cursor(bufnr, row, col)
+    local method_node = find_parent_node(node, "method_declaration")
+    if not method_node then
+        return { ok = false, reason = "invalid_context", message = "No method declaration found" }
+    end
+
+    local method_name_node = method_node:field("name")[1]
+    if not method_name_node then
+        return { ok = false, reason = "invalid_context", message = "Could not get method name" }
+    end
+
+    local method_name = get_node_text(method_name_node, bufnr)
+    local mapping_target_params = get_mapping_target_params(method_node, bufnr)
+    local method_types = get_all_method_parameters(bufnr, method_name, method_node, mapping_target_params)
+    if not method_types then
+        return { ok = false, reason = "invalid_context", message = "Could not resolve mapper method types" }
+    end
+
+    local sources = {}
+    local target_type = nil
+    for _, parameter in ipairs(method_types.parameters or {}) do
+        if parameter.is_mapping_target then
+            target_type = parameter.type
+        else
+            sources[#sources + 1] = {
+                name = parameter.name,
+                type = convert_to_java_inner_class_notation(parameter.type),
+            }
+        end
+    end
+
+    target_type = target_type or method_types.return_type
+    if #sources == 0 then
+        return { ok = false, reason = "invalid_context", message = "Mapper method has no source parameters" }
+    end
+    if not target_type or target_type == "void" then
+        return { ok = false, reason = "invalid_context", message = "Could not resolve mapper target type" }
+    end
+
+    return {
+        ok = true,
+        value = {
+            method_name = method_name,
+            sources = sources,
+            target_type = convert_to_java_inner_class_notation(target_type),
+        },
+    }
+end
+
+--- Asynchronously resolve mapper method source and target root types.
+---@param bufnr integer
+---@param row integer zero-based row
+---@param col integer zero-based column
+---@param callback fun(result: table)
+function M.get_method_type_context_async(bufnr, row, col, callback)
+    resolve_context_async(function()
+        return M.get_method_type_context(bufnr, row, col)
+    end, callback)
 end
 
 -- Get all @Mapping annotations in the current method

@@ -3,8 +3,7 @@ local helper = require("tests.utils.spec_helper")
 describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", function()
     local resolver
     local state
-    local resolve_imports_calls
-    local resolve_imports_cursor
+    local path_requests
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param owner_kind string
@@ -59,15 +58,25 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
 
     before_each(function()
         _, state = helper.reset_vim()
-        resolve_imports_calls = 0
-        resolve_imports_cursor = nil
-        vim.defer_fn = function(callback)
-            callback()
-        end
-        helper.stub_module("utils.lang.java.lsp-java", {
-            resolve_imports = function()
-                resolve_imports_calls = resolve_imports_calls + 1
-                resolve_imports_cursor = vim.deepcopy(state.cursor)
+        path_requests = {}
+        helper.stub_module("modules.java.mapstruct", {
+            get_method_types = function(_, callback)
+                callback({
+                    sources = { { name = "request", type = "example.ChargeCalculationRequest" } },
+                    target_type = "api.PaymentChargesCalculationRequest",
+                })
+            end,
+            resolve_path_type = function(params, callback)
+                path_requests[#path_requests + 1] = vim.deepcopy(params)
+                if params.sources[1].name == "$target" then
+                    callback({ className = "api.Account", simpleName = "Account", packageName = "api" })
+                else
+                    callback({
+                        className = "example.ChargeCalculationRequest$ChargeAccount",
+                        simpleName = "ChargeAccount",
+                        packageName = "example",
+                    })
+                end
             end,
         })
 
@@ -96,8 +105,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver.java-context",
             "modules.java.diagnostics-resolver.java-import-resolver",
+            "modules.java.diagnostics-resolver.mapstruct-method-type-resolver",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
-            "utils.lang.java.lsp-java",
+            "modules.java.mapstruct",
         })
     end)
 
@@ -124,17 +134,23 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
     it("inserts an abstract nested mapping method into a mapper class", function()
         -- given
         state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import example.ChargeCalculationRequest;",
+            "import example.Source;",
+            "import example.Target;",
+            "",
             "public abstract class ChargeCalculationAdapterMapper {",
             "    public abstract Target toRequest(Source request);",
             "}",
         }
-        stub_java_tree("class_declaration", 1, 2)
+        stub_java_tree("class_declaration", 7, 8)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 1,
+                lnum = 7,
                 col = 40,
                 message = 'Unmapped target property: "identification". Mapping from property '
                     .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
@@ -144,31 +160,47 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         -- then
         assert.is_true(resolved)
         assert.are.same({
+            "package example.mapper;",
+            "",
+            "import api.Account;",
+            "import example.ChargeCalculationRequest;",
+            "import example.Source;",
+            "import example.Target;",
+            "",
             "public abstract class ChargeCalculationAdapterMapper {",
             "    public abstract Target toRequest(Source request);",
             "",
             "    protected abstract Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
             "}",
         }, state.buffer_lines[1])
-        assert.are.same({ 4, 31 }, state.cursor)
-        assert.are.equal(1, resolve_imports_calls)
-        assert.are.same({ 4, 23 }, resolve_imports_cursor)
+        assert.are.same({ 11, 31 }, state.cursor)
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("debtorAccount.", path_requests[1].path_expression)
+        assert.are.equal("request", path_requests[1].sources[1].name)
+        assert.are.equal("debtorAccount.", path_requests[2].path_expression)
+        assert.are.equal("$target", path_requests[2].sources[1].name)
     end)
 
     it("uses an implicit abstract declaration for a mapper interface", function()
         -- given
         state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import example.ChargeCalculationRequest;",
+            "import example.Source;",
+            "import example.Target;",
+            "",
             "public interface ChargeCalculationAdapterMapper {",
             "    Target toRequest(Source request);",
             "}",
         }
-        stub_java_tree("interface_declaration", 1, 2)
+        stub_java_tree("interface_declaration", 7, 8)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 1,
+                lnum = 7,
                 col = 25,
                 message = 'Unmapped target property: "identification". Mapping from property '
                     .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
@@ -179,7 +211,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         assert.is_true(resolved)
         assert.are.equal(
             "    Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
-            state.buffer_lines[1][4]
+            state.buffer_lines[1][11]
         )
     end)
 end)
