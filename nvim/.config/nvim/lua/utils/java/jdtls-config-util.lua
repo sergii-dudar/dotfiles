@@ -286,7 +286,7 @@ M.jdtls_settings = {
         -- ====================================================================
         saveActions = {
             -- Setup automatical package import oranization on file save
-            organizeImports = true, -- sometime anoying during working with raw code during complex development
+            organizeImports = false, -- sometime anoying during working with raw code during complex development
             -- cleanup = true, -- little buggy in v1.57.0, disabled for now
         },
         cleanup = {
@@ -295,7 +295,7 @@ M.jdtls_settings = {
             -- https://github.com/redhat-developer/vscode-java/blob/HEAD/document/_java.learnMoreAboutCleanUps.md#java-clean-ups
             actions = {
                 "renameFileToType",
-                "organizeImports",
+                -- "organizeImports",
             },
         },
         -- ====================================================================

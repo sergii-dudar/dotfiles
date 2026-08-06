@@ -31,6 +31,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
             start = function()
                 return method_row, 4
             end,
+            range = function()
+                return method_row, 4, method_row, 80
+            end,
             parent = function()
                 return owner
             end,
@@ -142,9 +145,11 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
             "",
             "public abstract class ChargeCalculationAdapterMapper {",
             "    public abstract Target toRequest(Source request);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }
-        stub_java_tree("class_declaration", 7, 8)
+        stub_java_tree("class_declaration", 7, 10)
 
         -- when
         local resolved = resolver.resolve({
@@ -171,6 +176,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
             "    public abstract Target toRequest(Source request);",
             "",
             "    protected abstract Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }, state.buffer_lines[1])
         assert.are.same({ 11, 31 }, state.cursor)

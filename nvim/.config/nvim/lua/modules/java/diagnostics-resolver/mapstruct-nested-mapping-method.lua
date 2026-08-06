@@ -149,11 +149,10 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
 
     local modifier = owner:type() == "interface_declaration" and "" or "protected abstract "
     local declaration = member_indent .. modifier .. signature .. ";"
-    local _, _, owner_end_row = owner:range()
-    vim.api.nvim_buf_set_lines(bufnr, owner_end_row, owner_end_row, false, { "", declaration })
+    local insert_row = java_context.insert_after_method(bufnr, method, { declaration })
 
     local inserted_import_lines = java_import_resolver.apply(bufnr, imports_or_error)
-    local method_line = owner_end_row + 2 + inserted_import_lines
+    local method_line = insert_row + 2 + inserted_import_lines
     local method_name_start = declaration:find(mapping.method_name, 1, true)
     vim.api.nvim_win_set_cursor(0, { method_line, method_name_start and method_name_start - 1 or 0 })
     vim.notify("[MapStruct] Added nested mapping method: " .. signature, vim.log.levels.INFO)

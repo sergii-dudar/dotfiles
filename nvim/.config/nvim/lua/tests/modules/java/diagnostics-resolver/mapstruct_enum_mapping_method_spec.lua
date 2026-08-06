@@ -27,6 +27,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method", func
             start = function()
                 return method_row, 4
             end,
+            range = function()
+                return method_row, 4, method_row, 100
+            end,
             parent = function()
                 return owner
             end,
@@ -85,6 +88,18 @@ describe("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method", func
             shiftwidth = 4,
             tabstop = 4,
         }
+        vim.api.nvim_buf_get_lines = function(bufnr, start_row, end_row)
+            local lines = state.buffer_lines[bufnr] or {}
+            if end_row == -1 then
+                end_row = #lines
+            end
+
+            local result = {}
+            for index = start_row + 1, end_row do
+                result[#result + 1] = lines[index]
+            end
+            return result
+        end
         resolver = helper.reload("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method")
     end)
 
@@ -162,17 +177,17 @@ describe("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method", func
             "public abstract class ChargeCalculationAdapterMapper {",
             "    public abstract PaymentRequest toRequest(ChargeCalculationRequest request);",
             "",
-            '    // @ValueMapping(target = "OLD", source = "OLD")',
-            "    // protected abstract ua.target.TransferType toTransferType(TransferDirection direction);",
-            "",
             '    @ValueMapping(target = "", source = "EXTERNAL")',
             '    @ValueMapping(target = "", source = "EXTERNAL_CROSS_BORDER")',
             '    @ValueMapping(target = "", source = "EXTERNAL_TO_INTERNAL")',
             '    @ValueMapping(target = "", source = "INTERNAL")',
             "    protected abstract TransferType toTransferType(TransferDirection direction);",
+            "",
+            '    // @ValueMapping(target = "OLD", source = "OLD")',
+            "    // protected abstract ua.target.TransferType toTransferType(TransferDirection direction);",
             "}",
         }, state.buffer_lines[1])
-        assert.are.same({ 16, 28 }, state.cursor)
+        assert.are.same({ 13, 28 }, state.cursor)
         assert.are.equal("startinsert", state.commands[#state.commands])
         assert.are.equal(2, #path_requests)
         assert.are.equal("direction.", path_requests[1].path_expression)

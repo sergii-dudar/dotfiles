@@ -31,6 +31,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             start = function()
                 return method_row, 4
             end,
+            range = function()
+                return method_row, 4, method_row, 80
+            end,
             parent = function()
                 return owner
             end,
@@ -141,9 +144,11 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             "public abstract class FooMapper {",
             "",
             "    public abstract Target map(Source source);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }
-        stub_java_tree("class_declaration", 7, 8)
+        stub_java_tree("class_declaration", 7, 10)
 
         -- when
         local resolved = resolver.resolve({
@@ -173,6 +178,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             "    protected long map(Duration value) {",
             "        return ;",
             "    }",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }, state.buffer_lines[1])
         assert.are.same({ 13, 15 }, state.cursor)

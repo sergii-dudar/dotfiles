@@ -30,6 +30,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             start = function()
                 return method_row, 4
             end,
+            range = function()
+                return method_row, 4, method_row, 100
+            end,
             parent = function()
                 return owner
             end,
@@ -85,6 +88,18 @@ describe("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             shiftwidth = 4,
             tabstop = 4,
         }
+        vim.api.nvim_buf_get_lines = function(bufnr, start_row, end_row)
+            local lines = state.buffer_lines[bufnr] or {}
+            if end_row == -1 then
+                end_row = #lines
+            end
+
+            local result = {}
+            for index = start_row + 1, end_row do
+                result[#result + 1] = lines[index]
+            end
+            return result
+        end
         resolver = helper.reload("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method")
     end)
 
@@ -160,9 +175,11 @@ describe("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             "",
             "public abstract class CardTransferInitiationMapper {",
             "    public abstract CardTransferInitiationResponse toResponse(CardTransferInitiation initiation);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }
-        stub_java_tree(8, 9)
+        stub_java_tree(8, 11)
 
         -- when
         local resolved = resolver.resolve({
@@ -188,6 +205,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             "    protected Set<CardTransferInitiationResponse.InitiatedTransfers> map(CardTransferInitiation value) {",
             "        return ;",
             "    }",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }, state.buffer_lines[1])
         assert.are.same({ 14, 15 }, state.cursor)

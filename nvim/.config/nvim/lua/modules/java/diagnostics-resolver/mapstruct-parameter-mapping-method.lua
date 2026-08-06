@@ -305,17 +305,15 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
     end
     local body_indent = member_indent .. java_context.indent_unit(bufnr)
 
-    local _, _, owner_end_row = owner:range()
     local lines = {
-        "",
         member_indent .. modifier .. " " .. signature .. " {",
         body_indent .. "return ;",
         member_indent .. "}",
     }
-    vim.api.nvim_buf_set_lines(bufnr, owner_end_row, owner_end_row, false, lines)
+    local insert_row = java_context.insert_after_method(bufnr, method, lines)
 
     local inserted_import_lines = java_import_resolver.apply(bufnr, imports_or_error)
-    local return_line = owner_end_row + 3 + inserted_import_lines
+    local return_line = insert_row + 3 + inserted_import_lines
     local return_column = #body_indent + #"return "
     vim.api.nvim_win_set_cursor(0, { return_line, return_column })
     vim.notify("[MapStruct] Added parameter mapping method: " .. signature, vim.log.levels.INFO)

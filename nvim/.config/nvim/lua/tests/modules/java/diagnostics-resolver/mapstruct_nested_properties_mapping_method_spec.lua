@@ -30,6 +30,9 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
             start = function()
                 return method_row, 4
             end,
+            range = function()
+                return method_row, 4, method_row, 100
+            end,
             parent = function()
                 return owner
             end,
@@ -147,9 +150,11 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
             "",
             "public abstract class EnvelopeMapper {",
             "    public abstract Envelope toEnvelope(CardTransferInitiation transfer);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }
-        stub_java_tree(6, 7)
+        stub_java_tree(6, 9)
 
         -- when
         local resolved = resolver.resolve({
@@ -176,6 +181,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
             "    public abstract Envelope toEnvelope(CardTransferInitiation transfer);",
             "",
             "    protected abstract CardTransferDetails toCardTransferDetails(CardTransferInitiation transfer);",
+            "",
+            "    protected abstract String existing(String value);",
             "}",
         }, state.buffer_lines[1])
         local declaration = state.buffer_lines[1][10]

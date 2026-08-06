@@ -141,7 +141,7 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
         member_indent = java_context.line_indent(bufnr, owner:start()) .. java_context.indent_unit(bufnr)
     end
 
-    local lines = { "" }
+    local lines = {}
     for _, constant in ipairs(mapping.constants) do
         lines[#lines + 1] = member_indent
             .. "@"
@@ -154,11 +154,10 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
     local modifier = owner:type() == "interface_declaration" and "" or "protected abstract "
     lines[#lines + 1] = member_indent .. modifier .. signature .. ";"
 
-    local _, _, owner_end_row = owner:range()
-    vim.api.nvim_buf_set_lines(bufnr, owner_end_row, owner_end_row, false, lines)
+    local insert_row = java_context.insert_after_method(bufnr, method, lines)
 
     local inserted_import_lines = java_import_resolver.apply(bufnr, imports_or_error)
-    local first_mapping_line = owner_end_row + 2 + inserted_import_lines
+    local first_mapping_line = insert_row + 2 + inserted_import_lines
     local target_value_column = #member_indent + #("@" .. references.annotation .. '(target = "')
     vim.api.nvim_win_set_cursor(0, { first_mapping_line, target_value_column })
     vim.notify(
