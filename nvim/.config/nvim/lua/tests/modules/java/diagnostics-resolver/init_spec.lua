@@ -24,6 +24,11 @@ describe("modules.java.diagnostics-resolver", function()
                 dispatched = ctx
             end,
         })
+        helper.stub_module("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method", {
+            resolve = function(ctx)
+                dispatched = ctx
+            end,
+        })
 
         state.current_buf = 7
         state.cursor = { 3, 4 }
@@ -43,6 +48,7 @@ describe("modules.java.diagnostics-resolver", function()
     after_each(function()
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver",
+            "modules.java.diagnostics-resolver.mapstruct-enum-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
@@ -121,6 +127,31 @@ describe("modules.java.diagnostics-resolver", function()
         -- then
         assert.is_true(resolved)
         assert.are.equal("Can't map property .*Consider to declare/implement a mapping method: .*", dispatched.pattern)
+    end)
+
+    it("dispatches the resolver for missing enum constant mappings", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'The following constants from the property "TransferDirection direction" enum have no '
+                        .. 'corresponding constant in the "TransferType transferType" enum and must be be mapped via '
+                        .. "adding additional mappings: EXTERNAL, INTERNAL.",
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(
+            '^The following constants from the property ".*" enum have no corresponding constant in the ".*" enum and must .-mapped via adding additional mappings: .*',
+            dispatched.pattern
+        )
     end)
 
     it("notifies when no current-line diagnostic is supported", function()
