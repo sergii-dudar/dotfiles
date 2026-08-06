@@ -83,11 +83,16 @@ local function insert_import(import_statement)
     end
 end
 
--- Function to replace the class under cursor
+--- Replace qualified class references without modifying Java import declarations.
+---@param full_class string
+---@param simple_class string
 local function replace_full_to_simple_class_name(full_class, simple_class)
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local full_class_pattern = vim.pesc(full_class)
     for i, line in ipairs(lines) do
-        lines[i] = string.gsub(line, full_class, simple_class)
+        if not line:match("^%s*import%s") then
+            lines[i] = string.gsub(line, full_class_pattern, simple_class)
+        end
     end
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
 end
@@ -186,6 +191,11 @@ function M.import_class_and_replace()
         end
 
         for _, member in ipairs(members_in_order) do
+            -- Replace the complete FQCN first; otherwise replacing only the
+            -- `ClassName.member` suffix leaves a broken package-qualified member.
+            if fqcn_for_static then
+                replace_full_to_simple_class_name(fqcn_for_static .. "." .. member, member)
+            end
             replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
             -- Same-file qualifier: de-qualify only, the simple name already resolves.
             if not same_file_type then
