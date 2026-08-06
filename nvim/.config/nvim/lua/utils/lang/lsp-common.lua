@@ -17,7 +17,10 @@ local M = {}
 --- returned by the action.
 ---@param action lsp.CodeAction
 ---@param client vim.lsp.Client
-function M.apply_lsp_action(action, client)
+---@param on_applied? fun(action: lsp.CodeAction) called once the (possibly resolved)
+---action's edit has been applied and any command request has completed; receives
+---the final resolved action so callers can inspect its `edit` for post-processing.
+function M.apply_lsp_action(action, client, on_applied)
     local bufnr = vim.api.nvim_get_current_buf()
 
     if not action.edit and not action.command and client:supports_method("codeAction/resolve") then
@@ -26,7 +29,7 @@ function M.apply_lsp_action(action, client)
                 vim.notify("Code action resolve error: " .. (err.message or "unknown"), vim.log.levels.WARN)
                 return
             end
-            M.apply_lsp_action(resolved or action, client)
+            M.apply_lsp_action(resolved or action, client, on_applied)
         end, bufnr)
         return
     end
@@ -41,7 +44,12 @@ function M.apply_lsp_action(action, client)
             if err then
                 vim.notify(err.message or "Command execution failed", vim.log.levels.WARN)
             end
+            if on_applied then
+                on_applied(action)
+            end
         end, bufnr)
+    elseif on_applied then
+        on_applied(action)
     end
 end
 

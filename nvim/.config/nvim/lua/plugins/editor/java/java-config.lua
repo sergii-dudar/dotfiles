@@ -91,6 +91,7 @@ return {
                         { "<leader>ce", function() require("utils.lsp-util").code_action.toggle("Change body expression to block", "Change body block to expression") end, desc = "Toggle method body block/expressionn [jdtls]" },
                         { "<leader>ci", function() require("utils.lang.java.lsp-java").resolve_imports() end, desc = "Resolve imports [jdtls]" },
                         { "<leader>cj", function() require("modules.java.diagnostics-resolver").resolve_current() end, desc = "Resolve Java Diagnostic" },
+                        { "<leader>jr", function() require("utils.java.method-reference-toggle").toggle() end, desc = "Toggle Java Method Reference [jdtls]" },
                         { "<leader>cc", function()
                             local action_names = require("utils.lang.java.lsp-java").code_action_auto_resolve_match_names
                             require("utils.lsp-util").code_action.resolve_context(action_names)
