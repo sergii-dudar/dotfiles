@@ -1,4 +1,4 @@
---- Resolver for MapStruct "Unmapped target properties" diagnostics.
+--- Resolver for MapStruct "Unmapped target property/properties" diagnostics.
 ---
 --- It expands selected properties into `@Mapping` annotations and inserts them
 --- above the method that owns the diagnostic.
@@ -32,6 +32,7 @@ end
 ---@return string[]
 function M.parse_properties(message)
     local raw = message:match('Unmapped target properties:%s*"([^"]+)"')
+        or message:match('Unmapped target property:%s*"([^"]+)"')
     if not raw then
         return {}
     end

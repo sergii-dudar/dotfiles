@@ -48,6 +48,27 @@ describe("modules.java.diagnostics-resolver", function()
         assert.are.equal("Unmapped target properties: .*", dispatched.pattern)
     end)
 
+    it("dispatches the resolver for a singular unmapped target property", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'Unmapped target property: "instructedAmount"',
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal('Unmapped target property: "instructedAmount"', dispatched.diagnostic.message)
+        assert.are.equal("Unmapped target property: .*", dispatched.pattern)
+    end)
+
     it("notifies when no current-line diagnostic is supported", function()
         -- given
         vim.diagnostic.get = function()

@@ -59,5 +59,9 @@ M.register(
     "Unmapped target properties: .*",
     require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
 )
+M.register(
+    "Unmapped target property: .*",
+    require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
+)
 
 return M

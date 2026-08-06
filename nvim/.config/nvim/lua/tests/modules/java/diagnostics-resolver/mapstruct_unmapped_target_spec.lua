@@ -35,6 +35,17 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
         assert.are.same({ "instructionType", "originalUetr", "hiddenDebtor" }, properties)
     end)
 
+    it("parses a singular property from a MapStruct diagnostic", function()
+        -- given
+        local message = 'Unmapped target property: "instructedAmount"'
+
+        -- when
+        local properties = resolver.parse_properties(message)
+
+        -- then
+        assert.are.same({ "instructedAmount" }, properties)
+    end)
+
     it("builds all and per-property choices in the expected order", function()
         -- when
         local choices = resolver.build_choices({ "instructionType", "originalUetr" })
