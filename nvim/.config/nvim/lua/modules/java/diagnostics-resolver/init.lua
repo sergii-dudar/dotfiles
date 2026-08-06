@@ -60,6 +60,10 @@ M.register(
     require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
 )
 M.register(
+    'Unmapped target property: ".*"%. Mapping from property ".*" to ".*"',
+    require("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method").resolve
+)
+M.register(
     "Unmapped target property: .*",
     require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
 )

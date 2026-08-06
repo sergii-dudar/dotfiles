@@ -4,7 +4,7 @@
 --- cursor in its return statement so conversion semantics remain user-defined.
 
 local java_context = require("modules.java.diagnostics-resolver.java-context")
-local lsp_java = require("utils.lang.java.lsp-java")
+local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 
 local M = {}
 
@@ -65,26 +65,6 @@ local function parameter_type_cursor(suggested, method_line, signature_column)
     return { method_line, signature_column + type_start - 1 }
 end
 
---- Resolve the generated parameter type import after receiving the buffer change.
----@param bufnr integer
----@param import_cursor integer[]|nil
-local function resolve_imports(bufnr, import_cursor)
-    if not import_cursor then
-        return
-    end
-
-    vim.defer_fn(function()
-        if vim.api.nvim_get_current_buf() ~= bufnr then
-            return
-        end
-
-        local restore_cursor = vim.api.nvim_win_get_cursor(0)
-        vim.api.nvim_win_set_cursor(0, import_cursor)
-        pcall(lsp_java.resolve_imports)
-        vim.api.nvim_win_set_cursor(0, restore_cursor)
-    end, 250)
-end
-
 --- Insert a suggested mapping method into its owning mapper type.
 ---@param bufnr integer
 ---@param diagnostic table
@@ -133,7 +113,7 @@ local function insert_mapping_method(bufnr, diagnostic, suggested)
     local import_cursor = parameter_type_cursor(suggested, method_line, signature_column)
     vim.api.nvim_win_set_cursor(0, { return_line, return_column })
     vim.notify("[MapStruct] Added mapping method: " .. suggested.signature, vim.log.levels.INFO)
-    resolve_imports(bufnr, import_cursor)
+    java_import_resolver.resolve_at(bufnr, import_cursor)
     vim.cmd("startinsert")
     return true
 end

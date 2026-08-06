@@ -19,6 +19,11 @@ describe("modules.java.diagnostics-resolver", function()
                 dispatched = ctx
             end,
         })
+        helper.stub_module("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", {
+            resolve = function(ctx)
+                dispatched = ctx
+            end,
+        })
 
         state.current_buf = 7
         state.cursor = { 3, 4 }
@@ -39,6 +44,7 @@ describe("modules.java.diagnostics-resolver", function()
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver",
             "modules.java.diagnostics-resolver.mapstruct-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
         })
     end)
@@ -73,6 +79,27 @@ describe("modules.java.diagnostics-resolver", function()
         assert.is_true(resolved)
         assert.are.equal('Unmapped target property: "instructedAmount"', dispatched.diagnostic.message)
         assert.are.equal("Unmapped target property: .*", dispatched.pattern)
+    end)
+
+    it("prefers the nested mapping resolver over the generic unmapped-property resolver", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'Unmapped target property: "identification". Mapping from property '
+                        .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal('Unmapped target property: ".*"%. Mapping from property ".*" to ".*"', dispatched.pattern)
     end)
 
     it("dispatches the resolver for a suggested MapStruct mapping method", function()

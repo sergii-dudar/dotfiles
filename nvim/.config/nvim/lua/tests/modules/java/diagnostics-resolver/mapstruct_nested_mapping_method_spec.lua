@@ -1,11 +1,10 @@
 local helper = require("tests.utils.spec_helper")
 
-describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function()
+describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", function()
     local resolver
     local state
     local resolve_imports_calls
     local resolve_imports_cursor
-    local resolve_imports_delay
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param owner_kind string
@@ -62,9 +61,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         _, state = helper.reset_vim()
         resolve_imports_calls = 0
         resolve_imports_cursor = nil
-        resolve_imports_delay = nil
-        vim.defer_fn = function(callback, delay)
-            resolve_imports_delay = delay
+        vim.defer_fn = function(callback)
             callback()
         end
         helper.stub_module("utils.lang.java.lsp-java", {
@@ -92,80 +89,77 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             return result
         end
 
-        resolver = helper.reload("modules.java.diagnostics-resolver.mapstruct-mapping-method")
+        resolver = helper.reload("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method")
     end)
 
     after_each(function()
         helper.clear_stub_modules({
             "modules.java.diagnostics-resolver.java-context",
             "modules.java.diagnostics-resolver.java-import-resolver",
-            "modules.java.diagnostics-resolver.mapstruct-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
             "utils.lang.java.lsp-java",
         })
     end)
 
-    it("parses the mapping method suggested by MapStruct", function()
+    it("parses nested source and target mapping types", function()
         -- given
-        local message = 'Can\'t map property "Duration ttl" to "long ttl". '
-            .. 'Consider to declare/implement a mapping method: "long map(Duration value)"'
+        local message = 'Unmapped target property: "identification". Mapping from property '
+            .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"'
 
         -- when
-        local suggested = resolver.parse_suggested_method(message)
+        local mapping = resolver.parse_mapping(message)
 
         -- then
         assert.are.same({
-            signature = "long map(Duration value)",
-            return_type = "long",
-            name = "map",
-            parameters = "(Duration value)",
-        }, suggested)
+            unmapped_property = "identification",
+            source_type = "ChargeCalculationRequest.ChargeAccount",
+            source_property = "debtorAccount",
+            target_type = "Account",
+            target_property = "debtorAccount",
+            method_name = "toAccount",
+            signature = "Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount)",
+        }, mapping)
     end)
 
-    it("inserts a protected mapping method into an abstract mapper class", function()
+    it("inserts an abstract nested mapping method into a mapper class", function()
         -- given
         state.buffer_lines[1] = {
-            "public abstract class FooMapper {",
-            "",
-            "    public abstract Target map(Source source);",
+            "public abstract class ChargeCalculationAdapterMapper {",
+            "    public abstract Target toRequest(Source request);",
             "}",
         }
-        stub_java_tree("class_declaration", 2, 3)
+        stub_java_tree("class_declaration", 1, 2)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 2,
-                col = 30,
-                message = 'Can\'t map property "Duration ttl" to "long ttl". '
-                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
+                lnum = 1,
+                col = 40,
+                message = 'Unmapped target property: "identification". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
             },
         })
 
         -- then
         assert.is_true(resolved)
         assert.are.same({
-            "public abstract class FooMapper {",
+            "public abstract class ChargeCalculationAdapterMapper {",
+            "    public abstract Target toRequest(Source request);",
             "",
-            "    public abstract Target map(Source source);",
-            "",
-            "    protected long map(Duration value) {",
-            "        return ;",
-            "    }",
+            "    protected abstract Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
             "}",
         }, state.buffer_lines[1])
-        assert.are.same({ 6, 15 }, state.cursor)
-        assert.are.equal("startinsert", state.commands[#state.commands])
+        assert.are.same({ 4, 31 }, state.cursor)
         assert.are.equal(1, resolve_imports_calls)
-        assert.are.same({ 5, 23 }, resolve_imports_cursor)
-        assert.are.equal(250, resolve_imports_delay)
+        assert.are.same({ 4, 23 }, resolve_imports_cursor)
     end)
 
-    it("uses a default method for a mapper interface", function()
+    it("uses an implicit abstract declaration for a mapper interface", function()
         -- given
         state.buffer_lines[1] = {
-            "public interface FooMapper {",
-            "    Target map(Source source);",
+            "public interface ChargeCalculationAdapterMapper {",
+            "    Target toRequest(Source request);",
             "}",
         }
         stub_java_tree("interface_declaration", 1, 2)
@@ -175,14 +169,17 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
             bufnr = 1,
             diagnostic = {
                 lnum = 1,
-                col = 20,
-                message = 'Can\'t map property "Duration ttl" to "long ttl". '
-                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
+                col = 25,
+                message = 'Unmapped target property: "identification". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
             },
         })
 
         -- then
         assert.is_true(resolved)
-        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][4])
+        assert.are.equal(
+            "    Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
+            state.buffer_lines[1][4]
+        )
     end)
 end)
