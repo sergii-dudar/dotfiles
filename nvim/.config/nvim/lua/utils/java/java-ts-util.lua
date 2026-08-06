@@ -7,6 +7,7 @@
 -- • get_method_name_only — method name at cursor
 -- • get_enclosing_method_name_pos — method name pos + start row for a bufnr/position
 -- • is_type_symbol_at — symbol at a bufnr/position is a type name (not a member)
+-- • declared_type_names — simple names of every type declared in the current buffer
 -- • get_method_signature — method name with descriptor
 -- • get_full_method — package.Class.method
 -- • get_full_method_with_params — full method with parameter types
@@ -334,6 +335,41 @@ function M.is_type_symbol_at(bufnr, row, col)
         end
     end
     return false
+end
+
+-- ---------------------------------------------------------
+--  DECLARED TYPE NAMES (same-file type detection)
+-- ---------------------------------------------------------
+--- Collect the simple names of every type (class / interface / enum / record /
+--- annotation) declared anywhere in the current buffer, including nested types.
+--- Used to tell a same-compilation-unit reference — the enclosing type itself or
+--- one of its nested types — from an external one that would need an import.
+---@return table<string, boolean>
+function M.declared_type_names()
+    local names = {}
+    local ok, parser = pcall(vim.treesitter.get_parser, 0, "java")
+    if not ok or not parser then
+        return names
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return names
+    end
+
+    local function walk(node)
+        if TYPE_DECLARATIONS[node:type()] then
+            local name = node:field("name")[1]
+            if name then
+                names[vim.treesitter.get_node_text(name, 0)] = true
+            end
+        end
+        for c in node:iter_children() do
+            walk(c)
+        end
+    end
+    walk(tree:root())
+
+    return names
 end
 
 -- ---------------------------------------------------------

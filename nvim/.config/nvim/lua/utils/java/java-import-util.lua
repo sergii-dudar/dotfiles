@@ -140,7 +140,14 @@ function M.import_class_and_replace()
     end
 
     if is_static_import then
-        if not fqcn_for_static then
+        -- The qualifier may be a type declared in this very file — the enclosing
+        -- type itself or one of its nested types (e.g. `BalanceBookingResolver`
+        -- inside `BalanceBookingResolver.java`). Such references are reachable by
+        -- the simple name within the compilation unit, so we drop the qualifier
+        -- but insert no import (there is nothing to import — hence no FQCN).
+        local same_file_type = require("utils.java.java-ts-util").declared_type_names()[class_name_for_static]
+
+        if not fqcn_for_static and not same_file_type then
             vim.notify(
                 "Cannot find import for '" .. (class_name_for_static or simple_class_name) .. "'",
                 vim.log.levels.WARN
@@ -179,12 +186,19 @@ function M.import_class_and_replace()
         end
 
         for _, member in ipairs(members_in_order) do
-            -- PascalCase member (starts upper, has lowercase) → nested class → regular import.
-            -- Lowercase or ALL_CAPS member → static method / constant → static import.
-            local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
-            local stmt = (is_nested_class and "import " or "import static ") .. fqcn_for_static .. "." .. member .. ";"
             replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
-            insert_import(stmt)
+            -- Same-file qualifier: de-qualify only, the simple name already resolves.
+            if not same_file_type then
+                -- PascalCase member (starts upper, has lowercase) → nested class → regular import.
+                -- Lowercase or ALL_CAPS member → static method / constant → static import.
+                local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
+                local stmt = (is_nested_class and "import " or "import static ")
+                    .. fqcn_for_static
+                    .. "."
+                    .. member
+                    .. ";"
+                insert_import(stmt)
+            end
         end
     else
         local full_class_name = remove_all_part .. "." .. simple_class_name
