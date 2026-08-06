@@ -24,6 +24,11 @@ describe("modules.java.diagnostics-resolver", function()
                 dispatched = ctx
             end,
         })
+        helper.stub_module("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method", {
+            resolve = function(ctx)
+                dispatched = ctx
+            end,
+        })
         helper.stub_module("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method", {
             resolve = function(ctx)
                 dispatched = ctx
@@ -51,6 +56,7 @@ describe("modules.java.diagnostics-resolver", function()
             "modules.java.diagnostics-resolver.mapstruct-enum-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
         })
     end)
@@ -127,6 +133,32 @@ describe("modules.java.diagnostics-resolver", function()
         -- then
         assert.is_true(resolved)
         assert.are.equal("Can't map property .*Consider to declare/implement a mapping method: .*", dispatched.pattern)
+    end)
+
+    it("dispatches the resolver for a suggested whole-parameter mapping method", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'Can\'t map parameter "CardTransferInitiation initiation" to '
+                        .. '"Set<CardTransferInitiationResponse.InitiatedTransfers> initiatedTransfers". '
+                        .. 'Consider to declare/implement a mapping method: '
+                        .. '"Set<CardTransferInitiationResponse.InitiatedTransfers> map(CardTransferInitiation value)"',
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(
+            "Can't map parameter .*Consider to declare/implement a mapping method: .*",
+            dispatched.pattern
+        )
     end)
 
     it("dispatches the resolver for missing enum constant mappings", function()

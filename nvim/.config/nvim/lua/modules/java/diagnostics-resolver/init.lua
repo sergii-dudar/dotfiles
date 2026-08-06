@@ -72,6 +72,10 @@ M.register(
     require("modules.java.diagnostics-resolver.mapstruct-mapping-method").resolve
 )
 M.register(
+    "Can't map parameter .*Consider to declare/implement a mapping method: .*",
+    require("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method").resolve
+)
+M.register(
     '^The following constants from the property ".*" enum have no corresponding constant in the ".*" enum and must .-mapped via adding additional mappings: .*',
     require("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method").resolve
 )
