@@ -56,6 +56,10 @@ function M.resolve_current()
 end
 
 M.register(
+    'Unmapped target properties: ".*"%. Mapping from property ".*" to ".*"',
+    require("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-method").resolve
+)
+M.register(
     "Unmapped target properties: .*",
     require("modules.java.diagnostics-resolver.mapstruct-unmapped-target").resolve
 )

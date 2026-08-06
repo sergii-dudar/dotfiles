@@ -24,6 +24,11 @@ describe("modules.java.diagnostics-resolver", function()
                 dispatched = ctx
             end,
         })
+        helper.stub_module("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-method", {
+            resolve = function(ctx)
+                dispatched = ctx
+            end,
+        })
         helper.stub_module("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method", {
             resolve = function(ctx)
                 dispatched = ctx
@@ -56,6 +61,7 @@ describe("modules.java.diagnostics-resolver", function()
             "modules.java.diagnostics-resolver.mapstruct-enum-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
         })
@@ -70,6 +76,27 @@ describe("modules.java.diagnostics-resolver", function()
         assert.are.equal(7, dispatched.bufnr)
         assert.are.equal(2, dispatched.diagnostic.lnum)
         assert.are.equal("Unmapped target properties: .*", dispatched.pattern)
+    end)
+
+    it("prefers the nested mapping resolver over the generic plural-property resolver", function()
+        -- given
+        vim.diagnostic.get = function(bufnr, opts)
+            return {
+                {
+                    bufnr = bufnr,
+                    lnum = opts.lnum,
+                    message = 'Unmapped target properties: "merchantId, terminalId". Mapping from property '
+                        .. '"CardTransferInitiation transfer" to "CardTransferDetails cardTransferDetails"',
+                },
+            }
+        end
+
+        -- when
+        local resolved = resolver.resolve_current()
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal('Unmapped target properties: ".*"%. Mapping from property ".*" to ".*"', dispatched.pattern)
     end)
 
     it("dispatches the resolver for a singular unmapped target property", function()
@@ -144,7 +171,7 @@ describe("modules.java.diagnostics-resolver", function()
                     lnum = opts.lnum,
                     message = 'Can\'t map parameter "CardTransferInitiation initiation" to '
                         .. '"Set<CardTransferInitiationResponse.InitiatedTransfers> initiatedTransfers". '
-                        .. 'Consider to declare/implement a mapping method: '
+                        .. "Consider to declare/implement a mapping method: "
                         .. '"Set<CardTransferInitiationResponse.InitiatedTransfers> map(CardTransferInitiation value)"',
                 },
             }
@@ -155,10 +182,7 @@ describe("modules.java.diagnostics-resolver", function()
 
         -- then
         assert.is_true(resolved)
-        assert.are.equal(
-            "Can't map parameter .*Consider to declare/implement a mapping method: .*",
-            dispatched.pattern
-        )
+        assert.are.equal("Can't map parameter .*Consider to declare/implement a mapping method: .*", dispatched.pattern)
     end)
 
     it("dispatches the resolver for missing enum constant mappings", function()

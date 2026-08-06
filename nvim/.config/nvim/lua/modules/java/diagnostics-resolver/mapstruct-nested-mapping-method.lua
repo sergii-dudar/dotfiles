@@ -10,14 +10,16 @@ local mapstruct_method_type_resolver = require("modules.java.diagnostics-resolve
 
 local M = {}
 
----@class MapStructNestedMappingMethod
----@field unmapped_property string
+---@class MapStructNestedTypeMapping
 ---@field source_type string
 ---@field source_property string
 ---@field target_type string
 ---@field target_property string
 ---@field method_name string
 ---@field signature string
+
+---@class MapStructNestedMappingMethod: MapStructNestedTypeMapping
+---@field unmapped_property string
 
 --- Parse a Java typed-property fragment such as `Account debtorAccount`.
 ---@param value string
@@ -42,13 +44,12 @@ local function simple_type_name(type_name)
     return result
 end
 
---- Parse a MapStruct forged nested-mapping diagnostic.
+--- Parse the source and target endpoints of a MapStruct forged nested mapping.
 ---@param message string
----@return MapStructNestedMappingMethod|nil
-function M.parse_mapping(message)
-    local unmapped_property = message:match('^Unmapped target property:%s*"([^"]+)"')
+---@return MapStructNestedTypeMapping|nil
+function M.parse_type_mapping(message)
     local source, target = message:match('Mapping from property%s*"([^"]+)"%s+to%s+"([^"]+)"')
-    if not unmapped_property or not source or not target then
+    if not source or not target then
         return nil
     end
 
@@ -61,7 +62,6 @@ function M.parse_mapping(message)
 
     local method_name = "to" .. target_simple_name:sub(1, 1):upper() .. target_simple_name:sub(2)
     return {
-        unmapped_property = unmapped_property,
         source_type = source_type,
         source_property = source_property,
         target_type = target_type,
@@ -69,6 +69,23 @@ function M.parse_mapping(message)
         method_name = method_name,
         signature = target_type .. " " .. method_name .. "(" .. source_type .. " " .. source_property .. ")",
     }
+end
+
+--- Parse a singular MapStruct forged nested-mapping diagnostic.
+---@param message string
+---@return MapStructNestedMappingMethod|nil
+function M.parse_mapping(message)
+    local unmapped_property = message:match('^Unmapped target property:%s*"([^"]+)"')
+    if not unmapped_property then
+        return nil
+    end
+
+    local mapping = M.parse_type_mapping(message)
+    if not mapping then
+        return nil
+    end
+    mapping.unmapped_property = unmapped_property
+    return mapping
 end
 
 --- Check whether the generated nested mapping signature already exists.
@@ -143,16 +160,11 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
     return true
 end
 
---- Resolve a MapStruct forged nested-mapping diagnostic.
+--- Resolve a parsed MapStruct forged nested mapping.
 ---@param ctx { bufnr: integer, diagnostic: table }
+---@param mapping MapStructNestedTypeMapping
 ---@return boolean
-function M.resolve(ctx)
-    local mapping = M.parse_mapping(ctx.diagnostic.message or "")
-    if not mapping then
-        vim.notify("[MapStruct] Could not parse nested mapping types", vim.log.levels.WARN)
-        return false
-    end
-
+function M.resolve_mapping(ctx, mapping)
     mapstruct_method_type_resolver.resolve(ctx, mapping, function(resolved_types, err)
         if not resolved_types then
             vim.notify(
@@ -168,6 +180,19 @@ function M.resolve(ctx)
         insert_mapping_method(ctx.bufnr, ctx.diagnostic, mapping, resolved_types)
     end)
     return true
+end
+
+--- Resolve a singular MapStruct forged nested-mapping diagnostic.
+---@param ctx { bufnr: integer, diagnostic: table }
+---@return boolean
+function M.resolve(ctx)
+    local mapping = M.parse_mapping(ctx.diagnostic.message or "")
+    if not mapping then
+        vim.notify("[MapStruct] Could not parse nested mapping types", vim.log.levels.WARN)
+        return false
+    end
+
+    return M.resolve_mapping(ctx, mapping)
 end
 
 return M
