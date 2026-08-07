@@ -3,12 +3,21 @@ local helper = require("tests.utils.spec_helper")
 describe("utils.java.java-import-util", function()
     local import_util
     local state
+    local declared_type_names
+    local root_class
 
     before_each(function()
         _, state = helper.reset_vim()
+        declared_type_names = {}
+        root_class = nil
         helper.stub_module("utils.java.java-ts-util", {
+            --- Return the Java type names configured for the current test.
             declared_type_names = function()
-                return {}
+                return declared_type_names
+            end,
+            --- Return the top-level Java class configured for the current test.
+            get_root_class_with_abstract = function()
+                return root_class
             end,
         })
         import_util = helper.reload("utils.java.java-import-util")
@@ -121,6 +130,53 @@ describe("utils.java.java-import-util", function()
             "",
             "@Mapper(unmappedTargetPolicy = ERROR)",
             "abstract class EnvelopeMapper {}",
+        }, state.buffer_lines[0])
+    end)
+
+    it("imports a same-file nested type used in the enclosing class header", function()
+        -- given
+        declared_type_names.CardDetailsResolver = true
+        declared_type_names.CardDetailsResolverParams = true
+        root_class = {
+            fqn = "ua.raiffeisen.payments.cardtransfer.core.service.CardDetailsResolver",
+            is_abstract = false,
+        }
+        state.buffer_lines[0] = {
+            "package ua.raiffeisen.payments.cardtransfer.core.service;",
+            "",
+            "import java.util.function.Function;",
+            "import reactor.core.publisher.Mono;",
+            "",
+            "public class CardDetailsResolver",
+            "        implements Function<CardDetailsResolver.CardDetailsResolverParams, Mono<Void>> {",
+            "    public static class CardDetailsResolverParams {}",
+            "}",
+        }
+        vim.fn.expand = function(expression)
+            if expression == "<cword>" then
+                return "CardDetailsResolverParams"
+            end
+            if expression == "<cWORD>" then
+                return "CardDetailsResolver.CardDetailsResolverParams"
+            end
+            return ""
+        end
+
+        -- when
+        import_util.import_class_and_replace()
+
+        -- then
+        assert.are.same({
+            "package ua.raiffeisen.payments.cardtransfer.core.service;",
+            "",
+            "import ua.raiffeisen.payments.cardtransfer.core.service.CardDetailsResolver.CardDetailsResolverParams;",
+            "import java.util.function.Function;",
+            "import reactor.core.publisher.Mono;",
+            "",
+            "public class CardDetailsResolver",
+            "        implements Function<CardDetailsResolverParams, Mono<Void>> {",
+            "    public static class CardDetailsResolverParams {}",
+            "}",
         }, state.buffer_lines[0])
     end)
 end)

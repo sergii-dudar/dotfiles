@@ -147,10 +147,21 @@ function M.import_class_and_replace()
     if is_static_import then
         -- The qualifier may be a type declared in this very file — the enclosing
         -- type itself or one of its nested types (e.g. `BalanceBookingResolver`
-        -- inside `BalanceBookingResolver.java`). Such references are reachable by
-        -- the simple name within the compilation unit, so we drop the qualifier
-        -- but insert no import (there is nothing to import — hence no FQCN).
-        local same_file_type = require("utils.java.java-ts-util").declared_type_names()[class_name_for_static]
+        -- inside `BalanceBookingResolver.java`). Its members are reachable by
+        -- simple name inside the class body, so static members need no import.
+        local java_ts_util = require("utils.java.java-ts-util")
+        local same_file_type = java_ts_util.declared_type_names()[class_name_for_static]
+
+        -- A nested type's simple name is not in scope in its enclosing class
+        -- header. Reuse the top-level type's FQCN so a regular self-import can
+        -- make the replacement valid there as well as inside the class body.
+        if same_file_type and not fqcn_for_static then
+            local root_class = java_ts_util.get_root_class_with_abstract()
+            local root_class_name = root_class and root_class.fqn:match("([^%.]+)$")
+            if root_class_name == class_name_for_static then
+                fqcn_for_static = root_class.fqn
+            end
+        end
 
         if not fqcn_for_static and not same_file_type then
             vim.notify(
@@ -191,17 +202,23 @@ function M.import_class_and_replace()
         end
 
         for _, member in ipairs(members_in_order) do
-            -- Replace the complete FQCN first; otherwise replacing only the
-            -- `ClassName.member` suffix leaves a broken package-qualified member.
-            if fqcn_for_static then
-                replace_full_to_simple_class_name(fqcn_for_static .. "." .. member, member)
+            -- PascalCase member (starts upper, has lowercase) → nested class.
+            -- Lowercase or ALL_CAPS member → static method / constant.
+            local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
+            local can_replace = not same_file_type or not is_nested_class or fqcn_for_static ~= nil
+
+            if can_replace then
+                -- Replace the complete FQCN first; otherwise replacing only the
+                -- `ClassName.member` suffix leaves a broken package-qualified member.
+                if fqcn_for_static then
+                    replace_full_to_simple_class_name(fqcn_for_static .. "." .. member, member)
+                end
+                replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
             end
-            replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
-            -- Same-file qualifier: de-qualify only, the simple name already resolves.
-            if not same_file_type then
-                -- PascalCase member (starts upper, has lowercase) → nested class → regular import.
-                -- Lowercase or ALL_CAPS member → static method / constant → static import.
-                local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
+
+            -- Same-file static members need no import. A same-file nested type
+            -- does need one when its qualifier is removed from the class header.
+            if not same_file_type or (is_nested_class and fqcn_for_static ~= nil) then
                 local stmt = (is_nested_class and "import " or "import static ")
                     .. fqcn_for_static
                     .. "."
