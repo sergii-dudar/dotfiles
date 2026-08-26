@@ -2,6 +2,7 @@ local neotree_util = require("utils.neotree-util")
 
 return {
     "nvim-neo-tree/neo-tree.nvim",
+    -- tag = "3.41.0",
     -- cond = require("utils.project-util").is_multifile_proj,
     keys = {
         -- Keep <leader>E as cwd Neo-tree and make <leader>e context-aware with reveal as its fallback.
@@ -96,6 +97,21 @@ return {
                 leave_dirs_open = true, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
             },
             group_empty_dirs = true,
+            -- Disable grouping inside the dotfiles repo: its stow layout is nothing but
+            -- single-child `<app>/.config/<app>/...` chains, which trips a crash in
+            -- neo-tree's grouping code (nui.nvim's tree relinking, added in its
+            -- "optimize redraw" rewrite, breaks on it). Keep grouping everywhere else,
+            -- e.g. Java package-by-subfolder browsing.
+            -- before_render = function(state)
+            --     local in_dotfiles = false
+            --     for segment in vim.fs.normalize(state.path or ""):gmatch("[^/]+") do
+            --         if segment == "dotfiles" then
+            --             in_dotfiles = true
+            --             break
+            --         end
+            --     end
+            --     state.group_empty_dirs = not in_dotfiles
+            -- end,
             -- Neo-tree does not need to be manually refreshed.
             -- manuall refresh if need: require("neo-tree.command").execute({ action = "refresh" })
             use_libuv_file_watcher = true,
