@@ -51,6 +51,9 @@ if isMacOs; then
     # dotnet
     # export DOTNET_ROOT="$(dirname $(which dotnet))"
 
+    # rbi-sl-token
+    export PATH="$HOME/.rbi/bin:$PATH"
+
     # brew
     export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
 else

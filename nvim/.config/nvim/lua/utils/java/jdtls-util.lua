@@ -695,7 +695,10 @@ function M.open_fqn_under_cursor()
 end
 
 --- Open class by FQN extracted from the current line, with a custom handler receiving the LSP result.
---- @param handler? fun(result: any) called with the workspace/symbol result after resolution
+--- If the class's source file already exists in the current project, it is opened directly as a
+--- normal buffer (no JDTLS round-trip); JDT class loading is only used as a fallback for classes
+--- that live outside the project (dependencies/JDK).
+--- @param handler? fun(result: any) called with the workspace/symbol result after resolution; `nil` when the file was opened locally instead of via JDTLS
 -- lua require("utils.java.jdtls-util").open_fqn_under_cursor_with_handler(function(r) dd(r) end)
 function M.open_fqn_under_cursor_with_handler(handler)
     local line = vim.api.nvim_get_current_line()
@@ -708,17 +711,11 @@ function M.open_fqn_under_cursor_with_handler(handler)
         return
     end
 
-    M.jdt_load_unique_class(fqn, function(result)
-        if not result then
-            vim.notify("⚠️ Could not resolve class: " .. fqn, vim.log.levels.WARN)
-            return
-        end
-        -- Open the file and jump to class declaration
-        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
+    local simple_name = fqn:match("([^%.%$]+)$")
 
-        -- Scroll to class name declaration
+    -- Scroll to class name declaration
+    local function jump_to_declaration()
         vim.defer_fn(function()
-            local simple_name = fqn:match("([^%.%$]+)$")
             -- Search for class/interface/enum/record declaration
             local search_pattern = "\\<\\(class\\|interface\\|enum\\|record\\|@interface\\)\\s\\+"
                 .. vim.fn.escape(simple_name, "\\")
@@ -730,6 +727,30 @@ function M.open_fqn_under_cursor_with_handler(handler)
                 vim.cmd("normal! zz")
             end
         end, 50)
+    end
+
+    -- Inner classes (Outer$Inner) live in the outer class's file.
+    local outer_class = fqn:match("^([^%$]+)") or fqn
+    local proj_path = java_common.java_class_to_proj_path(outer_class)
+    if proj_path then
+        vim.cmd("edit " .. vim.fn.fnameescape(proj_path))
+        jump_to_declaration()
+
+        if handler then
+            handler(nil)
+        end
+        return
+    end
+
+    M.jdt_load_unique_class(fqn, function(result)
+        if not result then
+            vim.notify("⚠️ Could not resolve class: " .. fqn, vim.log.levels.WARN)
+            return
+        end
+        -- Open the file and jump to class declaration
+        vim.lsp.util.show_document(result.location, "utf-8", { focus = true })
+
+        jump_to_declaration()
 
         if handler then
             handler(result)
