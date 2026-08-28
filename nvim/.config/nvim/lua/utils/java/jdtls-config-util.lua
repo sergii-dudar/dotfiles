@@ -181,6 +181,10 @@ M.jdtls_settings = {
                 -- "org.junit.jupiter.api.Assumptions.*",
                 -- "org.junit.jupiter.api.DynamicContainer.*",
                 -- "org.junit.jupiter.api.DynamicTest.*",
+
+                "java.lang.String",
+                -- "java.lang.Integer",
+
                 "org.assertj.core.api.Assertions",
                 "org.assertj.core.api.Assertions.*",
                 "org.assertj.core.api.Assertions.assertThat",

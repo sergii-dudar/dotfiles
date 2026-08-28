@@ -98,6 +98,15 @@ function M.snippets()
             condition = is_builder_context,
             show_condition = show_builder_context,
         }),
+        s("str", t({ "String" })),
+        s("ing", t({ "Integer" })),
+        s("bd", {
+            f(snip_utils.add_imports({
+                "java.math.BigDecimal",
+            })),
+            t({ "BigDecimal" }),
+        }),
+
         -- postfix({
         --     trig = ".bb",
         --     dscr = "Type.builder().<methods>.build()",

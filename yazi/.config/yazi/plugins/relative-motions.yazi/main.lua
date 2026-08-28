@@ -288,8 +288,8 @@ return {
 
 		if cmd == "g" then
 			if direction == "g" then
-				ya.emit("arrow", { "top" })
-				ya.emit("arrow", { lines - 1 })
+				ya.mgr_emit("arrow", { "top" })
+				ya.mgr_emit("arrow", { lines - 1 })
 				render_clear()
 				return
 			elseif direction == "j" then
@@ -297,7 +297,7 @@ return {
 			elseif direction == "k" then
 				cmd = "k"
 			elseif direction == "t" then
-				ya.emit("tab_switch", { lines - 1 })
+				ya.mgr_emit("tab_switch", { lines - 1 })
 				render_clear()
 				return
 			else
@@ -308,66 +308,66 @@ return {
 		end
 
 		if cmd == "j" then
-			ya.emit("arrow", { lines })
+			ya.mgr_emit("arrow", { lines })
 		elseif cmd == "k" then
-			ya.emit("arrow", { -lines })
+			ya.mgr_emit("arrow", { -lines })
 		elseif cmd == "h" then
 			for _ = 1, lines do
-				ya.emit("leave", {})
+				ya.mgr_emit("leave", {})
 			end
 		elseif cmd == "l" then
 			for _ = 1, lines do
-				ya.emit("enter", {})
+				ya.mgr_emit("enter", {})
 				local file_idx = get_cache_or_first_dir()
 				if file_idx then
-					ya.emit("arrow", { "top" })
-					ya.emit("arrow", { file_idx })
+					ya.mgr_emit("arrow", { "top" })
+					ya.mgr_emit("arrow", { file_idx })
 				end
 			end
 		elseif is_tab_command(cmd) then
 			if cmd == "t" then
 				for _ = 1, lines do
-					ya.emit("tab_create", {})
+					ya.mgr_emit("tab_create", {})
 				end
 			elseif cmd == "H" then
-				ya.emit("tab_switch", { -lines, relative = true })
+				ya.mgr_emit("tab_switch", { -lines, relative = true })
 			elseif cmd == "L" then
-				ya.emit("tab_switch", { lines, relative = true })
+				ya.mgr_emit("tab_switch", { lines, relative = true })
 			elseif cmd == "w" then
-				ya.emit("tab_close", { lines - 1 })
+				ya.mgr_emit("tab_close", { lines - 1 })
 			elseif cmd == "W" then
 				local curr_tab = get_active_tab()
 				local del_tab = curr_tab + lines - 1
 				for _ = curr_tab, del_tab do
-					ya.emit("tab_close", { curr_tab - 1 })
+					ya.mgr_emit("tab_close", { curr_tab - 1 })
 				end
-				ya.emit("tab_switch", { curr_tab - 1 })
+				ya.mgr_emit("tab_switch", { curr_tab - 1 })
 			elseif cmd == "<" then
-				ya.emit("tab_swap", { -lines })
+				ya.mgr_emit("tab_swap", { -lines })
 			elseif cmd == ">" then
-				ya.emit("tab_swap", { lines })
+				ya.mgr_emit("tab_swap", { lines })
 			elseif cmd == "~" then
 				local jump = lines - get_active_tab()
-				ya.emit("tab_swap", { jump })
+				ya.mgr_emit("tab_swap", { jump })
 			end
 		else
-			ya.emit("visual_mode", {})
+			ya.mgr_emit("visual_mode", {})
 			-- invert direction when user specifies it
 			if direction == "k" then
-				ya.emit("arrow", { -lines })
+				ya.mgr_emit("arrow", { -lines })
 			elseif direction == "j" then
-				ya.emit("arrow", { lines })
+				ya.mgr_emit("arrow", { lines })
 			else
-				ya.emit("arrow", { lines - 1 })
+				ya.mgr_emit("arrow", { lines - 1 })
 			end
-			ya.emit("escape", {})
+			ya.mgr_emit("escape", {})
 
 			if cmd == "d" then
-				ya.emit("remove", {})
+				ya.mgr_emit("remove", {})
 			elseif cmd == "y" then
-				ya.emit("yank", {})
+				ya.mgr_emit("yank", {})
 			elseif cmd == "x" then
-				ya.emit("yank", { cut = true })
+				ya.mgr_emit("yank", { cut = true })
 			end
 		end
 
