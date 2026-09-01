@@ -122,6 +122,7 @@ map("n", "<leader>??", keymap_actions.open_personal_vim_cheat_sheet, { desc = "P
 
 -- Snacks
 Snacks.toggle.zen():map("<leader>zz")
+Snacks.toggle.zoom():map("<leader>zZ")
 
 -- stylua: ignore start
 vim.keymap.set( "n", "<leader>N", keymap_actions.open_cwd_scratch_notes, { desc = "CWD Scratch Notes", noremap = true, silent = true }) -- Mapping J to 6jzz

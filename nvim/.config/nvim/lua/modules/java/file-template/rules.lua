@@ -185,7 +185,7 @@ return {
         packages = {
             "*.enum",
             "*.enums",
-            "*.enumeraion",
+            "*.enumeration",
             "*.enumerations",
             "*.type",
             "*.types",

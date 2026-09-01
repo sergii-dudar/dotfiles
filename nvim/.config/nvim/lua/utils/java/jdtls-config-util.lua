@@ -183,6 +183,7 @@ M.jdtls_settings = {
                 -- "org.junit.jupiter.api.DynamicTest.*",
 
                 "java.lang.String",
+                "java.util.function.Function",
                 -- "java.lang.Integer",
 
                 "org.assertj.core.api.Assertions",
