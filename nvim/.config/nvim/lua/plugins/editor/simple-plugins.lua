@@ -51,6 +51,9 @@ return {
             encoder.encode = function(text, server_url)
                 return (png_encode(text, server_url):gsub("/png/", "/svg/", 1))
             end
+            -- Replace the viewer's binary fit/100% zoom with continuous zoom
+            -- that survives live updates.
+            require("modules.plantuml.viewer-zoom").setup()
         end,
     },
     -- search/replace in multiple files
