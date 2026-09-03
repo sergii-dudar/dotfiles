@@ -11,6 +11,12 @@
 --- px) rather than `transform: scale()`, so the SVG re-rasterises crisply at
 --- every zoom level.
 ---
+--- It also hides the viewer's chrome (status pill, filename, server URL,
+--- timestamp) and the framing padding/outline, so the diagram gets the whole
+--- viewport. `h` toggles the chrome back on. The one signal the header carried
+--- that matters — a dead connection, meaning the diagram on screen is stale —
+--- is surfaced as a floating pill instead.
+---
 --- Nothing under `~/.local/share/nvim/lazy/plantuml.nvim/` is modified: the
 --- injection hooks `plantuml.server.start`, wrapping the `get_html` callback it
 --- receives, so plugin updates cannot clobber it.
@@ -21,12 +27,47 @@ local M = {}
 --- and can neutralise it.
 local VIEWER_PATCH = [==[
 <style>
+  /* Full-bleed: the header (live/updated status, filename, server URL) and the
+     framing padding + outline are overhead for a diagram viewer. Toggle with `h`. */
+  body.pv-chrome-hidden .top {
+    display: none;
+  }
+
+  body.pv-chrome-hidden .wrap {
+    padding: 0;
+  }
+
+  body.pv-chrome-hidden .board {
+    border-radius: 0;
+    outline: none;
+  }
+
   /* We manage the image's box ourselves; the viewer's fit-to-board caps would
      otherwise clamp the zoomed size. */
   #img {
     max-width: none !important;
     max-height: none !important;
     cursor: inherit !important;
+  }
+
+  /* Shown only while the connection is down, since the hidden header can no
+     longer warn that the diagram is stale. */
+  #pv-status {
+    position: absolute;
+    left: .5rem;
+    top: .5rem;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    background: var(--err);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 500;
+    pointer-events: none;
+    display: none;
+  }
+
+  #pv-status.visible {
+    display: block;
   }
 
   #zoom-badge {
@@ -73,6 +114,9 @@ local VIEWER_PATCH = [==[
     window.updateImageTransform = function () {};
     board.classList.remove("zoom-pan-mode", "dragging");
 
+    // Give the diagram the whole viewport; `h` brings the header back.
+    document.body.classList.add("pv-chrome-hidden");
+
     var MIN_SCALE = 0.05;
     var MAX_SCALE = 40;
     var STEP = 1.15;
@@ -92,13 +136,40 @@ local VIEWER_PATCH = [==[
     board.appendChild(badge);
     var badgeTimer = null;
 
+    // The header is hidden, so re-surface the only state it carried that the
+    // diagram itself cannot show: the feed is down, so this render is stale.
+    // Transient "Loading.../Starting..." (warn) states are deliberately ignored.
+    var statusPill = document.createElement("div");
+    statusPill.id = "pv-status";
+    board.appendChild(statusPill);
+
+    function reflectStatus(kind, text) {
+      if (kind === "err") {
+        statusPill.textContent = text || "disconnected";
+        statusPill.classList.add("visible");
+      } else {
+        statusPill.classList.remove("visible");
+      }
+    }
+
+    if (typeof window.setStatus === "function") {
+      var originalSetStatus = window.setStatus;
+      window.setStatus = function (kind, text) {
+        originalSetStatus(kind, text);
+        reflectStatus(kind, text);
+      };
+    }
+
     function natW() { return img.naturalWidth || 0; }
     function natH() { return img.naturalHeight || 0; }
 
+    // Deliberately uncapped at 1x, unlike the viewer's own fit: an SVG scaled up
+    // stays sharp, so a small diagram should fill the page rather than sit in it.
     function fitScale() {
       var r = board.getBoundingClientRect();
       if (!natW() || !natH()) return 1;
-      return Math.min(r.width / natW(), r.height / natH(), 1);
+      var s = Math.min(r.width / natW(), r.height / natH());
+      return Math.max(MIN_SCALE, Math.min(MAX_SCALE, s));
     }
 
     function effective() {
@@ -157,6 +228,17 @@ local VIEWER_PATCH = [==[
       apply(true);
     }
 
+    // Fit the width and anchor to the top. For a tall sequence diagram this uses
+    // the full page width that fit-to-board would otherwise leave letterboxed.
+    function fitToWidth() {
+      var r = board.getBoundingClientRect();
+      if (!natW() || !natH()) return;
+      scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, r.width / natW()));
+      panX = 0;
+      panY = Math.max(0, (natH() * scale - r.height) / 2);
+      apply(true);
+    }
+
     board.addEventListener("wheel", function (e) {
       if (!natW()) return;
       e.preventDefault(); // also captures trackpad pinch (ctrl+wheel)
@@ -211,6 +293,11 @@ local VIEWER_PATCH = [==[
         resetToFit();
       } else if (e.key === "1") {
         zoomAt(1, cx, cy);
+      } else if (e.key === "w" || e.key === "W") {
+        fitToWidth();
+      } else if (e.key === "h" || e.key === "H") {
+        document.body.classList.toggle("pv-chrome-hidden");
+        apply(false);
       } else {
         return;
       }
