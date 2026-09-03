@@ -40,11 +40,18 @@ return {
         "charlesnicholson/plantuml.nvim",
         opts = {
             auto_start = false,
-            use_docker = true, -- Enable Docker PlantUML server
-            docker_image = "harbor.avalaunch.aval/docker-hub-proxy/plantuml/plantuml-server:jetty", -- Docker image
-            docker_port = 8080, -- Host port for container
-            docker_remove_on_stop = true, -- Keep container after stopping
+            plantuml_server_url = "http://127.0.0.1:8098", -- local `plantuml --http-server`, started by :PlantumlRun
         },
+        config = function(_, opts)
+            require("plantuml").setup(opts)
+            -- Render via SVG instead of the plugin's hardcoded PNG endpoint, so
+            -- diagrams stay crisp when zoomed in the browser.
+            local encoder = require("plantuml.encoder")
+            local png_encode = encoder.encode
+            encoder.encode = function(text, server_url)
+                return (png_encode(text, server_url):gsub("/png/", "/svg/", 1))
+            end
+        end,
     },
     -- search/replace in multiple files
     {

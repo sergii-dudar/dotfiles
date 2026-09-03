@@ -693,6 +693,69 @@ local JAVA_LANG_TYPES = {
     SuppressWarnings = "java.lang.SuppressWarnings",
 }
 
+-- Maps the simple name of every type declaration NESTED inside another type in this
+-- buffer (e.g. a MapStruct mapper's own @Builder record used as a method parameter
+-- type) to the dot-joined simple names of ALL its enclosing types, outermost first
+-- (e.g. "Mapper.A.B" for a type "Target" declared three levels deep inside
+-- Mapper > A > B). A class never imports its own nested types -- they are already in
+-- scope -- so a bare reference to one has no entry in direct_imports and would
+-- otherwise fall through to the wildcard-imports/same-package guesses in
+-- resolve_type_fqn, which (incorrectly) treat it as a top-level class in the mapper's
+-- package. Walking the full ancestor chain (rather than assuming one level) keeps this
+-- correct regardless of nesting depth.
+local function get_nested_type_names(bufnr)
+    local parser = vim.treesitter.get_parser(bufnr, "java")
+    if not parser then
+        return {}
+    end
+
+    local tree = parser:parse()[1]
+    if not tree then
+        return {}
+    end
+
+    local query_str = [[
+        [
+            (class_declaration name: (identifier) @name)
+            (interface_declaration name: (identifier) @name)
+            (enum_declaration name: (identifier) @name)
+            (record_declaration name: (identifier) @name)
+        ]
+    ]]
+    local ok, query = pcall(vim.treesitter.query.parse, "java", query_str)
+    if not ok then
+        return {}
+    end
+
+    local nested = {}
+    for id, node in query:iter_captures(tree:root(), bufnr, 0, -1) do
+        if query.captures[id] == "name" then
+            local decl = node:parent()
+            local chain = {}
+            local current = decl and decl:parent()
+            while current do
+                local current_type = current:type()
+                if current_type == "class_body" or current_type == "interface_body" or current_type == "enum_body" then
+                    local owner = current:parent()
+                    local owner_name = owner and owner:field("name")[1]
+                    if owner_name then
+                        table.insert(chain, 1, get_node_text(owner_name, bufnr))
+                    end
+                    current = owner and owner:parent()
+                else
+                    current = current:parent()
+                end
+            end
+
+            if #chain > 0 then
+                nested[get_node_text(node, bufnr)] = table.concat(chain, ".")
+            end
+        end
+    end
+
+    return nested
+end
+
 -- Resolve type FQN using imports and jdtls
 -- Returns: FQN or nil if not found
 local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, bufnr)
@@ -781,6 +844,22 @@ local function resolve_type_fqn(type_name, direct_imports, wildcard_imports, buf
     if JAVA_LANG_TYPES[base_type] then
         log.debug("Found in java.lang mapping:", base_type, "->", JAVA_LANG_TYPES[base_type])
         return JAVA_LANG_TYPES[base_type] .. generics .. array_brackets
+    end
+
+    -- A bare reference to a type nested inside the mapper's own class (e.g. a @Builder
+    -- record used unqualified as a method parameter) has no import to match. Resolve it
+    -- against its actual enclosing-type chain -- however deep -- before trying wildcard
+    -- imports or the same-package fallback. This also needs no jdtls, so it works even
+    -- while jdtls is still warming.
+    local nested_type_names = get_nested_type_names(bufnr)
+    local enclosing_chain = nested_type_names[base_type]
+    if enclosing_chain then
+        local package_name = get_mapper_class_info(bufnr)
+        if package_name then
+            local nested_fqn = package_name .. "." .. enclosing_chain .. "." .. base_type
+            log.debug("Resolved type nested in enclosing chain:", base_type, "->", nested_fqn)
+            return nested_fqn .. generics .. array_brackets
+        end
     end
 
     -- Try wildcard imports via jdtls
