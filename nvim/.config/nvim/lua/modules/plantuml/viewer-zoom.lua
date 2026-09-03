@@ -11,6 +11,11 @@
 --- px) rather than `transform: scale()`, so the SVG re-rasterises crisply at
 --- every zoom level.
 ---
+--- Plain wheel/trackpad scroll pans (most mice, including vertical-scroll-only
+--- ones, send this); ctrl+wheel/trackpad-pinch/ctrl+=/ctrl+- zoom instead, so
+--- one input isn't overloaded for both. Arrow keys pan in all four directions
+--- regardless of what the pointing device can do.
+---
 --- It also hides the viewer's chrome (status pill, filename, server URL,
 --- timestamp) and the framing padding/outline, so the diagram gets the whole
 --- viewport. `h` toggles the chrome back on. The one signal the header carried
@@ -239,12 +244,27 @@ local VIEWER_PATCH = [==[
       apply(true);
     }
 
+    // deltaMode 1 ("lines") reports small integers instead of pixels; scale it
+    // up so plain-scroll panning doesn't crawl on mice/browsers that use it.
+    function wheelDelta(raw, mode) {
+      return mode === 1 ? raw * 20 : raw;
+    }
+
     board.addEventListener("wheel", function (e) {
       if (!natW()) return;
-      e.preventDefault(); // also captures trackpad pinch (ctrl+wheel)
+      e.preventDefault(); // also stops the page from trying to scroll/pinch-zoom itself
       var r = board.getBoundingClientRect();
-      var factor = e.deltaY < 0 ? STEP : 1 / STEP;
-      zoomAt(effective() * factor, e.clientX - r.left, e.clientY - r.top);
+      // Trackpad pinch-zoom is reported as wheel+ctrlKey by the browser, same as
+      // holding ctrl over a real wheel — both zoom. Plain wheel/two-finger
+      // scroll (no ctrl) pans instead, since that's what most mice send.
+      if (e.ctrlKey || e.metaKey) {
+        var factor = e.deltaY < 0 ? STEP : 1 / STEP;
+        zoomAt(effective() * factor, e.clientX - r.left, e.clientY - r.top);
+        return;
+      }
+      panX -= wheelDelta(e.deltaX, e.deltaMode);
+      panY -= wheelDelta(e.deltaY, e.deltaMode);
+      apply(false);
     }, { passive: false });
 
     board.addEventListener("mousedown", function (e) {
@@ -280,11 +300,22 @@ local VIEWER_PATCH = [==[
       }
     });
 
+    var ARROW_PAN_STEP = 80;
+
     window.addEventListener("keydown", function (e) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return; // leave native browser zoom alone
       var r = board.getBoundingClientRect();
       var cx = r.width / 2;
       var cy = r.height / 2;
+
+      // Ctrl+=/Ctrl+- drive our zoom instead of the browser's own page zoom.
+      if (e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_")) {
+        zoomAt(effective() * (e.key === "-" || e.key === "_" ? 1 / STEP : STEP), cx, cy);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // leave every other modified key to the browser
+
       if (e.key === "+" || e.key === "=") {
         zoomAt(effective() * STEP, cx, cy);
       } else if (e.key === "-" || e.key === "_") {
@@ -297,6 +328,18 @@ local VIEWER_PATCH = [==[
         fitToWidth();
       } else if (e.key === "h" || e.key === "H") {
         document.body.classList.toggle("pv-chrome-hidden");
+        apply(false);
+      } else if (e.key === "ArrowUp") {
+        panY += ARROW_PAN_STEP;
+        apply(false);
+      } else if (e.key === "ArrowDown") {
+        panY -= ARROW_PAN_STEP;
+        apply(false);
+      } else if (e.key === "ArrowLeft") {
+        panX += ARROW_PAN_STEP;
+        apply(false);
+      } else if (e.key === "ArrowRight") {
+        panX -= ARROW_PAN_STEP;
         apply(false);
       } else {
         return;
