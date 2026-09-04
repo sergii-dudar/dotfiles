@@ -80,11 +80,18 @@ translate() {
         # Pass the selection as a single argv element: no xargs, so quotes,
         # apostrophes and newlines survive intact.
         out="$("$PY" "$TRANSLATOR" --engine="$engine" --from="$from" --to="$to" "$text" 2>&1)"
-        # Common on macOS, where /usr/bin/python3 has no third-party packages.
+        # The vendored engine speaks stdlib urllib on both platforms, so this
+        # can only fire for a custom $TRANSLATE_ENGINE or an explicit
+        # TRANSLATE_HTTP=requests. Note that on macOS neither `pip3 install
+        # --user` (PEP 668 on Homebrew python) nor `brew install` (no such
+        # formula) gets you `requests` -- a venv is the way.
         case "$out" in
             *"No module named 'requests'"*)
-                out="translate.sh: $PY has no 'requests' module, which the engine needs.
-    pip3 install --user requests"
+                out="translate.sh: $PY has no 'requests' module.
+    python3 -m venv ~/.local/share/translate-venv
+    ~/.local/share/translate-venv/bin/pip install requests
+then point translate.sh at that interpreter (PY= near the top).
+The bundled engine does not need it -- unset TRANSLATE_HTTP instead."
                 ;;
         esac
         if [ -n "$out" ]; then

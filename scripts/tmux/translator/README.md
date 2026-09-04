@@ -29,6 +29,49 @@ Guards added (additive only, no upstream code removed) in `GoogleTranslator`:
 | `get_detail` | `resp[12]` null |
 | `get_alternative` | `resp[5]` null, and `x[2]` missing/null |
 
+### No `requests` dependency
+
+Upstream's `BasicTranslator.request` needs the third-party `requests` package. On macOS
+no python3 has it, and there is no easy way to add it: `/usr/bin/python3` (3.9) carries no
+third-party packages at all, Homebrew's is PEP 668 "externally managed" so
+`pip3 install --user requests` refuses, and there is no `python-requests` formula. A venv
+would work but has to be bootstrapped per machine, which a tmux keybinding should not need.
+
+So `request()` now delegates to `_request_stdlib()`, a urllib implementation of the same
+call, returning a `StdlibResponse` that carries the only surface the engines touch:
+`.text`, `.json()`, `.content`, `.status_code`. It keeps requests' semantics for GET params,
+dict-vs-string POST bodies, `timeout`, `proxy` (both the `all_proxy` config and the standard
+`http_proxy` / `https_proxy` env vars), the `User-Agent`, and not raising on 4xx/5xx.
+
+It takes that path on **both** platforms, not only where `requests` is missing. macOS never
+has `requests` and Arch usually does — something pulls it in transitively — so keying the
+decision off "is it importable" would leave the two machines running different HTTP stacks,
+which is exactly the bug you do not want to debug over a tmux popup. It also happens that
+requests is the stack that trusts certifi rather than the system store, so it is the one
+that cannot see a corporate root CA (below).
+
+The upstream requests path is preserved and reachable with `TRANSLATE_HTTP=requests`. Under
+TLS inspection it fails with `unable to get local issuer certificate`; python 2 still uses
+it unconditionally, as before.
+
+### TLS behind a corporate proxy
+
+Python 3.13 made `VERIFY_X509_STRICT` a default verify flag. Zscaler's intermediate root CA
+is not RFC-5280 clean — its CA `basicConstraints` is not marked critical — so on the work
+network every request failed with:
+
+```
+urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify
+failed: Basic Constraints of CA cert not marked critical>
+```
+
+even though the chain is trusted and `curl` accepts it. `_ssl_context()` clears that one
+flag and leaves chain + hostname verification on. (Same class of problem as `gh-push.sh`.)
+
+This is applied on both platforms: the flag is a python-version behaviour, not a macOS one,
+and it is read through `getattr(ssl, 'VERIFY_X509_STRICT', 0)` so it is a no-op on the
+pre-3.13 interpreters (e.g. the system `/usr/bin/python3` 3.9) that never had it.
+
 Line endings were also normalised CRLF -> LF, per `.editorconfig`.
 
 To diff against upstream (`tr -d '\r'` accounts for that normalisation):

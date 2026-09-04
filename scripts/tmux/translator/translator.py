@@ -88,6 +88,45 @@ langmap = {
 
 
 #----------------------------------------------------------------------
+# LOCAL PATCH: stand-in for requests.Response, returned by the urllib path in
+# BasicTranslator.request(). Only the surface the engines below actually touch
+# is implemented.
+#----------------------------------------------------------------------
+class StdlibResponse (object):
+
+    def __init__ (self, status_code, headers, content):
+        self.status_code = status_code
+        self.headers = headers
+        self.content = content
+
+    def __bool__ (self):
+        return True
+
+    __nonzero__ = __bool__
+
+    @property
+    def text (self):
+        ctype = ''
+        try:
+            ctype = self.headers.get('Content-Type', '') or ''
+        except AttributeError:
+            ctype = ''
+        m = re.search(r'charset=["\']?([\w\-]+)', ctype, re.I)
+        charset = m and m.group(1) or None
+        for name in (charset, 'utf-8', 'latin-1'):
+            if not name:
+                continue
+            try:
+                return self.content.decode(name)
+            except (UnicodeDecodeError, LookupError):
+                pass
+        return self.content.decode('utf-8', 'ignore')
+
+    def json (self):
+        return json.loads(self.text)
+
+
+#----------------------------------------------------------------------
 # BasicTranslator
 #----------------------------------------------------------------------
 class BasicTranslator(object):
@@ -166,7 +205,84 @@ class BasicTranslator(object):
             self._config['proxy'] = proxy.strip()
         return True
 
+    # LOCAL PATCH: python 3.13 turned VERIFY_X509_STRICT on by default. A
+    # corporate TLS-inspection root (Zscaler) is not RFC-5280 clean -- its CA
+    # basicConstraints is not marked critical -- so every request behind such a
+    # proxy dies with CERTIFICATE_VERIFY_FAILED even though the chain is
+    # trusted and curl is happy with it. Drop that one flag; chain and hostname
+    # verification stay on.
+    def _ssl_context (self):
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.verify_flags &= ~getattr(ssl, 'VERIFY_X509_STRICT', 0)
+        return ctx
+
+    # LOCAL PATCH: the same request, spoken in stdlib -- so the engine needs no
+    # third-party install anywhere. That matters most on macOS, where no python3
+    # has `requests` and none can easily get it: the system 3.9 carries no
+    # third-party packages, PEP 668 makes Homebrew's refuse `pip install
+    # --user`, and there is no `python-requests` formula.
+    def _request_stdlib (self, url, data = None, post = False, header = None):
+        import urllib.parse
+        import urllib.request
+        import urllib.error
+        if header is not None:
+            header = copy.deepcopy(header)
+        else:
+            header = {}
+        if self._agent:
+            header['User-Agent'] = self._agent
+        body = None
+        if data is not None:
+            if post:
+                if isinstance(data, dict):
+                    body = urllib.parse.urlencode(data, doseq = True)
+                    body = body.encode('utf-8')
+                    header.setdefault('Content-Type',
+                            'application/x-www-form-urlencoded')
+                elif isinstance(data, bytes):
+                    body = data
+                else:
+                    body = data.encode('utf-8')
+            else:
+                query = urllib.parse.urlencode(data, doseq = True)
+                if query:
+                    url += ('&' if '?' in url else '?') + query
+        timeout = self._config.get('timeout', 7)
+        proxy = self._config.get('proxy', None)
+        handlers = [urllib.request.HTTPSHandler(context = self._ssl_context())]
+        if proxy:
+            proxies = {'http': proxy, 'https': proxy}
+            handlers.append(urllib.request.ProxyHandler(proxies))
+        opener = urllib.request.build_opener(*handlers)
+        req = urllib.request.Request(url, data = body, headers = header)
+        argv = {}
+        if timeout:
+            argv['timeout'] = float(timeout)
+        try:
+            r = opener.open(req, **argv)
+        except urllib.error.HTTPError as e:
+            # requests does not raise on 4xx/5xx, it hands back the body.
+            r = e
+        try:
+            content = r.read()
+            status = r.getcode()
+            headers = r.headers
+        finally:
+            r.close()
+        return StdlibResponse(status, headers, content)
+
     def request (self, url, data = None, post = False, header = None):
+        # LOCAL PATCH: take the stdlib path on every platform, not just where
+        # `requests` happens to be missing. macOS has no `requests` and Arch
+        # usually does (something pulls it in transitively), so importing it
+        # when available would leave the two machines running different HTTP
+        # stacks -- and requests is the stack that trusts certifi rather than
+        # the system store, so it is the one that cannot see a corporate root
+        # CA. Set TRANSLATE_HTTP=requests to opt back into the upstream path.
+        if sys.version_info[0] >= 3:
+            if os.environ.get('TRANSLATE_HTTP', '') != 'requests':
+                return self._request_stdlib(url, data, post, header)
         import requests
         if not self._session:
             self._session = requests.Session()
