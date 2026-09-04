@@ -36,10 +36,26 @@ configs: [sesh.sessions.sh](../zsh/serhii.shell/util/sesh.sessions.sh), [tmux.sc
 
 Self-contained, no tmux plugin: [translate.sh](../scripts/tmux/translate.sh) drives a vendored copy of
 [translator.py](../scripts/tmux/translator/) (see its README for provenance and local patches).
+Output always lands in a tmux popup.
 
-- `t` in copy-mode — translate the selection
-- `prefix + T` — popup with a prompt, type text and get a translation (stays open for more)
-- `prefix + C-t` — translate the current system clipboard
+| where you select | key | mode used |
+| --- | --- | --- |
+| tmux copy-mode | `t` | `pipe` |
+| nothing — just type | `prefix + T` | `prompt` |
+| system clipboard | `prefix + C-t` | `clipboard` |
+| foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
+| alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
+
+Close the popup with `Enter` or `Esc` (`Ctrl-C` also works); in the typing prompt an empty line
+closes it too.
 
 Direction is auto-detected: Cyrillic input is translated to `@translate-from`, anything else to
 `@translate-to`. Works outside tmux too: `./scripts/tmux/translate.sh --print "some text"`.
+
+**Adding another terminal** is one config line in that terminal's own package — no script change.
+Pick `pipe` if it can pipe the selection to a command (kitty `launch --stdin-source=@selection`,
+wezterm `get_selection_text_for_pane`), otherwise `clipboard`. Terminal bindings run *outside* tmux,
+so the script aims the popup at the most recently active client itself.
+
+There is also an unbound `primary` mode (`translate.sh primary`) for the X11/Wayland PRIMARY
+selection — mouse-selected text in a browser or any other app — if you ever want it on a WM hotkey.

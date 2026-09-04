@@ -3,7 +3,8 @@
 #
 #   translate.sh                  interactive prompt in a tmux popup (REPL)
 #   translate.sh clipboard        translate the system clipboard
-#   translate.sh pipe             translate stdin (copy-mode selection)
+#   translate.sh primary          translate the PRIMARY selection (X11/Wayland)
+#   translate.sh pipe             translate stdin (tmux copy-mode / foot selection)
 #   translate.sh buffer           translate the top tmux paste buffer
 #   translate.sh text <words...>  translate the given words
 #   translate.sh --print <words>  print translation to stdout, no popup
@@ -11,8 +12,19 @@
 # Direction is auto-detected: Cyrillic input goes to @translate-from, anything
 # else to @translate-to. The engine is the vendored translator/translator.py,
 # so this has no tmux-plugin dependency.
+#
+# Output always lands in a tmux popup. Terminal keybindings (foot pipe-selected,
+# alacritty keyboard.bindings) invoke this from *outside* tmux, so the popup is
+# aimed at an attached client explicitly -- see popup() below.
 
 set -u
+
+# foot/alacritty spawn us with the GUI session's PATH, which on macOS omits
+# Homebrew -- so tmux and python3 would not be found. Cheap to add, no-op if absent.
+for d in /opt/homebrew/bin /usr/local/bin; do
+    [ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$d:$PATH" ;; esac
+done
+export PATH
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
@@ -21,9 +33,11 @@ TRANSLATOR="${TRANSLATE_ENGINE:-$SCRIPT_DIR/translator/translator.py}"
 # macOS has no `python`, only `python3`; Arch has both.
 PY="$(command -v python3 || command -v python || true)"
 
+# Not gated on $TMUX: when foot/alacritty invoke us there is no $TMUX, but the
+# server is still running and still holds the user's @translate-* settings.
 tmux_opt() {
     local value=""
-    [ -n "${TMUX:-}" ] && value="$(tmux show-option -gqv "$1" 2>/dev/null)"
+    value="$(tmux show-option -gqv "$1" 2>/dev/null)" || value=""
     if [ -n "$value" ]; then printf '%s' "$value"; else printf '%s' "$2"; fi
 }
 
@@ -74,6 +88,20 @@ translate() {
     done
 }
 
+# Mouse-selected text in a browser or any other app lands in PRIMARY on
+# X11/Wayland. macOS has no PRIMARY, so fall back to the clipboard there.
+primary_text() {
+    if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-paste >/dev/null 2>&1; then
+        wl-paste --primary -n
+    elif command -v xclip >/dev/null 2>&1; then
+        xclip -o -selection primary 2>/dev/null
+    elif command -v xsel >/dev/null 2>&1; then
+        xsel -op 2>/dev/null
+    else
+        clipboard_text
+    fi
+}
+
 clipboard_text() {
     if command -v pbpaste >/dev/null 2>&1; then
         pbpaste
@@ -87,18 +115,35 @@ clipboard_text() {
 }
 
 pause() {
-    printf '\n[Enter to close]'
-    read -r _ || true
+    printf '\n[Enter or Esc to close]'
+    while IFS= read -rsn1 key; do
+        # empty = Enter (read -n1 strips the newline); $'\e' = Esc
+        case "$key" in
+            '' | $'\e') break ;;
+        esac
+    done
+}
+
+# Reads one line into $LINE, but bails out if the line is opened with Esc.
+# Only the first character is read raw (a lone Esc is not delivered in canonical
+# mode); it is then handed to readline via -i rather than echoed by hand, so
+# backspace can erase it like any other character.
+read_line() {
+    local first
+    LINE=""
+    IFS= read -rsn1 -p '> ' first || return 1
+    [ "$first" = $'\e' ] && return 1
+    [ -z "$first" ] && return 0
+    IFS= read -re -i "$first" LINE || return 1
 }
 
 repl() {
-    printf 'translate  %s <-> %s  (empty line or Ctrl-C to close)\n\n' "$LANG_FROM" "$LANG_TO"
+    printf 'translate  %s <-> %s  (Esc, empty line or Ctrl-C to close)\n\n' "$LANG_FROM" "$LANG_TO"
     while true; do
-        printf '> '
-        IFS= read -r line || break
-        [ -n "${line//[[:space:]]/}" ] || break
+        read_line || break
+        [ -n "${LINE//[[:space:]]/}" ] || break
         printf '\n'
-        translate "$line"
+        translate "$LINE"
         printf '\n'
     done
 }
@@ -112,8 +157,24 @@ inner() {
     esac
 }
 
+# Without $TMUX tmux has no "current client" to draw on. With exactly one client
+# attached it guesses right, but with several it can pick the wrong window, so
+# name the most recently active one explicitly.
+newest_client() {
+    tmux list-clients -F '#{client_activity} #{client_name}' 2>/dev/null \
+        | sort -rn | head -1 | cut -d' ' -f2-
+}
+
 popup() {
-    tmux popup -w "$WIDTH" -h "$HEIGHT" -e "TR_MODE=$1" -e "TR_TEXT=${2:-}" -E "'$SELF' --inner"
+    local target=()
+    if [ -z "${TMUX:-}" ]; then
+        local client
+        client="$(newest_client)"
+        [ -n "$client" ] || die 'translate.sh: no attached tmux client to draw the popup on'
+        target=(-c "$client")
+    fi
+    tmux popup "${target[@]}" -w "$WIDTH" -h "$HEIGHT" \
+        -e "TR_MODE=$1" -e "TR_TEXT=${2:-}" -E "'$SELF' --inner"
 }
 
 [ -n "$PY" ] || die 'translate.sh: no python3/python on PATH'
@@ -133,6 +194,9 @@ case "${1:-prompt}" in
     clipboard)
         popup clipboard "$(clipboard_text)"
         ;;
+    primary)
+        popup primary "$(primary_text)"
+        ;;
     pipe)
         popup pipe "$(cat)"
         ;;
@@ -144,6 +208,6 @@ case "${1:-prompt}" in
         popup text "$*"
         ;;
     *)
-        die "translate.sh: unknown mode '$1' (prompt|clipboard|buffer|pipe|text|--print)"
+        die "translate.sh: unknown mode '$1' (prompt|clipboard|primary|buffer|pipe|text|--print)"
         ;;
 esac

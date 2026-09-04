@@ -321,6 +321,12 @@ bindings = [
     { key = "Slash", mods = "Control", chars = "\u001f" }, # { key = "C", mods = "Control", action = "Copy" }
     { key = "Comma", mods = "Control", chars = "\u001b[44;5u" },
     { key = "Period", mods = "Control", chars = "\u001b[46;5u" },
+
+    # translate the mouse selection -> tmux popup. Alacritty has no
+    # pipe-selection action, but selection.save_to_clipboard above puts the
+    # selection in the clipboard, so the clipboard mode picks it up.
+    # Routed through sh because alacritty does not expand "~" itself.
+    { key = "T", mods = "Control|Shift", command = { program = "sh", args = ["-c", "~/dotfiles/scripts/tmux/translate.sh clipboard"] } },
 ]
 
 [general]
