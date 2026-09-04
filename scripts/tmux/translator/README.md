@@ -72,6 +72,34 @@ This is applied on both platforms: the flag is a python-version behaviour, not a
 and it is read through `getattr(ssl, 'VERIFY_X509_STRICT', 0)` so it is a no-op on the
 pre-3.13 interpreters (e.g. the system `/usr/bin/python3` 3.9) that never had it.
 
+### POST instead of GET (this is the rate-limit fix)
+
+Google throttles the **GET** form of `translate_a/single` hard — ordinary use earns `HTTP 429`
+("your computer or network may be sending automated queries") for a while. Measured, same minute,
+same IP:
+
+| request | result |
+| --- | --- |
+| `GET` + all ten `dt` values (upstream) | `HTTP 429` |
+| `GET` + `dt=t` only | `HTTP 429` |
+| `POST` + all ten `dt` values | `HTTP 200`, identical payload |
+
+So it is the GET that is rated, not the weight of the query. `GoogleTranslator.translate` now POSTs
+the same parameters as a form body via `get_post_url()` / `get_post_body()`; the phonetic,
+dictionary and alternatives sections all still come back. POST also removes the URL length limit on
+long selections.
+
+This is what [babel.nvim](https://github.com/vamoss/babel.nvim)'s google provider does, which is why
+it does not hit the limit. **No API key is involved** — in either. `get_url()` is left in place,
+unused, as the record of the upstream GET form.
+
+### Failures are reported, not swallowed
+
+`GoogleTranslator.translate` upstream turns every failure into a bare `return None`, which reaches
+the tmux popup as a blank result with no clue why. Non-200 responses and non-JSON bodies now write a
+line to stderr first — most usefully `HTTP 429`, which is Google throttling the free endpoint per IP
+and is by far the most common real failure.
+
 Line endings were also normalised CRLF -> LF, per `.editorconfig`.
 
 To diff against upstream (`tr -d '\r'` accounts for that normalisation):

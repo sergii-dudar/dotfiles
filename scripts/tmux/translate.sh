@@ -129,11 +129,11 @@ clipboard_text() {
 }
 
 pause() {
-    printf '\n[Enter or Esc to close]'
+    printf '\n[Enter, Esc or q to close]'
     while IFS= read -rsn1 key; do
         # empty = Enter (read -n1 strips the newline); $'\e' = Esc
         case "$key" in
-            '' | $'\e') break ;;
+            '' | $'\e' | q | Q) break ;;
         esac
     done
 }
@@ -160,10 +160,12 @@ read_line() {
 }
 
 repl() {
-    printf 'translate  %s <-> %s  (Esc, empty line or Ctrl-C to close)\n\n' "$LANG_FROM" "$LANG_TO"
+    printf 'translate  %s <-> %s  (Esc, q, empty line or Ctrl-C to close)\n\n' "$LANG_FROM" "$LANG_TO"
     while true; do
         read_line || break
         [ -n "${LINE//[[:space:]]/}" ] || break
+        # a lone q quits; to translate the letter itself, type it with anything else
+        case "$LINE" in q | Q) break ;; esac
         printf '\n'
         translate "$LINE"
         printf '\n'

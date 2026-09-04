@@ -453,6 +453,10 @@ class GoogleTranslator (BasicTranslator):
         self._agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:59.0)'
         self._agent += ' Gecko/20100101 Firefox/59.0'
 
+    # The ten dt values are what produce the phonetic / dictionary / alternative
+    # sections; asking for fewer gives a bare translation.
+    DATA_TYPES = ['at', 'bd', 'ex', 'ld', 'md', 'qca', 'rw', 'rm', 'ss', 't']
+
     def get_url (self, sl, tl, qry):
         http_host = self._config.get('host', 'translate.googleapis.com')
         qry = self.url_quote(qry)
@@ -461,16 +465,48 @@ class GoogleTranslator (BasicTranslator):
                       http_host, sl, tl, qry)    # noqa: E216
         return url
 
+    # LOCAL PATCH: same endpoint, asked by POST instead of GET.
+    #
+    # Google throttles the GET form of this free endpoint hard -- a normal day's
+    # use earns HTTP 429 for a while, and it is the GET that is rated, not the
+    # query weight: GET with only `dt=t` is throttled just the same, while POST
+    # with all ten dt values answers 200 and returns the identical payload.
+    # (This is what babel.nvim does, which is why it never hits the limit. No
+    # API key is involved in either.) POST also lifts the URL length limit on
+    # long selections.
+    def get_post_url (self):
+        http_host = self._config.get('host', 'translate.googleapis.com')
+        return 'https://{}/translate_a/single'.format(http_host)
+
+    def get_post_body (self, sl, tl, qry):
+        # urlencode(doseq=True) expands the dt list into repeated dt= keys.
+        return {'client': 'gtx', 'sl': sl, 'tl': tl,
+                'dt': self.DATA_TYPES, 'q': qry}
+
     def translate (self, sl, tl, text):
         sl, tl = self.guess_language(sl, tl, text)
         self.text = text
-        url = self.get_url(sl, tl, text)
-        r = self.http_get(url)
+        r = self.http_post(self.get_post_url(), self.get_post_body(sl, tl, text))
         if not r:
+            return None
+        # LOCAL PATCH: upstream swallows every failure into a bare `return None`,
+        # which reaches the popup as a blank result with no clue why. The common
+        # case by far is 429: Google throttles the free endpoint per IP.
+        status = getattr(r, 'status_code', None)
+        if status is not None and status != 200:
+            if status == 429:
+                sys.stderr.write('google: HTTP 429 - rate limited. Google throttles this '
+                                 'free endpoint per IP; it clears on its own after a '
+                                 'while.\n')
+            else:
+                sys.stderr.write('google: HTTP %s from %s\n' % (status, self._config.get(
+                    'host', 'translate.googleapis.com')))
             return None
         try:
             obj = r.json()
         except:
+            sys.stderr.write('google: response was not JSON (%d bytes); the endpoint '
+                             'probably returned an error page.\n' % len(r.content or b''))
             return None
         # pprint.pprint(obj)
         res = self.create_translation(sl, tl, text)

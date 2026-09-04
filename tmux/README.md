@@ -46,12 +46,16 @@ Output always lands in a tmux popup.
 | foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
 | alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
 
-Requires `python3` with the `requests` module (Arch: `python-requests`; macOS: `pip3 install --user
-requests` — `/usr/bin/python3` does not ship it). Stock macOS bash 3.2 is supported; on it the typing
-prompt cannot backspace over the first character, which bash 4+ handles.
+Requires only `python3` — the engine talks HTTP through the stdlib, so there is nothing to install
+on either platform (see the [engine README](../scripts/tmux/translator/README.md)). Stock macOS bash
+3.2 is supported; on it the typing prompt cannot backspace over the first character, which bash 4+
+handles.
 
-Close the popup with `Enter` or `Esc` (`Ctrl-C` also works); in the typing prompt an empty line
+Close the popup with `Enter`, `Esc` or `q` (`Ctrl-C` also works); in the typing prompt an empty line
 closes it too.
+
+The engine POSTs to Google's free endpoint rather than GETs it — the GET form is aggressively rate
+limited, the POST form is not. If you ever do see `HTTP 429`, it clears on its own.
 
 Direction is auto-detected: Cyrillic input is translated to `@translate-from`, anything else to
 `@translate-to`. Works outside tmux too: `./scripts/tmux/translate.sh --print "some text"`.
