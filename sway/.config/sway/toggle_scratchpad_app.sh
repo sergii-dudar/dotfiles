@@ -44,20 +44,20 @@ case "$1" in
         shell="xdg_shell"
         # app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
         # run_cmd="brave --profile-directory=Default --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
-        app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default--app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        app_id="brave-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
         run_cmd="brave --app-id=cinhimbnkkaeohfgghhklpknlkffjgod"
         notify_msg="💽 Music"
         ;;
     "google_chat")
         shell="xdg_shell"
-        app_id="brave-mdpkiolbdkhdjpekfbkbmhigcaggjagi-Default"
-        run_cmd="brave --profile-directory=Default --app-id=mdpkiolbdkhdjpekfbkbmhigcaggjagi"
+        app_id="brave-pommaclcbfghclhalboakcipcmmndhcj-Default"
+        run_cmd="brave --app-id=pommaclcbfghclhalboakcipcmmndhcj"
         notify_msg="✉️  Google Chat"
         ;;
     "monkey_type")
         shell="xdg_shell"
         app_id="brave-picebhhlijnlefeleilfbanaghjlkkna-Default"
-        run_cmd="brave --profile-directory=Default --app-id=picebhhlijnlefeleilfbanaghjlkkna"
+        run_cmd="brave --app-id=picebhhlijnlefeleilfbanaghjlkkna"
         notify_msg="  Monkey Type"
         ;;
     "vim_hero")
