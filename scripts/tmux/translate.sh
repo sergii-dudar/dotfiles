@@ -172,12 +172,34 @@ repl() {
     done
 }
 
+# An empty payload used to render as a blank popup, which is indistinguishable
+# from a broken translator. Say which source came up empty instead.
+empty_notice() {
+    case "$1" in
+        pipe)      printf 'nothing was selected\n' ;;
+        clipboard) printf 'the clipboard is empty\n' ;;
+        primary)   printf 'the primary selection is empty\n' ;;
+        buffer)    printf 'the tmux paste buffer is empty\n' ;;
+        *)         printf 'nothing to translate\n' ;;
+    esac
+}
+
 # Runs inside the popup; mode and payload arrive through the environment so
 # nothing has to survive a second round of shell quoting.
 inner() {
+    local text="${TR_TEXT:-}"
     case "${TR_MODE:-prompt}" in
-        prompt) repl ;;
-        *) translate "${TR_TEXT:-}"; pause ;;
+        prompt)
+            repl
+            ;;
+        *)
+            if [ -z "${text//[[:space:]]/}" ]; then
+                empty_notice "${TR_MODE:-}"
+            else
+                translate "$text"
+            fi
+            pause
+            ;;
     esac
 }
 
