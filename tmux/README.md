@@ -31,3 +31,15 @@ session manager have ability to:
 ![tmux-session-manager with ](../screenshots/tmux/tmux-session-manager-dirs-preview.png)
 
 configs: [sesh.sessions.sh](../zsh/serhii.shell/util/sesh.sessions.sh), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
+
+##### Translation
+
+Self-contained, no tmux plugin: [translate.sh](../scripts/tmux/translate.sh) drives a vendored copy of
+[translator.py](../scripts/tmux/translator/) (see its README for provenance and local patches).
+
+- `t` in copy-mode — translate the selection
+- `prefix + T` — popup with a prompt, type text and get a translation (stays open for more)
+- `prefix + C-t` — translate the current system clipboard
+
+Direction is auto-detected: Cyrillic input is translated to `@translate-from`, anything else to
+`@translate-to`. Works outside tmux too: `./scripts/tmux/translate.sh --print "some text"`.
