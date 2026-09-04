@@ -60,11 +60,25 @@ local function java_test_bundle_requires_old_asm(jar)
         and (manifest:find("[9.9.0,9.10)", 1, true) ~= nil or manifest:find("[9.9.0,9.10.0)", 1, true) ~= nil)
 end
 
+--- Return whether JDTLS already ships the same bundle jar (same symbolic name + version).
+--- OSGi rejects installing a duplicate name+version from a different location, which fails
+--- the whole extension bundle list. The version is part of the jar filename, so an exact
+--- filename match in the JDTLS plugins dir means an exact bundle collision.
+local function jdtls_ships_same_bundle(jar)
+    local name = vim.fn.fnamemodify(jar, ":t")
+    local jdtls_plugin = vim.fn.expand("$MASON/packages/jdtls/plugins/" .. name)
+    return vim.fn.filereadable(jdtls_plugin) == 1
+end
+
 --- Return whether a Mason java-test jar should be passed as a JDTLS extension bundle.
 local function should_skip_java_test_bundle(jar, asm_version)
     local name = vim.fn.fnamemodify(jar, ":t")
     if name == "jacocoagent.jar" or name:match("%-jar%-with%-dependencies%.jar$") then
         return true, "runtime payload"
+    end
+
+    if jdtls_ships_same_bundle(jar) then
+        return true, "same bundle name+version already shipped with JDTLS"
     end
 
     if version_at_least(asm_version, 9, 10) and java_test_bundle_requires_old_asm(jar) then
@@ -561,7 +575,7 @@ return {
             attach_jdtls()
 
             -- ============== >>> Recover JDTLS start (2)
-            -- Recover JDTLS after macOS sleep. VimResume does not fire on system
+            -- Recover JDTLS after system sleep. VimResume does not fire on system
             -- sleep and FocusGained is unreliable in tmux, so detection is done
             -- via wall-clock gap on cheap idle events. See module for details.
             require("utils.java.jdtls-recovery").setup(function(_)
