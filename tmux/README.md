@@ -46,6 +46,10 @@ Output always lands in a tmux popup.
 | foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
 | alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
 
+Requires `python3` with the `requests` module (Arch: `python-requests`; macOS: `pip3 install --user
+requests` — `/usr/bin/python3` does not ship it). Stock macOS bash 3.2 is supported; on it the typing
+prompt cannot backspace over the first character, which bash 4+ handles.
+
 Close the popup with `Enter` or `Esc` (`Ctrl-C` also works); in the typing prompt an empty line
 closes it too.
 

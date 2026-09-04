@@ -80,6 +80,13 @@ translate() {
         # Pass the selection as a single argv element: no xargs, so quotes,
         # apostrophes and newlines survive intact.
         out="$("$PY" "$TRANSLATOR" --engine="$engine" --from="$from" --to="$to" "$text" 2>&1)"
+        # Common on macOS, where /usr/bin/python3 has no third-party packages.
+        case "$out" in
+            *"No module named 'requests'"*)
+                out="translate.sh: $PY has no 'requests' module, which the engine needs.
+    pip3 install --user requests"
+                ;;
+        esac
         if [ -n "$out" ]; then
             printf '%s\n' "$out"
         else
@@ -129,12 +136,20 @@ pause() {
 # mode); it is then handed to readline via -i rather than echoed by hand, so
 # backspace can erase it like any other character.
 read_line() {
-    local first
+    local first rest
     LINE=""
     IFS= read -rsn1 -p '> ' first || return 1
     [ "$first" = $'\e' ] && return 1
     [ -z "$first" ] && return 0
-    IFS= read -re -i "$first" LINE || return 1
+    if [ "${BASH_VERSINFO[0]}" -ge 4 ]; then
+        IFS= read -re -i "$first" LINE || return 1
+    else
+        # stock macOS bash is 3.2, which has no `read -i`. Echo the character
+        # ourselves; the cost is that backspace cannot reach back over it.
+        printf '%s' "$first"
+        IFS= read -r rest || return 1
+        LINE="$first$rest"
+    fi
 }
 
 repl() {
@@ -165,16 +180,21 @@ newest_client() {
         | sort -rn | head -1 | cut -d' ' -f2-
 }
 
+# The two branches are spelled out rather than built in an array: expanding an
+# empty array trips `set -u` on bash 3.2, which is what macOS still ships.
 popup() {
-    local target=()
+    local mode="$1" text="${2:-}" client=""
     if [ -z "${TMUX:-}" ]; then
-        local client
         client="$(newest_client)"
         [ -n "$client" ] || die 'translate.sh: no attached tmux client to draw the popup on'
-        target=(-c "$client")
     fi
-    tmux popup "${target[@]}" -w "$WIDTH" -h "$HEIGHT" \
-        -e "TR_MODE=$1" -e "TR_TEXT=${2:-}" -E "'$SELF' --inner"
+    if [ -n "$client" ]; then
+        tmux popup -c "$client" -w "$WIDTH" -h "$HEIGHT" \
+            -e "TR_MODE=$mode" -e "TR_TEXT=$text" -E "'$SELF' --inner"
+    else
+        tmux popup -w "$WIDTH" -h "$HEIGHT" \
+            -e "TR_MODE=$mode" -e "TR_TEXT=$text" -E "'$SELF' --inner"
+    fi
 }
 
 [ -n "$PY" ] || die 'translate.sh: no python3/python on PATH'
