@@ -68,13 +68,14 @@ function M.setup()
     local original_handler = vim.lsp.buf_request_all
     ---@diagnostic disable-next-line: duplicate-set-field
     vim.lsp.buf_request_all = function(bufnr, method, params, handler)
+        -- The original returns a cancel function; buf_request_sync calls it on
+        -- timeout and crashes on nil, so both paths must forward it.
         if method ~= "textDocument/hover" then
-            original_handler(bufnr, method, params, handler)
-            return
+            return original_handler(bufnr, method, params, handler)
         end
 
         -- INFO: extension with filtering empty hover results to not show them in pretty-hover plugin
-        original_handler(bufnr, method, params, function(results, ctx)
+        return original_handler(bufnr, method, params, function(results, ctx)
             local non_empty_result = {}
             for client_id, resp in pairs(results) do
                 local is_jdtls = vim.lsp.get_client_by_id(client_id).name == "jdtls"

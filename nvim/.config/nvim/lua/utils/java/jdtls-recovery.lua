@@ -17,10 +17,18 @@
 --   3. raw completion healthy → probe Blink's configured LSP provider and
 --      request queue on the exact same real Java buffer and cursor context.
 --   4. Blink failure → reset and re-probe Blink only. Empty raw completion is
---      inconclusive and never restarts jdtls.
+--      inconclusive below HARD_RESTART_GAP_MS and takes no action; after a
+--      very long gap a double-empty at an unchanged Java cursor is treated as
+--      a failed health check (a responsive-but-lobotomized server gives no
+--      other signal) and restarts jdtls.
 --   5. workspace/raw completion error or timeout → restart jdtls. A hard
 --      restart is used after a very long gap only when one of those server-side
 --      health checks actually fails.
+--   6. the Spring Boot LS is probed independently on the same gap events: a
+--      wedged spring-boot client stalls every `vim.lsp.buf_request_all`
+--      aggregate (gd/gr/hover) and Blink's LSP source even while jdtls itself
+--      is healthy, so an unresponsive one is force-stopped and started fresh
+--      via the config's `spring_boot_ls_custom` FileType autocmd.
 --
 -- Why completion probing is guarded: sending completion to a URI that jdtls
 -- has not yet received didOpen for can crash the jdtls message loop. The
@@ -57,6 +65,8 @@ local LONG_SLEEP_MS = 60 * 60 * 1000
 local HARD_RESTART_GAP_MS = 8 * 60 * 60 * 1000
 local PROBE_TIMEOUT_MS = 3000
 local BUF_PROBE_TIMEOUT_MS = 2000
+local SPRING_BOOT_PROBE_TIMEOUT_MS = 3000
+local SPRING_BOOT_RESTART_DELAY_MS = 300
 local COMPLETION_PROBE_TIMEOUT_MS = 5000
 local COMPLETION_EMPTY_RETRY_DELAY_MS = 250
 local BLINK_REPROBE_DELAY_MS = 100
@@ -100,6 +110,8 @@ local state = {
     -- User explicitly stopped JDTLS; idle/focus recovery must not auto-start it
     -- until an explicit start/restart/toggle-on clears this flag.
     manual_stopped = false,
+    -- cooldown timestamp for Spring Boot LS force-restarts
+    spring_boot_last_action_at = 0,
 }
 
 local function in_cooldown()
@@ -1484,6 +1496,119 @@ local function probe_buffer(client, buf, done)
     end, BUF_PROBE_TIMEOUT_MS)
 end
 
+--- Return a loaded real Java buffer the supplied client is attached to.
+---@param client vim.lsp.Client
+---@return integer|nil
+local function client_attached_real_java_buffer(client)
+    for buf in pairs(client.attached_buffers or {}) do
+        if is_real_java_buffer(buf) then
+            return buf
+        end
+    end
+    return nil
+end
+
+--- Probe the Spring Boot LS message loop with a minimal hover request.
+--- Any response — even an error or null result — proves the loop is alive;
+--- only a timeout marks the client dead.
+---@param client vim.lsp.Client
+---@param buf integer
+---@param done fun(alive: boolean)
+local function probe_spring_boot_client(client, buf, done)
+    local responded = false
+    local ok, req_id = client:request("textDocument/hover", {
+        textDocument = { uri = vim.uri_from_bufnr(buf) },
+        position = { line = 0, character = 0 },
+    }, function()
+        if responded then
+            return
+        end
+        responded = true
+        done(true)
+    end, buf)
+
+    if not ok then
+        done(false)
+        return
+    end
+
+    vim.defer_fn(function()
+        if responded then
+            return
+        end
+        responded = true
+        pcall(function()
+            client:cancel_request(req_id)
+        end)
+        done(false)
+    end, SPRING_BOOT_PROBE_TIMEOUT_MS)
+end
+
+--- Force-stop all Spring Boot LS clients and start a fresh one.
+--- Startup is delegated to the config's `spring_boot_ls_custom` FileType
+--- autocmd (java-config.lua) replayed on each loaded real Java buffer;
+--- `vim.lsp.start` inside it dedupes to a single new client.
+---@param reason string
+local function restart_spring_boot(reason)
+    local clients = lsp_util.get_clients_by_name("spring-boot")
+    for _, client in ipairs(clients) do
+        pcall(vim.lsp.stop_client, client.id, true)
+    end
+
+    vim.defer_fn(function()
+        local replayed = 0
+        for _, buf in ipairs(real_java_buffers()) do
+            local ok = pcall(function()
+                vim.api.nvim_buf_call(buf, function()
+                    vim.api.nvim_exec_autocmds("FileType", { group = "spring_boot_ls_custom", pattern = "java" })
+                end)
+            end)
+            if ok then
+                replayed = replayed + 1
+            end
+        end
+        logger.fmt_info(
+            "spring-boot LS restart (%s): stopped %d client(s), replayed FileType on %d buffer(s)",
+            reason,
+            #clients,
+            replayed
+        )
+    end, SPRING_BOOT_RESTART_DELAY_MS)
+end
+
+--- Probe the Spring Boot LS after a wall-clock gap and restart it when wedged.
+--- Independent of the jdtls flow: a wedged spring-boot client stalls every
+--- `vim.lsp.buf_request_all` aggregate (gd/gr/hover) and Blink's LSP source
+--- even while jdtls itself is healthy, so it needs its own health check.
+---@param gap_label string
+local function check_spring_boot_after_gap(gap_label)
+    local clients = lsp_util.get_clients_by_name("spring-boot")
+    if #clients == 0 then
+        return
+    end
+    if (vim.uv.now() - state.spring_boot_last_action_at) < ACTION_COOLDOWN_MS then
+        return
+    end
+
+    -- Probe only through a buffer the LS has received didOpen for.
+    local client = clients[1]
+    local buf = client_attached_real_java_buffer(client)
+    if not buf then
+        return
+    end
+
+    probe_spring_boot_client(client, buf, function(alive)
+        if alive then
+            logger.fmt_info("gap %s: spring-boot LS healthy", gap_label)
+            return
+        end
+        state.spring_boot_last_action_at = vim.uv.now()
+        logger.fmt_warn("gap %s: spring-boot LS unresponsive -> force-stop and restart", gap_label)
+        vim.notify("Spring Boot LS was unresponsive after sleep; restarting it", vim.log.levels.WARN)
+        restart_spring_boot("gap " .. gap_label)
+    end)
+end
+
 --- Extract item count and preview labels from a completion response.
 function summarize_completion_result(result)
     local items = result
@@ -1833,6 +1958,8 @@ local function recover_after_gap(gap, source)
     local clients = lsp_util.get_clients_by_name("jdtls")
     local gap_label = string.format("%ds/%s", math.floor(gap / 1000), source)
 
+    check_spring_boot_after_gap(gap_label)
+
     if #clients == 0 then
         if state.manual_stopped then
             logger.fmt_info("gap %s: jdtls manually stopped -> skipping auto restart", gap_label)
@@ -1886,6 +2013,23 @@ local function recover_after_gap(gap, source)
             end
 
             if result.status == "empty" then
+                -- A double-empty completion at an unchanged real Java cursor after a
+                -- very long gap (overnight/weekend suspend) is the only signal a
+                -- responsive-but-lobotomized server gives; treat it as a failed
+                -- health check. Shorter gaps stay conservative: the cursor may
+                -- legitimately sit where zero completions is a valid answer.
+                if
+                    gap >= HARD_RESTART_GAP_MS
+                    and result.first_empty
+                    and completion_probe_context_is_current(target_buf, result)
+                then
+                    restart_after_failed_health_check(
+                        gap,
+                        gap_label,
+                        "completion probe double-empty after very long gap (" .. probe_result .. ")"
+                    )
+                    return
+                end
                 logger.fmt_info(
                     "gap %s: workspace healthy; raw completion inconclusive (%s) -> no recovery action",
                     gap_label,
@@ -2110,7 +2254,32 @@ function M.setup(attach_fn)
                 )
             end)
         end
-    end, { desc = "Probe JDTLS health (workspace + current buffer + completion) without restarting" })
+
+        local boot_clients = lsp_util.get_clients_by_name("spring-boot")
+        if #boot_clients > 0 then
+            local boot_buf = client_attached_real_java_buffer(boot_clients[1])
+            if boot_buf then
+                probe_spring_boot_client(boot_clients[1], boot_buf, function(alive)
+                    vim.notify(
+                        string.format(
+                            "Spring Boot LS client %d: %s",
+                            boot_clients[1].id,
+                            alive and "HEALTHY" or "BROKEN (probe timed out, run :SpringBootLsRecover)"
+                        ),
+                        alive and vim.log.levels.INFO or vim.log.levels.ERROR
+                    )
+                end)
+            end
+        end
+    end, {
+        desc = "Probe JDTLS health (workspace + current buffer + completion + spring-boot LS) without restarting",
+    })
+
+    vim.api.nvim_create_user_command("SpringBootLsRecover", function()
+        state.spring_boot_last_action_at = vim.uv.now()
+        vim.notify("Spring Boot LS: force-stopping and restarting...", vim.log.levels.INFO)
+        restart_spring_boot("manual")
+    end, { desc = "Force-restart the Spring Boot LS for loaded Java buffers" })
 
     vim.api.nvim_create_user_command("JdtlsSoftRecover", function()
         local cur = vim.api.nvim_get_current_buf()
