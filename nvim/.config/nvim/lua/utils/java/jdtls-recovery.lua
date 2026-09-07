@@ -28,7 +28,10 @@
 --      wedged spring-boot client stalls every `vim.lsp.buf_request_all`
 --      aggregate (gd/gr/hover) and Blink's LSP source even while jdtls itself
 --      is healthy, so an unresponsive one is force-stopped and started fresh
---      via the config's `spring_boot_ls_custom` FileType autocmd.
+--      via the config's `spring_boot_ls_custom` FileType autocmd. Unlike
+--      jdtls (core for any Java project), spring-boot.nvim is optional:
+--      all of its handling is gated by `M.config.spring_boot` (default true,
+--      overridable via the `opts` argument of `setup` or at runtime).
 --
 -- Why completion probing is guarded: sending completion to a URI that jdtls
 -- has not yet received didOpen for can crash the jdtls message loop. The
@@ -48,6 +51,16 @@
 -- diagnosed after the fact.
 
 local M = {}
+
+--- User-tunable settings, merged with the `opts` argument of `setup`.
+--- Mutable at runtime too: `require("utils.java.jdtls-recovery").config.spring_boot = false`.
+M.config = {
+    -- Gate for every spring-boot.nvim integration in this module (gap
+    -- probe/auto-restart, the :JdtlsHealthCheck section, :SpringBootLsRecover).
+    -- jdtls is core for any Java project; the Spring Boot LS is not, so its
+    -- support can be disabled entirely.
+    spring_boot = true,
+}
 
 local logger = require("utils.logging-util").new({
     name = "jdtls-recovery",
@@ -1582,6 +1595,9 @@ end
 --- even while jdtls itself is healthy, so it needs its own health check.
 ---@param gap_label string
 local function check_spring_boot_after_gap(gap_label)
+    if not M.config.spring_boot then
+        return
+    end
     local clients = lsp_util.get_clients_by_name("spring-boot")
     if #clients == 0 then
         return
@@ -2165,7 +2181,9 @@ end
 
 --- Register JDTLS sleep-recovery autocmds and diagnostic commands.
 ---@param attach_fn fun(buf: integer)
-function M.setup(attach_fn)
+---@param opts? { spring_boot?: boolean } overrides merged into M.config
+function M.setup(attach_fn, opts)
+    M.config = vim.tbl_deep_extend("force", M.config, opts or {})
     state.attach_fn = attach_fn
     set_tick()
 
@@ -2255,7 +2273,7 @@ function M.setup(attach_fn)
             end)
         end
 
-        local boot_clients = lsp_util.get_clients_by_name("spring-boot")
+        local boot_clients = M.config.spring_boot and lsp_util.get_clients_by_name("spring-boot") or {}
         if #boot_clients > 0 then
             local boot_buf = client_attached_real_java_buffer(boot_clients[1])
             if boot_buf then
@@ -2276,6 +2294,10 @@ function M.setup(attach_fn)
     })
 
     vim.api.nvim_create_user_command("SpringBootLsRecover", function()
+        if not M.config.spring_boot then
+            vim.notify("Spring Boot LS support is disabled in jdtls-recovery config", vim.log.levels.WARN)
+            return
+        end
         state.spring_boot_last_action_at = vim.uv.now()
         vim.notify("Spring Boot LS: force-stopping and restarting...", vim.log.levels.INFO)
         restart_spring_boot("manual")
