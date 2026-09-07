@@ -2179,11 +2179,49 @@ local function on_java_bufenter()
     run_pending_gap_on_java_bufenter()
 end
 
+--- Warn once at startup when the Spring Boot LS is running (spring-boot.nvim
+--- is active) while `config.spring_boot` is disabled: a wedged spring-boot
+--- client would still stall gd/gr/hover and Blink, and nothing here would
+--- recover it. The LS may start after this module (both hook FileType), so if
+--- no client exists yet, only the first spring-boot LspAttach of the session
+--- is watched via a self-deleting autocmd.
+local function warn_spring_boot_unguarded()
+    if M.config.spring_boot then
+        return
+    end
+    local function warn()
+        vim.notify(
+            "spring-boot.nvim LS is running, but its recovery support is disabled"
+                .. " (jdtls-recovery config.spring_boot = false):"
+                .. " a wedged Spring Boot LS after sleep will stall gd/gr/hover/completion"
+                .. " and will not be auto-restarted. Enable the flag to get recovery.",
+            vim.log.levels.WARN
+        )
+    end
+    if #lsp_util.get_clients_by_name("spring-boot") > 0 then
+        warn()
+        return
+    end
+    vim.api.nvim_create_autocmd("LspAttach", {
+        group = vim.api.nvim_create_augroup("jdtls_recovery_spring_boot_warn", { clear = true }),
+        callback = function(ev)
+            local client = vim.lsp.get_client_by_id(ev.data.client_id)
+            if not client or client.name ~= "spring-boot" then
+                return
+            end
+            warn()
+            -- one-shot: returning true deletes the autocmd
+            return true
+        end,
+    })
+end
+
 --- Register JDTLS sleep-recovery autocmds and diagnostic commands.
 ---@param attach_fn fun(buf: integer)
 ---@param opts? { spring_boot?: boolean } overrides merged into M.config
 function M.setup(attach_fn, opts)
     M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+    warn_spring_boot_unguarded()
     state.attach_fn = attach_fn
     set_tick()
 
