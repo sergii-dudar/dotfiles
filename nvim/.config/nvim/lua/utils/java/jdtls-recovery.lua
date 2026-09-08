@@ -1012,7 +1012,11 @@ local function reattach_java_buffers(ctx, reason, operation_id)
     end
 
     pcall(function()
-        require("utils.java.jdtls-workspace-watcher").mark_recovery_refresh(reason)
+        -- Scope the recovery marker to the roots being restarted so an
+        -- unrelated workspace starting within the TTL is not dragged into a
+        -- recovery full build. Empty roots fall back to the global marker.
+        local roots = vim.tbl_keys(ctx.client_configs or {})
+        require("utils.java.jdtls-workspace-watcher").mark_recovery_refresh(reason, roots)
     end)
 
     local attached = 0
