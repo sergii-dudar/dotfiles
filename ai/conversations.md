@@ -22,6 +22,9 @@
 # nvim modules/common/file-template & utils/java/class-record-converter.lua
     copilot --resume=600bd1b8-fa63-4b7b-b0f2-d81eed34d8ad
 
+# dwl, problems with monitor ports during switching different machines in same monitor
+    claude --resume 288e839c-9960-40eb-92f8-d2b8b9612181
+
 ```
 
 # Work pc
