@@ -17,17 +17,26 @@
 -- that state, causing APT to fire for all annotated sources.
 --
 -- Lifecycle (per client): waiting_ready → settling → refreshing → post_refresh
--- (→ building → post_build when recovering) → done. After the post-refresh
--- build settles, completion-facing caches (blink.cmp LSP source, jdtls
--- classpath cache, MapStruct engine caches) are cleared so freshly generated
--- MapStruct impls resolve without further manual pokes. A failed refresh
--- dispatch is retried a few times; the watcher disposes itself (timer + detach
--- autocmd) when it finishes or when the client stops, so jdtls restarts leave
--- nothing behind and the restarted client gets a fresh watcher.
+-- (→ building → post_build when recovering) → watching → done. After the
+-- post-refresh build settles, completion-facing caches (blink.cmp LSP source,
+-- jdtls classpath cache, MapStruct engine caches) are cleared so freshly
+-- generated MapStruct impls resolve without further manual pokes. A failed
+-- refresh dispatch is retried a few times; the watcher disposes itself
+-- (timer + autocmds) when it finishes or when the client stops, so jdtls
+-- restarts leave nothing behind and the restarted client gets a fresh watcher.
+--
+-- APT verification (the "watching" stage): MapStruct APT sometimes runs while
+-- the classpath still has unresolved elements and skips impl generation,
+-- leaving a "No implementation was created … erroneous element" diagnostic
+-- (previously fixed manually via <leader>jdu). After each cycle the watcher
+-- scans workspace diagnostics for that signature, then keeps a lightweight
+-- DiagnosticChanged watch open for APT_WATCH_WINDOW_MS in case jdtls publishes
+-- it only after the workspace settled. A match re-enters the settle → refresh
+-- cycle, up to MAX_APT_RETRIES extra rounds, before giving up with a warning.
 --
 -- Idempotent: marks the client with _patched_workspace_watcher so subsequent
--- calls (e.g. additional buffers attaching) are no-ops. Fires exactly once
--- per client lifetime.
+-- calls (e.g. additional buffers attaching) are no-ops. Runs one
+-- verification-bounded refresh cycle per client lifetime.
 
 local IDLE_MS = 3000
 local POST_REFRESH_FALLBACK_MS = 10 * 1000
@@ -35,6 +44,20 @@ local RECOVERY_MARK_TTL_MS = 2 * 60 * 1000
 local PROJECTS_TIMEOUT_MS = 10 * 1000
 local REFRESH_RETRY_MS = 5 * 1000
 local MAX_REFRESH_ATTEMPTS = 3
+local APT_WATCH_WINDOW_MS = 60 * 1000
+local MAX_APT_RETRIES = 2
+
+-- MapStruct APT emits this when it ran against a classpath that still had
+-- unresolved ("erroneous") elements — the impl was skipped, not rejected
+-- because of user code. The text comes from the project's own MapStruct
+-- processor (version pinned by the build), so it only drifts on a MapStruct
+-- upgrade. Each signature is a list of substrings that must ALL be present in
+-- the diagnostic message; a message matching ANY signature counts as stale.
+-- If a future MapStruct version rewords the message, add its variant here.
+local STALE_APT_DIAG_SIGNATURES = {
+    -- wording as of MapStruct 1.x
+    { "No implementation was created", "erroneous element" },
+}
 
 local log = require("utils.logging-util").new({
     name = "jdtls.status",
@@ -89,6 +112,30 @@ local function claim_recovery_reason(client)
     end
 
     return recovery_refresh.reason or "recovery"
+end
+
+--- Return whether a diagnostic carries the MapStruct stale-APT signature
+--- (implementation skipped because of an erroneous classpath element).
+---@param diag vim.Diagnostic
+---@return boolean
+local function diag_matches_stale_apt(diag)
+    local message = diag and diag.message
+    if type(message) ~= "string" then
+        return false
+    end
+    for _, signature in ipairs(STALE_APT_DIAG_SIGNATURES) do
+        local all_present = true
+        for _, needle in ipairs(signature) do
+            if not message:find(needle, 1, true) then
+                all_present = false
+                break
+            end
+        end
+        if all_present then
+            return true
+        end
+    end
+    return false
 end
 
 --- Return a loaded Java buffer attached to the supplied client.
@@ -208,8 +255,10 @@ function M.setup(client, bufnr)
     -- Lifecycle state; see the header comment for the transitions.
     local state = "waiting_ready"
     local refresh_attempts = 0
+    local apt_retries = 0
     local disposed = false
     local detach_autocmd
+    local diag_autocmd
     local idle_timer = assert(vim.uv.new_timer())
 
     local on_idle
@@ -234,6 +283,10 @@ function M.setup(client, bufnr)
         if detach_autocmd then
             pcall(vim.api.nvim_del_autocmd, detach_autocmd)
             detach_autocmd = nil
+        end
+        if diag_autocmd then
+            pcall(vim.api.nvim_del_autocmd, diag_autocmd)
+            diag_autocmd = nil
         end
         log.fmt_debug("client_id=%d watcher disposed (%s)", client.id, why)
     end
@@ -271,10 +324,133 @@ function M.setup(client, bufnr)
         log.fmt_info("client_id=%d refreshed completion sources (%s)", client.id, why)
     end
 
-    --- Finish the watcher: refresh completion sources and tear down.
-    local function finalize(why)
+    --- Return whether an absolute path belongs to this client's workspace root.
+    ---@param path string
+    ---@return boolean
+    local function path_in_root(path)
+        local root = client.config and client.config.root_dir
+        if not root or root == "" then
+            return true
+        end
+        return path == root or path:sub(1, #root + 1) == root .. "/"
+    end
+
+    --- Find a stale MapStruct APT diagnostic inside this client's workspace.
+    ---@return vim.Diagnostic|nil diag
+    ---@return string|nil file
+    local function find_stale_apt_diag()
+        for _, diag in ipairs(vim.diagnostic.get(nil)) do
+            if diag_matches_stale_apt(diag) and diag.bufnr and vim.api.nvim_buf_is_valid(diag.bufnr) then
+                local file = vim.api.nvim_buf_get_name(diag.bufnr)
+                if path_in_root(file) then
+                    return diag, file
+                end
+            end
+        end
+        return nil, nil
+    end
+
+    --- Re-enter the settle → refresh cycle because MapStruct APT skipped impl
+    --- generation (stale "No implementation was created" diagnostic).
+    ---@param why string
+    local function begin_apt_retry(why)
+        apt_retries = apt_retries + 1
+        refresh_attempts = 0 -- fresh transient-failure budget for the new round
+        state = "settling"
+        log.fmt_warn(
+            "client_id=%d %s — re-running project config refresh (apt retry %d/%d)",
+            client.id,
+            why,
+            apt_retries,
+            MAX_APT_RETRIES
+        )
+        vim.notify(
+            string.format(
+                "🧩 MapStruct impls missing — re-refreshing project config (%d/%d)",
+                apt_retries,
+                MAX_APT_RETRIES
+            )
+        )
+        arm_idle_timer(IDLE_MS)
+    end
+
+    --- Create the DiagnosticChanged watch (once) that revives the refresh
+    --- cycle when the stale-APT diagnostic is published only after the
+    --- workspace settled. Active only in the "watching" state.
+    local function ensure_diag_watch()
+        if diag_autocmd then
+            return
+        end
+        diag_autocmd = vim.api.nvim_create_autocmd("DiagnosticChanged", {
+            callback = function(args)
+                if disposed or state ~= "watching" then
+                    return
+                end
+                local file = vim.api.nvim_buf_get_name(args.buf)
+                if not path_in_root(file) then
+                    return
+                end
+                for _, diag in ipairs(args.data and args.data.diagnostics or {}) do
+                    if diag_matches_stale_apt(diag) then
+                        begin_apt_retry("stale APT diagnostic published late in " .. file)
+                        return
+                    end
+                end
+            end,
+        })
+    end
+
+    --- Finish a refresh cycle: refresh completion sources, then verify that
+    --- APT actually produced the MapStruct impls. If the stale-APT diagnostic
+    --- is present (or shows up during the watch window) the cycle re-runs;
+    --- otherwise the watcher disposes when the window expires clean.
+    ---@param why string
+    local function finish_cycle(why)
         refresh_completion_sources(why)
-        dispose("finalized: " .. why)
+        -- Any further apt-retry rounds only need the config refresh,
+        -- not another recovery full build.
+        recovery_reason = nil
+
+        local stale, stale_file = find_stale_apt_diag()
+        if stale then
+            if apt_retries < MAX_APT_RETRIES then
+                begin_apt_retry("stale APT diagnostic in " .. tostring(stale_file))
+                return
+            end
+            log.fmt_warn(
+                "client_id=%d stale APT diagnostic persisted after %d retries (%s)",
+                client.id,
+                MAX_APT_RETRIES,
+                tostring(stale_file)
+            )
+            vim.notify(
+                string.format(
+                    "MapStruct impls still missing after %d refresh retries — run <leader>jdu manually",
+                    MAX_APT_RETRIES
+                ),
+                vim.log.levels.WARN
+            )
+            dispose("stale APT diagnostic persisted after " .. MAX_APT_RETRIES .. " retries")
+            return
+        end
+
+        if apt_retries > 0 then
+            vim.notify("🧩 MapStruct impls resolved after project config re-refresh")
+        end
+        if apt_retries >= MAX_APT_RETRIES then
+            dispose("finalized (apt retry budget exhausted): " .. why)
+            return
+        end
+
+        state = "watching"
+        ensure_diag_watch()
+        arm_idle_timer(APT_WATCH_WINDOW_MS)
+        log.fmt_info(
+            "client_id=%d cycle done (%s) — watching diagnostics for %dms",
+            client.id,
+            why,
+            APT_WATCH_WINDOW_MS
+        )
     end
 
     --- Dispatch the project config refresh, retrying on transient failures.
@@ -287,7 +463,7 @@ function M.setup(client, bufnr)
             client.id,
             refresh_attempts
         )
-        if refresh_attempts == 1 then
+        if refresh_attempts == 1 and apt_retries == 0 then
             vim.notify("🏄 JDTLS settled — refreshing project config")
         end
         update_client_projects_config(client, bufnr, function(sent)
@@ -355,7 +531,7 @@ function M.setup(client, bufnr)
         end)
         if not ok then
             log.fmt_warn("client_id=%d could not request full workspace build", client.id)
-            finalize("recovery build request failed: " .. reason)
+            finish_cycle("recovery build request failed: " .. reason)
         end
     end
 
@@ -379,10 +555,12 @@ function M.setup(client, bufnr)
             if recovery_reason then
                 request_full_workspace_build(recovery_reason)
             else
-                finalize("project config refresh settled")
+                finish_cycle("project config refresh settled")
             end
         elseif state == "post_build" then
-            finalize("recovery build settled: " .. tostring(recovery_reason))
+            finish_cycle("recovery build settled: " .. tostring(recovery_reason))
+        elseif state == "watching" then
+            dispose("diagnostic watch window expired clean")
         end
     end)
 
@@ -414,7 +592,8 @@ function M.setup(client, bufnr)
         end
         -- Re-arm the settle debounce only in states waiting for the workspace
         -- to go quiet; progress during an in-flight refresh request must not
-        -- trigger the next stage early.
+        -- trigger the next stage early, and the "watching" window keeps its
+        -- fixed deadline (re-arming with IDLE_MS would shorten it).
         if not disposed and (state == "settling" or state == "post_refresh" or state == "post_build") then
             arm_idle_timer(IDLE_MS)
         end
