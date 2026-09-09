@@ -217,5 +217,17 @@ return {
         build = "npm i",
         config = true,
     },
+    -- A Neovim plugin hiding your colorcolumn when unneeded.
+    {
+        "m4xshen/smartcolumn.nvim",
+        opts = {
+            colorcolumn = "150",
+            disabled_filetypes = { "help", "text", "markdown" },
+            custom_colorcolumn = {},
+            scope = "file",
+            editorconfig = true,
+        },
+    },
     -- { "skywind3000/asyncrun.vim" },
+    -- { "b0o/schemastore.nvim" }
 }
