@@ -33,6 +33,15 @@ return {
             },
         },
     },
+    -- ci or ca (brackets[b], quotes[q], function call[f], argument[a], tag[t]) instead of "') etc
+    {
+        "nvim-mini/mini.ai",
+        opts = {},
+    },
+    -- {
+    --     "nvim-mini/mini.jump",
+    --     opts = {},
+    -- },
     {
         "nvim-mini/mini.splitjoin",
         opts = {
