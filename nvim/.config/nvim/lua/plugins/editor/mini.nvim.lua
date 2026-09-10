@@ -42,6 +42,9 @@ return {
     --     "nvim-mini/mini.jump",
     --     opts = {},
     -- },
+    { -- or mini.jup
+        "unblevable/quick-scope",
+    },
     {
         "nvim-mini/mini.splitjoin",
         opts = {

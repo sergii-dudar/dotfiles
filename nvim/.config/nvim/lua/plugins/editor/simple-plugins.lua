@@ -121,9 +121,6 @@ return {
         },
     },
     {
-        "unblevable/quick-scope",
-    },
-    {
         "folke/flash.nvim",
         event = "VeryLazy",
         opts = {
