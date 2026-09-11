@@ -18,6 +18,19 @@
 --     use they pass straight through to the terminal.
 --   * tmux has no active `M-` bindings (`tmux/.tmux.conf:136-139` are commented out), and
 --     ghostty / kitty / alacritty all send Option as Alt.
+--   * kanata (`keyboard/kanata/`) reshapes Alt, so only Alt+<letter> is used below - never
+--     Alt+<arrow>:
+--       - macOS (`macos/kanata.kbd:169`) swaps Cmd and Option, so the key labelled Cmd is what
+--         emits Left Alt, and holding it also activates the `l_alt` layer. That layer is
+--         transparent for letters but rebinds the arrow positions
+--         (`macos/kanata.kbd:276`): Alt+Left/Down/Right are volume down / mute / volume up.
+--         `l_ctl` does the same to Ctrl+Left/Down/Right (media prev / play-pause / next).
+--       - Alt can also come from the home-row mods (hold `f` -> `lalt`, hold `j` -> `ralt`,
+--         `macos/kanata.kbd:100,102`), which do *not* activate `l_alt` - one more reason to keep
+--         Alt+<arrow> out of this file, since it would behave differently per Alt source.
+--       - Linux (`linux/kanata.kbd`) has `l_alt` commented out, no Cmd/Option swap, and its
+--         home-row `f`/`j` hold `lmet`/`rmet`, so Alt there is just the physical Alt key.
+--     Nothing below uses Alt+<arrow>, so the same mappings work on both machines.
 --
 -- Note: plain `<C-v>` + `I` / `A` / `$A` / `c` still works and is often enough for pure column
 -- edits. This plugin is for the cases where each cursor needs its own motion (`ciw` over words of
@@ -30,10 +43,6 @@ return {
         -- Clone the cursor onto the line below/above at the same column (IntelliJ "clone caret").
         { "<M-J>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor below" },
         { "<M-K>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor above" },
-
-        -- Same as above, but leave the passed-over line without a cursor.
-        { "<M-Down>", function() require("multicursor-nvim").lineSkipCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: skip line below" },
-        { "<M-Up>", function() require("multicursor-nvim").lineSkipCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: skip line above" },
 
         -- Turn the current visual selection into cursors - one per line. This is the
         -- `<C-v>`-block -> carets flow (works from `v` and `V` too).
@@ -80,9 +89,12 @@ return {
         -- Layer mappings are buffer-local and live only while the buffer has cursors, so they can
         -- safely shadow global keys - `<Esc>` is `nohlsearch` in `config/keymaps.lua:10`, and it
         -- goes back to that as soon as the cursors are gone.
+        -- `<C-n>` / `<C-p>` shadow harpoon next/prev, but only for as long as the buffer actually
+        -- has cursors - they are the obvious "next/previous" keys and, unlike Alt+arrows, kanata
+        -- leaves them alone.
         mc.addKeymapLayer(function(layer_set)
-            layer_set({ "n", "x" }, "<M-Left>", mc.prevCursor, { desc = "Multicursor: prev cursor" })
-            layer_set({ "n", "x" }, "<M-Right>", mc.nextCursor, { desc = "Multicursor: next cursor" })
+            layer_set({ "n", "x" }, "<C-n>", mc.nextCursor, { desc = "Multicursor: next cursor" })
+            layer_set({ "n", "x" }, "<C-p>", mc.prevCursor, { desc = "Multicursor: prev cursor" })
             layer_set({ "n", "x" }, "<M-d>", mc.deleteCursor, { desc = "Multicursor: delete main cursor" })
             layer_set("n", "<Esc>", escape_cursors, { desc = "Multicursor: enable / clear cursors" })
         end)
@@ -98,6 +110,13 @@ return {
         -- hl(0, "MultiCursorDisabledCursor", { reverse = true })
         -- hl(0, "MultiCursorDisabledVisual", { link = "Visual" })
         -- hl(0, "MultiCursorDisabledSign", { link = "SignColumn" })
+
+        -- `lineSkipCursor` (move down/up leaving no cursor on the passed-over line) is deliberately
+        -- unbound: the natural keys for it are Alt+Down/Up, which kanata's `l_alt` layer turns into
+        -- mute / volume on macOS, and every remaining free Alt letter is a worse mnemonic than
+        -- nothing. Bind it here if the gap-skipping flow turns out to matter:
+        -- vim.keymap.set({ "n", "x" }, "<key>", function() mc.lineSkipCursor(1) end)
+        -- vim.keymap.set({ "n", "x" }, "<key>", function() mc.lineSkipCursor(-1) end)
 
         -- Other actions worth knowing about, left unbound to keep the Alt space small:
         -- mc.addCursorOperator     -- `gaip` -> a cursor on every line of a paragraph
