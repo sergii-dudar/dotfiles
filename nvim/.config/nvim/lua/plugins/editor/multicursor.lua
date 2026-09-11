@@ -1,62 +1,8 @@
--- Multiple cursors, IntelliJ-style (clone caret below/above, column selection -> carets,
--- "add selection for next occurrence").
---
--- Chosen over `mg979/vim-visual-multi` and `smoka7/multicursors.nvim`: its cursors are real Neovim
--- cursors running real commands, so LSP / treesitter / blink.cmp / undo / dot-repeat / macros all
--- work per cursor. It also has a "keymap layer" concept - extra mappings exist only while a buffer
--- actually has cursors - which matters here because the leader and <C-*> space is already full.
---
--- Why these keys (checked against the *running* config, AeroSpace, kanata and tmux - note that a
--- lot of the mappings involved come from LazyVim and its extras under
--- `~/.local/share/nvim/lazy/LazyVim`, not from anything in this repo, so grepping this config alone
--- is not enough; dump `nvim_get_keymap` from a loaded session instead):
---   * **No Alt+Shift anywhere below.** `<M-J>` / `<M-K>` were tried first and arrive as plain
---     `<M-j>` / `<M-k>` - Shift is lost somewhere in the kanata -> terminal -> tmux path, so they
---     silently ran mini.move's line-move instead. nvim itself keeps them distinct
---     (`<M-J>` -> `<80><fc>\6J` vs `<M-j>`), so the mapping was fine and the input was not.
---     Everything here is therefore unshifted Alt+<letter>.
---   * `<M-h/j/k/l>` are `mini.move`, pulled in by the `lazyvim.plugins.extras.editor.mini-move`
---     import in `config/lazy.lua`. They stay untouched globally; `<M-j>` / `<M-k>` are re-used only
---     inside multicursor's keymap layer (see `config` below).
---   * `<C-n>` / `<C-p>` are harpoon (`plugins/navigation/harpoon.lua`), `<C-h/j/k/l>` are
---     vim-tmux-navigator, `<C-d>` / `<C-u>` are centered scroll, `<C-]>` is toggle.nvim,
---     `<C-s>` is save-all, `<C-a>` is select-all - none of them are reused below.
---   * On macOS AeroSpace owns `alt-{e,f,s,w,tab,enter,equal,minus,comma,period,slash,1-9}` in
---     `mode.main`; nothing below collides.
---   * tmux has no active `M-` bindings (`tmux/.tmux.conf:136-139` are commented out), and
---     ghostty / kitty / alacritty all send Option as Alt.
---   * kanata (`keyboard/kanata/`) reshapes Alt, so only Alt+<letter> is used below - never
---     Alt+<arrow>:
---       - macOS (`macos/kanata.kbd:169`) swaps Cmd and Option, so the key labelled Cmd is what
---         emits Left Alt, and holding it also activates the `l_alt` layer. That layer is
---         transparent for letters but rebinds the arrow positions
---         (`macos/kanata.kbd:276`): Alt+Left/Down/Right are volume down / mute / volume up.
---         `l_ctl` does the same to Ctrl+Left/Down/Right (media prev / play-pause / next).
---       - Alt can also come from the home-row mods (hold `f` -> `lalt`, hold `j` -> `ralt`,
---         `macos/kanata.kbd:100,102`), which do *not* activate `l_alt` - one more reason to keep
---         Alt+<arrow> out of this file, since it would behave differently per Alt source.
---       - Linux (`linux/kanata.kbd`) has `l_alt` commented out, no Cmd/Option swap, and its
---         home-row `f`/`j` hold `lmet`/`rmet`, so Alt there is just the physical Alt key.
---     Nothing below uses Alt+<arrow>, so the same mappings work on both machines.
---
--- Note: plain `<C-v>` + `I` / `A` / `$A` / `c` still works and is often enough for pure column
--- edits. This plugin is for the cases where each cursor needs its own motion (`ciw` over words of
--- different length, `.` repeat, LSP-aware edits at every caret).
 return {
     "jake-stewart/multicursor.nvim",
     branch = "1.0", -- pinned as recommended by upstream README
     -- stylua: ignore
     keys = {
-        -- Clone the cursor down / up at the same column (IntelliJ "clone caret") - the main entry
-        -- point. Bottom-row pair: `m` = down, `b` = up. Once at least one extra cursor exists,
-        -- `<M-j>` / `<M-k>` do the same thing from the keymap layer below, so the usual flow is
-        -- `<M-m>` once and then `<M-j>` to keep going.
-        --
-        -- `<M-m>` and NOT `<M-n>`: Option+n is one of the five macOS dead keys on the US layout
-        -- (Option + e / i / n / u / backtick produce combining accents - `n` is the tilde used for
-        -- "n~"). The text-input layer swallows it before the terminal can turn it into `ESC n`,
-        -- even with `macos-option-as-alt` set, so `<M-n>` never reaches nvim while the neighbouring
-        -- `<M-b>` works fine. Keep e / i / n / u / backtick out of Alt mappings on this machine.
         { "<M-m>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor below" },
         { "<M-b>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor above" },
 
