@@ -6,16 +6,23 @@
 -- work per cursor. It also has a "keymap layer" concept - extra mappings exist only while a buffer
 -- actually has cursors - which matters here because the leader and <C-*> space is already full.
 --
--- Why these keys (checked against this config, AeroSpace and tmux):
---   * `<M-h/j/k/l>` are `mini.move` (LazyVim `editor.mini-move` extra), so cloning uses the shifted
---     pair `<M-J>` / `<M-K>`, which reads nicely as "move line" + shift.
+-- Why these keys (checked against the *running* config, AeroSpace, kanata and tmux - note that a
+-- lot of the mappings involved come from LazyVim and its extras under
+-- `~/.local/share/nvim/lazy/LazyVim`, not from anything in this repo, so grepping this config alone
+-- is not enough; dump `nvim_get_keymap` from a loaded session instead):
+--   * **No Alt+Shift anywhere below.** `<M-J>` / `<M-K>` were tried first and arrive as plain
+--     `<M-j>` / `<M-k>` - Shift is lost somewhere in the kanata -> terminal -> tmux path, so they
+--     silently ran mini.move's line-move instead. nvim itself keeps them distinct
+--     (`<M-J>` -> `<80><fc>\6J` vs `<M-j>`), so the mapping was fine and the input was not.
+--     Everything here is therefore unshifted Alt+<letter>.
+--   * `<M-h/j/k/l>` are `mini.move`, pulled in by the `lazyvim.plugins.extras.editor.mini-move`
+--     import in `config/lazy.lua`. They stay untouched globally; `<M-j>` / `<M-k>` are re-used only
+--     inside multicursor's keymap layer (see `config` below).
 --   * `<C-n>` / `<C-p>` are harpoon (`plugins/navigation/harpoon.lua`), `<C-h/j/k/l>` are
 --     vim-tmux-navigator, `<C-d>` / `<C-u>` are centered scroll, `<C-]>` is toggle.nvim,
 --     `<C-s>` is save-all, `<C-a>` is select-all - none of them are reused below.
---   * On macOS AeroSpace owns `alt-{e,f,s,w,tab,enter,equal,minus,comma,period,slash,1-9}` and
---     `alt-shift-{e,f,h,r,semicolon,tab,1-9}` in `mode.main`; nothing below collides.
---     `alt-shift-j` / `alt-shift-k` are bound by AeroSpace only inside `mode.service`, so in normal
---     use they pass straight through to the terminal.
+--   * On macOS AeroSpace owns `alt-{e,f,s,w,tab,enter,equal,minus,comma,period,slash,1-9}` in
+--     `mode.main`; nothing below collides.
 --   * tmux has no active `M-` bindings (`tmux/.tmux.conf:136-139` are commented out), and
 --     ghostty / kitty / alacritty all send Option as Alt.
 --   * kanata (`keyboard/kanata/`) reshapes Alt, so only Alt+<letter> is used below - never
@@ -40,24 +47,36 @@ return {
     branch = "1.0", -- pinned as recommended by upstream README
     -- stylua: ignore
     keys = {
-        -- Clone the cursor onto the line below/above at the same column (IntelliJ "clone caret").
-        { "<M-J>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor below" },
-        { "<M-K>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor above" },
+        -- Clone the cursor down / up at the same column (IntelliJ "clone caret") - the main entry
+        -- point. Bottom-row pair: `m` = down, `b` = up. Once at least one extra cursor exists,
+        -- `<M-j>` / `<M-k>` do the same thing from the keymap layer below, so the usual flow is
+        -- `<M-m>` once and then `<M-j>` to keep going.
+        --
+        -- `<M-m>` and NOT `<M-n>`: Option+n is one of the five macOS dead keys on the US layout
+        -- (Option + e / i / n / u / backtick produce combining accents - `n` is the tilde used for
+        -- "n~"). The text-input layer swallows it before the terminal can turn it into `ESC n`,
+        -- even with `macos-option-as-alt` set, so `<M-n>` never reaches nvim while the neighbouring
+        -- `<M-b>` works fine. Keep e / i / n / u / backtick out of Alt mappings on this machine.
+        { "<M-m>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor below" },
+        { "<M-b>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor above" },
 
         -- Turn the current visual selection into cursors - one per line. This is the
         -- `<C-v>`-block -> carets flow (works from `v` and `V` too).
         { "<M-v>", function() require("multicursor-nvim").visualToCursors() end, mode = "x", desc = "Multicursor: selection -> cursors" },
 
         -- Word/selection under cursor -> next/previous occurrence (IntelliJ `Alt+J`, VSCode `<C-d>`).
-        { "<M-n>", function() require("multicursor-nvim").matchAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add at next match" },
-        { "<M-N>", function() require("multicursor-nvim").matchAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add at prev match" },
-        { "<M-x>", function() require("multicursor-nvim").matchSkipCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: skip this match" },
-        { "<M-a>", function() require("multicursor-nvim").matchAllAddCursors() end, mode = { "n", "x" }, desc = "Multicursor: add at all matches" },
+        -- NOTE: the keys below are stale - `<M-b>` is now the clone-caret pair above, `<M-n>` is a
+        -- macOS dead key (see above) and `<M-m>` is taken. Pick from the Alt letters that are both
+        -- free and not dead keys before re-enabling any of these: g, o, t, y, z.
+        -- { "<M-n>", function() require("multicursor-nvim").matchAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add at next match" },
+        -- { "<M-b>", function() require("multicursor-nvim").matchAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add at prev match" },
+        -- { "<M-x>", function() require("multicursor-nvim").matchSkipCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: skip this match" },
+        -- { "<M-a>", function() require("multicursor-nvim").matchAllAddCursors() end, mode = { "n", "x" }, desc = "Multicursor: add at all matches" },
 
         -- Split the selection on a regex, leaving a cursor between the pieces (e.g. split a
         -- comma-separated argument list), or add a cursor at every regex match inside it.
-        { "<M-p>", function() require("multicursor-nvim").splitCursors() end, mode = "x", desc = "Multicursor: split selection by regex" },
-        { "<M-m>", function() require("multicursor-nvim").matchCursors() end, mode = "x", desc = "Multicursor: match in selection by regex" },
+        -- { "<M-p>", function() require("multicursor-nvim").splitCursors() end, mode = "x", desc = "Multicursor: split selection by regex" },
+        -- { "<M-m>", function() require("multicursor-nvim").matchCursors() end, mode = "x", desc = "Multicursor: match in selection by regex" },
 
         -- Freeze the extra cursors so only the main one moves; press again to drop a cursor where
         -- the main one currently is. `<Esc>` (see the layer below) un-freezes them.
@@ -91,11 +110,21 @@ return {
         -- goes back to that as soon as the cursors are gone.
         -- `<C-n>` / `<C-p>` shadow harpoon next/prev, but only for as long as the buffer actually
         -- has cursors - they are the obvious "next/previous" keys and, unlike Alt+arrows, kanata
-        -- leaves them alone.
+        -- leaves them alone. `<M-j>` / `<M-k>` likewise shadow mini.move's line-move only while
+        -- multicursor is active, which is where the IntelliJ "hold modifier + j" muscle memory
+        -- lives: start with `<M-m>` / `<M-b>`, then keep going with `<M-j>` / `<M-k>`. Moving a
+        -- single line is meaningless with several cursors anyway, and mini.move comes straight back
+        -- once the cursors collapse.
         mc.addKeymapLayer(function(layer_set)
+            layer_set({ "n", "x" }, "<M-j>", function()
+                mc.lineAddCursor(1)
+            end, { desc = "Multicursor: add cursor below" })
+            layer_set({ "n", "x" }, "<M-k>", function()
+                mc.lineAddCursor(-1)
+            end, { desc = "Multicursor: add cursor above" })
             layer_set({ "n", "x" }, "<C-n>", mc.nextCursor, { desc = "Multicursor: next cursor" })
             layer_set({ "n", "x" }, "<C-p>", mc.prevCursor, { desc = "Multicursor: prev cursor" })
-            layer_set({ "n", "x" }, "<M-d>", mc.deleteCursor, { desc = "Multicursor: delete main cursor" })
+            layer_set({ "n", "x" }, "<M-c>", mc.deleteCursor, { desc = "Multicursor: delete main cursor" })
             layer_set("n", "<Esc>", escape_cursors, { desc = "Multicursor: enable / clear cursors" })
         end)
 
