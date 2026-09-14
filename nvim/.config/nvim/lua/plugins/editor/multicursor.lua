@@ -3,12 +3,13 @@ return {
     branch = "1.0", -- pinned as recommended by upstream README
     -- stylua: ignore
     keys = {
-        { "<M-m>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor below" },
-        { "<M-b>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = { "n", "x" }, desc = "Multicursor: add cursor above" },
+        { "<M-m>", function() require("multicursor-nvim").lineAddCursor(1) end, mode = "n", desc = "Multicursor: add cursor below" },
+        { "<M-b>", function() require("multicursor-nvim").lineAddCursor(-1) end, mode = "n", desc = "Multicursor: add cursor above" },
 
         -- Turn the current visual selection into cursors - one per line. This is the
         -- `<C-v>`-block -> carets flow (works from `v` and `V` too).
-        { "<M-v>", function() require("multicursor-nvim").visualToCursors() end, mode = "x", desc = "Multicursor: selection -> cursors" },
+        -- { "<M-v>", function() require("multicursor-nvim").visualToCursors() end, mode = "x", desc = "Multicursor: selection -> cursors" },
+        { "<M-m>", function() require("multicursor-nvim").visualToCursors() end, mode = "x", desc = "Multicursor: selection -> cursors" },
 
         -- Word/selection under cursor -> next/previous occurrence (IntelliJ `Alt+J`, VSCode `<C-d>`).
         -- NOTE: the keys below are stale - `<M-b>` is now the clone-caret pair above, `<M-n>` is a
