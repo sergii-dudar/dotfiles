@@ -61,5 +61,5 @@ vim.api.nvim_create_user_command("PlantumlOpenSvg", function()
 end, { desc = "Open current PlantUML diagram as a standalone SVG in a new browser tab" })
 
 -- stylua: ignore
-vim.api.nvim_set_keymap("n", "<leader>ru", ":PlantumlOpenSvg<CR>", { noremap = true, silent = true, desc = "PlantUML: open diagram as standalone SVG tab" })
-vim.api.nvim_set_keymap("n", "<leader>rr", ":PlantumlRun<CR>", { noremap = true, silent = true, desc = "Run plantuml" })
+vim.keymap.set("n", "<leader>ru", "<cmd>PlantumlOpenSvg<CR>", { buffer = true, desc = "PlantUML: open diagram as standalone SVG tab" })
+vim.keymap.set("n", "<leader>rr", "<cmd>PlantumlRun<CR>", { buffer = true, desc = "Run plantuml" })
