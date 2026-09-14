@@ -96,12 +96,12 @@ return {
             display = "float", -- "float" or "picker"
             picker = "snacks", -- "auto", "telescope", "fzf", "snacks", "mini"
             keymaps = {
-                translate = "<leader>tr",
+                translate = "<leader>tt",
                 translate_word = "<leader>tw",
             },
         },
         keys = {
-            { "<leader>tr", mode = "v", desc = "Translate selection" },
+            { "<leader>tt", mode = "v", desc = "Translate selection" },
             { "<leader>tw", desc = "Translate word" },
         },
     },
