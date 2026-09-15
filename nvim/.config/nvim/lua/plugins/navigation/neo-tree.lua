@@ -10,6 +10,11 @@ return {
         { "<leader>e", neotree_util.toggle_context_explorer, desc = "Toggle Context Explorer" },
         -- { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
         { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
+
+        -- Neotree reveal show
+        -- Neotree float git_status
+        --
+        -- Neotree git_status reveal show
     },
     opts = {
         source_selector = {

@@ -1,4 +1,14 @@
 return {
+    -- multi-buffer diff view
+    {
+        "martindur/zdiff.nvim",
+        cmd = "Zdiff",
+        keys = {
+            { "<leader>zd", "<cmd>Zdiff<cr>", desc = "Zdiff (uncommitted)" },
+            { "<leader>zD", "<cmd>Zdiff main<cr>", desc = "Zdiff (vs main)" },
+        },
+        opts = {},
+    },
     {
         "lewis6991/gitsigns.nvim",
         keys = {
