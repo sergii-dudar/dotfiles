@@ -282,6 +282,10 @@ gaps.outer.right =      0
     run = "move-node-to-workspace 2"
 
 [[on-window-detected]]
+    if = 'test %{app-bundle-id} = com.microsoft.Outlook'
+    run = [ 'layout tiling', "move-node-to-workspace 3"  ]
+
+[[on-window-detected]]
     if = 'test %{app-bundle-id} = com.microsoft.teams2'
     run = "move-node-to-workspace 9"
 

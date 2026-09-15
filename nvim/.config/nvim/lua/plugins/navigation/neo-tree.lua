@@ -5,26 +5,9 @@ return {
     -- tag = "3.41.0",
     -- cond = require("utils.project-util").is_multifile_proj,
     keys = {
-        -- Keep <leader>E as cwd Neo-tree and make <leader>e context-aware with reveal as its fallback.
-        -- { "<leader>E", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
         { "<leader>e", neotree_util.toggle_context_explorer, desc = "Toggle Context Explorer" },
-        -- { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
         { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
-
-        -- Git-changes counterparts of <leader>e / <leader>E (overrides LazyVim's plain <leader>ge toggle).
-        { "<leader>ge", neotree_util.toggle_git_explorer, desc = "Toggle Git Explorer (changes)" },
-        {
-            "<leader>gE",
-            function()
-                neotree_util.toggle_git_explorer({ position = "float" })
-            end,
-            desc = "Toggle Git Explorer (float)",
-        },
-
-        -- Neotree reveal show
-        -- Neotree float git_status
-        --
-        -- Neotree git_status reveal show
+        { "<leader>ge", neotree_util.toggle_git_explorer, desc = "Git Explorer (changes)" },
     },
     opts = {
         source_selector = {
