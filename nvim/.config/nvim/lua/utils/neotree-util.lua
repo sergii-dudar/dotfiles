@@ -1,6 +1,7 @@
 -- Neo-tree helpers: context-aware explorer routing and cross-instance shared clipboard.
 --
 -- • toggle_context_explorer — route special buffers to their explorer, otherwise reveal them in Neo-tree
+-- • toggle_git_explorer — toggle the git_status source (sidebar or float), revealing the current file
 -- • copy_to_shared_clipboard — copy file/dir to shared clipboard
 -- • paste_from_shared_clipboard — paste from shared clipboard into neo-tree target
 -- • shared_copy / shared_copy_visual — copy current/selected buffer lines to clipboard file
@@ -72,6 +73,37 @@ function M.toggle_context_explorer()
     end
 
     vim.cmd("Neotree reveal show")
+end
+
+--- Resolve the path to reveal for the current buffer, or nil when it cannot be revealed safely.
+--- Neo-tree prompts to change the cwd when the revealed file lives outside of it, and virtual
+--- buffers (jdt://, term://, …) are not files at all, so both cases skip the reveal instead.
+---@return string|nil
+local function resolve_reveal_file()
+    local path = require("neo-tree.sources.manager").get_path_to_reveal()
+    if not path or vim.fn.filereadable(path) == 0 then
+        return nil
+    end
+    if not require("neo-tree.utils").is_subpath(vim.uv.cwd(), path) then
+        return nil
+    end
+    return path
+end
+
+--- Toggle the Neo-tree git_status view, revealing the current file when it is part of the cwd.
+---@param opts { position: string?, action: string? }? position defaults to "left", action to "focus"
+function M.toggle_git_explorer(opts)
+    opts = opts or {}
+    local reveal_file = resolve_reveal_file()
+
+    require("neo-tree.command").execute({
+        source = "git_status",
+        action = opts.action or "focus",
+        position = opts.position or "left",
+        toggle = true,
+        reveal = reveal_file ~= nil,
+        reveal_file = reveal_file,
+    })
 end
 
 --- Copy files or directories to the shared clipboard.

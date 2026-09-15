@@ -11,6 +11,16 @@ return {
         -- { "<leader>e", "<cmd>Neotree reveal show<cr>", desc = "Show current in NeoTree", remap = true },
         { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
 
+        -- Git-changes counterparts of <leader>e / <leader>E (overrides LazyVim's plain <leader>ge toggle).
+        { "<leader>ge", neotree_util.toggle_git_explorer, desc = "Toggle Git Explorer (changes)" },
+        {
+            "<leader>gE",
+            function()
+                neotree_util.toggle_git_explorer({ position = "float" })
+            end,
+            desc = "Toggle Git Explorer (float)",
+        },
+
         -- Neotree reveal show
         -- Neotree float git_status
         --
