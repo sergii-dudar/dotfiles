@@ -1,4 +1,4 @@
-" Custom Ukrainian insert-mode keymap overrides.
+" Custom Ukrainian insert-mode keymap overrides. to switch lang use [ ctrl+6 ] in insert mode.
 " default mapping `:echo globpath(&rtp, 'keymap/ukrainian-jcuken.vim')`
 "   macos - /opt/homebrew/share/nvim/runtime/keymap/ukrainian-jcuken.vim
 "   linux - /usr/share/nvim/runtime/keymap/ukrainian-jcuken.vim
