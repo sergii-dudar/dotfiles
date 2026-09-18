@@ -55,7 +55,7 @@ if isMacOs; then
     export PATH="$HOME/.rbi/bin:$PATH"
 
     # brew
-    export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+    export HOMEBREW_NO_ENV_HINTS=1
 else
 
     alias out="sudo pkill -KILL -u serhii"
