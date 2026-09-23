@@ -87,6 +87,12 @@ emits diagnostics + signs into the buffer, opens Trouble view).
   `<C-o>` jdtls vs raw opener
 - `java/static-import-explorer/` — ripgrep + Snacks-picker fallback for
   `import static` when JDTLS doesn't surface the code action
+- `java/project-references/` — `gR`: fast, cwd-only references of the method
+  under the cursor for *this* type only (no jdtls search). One ripgrep for
+  `.m(` / `::m` / `m(`, then each hit is verified with treesitter by resolving
+  the receiver's declared type. `<C-a>` toggles strict / all textual calls.
+  Wired through `utils.lang.lsp-navigation.project_references()` +
+  `utils/lang/java/lsp-java.lua`; non-Java falls back to `Snacks.picker.grep_word()`
 - `bash/`, `go/`, `lua/`, `python/`, `rust/` — language adapters, each with
   a `<framework>-test/` runner + `test-report/` parser
   (bashunit / cargo / busted / pytest / go test). Per-language docs live in

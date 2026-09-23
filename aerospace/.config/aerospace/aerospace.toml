@@ -179,8 +179,10 @@ gaps.outer.right =      0
     alt-f = 'fullscreen --no-outer-gaps'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#focus-monitor
-    alt-comma = 'focus-monitor --wrap-around prev'
-    alt-period = 'focus-monitor --wrap-around next'
+    # alt-comma = 'focus-monitor --wrap-around prev'
+    # alt-period = 'focus-monitor --wrap-around next'
+    cmd-comma = 'focus-monitor --wrap-around prev'
+    cmd-period = 'focus-monitor --wrap-around next'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'

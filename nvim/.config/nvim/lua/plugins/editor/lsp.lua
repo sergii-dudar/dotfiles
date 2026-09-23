@@ -36,6 +36,8 @@ return {
                         { "gd", function() require("utils.lang.lsp-navigation").definition() end, desc = "Goto Definition", has = "definition" },
                         { "gD", function() require("utils.lang.lsp-navigation").declaration() end, desc = "Goto Declaration" },
                         { "gr", function() require("utils.lang.lsp-navigation").references() end, desc = "References (+@Mapping)", nowait = true },
+                        -- fast, cwd-only, this-type-only references (ripgrep + treesitter, no LSP search)
+                        { "gR", function() require("utils.lang.lsp-navigation").project_references() end, desc = "References in project (fast)", nowait = true },
                         -- { "<leader>k", function() return vim.lsp.buf.hover() end, desc = "Hover", },
                         { "<leader>k", function()
                             if vim.bo.filetype == "http" then

@@ -2,7 +2,8 @@
 -- navigation handlers layered over standard LSP behavior.
 --
 -- - resolve_imports - auto-apply safe Java import/code actions with fallback
--- - navigation - MapStruct and Lombok-aware definition/declaration handlers
+-- - navigation - MapStruct and Lombok-aware definition/declaration handlers,
+--   plus the ripgrep+treesitter project-scoped references handler for `gR`
 
 local lsp_lang_common = require("utils.lang.lsp-common")
 
@@ -93,6 +94,25 @@ local function lombok_builder_handler()
     }
 end
 
+--- Build the project-scoped references handler for Java LSP `gR`.
+--- Claims the request whenever `modules.java.project-references` can name a
+--- `<Type>#<method>` under the cursor (declaration or call site) and opens its
+--- ripgrep+treesitter picker over cwd. On any other symbol it declines, so the
+--- generic `Snacks.picker.grep_word()` fallback runs instead.
+---@return lang.LspNavigationHandler
+local function project_references_handler()
+    return {
+        name = "java-project-references",
+        navigate = function(ctx)
+            if ctx.filetype ~= "java" then
+                return false
+            end
+
+            return require("modules.java.project-references").find({ row = ctx.row, col = ctx.col }) == true
+        end,
+    }
+end
+
 M.navigation = {
     definition = {
         mapstruct_path_handler(),
@@ -103,6 +123,9 @@ M.navigation = {
     },
     references = {
         mapstruct_references_handler(),
+    },
+    project_references = {
+        project_references_handler(),
     },
 }
 

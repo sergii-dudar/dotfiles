@@ -84,6 +84,9 @@ vim.opt.pumborder = "rounded" -- border for native popup-menu (completion/wildme
 -- Save undo history
 vim.opt.undofile = true
 
+-- Autoreload when file was changed outside of nvim
+vim.opt.autoread = true
+
 --LazyVim
 vim.g.trouble_lualine = false
 

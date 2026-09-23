@@ -5,13 +5,14 @@
 -- - definition - run custom `gd` navigation handlers with LSP fallback
 -- - declaration - run custom `gD` navigation handlers with LSP fallback
 -- - references - run custom `gr` navigation handlers with LSP fallback
+-- - project_references - run custom `gR` handlers (fast, cwd-only references) with grep-word fallback
 
 local lang_registry = require("utils.lang.registry")
 
 local M = {}
 local lsp_modules_by_lang = {}
 
----@alias lang.LspNavigationMethod "definition"|"declaration"|"references"
+---@alias lang.LspNavigationMethod "definition"|"declaration"|"references"|"project_references"
 
 ---@class lang.LspNavigationContext
 ---@field method lang.LspNavigationMethod LSP navigation method being invoked.
@@ -34,6 +35,11 @@ local fallback_by_method = {
     end,
     references = function()
         Snacks.picker.lsp_references()
+    end,
+    -- no LSP at all here: `gR` is the "fast, current project only" variant, so the
+    -- generic fallback is a plain ripgrep of the word under the cursor across cwd
+    project_references = function()
+        Snacks.picker.grep_word()
     end,
 }
 
@@ -197,6 +203,15 @@ end
 --- request (it may augment the standard references with synthetic locations).
 function M.references()
     run("references")
+end
+
+--- List references restricted to the current project (cwd) through registered
+--- language-specific handlers. Used by `gR` mappings; falls back to
+--- `Snacks.picker.grep_word()` exactly once when no handler claims the request.
+--- Unlike `gr` this never asks the LSP for references: handlers are expected to be
+--- ripgrep/treesitter based (see `modules.java.project-references`).
+function M.project_references()
+    run("project_references")
 end
 
 return M
