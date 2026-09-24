@@ -61,6 +61,17 @@ return {
             -- ["Toggle split/float"] = { "|", function() require("kulala.ui").toggle_display_mode() end, prefix = false, },
             -- ["Close"] = { "q", function() require("kulala.ui").close_kulala_buffer() end, },
         },
+        config = function(_, opts)
+            local core_util = require("utils.kulala-core-util")
+            -- kulala-core is (re)downloaded asynchronously; "ready" fires once the binary is installed.
+            -- macOS 27+ SIGKILLs the shipped binary until it is re-signed ad-hoc.
+            require("kulala.api").on("ready", function()
+                core_util.ensure_signed()
+            end)
+            require("kulala").setup(opts)
+            -- Also cover an already-installed binary whose signature a macOS update invalidated.
+            core_util.ensure_signed()
+        end,
         opts = {
             debug = false,
             default_env = "uat",

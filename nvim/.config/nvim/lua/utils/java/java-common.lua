@@ -249,9 +249,10 @@ end
     end
 end ]]
 
---- Check whether the current Java file is outside the cwd.
-function M.if_java_file_outside()
-    local fname = vim.api.nvim_buf_get_name(0)
+--- Check whether the current Java file (or `bufnr`'s file) is outside the cwd.
+---@param bufnr? integer buffer to check; defaults to the current buffer
+function M.if_java_file_outside(bufnr)
+    local fname = vim.api.nvim_buf_get_name(bufnr or 0)
     local cwd = vim.fn.getcwd()
     return not vim.startswith(fname, cwd)
 end

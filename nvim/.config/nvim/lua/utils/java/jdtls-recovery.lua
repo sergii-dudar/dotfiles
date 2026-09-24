@@ -28,7 +28,8 @@
 --      wedged spring-boot client stalls every `vim.lsp.buf_request_all`
 --      aggregate (gd/gr/hover) and Blink's LSP source even while jdtls itself
 --      is healthy, so an unresponsive one is force-stopped and started fresh
---      via the config's `spring_boot_ls_custom` FileType autocmd. Unlike
+--      by re-running `vim.lsp.enable("spring-boot")` (spring-boot.nvim
+--      attaches through the native `vim.lsp.config`/`enable` API). Unlike
 --      jdtls (core for any Java project), spring-boot.nvim is optional:
 --      all of its handling is gated by `M.config.spring_boot` (default true,
 --      overridable via the `opts` argument of `setup` or at runtime).
@@ -1562,9 +1563,13 @@ local function probe_spring_boot_client(client, buf, done)
 end
 
 --- Force-stop all Spring Boot LS clients and start a fresh one.
---- Startup is delegated to the config's `spring_boot_ls_custom` FileType
---- autocmd (java-config.lua) replayed on each loaded real Java buffer;
---- `vim.lsp.start` inside it dedupes to a single new client.
+--- Startup is delegated to Neovim's `vim.lsp.enable` machinery: spring-boot.nvim
+--- registers the `spring-boot` config and enables it from `setup()`
+--- (java-config.lua), and calling `vim.lsp.enable("spring-boot")` again replays
+--- the enable FileType autocmd on every loaded buffer (`:doautoall`), so each
+--- real Java / application.yml buffer that passes the config's `root_dir` gate
+--- re-attaches. `vim.lsp.start` inside it dedupes to a single new client: a
+--- force-stopped client is never reused (`reuse_client` rejects stopped ones).
 ---@param reason string
 local function restart_spring_boot(reason)
     local clients = lsp_util.get_clients_by_name("spring-boot")
@@ -1573,23 +1578,26 @@ local function restart_spring_boot(reason)
     end
 
     vim.defer_fn(function()
-        local replayed = 0
-        for _, buf in ipairs(real_java_buffers()) do
-            local ok = pcall(function()
-                vim.api.nvim_buf_call(buf, function()
-                    vim.api.nvim_exec_autocmds("FileType", { group = "spring_boot_ls_custom", pattern = "java" })
-                end)
-            end)
-            if ok then
-                replayed = replayed + 1
-            end
+        if not vim.lsp.is_enabled("spring-boot") then
+            -- plugin never loaded / `auto_enable = false`: nothing can be replayed
+            logger.fmt_warn(
+                "spring-boot LS restart (%s): stopped %d client(s), but the 'spring-boot' LSP config is not enabled",
+                reason,
+                #clients
+            )
+            return
         end
-        logger.fmt_info(
-            "spring-boot LS restart (%s): stopped %d client(s), replayed FileType on %d buffer(s)",
-            reason,
-            #clients,
-            replayed
-        )
+        local ok, err = pcall(vim.lsp.enable, "spring-boot")
+        if ok then
+            logger.fmt_info(
+                "spring-boot LS restart (%s): stopped %d client(s), re-enabled config over %d java buffer(s)",
+                reason,
+                #clients,
+                #real_java_buffers()
+            )
+        else
+            logger.fmt_error("spring-boot LS restart (%s): vim.lsp.enable failed: %s", reason, tostring(err))
+        end
     end, SPRING_BOOT_RESTART_DELAY_MS)
 end
 

@@ -183,17 +183,37 @@ return {
     {
         "JavaHello/spring-boot.nvim", --"eslam-allam/spring-boot.nvim"
         version = "*",
-        ft = { "java", "yaml", "properties", "yml" },
+        -- `.properties` files get the `jproperties` filetype, `.yml` the `yaml` one
+        ft = { "java", "yaml", "jproperties" },
         dependencies = {
             "mfussenegger/nvim-jdtls",
         },
+        ---@type bootls.Config
         opts = function()
             local util = require("spring_boot.util")
             return {
                 ls_path = vim.fn.glob("$MASON/share/vscode-spring-boot-tools/*.jar"),
                 log_file = home .. "/.local/state/nvim/spring-boot-ls.log",
-                autocmd = false, -- disable default autocmd, we'll create our own
+                -- Start the LS only in workspaces that look like Spring Boot projects: reads
+                -- pom.xml / build.gradle(.kts) (submodules too, breadth-first, max depth 3 / 50 files)
+                -- and looks for `spring-boot` / `springframework.boot`. Runs after the cwd + file-name
+                -- gates, verdict memoized per workspace root (fail-open with a warning if it errors).
+                -- Re-run `require("spring_boot").setup({})` to re-evaluate after adding the dependency.
+                project_filter = function(root_dir)
+                    return util.has_spring_boot_dependency(root_dir)
+                end,
+                -- highest-priority layer of the `spring-boot` LSP config merge chain
                 server = {
+                    -- Only start the LS for files within the current working directory
+                    -- (multi-microservice setups). `on_dir` is never called for a rejected buffer,
+                    -- so the client simply does not start; the plugin's own gate
+                    -- (application.yml / .properties name check, `project_filter`) runs after ours.
+                    root_dir = function(bufnr, on_dir)
+                        if java_util.if_java_file_outside(bufnr) then
+                            return
+                        end
+                        require("spring_boot.launch").root_dir(bufnr, on_dir)
+                    end,
                     on_init = function(client, ctx)
                         client.server_capabilities.inlayHintProvider = false -- disable to not conflict with jdtls inlay hint
                         client.server_capabilities.documentHighlightProvider = false
@@ -231,23 +251,11 @@ return {
             }
         end,
         config = function(_, opts)
+            -- registers `vim.lsp.config("spring-boot", opts.server)` and enables it (`auto_enable`
+            -- defaults to true), which also attaches to the already open buffer that loaded us.
+            -- The cwd check that used to live in a custom `spring_boot_ls_custom` FileType
+            -- autocmd is now the `server.root_dir` override above.
             require("spring_boot").setup(opts)
-            -- Create custom autocmd that checks if file is within cwd
-            local launch = require("spring_boot.launch")
-            local ls_config = launch.update_ls_config(opts)
-            local group = vim.api.nvim_create_augroup("spring_boot_ls_custom", { clear = true })
-            vim.api.nvim_create_autocmd("FileType", {
-                group = group,
-                pattern = { "java", "yaml", "jproperties" },
-                desc = "Spring Boot Language Server (CWD check)",
-                callback = function()
-                    if require("utils.java.java-common").if_java_file_outside() then
-                        return
-                    end
-                    -- Only start LSP if file is within current working directory
-                    launch.start(ls_config)
-                end,
-            })
         end,
     },
     {
