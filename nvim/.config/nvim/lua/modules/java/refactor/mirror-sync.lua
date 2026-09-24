@@ -12,6 +12,182 @@ local buffer_manager = require("modules.java.refactor.buffer-manager")
 local log = consts.log
 local shell_escape = consts.shell_escape
 
+-- Suffixes that mark a test class for a production type: Foo -> FooTest / FooTests / FooIT / FooSomethingTest
+local TEST_SUFFIXES = { "Tests", "Test", "IT" }
+
+--- Check whether `file_name` is a test counterpart of `type_name`:
+--- `Foo.java`, `FooTest.java`, `FooTests.java`, `FooIT.java` or `Foo<Infix>Test.java` where `<Infix>` starts with an
+--- uppercase letter (so `CardUtilityTest.java` is NOT a counterpart of `CardUtil`).
+---@param file_name string
+---@param type_name string
+---@return boolean
+local function is_test_counterpart_name(file_name, type_name)
+    if file_name == type_name .. ".java" then
+        return true
+    end
+    local rest = file_name:match("^" .. vim.pesc(type_name) .. "(.+)%.java$")
+    if not rest then
+        return false
+    end
+    for _, suffix in ipairs(TEST_SUFFIXES) do
+        local infix = rest:match("^(.*)" .. suffix .. "$")
+        if infix and (infix == "" or infix:match("^%u")) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Find the counterpart files of a single file move.
+--- main -> test: the same-named file plus the test classes named after the type (FooTest, FooIT, ...); when the
+--- type is renamed the counterparts are renamed the same way (CardUtilTest -> CardHelperTest).
+--- test -> main: only the same-named file — a test-only reorganisation must never relocate production code.
+---@param change java.rejactor.FileMove
+---@param mirror_file_src string counterpart path with the same file name as `change.src`
+---@param mirror_file_dst string counterpart path with the same file name as `change.dst`
+---@return java.rejactor.FileMove[]
+local function find_counterpart_files(change, mirror_file_src, mirror_file_dst)
+    local counterparts = {}
+    if vim.fn.filereadable(mirror_file_src) == 1 then
+        table.insert(counterparts, { src = mirror_file_src, dst = mirror_file_dst })
+    end
+    if not string_util.contains(change.src, "src/main/java/") then
+        return counterparts
+    end
+
+    local old_type_name = change.src:match("([^/]+)%.java$")
+    local new_type_name = change.dst:match("([^/]+)%.java$")
+    local mirror_src_dir = mirror_file_src:match("(.+)/[^/]+$")
+    local mirror_dst_dir = mirror_file_dst:match("(.+)/[^/]+$")
+    if not old_type_name or not new_type_name or not mirror_src_dir or not mirror_dst_dir then
+        return counterparts
+    end
+    if vim.fn.isdirectory(mirror_src_dir) ~= 1 then
+        return counterparts
+    end
+
+    for _, entry in ipairs(vim.fn.readdir(mirror_src_dir)) do
+        if entry ~= old_type_name .. ".java" and is_test_counterpart_name(entry, old_type_name) then
+            local dst_entry = new_type_name .. entry:sub(#old_type_name + 1)
+            table.insert(
+                counterparts,
+                { src = mirror_src_dir .. "/" .. entry, dst = mirror_dst_dir .. "/" .. dst_entry }
+            )
+        end
+    end
+    return counterparts
+end
+
+--- Register file-level counterpart mirrors for a single file move.
+--- Each mirror remembers the change it belongs to (`counterpart_of_src`) so that, once physically moved,
+--- it can be attached to that change as `counterparts` for the command builder.
+---@param change java.rejactor.FileMove
+---@param reason string Log label
+---@param test_mirrors java.rejactor.FileMove[]
+---@param test_mirror_dirs table<string, string>
+local function add_file_counterpart_mirrors(change, reason, test_mirrors, test_mirror_dirs)
+    local mirror_file_src, mirror_file_dst
+    if string_util.contains(change.src, "src/main/java/") then
+        mirror_file_src = change.src:gsub("src/main/java/", "src/test/java/")
+        mirror_file_dst = change.dst:gsub("src/main/java/", "src/test/java/")
+    elseif string_util.contains(change.src, "src/test/java/") then
+        mirror_file_src = change.src:gsub("src/test/java/", "src/main/java/")
+        mirror_file_dst = change.dst:gsub("src/test/java/", "src/main/java/")
+    end
+    if not mirror_file_src or not mirror_file_dst then
+        return
+    end
+
+    local counterparts = find_counterpart_files(change, mirror_file_src, mirror_file_dst)
+    if vim.tbl_isempty(counterparts) then
+        log.debug("No counterpart file for " .. reason .. ":", mirror_file_src)
+        return
+    end
+    for _, counterpart in ipairs(counterparts) do
+        if not test_mirror_dirs[counterpart.src] then
+            test_mirror_dirs[counterpart.src] = counterpart.dst
+            counterpart.counterpart_of_src = change.src
+            table.insert(test_mirrors, counterpart)
+            log.info("Auto-mirroring counterpart file (" .. reason .. "):", counterpart.src, "->", counterpart.dst)
+        end
+    end
+end
+
+--- A file move empties its package when every registered `.java` move out of `src_dir` targets `dst_dir` and
+--- nothing (Java files or sub-packages) is left behind in `src_dir` (the file manager has already moved the files).
+--- Only then may the counterpart directory be mirrored as a whole — for a partial move that would drag unrelated
+--- tests along and register a package rename that rewrites every `old.pkg` reference in the module.
+---@param src_dir string
+---@param dst_dir string
+---@param all_changes java.rejactor.FileMove[]
+---@return boolean
+local function is_whole_directory_move(src_dir, dst_dir, all_changes)
+    for _, change in ipairs(all_changes) do
+        if change.src:match("%.java$") and change.src:match("(.+)/[^/]+$") == src_dir then
+            if change.dst:match("(.+)/[^/]+$") ~= dst_dir then
+                return false
+            end
+        end
+    end
+    if vim.fn.isdirectory(src_dir) == 1 then
+        for _, entry in ipairs(vim.fn.readdir(src_dir)) do
+            if entry:match("%.java$") or vim.fn.isdirectory(src_dir .. "/" .. entry) == 1 then
+                return false
+            end
+        end
+    end
+    return true
+end
+
+--- Move a file or directory. Merges into an already existing destination directory (a plain
+--- `mv src existing_dir` would nest `src` INSIDE it) and never overwrites an existing file.
+---@param src string
+---@param dst string
+---@return boolean success
+local function move_path(src, dst)
+    local src_is_dir = vim.fn.isdirectory(src) == 1
+
+    if vim.fn.isdirectory(dst) == 1 then
+        if not src_is_dir then
+            log.error("Refusing to move file onto existing directory:", src, "->", dst)
+            return false
+        end
+        log.info("Destination directory exists, merging:", src, "->", dst)
+        local ok = true
+        for _, entry in ipairs(vim.fn.readdir(src)) do
+            if not move_path(src .. "/" .. entry, dst .. "/" .. entry) then
+                ok = false
+            end
+        end
+        if ok and vim.fn.delete(src, "d") ~= 0 then
+            log.warn("Could not remove merged source directory:", src)
+        end
+        return ok
+    end
+    if vim.fn.filereadable(dst) == 1 then
+        log.error("Refusing to overwrite existing file:", src, "->", dst)
+        return false
+    end
+
+    -- Create destination directory
+    local dst_parent = dst:match("(.+)/[^/]+$")
+    if dst_parent then
+        vim.fn.mkdir(dst_parent, "p")
+    end
+
+    if os.rename(src, dst) then
+        return true
+    end
+    -- Fallback to shell command for cross-device moves
+    local cmd = string.format("mv %s %s", shell_escape(src), shell_escape(dst))
+    local exit_code = os.execute(cmd)
+    if exit_code == 0 or exit_code == true then
+        log.info("Moved (via shell):", src, "->", dst)
+        return true
+    end
+    return false
+end
+
 --- Detect structural refactoring patterns.
 --- Multiple directories moving from the same parent to a common new parent
 --- indicates a bulk structural move (e.g., adapter/* -> adapter/code/*).
@@ -161,29 +337,7 @@ local function compute_individual_mirrors(all_changes, canonical, test_mirrors, 
 
                     if is_subdirectory_move then
                         -- For subdirectory moves, mirror individual test/main files
-                        local mirror_file_src, mirror_file_dst
-                        if string_util.contains(change.src, "src/main/java/") then
-                            mirror_file_src = change.src:gsub("src/main/java/", "src/test/java/")
-                            mirror_file_dst = change.dst:gsub("src/main/java/", "src/test/java/")
-                        elseif string_util.contains(change.src, "src/test/java/") then
-                            mirror_file_src = change.src:gsub("src/test/java/", "src/main/java/")
-                            mirror_file_dst = change.dst:gsub("src/test/java/", "src/main/java/")
-                        end
-
-                        if mirror_file_src and vim.fn.filereadable(mirror_file_src) == 1 then
-                            if not test_mirror_dirs[mirror_file_src] then
-                                test_mirror_dirs[mirror_file_src] = mirror_file_dst
-                                table.insert(test_mirrors, { src = mirror_file_src, dst = mirror_file_dst })
-                                log.info(
-                                    "Auto-mirroring counterpart file (subdirectory move):",
-                                    mirror_file_src,
-                                    "->",
-                                    mirror_file_dst
-                                )
-                            end
-                        else
-                            log.debug("No counterpart file for subdirectory move:", mirror_file_src or "nil")
-                        end
+                        add_file_counterpart_mirrors(change, "subdirectory move", test_mirrors, test_mirror_dirs)
                     else
                         local mirror_src_dir, mirror_dst_dir
                         if string_util.contains(src_dir, "src/main/java/") then
@@ -199,14 +353,34 @@ local function compute_individual_mirrors(all_changes, canonical, test_mirrors, 
                             and vim.fn.isdirectory(mirror_src_dir) == 1
                             and not test_mirror_dirs[mirror_src_dir]
                         then
-                            test_mirror_dirs[mirror_src_dir] = mirror_dst_dir
-                            table.insert(test_mirrors, { src = mirror_src_dir, dst = mirror_dst_dir })
-                            log.info(
-                                "Auto-mirroring counterpart directory (inferred from file move):",
-                                mirror_src_dir,
-                                "->",
-                                mirror_dst_dir
-                            )
+                            if is_whole_directory_move(src_dir, dst_dir, all_changes) then
+                                -- Every file left the package: the counterpart package follows as a whole
+                                test_mirror_dirs[mirror_src_dir] = mirror_dst_dir
+                                table.insert(test_mirrors, { src = mirror_src_dir, dst = mirror_dst_dir })
+                                log.info(
+                                    "Auto-mirroring counterpart directory (inferred from file move):",
+                                    mirror_src_dir,
+                                    "->",
+                                    mirror_dst_dir
+                                )
+                            else
+                                -- Only some files leave the package: mirror just the counterpart files of the
+                                -- moved type. Mirroring the whole counterpart directory would drag unrelated
+                                -- tests along and register a package rename that rewrites every `old.pkg`
+                                -- reference in the module (breaking the files that stayed in the old package).
+                                log.info(
+                                    "Partial package move, mirroring counterpart files only (not the directory):",
+                                    change.src,
+                                    "->",
+                                    change.dst
+                                )
+                                add_file_counterpart_mirrors(
+                                    change,
+                                    "partial package move",
+                                    test_mirrors,
+                                    test_mirror_dirs
+                                )
+                            end
                         end
                     end
                 else
@@ -276,33 +450,46 @@ local function track_mirror_buffers(test_mirrors, opened_buffers_to_reopen)
 end
 
 --- Perform physical file/directory moves for mirrors.
+--- Returns only the mirrors that were actually moved: a mirror that failed (or no longer exists) must not be
+--- registered as a change, or the package sed would rewrite files that never left the old location.
 ---@param test_mirrors java.rejactor.FileMove[]
+---@return java.rejactor.FileMove[] applied_mirrors
 local function perform_physical_moves(test_mirrors)
+    local applied_mirrors = {}
     for _, mirror in ipairs(test_mirrors) do
-        -- Create destination directory
-        local dst_parent = mirror.dst:match("(.+)/[^/]+$")
-        if dst_parent then
-            vim.fn.mkdir(dst_parent, "p")
-        end
-
         local is_file = vim.fn.filereadable(mirror.src) == 1
         local is_dir = vim.fn.isdirectory(mirror.src) == 1
 
         if is_file or is_dir then
-            local move_result = os.rename(mirror.src, mirror.dst)
-            if move_result then
+            if move_path(mirror.src, mirror.dst) then
                 log.info("Moved test:", mirror.src, "->", mirror.dst)
+                table.insert(applied_mirrors, mirror)
             else
-                -- Fallback to shell command for cross-device moves
-                local cmd = string.format("mv %s %s", shell_escape(mirror.src), shell_escape(mirror.dst))
-                local exit_code = os.execute(cmd)
-                if exit_code == 0 or exit_code == true then
-                    log.info("Moved test (via shell):", mirror.src, "->", mirror.dst)
-                else
-                    log.error("Failed to move test:", mirror.src, "->", mirror.dst)
-                end
+                log.error("Failed to move test (left out of refactoring, fix manually):", mirror.src, "->", mirror.dst)
             end
+        else
+            log.warn("Mirror source no longer exists, skipping:", mirror.src)
         end
+    end
+    return applied_mirrors
+end
+
+--- Attach applied file-level counterpart mirrors to the change they belong to (`change.counterparts`),
+--- so the command builder can fix type references inside them at their new location.
+---@param all_changes java.rejactor.FileMove[]
+---@param applied_mirrors java.rejactor.FileMove[]
+local function attach_counterparts(all_changes, applied_mirrors)
+    local changes_by_src = {}
+    for _, change in ipairs(all_changes) do
+        changes_by_src[change.src] = change
+    end
+    for _, mirror in ipairs(applied_mirrors) do
+        local owner = mirror.counterpart_of_src and changes_by_src[mirror.counterpart_of_src]
+        if owner then
+            owner.counterparts = owner.counterparts or {}
+            table.insert(owner.counterparts, { src = mirror.src, dst = mirror.dst })
+        end
+        mirror.counterpart_of_src = nil
     end
 end
 
@@ -379,8 +566,9 @@ function M.sync(all_changes, canonical, module_path, opened_buffers_to_reopen)
         -- Track opened counterpart buffers before moving
         track_mirror_buffers(test_mirrors, opened_buffers_to_reopen)
 
-        -- Perform physical moves
-        perform_physical_moves(test_mirrors)
+        -- Perform physical moves (keep only the mirrors that really moved)
+        test_mirrors = perform_physical_moves(test_mirrors)
+        attach_counterparts(all_changes, test_mirrors)
 
         -- Clean up empty directories after mirroring
         M.cleanup_empty_dirs(module_path)

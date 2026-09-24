@@ -40,11 +40,9 @@ end
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
     -- First check if import already exists to avoid duplicates
-    local check_cmd = string.format(
-        "rg -q '^%s$' %s 2>/dev/null",
-        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
-        shell_escape(file_path)
-    )
+    -- (-F: fixed string, -x: whole line — no regex escaping needed)
+    local check_cmd =
+        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
     local already_exists = os.execute(check_cmd)
 
     if already_exists == 0 or already_exists == true then
@@ -85,18 +83,24 @@ function M.fix_sibling_usage(opts)
         return false
     end
 
-    -- Check if the file uses this type at all
-    local uses_type = os.execute(
-        string.format(
-            "rg -q '%s%s%s' %s 2>/dev/null",
-            LEADING_BOUNDARY,
-            opts.old_type_name,
-            TRAILING_BOUNDARY,
-            shell_escape(opts.file_path)
+    -- Check if the file uses this type at all.
+    -- Check BOTH old and new names: this runs after the shell commands, which may already have renamed usages.
+    local function uses_type_name(type_name)
+        local result = os.execute(
+            string.format(
+                "rg -q '%s%s%s' %s 2>/dev/null",
+                LEADING_BOUNDARY,
+                type_name,
+                TRAILING_BOUNDARY,
+                shell_escape(opts.file_path)
+            )
         )
-    )
+        return result == 0 or result == true
+    end
+    local uses_type = uses_type_name(opts.old_type_name)
+        or (opts.old_type_name ~= opts.new_type_name and uses_type_name(opts.new_type_name))
 
-    if not (uses_type == 0 or uses_type == true) then
+    if not uses_type then
         log.debug("File doesn't use type:", opts.old_type_name)
         return true
     end

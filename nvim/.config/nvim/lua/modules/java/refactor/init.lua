@@ -29,6 +29,8 @@ M.test_mode = false
 ---@field src string
 ---@field dst string
 ---@field siblings? java.rejactor.FileMove[]
+---@field counterparts? java.rejactor.FileMove[] Test/main counterpart files mirrored along with this file (set by mirror-sync)
+---@field counterpart_of_src? string Internal: src of the change this mirror belongs to (cleared by mirror-sync)
 
 local all_registered_changes = {}
 

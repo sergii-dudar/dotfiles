@@ -11,7 +11,9 @@ type references, and test↔src mirror sync across your project.
 - **Import management** — adds/updates/removes imports project-wide
 - **Type reference updates** — renames class/interface/enum usages where imported
 - **FQN updates** — handles fully qualified names in Java, YAML, properties files
-- **Test↔Src sync** — automatically mirrors package structure between main and test
+- **Test↔Src sync** — automatically mirrors package structure between main and test: a moved class drags its own
+  tests along (`FooTest`, `FooTests`, `FooIT`, `Foo…Test`); a whole test package follows only when the package itself
+  is moved or emptied. Existing destination directories are merged into, never nested
 - **Root package rename** — supports deep multi-segment transformations (e.g., `ua/payments` → `ua/gov/test/other`)
 - **Buffer management** — switches current buffer to new location, reopens others
 - **Empty dir cleanup** — removes orphaned empty package directories
@@ -133,6 +135,8 @@ local success = refactor.process_registerd_changes() -- returns boolean
 7. Remove same-package imports (now unnecessary)
 8. Add imports to files in the old package that reference the moved type
 9. Update file/resource paths
+10. Mirror the type's test counterparts (`FooTest`, `FooIT`, `Foo…Test`, renamed along with the type) into the new
+    test package; each is processed as its own file move (package, imports, references)
 
 ### Package/Directory Move
 

@@ -57,11 +57,9 @@ end
 -- Add an import line to a file at a specific line number
 local function add_import_line(file_path, line_num, import_line)
     -- First check if import already exists to avoid duplicates
-    local check_cmd = string.format(
-        "rg -q '^%s$' %s 2>/dev/null",
-        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
-        shell_escape(file_path)
-    )
+    -- (-F: fixed string, -x: whole line — no regex escaping needed)
+    local check_cmd =
+        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
     local already_exists = os.execute(check_cmd)
 
     if already_exists == 0 or already_exists == true then
@@ -77,11 +75,8 @@ local function add_import_line(file_path, line_num, import_line)
     log.debug("Sed result:", result)
 
     -- Verify the import was actually added
-    local verify_cmd = string.format(
-        "rg -q '%s' %s 2>/dev/null",
-        import_line:gsub("([%.%[%]%(%)%*%+%-%?%^%$])", "%%%1"), -- Escape regex special chars
-        shell_escape(file_path)
-    )
+    local verify_cmd =
+        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
     local verify_result = os.execute(verify_cmd)
 
     if verify_result == 0 or verify_result == true then
@@ -128,7 +123,29 @@ function M.fix_old_package_imports(opts)
 
     local sibling_usage_fixer = require("modules.java.refactor.sibling-usage-fixer")
 
+    -- Counterpart of the old directory (test mirror of old_dir, or main mirror if old_dir is test)
+    local counterpart_old_dir
+    if string.find(opts.old_dir, "src/main/java/") then
+        counterpart_old_dir = opts.old_dir:gsub("src/main/java/", "src/test/java/")
+    elseif string.find(opts.old_dir, "src/test/java/") then
+        counterpart_old_dir = opts.old_dir:gsub("src/test/java/", "src/main/java/")
+    end
+    local counterpart_old_dir_exists = counterpart_old_dir ~= nil
+        and counterpart_old_dir ~= opts.old_dir
+        and vim.fn.isdirectory(counterpart_old_dir) == 1
+
+    -- Directories whose types the moved file may have used without an import: the old package directory and,
+    -- for a moved TEST file, the main counterpart of that package (a test uses same-package production classes
+    -- without importing them). Main files never reference test classes, so main files scan only their own dir.
+    local import_scan_dirs = {}
     if old_dir_exists then
+        table.insert(import_scan_dirs, opts.old_dir)
+    end
+    if counterpart_old_dir_exists and string.find(opts.old_dir, "src/test/java/") then
+        table.insert(import_scan_dirs, counterpart_old_dir)
+    end
+
+    if not vim.tbl_isempty(import_scan_dirs) then
         -- Find last import line using rg
         local last_import_output = exec_and_read(
             string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.new_file_path))
@@ -146,64 +163,70 @@ function M.fix_old_package_imports(opts)
         local file_package = file_package_output and file_package_output:gsub("%s+", "") or ""
         log.debug("File package:", file_package)
 
-        -- Get all Java files in old directory (not recursively)
-        local java_files_handle = io.popen(
-            string.format(
-                "fd --color=never -e java --max-depth 1 . %s -x basename {} .java 2>/dev/null",
-                shell_escape(opts.old_dir)
-            )
-        )
+        local imports_added = 0
+        for _, scan_dir in ipairs(import_scan_dirs) do
+            log.debug("Scanning directory for types used without import:", scan_dir)
 
-        if not java_files_handle then
-            log.warn("Failed to list files in old directory:", opts.old_dir)
-        else
-            local imports_added = 0
-            for filename in java_files_handle:lines() do
-                log.debug("Checking if file uses type:", filename)
-
-                -- Check if the moved file uses this type (with proper boundary matching)
-                local uses_type = os.execute(
-                    string.format(
-                        "rg -q '%s%s%s' %s 2>/dev/null",
-                        LEADING_BOUNDARY,
-                        filename,
-                        TRAILING_BOUNDARY,
-                        shell_escape(opts.new_file_path)
-                    )
+            -- Get all Java files in the directory (not recursively)
+            local java_files_handle = io.popen(
+                string.format(
+                    "fd --color=never -e java --max-depth 1 . %s -x basename {} .java 2>/dev/null",
+                    shell_escape(scan_dir)
                 )
+            )
 
-                if uses_type == 0 or uses_type == true then
-                    log.debug("File uses type:", filename)
+            if not java_files_handle then
+                log.warn("Failed to list files in directory:", scan_dir)
+            else
+                for filename in java_files_handle:lines() do
+                    log.debug("Checking if file uses type:", filename)
 
-                    -- Determine the correct package for import
-                    local import_package = opts.old_package
+                    -- Check if the moved file uses this type (with proper boundary matching)
+                    local uses_type = os.execute(
+                        string.format(
+                            "rg -q '%s%s%s' %s 2>/dev/null",
+                            LEADING_BOUNDARY,
+                            filename,
+                            TRAILING_BOUNDARY,
+                            shell_escape(opts.new_file_path)
+                        )
+                    )
 
-                    -- If this file is a sibling (also being moved), import from NEW_PACKAGE instead
-                    if is_sibling(filename, opts.siblings) then
-                        import_package = opts.new_package
-                        log.debug("Type is sibling, importing from new package:", import_package)
-                    else
-                        log.debug("Type is not sibling, importing from old package:", import_package)
-                    end
+                    if uses_type == 0 or uses_type == true then
+                        log.debug("File uses type:", filename)
 
-                    -- Only add import if not in the same package
-                    if file_package ~= import_package then
-                        local import_line = string.format("import %s.%s;", import_package, filename)
-                        log.info("Adding import:", import_line)
+                        -- Determine the correct package for import
+                        local import_package = opts.old_package
 
-                        if add_import_line(opts.new_file_path, last_import_line, import_line) then
-                            imports_added = imports_added + 1
+                        -- If this file is a sibling (also being moved), import from NEW_PACKAGE instead
+                        if is_sibling(filename, opts.siblings) then
+                            import_package = opts.new_package
+                            log.debug("Type is sibling, importing from new package:", import_package)
+                        else
+                            log.debug("Type is not sibling, importing from old package:", import_package)
                         end
-                    else
-                        log.debug("Skipping import (same package):", filename)
+
+                        -- Only add import if not in the same package
+                        if file_package ~= import_package then
+                            local import_line = string.format("import %s.%s;", import_package, filename)
+                            log.info("Adding import:", import_line)
+
+                            if add_import_line(opts.new_file_path, last_import_line, import_line) then
+                                imports_added = imports_added + 1
+                            end
+                        else
+                            log.debug("Skipping import (same package):", filename)
+                        end
                     end
                 end
+
+                java_files_handle:close()
             end
-
-            java_files_handle:close()
-            log.info("Added", imports_added, "imports to", opts.new_file_path)
         end
+        log.info("Added", imports_added, "imports to", opts.new_file_path)
+    end
 
+    if old_dir_exists then
         -- Fix imports in files that stayed in old directory (both main and test)
         -- They need to import the moved type from the new package
         log.debug("Fixing imports in old directory files")
@@ -237,14 +260,7 @@ function M.fix_old_package_imports(opts)
     end
 
     -- Also process counterpart directory (test mirror of old_dir, or main mirror if old_dir is test)
-    local counterpart_old_dir
-    if string.find(opts.old_dir, "src/main/java/") then
-        counterpart_old_dir = opts.old_dir:gsub("src/main/java/", "src/test/java/")
-    elseif string.find(opts.old_dir, "src/test/java/") then
-        counterpart_old_dir = opts.old_dir:gsub("src/test/java/", "src/main/java/")
-    end
-
-    if counterpart_old_dir and counterpart_old_dir ~= opts.old_dir and vim.fn.isdirectory(counterpart_old_dir) == 1 then
+    if counterpart_old_dir_exists then
         log.debug("Fixing files in counterpart directory:", counterpart_old_dir)
         local counterpart_files_handle =
             io.popen(string.format("fd --color=never -e java . %s 2>/dev/null", shell_escape(counterpart_old_dir)))

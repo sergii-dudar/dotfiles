@@ -199,6 +199,16 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
             end
         end
 
+        -- Also include the counterpart test files mirrored along with this file: they reference the type
+        -- without an import and are no longer in the old package directory scanned above
+        if context.counterparts and not vim.tbl_isempty(context.counterparts) then
+            local counterpart_paths = {}
+            for _, counterpart in ipairs(context.counterparts) do
+                table.insert(counterpart_paths, shell_escape(counterpart.dst))
+            end
+            table.insert(source_cmds, "printf '%s\\n' " .. table.concat(counterpart_paths, " "))
+        end
+
         local fix_type_symbols_where_imported = build_sed_for_files_cmd(
             table.concat(source_cmds, "; "),
             build_type_replace_expr(old_type_name, new_type_name)
