@@ -160,9 +160,15 @@ When renaming a root package in either `src/main/java/` or `src/test/java/`:
 Logs are written to `~/.local/state/nvim/java-refactor.log`. Contains detailed information
 about every step of the refactoring pipeline. Useful for debugging unexpected behavior.
 
+## Tests
+
+`tests/runall.sh` is a headless regression suite (fixture project + `test_mode` + `javac`), see `tests/README.md`.
+Run it after touching the sed patterns, the mirror logic or the import fixers.
+
 ## Limitations
 
-- **Single module per batch** — all changes must be in the same Maven/Gradle module
+- **Single module per batch** — when changes span several Maven/Gradle modules the searches fall back to the
+  whole project (slower, but nothing is missed)
 - **Standard layout assumed** — expects `src/main/java/`, `src/test/java/`
 - **No undo** — changes are made directly to files (use git!)
 - **No preview/dry-run** — planned for future

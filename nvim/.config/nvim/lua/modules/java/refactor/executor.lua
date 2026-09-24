@@ -42,7 +42,8 @@ function M.run_cmd(cmd_args, on_complete_callback)
     local term_buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_win_set_buf(current_term_win, term_buf)
 
-    local job_id = vim.fn.jobstart(cmd_args, {
+    -- Always run through /bin/sh: the generated command chain is POSIX sh, while 'shell' may be zsh or fish
+    local job_id = vim.fn.jobstart({ "/bin/sh", "-c", cmd_args }, {
         term = true,
         stdout_buffered = false,
         stderr_buffered = false,

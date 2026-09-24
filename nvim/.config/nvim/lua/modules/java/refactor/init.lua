@@ -156,7 +156,7 @@ local function build_operations(all_changes, canonical, module_path)
         return a.depth > b.depth
     end)
 
-    -- Process all valid package moves or file changes
+    -- Process all valid package moves
     if #valid_moves > 0 then
         log.info("Processing", #valid_moves, "package-level refactorings")
 
@@ -174,10 +174,37 @@ local function build_operations(all_changes, canonical, module_path)
             end
         end
     else
-        -- Process all file changes individually
         log.info("No valid package moves found, processing files individually")
-        for _, value in ipairs(all_changes) do
-            if value.src:match("%.java$") then
+    end
+
+    -- A file move is covered by a package move when its source lies inside the moved directory (or inside the
+    -- test/main counterpart of it, for mirrored directories): the package-level sed already fixes it.
+    -- Every other file move (e.g. a single file moved in the same batch as an unrelated directory) is fixed
+    -- individually — previously such files were silently dropped whenever a package move was present.
+    local function is_covered_by_package_move(change)
+        for _, move in ipairs(valid_moves) do
+            local move_src = move.change.src:gsub("/$", "")
+            local counterpart_src
+            if string_util.contains(move_src, consts.main_dir) then
+                counterpart_src = move_src:gsub(consts.main_dir, consts.test_dir)
+            elseif string_util.contains(move_src, consts.test_dir) then
+                counterpart_src = move_src:gsub(consts.test_dir, consts.main_dir)
+            end
+            if change.src:find("^" .. vim.pesc(move_src) .. "/") then
+                return true
+            end
+            if counterpart_src and change.src:find("^" .. vim.pesc(counterpart_src) .. "/") then
+                return true
+            end
+        end
+        return false
+    end
+
+    for _, value in ipairs(all_changes) do
+        if value.src:match("%.java$") then
+            if is_covered_by_package_move(value) then
+                log.debug("File move covered by a package move, skipping individual processing:", value.src)
+            else
                 value.siblings = cmd_builder.get_all_src_siblings(value, all_changes)
                 if value.siblings and #value.siblings > 0 then
                     log.debug("Found", #value.siblings, "siblings for", value.src)
@@ -215,10 +242,25 @@ function M.process_registerd_changes()
     log.info("Starting processing of", #all_registered_changes, "registered changes")
     log.debug("All registered changes:", all_registered_changes)
 
-    -- Step 1: Detect module scope
+    -- Step 1: Detect module scope. Every change must belong to the same module; otherwise the search scope
+    -- falls back to the whole project so no reference is missed (a change outside the first module would
+    -- otherwise never be found by the module-scoped searches).
     local module_path = nil
     if all_registered_changes[1] then
         module_path = consts.detect_module_path(all_registered_changes[1].src)
+        for i = 2, #all_registered_changes do
+            local change_module = consts.detect_module_path(all_registered_changes[i].src)
+            if change_module ~= module_path then
+                log.warn(
+                    "Registered changes span several modules, operations will be project-wide:",
+                    module_path,
+                    "vs",
+                    change_module
+                )
+                module_path = nil
+                break
+            end
+        end
         if module_path then
             log.info("==============================================")
             log.info("DETECTED MODULE SCOPE:", module_path)
@@ -326,6 +368,12 @@ function M.process_registerd_changes()
 end
 
 M.process_registered_changes = M.process_registerd_changes
+
+--- Whether register_change() has queued anything that is not processed yet.
+---@return boolean
+function M.has_registered_changes()
+    return not vim.tbl_isempty(all_registered_changes)
+end
 
 --- Process one file move immediately using the registered-change pipeline.
 ---@param src string

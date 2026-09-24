@@ -14,32 +14,16 @@ local logging = require("utils.logging-util")
 local consts = require("modules.java.refactor.constants")
 local log = logging.new({ name = "import-fixer", filename = "java-refactor.log" })
 
--- Use GNU sed on both platforms for consistent behavior
--- macOS: gsed (installed via brew install gnu-sed)
--- Linux: sed (already GNU sed)
-local is_macos = vim.loop.os_uname().sysname == "Darwin"
-local sed = is_macos and "gsed" or "sed"
+-- GNU sed (gsed on macOS), shell escaping, command helpers and the import writer live in constants.lua so that
+-- this file and sibling-usage-fixer.lua share one implementation.
+local sed = consts.sed
+local shell_escape = consts.shell_escape
+local exec_and_read = consts.exec_and_read
+local add_import_line = consts.add_import_line
 
 -- Boundary patterns for matching Java type names (shared with init.lua logic)
 local LEADING_BOUNDARY = consts.LEADING_BOUNDARY
 local TRAILING_BOUNDARY = consts.TRAILING_BOUNDARY
-
--- Helper to escape single quotes in paths for safe shell interpolation
-local function shell_escape(s)
-    return "'" .. s:gsub("'", "'\\''") .. "'"
-end
-
--- Helper to execute command and get output
-local function exec_and_read(cmd)
-    local handle = io.popen(cmd)
-    if not handle then
-        log.error("Failed to execute command:", cmd)
-        return nil
-    end
-    local result = handle:read("*all")
-    handle:close()
-    return result
-end
 
 -- Helper to check if a type is in the siblings list
 local function is_sibling(type_name, siblings)
@@ -54,38 +38,21 @@ local function is_sibling(type_name, siblings)
     return false
 end
 
--- Add an import line to a file at a specific line number
-local function add_import_line(file_path, line_num, import_line)
-    -- First check if import already exists to avoid duplicates
-    -- (-F: fixed string, -x: whole line — no regex escaping needed)
-    local check_cmd =
-        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
-    local already_exists = os.execute(check_cmd)
-
-    if already_exists == 0 or already_exists == true then
-        log.debug("Import already exists, skipping:", import_line)
-        return true
-    end
-
-    -- Use GNU sed append command with literal newline
-    local sed_cmd = string.format("%s -i '%da\\\n%s' %s", sed, line_num, import_line, shell_escape(file_path))
-
-    log.debug("Sed command:", sed_cmd)
-    local result = os.execute(sed_cmd)
-    log.debug("Sed result:", result)
-
-    -- Verify the import was actually added
-    local verify_cmd =
-        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
-    local verify_result = os.execute(verify_cmd)
-
-    if verify_result == 0 or verify_result == true then
-        log.debug("Import successfully added (verified)")
-        return true
-    else
-        log.warn("Failed to add import:", import_line, "to", file_path)
-        return false
-    end
+--- Whether a file mentions a type by its simple name (boundary-matched).
+---@param file_path string
+---@param type_name string
+---@return boolean
+local function file_uses_type(file_path, type_name)
+    local result = os.execute(
+        string.format(
+            "rg -q '%s%s%s' %s 2>/dev/null",
+            LEADING_BOUNDARY,
+            type_name,
+            TRAILING_BOUNDARY,
+            shell_escape(file_path)
+        )
+    )
+    return result == 0 or result == true
 end
 
 ---Fix imports in files that reference types from the old package
@@ -146,13 +113,6 @@ function M.fix_old_package_imports(opts)
     end
 
     if not vim.tbl_isempty(import_scan_dirs) then
-        -- Find last import line using rg
-        local last_import_output = exec_and_read(
-            string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.new_file_path))
-        )
-        local last_import_line = tonumber(last_import_output) or 2
-        log.debug("Last import line:", last_import_line)
-
         -- Get the package of the file being fixed
         local file_package_output = exec_and_read(
             string.format(
@@ -182,17 +142,7 @@ function M.fix_old_package_imports(opts)
                     log.debug("Checking if file uses type:", filename)
 
                     -- Check if the moved file uses this type (with proper boundary matching)
-                    local uses_type = os.execute(
-                        string.format(
-                            "rg -q '%s%s%s' %s 2>/dev/null",
-                            LEADING_BOUNDARY,
-                            filename,
-                            TRAILING_BOUNDARY,
-                            shell_escape(opts.new_file_path)
-                        )
-                    )
-
-                    if uses_type == 0 or uses_type == true then
+                    if file_uses_type(opts.new_file_path, filename) then
                         log.debug("File uses type:", filename)
 
                         -- Determine the correct package for import
@@ -211,7 +161,7 @@ function M.fix_old_package_imports(opts)
                             local import_line = string.format("import %s.%s;", import_package, filename)
                             log.info("Adding import:", import_line)
 
-                            if add_import_line(opts.new_file_path, last_import_line, import_line) then
+                            if add_import_line(opts.new_file_path, import_line) then
                                 imports_added = imports_added + 1
                             end
                         else
@@ -259,11 +209,13 @@ function M.fix_old_package_imports(opts)
         log.debug("Skipping old-directory file scans; wildcard and counterpart fixes will still run")
     end
 
-    -- Also process counterpart directory (test mirror of old_dir, or main mirror if old_dir is test)
+    -- Also process counterpart directory (test mirror of old_dir, or main mirror if old_dir is test).
+    -- Not recursive: files in sub-packages could only see the type through an import, which is handled elsewhere.
     if counterpart_old_dir_exists then
         log.debug("Fixing files in counterpart directory:", counterpart_old_dir)
-        local counterpart_files_handle =
-            io.popen(string.format("fd --color=never -e java . %s 2>/dev/null", shell_escape(counterpart_old_dir)))
+        local counterpart_files_handle = io.popen(
+            string.format("fd --color=never -e java --max-depth 1 . %s 2>/dev/null", shell_escape(counterpart_old_dir))
+        )
 
         if counterpart_files_handle then
             local counterpart_fixes = 0
@@ -272,65 +224,46 @@ function M.fix_old_package_imports(opts)
                 counterpart_files_found = counterpart_files_found + 1
                 log.debug("Found counterpart file:", counterpart_file)
 
-                -- Check if this file uses the moved type (old OR new name)
-                local uses_old_name = os.execute(
-                    string.format(
-                        "rg -q '%s%s%s' %s 2>/dev/null",
-                        LEADING_BOUNDARY,
-                        opts.old_type_name,
-                        TRAILING_BOUNDARY,
-                        shell_escape(counterpart_file)
-                    )
-                )
-                local uses_new_name = os.execute(
-                    string.format(
-                        "rg -q '%s%s%s' %s 2>/dev/null",
-                        LEADING_BOUNDARY,
-                        opts.new_type_name,
-                        TRAILING_BOUNDARY,
-                        shell_escape(counterpart_file)
-                    )
-                )
+                -- Check if this file uses the moved type (old OR new name: this runs after the shell commands)
+                local uses_old_name = file_uses_type(counterpart_file, opts.old_type_name)
+                local uses_new_name = opts.old_type_name ~= opts.new_type_name
+                    and file_uses_type(counterpart_file, opts.new_type_name)
                 log.debug("Counterpart file uses old name:", uses_old_name)
                 log.debug("Counterpart file uses new name:", uses_new_name)
 
-                if (uses_old_name == 0 or uses_old_name == true) or (uses_new_name == 0 or uses_new_name == true) then
+                if uses_old_name or uses_new_name then
                     log.debug("Counterpart file uses the type (old or new name):", counterpart_file)
-
-                    -- Find last import line in this file
-                    local last_imp_output = exec_and_read(
-                        string.format(
-                            "rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1",
-                            shell_escape(counterpart_file)
-                        )
-                    )
-                    local last_import = tonumber(last_imp_output) or 2
 
                     -- Add explicit import for the moved type
                     local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
-                    add_import_line(counterpart_file, last_import, import_line)
+                    add_import_line(counterpart_file, import_line)
 
-                    -- Always update the usage (even if import was already there) - double-pass
-                    local replace_expr = string.format(
-                        "s/%s%s%s/\\1%s\\2/g",
-                        LEADING_BOUNDARY,
-                        opts.old_type_name,
-                        TRAILING_BOUNDARY,
-                        opts.new_type_name
-                    )
-                    local update_cmd = string.format(
-                        "%s -i -E '%s; %s' %s",
-                        sed,
-                        replace_expr,
-                        replace_expr,
-                        shell_escape(counterpart_file)
-                    )
-                    local update_result = os.execute(update_cmd)
-                    if update_result == 0 or update_result == true then
+                    -- Update the usages when the type was renamed - double-pass
+                    if opts.old_type_name ~= opts.new_type_name then
+                        local replace_expr = string.format(
+                            "s/%s%s%s/\\1%s\\2/g",
+                            LEADING_BOUNDARY,
+                            opts.old_type_name,
+                            TRAILING_BOUNDARY,
+                            opts.new_type_name
+                        )
+                        local update_cmd = string.format(
+                            "%s -i -E '%s; %s' %s",
+                            sed,
+                            replace_expr,
+                            replace_expr,
+                            shell_escape(counterpart_file)
+                        )
+                        local update_result = os.execute(update_cmd)
+                        if update_result == 0 or update_result == true then
+                            counterpart_fixes = counterpart_fixes + 1
+                            log.info("Fixed counterpart file:", counterpart_file)
+                        else
+                            log.warn("Failed to update usages in counterpart file:", counterpart_file)
+                        end
+                    else
                         counterpart_fixes = counterpart_fixes + 1
                         log.info("Fixed counterpart file:", counterpart_file)
-                    else
-                        log.warn("Failed to update usages in counterpart file:", counterpart_file)
                     end
                 else
                     log.debug("Counterpart file doesn't use the type")
@@ -351,11 +284,7 @@ function M.fix_old_package_imports(opts)
     local wildcard_import_pattern = opts.old_package:gsub("%.", "\\.") .. "\\.\\*"
     log.debug("Wildcard import pattern:", wildcard_import_pattern)
 
-    local wildcard_search_cmd = string.format(
-        "rg --color=never -l 'import\\s+%s;' %s 2>/dev/null",
-        wildcard_import_pattern,
-        shell_escape(search_root)
-    )
+    local wildcard_search_cmd = consts.rg_list_cmd("import\\s+" .. wildcard_import_pattern .. ";", search_root)
     log.debug("Wildcard search command:", wildcard_search_cmd)
 
     local wildcard_files_handle = io.popen(wildcard_search_cmd)
@@ -368,40 +297,16 @@ function M.fix_old_package_imports(opts)
             log.debug("Found file with wildcard import:", wildcard_file)
 
             -- Check for BOTH old and new names because this runs after shell commands
-            local uses_old_name = os.execute(
-                string.format(
-                    "rg -q '%s%s%s' %s 2>/dev/null",
-                    LEADING_BOUNDARY,
-                    opts.old_type_name,
-                    TRAILING_BOUNDARY,
-                    shell_escape(wildcard_file)
-                )
-            )
-            local uses_new_name = os.execute(
-                string.format(
-                    "rg -q '%s%s%s' %s 2>/dev/null",
-                    LEADING_BOUNDARY,
-                    opts.new_type_name,
-                    TRAILING_BOUNDARY,
-                    shell_escape(wildcard_file)
-                )
-            )
+            local uses_old_name = file_uses_type(wildcard_file, opts.old_type_name)
+            local uses_new_name = opts.old_type_name ~= opts.new_type_name
+                and file_uses_type(wildcard_file, opts.new_type_name)
 
-            if (uses_old_name == 0 or uses_old_name == true) or (uses_new_name == 0 or uses_new_name == true) then
+            if uses_old_name or uses_new_name then
                 log.debug("File with wildcard import uses the type (old or new name):", wildcard_file)
-
-                -- Find last import line in this file
-                local last_imp_output = exec_and_read(
-                    string.format(
-                        "rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1",
-                        shell_escape(wildcard_file)
-                    )
-                )
-                local last_import = tonumber(last_imp_output) or 2
 
                 -- Add explicit import for the moved type
                 local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
-                if add_import_line(wildcard_file, last_import, import_line) then
+                if add_import_line(wildcard_file, import_line) then
                     wildcard_fixes = wildcard_fixes + 1
                     log.info("Added explicit import to file with wildcard:", wildcard_file)
                 end

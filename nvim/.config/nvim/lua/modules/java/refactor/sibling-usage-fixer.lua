@@ -11,56 +11,16 @@ local logging = require("utils.logging-util")
 local consts = require("modules.java.refactor.constants")
 local log = logging.new({ name = "sibling-usage-fixer", filename = "java-refactor.log" })
 
--- Use GNU sed on both platforms for consistent behavior
--- macOS: gsed (installed via brew install gnu-sed)
--- Linux: sed (already GNU sed)
-local sed = vim.loop.os_uname().sysname == "Darwin" and "gsed" or "sed"
+-- GNU sed (gsed on macOS), shell escaping, command helpers and the import writer live in constants.lua so that
+-- this file and import-fixer.lua share one implementation.
+local sed = consts.sed
+local shell_escape = consts.shell_escape
+local exec_and_read = consts.exec_and_read
+local add_import_line = consts.add_import_line
 
 -- Boundary patterns for matching Java type names (shared with init.lua logic)
 local LEADING_BOUNDARY = consts.LEADING_BOUNDARY
 local TRAILING_BOUNDARY = consts.TRAILING_BOUNDARY
-
--- Helper to execute command and get output
-local function exec_and_read(cmd)
-    local handle = io.popen(cmd)
-    if not handle then
-        log.error("Failed to execute command:", cmd)
-        return nil
-    end
-    local result = handle:read("*all")
-    handle:close()
-    return result
-end
-
--- Helper to escape single quotes in paths for safe shell interpolation
-local function shell_escape(s)
-    return "'" .. s:gsub("'", "'\\''") .. "'"
-end
-
--- Add an import line to a file at a specific line number
-local function add_import_line(file_path, line_num, import_line)
-    -- First check if import already exists to avoid duplicates
-    -- (-F: fixed string, -x: whole line — no regex escaping needed)
-    local check_cmd =
-        string.format("rg -q -F -x -- %s %s 2>/dev/null", shell_escape(import_line), shell_escape(file_path))
-    local already_exists = os.execute(check_cmd)
-
-    if already_exists == 0 or already_exists == true then
-        log.debug("Import already exists, skipping:", import_line)
-        return true
-    end
-
-    -- Use GNU sed append command with literal newline
-    local sed_cmd = string.format("%s -i '%da\\\n%s' %s", sed, line_num, import_line, shell_escape(file_path))
-
-    log.debug("Sed command:", sed_cmd)
-    local result = os.execute(sed_cmd)
-    if not (result == 0 or result == true) then
-        log.warn("Failed to add import:", import_line, "to", file_path)
-        return false
-    end
-    return true
-end
 
 ---Fix usages of a moved type in a file that references it
 ---This adds the import for the moved type and updates type name if it changed
@@ -127,18 +87,10 @@ function M.fix_sibling_usage(opts)
     if file_package ~= opts.new_package then
         log.debug("Different package, adding import")
 
-        -- Find last import line
-        local last_import_output = exec_and_read(
-            string.format("rg -n '^import ' %s 2>/dev/null | tail -n 1 | cut -d: -f1", shell_escape(opts.file_path))
-        )
-        local last_import_line = tonumber(last_import_output) or 2
-        log.debug("Last import line:", last_import_line)
-
-        -- Add import
         local import_line = string.format("import %s.%s;", opts.new_package, opts.new_type_name)
         log.info("Adding import:", import_line, "to", opts.file_path)
 
-        if not add_import_line(opts.file_path, last_import_line, import_line) then
+        if not add_import_line(opts.file_path, import_line) then
             return false
         end
     else

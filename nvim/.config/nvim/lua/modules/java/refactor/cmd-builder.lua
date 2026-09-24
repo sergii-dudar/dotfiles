@@ -33,11 +33,16 @@ local function build_sed_for_files_cmd(source_cmd, sed_expr)
     )
 end
 
---- Build a no-op-safe source command for Java files under a directory.
+--- Build a no-op-safe source command for the Java files of ONE package directory (not recursive: files in
+--- sub-packages can only see a type through an import, and those are found by the import search).
 ---@param dir string
 ---@return string command
 local function fd_java_source_cmd(dir)
-    return string.format("[ -d %s ] && fd -e java . %s || true", shell_escape(dir), shell_escape(dir))
+    return string.format(
+        "[ -d %s ] && fd --color=never --max-depth 1 -e java . %s || true",
+        shell_escape(dir),
+        shell_escape(dir)
+    )
 end
 
 ---@param result_cmds RefactorOperation[]
@@ -77,8 +82,9 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     log.debug("Type rename:", old_type_name, "->", new_type_name)
 
     -- com.example.EmployeeManagementSystem.service
-    local package_declaration_src = package_src_classpath:match("(.+)%.%w+$")
-    local package_declaration_dst = package_dst_classpath:match("(.+)%.%w+$")
+    -- ([^.]+ rather than %w+: type names may contain `_` or `$`)
+    local package_declaration_src = package_src_classpath:match("(.+)%.[^.]+$")
+    local package_declaration_dst = package_dst_classpath:match("(.+)%.[^.]+$")
 
     if not package_declaration_src or not package_declaration_dst then
         log.error("Failed to extract package declarations")
@@ -101,11 +107,20 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- com\.example\.EmployeeManagementSystem\.service
     local package_declaration_src_escaped = package_declaration_src:gsub("%.", "\\.")
 
+    -- Files that may refer to the type by its simple name through an import: an explicit import of the type
+    -- (or of a nested / static member of it) or a wildcard import of its package.
+    -- `import\s+old.pkg([;.]|\*;)` was too loose: it also matched imports of unrelated types and sub-packages,
+    -- whose files may legitimately use a different type with the same simple name.
+    local import_rg_cmd = consts.rg_list_cmd(
+        "import\\s+(static\\s+)?" .. package_declaration_src_escaped .. "\\.(" .. old_type_name .. "([;.])|\\*;)",
+        search_root
+    )
+
     -- java file rename fixes (priority is very important):
     -- ==========================================================================
-    -- 1. fix type declaration in changed file.
+    -- 1. fix type declaration in changed file (the name may also end the line: `class Foo\n    extends Bar`).
     local fix_type_declaration_cmd = string.format(
-        "%s -i -E 's/(class|interface|enum|record)([[:space:]]+)%s([[:space:]<({])/\\1\\2%s\\3/g' %s",
+        "%s -i -E 's/(class|interface|enum|record)([[:space:]]+)%s([[:space:]<({]|$)/\\1\\2%s\\3/g' %s",
         sed,
         old_type_name,
         new_type_name,
@@ -143,11 +158,7 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- Also include corresponding test directory if this is a main file
         local test_package_dir = package_dir:gsub("src/main/java", "src/test/java")
         local source_cmds = {
-            string.format(
-                "rg --color=never -l %s %s || true",
-                shell_escape("import\\s+" .. package_declaration_src:gsub("%.", "\\.") .. "([;.]|\\*;)"),
-                shell_escape(search_root)
-            ),
+            import_rg_cmd,
             fd_java_source_cmd(package_dir),
         }
         if test_package_dir ~= package_dir and vim.fn.isdirectory(test_package_dir) == 1 then
@@ -175,12 +186,11 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
         -- For package moves, search for explicit imports AND wildcard imports
         -- ALSO include files from the OLD package directory — they use the type without import
         local old_package_dir = src:match("(.+)/[^/]+$") -- Directory where the file WAS
+        -- The moved file itself refers to its own type without an import (Foo.class, new Foo(), Foo::x),
+        -- so it must be part of the rename as well
         local source_cmds = {
-            string.format(
-                "rg --color=never -l %s %s || true",
-                shell_escape("import\\s+" .. package_declaration_src:gsub("%.", "\\.") .. "([;.]|\\*;)"),
-                shell_escape(search_root)
-            ),
+            import_rg_cmd,
+            "printf '%s\\n' " .. escaped_dst,
         }
         if old_package_dir then
             table.insert(source_cmds, fd_java_source_cmd(old_package_dir))
@@ -255,12 +265,8 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
     -- ==========================================================================
     -- 3. fix type full qualified names (across all files - java,yaml,properties etc)
     local fix_type_full_qualified_names = build_sed_for_files_cmd(
-        string.format(
-            "rg --color=never -l %s %s || true",
-            shell_escape(package_src_classpath_escaped),
-            shell_escape(search_root)
-        ),
-        string.format('s/%s([;.$"[:space:]()><,@]|$)/%s\\1/g', package_src_classpath_escaped, package_dst_classpath)
+        consts.rg_list_cmd(package_src_classpath_escaped, search_root),
+        consts.build_fqn_replace_expr(package_src_classpath_escaped, package_dst_classpath, '([;.$"[:space:]()><,@]|$)')
     )
     table.insert(result_cmds, {
         type = "shell",
@@ -333,12 +339,13 @@ local build_fix_java_file_after_change_cmds = function(result_cmds, root, contex
 
         -- 6. fix file path/resources path
         local fix_file_path_declaration = build_sed_for_files_cmd(
-            string.format(
-                "rg --color=never -l %s %s || true",
-                shell_escape(package_src_path_escaped),
-                shell_escape(search_root)
-            ),
-            string.format('s/%s([;."[:space:])><,]|$)/%s\\1/g', package_src_path_escaped, package_dst_path_escaped)
+            consts.rg_list_cmd(package_src_path_escaped, search_root),
+            consts.build_fqn_replace_expr(
+                package_src_path_escaped,
+                package_dst_path_escaped,
+                '([;."[:space:])><,]|$)',
+                consts.PATH_LEADING_BOUNDARY
+            )
         )
         table.insert(result_cmds, {
             type = "shell",
@@ -401,12 +408,8 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- 1. fix package full qualified names (across all files - java,yaml,properties etc)
     -- Pattern includes dot for subpackages
     local fix_package_full_qualified_names = build_sed_for_files_cmd(
-        string.format(
-            "rg --color=never -l %s %s || true",
-            shell_escape(package_src_classpath_escaped),
-            shell_escape(search_root)
-        ),
-        string.format('s/%s([;$"[:space:].,()><@]|$)/%s\\1/g', package_src_classpath_escaped, package_dst_classpath)
+        consts.rg_list_cmd(package_src_classpath_escaped, search_root),
+        consts.build_fqn_replace_expr(package_src_classpath_escaped, package_dst_classpath, '([;$"[:space:].,()><@]|$)')
     )
     log.debug("Package replacement command:", fix_package_full_qualified_names)
     table.insert(result_cmds, {
@@ -418,12 +421,13 @@ local build_fix_java_package_after_change_cmds = function(result_cmds, root, con
     -- ==========================================================================
     -- 2. fix package path/resources path
     local fix_file_path_declaration = build_sed_for_files_cmd(
-        string.format(
-            "rg --color=never -l %s %s || true",
-            shell_escape(package_src_path_escaped),
-            shell_escape(search_root)
-        ),
-        string.format('s/%s([;."\\/[:space:]]|$)/%s\\1/g', package_src_path_escaped, package_dst_path_escaped)
+        consts.rg_list_cmd(package_src_path_escaped, search_root),
+        consts.build_fqn_replace_expr(
+            package_src_path_escaped,
+            package_dst_path_escaped,
+            '([;."\\/[:space:]]|$)',
+            consts.PATH_LEADING_BOUNDARY
+        )
     )
     table.insert(result_cmds, {
         type = "shell",
@@ -452,7 +456,12 @@ function M.build_fix_commands(context, module_path)
     for _, root in ipairs(package_roots) do
         if string_util.contains(context.src, root) and string_util.contains(context.dst, root) then
             if is_file then
-                build_fix_java_file_after_change_cmds(result_cmds, root, context, module_path)
+                -- Only Java sources carry a type / package declaration to fix
+                if context.dst:match("%.java$") then
+                    build_fix_java_file_after_change_cmds(result_cmds, root, context, module_path)
+                else
+                    log.debug("Skipping non-Java file move:", context.dst)
+                end
             elseif is_dir then
                 build_fix_java_package_after_change_cmds(result_cmds, root, context, module_path)
             end
@@ -470,7 +479,8 @@ function M.get_all_src_siblings(context, all_changes)
     local context_src_siblings = {}
     for _, value in ipairs(all_changes) do
         local current_src_dir = value.src:match("(.+)/[^/]+$")
-        if context_src_dir == current_src_dir and context.dst ~= value.dst then
+        -- Only Java files are siblings: a moved sub-directory from the same parent is not a type
+        if value.src:match("%.java$") and context_src_dir == current_src_dir and context.dst ~= value.dst then
             table.insert(context_src_siblings, value)
         end
     end

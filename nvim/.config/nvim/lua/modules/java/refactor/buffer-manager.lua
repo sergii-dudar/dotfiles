@@ -112,7 +112,8 @@ function M.track_buffers_into(all_changes, opened_buffers, seen)
                 if buf_path then
                     local new_path = nil
                     if is_dir_move and (buf_path == src or buf_path:find("^" .. vim.pesc(src) .. "/")) then
-                        new_path = buf_path:gsub("^" .. vim.pesc(src), dst)
+                        -- plain concatenation: `dst` used as a gsub replacement would interpret `%`
+                        new_path = dst .. buf_path:sub(#src + 1)
                     elseif not is_dir_move and buf_path == src then
                         new_path = dst
                     end
@@ -136,8 +137,12 @@ function M.track_buffers_into(all_changes, opened_buffers, seen)
                     local buf_id = buffer_util.find_buf_by_path(file_path)
                     if buf_id then
                         local normalized_file_path = normalize_path(file_path) or file_path
-                        local new_path = normalized_file_path:gsub("^" .. vim.pesc(src), dst)
-                        add_tracked_buffer(opened_buffers, seen, normalized_file_path, new_path, buf_id)
+                        if normalized_file_path:sub(1, #src) == src then
+                            local new_path = dst .. normalized_file_path:sub(#src + 1)
+                            add_tracked_buffer(opened_buffers, seen, normalized_file_path, new_path, buf_id)
+                        else
+                            log.warn("Open buffer is not under the moved directory, not tracked:", file_path)
+                        end
                     else
                         log.debug("File not open in buffer:", file_path)
                     end
@@ -240,8 +245,17 @@ function M.reopen_buffers(opened_buffers)
 
     for i, buf_info in ipairs(opened_buffers) do
         log.debug("Reopening buffer", i, "of", #opened_buffers, ":", buf_info.new_path)
-        if vim.fn.filereadable(buf_info.new_path) == 1 then
-            log.debug("File exists at new location:", buf_info.new_path)
+
+        -- A move that failed (e.g. a refused overwrite) leaves the file at its old path: reopen it there rather
+        -- than losing the buffer the user had open
+        local reopen_path = buf_info.new_path
+        if vim.fn.filereadable(reopen_path) ~= 1 and vim.fn.filereadable(buf_info.old_path) == 1 then
+            log.warn("New file not found, the file did not move; reopening at old path:", buf_info.old_path)
+            reopen_path = buf_info.old_path
+        end
+
+        if vim.fn.filereadable(reopen_path) == 1 then
+            log.debug("File exists at:", reopen_path)
 
             if buf_info.is_current then
                 -- This was the focused buffer — open in the current window
@@ -250,30 +264,30 @@ function M.reopen_buffers(opened_buffers)
                     target_win = buf_info.win_id
                 end
                 vim.api.nvim_win_call(target_win, function()
-                    vim.cmd("edit " .. vim.fn.fnameescape(buf_info.new_path))
+                    vim.cmd("edit " .. vim.fn.fnameescape(reopen_path))
                     vim.cmd("filetype detect")
                 end)
                 -- Clean up scratch buffer
                 if buf_info.scratch_buf and vim.api.nvim_buf_is_valid(buf_info.scratch_buf) then
                     pcall(vim.api.nvim_buf_delete, buf_info.scratch_buf, { force = true })
                 end
-                log.info("Switched current window to new file:", buf_info.new_path)
+                log.info("Switched current window to file:", reopen_path)
             elseif buf_info.win_id and buf_info.win_id ~= -1 and vim.api.nvim_win_is_valid(buf_info.win_id) then
                 -- Buffer was displayed in a window, open new file in that window
                 log.debug("Reopening in window", buf_info.win_id)
                 vim.api.nvim_win_call(buf_info.win_id, function()
-                    vim.cmd("edit " .. vim.fn.fnameescape(buf_info.new_path))
+                    vim.cmd("edit " .. vim.fn.fnameescape(reopen_path))
                     vim.cmd("filetype detect")
                 end)
-                log.info("Reopened buffer in window", buf_info.win_id, ":", buf_info.new_path)
+                log.info("Reopened buffer in window", buf_info.win_id, ":", reopen_path)
             else
                 -- Buffer was not displayed or window no longer valid, just load it
                 log.debug("Loading as hidden buffer (win_id:", buf_info.win_id, ")")
-                vim.cmd("badd " .. vim.fn.fnameescape(buf_info.new_path))
-                log.info("Loaded hidden buffer:", buf_info.new_path)
+                vim.cmd("badd " .. vim.fn.fnameescape(reopen_path))
+                log.info("Loaded hidden buffer:", reopen_path)
             end
         else
-            log.warn("New file not found, cannot reopen:", buf_info.new_path)
+            log.warn("File not found at new or old path, cannot reopen:", buf_info.new_path)
         end
     end
     log.info("Buffer reopening completed")

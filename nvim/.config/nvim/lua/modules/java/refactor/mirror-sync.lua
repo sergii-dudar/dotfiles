@@ -270,7 +270,11 @@ local function compute_structural_mirrors(structural_refactorings, test_mirrors,
                     if subdir_name and not subdir:match("/" .. vim.pesc(dst_parent:match(".+/([^/]+)$")) .. "$") then
                         local dst_subdir = mirror_dst_parent .. "/" .. subdir_name
 
-                        if not test_mirror_dirs[subdir] then
+                        if vim.fn.isdirectory(src_parent .. "/" .. subdir_name) == 1 then
+                            -- Its own counterpart did not move: mirroring it would register a package move whose
+                            -- module-wide sed rewrites every reference to a package that is still in place
+                            log.info("Skipping structural mirror, counterpart still in place:", subdir)
+                        elseif not test_mirror_dirs[subdir] then
                             test_mirror_dirs[subdir] = dst_subdir
                             table.insert(test_mirrors, { src = subdir, dst = dst_subdir })
                             log.info("Auto-mirroring counterpart subdirectory (structural):", subdir, "->", dst_subdir)
@@ -305,6 +309,17 @@ local function compute_individual_mirrors(all_changes, canonical, test_mirrors, 
         -- Skip directory changes that are PARENTS of the canonical old prefix.
         if canonical_mod.is_parent_of_canonical(change, canonical) then
             log.info("Skipping parent-of-canonical directory change (partial rename):", change.src, "->", change.dst)
+            goto continue_mirror_loop
+        end
+
+        -- A move between the source roots (main <-> test) has no counterpart to mirror: its "mirror" would be the
+        -- destination itself
+        local src_root = string_util.contains(change.src, "src/main/java/") and "main"
+            or string_util.contains(change.src, "src/test/java/") and "test"
+        local dst_root = string_util.contains(change.dst, "src/main/java/") and "main"
+            or string_util.contains(change.dst, "src/test/java/") and "test"
+        if src_root and dst_root and src_root ~= dst_root then
+            log.info("Skipping mirror for a move between source roots (main <-> test):", change.src, "->", change.dst)
             goto continue_mirror_loop
         end
 
@@ -383,6 +398,10 @@ local function compute_individual_mirrors(all_changes, canonical, test_mirrors, 
                             end
                         end
                     end
+                elseif change.src ~= change.dst then
+                    -- Same-directory rename: the counterpart tests keep their package but follow the new name
+                    -- (CardUtilTest -> CardHelperTest), processed as same-package renames of their own
+                    add_file_counterpart_mirrors(change, "same-package rename", test_mirrors, test_mirror_dirs)
                 else
                     log.debug("Skipping mirror for same-directory file rename")
                 end
@@ -511,13 +530,21 @@ function M.cleanup_empty_dirs(module_path)
     end
 
     for _, java_root in ipairs(java_roots_to_clean) do
-        local handle = io.popen("find " .. shell_escape(java_root) .. " -type d -empty 2>/dev/null")
-        if handle then
+        -- Repeat: a parent only becomes empty once its (empty) children are gone.
+        -- -mindepth 1 keeps the source root itself (src/main/java, src/test/java) even when it ends up empty.
+        for _ = 1, 10 do
+            local handle = io.popen("find " .. shell_escape(java_root) .. " -mindepth 1 -type d -empty 2>/dev/null")
+            if not handle then
+                break
+            end
             local empty_dirs = {}
             for dir in handle:lines() do
                 table.insert(empty_dirs, dir)
             end
             handle:close()
+            if #empty_dirs == 0 then
+                break
+            end
 
             -- Remove bottom-up (sort by depth descending so deepest dirs are removed first)
             table.sort(empty_dirs, function(a, b)

@@ -64,17 +64,24 @@ local function setup_oil()
                 return
             end
 
+            -- Register every move of the batch and process them together, so that sibling moves (several
+            -- files leaving one package) are fixed against each other instead of in isolated runs.
             local actions = event.data and event.data.actions or {}
+            local registered = false
             for _, action in ipairs(actions) do
                 if action.type == "move" then
                     local old_name = (action.src_url or ""):gsub("^oil://", "")
                     local new_name = (action.dest_url or ""):gsub("^oil://", "")
                     if old_name ~= "" and new_name ~= "" then
-                        vim.schedule(function()
-                            java_refactor.process_single_file_change(old_name, new_name)
-                        end)
+                        java_refactor.register_change(old_name, new_name)
+                        registered = true
                     end
                 end
+            end
+            if registered then
+                vim.schedule(function()
+                    java_refactor.process_registerd_changes()
+                end)
             end
         end,
     })
@@ -113,8 +120,13 @@ function M.setup_fyler_autocmd()
                 group = group,
                 buffer = ev.buf,
                 callback = function()
+                    local java_refactor = require("modules.java.refactor")
+                    -- Nothing to do (non-Java project, or fyler closed without a rename): stay silent
+                    if not java_util.is_java_project() or not java_refactor.has_registered_changes() then
+                        return
+                    end
                     vim.notify("Fyler: fixing after move is running...")
-                    require("modules.java.refactor").process_registerd_changes()
+                    java_refactor.process_registerd_changes()
                     vim.cmd("clearjumps")
                     vim.notify("Fyler: fixing after move was finished!")
                 end,
