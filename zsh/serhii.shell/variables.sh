@@ -142,3 +142,7 @@ export MANWIDTH=999
 
 # enable Go modules to install the packages
 export GO111MODULE=on
+
+# bindings
+# bindkey '^K' up-line-or-history
+# bindkey '^J' down-line-or-history
