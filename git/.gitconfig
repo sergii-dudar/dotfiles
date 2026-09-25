@@ -2,6 +2,7 @@
 	excludesfile = ~/.gitignore_global
 	autocrlf = input
 	pager = delta
+    editor = nvim
 
 [user]
 	name = Serhii Dudar
@@ -42,6 +43,7 @@
 	prompt = false
 
 [mergetool "ec"]
+    # cmd = ec \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\"
     cmd = ec "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
     trustExitCode = true
 
@@ -55,6 +57,7 @@
 ;     trustExitCode = true
 
 [diff]
+    algorithm = histogram
     colorMoved = default
     tool = ec # nvimdiff
 
@@ -71,3 +74,6 @@
     autoSetupRemote = true  # easier to push new branches
     default = current  # push only current branch by default
     # followTags = true  # push also tags
+
+[rerere]
+    enabled = true

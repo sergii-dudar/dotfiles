@@ -2,6 +2,7 @@
 	excludesfile = ~/.gitignore_global
 	autocrlf = input
 	pager = delta
+    editor = nvim
 
 [user]
 	name = IUADA144
@@ -37,13 +38,14 @@
     tool = ec # diffview|nvimdiff|vimdiff|ec
     conflictstyle = diff3
 
-[mergetool "ec"]
-    cmd = ec "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
-    trustExitCode = true
-
 [mergetool]
 	keepBackup = false
 	prompt = false
+
+[mergetool "ec"]
+    # cmd = ec \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\"
+    cmd = ec "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
+    trustExitCode = true
 
 ; [mergetool "diffview"]
 ;     cmd = nvim -n -c "DiffviewOpen" "$MERGE"
@@ -55,6 +57,7 @@
 ;     trustExitCode = true
 
 [diff]
+    algorithm = histogram
     colorMoved = default
     tool = ec # nvimdiff
 
@@ -71,5 +74,5 @@
     autoSetupRemote = true  # easier to push new branches
     default = current  # push only current branch by default
     # followTags = true  # push also tags
-[mergetool "ec"]
-	cmd = ec \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\"
+[rerere]
+    enabled = true

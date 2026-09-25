@@ -6,7 +6,10 @@ Snacks.util.set_hl({
 
 local layouts = require("plugins.snacks.configs.layouts")
 local layout_vertical = { layout = layouts.custom_vertical }
-local layout_vertical_max = { layout = { preset = "custom_vertical", layout = { width = 0, height = 0 } } }
+-- width/height: 0 = full size (1 would mean 1 column/row); [2] = preview window, the list box takes the rest
+local layout_vertical_max = {
+    layout = { preset = "custom_vertical", layout = { width = 0, height = 0, [2] = { height = 0.85 } } },
+}
 
 local picker_util = require("utils.snacks-pickers-util")
 
