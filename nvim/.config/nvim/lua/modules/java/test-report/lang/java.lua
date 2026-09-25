@@ -11,6 +11,7 @@ local M = {
     group_separator = ".",
     diagnostic_source = "junit",
     trouble_source = "junit_diagnostics",
+    display_name = "JUnit",
 }
 
 ---@param dirs string[]
@@ -41,6 +42,9 @@ end
 
 -- project_root -> { "com/foo/Bar.java" -> "/abs/path/to/com/foo/Bar.java" }
 local class_index_cache = {}
+-- project_root -> { "com/foo/Bar.java" -> true }: suffixes looked up and NOT found since the
+-- last index build. Prevents a rebuild walk on every run for a genuinely unknown class.
+local class_index_misses = {}
 
 local _test_query
 local function test_query()
@@ -59,11 +63,11 @@ local function test_query()
             [
               (marker_annotation
                 name: (identifier) @annotation
-                (#any-of? @annotation "Test" "ParameterizedTest" "TestFactory" "CartesianTest")
+                (#any-of? @annotation "Test" "ParameterizedTest" "TestFactory" "CartesianTest" "RepeatedTest" "TestTemplate")
               )
               (annotation
                 name: (identifier) @annotation
-                (#any-of? @annotation "Test" "ParameterizedTest" "TestFactory" "CartesianTest")
+                (#any-of? @annotation "Test" "ParameterizedTest" "TestFactory" "CartesianTest" "RepeatedTest" "TestTemplate")
               )
             ]
           )
@@ -74,26 +78,100 @@ local function test_query()
     return _test_query
 end
 
---- One filesystem walk per project root, indexed by Java source-layout suffix
+-- Directories never descended into when indexing sources. Build outputs (target/, build/,
+-- bin/, out/) may contain full source copies (e.g. maven-release `target/checkout`) that
+-- would shadow the real files; VCS/IDE/tooling dirs are pure noise. Pruning them is also
+-- what makes the walk ~8x faster than `glob("**/*.java")` on a typical module.
+local SKIP_DIRS = {
+    target = true,
+    build = true,
+    bin = true,
+    out = true,
+    node_modules = true,
+    [".git"] = true,
+    [".idea"] = true,
+    [".gradle"] = true,
+    [".mvn"] = true,
+}
+
+---@param path string
+---@return integer
+local function path_depth(path)
+    local _, n = path:gsub("/", "")
+    return n
+end
+
+--- Walk `root` and report every *.java file (path relative to `root`, absolute path),
+--- pruning SKIP_DIRS. Symlinked directories are followed once (cycle-safe via realpath).
+---@param root string
+---@param on_file fun(rel: string, abs: string)
+---@param visited? table<string, boolean>
+local function walk_java_files(root, on_file, visited)
+    visited = visited or {}
+    local real = vim.uv.fs_realpath(root) or root
+    if visited[real] then
+        return
+    end
+    visited[real] = true
+
+    local ok, err = pcall(function()
+        local iter = vim.fs.dir(root, {
+            depth = math.huge,
+            skip = function(dir)
+                return not SKIP_DIRS[vim.fs.basename(dir)]
+            end,
+        })
+        for name, ftype in iter do
+            if ftype == "file" then
+                if name:sub(-5) == ".java" then
+                    on_file(name, root .. "/" .. name)
+                end
+            elseif ftype == "link" then
+                local abs = root .. "/" .. name
+                local st = vim.uv.fs_stat(abs)
+                if st and st.type == "directory" then
+                    if not SKIP_DIRS[vim.fs.basename(name)] then
+                        walk_java_files(abs, function(rel, abs_file)
+                            on_file(name .. "/" .. rel, abs_file)
+                        end, visited)
+                    end
+                elseif st and st.type == "file" and name:sub(-5) == ".java" then
+                    on_file(name, abs)
+                end
+            end
+        end
+    end)
+    if not ok then
+        log.error("class index walk failed for " .. root .. ": " .. tostring(err))
+    end
+end
+
+--- One pruned filesystem walk per project root, indexed by Java source-layout suffix
 --- ("com/foo/Bar.java"). Replaces N recursive globs with N hash lookups.
 --- Covers Maven/Gradle conventions (src/main/java, src/test/java, src/integTest/java)
 --- including multi-module layouts since the prefix can match anywhere in the path.
 ---@param project_root string
 ---@return table<string, string>
 local function build_class_index(project_root)
-    local cached = class_index_cache[project_root]
-    if cached then
-        return cached
-    end
     local t0 = vim.uv.hrtime()
     local index = {}
-    for _, abs_path in ipairs(vim.fn.glob(project_root .. "/**/*.java", false, true)) do
-        local suffix = abs_path:match("/src/[^/]+/java/(.+)$")
+    walk_java_files(project_root, function(rel, abs)
+        local suffix = ("/" .. rel):match("/src/[^/]+/java/(.+)$")
         if suffix then
-            index[suffix] = abs_path
+            local current = index[suffix]
+            -- Deterministic on duplicates (nested modules): prefer the shallowest path, then
+            -- the lexicographically smallest, regardless of filesystem iteration order.
+            if
+                not current
+                or path_depth(abs) < path_depth(current)
+                or (path_depth(abs) == path_depth(current) and abs < current)
+            then
+                index[suffix] = abs
+            end
         end
-    end
+    end)
     class_index_cache[project_root] = index
+    class_index_misses[project_root] = {}
     log.info(
         string.format(
             "[perf class_index] %s entries=%d build=%.1fms",
@@ -105,8 +183,35 @@ local function build_class_index(project_root)
     return index
 end
 
+--- Resolve a source-layout suffix through the project's class index, building the index on
+--- first use. A miss on a suffix not seen before triggers ONE rebuild: the index may predate
+--- a test class created after the first run of the session.
+---@param project_root string
+---@param suffix string
+---@return string|nil
+local function index_lookup(project_root, suffix)
+    local index = class_index_cache[project_root]
+    if index then
+        local hit = index[suffix]
+        if hit then
+            return hit
+        end
+        if class_index_misses[project_root][suffix] then
+            return nil
+        end
+        log.info("class index miss for " .. suffix .. ", rebuilding index of " .. project_root)
+    end
+    index = build_class_index(project_root)
+    local hit = index[suffix]
+    if not hit then
+        class_index_misses[project_root][suffix] = true
+    end
+    return hit
+end
+
 function M.clear_cache()
     class_index_cache = {}
+    class_index_misses = {}
     _test_query = nil
 end
 
@@ -122,12 +227,17 @@ function M.id_to_file(classname, report_dir)
     -- Accept both maven (target/junit-report) and gradle (build/junit-report).
     local project_root = report_dir:match("^(.+)/[^/]+/junit%-report$")
     if project_root then
-        local hit = build_class_index(project_root)[relative_path]
+        local hit = index_lookup(project_root, relative_path)
         if hit then
             return hit
         end
     end
-    return java_util.java_class_to_proj_path(outer_class)
+    local fallback = java_util.java_class_to_proj_path(outer_class)
+    if type(fallback) == "string" and fallback ~= "" then
+        -- glob() without {list} joins several matches with newlines; take the first one.
+        return vim.split(fallback, "\n", { plain = true })[1]
+    end
+    return nil
 end
 
 ---@param file_path string
@@ -167,7 +277,12 @@ function M.find_test_positions(file_path, opts)
     for id, node in query:iter_captures(tree:root(), bufnr) do
         local capture = query.captures[id]
         if capture == "class.name" then
-            class_line = node:range()
+            -- The file-level sign belongs on the OUTERMOST class: keep the first (topmost)
+            -- declaration, not the last nested one the query happens to visit.
+            local row = node:range()
+            if class_line == nil or row < class_line then
+                class_line = row
+            end
         elseif capture == "test.name" then
             positions[vim.treesitter.get_node_text(node, bufnr)] = node:range()
         end
@@ -180,12 +295,8 @@ end
 ---@param stacktrace string
 ---@return number|nil
 function M.extract_error_line(classname, stacktrace)
-    if not stacktrace or stacktrace == "" then
-        return nil
-    end
-    local simple_name = classname:match("([^%.]+)$") or classname
-    local line_str = stacktrace:match(simple_name .. "%.java:(%d+)")
-    return line_str and tonumber(line_str) or nil
+    -- Single implementation shared with the XML parser (nested-class aware).
+    return junit_xml._extract_error_line(classname, stacktrace)
 end
 
 ---@return string

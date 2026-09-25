@@ -2,6 +2,11 @@
 -- Renders results grouped by group → container → member (e.g. package → class → method,
 -- or crate::module → submodule → test_fn). Language-specifics are looked up
 -- from the registry by snapshot.filetype.
+--
+-- Layout follows neotest's summary window: a header with per-status counts, then a tree
+-- drawn with `├ ╰ │` connectors, `╮` marking an expanded node and `─` a collapsed one or a
+-- leaf, the status icon in a fixed column right after the connector, and durations
+-- right-aligned in a dim column.
 
 local registry = require("modules.common.test-report.registry")
 local nio_util = require("utils.nio-util")
@@ -13,31 +18,81 @@ local log = require("utils.logging-util").new({
 
 local M = {}
 
--- Result icons placed after the name (signals pass/fail)
-local result_icon = {
-    passed = "",
-    failed = "",
-    skipped = "",
-}
-local result_hl = {
-    passed = "DiagnosticOk",
-    failed = "DiagnosticError",
-    skipped = "DiagnosticWarn",
+---@class report_view.Config
+---@field width integer          Fixed width of the tree split (columns).
+---@field collapse_passed boolean Start containers whose tests all passed collapsed (failed ones stay open).
+local config = {
+    width = 65,
+    collapse_passed = false,
 }
 
--- Running indicator (shown during test rerun)
-local running_icon = ""
-local running_hl = "DiagnosticInfo"
+---@param opts? report_view.Config
+function M.setup(opts)
+    config = vim.tbl_extend("force", config, opts or {})
+end
 
--- Tree drawing characters
-local BRANCH = "├─"
-local BRANCH_LAST = "└─"
-local CONTINUATION = "│ "
-local INDENT = "  "
+-- Nerd-font glyphs by codepoint (avoids invisible/mangled literals in source).
+-- Same status icons as the gutter signs placed by the core.
+local icon = {
+    passed = vim.fn.nr2char(0xEAB2), -- codicon pass
+    failed = vim.fn.nr2char(0xEAB8), -- codicon error
+    skipped = vim.fn.nr2char(0xEB32), -- codicon circle-slash
+    running = vim.fn.nr2char(0xEB37), -- codicon debug-rerun (shown during a rerun)
+    total = vim.fn.nr2char(0xEA79), -- codicon beaker (header total)
+}
+
+-- Tree drawing characters (neotest summary style, 1-column indent per level)
+local glyph = {
+    child = "├",
+    last_child = "╰",
+    indent = "│",
+    last_indent = " ",
+    expanded = "╮",
+    collapsed = "─",
+    leaf = "─",
+}
 local INITIAL_INDENT = " "
 
-local arrow_right = "▶"
-local arrow_down = "▼"
+-- Highlight groups owned by this view. All are `default` links, so a colorscheme or the
+-- user can override them; re-applied on ColorScheme since schemes clear highlights.
+local hl = {
+    passed = "TestReportPassed",
+    failed = "TestReportFailed",
+    skipped = "TestReportSkipped",
+    running = "TestReportRunning",
+    indent = "TestReportIndent",
+    group = "TestReportGroup",
+    container = "TestReportContainer",
+    member_failed = "TestReportMemberFailed",
+    time = "TestReportTime",
+    title = "TestReportTitle",
+    count = "TestReportCount",
+    dim = "TestReportDim",
+}
+local hl_defaults = {
+    TestReportPassed = "DiagnosticOk",
+    TestReportFailed = "DiagnosticError",
+    TestReportSkipped = "DiagnosticWarn",
+    TestReportRunning = "DiagnosticInfo",
+    TestReportIndent = "Comment",
+    TestReportGroup = "Directory",
+    TestReportContainer = "Type",
+    TestReportMemberFailed = "DiagnosticError",
+    TestReportTime = "Comment",
+    TestReportTitle = "Title",
+    TestReportCount = "Normal",
+    TestReportDim = "Comment",
+}
+local function define_highlights()
+    for name, link in pairs(hl_defaults) do
+        vim.api.nvim_set_hl(0, name, { link = link, default = true })
+    end
+end
+define_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("TestReportViewHighlights", { clear = true }),
+    callback = define_highlights,
+})
 
 local ns = vim.api.nvim_create_namespace("test_report_view")
 
@@ -55,6 +110,7 @@ local ns = vim.api.nvim_create_namespace("test_report_view")
 ---@field status "passed"|"failed"|"skipped"
 ---@field time number
 ---@field members report_view.MemberNode[]
+---@field test_count integer
 ---@field expanded boolean
 
 ---@class report_view.GroupNode
@@ -63,6 +119,7 @@ local ns = vim.api.nvim_create_namespace("test_report_view")
 ---@field status "passed"|"failed"|"skipped"
 ---@field containers report_view.ContainerNode[]
 ---@field children report_view.GroupNode[]
+---@field test_count integer
 ---@field expanded boolean
 
 ---@class report_view.LineInfo
@@ -73,7 +130,6 @@ local ns = vim.api.nvim_create_namespace("test_report_view")
 
 -- Fixed width of the tree split. Re-asserted when other windows close (e.g.
 -- nvim-dap-ui panels) so the tree doesn't grow as freed columns redistribute.
-local TREE_WIDTH = 65
 local fix_width_group = vim.api.nvim_create_augroup("TestReportViewFixWidth", { clear = true })
 
 -- View state (singleton — only one tree view at a time)
@@ -88,15 +144,23 @@ local state = {
     adapter = nil, ---@type test_report.LangAdapter|nil
 }
 
+--- failed if anything failed, passed if anything passed, skipped only when
+--- everything was skipped (an all-skipped class must not show a green check).
 ---@param statuses string[]
 ---@return "passed"|"failed"|"skipped"
 local function aggregate_status(statuses)
+    local has_passed = false
     for _, s in ipairs(statuses) do
         if s == "failed" then
             return "failed"
+        elseif s == "passed" then
+            has_passed = true
         end
     end
-    return "passed"
+    if has_passed or #statuses == 0 then
+        return "passed"
+    end
+    return "skipped"
 end
 
 local function failed_first_cmp(a, b)
@@ -121,6 +185,7 @@ local function build_tree(snapshot, adapter)
 
     -- Step 1: Collect containers grouped by group path
     local group_containers = {} ---@type table<string, report_view.ContainerNode[]>
+    local container_by_id = {} ---@type table<string, report_view.ContainerNode>
 
     for id, result in pairs(snapshot.results) do
         local container_id = id:match("^(.+)#(.+)$")
@@ -131,13 +196,7 @@ local function build_tree(snapshot, adapter)
                 group_containers[group_name] = {}
             end
 
-            local cont
-            for _, c in ipairs(group_containers[group_name]) do
-                if c.container_id == container_id then
-                    cont = c
-                    break
-                end
-            end
+            local cont = container_by_id[container_id]
             if not cont then
                 cont = {
                     name = display.container,
@@ -146,7 +205,9 @@ local function build_tree(snapshot, adapter)
                     members = {},
                     expanded = true,
                     time = 0,
+                    test_count = 0,
                 }
+                container_by_id[container_id] = cont
                 table.insert(group_containers[group_name], cont)
             end
 
@@ -158,6 +219,7 @@ local function build_tree(snapshot, adapter)
                 id = id,
             })
             cont.time = (cont.time or 0) + (result.time or 0)
+            cont.test_count = cont.test_count + 1
         end
     end
 
@@ -168,6 +230,9 @@ local function build_tree(snapshot, adapter)
             cont.status = aggregate_status(vim.tbl_map(function(m)
                 return m.status
             end, cont.members))
+            if config.collapse_passed and cont.status ~= "failed" then
+                cont.expanded = false
+            end
         end
         table.sort(cont_list, failed_first_cmp)
     end
@@ -212,14 +277,17 @@ local function build_tree(snapshot, adapter)
                 containers = current.containers or {},
                 children = {},
                 expanded = true,
+                test_count = 0,
             }
             group_node.children = compact(current, full_path)
             local statuses = {}
             for _, cont in ipairs(group_node.containers) do
                 table.insert(statuses, cont.status)
+                group_node.test_count = group_node.test_count + cont.test_count
             end
             for _, child_group in ipairs(group_node.children) do
                 table.insert(statuses, child_group.status)
+                group_node.test_count = group_node.test_count + child_group.test_count
             end
             if #statuses > 0 then
                 group_node.status = aggregate_status(statuses)
@@ -235,6 +303,10 @@ local function build_tree(snapshot, adapter)
     -- Handle default group containers
     if #trie_root.containers > 0 then
         table.sort(trie_root.containers, failed_first_cmp)
+        local default_count = 0
+        for _, c in ipairs(trie_root.containers) do
+            default_count = default_count + c.test_count
+        end
         local default_group = {
             name = "(default)",
             full_path = "(default)",
@@ -244,6 +316,7 @@ local function build_tree(snapshot, adapter)
             containers = trie_root.containers,
             children = {},
             expanded = true,
+            test_count = default_count,
         }
         table.insert(groups, 1, default_group)
     end
@@ -338,11 +411,71 @@ local function format_line(parts)
     return text, hls
 end
 
+---@param t number|nil seconds
+---@return string
+local function fmt_time(t)
+    if type(t) ~= "number" or t <= 0 then
+        return ""
+    end
+    if t >= 1 then
+        return string.format("%.2fs", t)
+    end
+    local ms = math.floor(t * 1000 + 0.5)
+    if ms == 0 then
+        return ""
+    end
+    return string.format("%dms", ms)
+end
+
+--- Append `suffix` right-aligned to `width` (display cells). Never truncates: when the text
+--- is already too wide, the suffix simply follows after one space.
+local function append_right(text, hls, suffix, width, hl_group)
+    if suffix == "" then
+        return text, hls
+    end
+    local pad = width - vim.api.nvim_strwidth(text) - vim.api.nvim_strwidth(suffix)
+    text = text .. string.rep(" ", math.max(pad, 1))
+    local start = #text
+    text = text .. suffix
+    table.insert(hls, { start, #text, hl_group })
+    return text, hls
+end
+
+--- Identity of a rendered line, used to keep the cursor on the same node across refreshes.
+---@param info report_view.LineInfo|nil
+---@return string|nil
+local function node_key(info)
+    if not info or not info.node then
+        return nil
+    end
+    if info.type == "member" then
+        return "mem:" .. info.node.id
+    elseif info.type == "container" then
+        return "cnt:" .. info.node.container_id
+    elseif info.type == "group" then
+        return "grp:" .. info.node.full_path
+    end
+    return nil
+end
+
+local function status_icon(status, running)
+    if running then
+        return icon.running, hl.running
+    end
+    return icon[status] or icon.skipped, hl[status] or hl.skipped
+end
+
 local function render()
     local tree = state.tree
     if not tree then
         return {}, {}, {}
     end
+
+    local width = config.width
+    if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+        width = vim.api.nvim_win_get_width(state.winid)
+    end
+    local align_width = width - 1
 
     local lines = {}
     local line_map = {}
@@ -353,8 +486,8 @@ local function render()
         table.insert(line_map, info)
         if hls then
             local line_idx = #lines - 1
-            for _, hl in ipairs(hls) do
-                table.insert(all_hls, { line_idx, hl[1], hl[2], hl[3] })
+            for _, h in ipairs(hls) do
+                table.insert(all_hls, { line_idx, h[1], h[2], h[3] })
             end
         end
     end
@@ -372,23 +505,29 @@ local function render()
         end
         total_time = total_time + (result.time or 0)
     end
+    local running = state.running and vim.tbl_count(state.running) or 0
 
-    local summary_parts = {
-        { " ❮❮❮", "GrayBold" },
+    -- Header: "<label>  <total> <passed> <failed> <skipped> [<running>]        <time>"
+    local label = (state.adapter and state.adapter.display_name) or state.snapshot.filetype or "tests"
+    local header_parts = {
+        { INITIAL_INDENT .. label, hl.title },
+        { "  " .. icon.total .. " " .. total, hl.count },
+        { "  " .. icon.passed .. " " .. passed, hl.passed },
+        { "  " .. icon.failed .. " " .. failed, hl.failed },
+        { "  " .. icon.skipped .. " " .. skipped, hl.skipped },
     }
-    table.insert(summary_parts, { " " .. tostring(total), "PurpleBold" })
-    table.insert(summary_parts, { "/", "DiagnosticInfo" })
-    table.insert(summary_parts, { tostring(passed), "DiagnosticOk" })
-    table.insert(summary_parts, { "/", "DiagnosticInfo" })
-    table.insert(summary_parts, { tostring(failed), "DiagnosticError" })
-    table.insert(summary_parts, { "/", "DiagnosticInfo" })
-    table.insert(summary_parts, { tostring(skipped), "DiagnosticWarn" })
-    table.insert(summary_parts, { " · ", "GrenBold" })
-    table.insert(summary_parts, { string.format("(%.2fs)", total_time), "Comment" })
-    table.insert(summary_parts, { " ❯❯❯", "GrayBold" })
-
-    local header_text, header_hls = format_line(summary_parts)
+    if running > 0 then
+        table.insert(header_parts, { "  " .. icon.running .. " " .. running, hl.running })
+    end
+    local header_text, header_hls = format_line(header_parts)
+    header_text, header_hls = append_right(header_text, header_hls, fmt_time(total_time), align_width, hl.time)
     add_line(header_text, { type = "header" }, header_hls)
+    add_line("", { type = "blank" })
+
+    if total == 0 then
+        add_line(INITIAL_INDENT .. "No test results", { type = "blank" }, { { 0, #INITIAL_INDENT + 15, hl.dim } })
+        return lines, line_map, all_hls
+    end
 
     -- Pre-compute running state for containers and groups (bubbles up from member IDs)
     local is_running_cnt = {}
@@ -420,10 +559,67 @@ local function render()
         compute_running(tree)
     end
 
-    -- Recursive rendering of group children (sub-groups + containers)
+    ---@param cont report_view.ContainerNode
+    ---@param prefix string   Connector prefix for the container line itself
+    ---@param branch string   `├` or `╰`
+    ---@param child_pfx string Prefix for the member lines
+    ---@param group report_view.GroupNode
+    local function render_container(cont, prefix, branch, child_pfx, group)
+        local marker = cont.expanded and glyph.expanded or glyph.collapsed
+        local cnt_icon, cnt_icon_hl = status_icon(cont.status, is_running_cnt[cont.container_id])
+        local parts = {
+            { prefix .. branch .. marker, hl.indent },
+            { " " .. cnt_icon .. " ", cnt_icon_hl },
+            { cont.name, hl.container },
+        }
+        if not cont.expanded then
+            table.insert(parts, { " (" .. cont.test_count .. ")", hl.dim })
+        end
+        local text, hls = format_line(parts)
+        text, hls = append_right(text, hls, fmt_time(cont.time), align_width, hl.time)
+        add_line(text, { type = "container", node = cont, group_node = group }, hls)
+
+        if cont.expanded then
+            for mem_idx, mem in ipairs(cont.members) do
+                local mem_branch = (mem_idx == #cont.members) and glyph.last_child or glyph.child
+                local mem_running = state.running and state.running[mem.id]
+                local mem_icon, mem_icon_hl = status_icon(mem.status, mem_running)
+                local mem_name_hl = mem.status == "failed" and hl.member_failed or nil
+                local mem_text, mem_hls = format_line({
+                    { child_pfx .. mem_branch .. glyph.leaf, hl.indent },
+                    { " " .. mem_icon .. " ", mem_icon_hl },
+                    { mem.name, mem_name_hl },
+                })
+                mem_text, mem_hls = append_right(mem_text, mem_hls, fmt_time(mem.time), align_width, hl.time)
+                add_line(mem_text, { type = "member", node = mem, container_node = cont, group_node = group }, mem_hls)
+            end
+        end
+    end
+
+    -- Recursive rendering of a group line and (when expanded) its children
+    -- (containers first, then sub-groups), all as siblings with tree connectors.
     ---@param group report_view.GroupNode
     ---@param prefix string
-    local function render_children(group, prefix)
+    ---@param branch string
+    ---@param child_pfx string
+    local function render_group(group, prefix, branch, child_pfx)
+        local marker = group.expanded and glyph.expanded or glyph.collapsed
+        local grp_icon, grp_icon_hl = status_icon(group.status, is_running_grp[group.full_path])
+        local parts = {
+            { prefix .. branch .. marker, hl.indent },
+            { " " .. grp_icon .. " ", grp_icon_hl },
+            { group.name, hl.group },
+        }
+        if not group.expanded then
+            table.insert(parts, { " (" .. group.test_count .. ")", hl.dim })
+        end
+        local text, hls = format_line(parts)
+        add_line(text, { type = "group", node = group }, hls)
+
+        if not group.expanded then
+            return
+        end
+
         local items = {}
         for _, cont in ipairs(group.containers) do
             table.insert(items, { kind = "container", cont = cont })
@@ -434,92 +630,22 @@ local function render()
 
         for i, item in ipairs(items) do
             local is_last = i == #items
-            local branch = is_last and BRANCH_LAST or BRANCH
-            local cont_pfx = is_last and INDENT or CONTINUATION
-
+            local item_branch = is_last and glyph.last_child or glyph.child
+            local item_child_pfx = child_pfx .. (is_last and glyph.last_indent or glyph.indent)
             if item.kind == "container" then
-                local cont = item.cont
-                local cnt_fold = cont.expanded and arrow_down or arrow_right
-                local cnt_running = is_running_cnt[cont.container_id]
-                local cnt_icon = cnt_running and running_icon or result_icon[cont.status]
-                local cnt_icon_hl = cnt_running and running_hl or result_hl[cont.status]
-                local time_str = cont.time and string.format(" (%.2fs)", cont.time) or ""
-
-                local cnt_text, cnt_hls = format_line({
-                    { prefix .. branch, "Comment" },
-                    { cnt_fold .. " ", "Comment" },
-                    { cont.name, "Type" },
-                    { " " .. cnt_icon, cnt_icon_hl },
-                    { time_str, "Comment" },
-                })
-                add_line(cnt_text, { type = "container", node = cont, group_node = group }, cnt_hls)
-
-                if cont.expanded then
-                    for mem_idx, mem in ipairs(cont.members) do
-                        local is_last_mem = mem_idx == #cont.members
-                        local mem_branch = is_last_mem and BRANCH_LAST or BRANCH
-                        local mem_running = state.running and state.running[mem.id]
-                        local mem_icon = mem_running and running_icon or result_icon[mem.status]
-                        local mem_icon_hl = mem_running and running_hl or result_hl[mem.status]
-                        local mem_time = mem.time and string.format(" (%.3fs)", mem.time) or ""
-
-                        local mem_name_hl = mem.status == "failed" and "DiagnosticError" or nil
-                        local mem_text, mem_hls = format_line({
-                            { prefix .. cont_pfx, "Comment" },
-                            { mem_branch, "Comment" },
-                            { mem.name, mem_name_hl },
-                            { " " .. mem_icon, mem_icon_hl },
-                            { mem_time, "Comment" },
-                        })
-                        add_line(
-                            mem_text,
-                            { type = "member", node = mem, container_node = cont, group_node = group },
-                            mem_hls
-                        )
-                    end
-                end
+                render_container(item.cont, child_pfx, item_branch, item_child_pfx, group)
             else
-                local child = item.child
-                local fold_char = child.expanded and arrow_down or arrow_right
-                local child_running = is_running_grp[child.full_path]
-                local child_icon = child_running and running_icon or result_icon[child.status]
-                local child_icon_hl = child_running and running_hl or result_hl[child.status]
-
-                local child_text, child_hls = format_line({
-                    { prefix .. branch, "Comment" },
-                    { fold_char .. " ", "Comment" },
-                    { child.name, "Directory" },
-                    { " " .. child_icon, child_icon_hl },
-                })
-                add_line(child_text, { type = "group", node = child }, child_hls)
-
-                if child.expanded then
-                    render_children(child, prefix .. cont_pfx)
-                end
+                render_group(item.child, child_pfx, item_branch, item_child_pfx)
             end
         end
     end
 
-    -- Top-level groups
+    -- Top-level groups hang off the header like neotest's adapter root.
     for grp_idx, group in ipairs(tree) do
-        local grp_running = is_running_grp[group.full_path]
-        local icon = grp_running and running_icon or result_icon[group.status]
-        local icon_hl = grp_running and running_hl or result_hl[group.status]
-        local fold_char = group.expanded and arrow_down or arrow_right
-        local grp_text, grp_hls = format_line({
-            { INITIAL_INDENT .. fold_char .. " ", "Comment" },
-            { group.name, "Directory" },
-            { " " .. icon, icon_hl },
-        })
-        add_line(grp_text, { type = "group", node = group }, grp_hls)
-
-        if group.expanded then
-            render_children(group, INITIAL_INDENT)
-        end
-
-        if grp_idx < #tree then
-            add_line("", { type = "blank" })
-        end
+        local is_last = grp_idx == #tree
+        local branch = is_last and glyph.last_child or glyph.child
+        local child_pfx = INITIAL_INDENT .. (is_last and glyph.last_indent or glyph.indent)
+        render_group(group, INITIAL_INDENT, branch, child_pfx)
     end
 
     return lines, line_map, all_hls
@@ -530,6 +656,15 @@ local function refresh()
         return
     end
 
+    -- Remember which node the cursor is on: failed-first sorting can reorder lines after
+    -- a rerun, and the cursor must stay on the same test, not the same line number.
+    local win_valid = state.winid and vim.api.nvim_win_is_valid(state.winid)
+    local old_line, anchor
+    if win_valid and state.line_map then
+        old_line = vim.api.nvim_win_get_cursor(state.winid)[1]
+        anchor = node_key(state.line_map[old_line])
+    end
+
     local lines, line_map, highlights = render()
     state.line_map = line_map
 
@@ -538,11 +673,25 @@ local function refresh()
     vim.bo[state.bufnr].modifiable = false
 
     vim.api.nvim_buf_clear_namespace(state.bufnr, ns, 0, -1)
-    for _, hl in ipairs(highlights) do
-        vim.api.nvim_buf_set_extmark(state.bufnr, ns, hl[1], hl[2], {
-            end_col = hl[3],
-            hl_group = hl[4],
+    for _, h in ipairs(highlights) do
+        vim.api.nvim_buf_set_extmark(state.bufnr, ns, h[1], h[2], {
+            end_col = h[3],
+            hl_group = h[4],
         })
+    end
+
+    if win_valid and old_line then
+        local target = old_line
+        if anchor then
+            for i, info in ipairs(line_map) do
+                if node_key(info) == anchor then
+                    target = i
+                    break
+                end
+            end
+        end
+        target = math.max(1, math.min(target, #lines))
+        pcall(vim.api.nvim_win_set_cursor, state.winid, { target, 0 })
     end
 end
 
@@ -567,6 +716,15 @@ local function get_cursor_node()
     return state.line_map[line]
 end
 
+--- Positions are keyed by the id's member part (what find_test_positions returns),
+--- which is NOT always the human display name (e.g. jest uses "L<row>" keys while
+--- the display is "describe > title"). Always resolve through the id.
+---@param mem report_view.MemberNode
+---@return string
+local function member_pos_key(mem)
+    return (mem.id and mem.id:match("#(.+)$")) or mem.name
+end
+
 local function action_goto()
     local info = get_cursor_node()
     if not info then
@@ -579,7 +737,7 @@ local function action_goto()
         if file_path and state.snapshot.positions then
             local positions = state.snapshot.positions[file_path]
             if positions then
-                line = positions[info.node.name]
+                line = positions[member_pos_key(info.node)]
             end
         end
     elseif info.type == "container" then
@@ -615,7 +773,10 @@ local function action_output()
         return
     end
 
-    require("modules.common.test-report").show_output_for(info.node.name, info.node.result)
+    require("modules.common.test-report").show_output_for(info.node.name, info.node.result, {
+        file_path = info.container_node.file_path,
+        member_key = member_pos_key(info.node),
+    })
 end
 
 local function action_toggle_fold()
@@ -653,10 +814,7 @@ local function action_rerun(is_debug)
         vim.cmd("edit " .. vim.fn.fnameescape(file_path))
         if state.snapshot.positions then
             local positions = state.snapshot.positions[file_path]
-            -- Positions are keyed by the id's member part (what find_test_positions
-            -- returns), which is NOT always the human display name (e.g. jest uses
-            -- "L<row>" keys while the display is "describe > title"). Use the id.
-            local pos_key = info.node.id and info.node.id:match("#(.+)$") or info.node.name
+            local pos_key = member_pos_key(info.node)
             if positions and pos_key and positions[pos_key] then
                 vim.api.nvim_win_set_cursor(0, { positions[pos_key] + 1, 0 })
             end
@@ -690,6 +848,10 @@ local function action_rerun(is_debug)
         state.running = ids
         refresh()
     elseif info.type == "group" then
+        if info.node.full_path == "(default)" then
+            vim.notify("test-report: the default group has no package to rerun", vim.log.levels.WARN)
+            return
+        end
         local first_container = find_first_container(info.node)
         if not first_container or not first_container.file_path then
             vim.notify("test-report: cannot resolve file for group rerun", vim.log.levels.WARN)
@@ -784,6 +946,8 @@ local help_entries = {
 }
 -- stylua: ignore end
 
+local help_ns = vim.api.nvim_create_namespace("test_report_view_help")
+
 local function action_show_help()
     local lines = {}
     local hls = {}
@@ -799,9 +963,8 @@ local function action_show_help()
     vim.bo[help_buf].modifiable = false
     vim.bo[help_buf].bufhidden = "wipe"
 
-    local help_ns = vim.api.nvim_create_namespace("test_report_view_help")
-    for _, hl in ipairs(hls) do
-        vim.api.nvim_buf_add_highlight(help_buf, help_ns, hl[4], hl[1], hl[2], hl[3])
+    for _, h in ipairs(hls) do
+        vim.api.nvim_buf_set_extmark(help_buf, help_ns, h[1], h[2], { end_col = h[3], hl_group = h[4] })
     end
 
     local width = 42
@@ -900,19 +1063,23 @@ function M.open(snapshot)
     vim.cmd("botright vsplit")
     state.winid = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.winid, state.bufnr)
-    vim.api.nvim_win_set_width(state.winid, TREE_WIDTH)
+    vim.api.nvim_win_set_width(state.winid, config.width)
 
     vim.wo[state.winid].number = false
     vim.wo[state.winid].relativenumber = false
     vim.wo[state.winid].signcolumn = "no"
     vim.wo[state.winid].foldcolumn = "0"
     vim.wo[state.winid].wrap = false
+    vim.wo[state.winid].list = false
+    vim.wo[state.winid].spell = false
     vim.wo[state.winid].cursorline = true
     vim.wo[state.winid].winfixwidth = true
+    vim.wo[state.winid].fillchars = "eob: " -- no `~` below the tree
 
     -- Keep the tree at a fixed width even when other splits open/close. When a
     -- vertical split (e.g. a nvim-dap-ui panel) closes, Neovim redistributes the
     -- freed columns and the tree can grow despite `winfixwidth`; snap it back.
+    -- (This also undoes a manual resize of the tree; use `M.setup({ width = N })`.)
     vim.api.nvim_clear_autocmds({ group = fix_width_group })
     vim.api.nvim_create_autocmd({ "WinClosed", "WinResized" }, {
         group = fix_width_group,
@@ -924,9 +1091,9 @@ function M.open(snapshot)
                 if
                     state.winid
                     and vim.api.nvim_win_is_valid(state.winid)
-                    and vim.api.nvim_win_get_width(state.winid) ~= TREE_WIDTH
+                    and vim.api.nvim_win_get_width(state.winid) ~= config.width
                 then
-                    pcall(vim.api.nvim_win_set_width, state.winid, TREE_WIDTH)
+                    pcall(vim.api.nvim_win_set_width, state.winid, config.width)
                 end
             end)
         end,
@@ -966,9 +1133,14 @@ function M.toggle(snapshot)
     M.open(snapshot)
 end
 
+---@return boolean
+local function is_open()
+    return state.bufnr ~= nil and vim.api.nvim_buf_is_valid(state.bufnr)
+end
+
 ---@param snapshot test_report.Snapshot
 function M.refresh_if_open(snapshot)
-    if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
+    if not is_open() then
         return
     end
     local adapter = state.adapter or registry.get(snapshot.filetype)
@@ -989,6 +1161,35 @@ function M.refresh_if_open(snapshot)
     state.tree = rebuild_tree(state.tree, state.snapshot, adapter)
     refresh()
     log.info("tree view refreshed (incremental)")
+end
+
+--- Drop the "running" marks (rerun finished without a report, or was canceled).
+function M.clear_running()
+    if not state.running then
+        return
+    end
+    state.running = nil
+    if is_open() then
+        refresh()
+    end
+end
+
+--- Forget the view's copy of the results (the core cleared its state). The window stays
+--- open showing an empty header; the next process() fills it through refresh_if_open().
+function M.reset_if_open()
+    if not is_open() then
+        return
+    end
+    state.snapshot = {
+        results = {},
+        positions = {},
+        container_files = {},
+        filetype = state.snapshot and state.snapshot.filetype,
+    }
+    state.running = nil
+    state.tree = {}
+    refresh()
+    log.info("tree view reset")
 end
 
 return M

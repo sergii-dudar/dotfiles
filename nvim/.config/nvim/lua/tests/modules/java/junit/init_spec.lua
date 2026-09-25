@@ -167,4 +167,56 @@ describe("modules.java.junit", function()
         -- then
         assert.are.same({ "echo", "Wrong test selector context!" }, result.cmd)
     end)
+
+    it("selects the 0-based iteration for a 1-based parametrized test number", function()
+        -- given
+        current_method = { fsignature = "com.acme.FooTest#works(int)", is_abstract = false }
+        require("utils.nio-util").input = function()
+            return "3"
+        end
+        local context = { test_type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST }
+
+        -- when
+        local result = junit.build_run_test_cmd(context)
+
+        -- then
+        assert.is_true(vim.tbl_contains(result.cmd, "--select-iteration=method:com.acme.FooTest#works(int)[2]"))
+    end)
+
+    it("returns an echo command when the parametrized test number prompt is cancelled", function()
+        -- given
+        current_method = { fsignature = "com.acme.FooTest#works(int)", is_abstract = false }
+        require("utils.nio-util").input = function()
+            return nil
+        end
+        local context = { test_type = task.test_type.CURRENT_PARAMETRIZED_NUM_TEST }
+
+        -- when
+        local result = junit.build_run_test_cmd(context)
+
+        -- then
+        assert.are.same({ "echo", "Wrong test selector context!" }, result.cmd)
+    end)
+
+    it("returns an echo command for an unsupported test type", function()
+        -- when
+        local result = junit.build_run_test_cmd({ test_type = "NOPE" })
+
+        -- then
+        assert.are.same({ "echo", "Unsupported junit test type: NOPE" }, result.cmd)
+    end)
+
+    it("returns an echo command when jdtls cannot provide a test classpath", function()
+        -- given
+        require("utils.java.jdtls-classpath-util").get_classpath_for_main_method = function()
+            return nil
+        end
+        local context = { test_type = task.test_type.ALL_TESTS }
+
+        -- when
+        local result = junit.build_run_test_cmd(context)
+
+        -- then
+        assert.are.same({ "echo", "Could not resolve test classpath from jdtls" }, result.cmd)
+    end)
 end)

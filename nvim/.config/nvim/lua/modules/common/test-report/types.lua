@@ -34,6 +34,7 @@
 ---@field group_separator     string   Separator for group hierarchy ("." for java, "::" for rust).
 ---@field diagnostic_source   string   Value placed in vim.diagnostic entries `source` field.
 ---@field trouble_source?     string   Optional Trouble source key (e.g. "junit_diagnostics").
+---@field display_name?       string   Human label for the tree-view header (e.g. "JUnit"); defaults to the filetype.
 ---@field clear_cache?        fun()
 
 ---@class test_report.Snapshot

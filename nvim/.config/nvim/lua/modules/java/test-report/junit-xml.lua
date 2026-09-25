@@ -15,7 +15,9 @@ function M.list_report_files(report_dir)
     local files = vim.fn.glob(report_dir .. "/TEST-*.xml", false, true)
     log.debug("found " .. #files .. " XML files")
     if #files == 0 then
-        vim.notify("No JUnit XML reports found in: " .. report_dir, vim.log.levels.WARN)
+        -- The core notifies once for the whole run ("no results from parser"); a second
+        -- notification here was pure noise.
+        log.warn("No JUnit XML reports found in: " .. report_dir)
     end
     return files
 end
@@ -218,13 +220,13 @@ function M._extract_text(node)
     return nil
 end
 
---- Recover the assertion message from a stacktrace string. Used when the XML
---- parser fails to extract the `<failure message="...">` attribute — lib.xml
---- mishandles raw `>` inside attribute values, which JUnit Jupiter produces
---- (e.g. `message="expected: &lt;2> but was: &lt;1>"`). The stacktrace's first
---- exception line (`<FQCN>(Error|Exception|Throwable): <msg>`) is reliable
---- even when attribute parsing produced garbage. AssertJ encodes `>` as `&gt;`
---- so its attributes parse fine; this fallback covers the Jupiter case.
+--- Recover the assertion message from a stacktrace string. Used when the
+--- `<failure message="...">` attribute is absent or empty (some engines only set
+--- `type`). Historically it also covered lib.xml mangling raw `>` inside attribute
+--- values (JUnit Jupiter's `message="expected: &lt;2> but was: &lt;1>"`); that
+--- parser bug is fixed (lib/xml/parser.lua `_ATTRERR1`), so this is now a safety
+--- net only. The stacktrace's first exception line
+--- (`<FQCN>(Error|Exception|Throwable): <msg>`) is reliable either way.
 ---@param stacktrace string
 ---@return string|nil
 local function message_from_stacktrace(stacktrace)
@@ -268,8 +270,8 @@ function M._extract_errors(classname, failure_node)
                 message = f._attr.message or f._attr.type or ""
             end
             -- Text content of the failure element is the stacktrace.
-            -- When attribute parsing breaks (Jupiter `&lt;X>` case), f[1] is the
-            -- garbage from mangled attrs and f[2] is the real CDATA content;
+            -- Defensive: should attribute parsing ever break again, f[1] would be
+            -- the residue of mangled attrs and f[2] the real CDATA content;
             -- concatenate so message_from_stacktrace can still find the exception line.
             if f[1] and type(f[1]) == "string" then
                 stacktrace = f[1]
@@ -303,10 +305,15 @@ function M._extract_error_line(classname, stacktrace)
     if not stacktrace or stacktrace == "" then
         return nil
     end
-    -- Extract simple class name from fully-qualified (e.g., "com.example.MyTest" -> "MyTest")
+    -- Extract simple class name from fully-qualified (e.g., "com.example.MyTest" -> "MyTest").
+    -- Stack frames name the SOURCE FILE, which for a nested class ("com.example.MyTest$Inner")
+    -- is still "MyTest.java", so drop everything from the first `$`.
     local simple_name = classname:match("([^%.]+)$") or classname
-    -- Match "ClassName.java:123" pattern
-    local pattern = simple_name .. "%.java:(%d+)"
+    simple_name = simple_name:match("^([^%$]+)") or simple_name
+    -- Match "ClassName.java:123" (escape pattern-special chars in the name). The frontier
+    -- anchors the name at a word boundary so "FooTest" cannot match a superclass frame like
+    -- "AbstractFooTest.java:30" (a different file, which would misplace the diagnostic).
+    local pattern = "%f[%w_]" .. simple_name:gsub("(%W)", "%%%1") .. "%.java:(%d+)"
     local line_str = stacktrace:match(pattern)
     if line_str then
         return tonumber(line_str)

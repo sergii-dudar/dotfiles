@@ -5,6 +5,8 @@ describe("modules.java.test-report.lang.java", function()
     local parsed_files
     local report_files
     local java_common
+    local walk_entries
+    local walk_calls
 
     --- Return a no-op logger for Java test-report adapter tests.
     local function logger()
@@ -36,6 +38,8 @@ describe("modules.java.test-report.lang.java", function()
             new = logger,
         })
         helper.stub_module("utils.java.java-common", java_common)
+        -- The adapter delegates error-line extraction to the real parser helper.
+        local real_junit_xml = helper.reload("modules.java.test-report.junit-xml")
         helper.stub_module("modules.java.test-report.junit-xml", {
             list_report_files = function(dir)
                 return report_files[dir] or {}
@@ -43,7 +47,39 @@ describe("modules.java.test-report.lang.java", function()
             parse_file = function(filepath)
                 return parsed_files[filepath] or {}
             end,
+            _extract_error_line = real_junit_xml._extract_error_line,
         })
+
+        -- Filesystem walk used by the class index (vim.fs.dir yields <relative name, type>).
+        walk_entries = {}
+        walk_calls = 0
+        vim.fs.dir = function(_, _)
+            walk_calls = walk_calls + 1
+            local entries = walk_entries
+            local i = 0
+            return function()
+                i = i + 1
+                local e = entries[i]
+                if e then
+                    return e[1], e[2]
+                end
+                return nil
+            end
+        end
+        vim.fs.basename = function(path)
+            return path:match("([^/]+)$") or path
+        end
+        vim.uv.fs_realpath = function(path)
+            return path
+        end
+        vim.split = vim.split
+            or function(s, sep)
+                local out = {}
+                for part in (s .. sep):gmatch("(.-)" .. sep:gsub("%p", "%%%0")) do
+                    table.insert(out, part)
+                end
+                return out
+            end
 
         java_lang = helper.reload("modules.java.test-report.lang.java")
     end)
@@ -113,33 +149,94 @@ describe("modules.java.test-report.lang.java", function()
 
     it("resolves inner classes to the outer Java source file from the report project index", function()
         -- given
-        vim.fn.glob = function(pattern, _, list)
-            assert.are.equal("/repo/service/**/*.java", pattern)
-            assert.is_true(list)
-            return {
-                "/repo/service/src/test/java/com/acme/FooTest.java",
-                "/repo/service/src/test/java/com/acme/OtherTest.java",
-            }
-        end
+        walk_entries = {
+            { "src/test/java/com/acme/FooTest.java", "file" },
+            { "src/test/java/com/acme/OtherTest.java", "file" },
+            { "src/main/java/com/acme/Foo.java", "file" },
+        }
 
         -- when
         local file = java_lang.id_to_file("com.acme.FooTest$Nested", "/repo/service/target/junit-report")
 
         -- then
         assert.are.equal("/repo/service/src/test/java/com/acme/FooTest.java", file)
+        assert.are.equal(1, walk_calls)
+    end)
+
+    it("prefers the shallowest path when nested modules carry the same source suffix", function()
+        -- given: walk order is filesystem order, the choice must not depend on it
+        walk_entries = {
+            { "legacy/inner/src/test/java/com/acme/FooTest.java", "file" },
+            { "src/test/java/com/acme/FooTest.java", "file" },
+        }
+
+        -- when
+        local file = java_lang.id_to_file("com.acme.FooTest", "/repo/service/target/junit-report")
+
+        -- then
+        assert.are.equal("/repo/service/src/test/java/com/acme/FooTest.java", file)
+    end)
+
+    it("rebuilds the index once for a class created after the first run, then remembers the miss", function()
+        -- given
+        walk_entries = { { "src/test/java/com/acme/FooTest.java", "file" } }
+        assert.is_not_nil(java_lang.id_to_file("com.acme.FooTest", "/repo/service/target/junit-report"))
+        assert.are.equal(1, walk_calls)
+
+        -- when: a new test class appears on disk
+        walk_entries = {
+            { "src/test/java/com/acme/FooTest.java", "file" },
+            { "src/test/java/com/acme/NewTest.java", "file" },
+        }
+        local found = java_lang.id_to_file("com.acme.NewTest", "/repo/service/target/junit-report")
+
+        -- then: one rebuild resolved it
+        assert.are.equal("/repo/service/src/test/java/com/acme/NewTest.java", found)
+        assert.are.equal(2, walk_calls)
+
+        -- and: a genuinely missing class triggers one rebuild, not one per lookup
+        java_common.java_class_to_proj_path = function()
+            return nil
+        end
+        assert.is_nil(java_lang.id_to_file("com.acme.GhostTest", "/repo/service/target/junit-report"))
+        assert.is_nil(java_lang.id_to_file("com.acme.GhostTest", "/repo/service/target/junit-report"))
+        assert.are.equal(3, walk_calls)
     end)
 
     it("falls back to java_class_to_proj_path when the report project index has no match", function()
         -- given
-        vim.fn.glob = function()
-            return {}
-        end
+        walk_entries = {}
 
         -- when
         local file = java_lang.id_to_file("com.acme.MissingTest", "/repo/service/target/junit-report")
 
         -- then
         assert.are.equal("/fallback/com/acme/MissingTest.java", file)
+    end)
+
+    it("takes the first match when the fallback glob returns several newline-joined paths", function()
+        -- given
+        walk_entries = {}
+        java_common.java_class_to_proj_path = function()
+            return "/a/src/test/java/com/acme/DupTest.java\n/b/src/test/java/com/acme/DupTest.java"
+        end
+
+        -- when
+        local file = java_lang.id_to_file("com.acme.DupTest", "/repo/service/target/junit-report")
+
+        -- then
+        assert.are.equal("/a/src/test/java/com/acme/DupTest.java", file)
+    end)
+
+    it("extracts the error line for a nested class from the outer source file frame", function()
+        -- given
+        local stacktrace = "java.lang.AssertionError\n\tat com.acme.FooTest$Inner.works(FooTest.java:31)\n"
+
+        -- when
+        local line = java_lang.extract_error_line("com.acme.FooTest$Inner", stacktrace)
+
+        -- then
+        assert.are.equal(31, line)
     end)
 
     it("extracts a source line from a Java stacktrace", function()

@@ -238,10 +238,12 @@ function xml2lua.toXml(tb, tableName, level)
             -- When values are primitives:
             -- If the type of the key is number, the value is an element from an array.
             -- In this case, uses the array name as the tag name.
+            -- Lua >= 5.4 treats for-loop variables as read-only; use a copy.
+            local key = k
             if type(k) == "number" then
-                k = tableName
+                key = tableName
             end
-            parseTableKeyToXml(xmltb, k, v, level)
+            parseTableKeyToXml(xmltb, key, v, level)
         end
     end
 

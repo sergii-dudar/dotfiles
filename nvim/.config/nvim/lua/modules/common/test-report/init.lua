@@ -16,6 +16,12 @@ local log = require("utils.logging-util").new({
 
 local M = {}
 
+--- Lazily resolved tree view (avoids a require cycle: the view requires this module).
+---@return table
+local function view()
+    return require("modules.common.test-report.report-view")
+end
+
 local process_generation = 0
 
 -- Track adapters loaded this session (for cache invalidation in M.clear)
@@ -90,6 +96,7 @@ function M.process(report_dir, filetype)
                 vim.notify("test-report: no adapter for filetype: " .. filetype, vim.log.levels.ERROR)
                 spinner_resolved = true
                 spinner.stop(false, "No adapter for filetype: " .. tostring(filetype), sp_stop)
+                view().clear_running()
                 return
             end
             loaded_adapters[filetype] = adapter
@@ -99,10 +106,13 @@ function M.process(report_dir, filetype)
             local t_parse = hr()
 
             if vim.tbl_isempty(results) then
+                -- Typical after a compile failure or a run that produced no report: not an
+                -- error of ours, and the tree view must drop its "running" marks.
                 log.warn("no results from parser")
-                vim.notify("test-report: no results from parser in: " .. vim.inspect(dirs), vim.log.levels.ERROR)
+                vim.notify("test-report: no results from parser in: " .. vim.inspect(dirs), vim.log.levels.WARN)
                 spinner_resolved = true
                 spinner.stop(false, "No results from parser", sp_stop)
+                view().clear_running()
                 return
             end
 
@@ -120,25 +130,9 @@ function M.process(report_dir, filetype)
                 end
             end
 
-            -- Build by_container from merged last_results so reruns restore ALL
-            -- accumulated results for affected containers (not just the current subset).
-            local by_container = {}
-            for id, result in pairs(last_results) do
-                local container_id, member = split_id(id)
-                if container_id and member and affected_containers[container_id] then
-                    local members = by_container[container_id]
-                    if not members then
-                        members = {}
-                        by_container[container_id] = members
-                    end
-                    members[member] = result
-                end
-            end
-
-            local t_byclass = hr()
-            local total_containers = vim.tbl_count(by_container)
-
-            for container_id, members in pairs(by_container) do
+            -- Resolve container -> source file for the containers touched by this run.
+            local affected_files = {} -- { [file_path] = true }
+            for container_id in pairs(affected_containers) do
                 local file_path
                 for _, dir in ipairs(dirs) do
                     file_path = adapter.id_to_file(container_id, dir)
@@ -150,23 +144,60 @@ function M.process(report_dir, filetype)
                 if not file_path then
                     log.error("id_to_file returned nil for: " .. container_id)
                     vim.notify("test-report: could not resolve file for: " .. container_id, vim.log.levels.ERROR)
-                    goto continue
+                else
+                    file_path = vim.fn.fnamemodify(file_path, ":p")
+                    last_container_files[container_id] = file_path
+                    affected_files[file_path] = true
                 end
+            end
 
-                file_path = vim.fn.fnamemodify(file_path, ":p")
-                last_container_files[container_id] = file_path
+            -- Group ALL accumulated results by FILE, restricted to the files touched by this
+            -- run. One file can host several containers (JUnit @Nested classes, Rust `mod`
+            -- blocks): signs/diagnostics are cleared once per file and every accumulated
+            -- result for that file is re-placed, so containers never wipe each other and a
+            -- partial rerun of one container keeps its siblings' marks. Containers from
+            -- earlier runs are included through last_container_files.
+            local by_file = {} -- { [file_path] = { [container_id] = { [member] = TestResult } } }
+            for id, result in pairs(last_results) do
+                local container_id, member = split_id(id)
+                if container_id and member then
+                    local file_path = last_container_files[container_id]
+                    if file_path and affected_files[file_path] then
+                        local containers = by_file[file_path]
+                        if not containers then
+                            containers = {}
+                            by_file[file_path] = containers
+                        end
+                        local members = containers[container_id]
+                        if not members then
+                            members = {}
+                            containers[container_id] = members
+                        end
+                        members[member] = result
+                    end
+                end
+            end
 
-                local container_has_failure = false
-                for _, r in pairs(members) do
-                    if r.status == "failed" then
-                        container_has_failure = true
+            local t_byclass = hr()
+            local total_containers = vim.tbl_count(affected_containers)
+            local total_files = vim.tbl_count(by_file)
+
+            for file_path, containers in pairs(by_file) do
+                local file_has_failure = false
+                for _, members in pairs(containers) do
+                    for _, r in pairs(members) do
+                        if r.status == "failed" then
+                            file_has_failure = true
+                            break
+                        end
+                    end
+                    if file_has_failure then
                         break
                     end
                 end
-                local silent = not (
-                    config.load_buffers or (config.load_only_buffers_with_error and container_has_failure)
-                )
+                local silent = not (config.load_buffers or (config.load_only_buffers_with_error and file_has_failure))
 
+                -- One treesitter pass per file (not per container).
                 local test_positions, container_line = adapter.find_test_positions(file_path, { silent = silent })
                 last_positions[file_path] = test_positions
 
@@ -180,45 +211,54 @@ function M.process(report_dir, filetype)
                 vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, 0, -1)
                 vim.diagnostic.reset(ns_diag, bufnr)
 
+                local line_count = vim.api.nvim_buf_line_count(bufnr)
                 local has_failure = false
                 local diagnostics = {}
 
-                for member_name, result in pairs(members) do
-                    local line = test_positions[member_name]
-                    if line == nil then
-                        log.warn("no treesitter position for member: " .. member_name)
-                        goto next_member
-                    end
-
-                    if result.status == "failed" then
-                        has_failure = true
-                    end
-
-                    local sign = sign_config[result.status]
-                    if sign then
-                        vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
-                            sign_text = sign.text,
-                            sign_hl_group = sign.hl,
-                            virt_text = { { " " .. sign.text, sign.hl } },
-                            virt_text_pos = "eol",
-                            priority = 20,
-                        })
-                        signed_buffers[bufnr] = true
-                    end
-
-                    if result.status == "failed" and result.errors then
-                        for _, e in ipairs(result.errors) do
-                            diagnostics[#diagnostics + 1] = {
-                                lnum = e.line and (e.line - 1) or line,
-                                col = 0,
-                                message = e.message,
-                                severity = vim.diagnostic.severity.ERROR,
-                                source = adapter.diagnostic_source,
-                            }
+                for container_id, members in pairs(containers) do
+                    for member_name, result in pairs(members) do
+                        local line = test_positions[member_name]
+                        if line == nil then
+                            log.warn("no treesitter position for member: " .. container_id .. "#" .. member_name)
+                            goto next_member
                         end
-                    end
 
-                    ::next_member::
+                        if result.status == "failed" then
+                            has_failure = true
+                        end
+
+                        local sign = sign_config[result.status]
+                        if sign then
+                            vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
+                                sign_text = sign.text,
+                                sign_hl_group = sign.hl,
+                                virt_text = { { " " .. sign.text, sign.hl } },
+                                virt_text_pos = "eol",
+                                priority = 20,
+                            })
+                            signed_buffers[bufnr] = true
+                        end
+
+                        if result.status == "failed" and result.errors then
+                            for _, e in ipairs(result.errors) do
+                                -- Error line comes from the stacktrace; fall back to the method
+                                -- line when absent or outside the buffer (stale/foreign trace).
+                                local lnum = e.line and (e.line - 1) or nil
+                                if lnum == nil or lnum < 0 or lnum >= line_count then
+                                    lnum = line
+                                end
+                                diagnostics[#diagnostics + 1] = {
+                                    lnum = lnum,
+                                    col = 0,
+                                    message = e.message,
+                                    severity = vim.diagnostic.severity.ERROR,
+                                    source = adapter.diagnostic_source,
+                                }
+                            end
+                        end
+
+                        ::next_member::
+                    end
                 end
 
                 if #diagnostics > 0 then
@@ -275,13 +315,14 @@ function M.process(report_dir, filetype)
 
             log.info(
                 string.format(
-                    "[perf process] total=%.1fms list=%.1fms parse=%.1fms byclass=%.1fms classloop=%.1fms(%d containers)",
+                    "[perf process] total=%.1fms list=%.1fms parse=%.1fms byclass=%.1fms classloop=%.1fms(%d containers, %d files)",
                     (hr() - t_start) / 1e6,
                     (t_list - t_start) / 1e6,
                     (t_parse - t_list) / 1e6,
                     (t_byclass - t_parse) / 1e6,
                     (t_classloop - t_byclass) / 1e6,
-                    total_containers
+                    total_containers,
+                    total_files
                 )
             )
         end)
@@ -289,6 +330,9 @@ function M.process(report_dir, filetype)
         if not ok then
             log.error("process error: " .. tostring(pcall_err))
             spinner.stop(false, "Test Report processing failed", sp_stop)
+            pcall(function()
+                view().clear_running()
+            end)
         elseif not spinner_resolved then
             log.warn("process exited without resolving spinner")
             spinner.cancel(sp)
@@ -350,6 +394,9 @@ function M.clear()
             end
         end
     end
+    -- The tree view owns a copy of the accumulated state; drop it too, otherwise a
+    -- clear+process (e.g. load_existing) would merge fresh results into stale ones.
+    view().reset_if_open()
 end
 
 --- Cancel in-flight processing without wiping accumulated state.
@@ -363,6 +410,10 @@ function M.cancel()
             pcall(vim.cmd, "Trouble " .. adapter.trouble_source .. " close")
         end
     end
+    -- A canceled/stopped run never reaches process(), so the view's "running" marks
+    -- would stick. (A rerun started from the view sets them only AFTER the previous
+    -- task was disposed - nio.run executes synchronously up to the first yield.)
+    view().clear_running()
     log.info("cancel (preserving accumulated state)")
 end
 
@@ -527,11 +578,15 @@ function M.hide_test_output()
 end
 
 --- Show test output for a specific member and result (used by tree view).
----@param member_name string
+---@param member_name string Display name for the output header.
 ---@param result test_report.TestResult
-function M.show_output_for(member_name, result)
+---@param opts? { file_path?: string, member_key?: string } Identity of the shown test, so a
+--- later `show_test_output()` from the source buffer toggles instead of re-opening.
+function M.show_output_for(member_name, result, opts)
     close_output_win()
     open_output(member_name, result)
+    opts = opts or {}
+    output_method = (opts.file_path or "") .. "#" .. (opts.member_key or member_name)
 end
 
 --- Return a snapshot of the last processed results for the tree view.

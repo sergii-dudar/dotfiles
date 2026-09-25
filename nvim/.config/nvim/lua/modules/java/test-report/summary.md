@@ -2,346 +2,303 @@
 
 ## Overview
 
-The test-report module parses JUnit XML reports produced by test runners, displays results as gutter signs and diagnostics in source buffers, provides a tree view UI, and supports test output viewing and rerunning from both source buffers and the tree view.
+Test results (JUnit XML for Java) are parsed into a flat `container_id#member` map, then
+shown as gutter signs + EOL virtual text and error diagnostics in the test source buffers,
+as a Trouble list (`junit_diagnostics`), in a sidebar **tree view**, and in a scratch split
+showing stdout / stderr / stacktrace for one test.
 
-**Entry point**: Overseer component `test_report.junit_report` (defined in `lua/overseer/component/test_report/junit_report.lua`) triggers `init.lua:process()` on task completion.
+The implementation is split into a **language-agnostic core** and **per-language adapters**:
 
-**Keymap**: `<leader>tv` opens the tree view, `<leader>to`/`<leader>tO` show/hide test output, `<leader>tL` loads existing report from disk. Defined in `lua/plugins/overseer/init.lua`.
+- `lua/modules/common/test-report/` — core orchestration, sign/diagnostic placement, output
+  split, tree view. Knows nothing about Java.
+- `lua/modules/java/test-report/` — the Java adapter (JUnit XML parser + class→file
+  resolution + treesitter positions). Other languages live next to it
+  (`modules/<lang>/test-report/`) and follow the same contract.
+
+**Entry point**: Overseer component `test_report.junit_report`
+(`lua/overseer/component/test_report/junit_report.lua`) calls `core.process()` when a test
+task completes. **Keymaps** (`lua/plugins/overseer/init.lua`, routed through
+`plugins/overseer/test-report-dispatcher.lua` by filetype): `<leader>tv` tree view,
+`<leader>to` / `<leader>tO` show / hide output, `<leader>tL` load the report from disk,
+`<leader>txx` Trouble toggle, `<leader>txd` diagnostics picker.
 
 ---
 
 ## File Structure
 
 ```
-lua/modules/java/test-report/
-├── init.lua                  — Core module: orchestrates parsing, signs, diagnostics, output viewer
-├── junit-report-view.lua     — Tree view UI: renders results in a scratch buffer with hierarchy
-├── junit-xml.lua             — XML parser: reads JUnit XML files into TestResult structures
-├── lang/
-│   └── java.lua              — Java language adapter: classname→file resolution, treesitter positions
-└── summary.md                — This file
+lua/modules/common/test-report/
+├── init.lua          — Core: process/clear/cancel, signs + diagnostics, output split, snapshot
+├── report-view.lua   — Tree view (neotest-style layout), keymaps, running marks
+├── registry.lua      — filetype -> LangAdapter registry
+└── types.lua         — Shared ---@class annotations (LangAdapter, TestResult, Snapshot, ...)
 
-lua/overseer/component/test_report/
-└── junit_report.lua          — Overseer component: hooks on_complete/on_reset/on_dispose
+lua/modules/java/test-report/
+├── init.lua          — Shim: registers lang/java.lua with the registry, re-exports the core
+├── junit-xml.lua     — JUnit XML -> TestResult (parameterized merge, error/line extraction)
+├── lang/java.lua     — Java LangAdapter: class index, treesitter positions, id display
+└── summary.md        — This file
+
+lua/overseer/component/test_report/*_report.lua — one component per language (identical shape)
+lua/lib/xml/                                   — XML parser used by all XML-based adapters
 ```
 
 ---
 
-## Core Types
+## Core Types (`common/test-report/types.lua`)
 
 ```lua
 ---@class test_report.TestResult
 ---@field status "passed"|"failed"|"skipped"
 ---@field errors? { message: string, line: number|nil }[]
 ---@field time? number
----@field invocations test_report.Invocation[]
-
----@class test_report.Invocation
----@field name string              -- Original test name including parameterized suffix
----@field status "passed"|"failed"|"skipped"
----@field metadata? string         -- JUnit unique-id/display-name from first system-out
----@field stdout? string           -- Actual test stdout (from subsequent system-out tags)
----@field stderr? string
----@field stacktrace? string
----@field time? number
+---@field invocations test_report.Invocation[]      -- one per XML testcase (parameterized runs)
 
 ---@class test_report.LangAdapter
----@field classname_to_file fun(classname: string, report_dir: string): string|nil
----@field find_test_positions fun(file_path: string): table<string, number>, number|nil
----@field extract_error_line fun(classname: string, stacktrace: string): number|nil
----@field get_test_report_dir fun(): string
+---@field parse_results       fun(dirs: string[]): table<string, TestResult>
+---@field id_to_file          fun(container_id: string, report_dir: string): string|nil
+---@field find_test_positions fun(file: string, opts?: FindOpts): table<string, number>, number|nil
+---@field extract_error_line  fun(container_id: string, stacktrace: string): number|nil
+---@field get_test_report_dir fun(): string|string[]
+---@field id_to_display       fun(id: string): { container: string, member: string, group?: string }
+---@field group_separator     string    -- "." for java, "::" for rust
+---@field diagnostic_source   string    -- vim.diagnostic `source`
+---@field trouble_source?     string    -- e.g. "junit_diagnostics"
+---@field display_name?       string    -- tree-view header label ("JUnit")
+---@field clear_cache?        fun()
+
+---@class test_report.Snapshot   -- what the tree view consumes
+---@field results table<string, TestResult>          -- accumulated, keyed "container#member"
+---@field positions table<string, table<string, number>>  -- file -> member key -> 0-based line
+---@field container_files table<string, string>      -- container_id -> abs file path
+---@field filetype string|nil
 ```
 
-Result IDs use the format `fully.qualified.ClassName#methodName`. Parameterized test invocations (e.g. `method(int)[1]`, `method(int)[2]`) are merged into a single `ClassName#method` result with multiple invocations. The overall result is "failed" if any invocation failed.
+Result ids are `fully.qualified.ClassName#methodName`. Parameterized invocations
+(`method(int)[1]`, `[2]`, …) are merged into one result with several `invocations`; the
+result is `failed` if any invocation failed. Nested classes keep the `$`:
+`com.foo.OuterTest$Inner#method` — a **container** is a class, not a file.
 
 ---
 
-## init.lua — Core Module
+## Core (`common/test-report/init.lua`)
 
-### State Variables (module-level locals)
+### State (module-level locals)
 
-| Variable | Type | Purpose |
-|---|---|---|
-| `process_generation` | `integer` | Monotonically increasing counter; used to cancel stale async processing |
-| `last_results` | `{ [classname#method]: TestResult }` | **Accumulated** test results across runs (incremental merge) |
-| `last_positions` | `{ [file_path]: { [method_name]: 0-indexed_line } }` | Treesitter-resolved test method positions per file |
-| `last_class_files` | `{ [classname]: file_path }` | Resolved source file for each fully-qualified class |
-| `last_filetype` | `string\|nil` | Filetype used for adapter resolution |
-| `signed_buffers` | `{ [bufnr]: true }` | Tracks which buffers have sign extmarks for cleanup |
-| `output_bufnr` | `integer\|nil` | Scratch buffer for test output display |
-| `output_method` | `string\|nil` | Method name currently shown in output buffer |
-| `ns_diag` | namespace | `"overseer_test_report_diag"` — diagnostics namespace |
-| `ns_signs` | namespace | `"overseer_test_report_signs"` — sign extmarks namespace |
-
-### Key Design: Incremental Merge
-
-`process()` does NOT call `M.clear()`. Instead:
-
-1. **Cancels** in-flight processing (`process_generation++`, `spinner.cancel`)
-2. **Merges** new XML results into `last_results` (key-by-key)
-3. **Determines affected classes** from the current run's results
-4. **Builds `by_class`** from `last_results` for affected classes only — this ensures that when a buffer is cleared and re-rendered, ALL accumulated results for that class are restored (not just the current run)
-5. **Selectively clears** signs and diagnostics per-buffer (`vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, ...)` + `vim.diagnostic.reset(ns_diag, bufnr)`) — buffers not in the current run keep their existing state
-6. **Re-places** signs, virtual text, and diagnostics for affected buffers
-
-This means: rerunning a single test method preserves diagnostics for all other methods in the same class and all other classes.
-
-### Functions
-
-| Function | Description |
+| Variable | Purpose |
 |---|---|
-| `M.process(report_dir, filetype)` | Main entry: parses XML, merges results, sets signs/diagnostics. Runs in `nio.run()` with spinner. Supports `string\|string[]` for multi-module. |
-| `M.load_existing()` | Calls `M.clear()` then `M.process()` — full reset from disk. |
-| `M.clear()` | **Full reset**: wipes all state, signs, diagnostics, closes output buffer. Used by explicit user action only. |
-| `M.cancel()` | **Soft cancel**: increments generation, cancels spinner, closes Trouble. Does NOT wipe accumulated state. Used by overseer component lifecycle. |
-| `M.show_test_output()` | Shows test output for method under cursor in source buffer. |
-| `M.hide_test_output()` | Closes the output scratch buffer. |
-| `M.show_output_for(method, result)` | Shows output for a specific method+result (used by tree view). |
-| `M.get_report_snapshot()` | Returns `{ results, positions, class_files, filetype }` — used by tree view. References live state (not copies). |
-| `M.open_tree_view()` | Opens/toggles the tree view via `junit-report-view.toggle()`. |
+| `process_generation` | Monotonic counter; an in-flight `process()` aborts if a newer one started |
+| `last_results` | **Accumulated** results across runs (`{ [id] = TestResult }`) |
+| `last_positions` | `{ [file_path] = { [member_key] = 0-based line } }` from treesitter |
+| `last_container_files` | `{ [container_id] = abs file }` |
+| `last_filetype` | Filetype of the last processed run (adapter lookup) |
+| `signed_buffers` | Buffers holding our sign extmarks (for cleanup) |
+| `output_bufnr` / `output_method` | Scratch output buffer + identity of the shown test (`file#member_key`) |
+| `ns_diag` / `ns_signs` / `ns_output` | Namespaces `test_report_diag`, `test_report_signs`, `test_report_output` |
 
-### Window Management on Test Runs
+### `process(report_dir, filetype)` — placement grouped by FILE
 
-The flow for clean window layout:
-1. **Test starts** → `cancel()` → closes Trouble diagnostics window (only overseer output visible during run)
-2. **Test completes** → `process()` → closes overseer output → checks `last_results` for any accumulated failures → reopens Trouble only if failures remain
+1. Bump `process_generation`, cancel the spinner; run under `nio.run` + `nio.scheduler()`.
+2. `adapter.parse_results(dirs)` → merge into `last_results` (key by key). Empty result set
+   → WARN notification, spinner stopped, **tree view running marks cleared**, return.
+3. `affected_containers` = containers present in *this* run. Each is resolved with
+   `adapter.id_to_file` and recorded in `last_container_files`; the resolved paths form
+   `affected_files`.
+4. `by_file` = every accumulated result whose container maps to an affected file, grouped
+   `file → container → member`. This is the load-bearing step: **one source file can host
+   several containers** (JUnit `@Nested` classes, Rust `mod` blocks), and a partial rerun of
+   one container must not erase its siblings' marks. Grouping by container (the previous
+   design) cleared the whole buffer once per container, so only the last one survived.
+5. Per file: `find_test_positions` once, clear signs + diagnostics once, re-place every
+   member of every container, then one file-level sign on the outermost class line
+   (failed if any member failed). Error lines from stacktraces are clamped to the buffer;
+   outside → the method line.
+6. Close the Overseer output, open Trouble if **any accumulated** result failed, stop the
+   spinner with the current run's counts, `report-view.refresh_if_open(snapshot)`.
 
-### Sign/Diagnostic Placement
+`config.load_buffers` / `config.load_only_buffers_with_error` decide whether buffers are
+loaded silently (`noautocmd bufload`, no JDTLS attach) or fully.
 
-For each affected class buffer:
-- Gutter signs via extmarks (passed `` / failed `` / skipped ``)
-- Virtual text with status icon and time after test method names
-- Class-level sign at class declaration line (failure if any method failed)
-- Diagnostics at error line (extracted from stacktrace) or at method declaration
+### `cancel()` vs `clear()`
 
-### Trouble Integration
+| | `cancel()` | `clear()` |
+|---|---|---|
+| Called by | Overseer `on_reset` / `on_dispose`, component on `CANCELED` | `load_existing()` (explicit user action) |
+| Generation bump + spinner cancel | yes | yes |
+| Accumulated state | **kept** | wiped (results, positions, files, adapter caches, output window) |
+| Trouble | closed | untouched |
+| Tree view | `clear_running()` — drops running marks | `reset_if_open()` — empties the view's copy |
 
-Uses a custom Trouble source `junit_diagnostics` (not quickfix). The `vim.fn.setqflist()` call is commented out to avoid triggering the `BufRead` autocmd in `config/autocmds.lua:65-74` that auto-opens `Trouble qflist`, which caused a double-window bug.
+`cancel()` is what makes incremental diagnostics survive reruns; keep component hooks on it.
+The view sets its running marks only *after* the previous task is disposed (nio.run executes
+synchronously up to the first yield), so the `clear_running()` in `cancel()` never races a
+rerun started from the view.
+
+### Output split
+
+`show_test_output()` (source buffer, method above cursor) and `show_output_for(name, result,
+{ file_path, member_key })` (tree view) render `Test / Status / Time`, then per invocation the
+JUnit metadata block, stdout, stderr, stacktrace, into a scratch split
+(`utils.buffer-util.open_scratch_split`). Calling `show_test_output()` again for the test
+already shown toggles the split closed.
 
 ---
 
-## junit-report-view.lua — Tree View
+## Tree view (`common/test-report/report-view.lua`)
 
-### Hierarchy
-
-Packages are grouped into a **compacted trie**: subpackages sharing a common prefix are nested under a single parent node. Single-child intermediate nodes with no classes are collapsed (e.g. `ua.raiffeisen.paymentchargecalculation` becomes one node when all tests share that prefix).
+### Layout (neotest summary style)
 
 ```
-JUnit Test Report  ·  42 tests: 40/2/0  ·  12.34s
-────────────────────────────────────────────────────
-
-▼ com.example
-├── ▼ service
-│   ├── ▼ UserServiceTest          ✘    2.10s
-│   │   ├── testCreate             ✔    0.50s
-│   │   ├── testDelete             ✘    1.20s
-│   │   └── testUpdate             ✔    0.40s
-│   └── ▼ OrderServiceTest         ✔    1.11s
-│       ├── testPlace              ✔    0.55s
-│       └── testCancel             ✔    0.56s
-└── ▼ api
-    └── ▼ HealthCheckTest          ✔    0.10s
-        └── testPing               ✔    0.10s
+ JUnit   42   40   2   0                              12.34s
+ 
+ ├╮  com.example.service
+ │├╮  UserServiceTest                                    2.10s
+ ││├─  testCreate                                       500ms
+ ││╰─  testDelete                                       1.20s
+ │╰─  OrderServiceTest (2)                               1.11s      <- collapsed: test count
+ ╰╮  com.example.api
+  ╰╮  HealthCheckTest                                   100ms
+   ╰─  testPing                                         100ms
 ```
 
-Within each package, **classes are rendered first**, then **sub-packages**. Both classes and sub-packages are siblings using tree branch characters (`├──`/`└──`), with `is_last` computed across the combined list to ensure correct continuation lines.
+- Header: adapter `display_name` (fallback: filetype), then icon+count for total / passed /
+  failed / skipped (+ running while a rerun is in flight), total time right-aligned.
+- Connectors `├ ╰ │` with a one-column indent per level; `╮` marks an expanded node, `─` a
+  collapsed node or a leaf; collapsed nodes show their test count.
+- Status icon in a fixed column right after the connector; names: group `TestReportGroup`
+  (→ Directory), container `TestReportContainer` (→ Type), failed member
+  `TestReportMemberFailed` (→ DiagnosticError). Durations right-aligned in
+  `TestReportTime` (→ Comment); `≥1s` as `1.23s`, else `NNNms`, none for 0.
+- All highlight groups are `TestReport*` **default links** (re-applied on `ColorScheme`), so a
+  colorscheme/user can override them and nothing depends on scheme-specific groups.
+- Icons are built with `vim.fn.nr2char(<codepoint>)`: passed `U+EAB2`, failed `U+EAB8`,
+  skipped `U+EB32`, running `U+EB37`, total `U+EA79` — same as the gutter signs.
 
-### Icons
+### Config
 
-Nerd font icons (cannot be reliably copy-pasted by AI — use Python with explicit codepoints):
-- Passed: U+EAB2 (`\xee\xaa\xb2`)
-- Failed: U+EAB8 (`\xee\xaa\xb8`)
-- Skipped: U+EB32 (`\xee\xac\xb2`)
-
-Icons are placed after the name, between name and time. Same icons are used in `init.lua` `sign_config` for gutter signs.
+`report_view.setup({ width = 65, collapse_passed = false })`. `width` is the fixed split
+width (re-asserted on `WinClosed`/`WinResized` so dap-ui panels can't grow it; this also
+undoes a manual resize — change `width` instead). `collapse_passed = true` starts containers
+without failures collapsed.
 
 ### State (singleton)
 
 ```lua
-state = {
-    bufnr,          -- scratch buffer number
-    winid,          -- window id
-    prev_winid,     -- window to return to for navigation/rerun
-    tree,           -- PackageNode[] — the rendered hierarchy
-    line_map,       -- LineInfo[] — maps each buffer line to its tree node
-    snapshot,       -- deep-copied snapshot owned by the tree view
-}
+state = { bufnr, winid, prev_winid, tree, line_map, snapshot, running, adapter }
 ```
 
-The tree view **deep-copies** `results` and `class_files` on open so it owns its accumulated state independently from `init.lua`'s live state.
-
-### Tree Node Types
-
-```lua
----@class report_view.PackageNode
----@field name string                    -- display name (may be compacted, e.g. "ua.raiffeisen.core")
----@field full_path string               -- full dotted path from root (for expansion state tracking)
----@field status "passed"|"failed"|"skipped"  -- aggregate of all classes + children
----@field classes report_view.ClassNode[]
----@field children report_view.PackageNode[]  -- nested sub-packages
----@field expanded boolean
-
----@class report_view.ClassNode
----@field name string                    -- simple name e.g. "UserServiceTest"
----@field classname string               -- fully qualified
----@field file_path string|nil
----@field status "passed"|"failed"|"skipped"  -- aggregate of all methods
----@field time number
----@field methods report_view.MethodNode[]
----@field expanded boolean
-
----@class report_view.MethodNode
----@field name string
----@field status "passed"|"failed"|"skipped"
----@field time number|nil
----@field result test_report.TestResult  -- full result for output viewing
----@field id string                      -- "classname#method"
-```
-
-### Running Indicator
-
-When a test/class/package is rerun from the tree view, a running icon (U+F046E `󰑮`, `DiagnosticInfo` highlight) replaces the status icon for all affected methods, classes, and packages. The `state.running` field holds a set of method IDs (`classname#method`) that are currently in flight.
-
-- **Set**: `action_rerun()` populates `state.running` with affected method IDs and calls `refresh()`
-- **Bubble up**: `render()` pre-computes `is_running_cls` and `is_running_pkg` by checking if any descendant method is in `state.running`
-- **Clear**: `refresh_if_open()` and `action_full_refresh()` set `state.running = nil` before rebuild, since new results replace the running state
+`open()` deep-copies `results` and `container_files`; `refresh_if_open()` merges the core's
+snapshot in and rebuilds the tree **preserving expansion state** (keyed `grp:<full_path>` /
+`cnt:<container_id>`). `refresh()` re-seats the cursor on the same node (by id) after a
+re-render, so failed-first re-sorting doesn't move the cursor to another test.
 
 ### Keymaps (buffer-local)
 
-| Key | Action | Description |
-|---|---|---|
-| `<CR>` / `gd` | `action_goto` | Navigate to source, centers with `zz` |
-| `o` | `action_output` | Show test output (methods only) |
-| `r` | `action_rerun(false)` | Rerun test at cursor level |
-| `R` | `action_rerun(true)` | Debug test at cursor level |
-| `<Tab>` | `action_toggle_fold` | Toggle fold on package/class |
-| `g` | `action_full_refresh` | Full refresh (rebuild with sorting) |
-| `q` | `M.close()` | Close tree view |
+| Key | Action |
+|---|---|
+| `<CR>` / `o` / `gd` | Go to source (member → its line, via the id's member key) |
+| `O` | Show test output |
+| `r` / `R` | Re-run / debug at cursor level (member → `CURRENT_TEST`, container → `FILE_TESTS`, group → `ALL_DIR_TESTS` with `package_name`) |
+| `<Tab>` / middle mouse | Toggle fold |
+| `<leader>G` | Full refresh from the core's live state |
+| `]d` / `[d` | Next / previous failed member (visible lines only) |
+| `<leader>?` | Keybinding help float |
+| `q` | Close |
 
-### Rerun Strategy
+### Running marks
 
-Rerun navigates to the source file first, positions cursor, then triggers the existing test runner via `overseer-util.run_test()`. This avoids reinventing classpath/JVM-signature resolution:
-- **Method**: opens file, positions cursor at method → `task.test_type.CURRENT_TEST`
-- **Class**: opens file → `task.test_type.FILE_TESTS`
-- **Package**: opens first class in package subtree (recursive) → `task.test_type.ALL_DIR_TESTS`
-
-### Sorting
-
-`build_tree()` sorts at every level: packages failed-first, classes failed-first within packages, methods failed-first within classes. Uses `failed_first_cmp()` shared comparator. This runs on initial open, on `g` (full refresh), and on incremental refresh (rebuild).
-
-### Package Trie Compaction
-
-`build_tree()` constructs a trie from dotted package names, then compacts single-child chains with no classes. For example, if all packages start with `ua.raiffeisen.paymentchargecalculation`, that prefix becomes one top-level node. Each `PackageNode` stores `full_path` (the complete dotted path from root) for expansion state tracking across rebuilds.
-
-### Incremental vs Full Refresh
-
-| Mode | Trigger | What happens |
-|---|---|---|
-| **Incremental** | `refresh_if_open(snapshot)` — called from `init.lua` after `process()` | Merges new results into `state.snapshot`, calls `rebuild_tree()` (preserves expansion state via `full_path`/`classname` keys), then re-renders |
-| **Full** | `g` keymap → `action_full_refresh()` | Replaces snapshot from `init.lua`'s live state, calls `build_tree()` (fresh tree, all expanded), then re-renders |
-
-`rebuild_tree()`:
-1. Collects expansion state from old tree (keyed by `pkg:full_path` and `cls:classname`)
-2. Rebuilds the complete tree via `build_tree()` (re-sorts, re-compacts trie)
-3. Restores expansion state onto new tree nodes that match by key
-4. Handles trie structure changes gracefully (new nodes default to expanded)
+`action_rerun()` sets `state.running` (set of member ids) and re-renders with the running
+icon bubbling up to container/group. Cleared by `refresh_if_open()` (results arrived),
+`clear_running()` (no report / canceled / processing error) and `action_full_refresh()`.
 
 ---
 
-## junit-xml.lua — XML Parser
+## `junit-xml.lua` — XML parser
 
-Parses JUnit XML reports (Maven Surefire format). Key behaviors:
-- `parse_report_dir(dir)` → finds `TEST-*.xml` files, parses all, merges into flat results map
-- `parse_file(filepath)` → parses single XML file
-- Parameterized tests: multiple `<testcase>` with same method but different suffixes are merged into one result with multiple invocations
-- `system-out`: first tag is JUnit metadata (unique-id, display-name), rest is actual stdout
-- Error line extraction: matches `ClassName.java:123` pattern in stacktraces
+- `list_report_files(dir)` → `TEST-*.xml` (logs when empty; the core notifies).
+- `parse_file(path)` → `_process_testsuite`: strips `()` / `[N]` from `name` to form
+  `classname#method`, merges parameterized invocations, splits `<system-out>` into JUnit
+  metadata (first tag) and real stdout (rest), extracts `<failure>` / `<error>` message +
+  stacktrace + error line.
+- `_extract_error_line(classname, stacktrace)` matches `<OuterSimpleName>.java:<N>` — the
+  `$Inner` part is dropped because stack frames name the outer source file. Shared with the
+  adapter (`lang/java.extract_error_line` delegates here).
+- `message_from_stacktrace` is a safety net for a missing/empty `message` attribute. It used
+  to cover a `lib/xml` bug (raw `>` inside attribute values, e.g. Jupiter's
+  `message="expected: &lt;2> but was: &lt;1>"`); that is fixed in
+  `lib/xml/parser.lua` (`_ATTRERR1/_ATTRERR2` — Lua patterns have no lazy `+?`).
 
 ---
 
-## lang/java.lua — Java Adapter
+## `lang/java.lua` — Java adapter
 
 | Function | Description |
 |---|---|
-| `classname_to_file(classname, report_dir)` | Resolves `com.example.MyTest` → source file path. First tries project root (derived from `report_dir` stripping `/target/junit-report`), falls back to CWD-relative via `java-common.java_class_to_proj_path`. Handles inner classes (`$`). |
-| `find_test_positions(file_path)` | Uses treesitter to find `@Test`, `@ParameterizedTest`, `@TestFactory`, `@CartesianTest` annotated methods. Returns `{ method_name: 0-indexed_line }` and class declaration line. Loads buffer if not loaded. |
-| `extract_error_line(classname, stacktrace)` | Extracts line number from stacktrace for the class. |
-| `get_test_report_dir()` | Returns `<project_root>/target/junit-report` path. |
+| `id_to_file(classname, report_dir)` | Strips `$Inner`, derives the module root from `<root>/<target|build>/junit-report`, looks the `com/foo/Bar.java` suffix up in the class index. Falls back to `java-common.java_class_to_proj_path` (first line of a possibly multi-match glob). |
+| class index | One pruned `vim.fs.dir` walk per module root (skips `target build bin out node_modules .git .idea .gradle .mvn`; follows symlinked dirs once). ~8x faster than `glob("**/*.java")` and immune to source copies under `target/` shadowing real files. Duplicate suffixes resolve to the shallowest path. A **miss on a new suffix rebuilds the index once** (test class created after the first run); repeated misses are remembered until `clear_cache()`. |
+| `find_test_positions(file, opts)` | `bufadd` + (silent) `bufload`, cached treesitter query over `@Test @ParameterizedTest @TestFactory @CartesianTest @RepeatedTest @TestTemplate`. Returns `{ method -> 0-based line }` and the **outermost** class line. |
+| `id_to_display(id)` | `com.foo.Bar$Inner#m` → group `com.foo`, container `Bar$Inner`, member `m`. |
+| `get_test_report_dir()` | `java-common.get_build_layout(module).report_dir` (maven `target/`, gradle `build/`). |
+
+Known limitation: positions are keyed by bare method name, so two `@Nested` classes with a
+method of the same name share one line (last treesitter capture wins).
 
 ---
 
-## Overseer Component (`junit_report.lua`)
+## Overseer components (`lua/overseer/component/test_report/*_report.lua`)
 
-Minimal overseer component that bridges task lifecycle to the test-report module:
+| Hook | Action |
+|---|---|
+| `on_complete(status)` | `CANCELED` → `cancel()` and return (stale XML must not be shown as fresh); otherwise `vim.schedule(process(report_dir, filetype))` |
+| `on_reset` / `on_dispose` | `cancel()` — never `clear()` |
 
-| Hook | Calls | Purpose |
-|---|---|---|
-| `on_complete` | `test_report.process(report_dir, filetype)` | Parse results when test finishes |
-| `on_reset` | `test_report.cancel()` | Cancel processing on task restart (preserves state) |
-| `on_dispose` | `test_report.cancel()` | Cancel processing on task disposal (preserves state) |
-
-**Critical**: uses `cancel()` not `clear()` — this is what enables incremental diagnostics preservation across partial reruns. The `stop_all_prev_tasks()` in `overseer-task-util.lua` disposes old tasks before starting new ones; if this called `clear()`, accumulated state would be lost.
+`overseer-task-util.stop_all_prev_tasks()` disposes previous tasks before a new run; with
+`clear()` here, accumulated state would be lost on every rerun.
 
 ---
 
-## Call Flow: Test Execution → Results Display
+## Call flow
 
 ```
-User triggers test run (keymap or tree view rerun)
+keymap / tree-view rerun
   → overseer-util.run_test(context)
-    → overseer-task-util.run_task()
-      → stop_all_prev_tasks() → task:dispose() → on_dispose → M.cancel()
-      → new task created with junit_report component
-      → task starts running
-        → [Trouble closed by cancel(), only overseer output visible]
-      → task completes
-        → on_complete → M.process(report_dir, filetype)
-          → nio.run (async with spinner)
-            → junit_xml.parse_report_dir(dir) → results
-            → merge results into last_results
-            → for each affected class:
-              → lang adapter: classname_to_file → file_path
-              → lang adapter: find_test_positions → method lines
-              → clear buffer signs/diagnostics (selective)
-              → place signs, virtual text, diagnostics
-            → close overseer output
-            → if any failures in last_results: open Trouble junit_diagnostics
-            → refresh tree view if open (incremental)
+    → stop_all_prev_tasks() → dispose → on_dispose → core.cancel()  (Trouble closed, running marks kept for the new run)
+    → task runs (junit console jar) → on_complete
+      → core.process(report_dir, ft)      [nio.run]
+        → adapter.parse_results → merge into last_results
+        → resolve affected containers → files; group ALL accumulated results by file
+        → per file: positions, clear once, place signs/diagnostics, file-level sign
+        → overseer.close(); Trouble open if any accumulated failure
+        → report-view.refresh_if_open(snapshot)
 ```
 
 ---
 
-## Namespaces
+## Testing
 
-| Namespace | ID variable | Purpose |
-|---|---|---|
-| `overseer_test_report_diag` | `ns_diag` | Diagnostics (vim.diagnostic) |
-| `overseer_test_report_signs` | `ns_signs` | Sign extmarks in gutter + virtual text |
-| `junit_report_view` | `ns` (in junit-report-view.lua) | Highlight extmarks in tree view buffer |
-| `test_report_output` | `ns_output` | Highlight extmarks in output scratch buffer |
-
----
-
-## Logging
-
-All files log to `test-report.log` via `utils.logging-util`. Logger names: `test-report`, `junit-report-view`, `test-report-xml`, `test-report-java`, `test-report-component`. All at DEBUG level.
+- Busted specs (`make test` from the nvim config root; `vim` is a test double, so only pure
+  logic is covered): `lua/tests/modules/java/test-report/junit_xml_spec.lua`,
+  `lang/java_spec.lua` (index walk, rebuild-on-miss, nested error lines),
+  `lua/tests/modules/java/junit/init_spec.lua`, `lua/tests/lib/xml_parser_spec.lua`.
+- The placement loop and the view need a real Neovim: run
+  `nvim --headless -u NONE -l script.lua` with rtp += this config, `nvim-nio`,
+  `~/.local/share/nvim/site` (treesitter parsers), stub `Snacks.notifier`, `overseer`,
+  `utils.java.java-common` and a no-op `:Trouble` command, write a fixture
+  `src/test/java/...` + `target/junit-report/TEST-*.xml`, call `process()` and inspect the
+  `test_report_diag` / `test_report_signs` namespaces.
 
 ---
 
-## Key Gotchas for Future Development
+## Gotchas
 
-1. **Nerd font icons**: AI cannot reliably copy-paste nerd font characters. Use Python with explicit Unicode codepoints: `python3 -c "print('\ueab2')"` (passed=U+EAB2, failed=U+EAB8, skipped=U+EB32).
-
-2. **`cancel()` vs `clear()`**: Component lifecycle hooks MUST use `cancel()`. Only explicit user actions should use `clear()`. This is the foundation of incremental diagnostics preservation.
-
-3. **`by_class` source**: Built from `last_results` (merged accumulator) filtered to `affected_classes` (current run). NOT from `results` (current run only). This ensures sibling methods in the same class retain their diagnostics.
-
-4. **Trouble double-window**: `vim.fn.setqflist()` triggers `BufRead` autocmd in `config/autocmds.lua:65-74` that auto-opens `Trouble qflist`. The `setqflist` call is intentionally commented out. Use only `Trouble junit_diagnostics`.
-
-5. **Tree view snapshot ownership**: `M.open()` deep-copies results and class_files. The tree view manages its own accumulated state via `refresh_if_open()`. `action_full_refresh()` (g key) re-reads from `init.lua`'s live state.
-
-6. **Multi-module support**: `process()` accepts `string|string[]` for `report_dir`. Each directory's XML files are parsed and merged. The Java adapter derives project root from each report_dir.
-
-7. **StyLua**: Format with `~/.local/share/nvim/mason/packages/stylua/stylua`. Config in `nvim/.config/nvim/stylua.toml` (4 spaces, 120 width, double quotes).
-
-8. **`_G.task`**: Global namespace defined in `plugins/overseer/init.lua` with `test_type` and `run_type` enums used for rerun actions.
+1. **Group by file, not container** in `process()` — see above; this is what keeps `@Nested`
+   classes and partial reruns correct.
+2. **`cancel()` vs `clear()`** — component hooks use `cancel()`; only explicit user actions
+   call `clear()`.
+3. **Snapshot ownership** — the view merges incrementally; `clear()` must call
+   `reset_if_open()` or a clear+process shows the union of stale and fresh results.
+4. **Positions are keyed by the id's member part**, not the display name (jest uses `L<row>`);
+   goto/rerun/output in the view resolve through `member_pos_key()`.
+5. **Nerd-font icons** are codepoints via `nr2char`; don't paste glyph literals.
+6. **`_G.task`** (`plugins/overseer/init.lua`) holds the `test_type` enum used by reruns.
+7. StyLua: `~/.local/share/nvim/mason/packages/stylua/stylua` with the repo `stylua.toml`.

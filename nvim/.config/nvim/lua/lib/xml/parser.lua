@@ -60,10 +60,13 @@ local XmlParser = {
     _DTD4 = "<!DOCTYPE%s+(.-)%s+(SYSTEM)%s+[\"'](.-)[\"']%s*>",
     _DTD5 = "<!DOCTYPE%s+(.-)%s+(PUBLIC)%s+[\"'](.-)[\"']%s+[\"'](.-)[\"']%s*>",
 
-    --Matches an attribute with non-closing double quotes (The equal sign is matched non-greedly by using =+?)
-    _ATTRERR1 = '=+?%s*"[^"]*$',
-    --Matches an attribute with non-closing single quotes (The equal sign is matched non-greedly by using =+?)
-    _ATTRERR2 = "=+?%s*'[^']*$",
+    --Matches an attribute with non-closing double quotes, i.e. the tag string was cut at a
+    --raw '>' inside the value (JUnit Jupiter: message="expected: &lt;2> but was: &lt;1>").
+    --NOTE: Lua patterns have no lazy `+?`; the previous `=+?` required a literal '?' after
+    --the '=' and therefore never matched, so parseNormalTag never extended the tag.
+    _ATTRERR1 = '=%s*"[^"]*$',
+    --Matches an attribute with non-closing single quotes
+    _ATTRERR2 = "=%s*'[^']*$",
     --Matches a closing tag such as </person> or the end of a openning tag such as <person>
     _TAGEXT = "(%/?)>",
 

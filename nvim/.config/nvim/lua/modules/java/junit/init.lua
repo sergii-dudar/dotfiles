@@ -54,22 +54,34 @@ local function module_report_dir(module_path)
     return java_util.get_build_layout(module_path).report_dir
 end
 
+-- Memoized per build_junit_tests_cmd() call: the multi-module flow checks every module twice
+-- (pre-filter for the picker + build), and each check globs the module's compiled classes.
+local has_test_classes_cache = {}
+
 ---@param module_path string
 ---@return boolean
 local function has_test_classes(module_path)
+    local cached = has_test_classes_cache[module_path]
+    if cached ~= nil then
+        return cached
+    end
+    local result = false
     local test_classes_dir = module_test_classes(module_path)
     local test_sources_dir = module_path .. "/src/test"
-    if vim.fn.isdirectory(test_sources_dir) ~= 1 or vim.fn.isdirectory(test_classes_dir) ~= 1 then
-        return false
-    end
-    local class_files = vim.fn.glob(test_classes_dir .. "/**/*.class", false, true)
-    for _, file in ipairs(class_files) do
-        local basename = vim.fn.fnamemodify(file, ":t:r")
-        if basename:match("Tests?$") or basename:match("IT$") or basename:match("Spec$") then
-            return true
+    if vim.fn.isdirectory(test_sources_dir) == 1 and vim.fn.isdirectory(test_classes_dir) == 1 then
+        -- Only candidates whose name can match the test-class regex are globbed; the regex check
+        -- below stays as the single source of truth (keep in sync with --include-classname).
+        local class_files = vim.fn.glob(test_classes_dir .. "/**/*{Test,Tests,IT,Spec}.class", false, true)
+        for _, file in ipairs(class_files) do
+            local basename = vim.fn.fnamemodify(file, ":t:r")
+            if basename:match("Tests?$") or basename:match("IT$") or basename:match("Spec$") then
+                result = true
+                break
+            end
         end
     end
-    return false
+    has_test_classes_cache[module_path] = result
+    return result
 end
 
 local state = {
@@ -77,8 +89,18 @@ local state = {
 }
 
 vim.api.nvim_create_user_command("ParamTestNum", function(opts)
-    state.parametrized_test_num = opts.args
+    -- 0-based JUnit iteration index (what `--select-iteration=...[N]` expects).
+    local num = tonumber(opts.args)
+    if not num then
+        vim.notify("ParamTestNum expects a number, got: " .. tostring(opts.args), vim.log.levels.WARN)
+        return
+    end
+    state.parametrized_test_num = num
 end, { nargs = 1 })
+
+-- Forward declaration: defined below, after the selector resolvers it depends on.
+-- (Without `local` this leaked into _G.)
+local build_junit_tests_cmd
 
 ---@param context task.lang.Context
 ---@return task.lang.test.TestCmd
@@ -95,7 +117,7 @@ local test_selector_resolver = {
     [task.test_type.ALL_DIR_TESTS] = function(context)
         local test_package = context and context.package_name or java_ts.get_class_package()
         if test_package == nil then
-            vim.notify("Wrong junit selector context to: FILE_TESTS", vim.log.levels.WARN)
+            vim.notify("Wrong junit selector context to: ALL_DIR_TESTS", vim.log.levels.WARN)
             return nil
         end
         return "--select-package=" .. test_package
@@ -163,7 +185,14 @@ local test_selector_resolver = {
             vim.notify("Wrong junit selector context to: CURRENT_TEST", vim.log.levels.WARN)
             return nil
         end
-        state.parametrized_test_num = tonumber(nio_util.input("Test Number")) - 1
+        -- Prompt is 1-based (what the test report / IDE shows); JUnit iterations are 0-based.
+        local answer = nio_util.input("Test Number")
+        local num = tonumber(answer)
+        if not num then
+            vim.notify("Parametrized test number required (got: " .. tostring(answer) .. ")", vim.log.levels.WARN)
+            return nil
+        end
+        state.parametrized_test_num = num - 1
         local module_path = java_util.get_buffer_project_path()
         local test_classes = module_test_classes(module_path)
         current_test_method_fqn =
@@ -270,6 +299,7 @@ end
 function build_junit_tests_cmd(context)
     local type = context.test_type
     local is_debug = context.is_debug
+    has_test_classes_cache = {}
 
     if type == task.test_type.ALL_MODULES_TESTS or type == task.test_type.SELECTED_MODULES_TESTS then
         local modules = jdtls_classpath.get_all_project_modules()
@@ -304,6 +334,10 @@ function build_junit_tests_cmd(context)
                 scope = "test",
                 bufnr = task.last_test.bufnr,
             })
+            if not classpath then
+                vim.notify("Could not resolve test classpath from jdtls (not ready?)", vim.log.levels.WARN)
+                return { cmd = { "echo", "Could not resolve test classpath from jdtls" } }
+            end
             local module_path = java_util.get_buffer_project_path(task.last_test.bufnr)
             if not module_path then
                 vim.notify("Could not resolve module for last test buffer", vim.log.levels.WARN)
@@ -325,13 +359,26 @@ function build_junit_tests_cmd(context)
         return { cmd = { "echo", tostring(type) .. " is not supported to toggle last run cmd" } }
     end
 
-    local test_selector = test_selector_resolver[type](context)
+    local resolver = test_selector_resolver[type]
+    if not resolver then
+        vim.notify("Unsupported junit test type: " .. tostring(type), vim.log.levels.WARN)
+        return { cmd = { "echo", "Unsupported junit test type: " .. tostring(type) } }
+    end
+    local test_selector = resolver(context)
     if test_selector == nil then
         return { cmd = { "echo", "Wrong test selector context!" } }
     end
 
     local classpath = require("utils.java.jdtls-classpath-util").get_classpath_for_main_method({ scope = "test" })
+    if not classpath then
+        vim.notify("Could not resolve test classpath from jdtls (not ready?)", vim.log.levels.WARN)
+        return { cmd = { "echo", "Could not resolve test classpath from jdtls" } }
+    end
     local module_path = java_util.get_buffer_project_path()
+    if not module_path then
+        vim.notify("Could not resolve the module of the current buffer", vim.log.levels.WARN)
+        return { cmd = { "echo", "Could not resolve the module of the current buffer" } }
+    end
     local current_report_dir = module_report_dir(module_path)
 
     task.last_test.test_selector = test_selector
@@ -345,7 +392,7 @@ function build_junit_tests_cmd(context)
             test_selector = test_selector,
             is_debug = is_debug,
         }),
-        report_dir = module_report_dir(java_util.get_buffer_project_path()),
+        report_dir = current_report_dir,
     }
 end
 

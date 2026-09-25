@@ -49,7 +49,7 @@ describe("modules.java.test-report.junit-xml", function()
         })
     end)
 
-    it("lists JUnit XML reports and warns when none exist", function()
+    it("lists JUnit XML reports without notifying when none exist (the core notifies once)", function()
         -- given
         vim.fn.glob = function(pattern, _, list)
             assert.are.equal("/repo/target/junit-report/TEST-*.xml", pattern)
@@ -62,8 +62,31 @@ describe("modules.java.test-report.junit-xml", function()
 
         -- then
         assert.are.same({}, files)
-        assert.are.equal("No JUnit XML reports found in: /repo/target/junit-report", state.notifications[1].message)
-        assert.are.equal(vim.log.levels.WARN, state.notifications[1].level)
+        assert.are.same({}, state.notifications)
+    end)
+
+    it("extracts the error line of a nested class from the outer class source frame", function()
+        -- given: stack frames name the outer source file, never "OuterTest$Inner.java"
+        local stacktrace = "java.lang.AssertionError: boom\n\tat com.acme.OuterTest$Inner.fails(OuterTest.java:42)\n"
+
+        -- when
+        local line = junit_xml._extract_error_line("com.acme.OuterTest$Inner", stacktrace)
+
+        -- then
+        assert.are.equal(42, line)
+    end)
+
+    it("skips superclass frames whose file name merely ends with the class name", function()
+        -- given: the base-class frame comes first in the trace but lives in another file
+        local stacktrace = "java.lang.AssertionError\n"
+            .. "\tat com.acme.AbstractFooTest.setup(AbstractFooTest.java:30)\n"
+            .. "\tat com.acme.FooTest.works(FooTest.java:12)\n"
+
+        -- when
+        local line = junit_xml._extract_error_line("com.acme.FooTest", stacktrace)
+
+        -- then
+        assert.are.equal(12, line)
     end)
 
     it("parses passed, failed, and skipped test cases from one report file", function()

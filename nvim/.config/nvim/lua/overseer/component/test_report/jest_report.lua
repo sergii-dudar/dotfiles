@@ -24,6 +24,13 @@ return {
         return {
             on_complete = function(self, task, status)
                 log.debug("on_complete: status=" .. tostring(status) .. " report_dir=" .. tostring(params.report_dir))
+                if status == require("overseer").STATUS.CANCELED then
+                    -- A stopped run leaves stale (or partial) reports on disk; don't present
+                    -- them as fresh results. cancel() also clears the tree view's running marks.
+                    log.debug("on_complete: run canceled, skipping report processing")
+                    test_report.cancel()
+                    return
+                end
                 vim.schedule(function()
                     test_report.process(params.report_dir, params.filetype)
                 end)
