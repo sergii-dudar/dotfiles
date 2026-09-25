@@ -253,6 +253,9 @@ function M.configure(opts)
 end
 
 --- Connect to the Unix domain socket.
+--- Polls for the socket file and retries a refused connect until `connect_timeout_ms`: the
+--- server creates the file on bind() and only then listen()s, and the JVM may still be
+--- starting, so an early attempt can legitimately fail without anything being wrong.
 ---@param socket_path string
 ---@param callback? fun(success: boolean, err?: string)
 ---@return boolean
@@ -268,6 +271,7 @@ function M.connect(socket_path, callback)
     state.connect_token = state.connect_token + 1
     local connect_token = state.connect_token
     local started_at = uv.now()
+    local last_error = "socket file not found"
 
     close_socket()
     state.connected = false
@@ -282,8 +286,71 @@ function M.connect(socket_path, callback)
         end
     end
 
-    local function open_pipe()
+    --- Wire up the freshly connected pipe: reader, heartbeat, then report success.
+    local function on_connected()
+        state.connected = true
+
+        -- Start reading responses
+        state.socket_fd:read_start(function(read_err, data)
+            if read_err then
+                vim.schedule(function()
+                    log.error("Socket read error:", read_err)
+                    vim.notify("[MapStruct] Socket read error: " .. read_err, vim.log.levels.ERROR)
+                    M.disconnect("Socket read error: " .. read_err)
+                end)
+                return
+            end
+
+            if data then
+                handle_data(data)
+            else
+                -- Connection closed
+                vim.schedule(function()
+                    log.warn("Server disconnected")
+                    vim.notify("[MapStruct] Server disconnected", vim.log.levels.WARN)
+                    M.disconnect("Server disconnected")
+                end)
+            end
+        end)
+
+        -- Start heartbeat timer
+        start_heartbeat()
+
+        vim.schedule(function()
+            log.info("Connected to IPC server")
+            vim.notify("[MapStruct] Connected to IPC server", vim.log.levels.INFO)
+            finish(true, nil)
+        end)
+    end
+
+    local attempt_connect
+
+    --- Schedule the next attempt, or give up once the timeout has elapsed. Runs on the main loop.
+    ---@param err string
+    local function retry_later(err)
+        last_error = err
+        if uv.now() - started_at >= config.connect_timeout_ms then
+            local message = string.format(
+                "Could not connect to %s within %d ms (%s)",
+                socket_path,
+                config.connect_timeout_ms,
+                last_error
+            )
+            log.error(message)
+            finish(false, message)
+            return
+        end
+
+        vim.defer_fn(attempt_connect, config.connect_poll_interval_ms)
+    end
+
+    attempt_connect = function()
         if connect_token ~= state.connect_token then
+            return
+        end
+
+        if not socket_exists(socket_path) then
+            retry_later("socket file not found")
             return
         end
 
@@ -300,73 +367,21 @@ function M.connect(socket_path, callback)
 
             if err then
                 vim.schedule(function()
-                    log.error("Failed to connect:", err)
-                    vim.notify("[MapStruct] Failed to connect: " .. err, vim.log.levels.ERROR)
-                    state.connected = false
+                    if connect_token ~= state.connect_token then
+                        return
+                    end
+                    log.debug("Connect attempt failed, will retry:", err)
                     close_socket()
-                    finish(false, err)
+                    retry_later(err)
                 end)
                 return
             end
 
-            vim.schedule(function()
-                log.info("Connected to IPC server")
-                vim.notify("[MapStruct] Connected to IPC server", vim.log.levels.INFO)
-            end)
-
-            state.connected = true
-
-            -- Start reading responses
-            state.socket_fd:read_start(function(read_err, data)
-                if read_err then
-                    vim.schedule(function()
-                        log.error("Socket read error:", read_err)
-                        vim.notify("[MapStruct] Socket read error: " .. read_err, vim.log.levels.ERROR)
-                        M.disconnect("Socket read error: " .. read_err)
-                    end)
-                    return
-                end
-
-                if data then
-                    handle_data(data)
-                else
-                    -- Connection closed
-                    vim.schedule(function()
-                        log.warn("Server disconnected")
-                        vim.notify("[MapStruct] Server disconnected", vim.log.levels.WARN)
-                        M.disconnect("Server disconnected")
-                    end)
-                end
-            end)
-
-            -- Start heartbeat timer
-            start_heartbeat()
-
-            vim.schedule(function()
-                finish(true, nil)
-            end)
+            on_connected()
         end)
     end
 
-    local function wait_for_socket()
-        if connect_token ~= state.connect_token then
-            return
-        end
-
-        if socket_exists(socket_path) then
-            open_pipe()
-            return
-        end
-
-        if uv.now() - started_at >= config.connect_timeout_ms then
-            finish(false, "Socket file not found: " .. socket_path)
-            return
-        end
-
-        vim.defer_fn(wait_for_socket, config.connect_poll_interval_ms)
-    end
-
-    wait_for_socket()
+    attempt_connect()
 
     return true
 end

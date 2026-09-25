@@ -223,16 +223,23 @@ function M.start(jar_path, opts, callback)
         return
     end
 
-    -- Give server time to start, then connect
+    -- Connect as soon as the socket appears: ipc_client polls for the file and retries a
+    -- refused connect, so no fixed head start is needed (start_connect_delay_ms defaults to 0).
     vim.defer_fn(function()
         ipc_client.connect(state.socket_path, function(success, err)
             state.is_starting = false
-            if callback then
-                if success then
+            if success then
+                if callback then
                     callback(true, state.socket_path)
-                else
-                    callback(false, err)
                 end
+                return
+            end
+
+            -- Never leave a process behind that nobody will talk to.
+            log.error("Could not connect to the server, terminating it:", err)
+            M.terminate()
+            if callback then
+                callback(false, err)
             end
         end)
     end, opts.start_connect_delay_ms)

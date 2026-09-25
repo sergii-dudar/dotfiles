@@ -303,6 +303,9 @@ function M.is_excluded_line(text)
 end
 
 --- Extract static member name from a matched grep line.
+--- When `word` is given, the exact identifier wins, then a prefix completion of it
+--- (ALL_CAPS words complete with `[A-Z0-9_]`, camelCase words with `[A-Za-z0-9_]`,
+--- mirroring `build_search`). Without a word match the heuristics below apply:
 --- For fields: ALL_CAPS identifier before '=' or ';' (checked first to avoid matching method calls in initializers)
 --- For enum constants: ALL_CAPS at start of trimmed line before ',' ';' or '(' (constructor args)
 --- For methods: identifier before '('
@@ -315,11 +318,18 @@ function M.extract_static_member(text, word)
     -- regardless of whether the user searched for NONE, DEBTOR, or CREDITOR.
     if word and word ~= "" then
         local escaped = vim.pesc(word)
-        local found = text:match("^%s*(" .. escaped .. "[%u%d_]*)%s*[,;({=]")
-            or text:match("[^%u%d_](" .. escaped .. "[%u%d_]*)%s*[,;({=]")
-            -- Trailing-whitespace-only: last enum constant with no terminator on this line.
-            or text:match("^%s*(" .. escaped .. "[%u%d_]*)%s*$")
-            or text:match("[^%u%d_](" .. escaped .. "[%u%d_]*)%s*$")
+        -- Prefix completion must mirror build_search: a camelCase prefix like `assertTh` has to
+        -- reach `assertThat`; completing with `[%u%d_]*` only would miss it and fall through to
+        -- the ALL_CAPS heuristics below, which then pick up type parameters such as `ELEMENT,`.
+        local tail = word:match("^[A-Z_][A-Z0-9_]*$") and "[%u%d_]*" or "[%w_]*"
+        -- `%f[%w_]` anchors at an identifier boundary (also at the start of the line), so the
+        -- word is never taken from the middle of another identifier. The exact identifier is
+        -- preferred over a prefix completion (`of` before `ofNullable` on the same line).
+        -- Trailing-whitespace-only variants: last enum constant with no terminator on this line.
+        local found = text:match("%f[%w_](" .. escaped .. ")%s*[,;({=]")
+            or text:match("%f[%w_](" .. escaped .. ")%s*$")
+            or text:match("%f[%w_](" .. escaped .. tail .. ")%s*[,;({=]")
+            or text:match("%f[%w_](" .. escaped .. tail .. ")%s*$")
         if found then
             return found
         end
@@ -355,6 +365,9 @@ function M.build_import_line(fqcn, member, import_mode)
 end
 
 --- Add a static import line to the given buffer.
+--- Inserts after the last `import` line, otherwise after the `package` line (keeping a
+--- blank line on both sides of the new import block), otherwise at the top of the file.
+--- No-op when the exact line already exists.
 ---@param import_line string
 ---@param bufnr integer
 function M.add_import_to_buffer(import_line, bufnr)
@@ -381,7 +394,18 @@ function M.add_import_to_buffer(import_line, bufnr)
         end
     end
 
-    vim.api.nvim_buf_set_lines(bufnr, insert_after, insert_after, false, { import_line })
+    local new_lines = { import_line }
+    -- First import of the file: keep the conventional blank line between the package
+    -- declaration and the import block, and between the block and whatever follows it.
+    if insert_after > 0 and lines[insert_after]:match("^package ") then
+        table.insert(new_lines, 1, "")
+        local next_line = lines[insert_after + 1]
+        if next_line and not next_line:match("^%s*$") then
+            table.insert(new_lines, "")
+        end
+    end
+
+    vim.api.nvim_buf_set_lines(bufnr, insert_after, insert_after, false, new_lines)
     vim.notify("[Static Import] Added: " .. import_line, vim.log.levels.INFO)
 end
 
@@ -436,7 +460,8 @@ end
 --- Complete a typed prefix under the cursor to the full imported member name.
 --- After a static import is added for a prefix search (cursor on `SIGNE`, member
 --- `SIGNED_NUM`), this rewrites the identifier in place. It is a no-op when there is
---- no member, the text already equals the member, or the captured range no longer
+--- no member, the text already equals the member, the member does not start with the
+--- typed word (an unrelated pick from the picker), or the captured range no longer
 --- holds the originally-typed word (buffer edited / cursor moved since invocation).
 --- Call this BEFORE `add_import_to_buffer` so the captured row stays valid — the
 --- import line is inserted above the usage and would otherwise shift it down.
@@ -446,6 +471,12 @@ end
 ---@param member string|nil the full member name to write
 function M.complete_word_in_buffer(bufnr, range, expected, member)
     if not range or not member or member == "" or member == expected then
+        return
+    end
+    -- Only a genuine prefix completion may touch the buffer. The picker lets the user edit
+    -- the live search and pick an unrelated member (cursor on `assertThat`, pick `fail`);
+    -- that must add the import without swapping the identifier under the cursor.
+    if member:sub(1, #expected) ~= expected then
         return
     end
     if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
@@ -564,6 +595,8 @@ function M.parse_rg_results(stdout, import_mode, word, fqcn_cache, source_file)
     end
 
     -- Rank exact `member == word` matches above prefix matches; alphabetical within each tier.
+    -- Equal members (same name in several classes) are ordered by import line: table.sort is
+    -- not stable, so without the tiebreak the select menu would reshuffle between runs.
     if word and word ~= "" then
         table.sort(items, function(a, b)
             local a_exact = a.member == word
@@ -571,7 +604,11 @@ function M.parse_rg_results(stdout, import_mode, word, fqcn_cache, source_file)
             if a_exact ~= b_exact then
                 return a_exact
             end
-            return (a.member or "") < (b.member or "")
+            local a_member, b_member = a.member or "", b.member or ""
+            if a_member ~= b_member then
+                return a_member < b_member
+            end
+            return a.name < b.name
         end)
     end
 

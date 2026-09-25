@@ -10,6 +10,8 @@
 --- - Quick import loads dependency sources, then searches current module Java
 ---   sources plus `settings.preferred_deps_main` / `settings.preferred_deps_test`.
 ---   This keeps the fast path small and predictable.
+--- - When dependency sources cannot be loaded (no jdtls classpath yet), quick
+---   import and the picker fallback degrade to module sources only.
 --- - Full picker starts with module sources plus preferred dependencies when
 ---   dependency sources are already loaded. Inside the picker, `<C-d>` toggles
 ---   filtered dependency dirs and `<C-a>` toggles all dependency dirs.
@@ -130,6 +132,24 @@ local function get_quick_search_dirs(state)
     return util.dedup_dirs(dirs)
 end
 
+--- Ensure dependency source directories are available before searching.
+--- `on_fail` runs when they cannot be loaded (no jdtls classpath yet), so callers can
+--- degrade to module-only search instead of silently doing nothing.
+---@param state table invocation state containing `source_bufnr`
+---@param on_done fun()
+---@param on_fail? fun()
+local function ensure_deps_loaded(state, on_done, on_fail)
+    if dep_search.is_loaded() then
+        on_done()
+        return
+    end
+    dep_search.load_sources({
+        bufnr = state.source_bufnr,
+        on_done = on_done,
+        on_fail = on_fail,
+    })
+end
+
 --- Open the full picker after a quick-import miss or cancelled selection.
 --- The fallback starts in all-dependencies mode so missed preferred-dep results
 --- are discoverable without requiring another keypress.
@@ -142,32 +162,34 @@ local function fallback_to_find(state, word)
     state.current_word = word
     state.include_all_deps = true
     state.include_deps = false
-    if not dep_search.is_loaded() then
-        dep_search.load_sources({
-            bufnr = state.source_bufnr,
-            on_done = function()
-                picker.open(settings, state)
-            end,
-        })
-    else
+    local function open_picker()
         picker.open(settings, state)
     end
+    -- Without dependency sources the picker still covers the module sources.
+    ensure_deps_loaded(state, open_picker, open_picker)
 end
 
 --- Handle ripgrep completion for quick-import.
 --- Parses ripgrep output, auto-applies a single candidate when configured, shows
 --- a select menu for multiple candidates, or falls back to the full picker.
 ---@param state table invocation state
----@param result { code: integer, stdout?: string } `vim.system` result
+---@param result { code: integer, stdout?: string, stderr?: string } `vim.system` result
 ---@param word string searched word under cursor
 local function on_rg_result(state, result, word)
-    if result.code ~= 0 or not result.stdout or result.stdout == "" then
+    -- Decide on output, not on the exit code: rg exits 2 when one search dir is missing or
+    -- unreadable (e.g. a dependency whose sources jar failed to extract) but still prints
+    -- the matches from every other dir. Exit code 1 is the normal "no match".
+    local stdout = result.stdout or ""
+    if stdout == "" then
+        if result.code ~= 0 and result.code ~= 1 and result.stderr and result.stderr ~= "" then
+            vim.notify("[Static Import] rg failed: " .. vim.trim(result.stderr), vim.log.levels.WARN)
+        end
         vim.notify("[Static Import] No matches found", vim.log.levels.INFO)
         fallback_to_find(state, word)
         return
     end
 
-    local items = util.parse_rg_results(result.stdout, settings.import_mode, word, state.fqcn_cache, state.source_file)
+    local items = util.parse_rg_results(stdout, settings.import_mode, word, state.fqcn_cache, state.source_file)
     if #items == 0 then
         vim.notify("[Static Import] No valid matches found", vim.log.levels.INFO)
         fallback_to_find(state, word)
@@ -259,16 +281,14 @@ function M.quick_import()
         return
     end
 
-    if not dep_search.is_loaded() then
-        dep_search.load_sources({
-            bufnr = state.source_bufnr,
-            on_done = function()
-                run_search(state, word, pattern)
-            end,
-        })
-    else
+    ensure_deps_loaded(state, function()
         run_search(state, word, pattern)
-    end
+    end, function()
+        -- No jdtls classpath yet (e.g. right after opening the project): the module's own
+        -- sources need no classpath, so search them instead of silently giving up.
+        vim.notify("[Static Import] Dependency sources unavailable, searching module sources only", vim.log.levels.INFO)
+        run_search(state, word, pattern)
+    end)
 end
 
 return M

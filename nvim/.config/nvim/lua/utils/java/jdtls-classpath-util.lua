@@ -29,34 +29,29 @@ local classpath_cache = {
 }
 local CACHE_TTL_MS = 60000 -- 1 minute cache
 
--- Cache for jdtls ready state (monotonic - once ready, stays ready)
+-- Cache for jdtls ready state, keyed by client id. Readiness is monotonic for one jdtls
+-- process (once its projects are loaded they stay loaded) and a restarted jdtls gets a new
+-- client id, so a positive answer is kept for the client's lifetime. clear_cache() (called by
+-- the workspace watcher after builds) drops it, costing at most one extra round-trip per build.
 local jdtls_ready_cache = {
-    ready = false,
-    timestamp = 0,
+    client_id = nil,
 }
-local READY_CACHE_TTL_MS = 5000 -- 5 seconds cache (conservative)
 
 -- Check if jdtls is ready and can provide classpath
---- Check whether JDTLS is ready for the buffer.
+--- Check whether JDTLS is ready for the buffer (attached, initialized, projects loaded).
+--- The synchronous round-trip is paid once per jdtls client, not on every completion request.
 function M.is_jdtls_ready(bufnr)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
-
-    -- Check cache first - jdtls ready state is monotonic (never goes backward)
-    if jdtls_ready_cache.ready then
-        local age_ms = vim.loop.now() - jdtls_ready_cache.timestamp
-        if age_ms < READY_CACHE_TTL_MS then
-            log.debug("Using cached jdtls ready state (age:", age_ms, "ms)")
-            return true
-        else
-            log.debug("jdtls ready cache expired, rechecking...")
-        end
-    end
 
     -- Check if jdtls client is attached
     local client = lsp_util.get_client_by_name("jdtls", { bufnr = bufnr })
     if not client then
         log.debug("jdtls not attached")
         return false
+    end
+
+    if jdtls_ready_cache.client_id == client.id then
+        return true
     end
 
     -- Check if client is initialized
@@ -84,10 +79,9 @@ function M.is_jdtls_ready(bufnr)
 
     log.debug("jdtls is ready with", #project_uris, "projects")
 
-    -- Cache the positive result
-    jdtls_ready_cache.ready = true
-    jdtls_ready_cache.timestamp = vim.loop.now()
-    log.debug("Cached jdtls ready state")
+    -- Cache the positive result for this client's lifetime
+    jdtls_ready_cache.client_id = client.id
+    log.debug("Cached jdtls ready state for client", client.id)
 
     return true
 end
@@ -572,8 +566,7 @@ end
 function M.clear_cache()
     classpath_cache.classpath = nil
     classpath_cache.timestamp = 0
-    jdtls_ready_cache.ready = false
-    jdtls_ready_cache.timestamp = 0
+    jdtls_ready_cache.client_id = nil
     log.debug("Cleared classpath and jdtls ready caches")
 end
 

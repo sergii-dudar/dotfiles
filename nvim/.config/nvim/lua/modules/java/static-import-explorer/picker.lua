@@ -85,16 +85,31 @@ local function make_format_item(state)
 end
 
 --- Ensure dependency source directories are available before refreshing a picker.
+--- `on_fail` runs when they cannot be loaded (no jdtls classpath yet).
 ---@param state table invocation state containing source buffer
 ---@param callback fun()
-local function ensure_deps_loaded(state, callback)
+---@param on_fail? fun()
+local function ensure_deps_loaded(state, callback, on_fail)
     if not dep_search.is_loaded() then
         dep_search.load_sources({
             bufnr = state.source_bufnr,
             on_done = callback,
+            on_fail = on_fail,
         })
     else
         callback()
+    end
+end
+
+--- Build the failure handler for a scope toggle: restore the previous toggle values so the
+--- state stays truthful when dependency sources cannot be loaded.
+---@param state table invocation state shared with the picker
+---@return fun()
+local function make_toggle_revert(state)
+    local prev_deps, prev_all = state.include_deps, state.include_all_deps
+    return function()
+        state.include_deps, state.include_all_deps = prev_deps, prev_all
+        vim.notify("[Static Import] Dependency sources unavailable", vim.log.levels.WARN)
     end
 end
 
@@ -108,6 +123,7 @@ end
 local function build_actions(settings, state)
     return {
         toggle_deps = function(picker)
+            local revert = make_toggle_revert(state)
             state.include_deps = not state.include_deps
             state.include_all_deps = false
             ensure_deps_loaded(state, function()
@@ -115,9 +131,10 @@ local function build_actions(settings, state)
                 picker:find()
                 local label = state.include_deps and "ON" or "OFF"
                 vim.notify("[Static Import] Filtered deps: " .. label, vim.log.levels.INFO)
-            end)
+            end, revert)
         end,
         toggle_all_deps = function(picker)
+            local revert = make_toggle_revert(state)
             state.include_all_deps = not state.include_all_deps
             state.include_deps = false
             ensure_deps_loaded(state, function()
@@ -125,7 +142,7 @@ local function build_actions(settings, state)
                 picker:find()
                 local label = state.include_all_deps and "ON" or "OFF"
                 vim.notify("[Static Import] All deps: " .. label, vim.log.levels.INFO)
-            end)
+            end, revert)
         end,
         set_glob = function(picker)
             vim.ui.input({ prompt = "Class name filter: " }, function(input)

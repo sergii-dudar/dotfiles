@@ -2,7 +2,7 @@ local helper = require("tests.utils.spec_helper")
 
 describe("modules.java.mapstruct.ipc_client", function()
     local ipc_client
-    local pipe, timer, writes
+    local pipe, timer, writes, deferred, now_ms
 
     local function noop() end
 
@@ -52,15 +52,19 @@ describe("modules.java.mapstruct.ipc_client", function()
         vim_double.uv.fs_stat = function()
             return { type = "socket" }
         end
+        now_ms = 0
         vim_double.uv.now = function()
-            return 0
+            return now_ms
         end
         vim_double.schedule_wrap = function(fn)
             return function(...)
                 return fn(...)
             end
         end
-        vim_double.defer_fn = noop
+        deferred = {}
+        vim_double.defer_fn = function(fn, ms)
+            table.insert(deferred, { fn = fn, ms = ms })
+        end
         -- The double's decoder is deliberately unconfigured; this spec only ever reads back one
         -- response line, so decode it to the matching table.
         vim_double.json.decode = function()
@@ -105,6 +109,53 @@ describe("modules.java.mapstruct.ipc_client", function()
     it("connects and starts the heartbeat timer", function()
         assert.is_true(ipc_client.is_connected())
         assert.is_function(timer.callback)
+    end)
+
+    it("retries a refused connect and succeeds on the next attempt", function()
+        -- given: a fresh client whose first attempt lands between the server's bind() and listen()
+        ipc_client = helper.reload("modules.java.mapstruct.ipc_client")
+        local outcome = nil
+        ipc_client.connect("/tmp/test.sock", function(success, err)
+            outcome = { success = success, err = err }
+        end)
+
+        -- when: the first attempt is refused
+        pipe.on_connect("ECONNREFUSED: connection refused")
+
+        -- then: nothing reported yet, a retry is scheduled
+        assert.is_nil(outcome)
+        assert.is_false(ipc_client.is_connected())
+        assert.are.equal(1, #deferred)
+
+        -- when: the retry runs and the server accepts
+        table.remove(deferred, 1).fn()
+        pipe.on_connect(nil)
+
+        -- then
+        assert.is_true(ipc_client.is_connected())
+        assert.is_true(outcome.success)
+    end)
+
+    it("gives up with a clear error once the connect timeout elapses", function()
+        -- given
+        ipc_client = helper.reload("modules.java.mapstruct.ipc_client")
+        ipc_client.configure({ connect_timeout_ms = 1000, connect_poll_interval_ms = 50 })
+        local outcome = nil
+        ipc_client.connect("/tmp/test.sock", function(success, err)
+            outcome = { success = success, err = err }
+        end)
+
+        -- when: every attempt is refused and time runs out
+        pipe.on_connect("ECONNREFUSED: connection refused")
+        now_ms = 1000
+        table.remove(deferred, 1).fn()
+        pipe.on_connect("ECONNREFUSED: connection refused")
+
+        -- then
+        assert.is_false(outcome.success)
+        assert.matches("within 1000 ms", outcome.err)
+        assert.matches("ECONNREFUSED", outcome.err)
+        assert.is_false(ipc_client.is_connected())
     end)
 
     it("sends a heartbeat when idle", function()

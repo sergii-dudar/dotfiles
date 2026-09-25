@@ -70,4 +70,27 @@ describe("modules.java.dependencies-search", function()
         assert.are.same({}, dep_search.get_exclude())
         assert.is_true(cache_cleared)
     end)
+
+    it("reports a missing jdtls classpath through on_fail without calling on_done", function()
+        -- given
+        package.loaded["utils.java.jdtls-classpath-util"].get_classpath_for_main_method_table = function()
+            return nil
+        end
+        local done, failed = false, false
+
+        -- when
+        dep_search.load_sources({
+            on_done = function()
+                done = true
+            end,
+            on_fail = function()
+                failed = true
+            end,
+        })
+
+        -- then
+        assert.is_false(done)
+        assert.is_true(failed)
+        assert.is_false(dep_search.is_loaded())
+    end)
 end)

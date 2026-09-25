@@ -286,4 +286,94 @@ describe("modules.java.static-import-explorer.util", function()
             },
         }, items)
     end)
+
+    it("completes a camelCase prefix to the method and prefers the exact identifier", function()
+        -- given
+        local generic_line = "  public static <ELEMENT> AbstractIterableAssert<?, Iterable<? extends ELEMENT>, ELEMENT, "
+            .. "ObjectAssert<ELEMENT>> assertThat(Iterable<? extends ELEMENT> actual) {"
+        local longer_first_line = "  public static <E> ImmutableList<E> ofNullable(E e) { of("
+        local caps_line = "    public static final int SIGNED_NUM = 1;"
+        local enum_line = "    FOO(1), FOO_BAR(2);"
+
+        -- when
+        local prefix = util.extract_static_member(generic_line, "assertTh")
+        local exact = util.extract_static_member(generic_line, "assertThat")
+        local shortest_exact = util.extract_static_member(longer_first_line, "of")
+        local caps_prefix = util.extract_static_member(caps_line, "SIGNE")
+        local enum_exact = util.extract_static_member(enum_line, "FOO")
+        local enum_prefix = util.extract_static_member(enum_line, "FOO_B")
+
+        -- then
+        assert.are.equal("assertThat", prefix)
+        assert.are.equal("assertThat", exact)
+        assert.are.equal("of", shortest_exact)
+        assert.are.equal("SIGNED_NUM", caps_prefix)
+        assert.are.equal("FOO", enum_exact)
+        assert.are.equal("FOO_BAR", enum_prefix)
+    end)
+
+    it("completes the cursor word only when the member extends it", function()
+        -- given
+        state.buffer_lines[1] = { "assertTh(1);" }
+        local range = { row = 0, col_start = 0, col_end = 8 }
+
+        -- when
+        util.complete_word_in_buffer(1, range, "assertTh", "fail")
+        local unrelated = state.set_text
+        util.complete_word_in_buffer(1, range, "assertTh", "assertThat")
+        local completed = state.set_text
+
+        -- then
+        assert.is_nil(unrelated)
+        assert.are.same({ "assertThat" }, completed.lines)
+        assert.are.equal(8, completed.end_col)
+    end)
+
+    it("orders equal members by import line after ranking exact matches first", function()
+        -- given
+        java_common.file_to_fqcn = function(file)
+            return (file:match("^/deps/(.+)%.java$"):gsub("/", "."))
+        end
+        local stdout = table.concat({
+            "/deps/org/c/Gamma.java:1: public static void goFar() {",
+            "/deps/org/b/Zeta.java:1: public static void go() {",
+            "/deps/org/a/Alpha.java:1: public static void go() {",
+        }, "\n")
+
+        -- when
+        local items = util.parse_rg_results(stdout, "explicit", "go", {}, "/nope")
+
+        -- then
+        assert.are.same(
+            {
+                "import static org.a.Alpha.go;",
+                "import static org.b.Zeta.go;",
+                "import static org.c.Gamma.goFar;",
+            },
+            vim.tbl_map(function(item)
+                return item.name
+            end, items)
+        )
+    end)
+
+    it("separates the first import from the package line", function()
+        -- given
+        state.buffer_lines[1] = { "package com.acme;", "class Foo {}" }
+        state.buffer_lines[2] = { "package com.acme;", "", "class Foo {}" }
+
+        -- when
+        util.add_import_to_buffer("import static org.assertj.core.api.Assertions.assertThat;", 1)
+        util.add_import_to_buffer("import static org.assertj.core.api.Assertions.assertThat;", 2)
+
+        -- then
+        local expected = {
+            "package com.acme;",
+            "",
+            "import static org.assertj.core.api.Assertions.assertThat;",
+            "",
+            "class Foo {}",
+        }
+        assert.are.same(expected, state.buffer_lines[1])
+        assert.are.same(expected, state.buffer_lines[2])
+    end)
 end)

@@ -28,12 +28,12 @@ describe("modules.java.mapstruct.server", function()
             set_log_level = noop,
         })
 
-        ipc = { connect_calls = 0, disconnect_calls = 0, connected = false }
+        ipc = { connect_calls = 0, disconnect_calls = 0, connected = false, connect_succeeds = true }
         ipc.connect = function(_, callback)
             ipc.connect_calls = ipc.connect_calls + 1
-            ipc.connected = true
+            ipc.connected = ipc.connect_succeeds
             if callback then
-                callback(true, nil)
+                callback(ipc.connect_succeeds, ipc.connect_succeeds and nil or "Could not connect")
             end
             return true
         end
@@ -141,6 +141,26 @@ describe("modules.java.mapstruct.server", function()
         assert.are.same({ { job_id = job, tracked = nil } }, jobs.stopped)
         assert.is_nil(server.get_job_id())
         assert.is_false(server.is_running())
+    end)
+
+    it("terminates the process when the connect attempt fails", function()
+        -- given
+        ipc.connect_succeeds = false
+        local outcome = nil
+
+        -- when
+        server.start("/jar", {}, function(success, err)
+            outcome = { success = success, err = err }
+        end)
+        local job = jobs.next_id
+        table.remove(deferred, 1).fn()
+
+        -- then: the caller learns of the failure and no orphan is left behind
+        assert.is_false(outcome.success)
+        assert.are.equal("Could not connect", outcome.err)
+        assert.are.same({ { job_id = job, tracked = nil } }, jobs.stopped)
+        assert.is_false(server.is_running())
+        assert.is_false(server.get_status().starting)
     end)
 
     it("stop only force-stops the job it was asked to stop", function()

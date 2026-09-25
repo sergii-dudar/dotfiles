@@ -353,9 +353,12 @@ local function finish_load()
 end
 
 --- Resolve dependency source dirs from JDTLS classpath, extracting sources jars when needed.
----@param opts? { on_done?: fun(), bufnr?: integer }
+--- `on_fail` is called synchronously when loading cannot start because jdtls returned no
+--- classpath; `on_done` is never called in that case.
+---@param opts? { on_done?: fun(), on_fail?: fun(), bufnr?: integer }
 function M.load_sources(opts)
     local on_done = opts and opts.on_done
+    local on_fail = opts and opts.on_fail
     local bufnr = opts and opts.bufnr
 
     if state.loading then
@@ -374,6 +377,9 @@ function M.load_sources(opts)
         state.loading = false
         state.pending_on_done = {}
         vim.notify("[Dep Search] Failed to get classpath from jdtls", vim.log.levels.WARN)
+        if on_fail then
+            on_fail()
+        end
         return
     end
 

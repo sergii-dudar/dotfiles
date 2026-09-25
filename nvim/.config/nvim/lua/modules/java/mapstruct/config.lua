@@ -15,11 +15,14 @@ M.defaults = {
     log_level = vim.log.levels.WARN,
     log_file = "~/.local/state/nvim/mapstruct-source-server.log",
 
-    -- IPC lifecycle.
+    -- IPC lifecycle. The JVM binds its socket in roughly 200-300 ms on a warm cache (over a
+    -- second on a cold one), so the client polls for the socket file from the start and
+    -- retries a refused connect instead of waiting a fixed head start; the timeout is generous
+    -- because giving up leaves nothing useful behind (the process is terminated on failure).
     socket_dir = "/tmp",
-    start_connect_delay_ms = 1000,
-    connect_timeout_ms = 2000,
-    connect_poll_interval_ms = 100,
+    start_connect_delay_ms = 0,
+    connect_timeout_ms = 10000,
+    connect_poll_interval_ms = 50,
     heartbeat_interval_ms = 10000,
     request_timeout_ms = 5000,
 
