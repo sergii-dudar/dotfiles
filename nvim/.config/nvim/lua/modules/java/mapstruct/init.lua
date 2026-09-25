@@ -18,7 +18,10 @@ local state = {
     initialized = false,
     jar_path = nil,
     use_jdtls_classpath = config.defaults.use_jdtls_classpath,
-    server_started = false,
+    -- A server start is in flight: further callers queue in start_waiters and are all answered
+    -- by that start's outcome (see ensure_server_running).
+    start_in_progress = false,
+    start_waiters = {},
     opts = config.get_defaults(),
 }
 
@@ -26,6 +29,11 @@ local commands_setup = false
 local cleanup_augroup = nil
 local ensure_initialized
 local ensure_server_running
+
+-- Polling for a start initiated outside this module (server.restart): it settles when the
+-- connect attempt succeeds or times out, so the bound only guards against a stuck start.
+local EXTERNAL_START_POLL_MS = 200
+local EXTERNAL_START_MAX_POLLS = 50
 
 --- Set log level for all MapStruct modules.
 ---@param level string|number
@@ -130,7 +138,8 @@ local function setup_cleanup_autocmd()
         group = cleanup_augroup,
         callback = function()
             context.stop_cleanup_timer()
-            server.stop()
+            -- Synchronous: a deferred graceful stop would never run this late in the exit.
+            server.terminate()
         end,
     })
 end
@@ -192,57 +201,78 @@ function M.is_initialized()
     return state.initialized
 end
 
---- Ensure server is running.
----@param callback fun(success: boolean)
-ensure_server_running = function(callback)
+--- Ensure the server is running and connected, starting it if needed.
+--- Callers arriving while a start is in flight are queued and answered together by that
+--- start's outcome, so a burst of completion requests can neither spawn a second process
+--- nor misreport a start that is merely still connecting as a failure.
+---@param callback fun(success: boolean, err?: string)
+---@param external_start_polls? integer internal: polls spent waiting on an external start
+ensure_server_running = function(callback, external_start_polls)
+    if not state.initialized or not state.jar_path then
+        callback(false, "MapStruct module is not initialized (jar_path missing?)")
+        return
+    end
+
     if server.is_running() and ipc_client.is_connected() then
         callback(true)
         return
     end
 
-    -- If server_started is true but server is not actually running, it means it crashed
-    if state.server_started and not server.is_running() then
-        log.warn("Server was marked as started but is not running - resetting flag")
-        state.server_started = false
-    end
-
-    if state.server_started then
-        -- Server is starting, wait a bit
-        vim.defer_fn(function()
-            local is_running = server.is_running() and ipc_client.is_connected()
-            if not is_running then
-                log.warn("Server failed to start within timeout")
-                state.server_started = false
-            end
-            callback(is_running)
-        end, 500)
+    if state.start_in_progress then
+        log.debug("Server start in progress - queueing caller")
+        table.insert(state.start_waiters, callback)
         return
     end
 
-    -- If using jdtls classpath, wait for jdtls to be ready first
-    if state.use_jdtls_classpath then
-        if not classpath_util.is_jdtls_ready() then
-            log.warn("jdtls is not ready yet - cannot start server without complete classpath")
-            callback(false)
+    if server.get_status().starting then
+        -- A start initiated outside this module (server.restart) is in flight; re-evaluate
+        -- once it settles, but never poll forever.
+        external_start_polls = (external_start_polls or 0) + 1
+        if external_start_polls > EXTERNAL_START_MAX_POLLS then
+            log.error("Server start did not settle after", external_start_polls * EXTERNAL_START_POLL_MS, "ms")
+            callback(false, "Server start did not settle")
             return
         end
+        vim.defer_fn(function()
+            ensure_server_running(callback, external_start_polls)
+        end, EXTERNAL_START_POLL_MS)
+        return
     end
 
-    -- Start server
-    state.server_started = true
+    if server.is_running() then
+        -- Process alive but the IPC link is gone (heartbeat failure, socket read error). The
+        -- server exits by itself once it sees EOF, but a fresh start must not race with that.
+        log.warn("Server process alive without IPC connection - terminating it before restart")
+        server.terminate()
+    end
+
+    -- If using jdtls classpath, wait for jdtls to be ready first
+    if state.use_jdtls_classpath and not classpath_util.is_jdtls_ready() then
+        log.warn("jdtls is not ready yet - cannot start server without complete classpath")
+        callback(false, "jdtls is not ready")
+        return
+    end
+
+    state.start_in_progress = true
+    state.start_waiters = { callback }
 
     spinner.start("🚀 " .. "Starting MapStruct Server...")
     server.start(state.jar_path, state.opts, function(success, err)
-        if not success then
+        state.start_in_progress = false
+        local waiters = state.start_waiters
+        state.start_waiters = {}
+
+        if success then
+            log.info("Server started successfully")
+        else
             log.error("Failed to start server:", err)
             vim.notify("[MapStruct] Failed to start server: " .. (err or "unknown error"), vim.log.levels.ERROR)
-            state.server_started = false
-            callback(false, err)
-        else
-            log.info("Server started successfully")
-            callback(true)
         end
         spinner.stop(success, success and "MapStruct started" or "MapStruct failed to start")
+
+        for _, waiter in ipairs(waiters) do
+            waiter(success, err)
+        end
     end)
 end
 
@@ -258,6 +288,11 @@ local function make_ipc_request(method, request_params, callback)
             callback(nil, "Server is not running")
             return
         end
+
+        -- The process this request goes to. A failure only justifies terminating THAT process:
+        -- a disconnect fails every pending request at once, and each of them must not kill
+        -- whatever server has been started in the meantime.
+        local job_id_at_send = server.get_job_id()
 
         -- Request from server
         ipc_client.request(method, request_params, function(result, err)
@@ -278,9 +313,11 @@ local function make_ipc_request(method, request_params, callback)
                 if connection_lost then
                     log.info("Connection lost, attempting to restart server...")
 
-                    -- Reset state
-                    state.server_started = false
-                    server.cleanup()
+                    -- Kill the process we were talking to (it may still be alive, e.g. after a
+                    -- request timeout) so the replacement never coexists with it.
+                    if job_id_at_send ~= nil and job_id_at_send == server.get_job_id() then
+                        server.terminate()
+                    end
 
                     -- Clear classpath cache to get fresh classpath on restart
                     if state.use_jdtls_classpath then
@@ -681,13 +718,20 @@ function M.get_status()
     }
 end
 
---- Restart the server.
----@param callback? fun(success: boolean)
+--- Restart the server: graceful stop, then a start that honours callers queued meanwhile.
+---@param callback? fun(success: boolean, err?: string)
 function M.restart(callback)
-    server.restart(function(success)
-        if callback then
-            callback(success)
-        end
+    log.info("Restarting server...")
+    vim.notify("[MapStruct] Restarting server...", vim.log.levels.INFO)
+    server.stop(function()
+        vim.defer_fn(function()
+            ensure_initialized()
+            ensure_server_running(function(success, err)
+                if callback then
+                    callback(success, err)
+                end
+            end)
+        end, 500)
     end)
 end
 

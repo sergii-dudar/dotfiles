@@ -197,7 +197,13 @@ function M.start(jar_path, opts, callback)
                 end
             end
         end,
-        on_exit = function(_, exit_code, _)
+        on_exit = function(exited_job_id, exit_code, _)
+            if exited_job_id ~= state.server_job_id then
+                -- A superseded process (terminated before a restart, or one that exited on its own
+                -- after being replaced) must not tear down the server that replaced it.
+                log.info("Ignoring exit of superseded server job", exited_job_id, "with code", exit_code)
+                return
+            end
             log.warn("Server exited with code", exit_code)
             log.warn("Server job_id was:", state.server_job_id)
             log.warn("Socket path was:", state.socket_path)
@@ -258,20 +264,42 @@ function M.stop(callback)
         log.warn("IPC client not connected, cannot send graceful shutdown")
     end
 
-    -- Give server time to shut down gracefully
+    -- Give server time to shut down gracefully, then force-stop it if it is still the tracked job
+    -- (it may have exited on its own, or been replaced, in the meantime).
+    local job_id = state.server_job_id
     vim.defer_fn(function()
-        if state.server_job_id then
-            log.info("Forcefully stopping job:", state.server_job_id)
-            vim.fn.jobstop(state.server_job_id)
+        if state.server_job_id == job_id then
+            log.info("Forcefully stopping job:", job_id)
+            M.terminate()
+        else
+            log.debug("Server job", job_id, "already gone or replaced - nothing to force-stop")
         end
-
-        M.cleanup()
         log.info("Server stopped and cleaned up")
 
         if callback then
             callback(true)
         end
     end, 200)
+end
+
+--- Kill the server process immediately (no shutdown handshake) and release its resources.
+--- The job id is cleared before the kill so the process's pending on_exit is treated as
+--- superseded: a server started right after this call is never torn down by the exit of the
+--- one it replaced.
+function M.terminate()
+    local job_id = state.server_job_id
+    if job_id then
+        log.info("Terminating server job:", job_id)
+        state.server_job_id = nil
+        pcall(vim.fn.jobstop, job_id)
+    end
+    M.cleanup()
+end
+
+--- Current server job id, or nil when no process is tracked.
+---@return integer|nil
+function M.get_job_id()
+    return state.server_job_id
 end
 
 --- Restart the server.

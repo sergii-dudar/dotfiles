@@ -181,8 +181,16 @@ handle_response = function(json_str)
 end
 
 --- Send heartbeat to keep connection alive.
+--- Skipped while a request is in flight: the server answers one request at a time, so a
+--- heartbeat sent behind a slow explore_path would queue and time out even though the server
+--- is healthy. The in-flight request already proves liveness (or times out and recovers itself).
 local function send_heartbeat()
     if not state.connected then
+        return
+    end
+
+    if next(state.pending_requests) ~= nil then
+        log.debug("Skipping heartbeat: request in flight")
         return
     end
 
