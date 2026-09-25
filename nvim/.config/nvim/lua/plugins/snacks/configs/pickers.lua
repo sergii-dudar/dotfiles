@@ -6,6 +6,8 @@ Snacks.util.set_hl({
 
 local layouts = require("plugins.snacks.configs.layouts")
 local layout_vertical = { layout = layouts.custom_vertical }
+local layout_vertical_max = { layout = { preset = "custom_vertical", layout = { width = 0, height = 0 } } }
+
 local picker_util = require("utils.snacks-pickers-util")
 
 -- Confirm action for the LSP navigation pickers. Some targets open in buffers whose
@@ -348,11 +350,11 @@ M.picker = {
         git_files = layout_vertical,
         git_branches = layout_vertical,
         git_log = layout_vertical,
-        git_log_line = layout_vertical,
+        git_log_line = layout_vertical_max,
         git_status = layout_vertical,
         git_stash = layout_vertical,
-        git_diff = layout_vertical,
-        git_log_file = layout_vertical,
+        git_diff = layout_vertical_max,
+        git_log_file = layout_vertical_max,
         lsp_declarations = lsp_nav,
         lsp_definitions = lsp_nav,
         lsp_implementations = lsp_nav,
