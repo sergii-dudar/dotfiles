@@ -7,10 +7,10 @@ vim.filetype.add({
         ["http"] = "http",
     },
 })
--- docs: https://github.com/mistweaverco/kulala.nvim/tree/main/doc
+-- docs: https://github.com/dont-be-evil-company/kulala.nvim/tree/main/doc
 return {
     {
-        "mistweaverco/kulala.nvim",
+        "dont-be-evil-company/kulala.nvim",
         -- tag = "v6.14.0",
         ft = { "http", "rest" },
         -- ft = { "http", "rest", "javascript", "lua" },
