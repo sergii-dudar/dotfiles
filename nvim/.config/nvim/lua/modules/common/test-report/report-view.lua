@@ -19,16 +19,24 @@ local log = require("utils.logging-util").new({
 local M = {}
 
 ---@class report_view.Config
----@field width integer          Fixed width of the tree split (columns).
+---@field width integer          Initial width of the tree split (columns). A manual resize is kept for the session.
 ---@field collapse_passed boolean Start containers whose tests all passed collapsed (failed ones stay open).
 local config = {
     width = 65,
     collapse_passed = false,
 }
 
+-- Width the tree is kept at for this session: `config.width` until the user resizes
+-- the split (`<C-w><`, `:vertical resize`, mouse drag), then the chosen width. It
+-- survives close/reopen and is reset by `M.setup({ width = N })`.
+local session_width = nil ---@type integer|nil
+
 ---@param opts? report_view.Config
 function M.setup(opts)
     config = vim.tbl_extend("force", config, opts or {})
+    if opts and opts.width then
+        session_width = nil
+    end
 end
 
 -- Nerd-font glyphs by codepoint (avoids invisible/mangled literals in source).
@@ -128,9 +136,11 @@ local ns = vim.api.nvim_create_namespace("test_report_view")
 ---@field container_node? report_view.ContainerNode
 ---@field group_node? report_view.GroupNode
 
--- Fixed width of the tree split. Re-asserted when other windows close (e.g.
--- nvim-dap-ui panels) so the tree doesn't grow as freed columns redistribute.
+-- Keeps the tree at `session_width` across layout changes (see `M.open`).
 local fix_width_group = vim.api.nvim_create_augroup("TestReportViewFixWidth", { clear = true })
+-- True between a layout event (window opened/closed, terminal resized) and the
+-- scheduled snap-back; a `WinResized` seen meanwhile is not a manual resize.
+local layout_change_pending = false
 
 -- View state (singleton — only one tree view at a time)
 local state = {
@@ -142,6 +152,7 @@ local state = {
     snapshot = nil, ---@type test_report.Snapshot|nil
     running = nil, ---@type table<string, boolean>|nil
     adapter = nil, ---@type test_report.LangAdapter|nil
+    rendered_width = nil, ---@type integer|nil Window width the current lines were aligned to
 }
 
 --- failed if anything failed, passed if anything passed, skipped only when
@@ -471,10 +482,11 @@ local function render()
         return {}, {}, {}
     end
 
-    local width = config.width
+    local width = session_width or config.width
     if state.winid and vim.api.nvim_win_is_valid(state.winid) then
         width = vim.api.nvim_win_get_width(state.winid)
     end
+    state.rendered_width = width
     local align_width = width - 1
 
     local lines = {}
@@ -522,7 +534,6 @@ local function render()
     local header_text, header_hls = format_line(header_parts)
     header_text, header_hls = append_right(header_text, header_hls, fmt_time(total_time), align_width, hl.time)
     add_line(header_text, { type = "header" }, header_hls)
-    add_line("", { type = "blank" })
 
     if total == 0 then
         add_line(INITIAL_INDENT .. "No test results", { type = "blank" }, { { 0, #INITIAL_INDENT + 15, hl.dim } })
@@ -1063,7 +1074,8 @@ function M.open(snapshot)
     vim.cmd("botright vsplit")
     state.winid = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.winid, state.bufnr)
-    vim.api.nvim_win_set_width(state.winid, config.width)
+    session_width = session_width or config.width
+    vim.api.nvim_win_set_width(state.winid, session_width)
 
     vim.wo[state.winid].number = false
     vim.wo[state.winid].relativenumber = false
@@ -1076,26 +1088,68 @@ function M.open(snapshot)
     vim.wo[state.winid].winfixwidth = true
     vim.wo[state.winid].fillchars = "eob: " -- no `~` below the tree
 
-    -- Keep the tree at a fixed width even when other splits open/close. When a
-    -- vertical split (e.g. a nvim-dap-ui panel) closes, Neovim redistributes the
-    -- freed columns and the tree can grow despite `winfixwidth`; snap it back.
-    -- (This also undoes a manual resize of the tree; use `M.setup({ width = N })`.)
+    -- Width handling. `winfixwidth` keeps the tree width when other splits open or
+    -- close, but Neovim still hands the tree the freed columns when a neighbour
+    -- closes and nothing else can take them (e.g. a nvim-dap-ui panel to its right),
+    -- and may shrink it when a split opens without room or the terminal shrinks.
+    -- Those layout changes are snapped back to `session_width`. Any other width
+    -- change is a manual resize (`<C-w><`, `:vertical resize`, mouse drag): it is
+    -- adopted as the new `session_width` and the tree is re-rendered so the
+    -- right-aligned durations follow the new edge.
     vim.api.nvim_clear_autocmds({ group = fix_width_group })
-    vim.api.nvim_create_autocmd({ "WinClosed", "WinResized" }, {
+    layout_change_pending = false
+    vim.api.nvim_create_autocmd({ "WinClosed", "WinNew", "VimResized" }, {
         group = fix_width_group,
-        callback = function()
+        callback = function(args)
             if not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
                 return
             end
+            if args.event == "WinClosed" and tonumber(args.match) == state.winid then
+                return
+            end
+            layout_change_pending = true
             vim.schedule(function()
-                if
-                    state.winid
-                    and vim.api.nvim_win_is_valid(state.winid)
-                    and vim.api.nvim_win_get_width(state.winid) ~= config.width
-                then
-                    pcall(vim.api.nvim_win_set_width, state.winid, config.width)
+                layout_change_pending = false
+                if not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
+                    return
+                end
+                local width = vim.api.nvim_win_get_width(state.winid)
+                if width ~= session_width then
+                    pcall(vim.api.nvim_win_set_width, state.winid, session_width)
+                    log.debug(
+                        ("tree view width %d -> %d after %s"):format(
+                            width,
+                            vim.api.nvim_win_get_width(state.winid),
+                            args.event
+                        )
+                    )
+                end
+                -- No room to snap back (or the layout re-flowed anyway): re-render
+                -- so the alignment matches the width the tree really has.
+                if vim.api.nvim_win_get_width(state.winid) ~= state.rendered_width then
+                    refresh()
                 end
             end)
+        end,
+    })
+    vim.api.nvim_create_autocmd("WinResized", {
+        group = fix_width_group,
+        callback = function()
+            if layout_change_pending or not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
+                return
+            end
+            local resized = (vim.v.event or {}).windows or {}
+            if not vim.tbl_contains(resized, state.winid) then
+                return
+            end
+            local width = vim.api.nvim_win_get_width(state.winid)
+            if width ~= session_width then
+                session_width = width
+                log.debug("tree view resized to " .. width .. " columns")
+            end
+            if width ~= state.rendered_width then
+                refresh()
+            end
         end,
     })
 

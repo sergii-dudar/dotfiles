@@ -150,7 +150,6 @@ already shown toggles the split closed.
 
 ```
  JUnit   42   40   2   0                              12.34s
- 
  ├╮  com.example.service
  │├╮  UserServiceTest                                    2.10s
  ││├─  testCreate                                       500ms
@@ -176,15 +175,19 @@ already shown toggles the split closed.
 
 ### Config
 
-`report_view.setup({ width = 65, collapse_passed = false })`. `width` is the fixed split
-width (re-asserted on `WinClosed`/`WinResized` so dap-ui panels can't grow it; this also
-undoes a manual resize — change `width` instead). `collapse_passed = true` starts containers
-without failures collapsed.
+`report_view.setup({ width = 65, collapse_passed = false })`. `width` is the initial split
+width. The split has `winfixwidth`; a manual resize (`<C-w><`, `:vertical resize`, mouse
+drag) is adopted as the session width (`session_width`, kept across close/reopen, reset by
+`setup({ width })`) and the tree is re-rendered so the right-aligned durations follow the
+new edge. Only layout events (`WinClosed`/`WinNew`/`VimResized`) snap the width back —
+e.g. when a dap-ui panel to the right closes and the tree absorbs its columns — using a
+`layout_change_pending` flag so the `WinResized` they cause is not mistaken for a manual
+resize. `collapse_passed = true` starts containers without failures collapsed.
 
 ### State (singleton)
 
 ```lua
-state = { bufnr, winid, prev_winid, tree, line_map, snapshot, running, adapter }
+state = { bufnr, winid, prev_winid, tree, line_map, snapshot, running, adapter, rendered_width }
 ```
 
 `open()` deep-copies `results` and `container_files`; `refresh_if_open()` merges the core's
