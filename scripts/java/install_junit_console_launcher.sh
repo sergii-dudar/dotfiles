@@ -11,7 +11,7 @@ fi
 mkdir -p "$install_dir" && cd "$install_dir"
 
 # Define the major.minor version to track
-major_minor="6.0"
+major_minor="6.1"
 
 # Fetch all versions and find the latest patch version for the specified major.minor
 # latest_version=$(curl -s "https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/maven-metadata.xml" | grep '<latest>' | sed 's/.*<latest>\(.*\)<\/latest>.*/\1/')

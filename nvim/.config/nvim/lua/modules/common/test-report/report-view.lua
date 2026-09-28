@@ -424,21 +424,8 @@ end
 
 ---@param t number|nil seconds
 ---@return string
---- `1.23s` from 1s up, else whole milliseconds. Reporters round to milliseconds, so a
---- recorded 0 means "faster than 1ms", shown as `<1ms`; only a missing time renders nothing.
-local function fmt_time(t)
-    if type(t) ~= "number" or t < 0 then
-        return ""
-    end
-    local ms = math.floor(t * 1000 + 0.5)
-    if ms >= 1000 then
-        return string.format("%.2fs", t)
-    end
-    if ms == 0 then
-        return "<1ms"
-    end
-    return string.format("%dms", ms)
-end
+-- Duration formatting shared with the core's notifications (see format.lua).
+local fmt_time = require("modules.common.test-report.format").time
 
 --- Append `suffix` right-aligned to `width` (display cells). Never truncates: when the text
 --- is already too wide, the suffix simply follows after one space.

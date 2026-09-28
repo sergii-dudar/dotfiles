@@ -30,6 +30,7 @@ task completes. **Keymaps** (`lua/plugins/overseer/init.lua`, routed through
 lua/modules/common/test-report/
 ├── init.lua          — Core: process/clear/cancel, signs + diagnostics, output split, snapshot
 ├── report-view.lua   — Tree view (neotest-style layout), keymaps, running marks
+├── format.lua        — Shared duration formatter (`time(seconds)`) for notifications + view
 ├── registry.lua      — filetype -> LangAdapter registry
 └── types.lua         — Shared ---@class annotations (LangAdapter, TestResult, Snapshot, ...)
 

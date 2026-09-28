@@ -275,7 +275,7 @@ local function build_multi_module_cmd(modules)
         return { cmd = { "echo", "No modules with test-classes found" } }
     end
 
-    local isParallelRun = false -- just for testing for now
+    local isParallelRun = true -- just for testing for now
     local chained = "r=0"
     if isParallelRun then
         -- Run modules in parallel, collect exit codes

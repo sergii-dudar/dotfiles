@@ -297,17 +297,28 @@ function M.process(report_dir, filetype)
                 vim.cmd("Trouble " .. adapter.trouble_source .. " open")
             end
 
+            -- Time is the sum of the reported per-test times of this run (same figure as the
+            -- tree view header), not the wall-clock of the task (JVM/context startup excluded).
             local total = vim.tbl_count(results)
             local failed = 0
+            local total_time = 0
             for _, r in pairs(results) do
                 if r.status == "failed" then
                     failed = failed + 1
                 end
+                total_time = total_time + (r.time or 0)
             end
+            local time_str = require("modules.common.test-report.format").time(total_time)
+            local suffix = time_str ~= "" and (" in " .. time_str) or ""
+            local stop_opts = suffix ~= "" and vim.tbl_extend("force", sp_stop, { dim_tail = suffix }) or sp_stop
             if failed > 0 then
-                spinner.stop(false, "Tests Finished with failed " .. failed .. "/" .. total .. " tests", sp_stop)
+                spinner.stop(
+                    false,
+                    "Tests Finished with failed " .. failed .. "/" .. total .. " tests" .. suffix,
+                    stop_opts
+                )
             else
-                spinner.stop(true, total .. " Tests Passed", sp_stop)
+                spinner.stop(true, total .. " Tests Passed" .. suffix, stop_opts)
             end
             spinner_resolved = true
 
