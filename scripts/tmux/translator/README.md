@@ -100,6 +100,22 @@ the tmux popup as a blank result with no clue why. Non-200 responses and non-JSO
 line to stderr first — most usefully `HTTP 429`, which is Google throttling the free endpoint per IP
 and is by far the most common real failure.
 
+### `--max=N` caps the extra suggestions
+
+Upstream prints every suggestion Google returns. For a common word that is a wall of text —
+`run` answers with an 8-item `[n]` line and a 19-item `[v]` line, which pushes the actual
+translation off the top of a small popup.
+
+`--max=N` (default `-1`, i.e. upstream's everything; `0` for the translation alone) caps
+both lists, in `main()` at print time so `-json` output stays complete:
+
+- the `;`-separated senses *within* each `[n]` / `[v]` line — capped per line rather than by
+  dropping lines, since the parts of speech are categories, not competing options
+- the number of ` * alternative` lines
+
+`translate.sh` passes it from the `@translate-max-options` tmux option. Explain lines that
+are not `;`-joined (bing, ciba) are left alone.
+
 Line endings were also normalised CRLF -> LF, per `.editorconfig`.
 
 To diff against upstream (`tr -d '\r'` accounts for that normalisation):

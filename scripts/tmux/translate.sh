@@ -22,7 +22,7 @@ set -u
 # foot/alacritty spawn us with the GUI session's PATH, which on macOS omits
 # Homebrew -- so tmux and python3 would not be found. Cheap to add, no-op if absent.
 for d in /opt/homebrew/bin /usr/local/bin; do
-    [ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$d:$PATH" ;; esac
+[ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$d:$PATH" ;; esac
 done
 export PATH
 
@@ -46,6 +46,9 @@ LANG_TO="$(tmux_opt '@translate-to' 'uk')"
 ENGINE="$(tmux_opt '@translate-engine' 'google')"
 WIDTH="$(tmux_opt '@translate-width' '70%')"
 HEIGHT="$(tmux_opt '@translate-height' '60%')"
+# How many extra suggestions to print under the translation: the senses on each
+# [n]/[v] line and the ' * ' alternatives. -1 is all of them, 0 is none.
+MAX_OPTIONS="$(tmux_opt '@translate-max-options' '2')"
 
 die() { printf '%s\n' "$*" >&2; exit 1; }
 
@@ -67,7 +70,7 @@ translate() {
     fi
 
     multi=0
-    case "$ENGINE" in *'|'*) multi=1 ;; esac
+case "$ENGINE" in *'|'*) multi=1 ;; esac
 
     local old_ifs="$IFS"
     IFS='|'
@@ -79,7 +82,8 @@ translate() {
         [ "$multi" -eq 1 ] && printf -- '--- %s ---\n' "$engine"
         # Pass the selection as a single argv element: no xargs, so quotes,
         # apostrophes and newlines survive intact.
-        out="$("$PY" "$TRANSLATOR" --engine="$engine" --from="$from" --to="$to" "$text" 2>&1)"
+        out="$("$PY" "$TRANSLATOR" --engine="$engine" --from="$from" --to="$to" \
+            --max="$MAX_OPTIONS" "$text" 2>&1)"
         # The vendored engine speaks stdlib urllib on both platforms, so this
         # can only fire for a custom $TRANSLATE_ENGINE or an explicit
         # TRANSLATE_HTTP=requests. Note that on macOS neither `pip3 install
@@ -165,7 +169,7 @@ repl() {
         read_line || break
         [ -n "${LINE//[[:space:]]/}" ] || break
         # a lone q quits; to translate the letter itself, type it with anything else
-        case "$LINE" in q | Q) break ;; esac
+    case "$LINE" in q | Q) break ;; esac
         printf '\n'
         translate "$LINE"
         printf '\n'

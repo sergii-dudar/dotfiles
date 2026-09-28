@@ -60,6 +60,12 @@ limited, the POST form is not. If you ever do see `HTTP 429`, it clears on its o
 Direction is auto-detected: Cyrillic input is translated to `@translate-from`, anything else to
 `@translate-to`. Works outside tmux too: `./scripts/tmux/translate.sh --print "some text"`.
 
+`@translate-max-options` (default `5`) caps how many extra suggestions appear under the
+translation — the senses on each `[n]` / `[v]` line and the ` * alternative` lines. `-1` prints
+everything the engine returns, which for a word like `run` is a 19-item verb line; `0` leaves just
+the translation. It is read per invocation, so `tmux set -g @translate-max-options 0` takes effect
+on the next popup without a reload.
+
 **Adding another terminal** is one config line in that terminal's own package — no script change.
 Pick `pipe` if it can pipe the selection to a command (kitty `launch --stdin-source=@selection`,
 wezterm `get_selection_text_for_pane`), otherwise `clipboard`. Terminal bindings run *outside* tmux,

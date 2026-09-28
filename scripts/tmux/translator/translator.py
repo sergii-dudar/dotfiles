@@ -818,6 +818,43 @@ class CibaTranslator (BasicTranslator):
 
 
 #----------------------------------------------------------------------
+# LOCAL PATCH: cap how many extra suggestions get printed (--max=N). "run"
+# otherwise answers with a 19-item [v] line, which buries the actual
+# translation in a tmux popup. A negative limit keeps upstream's behaviour of
+# printing everything; 0 drops the extras entirely.
+#
+# The per-sense lines are capped *within* each part-of-speech line rather than
+# by dropping lines: [n] and [v] are categories, not competing options, so you
+# want both -- just fewer senses under each.
+#----------------------------------------------------------------------
+def limit_explain (explain, limit):
+    if limit < 0 or not explain:
+        return explain
+    result = []
+    for line in explain:
+        head, body = '', line
+        m = re.match(r'^(\[[^\]]*\]\s*)(.*)$', line)
+        if m:
+            head, body = m.group(1), m.group(2)
+        parts = [ n for n in body.split(';') if n.strip() ]
+        if len(parts) < 2:
+            # engines whose explain lines are not ';'-joined (bing, ciba)
+            result.append(line)
+            continue
+        parts = parts[:limit]
+        if not parts:
+            continue
+        result.append(head + ';'.join(parts) + ';')
+    return result
+
+
+def limit_items (items, limit):
+    if limit < 0 or not items:
+        return items
+    return items[:limit]
+
+
+#----------------------------------------------------------------------
 # 分析命令行参数
 #----------------------------------------------------------------------
 def getopt (argv):
@@ -875,9 +912,14 @@ def main(argv = None):
     tl = options.get('to')
     if not tl:
         tl = 'auto'
+    # LOCAL PATCH: --max=N caps the extra suggestions, see limit_explain().
+    try:
+        limit = int(options.get('max', -1))
+    except (TypeError, ValueError):
+        limit = -1
     if not args:
         msg = 'usage: translator.py {--engine=xx} {--from=xx} {--to=xx}'
-        print(msg + ' {-json} text')
+        print(msg + ' {--max=N} {-json} text')
         print('engines:', list(ENGINES.keys()))
         return 0
     text = ' '.join(args)
@@ -903,14 +945,16 @@ def main(argv = None):
         if res['definition']:
             print(res['definition'])
     if 'explain' in res:
-        if res['explain']:
-            print('\n'.join(res['explain']))
+        explain = limit_explain(res['explain'], limit)   # LOCAL PATCH
+        if explain:
+            print('\n'.join(explain))
     elif 'translation' in res:
         if res['translation']:
             print(res['translation'])
     if 'alternative' in res:
-        if res['alternative']:
-            print('\n'.join(res['alternative']))
+        alternative = limit_items(res['alternative'], limit)   # LOCAL PATCH
+        if alternative:
+            print('\n'.join(alternative))
     return 0
 
 
