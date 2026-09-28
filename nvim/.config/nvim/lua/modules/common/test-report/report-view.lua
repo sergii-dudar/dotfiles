@@ -424,16 +424,18 @@ end
 
 ---@param t number|nil seconds
 ---@return string
+--- `1.23s` from 1s up, else whole milliseconds. Reporters round to milliseconds, so a
+--- recorded 0 means "faster than 1ms", shown as `<1ms`; only a missing time renders nothing.
 local function fmt_time(t)
-    if type(t) ~= "number" or t <= 0 then
+    if type(t) ~= "number" or t < 0 then
         return ""
-    end
-    if t >= 1 then
-        return string.format("%.2fs", t)
     end
     local ms = math.floor(t * 1000 + 0.5)
+    if ms >= 1000 then
+        return string.format("%.2fs", t)
+    end
     if ms == 0 then
-        return ""
+        return "<1ms"
     end
     return string.format("%dms", ms)
 end
@@ -532,7 +534,8 @@ local function render()
         table.insert(header_parts, { "  " .. icon.running .. " " .. running, hl.running })
     end
     local header_text, header_hls = format_line(header_parts)
-    header_text, header_hls = append_right(header_text, header_hls, fmt_time(total_time), align_width, hl.time)
+    header_text, header_hls =
+        append_right(header_text, header_hls, fmt_time(total > 0 and total_time or nil), align_width, hl.time)
     add_line(header_text, { type = "header" }, header_hls)
 
     if total == 0 then

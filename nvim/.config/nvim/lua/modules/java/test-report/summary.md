@@ -167,7 +167,8 @@ already shown toggles the split closed.
 - Status icon in a fixed column right after the connector; names: group `TestReportGroup`
   (→ Directory), container `TestReportContainer` (→ Type), failed member
   `TestReportMemberFailed` (→ DiagnosticError). Durations right-aligned in
-  `TestReportTime` (→ Comment); `≥1s` as `1.23s`, else `NNNms`, none for 0.
+  `TestReportTime` (→ Comment); `≥1s` as `1.23s`, else `NNNms`; a recorded 0 (reporters
+  round to ms) shows `<1ms`, only a missing time shows nothing.
 - All highlight groups are `TestReport*` **default links** (re-applied on `ColorScheme`), so a
   colorscheme/user can override them and nothing depends on scheme-specific groups.
 - Icons are built with `vim.fn.nr2char(<codepoint>)`: passed `U+EAB2`, failed `U+EAB8`,
