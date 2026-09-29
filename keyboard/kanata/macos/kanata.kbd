@@ -155,6 +155,9 @@
   ;; - panels | popups
   tmuxptb (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
   tmuxptp (macro C-f $tmux-delay p) ;; tmux toggle popup
+  ;; unshift: prefix have to go without held shift (C-S-f is not tmux prefix)
+  tmuxptm (macro (unshift lctl f) $tmux-delay S-o) ;; tmux toggle bottom panel maximized
+  tmuxpb (fork @tmuxptb @tmuxptm (lsft rsft)) ;; o - toggle bottom panel, shift+o - maximized
   ;; tmuxp (tap-hold $tap-time $hold-time @tmuxptb @tmuxptp)
   ;; tmuxp (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
 )
@@ -229,9 +232,9 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    XX    XX    XX @tmuxsvi @tmuxsts @tmuxptb @tmuxptp @tmuxslt2 @tmuxsnt2 XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    XX    XX    XX @tmuxsvi @tmuxsts @tmuxpb  @tmuxptp @tmuxslt2 @tmuxsnt2 XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
-   XX    XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                XX          XX           ;;Z
+   lsft  XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                rsft        XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD
 )
 
