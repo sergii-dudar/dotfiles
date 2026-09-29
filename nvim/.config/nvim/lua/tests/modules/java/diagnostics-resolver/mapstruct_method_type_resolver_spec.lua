@@ -178,17 +178,41 @@ describe("modules.java.diagnostics-resolver.mapstruct-method-type-resolver", fun
         assert.are.equal("$target", path_requests[#path_requests].sources[1].name)
     end)
 
-    it("rejects map key and value paths before asking the backend", function()
+    it("asks the backend for map key and value types", function()
+        -- given
+        target_result = { className = "java.time.Duration", simpleName = "Duration", packageName = "java.time" }
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Duration",
+            source_property = "timings{:value}",
+            target_type = "Duration",
+            target_property = "timings{:value}",
+            element_kind = "Map value",
+        }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(resolution_error)
+        assert.are.equal("java.time.Duration", result.source.className)
+        assert.are.equal("timings.{:value}.", path_requests[1].path_expression)
+        assert.are.equal("timings.{:value}.", path_requests[#path_requests].path_expression)
+        assert.are.equal("$target", path_requests[#path_requests].sources[1].name)
+    end)
+
+    it("rejects a map path without a key or value marker before asking the backend", function()
         -- given
         local result, resolution_error = nil, nil
 
         -- when
         resolver.resolve({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
             source_type = "Word",
-            source_property = "wordMap{:key}",
+            source_property = "wordMap{}",
             target_type = "WordDto",
-            target_property = "wordMap{:key}",
-            element_kind = "Map key",
+            target_property = "wordMap{}",
         }, function(value, err)
             result = value
             resolution_error = err
@@ -196,7 +220,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-method-type-resolver", fun
 
         -- then
         assert.is_nil(result)
-        assert.matches("not supported yet", resolution_error, nil, true)
+        assert.matches("Unsupported MapStruct path", resolution_error, nil, true)
         assert.are.equal(0, #path_requests)
     end)
 end)

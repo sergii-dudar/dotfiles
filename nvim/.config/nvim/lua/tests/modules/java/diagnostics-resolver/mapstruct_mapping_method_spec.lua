@@ -370,22 +370,25 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         assert.are.equal("$target", path_requests[2].sources[1].name)
     end)
 
-    it("explains an unsupported map path instead of editing the mapper", function()
+    it("resolves the types of a path through a map value", function()
         -- given
         state.buffer_lines[1] = {
             "package example;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
             "",
             "public interface FooMapper {",
             "    Target map(Source source);",
             "}",
         }
-        stub_java_tree("interface_declaration", 3, 4)
+        stub_java_tree("interface_declaration", 6, 7)
 
         -- when
-        resolver.resolve({
+        local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 3,
+                lnum = 6,
                 col = 20,
                 message = 'Can\'t map property "Duration box.byName{:value}.age" to "long box.byName{:value}.age". '
                     .. 'Consider to declare/implement a mapping method: "long map(Duration value)".',
@@ -393,15 +396,11 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         })
 
         -- then
-        assert.are.same({
-            "package example;",
-            "",
-            "public interface FooMapper {",
-            "    Target map(Source source);",
-            "}",
-        }, state.buffer_lines[1])
-        assert.are.equal(0, #path_requests)
-        assert.matches("not supported yet", state.notifications[1].message, nil, true)
+        assert.is_true(resolved)
+        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][11])
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("box.byName.{:value}.age.", path_requests[1].path_expression)
+        assert.are.equal("box.byName.{:value}.age.", path_requests[2].path_expression)
     end)
 
     it("ignores a commented-out signature when checking for an existing method", function()

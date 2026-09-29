@@ -160,7 +160,8 @@ function M.method_name_for(type_name)
 end
 
 --- Translate a MapStruct path into the path syntax understood by the MapStruct backend.
---- Collection markers become the backend's synthetic `first` element accessor.
+--- Collection markers become the backend's synthetic `first` element accessor; map key
+--- and value markers become segments of their own (`words{:value}` -> `words.{:value}`).
 ---@param path string
 ---@param kind? string element kind printed by MapStruct
 ---@return string|nil backend_path
@@ -169,20 +170,29 @@ function M.backend_path(path, kind)
     if type(path) ~= "string" or path == "" then
         return nil, "MapStruct diagnostic has no property path"
     end
-    if MAP_ELEMENT_KINDS[kind] or path:find("{", 1, true) then
-        return nil, "Map key/value mappings are not supported yet: " .. path
+
+    local result = path:gsub("%[%]", ".first"):gsub("{:(%a+)}", ".{:%1}")
+    -- `{}` names a map as a whole: there is no single type behind it.
+    if result:find("{}", 1, true) then
+        return nil, "Unsupported MapStruct path: " .. path
     end
 
-    local result = path:gsub("%[%]", ".first")
     if COLLECTION_ELEMENT_KINDS[kind] then
         result = result:gsub("%.$", "") .. ".first"
+    elseif MAP_ELEMENT_KINDS[kind] then
+        -- MapStruct already ends the path with the marker; add it only when it is missing.
+        local marker = kind == "Map key" and "{:key}" or "{:value}"
+        if result:sub(-#marker) ~= marker then
+            result = result:gsub("%.$", "") .. "." .. marker
+        end
     end
     return result, nil
 end
 
---- Explain a backend result that lost the element type of a collection.
---- The backend resolves element types of `List` and array properties only; the
---- elements of any other collection come back as `java.lang.Object`.
+--- Explain a backend result that lost the element type of a collection or map.
+--- The element type comes from the generic type of the declaring field, so a raw
+--- collection yields `java.lang.Object`, and so does a backend older than the one
+--- that resolves sets, streams, and maps.
 ---@param resolved { className?: string }|nil backend result for the path
 ---@param backend_path string path that was resolved
 ---@return string|nil explanation nil when the result is not a lost element type
@@ -190,15 +200,32 @@ function M.unresolved_element(resolved, backend_path)
     if type(resolved) ~= "table" or resolved.className ~= "java.lang.Object" then
         return nil
     end
-    if type(backend_path) ~= "string" or not backend_path:match("%.first%.?$") then
+    if type(backend_path) ~= "string" then
         return nil
     end
 
-    local collection = backend_path:gsub("%.first%.?$", "")
+    local container = backend_path:match("^(.-)%.first%.?$") or backend_path:match("^(.-)%.{:%a+}%.?$")
+    if not container then
+        return nil
+    end
     return string.format(
-        "MapStruct backend could not determine the element type of '%s' (only List and array elements are resolved)",
-        collection
+        "MapStruct backend could not determine the element type of '%s' "
+            .. "(raw collection or map, or an outdated mapstruct-path-explorer.jar)",
+        container
     )
+end
+
+--- Add a hint to a backend error for a path that needs map key/value navigation.
+--- A backend without that navigation reports such a path as unresolved.
+---@param backend_path string path that was resolved
+---@param err string|nil backend error
+---@return string|nil
+function M.explain_unresolved(backend_path, err)
+    if type(backend_path) == "string" and backend_path:find("{:", 1, true) then
+        return (err or "MapStruct did not resolve a type for path: " .. backend_path)
+            .. " (map key/value paths need an up-to-date mapstruct-path-explorer.jar)"
+    end
+    return err
 end
 
 return M

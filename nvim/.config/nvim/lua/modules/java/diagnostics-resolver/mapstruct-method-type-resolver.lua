@@ -62,7 +62,7 @@ local function resolve_property_type(source, property, expected_type, role, call
         path_expression = property_path,
     }, function(result, err)
         if not result then
-            callback(nil, err)
+            callback(nil, mapstruct_reference.explain_unresolved(property_path, err))
             return
         end
         if not java_import_resolver.matches(result, expression.raw_type) then

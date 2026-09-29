@@ -301,33 +301,62 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         )
     end)
 
-    it("explains an unsupported map mapping instead of editing the mapper", function()
+    it("parses a forged map value mapping", function()
         -- given
-        local lines = {
+        local message = 'Unmapped target property: "pronunciation". Mapping from Map value '
+            .. '"Word words{:value}" to "WordDto words{:value}".'
+
+        -- when
+        local mapping = resolver.parse_mapping(message)
+
+        -- then
+        assert.are.same({
+            unmapped_property = "pronunciation",
+            source_type = "Word",
+            source_property = "words{:value}",
+            target_type = "WordDto",
+            target_property = "words{:value}",
+            method_name = "toWordDto",
+            signature = "WordDto toWordDto(Word word)",
+            element_kind = "Map value",
+        }, mapping)
+    end)
+
+    it("generates the mapping method for a forged map value", function()
+        -- given
+        state.buffer_lines[1] = {
             "package example.mapper;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
             "",
             "public interface ChargeCalculationAdapterMapper {",
             "    Target toRequest(Source request);",
             "}",
         }
-        state.buffer_lines[1] = vim.deepcopy(lines)
-        stub_java_tree("interface_declaration", 3, 4)
+        stub_java_tree("interface_declaration", 6, 7)
 
         -- when
         local resolved = resolver.resolve({
             bufnr = 1,
             diagnostic = {
-                lnum = 3,
+                lnum = 6,
                 col = 25,
-                message = 'Unmapped target property: "pronunciation". Mapping from Map value '
-                    .. '"Model.Word wordMap{:value}" to "Model.WordDto wordMap{:value}".',
+                message = 'Unmapped target property: "identification". Mapping from Map value '
+                    .. '"ChargeCalculationRequest.ChargeAccount accounts{:value}" to "Account accounts{:value}".',
             },
         })
 
         -- then
         assert.is_true(resolved)
-        assert.are.same(lines, state.buffer_lines[1])
-        assert.are.equal(0, #path_requests)
-        assert.matches("not supported yet", state.notifications[1].message, nil, true)
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("accounts.{:value}.", path_requests[1].path_expression)
+        assert.are.equal("request", path_requests[1].sources[1].name)
+        assert.are.equal("accounts.{:value}.", path_requests[2].path_expression)
+        assert.are.equal("$target", path_requests[2].sources[1].name)
+        assert.are.equal(
+            "    Account toAccount(ChargeCalculationRequest.ChargeAccount chargeAccount);",
+            state.buffer_lines[1][11]
+        )
     end)
 end)

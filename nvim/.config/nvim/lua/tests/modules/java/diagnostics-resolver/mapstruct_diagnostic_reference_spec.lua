@@ -114,23 +114,49 @@ describe("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference", fun
         -- then
         assert.are.equal(
             "MapStruct backend could not determine the element type of 'car.spare' "
-                .. "(only List and array elements are resolved)",
+                .. "(raw collection or map, or an outdated mapstruct-path-explorer.jar)",
             reference.unresolved_element(object, "car.spare.first.")
+        )
+        assert.are.equal(
+            "MapStruct backend could not determine the element type of 'words' "
+                .. "(raw collection or map, or an outdated mapstruct-path-explorer.jar)",
+            reference.unresolved_element(object, "words.{:value}.")
         )
         assert.is_nil(reference.unresolved_element(object, "car.payload."))
         assert.is_nil(reference.unresolved_element({ className = "fx.Wheel" }, "car.wheels.first."))
         assert.is_nil(reference.unresolved_element(nil, "car.wheels.first."))
     end)
 
-    it("reports map key and value paths as unsupported", function()
+    it("turns map key and value markers into segments of their own", function()
+        -- then
+        assert.are.equal("wordMap.{:key}", (reference.backend_path("wordMap{:key}", "Map key")))
+        assert.are.equal("words.{:value}", (reference.backend_path("words{:value}", "Map value")))
+        assert.are.equal("box.byName.{:value}.age", (reference.backend_path("box.byName{:value}.age")))
+        assert.are.equal("box.parts.first.tags.{:key}", (reference.backend_path("box.parts[].tags{:key}", "Map key")))
+    end)
+
+    it("adds the map marker when the diagnostic path lacks it", function()
+        -- then
+        assert.are.equal("words.{:key}", (reference.backend_path("words", "Map key")))
+        assert.are.equal("words.{:value}", (reference.backend_path("words.", "Map value")))
+    end)
+
+    it("reports a map without a key or value marker as unsupported", function()
         -- when
-        local by_kind, kind_error = reference.backend_path("wordMap{:key}", "Map key")
-        local by_path, path_error = reference.backend_path("box.byName{:value}.age")
+        local path, path_error = reference.backend_path("box.byName{}.age")
 
         -- then
-        assert.is_nil(by_kind)
-        assert.matches("not supported yet", kind_error, nil, true)
-        assert.is_nil(by_path)
-        assert.matches("not supported yet", path_error, nil, true)
+        assert.is_nil(path)
+        assert.matches("Unsupported MapStruct path", path_error, nil, true)
+    end)
+
+    it("hints at an outdated backend for an unresolved map path", function()
+        -- then
+        assert.are.equal(
+            "no type (map key/value paths need an up-to-date mapstruct-path-explorer.jar)",
+            reference.explain_unresolved("words.{:value}.", "no type")
+        )
+        assert.are.equal("no type", reference.explain_unresolved("words.first.", "no type"))
+        assert.is_nil(reference.explain_unresolved("words.first.", nil))
     end)
 end)
