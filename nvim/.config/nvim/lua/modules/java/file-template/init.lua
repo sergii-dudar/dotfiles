@@ -22,6 +22,10 @@ M.snippet_filetypes = { "java-template", "java" }
 --- Maven/Gradle source layout: `<module>/src/<source-set>/java/<package>/<File>.java`.
 local SOURCE_ROOT_PATTERN = "/src/([^/]+)/java/"
 
+--- `.java` files that never declare a type named after the file, so any class
+--- template would expand to invalid code (`public class package-info {`).
+local NON_TYPE_FILES = { ["package-info"] = true, ["module-info"] = true }
+
 --- Resolve the dotted package and source set of a Java file from its path.
 --- Uses the last `src/<set>/java/` occurrence so nested module paths that
 --- themselves contain `src` still resolve correctly.
@@ -67,10 +71,12 @@ end
 
 --- Only act on files inside a real Java source root, which keeps templates out
 --- of stray `.java` files opened from decompiled sources, scratch dirs, etc.
+--- `package-info.java` / `module-info.java` are skipped too: they hold no type,
+--- so every rule (the catch-all included) would produce invalid code.
 ---@param ctx file_template.Context
 ---@return boolean
 function M.enabled(ctx)
-    return ctx.package ~= nil
+    return ctx.package ~= nil and not NON_TYPE_FILES[ctx.basename]
 end
 
 ---@return file_template.Rule[]

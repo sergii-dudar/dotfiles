@@ -59,17 +59,9 @@ return {
     { snippet = "controller", filename = { "*Controller", "*Resource", "*Endpoint" }, desc = "Spring @RestController" },
     { snippet = "mapper", filename = { "*Mapper" }, desc = "MapStruct @Mapper" },
     { snippet = "repository", filename = { "*Repository", "*Dao" }, desc = "Spring Data repository" },
-    {
-        snippet = "properties",
-        filename = {
-
-            "*.property",
-            "*.properties",
-            "*.prop",
-            "*.props",
-        },
-        desc = "Spring @ConfigurationProperties record",
-    },
+    -- `filename` is the class name, which never contains a dot: package style globs
+    -- (`*.properties`) belong in the package driven rule below.
+    { snippet = "properties", filename = { "*Properties", "*Props" }, desc = "Spring @ConfigurationProperties record" },
     { snippet = "component", filename = { "*Config", "*Configuration" }, choice = 2, desc = "Spring @Configuration" },
     { snippet = "component", filename = { "*Service", "*ServiceImpl" }, choice = 3, desc = "Spring @Service" },
     { snippet = "usecase", filename = { "*UseCase", "*Usecase", "*Interactor" }, desc = "Use case component" },
@@ -113,7 +105,11 @@ return {
         packages = { "*.repository", "*.repositories", "*.dao" },
         desc = "Spring Data repository",
     },
-    { snippet = "properties", packages = { "*.properties" }, desc = "Spring @ConfigurationProperties record" },
+    {
+        snippet = "properties",
+        packages = { "*.property", "*.properties", "*.prop", "*.props" },
+        desc = "Spring @ConfigurationProperties record",
+    },
     {
         snippet = "component",
         packages = { "*.config", "*.configs", "*.configuration", "*.configurations" },

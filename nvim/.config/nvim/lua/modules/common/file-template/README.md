@@ -19,7 +19,8 @@ of the following hold:
 - the buffer is empty
 - the file is missing or zero bytes on disk
 - the adapter's `enabled(ctx)` guard passes (Java: file lives in a real
-  `src/<set>/java/` source root)
+  `src/<set>/java/` source root and is not `package-info.java` /
+  `module-info.java`)
 - a rule matches
 
 Re-opening an already filled file never re-applies, because the file is no longer
