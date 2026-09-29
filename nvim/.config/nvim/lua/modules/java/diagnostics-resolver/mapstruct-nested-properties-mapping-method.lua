@@ -15,7 +15,7 @@ local M = {}
 ---@param message string
 ---@return string[]
 local function parse_properties(message)
-    local raw = message:match('^Unmapped target properties:%s*"([^"]+)"%.%s+Mapping from property')
+    local raw = message:match('^Unmapped target properties:%s*"([^"]+)"%.%s+Mapping from ')
     if not raw then
         return {}
     end

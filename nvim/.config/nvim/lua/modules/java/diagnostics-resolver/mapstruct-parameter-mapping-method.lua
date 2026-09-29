@@ -6,6 +6,7 @@
 local java_context = require("modules.java.diagnostics-resolver.java-context")
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 local mapstruct = require("modules.java.mapstruct")
+local mapstruct_reference = require("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference")
 
 local M = {}
 
@@ -200,19 +201,19 @@ local function resolve_types(ctx, mapping, callback)
             return
         end
 
+        -- An element nested under the mapper target is derived without a backend
+        -- request. Any other element type is resolved from the collection itself.
         local element = nil
+        local element_error = nil
         if mapping.element_type then
-            local element_error
             element, element_error = resolve_nested_element_type(method_types.target_type, mapping.element_type)
-            if not element then
-                callback(nil, element_error)
-                return
-            end
         end
 
+        local target_source = { name = "$target", type = method_types.target_type }
+        local target_path = mapping.target_property:gsub("%.$", "") .. "."
         mapstruct.resolve_path_type({
-            sources = { { name = "$target", type = method_types.target_type } },
-            path_expression = mapping.target_property:gsub("%.$", "") .. ".",
+            sources = { target_source },
+            path_expression = target_path,
         }, function(target, target_error)
             if not target then
                 callback(nil, target_error)
@@ -229,8 +230,33 @@ local function resolve_types(ctx, mapping, callback)
                 )
                 return
             end
+            if not mapping.element_type or element then
+                callback({ parameter = parameter, target = target, element = element }, nil)
+                return
+            end
 
-            callback({ parameter = parameter, target = target, element = element }, nil)
+            mapstruct.resolve_path_type({
+                sources = { target_source },
+                path_expression = target_path .. "first.",
+            }, function(resolved_element, resolved_element_error)
+                if not resolved_element then
+                    callback(nil, resolved_element_error or element_error)
+                    return
+                end
+                if not java_import_resolver.matches(resolved_element, mapping.element_type) then
+                    callback(
+                        nil,
+                        mapstruct_reference.unresolved_element(resolved_element, target_path .. "first.")
+                            or string.format(
+                                "Resolved element type for target property '%s' does not match diagnostic type '%s'",
+                                mapping.target_property,
+                                mapping.element_type
+                            )
+                    )
+                    return
+                end
+                callback({ parameter = parameter, target = target, element = resolved_element }, nil)
+            end)
         end)
     end)
 end
@@ -240,12 +266,24 @@ end
 ---@param signature string
 ---@return boolean
 local function method_exists(bufnr, signature)
-    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
-        if line:find(signature, 1, true) then
-            return true
-        end
-    end
-    return false
+    return java_context.method_exists(bufnr, signature)
+end
+
+--- Pick a method name that does not clash with an existing overload.
+--- MapStruct always suggests `map`; two suggestions sharing a parameter type would
+--- otherwise produce methods that differ only by return type, which Java rejects.
+---@param bufnr integer
+---@param suggested_name string
+---@param return_type string rendered return type
+---@param parameter_type string rendered parameter type
+---@param parameter_name string
+---@return string|nil signature signature to declare
+---@return string|nil existing signature that is already declared, when there is one
+local function available_signature(bufnr, suggested_name, return_type, parameter_type, parameter_name)
+    local names = { suggested_name, mapstruct_reference.method_name_for(return_type) }
+    return java_context.available_signature(bufnr, names, { parameter_type }, function(name)
+        return return_type .. " " .. name .. "(" .. parameter_type .. " " .. parameter_name .. ")"
+    end)
 end
 
 --- Insert the generated method and its directly planned imports into the mapper.
@@ -285,6 +323,21 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
         vim.notify("[MapStruct] Parameter mapping method already exists: " .. signature, vim.log.levels.INFO)
         return false
     end
+
+    local available, existing =
+        available_signature(bufnr, mapping.method_name, return_type, references.parameter, mapping.parameter_name)
+    if existing then
+        vim.notify("[MapStruct] Parameter mapping method already exists: " .. existing, vim.log.levels.INFO)
+        return false
+    end
+    if not available then
+        vim.notify(
+            "[MapStruct] Parameter mapping method name is already taken for parameter type: " .. signature,
+            vim.log.levels.WARN
+        )
+        return false
+    end
+    signature = available
 
     local method = java_context.method_at_diagnostic(bufnr, diagnostic)
     if not method then

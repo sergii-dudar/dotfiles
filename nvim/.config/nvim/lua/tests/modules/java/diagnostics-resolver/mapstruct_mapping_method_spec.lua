@@ -292,4 +292,182 @@ describe("modules.java.diagnostics-resolver.mapstruct-mapping-method", function(
         assert.are.equal("balances.first.", path_requests[2].path_expression)
         assert.are.equal("availableAmount.", path_requests[3].path_expression)
     end)
+
+    it("parses a nested source path reported with the parameter name", function()
+        -- given
+        local message = 'Can\'t map property "Duration source.config.ttl" to "long ttl". '
+            .. 'Consider to declare/implement a mapping method: "long map(Duration value)".'
+
+        -- when
+        local suggested = resolver.parse_suggested_method(message)
+
+        -- then
+        assert.are.equal("Duration", suggested.source_type)
+        assert.are.equal("source.config.ttl", suggested.source_property)
+        assert.are.equal("long", suggested.target_type)
+        assert.are.equal("ttl", suggested.target_property)
+        assert.are.equal("long map(Duration value)", suggested.signature)
+        assert.is_nil(suggested.element_kind)
+    end)
+
+    it("parses a forged path through a collection", function()
+        -- given
+        local message = 'Can\'t map property "Duration box.parts[].age" to "long box.parts[].age". '
+            .. 'Consider to declare/implement a mapping method: "long map(Duration value)".'
+
+        -- when
+        local suggested = resolver.parse_suggested_method(message)
+
+        -- then
+        assert.are.equal("box.parts[].age", suggested.source_property)
+        assert.are.equal("box.parts[].age", suggested.target_property)
+    end)
+
+    it("leaves whole-parameter suggestions to the parameter resolver", function()
+        -- given
+        local message = 'Can\'t map parameter "Order order" to "List<ItemDto> items". '
+            .. 'Consider to declare/implement a mapping method: "List<ItemDto> map(Order value)".'
+
+        -- when
+        local suggested = resolver.parse_suggested_method(message)
+
+        -- then
+        assert.is_nil(suggested)
+    end)
+
+    it("resolves the types of a path through a collection", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
+            "",
+            "public interface FooMapper {",
+            "    Target map(Source source);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 6, 7)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 6,
+                col = 20,
+                message = 'Can\'t map property "Duration box.parts[].age" to "long box.parts[].age". '
+                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)".',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][11])
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("box.parts.first.age.", path_requests[1].path_expression)
+        assert.are.equal("source", path_requests[1].sources[1].name)
+        assert.are.equal("box.parts.first.age.", path_requests[2].path_expression)
+        assert.are.equal("$target", path_requests[2].sources[1].name)
+    end)
+
+    it("explains an unsupported map path instead of editing the mapper", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example;",
+            "",
+            "public interface FooMapper {",
+            "    Target map(Source source);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 3, 4)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 3,
+                col = 20,
+                message = 'Can\'t map property "Duration box.byName{:value}.age" to "long box.byName{:value}.age". '
+                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)".',
+            },
+        })
+
+        -- then
+        assert.are.same({
+            "package example;",
+            "",
+            "public interface FooMapper {",
+            "    Target map(Source source);",
+            "}",
+        }, state.buffer_lines[1])
+        assert.are.equal(0, #path_requests)
+        assert.matches("not supported yet", state.notifications[1].message, nil, true)
+    end)
+
+    it("ignores a commented-out signature when checking for an existing method", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example;",
+            "",
+            "import java.time.Duration;",
+            "",
+            "public interface FooMapper {",
+            "    Target map(Source source);",
+            "",
+            "    // long map(Duration value)",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 5, 8)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 5,
+                col = 20,
+                message = 'Can\'t map property "Duration ttl" to "long ttl". '
+                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
+            },
+        })
+
+        -- then
+        assert.are.equal("    default long map(Duration value) {", state.buffer_lines[1][8])
+    end)
+
+    it("reports an existing method and leaves the mapper untouched", function()
+        -- given
+        local lines = {
+            "package example;",
+            "",
+            "import java.time.Duration;",
+            "",
+            "public interface FooMapper {",
+            "    Target map(Source source);",
+            "",
+            "    default long map(Duration value) {",
+            "        return value.toMillis();",
+            "    }",
+            "}",
+        }
+        state.buffer_lines[1] = vim.deepcopy(lines)
+        stub_java_tree("interface_declaration", 5, 10)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 5,
+                col = 20,
+                message = 'Can\'t map property "Duration ttl" to "long ttl". '
+                    .. 'Consider to declare/implement a mapping method: "long map(Duration value)"',
+            },
+        })
+
+        -- then
+        assert.are.same(lines, state.buffer_lines[1])
+        assert.are.equal(
+            "[MapStruct] Mapping method already exists: long map(Duration value)",
+            state.notifications[1].message
+        )
+    end)
 end)

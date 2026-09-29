@@ -2,14 +2,16 @@
 
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 local mapstruct = require("modules.java.mapstruct")
+local mapstruct_reference = require("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference")
 
 local M = {}
 
 ---@class MapStructDiagnosticMappingTypes
 ---@field source_type string
----@field source_property string
+---@field source_property string MapStruct path, e.g. `ttl`, `source.config.ttl`, `box.parts[].age`
 ---@field target_type string
----@field target_property string
+---@field target_property string MapStruct path
+---@field element_kind? string MapStruct element kind when the mapping is not a plain property
 
 ---@class MapStructParsedTypeExpression
 ---@field raw_type string
@@ -66,12 +68,13 @@ local function resolve_property_type(source, property, expected_type, role, call
         if not java_import_resolver.matches(result, expression.raw_type) then
             callback(
                 nil,
-                string.format(
-                    "Resolved type for %s property '%s' does not match diagnostic type '%s'",
-                    role,
-                    property,
-                    expression.raw_type
-                )
+                mapstruct_reference.unresolved_element(result, property_path)
+                    or string.format(
+                        "Resolved type for %s property '%s' does not match diagnostic type '%s'",
+                        role,
+                        property,
+                        expression.raw_type
+                    )
             )
             return
         end
@@ -91,12 +94,13 @@ local function resolve_property_type(source, property, expected_type, role, call
             if not java_import_resolver.matches(argument, expression.argument_type) then
                 callback(
                     nil,
-                    string.format(
-                        "Resolved element type for %s property '%s' does not match diagnostic type '%s'",
-                        role,
-                        property,
-                        expression.argument_type
-                    )
+                    mapstruct_reference.unresolved_element(argument, property_path .. "first.")
+                        or string.format(
+                            "Resolved element type for %s property '%s' does not match diagnostic type '%s'",
+                            role,
+                            property,
+                            expression.argument_type
+                        )
                 )
                 return
             end
@@ -148,6 +152,19 @@ end
 ---@param mapping MapStructDiagnosticMappingTypes
 ---@param callback fun(result?: { source: JavaResolvedType, source_arguments: JavaResolvedType[], target: JavaResolvedType, target_arguments: JavaResolvedType[] }, err?: string)
 function M.resolve(ctx, mapping, callback)
+    local source_path, source_path_error =
+        mapstruct_reference.backend_path(mapping.source_property, mapping.element_kind)
+    if not source_path then
+        callback(nil, source_path_error)
+        return
+    end
+    local target_path, target_path_error =
+        mapstruct_reference.backend_path(mapping.target_property, mapping.element_kind)
+    if not target_path then
+        callback(nil, target_path_error)
+        return
+    end
+
     mapstruct.get_method_types({
         bufnr = ctx.bufnr,
         row = ctx.diagnostic.lnum,
@@ -160,7 +177,7 @@ function M.resolve(ctx, mapping, callback)
 
         resolve_source_type(
             method_types.sources,
-            mapping.source_property,
+            source_path,
             mapping.source_type,
             function(source_expression, source_err)
                 if not source_expression then
@@ -170,7 +187,7 @@ function M.resolve(ctx, mapping, callback)
 
                 resolve_target_type(
                     method_types.target_type,
-                    mapping.target_property,
+                    target_path,
                     mapping.target_type,
                     function(target_expression, target_err)
                         if not target_expression then

@@ -193,4 +193,69 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
         assert.are.equal("cardTransferDetails.", path_requests[2].path_expression)
         assert.are.equal("$target", path_requests[2].sources[1].name)
     end)
+
+    it("parses properties of a forged collection element mapping", function()
+        -- given
+        local message = 'Unmapped target properties: "color, size". Mapping from Collection element '
+            .. '"Model.Wheel wheels" to "Model.WheelDto wheels".'
+
+        -- when
+        local mapping = resolver.parse_mapping(message)
+
+        -- then
+        assert.are.same({
+            unmapped_properties = { "color", "size" },
+            source_type = "Model.Wheel",
+            source_property = "wheels",
+            target_type = "Model.WheelDto",
+            target_property = "wheels",
+            method_name = "toWheelDto",
+            signature = "Model.WheelDto toWheelDto(Model.Wheel wheel)",
+            element_kind = "Collection element",
+        }, mapping)
+    end)
+
+    it("parses properties of a forged mapping with a dotted path", function()
+        -- given
+        local message = 'Unmapped target properties: "rgb, hex". Mapping from property '
+            .. '"Model.Color house.roof.color" to "Model.ColorDto house.roof.color".'
+
+        -- when
+        local mapping = resolver.parse_mapping(message)
+
+        -- then
+        assert.are.same({ "rgb", "hex" }, mapping.unmapped_properties)
+        assert.are.equal("house.roof.color", mapping.source_property)
+        assert.are.equal("Model.ColorDto toColorDto(Model.Color color)", mapping.signature)
+        assert.is_nil(mapping.element_kind)
+    end)
+
+    it("resolves a forged collection element through the collection", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "public interface CardTransferMapper {",
+            "    Envelope toEnvelope(CardTransferInitiation transfer);",
+            "}",
+        }
+        stub_java_tree(3, 4)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 3,
+                col = 25,
+                message = 'Unmapped target properties: "merchantId, terminalId". Mapping from Collection element '
+                    .. '"CardTransferInitiation transfers" to "CardTransferDetails details".',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("transfers.first.", path_requests[1].path_expression)
+        assert.are.equal("details.first.", path_requests[2].path_expression)
+    end)
 end)

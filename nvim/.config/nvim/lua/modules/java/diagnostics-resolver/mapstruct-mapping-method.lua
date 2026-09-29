@@ -6,6 +6,7 @@
 local java_context = require("modules.java.diagnostics-resolver.java-context")
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 local mapstruct_method_type_resolver = require("modules.java.diagnostics-resolver.mapstruct-method-type-resolver")
+local mapstruct_reference = require("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference")
 
 local M = {}
 
@@ -17,17 +18,22 @@ local M = {}
 ---@field parameter_type string
 ---@field parameter_name string
 ---@field source_type string
----@field source_property string
+---@field source_property string MapStruct path, e.g. `ttl` or `source.config.ttl`
 ---@field target_type string
----@field target_property string
+---@field target_property string MapStruct path
+---@field element_kind? string MapStruct element kind when the source is not a plain property
 
 --- Parse the method signature suggested by a MapStruct diagnostic.
 ---@param message string
 ---@return MapStructSuggestedMethod|nil
 function M.parse_suggested_method(message)
-    local source, target = message:match('Can\'t map property%s+"([^"]+)"%s+to%s+"([^"]+)"')
+    local kind, source, target = message:match('Can\'t map ([%a ]-)%s+"([^"]+)"%s+to%s+"([^"]+)"')
     local raw = message:match('Consider to declare/implement a mapping method:%s*"([^"]+)"')
     if not source or not target or not raw then
+        return nil
+    end
+    -- Whole-parameter mappings belong to the parameter mapping-method resolver.
+    if kind ~= mapstruct_reference.PROPERTY_KIND and not mapstruct_reference.is_element_kind(kind) then
         return nil
     end
 
@@ -37,8 +43,8 @@ function M.parse_suggested_method(message)
     if parameters then
         parameter_type, parameter_name = parameters:match("^%(%s*(.-)%s+([%a_$][%w_$]*)%s*%)$")
     end
-    local source_type, source_property = source:match("^%s*(.-)%s+([%a_$][%w_$]*)%s*$")
-    local target_type, target_property = target:match("^%s*(.-)%s+([%a_$][%w_$]*)%s*$")
+    local source_type, source_property = mapstruct_reference.parse_typed_reference(source)
+    local target_type, target_property = mapstruct_reference.parse_typed_reference(target)
     if not return_type or not parameter_type or not source_type or not target_type then
         return nil
     end
@@ -54,6 +60,7 @@ function M.parse_suggested_method(message)
         source_property = source_property,
         target_type = target_type,
         target_property = target_property,
+        element_kind = mapstruct_reference.element_kind(kind),
     }
 end
 
@@ -62,12 +69,25 @@ end
 ---@param signature string
 ---@return boolean
 local function method_exists(bufnr, signature)
-    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
-        if line:find(signature, 1, true) then
-            return true
-        end
-    end
-    return false
+    return java_context.method_exists(bufnr, signature)
+end
+
+--- Pick a signature that does not clash with an existing overload.
+--- MapStruct always suggests `map`; two suggestions sharing a parameter type would
+--- otherwise produce methods that differ only by return type, which Java rejects.
+--- The suggested name is kept unless it clashes, then `to<ReturnType>` is used.
+---@param bufnr integer
+---@param suggested_name string
+---@param return_type string rendered return type
+---@param parameter_type string rendered parameter type
+---@param parameter_name string
+---@return string|nil signature signature to declare
+---@return string|nil existing signature that is already declared, when there is one
+local function available_signature(bufnr, suggested_name, return_type, parameter_type, parameter_name)
+    local names = { suggested_name, mapstruct_reference.method_name_for(return_type) }
+    return java_context.available_signature(bufnr, names, { parameter_type }, function(name)
+        return return_type .. " " .. name .. "(" .. parameter_type .. " " .. parameter_name .. ")"
+    end)
 end
 
 --- Add resolved generic arguments to the import plan for one method type.
@@ -130,6 +150,21 @@ local function insert_mapping_method(bufnr, diagnostic, suggested, resolved_type
         vim.notify("[MapStruct] Mapping method already exists: " .. signature, vim.log.levels.INFO)
         return false
     end
+
+    local available, existing =
+        available_signature(bufnr, suggested.name, return_type, parameter_type, suggested.parameter_name)
+    if existing then
+        vim.notify("[MapStruct] Mapping method already exists: " .. existing, vim.log.levels.INFO)
+        return false
+    end
+    if not available then
+        vim.notify(
+            "[MapStruct] Mapping method name is already taken for parameter type: " .. signature,
+            vim.log.levels.WARN
+        )
+        return false
+    end
+    signature = available
 
     local method = java_context.method_at_diagnostic(bufnr, diagnostic)
     if not method then

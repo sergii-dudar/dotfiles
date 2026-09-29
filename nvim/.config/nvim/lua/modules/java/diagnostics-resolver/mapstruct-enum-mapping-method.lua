@@ -3,6 +3,7 @@
 local java_context = require("modules.java.diagnostics-resolver.java-context")
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 local mapstruct_method_type_resolver = require("modules.java.diagnostics-resolver.mapstruct-method-type-resolver")
+local mapstruct_reference = require("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference")
 
 local M = {}
 
@@ -13,42 +14,50 @@ local VALUE_MAPPING_TYPE = {
 
 ---@class MapStructEnumMappingMethod
 ---@field source_type string
----@field source_property string
+---@field source_property string MapStruct path, e.g. `direction` or `source.config.direction`
 ---@field target_type string
----@field target_property string
+---@field target_property string MapStruct path
 ---@field constants string[]
 ---@field method_name string
 ---@field signature string
+---@field element_kind? string MapStruct element kind when the source is not a plain property
 
+--- Parse a Java typed-property fragment such as `TransferDirection direction`.
 ---@param value string
 ---@return string|nil type_name
 ---@return string|nil property_name
 local function parse_typed_property(value)
-    local type_name, property_name = value:match("^%s*(.-)%s+([%a_$][%w_$]*)%s*$")
-    if not type_name or type_name == "" then
-        return nil, nil
-    end
-    return type_name, property_name
+    return mapstruct_reference.parse_typed_reference(value)
 end
 
+--- Return the final Java identifier from a possibly qualified or generic type.
 ---@param type_name string
 ---@return string|nil
 local function simple_type_name(type_name)
-    local result = nil
-    for identifier in type_name:gmatch("[%a_$][%w_$]*") do
-        result = identifier
+    return mapstruct_reference.simple_type_name(type_name)
+end
+
+--- Name the generated method parameter after the mapped source.
+---@param mapping { source_type: string, source_property: string, element_kind?: string }
+---@return string
+local function parameter_name(mapping)
+    if mapping.element_kind then
+        return mapstruct_reference.element_name(mapping.source_type)
     end
-    return result
+    return mapstruct_reference.path_name(mapping.source_property) or mapping.source_property
 end
 
 --- Parse a MapStruct enum constants diagnostic.
 ---@param message string
 ---@return MapStructEnumMappingMethod|nil
 function M.parse_mapping(message)
-    local source, target, constant_list = message:match(
-        '^The following constants from the property%s+"([^"]+)"%s+enum have no corresponding constant in the%s+"([^"]+)"%s+enum and must .-additional mappings:%s*(.-)%.%s*$'
+    local kind, source, target, constant_list = message:match(
+        '^The following constants from the ([%a ]-)%s+"([^"]+)"%s+enum have no corresponding constant in the%s+"([^"]+)"%s+enum and must .-additional mappings:%s*(.-)%.%s*$'
     )
     if not source or not target or not constant_list then
+        return nil
+    end
+    if kind ~= mapstruct_reference.PROPERTY_KIND and not mapstruct_reference.is_element_kind(kind) then
         return nil
     end
 
@@ -58,6 +67,7 @@ function M.parse_mapping(message)
     if not source_type or not target_type or not target_simple_name then
         return nil
     end
+    local element_kind = mapstruct_reference.element_kind(kind)
 
     local constants = {}
     for value in constant_list:gmatch("[^,]+") do
@@ -72,6 +82,11 @@ function M.parse_mapping(message)
     end
 
     local method_name = "to" .. target_simple_name:sub(1, 1):upper() .. target_simple_name:sub(2)
+    local source_name = parameter_name({
+        source_type = source_type,
+        source_property = source_property,
+        element_kind = element_kind,
+    })
     return {
         source_type = source_type,
         source_property = source_property,
@@ -79,20 +94,17 @@ function M.parse_mapping(message)
         target_property = target_property,
         constants = constants,
         method_name = method_name,
-        signature = target_type .. " " .. method_name .. "(" .. source_type .. " " .. source_property .. ")",
+        signature = target_type .. " " .. method_name .. "(" .. source_type .. " " .. source_name .. ")",
+        element_kind = element_kind,
     }
 end
 
+--- Check whether the generated enum mapping signature already exists.
 ---@param bufnr integer
 ---@param signature string
 ---@return boolean
 local function method_exists(bufnr, signature)
-    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
-        if not line:match("^%s*//") and line:find(signature, 1, true) then
-            return true
-        end
-    end
-    return false
+    return java_context.method_exists(bufnr, signature)
 end
 
 ---@param bufnr integer
@@ -117,7 +129,7 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
         .. "("
         .. references.source
         .. " "
-        .. mapping.source_property
+        .. parameter_name(mapping)
         .. ")"
     if method_exists(bufnr, signature) then
         vim.notify("[MapStruct] Enum mapping method already exists: " .. signature, vim.log.levels.INFO)

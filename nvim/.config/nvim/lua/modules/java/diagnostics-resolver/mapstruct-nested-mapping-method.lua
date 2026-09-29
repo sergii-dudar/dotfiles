@@ -7,16 +7,18 @@
 local java_context = require("modules.java.diagnostics-resolver.java-context")
 local java_import_resolver = require("modules.java.diagnostics-resolver.java-import-resolver")
 local mapstruct_method_type_resolver = require("modules.java.diagnostics-resolver.mapstruct-method-type-resolver")
+local mapstruct_reference = require("modules.java.diagnostics-resolver.mapstruct-diagnostic-reference")
 
 local M = {}
 
 ---@class MapStructNestedTypeMapping
 ---@field source_type string
----@field source_property string
+---@field source_property string MapStruct path, e.g. `debtorAccount` or `house.roof.color`
 ---@field target_type string
----@field target_property string
+---@field target_property string MapStruct path
 ---@field method_name string
 ---@field signature string
+---@field element_kind? string MapStruct element kind when the mapping is not a plain property
 
 ---@class MapStructNestedMappingMethod: MapStructNestedTypeMapping
 ---@field unmapped_property string
@@ -26,30 +28,36 @@ local M = {}
 ---@return string|nil type_name
 ---@return string|nil property_name
 local function parse_typed_property(value)
-    local type_name, property_name = value:match("^%s*(.-)%s+([%a_$][%w_$]*)%s*$")
-    if not type_name or type_name == "" then
-        return nil, nil
-    end
-    return type_name, property_name
+    return mapstruct_reference.parse_typed_reference(value)
 end
 
 --- Return the final Java identifier from a possibly qualified or generic type.
 ---@param type_name string
 ---@return string|nil
 local function simple_type_name(type_name)
-    local result = nil
-    for identifier in type_name:gmatch("[%a_$][%w_$]*") do
-        result = identifier
+    return mapstruct_reference.simple_type_name(type_name)
+end
+
+--- Name the generated method parameter after the mapped source.
+--- A collection element is named after its type, because its path names the collection.
+---@param mapping { source_type: string, source_property: string, element_kind?: string }
+---@return string
+local function parameter_name(mapping)
+    if mapping.element_kind then
+        return mapstruct_reference.element_name(mapping.source_type)
     end
-    return result
+    return mapstruct_reference.path_name(mapping.source_property) or mapping.source_property
 end
 
 --- Parse the source and target endpoints of a MapStruct forged nested mapping.
 ---@param message string
 ---@return MapStructNestedTypeMapping|nil
 function M.parse_type_mapping(message)
-    local source, target = message:match('Mapping from property%s*"([^"]+)"%s+to%s+"([^"]+)"')
+    local kind, source, target = message:match('Mapping from ([%a ]-)%s*"([^"]+)"%s+to%s+"([^"]+)"')
     if not source or not target then
+        return nil
+    end
+    if kind ~= mapstruct_reference.PROPERTY_KIND and not mapstruct_reference.is_element_kind(kind) then
         return nil
     end
 
@@ -59,15 +67,22 @@ function M.parse_type_mapping(message)
     if not source_type or not target_type or not target_simple_name then
         return nil
     end
+    local element_kind = mapstruct_reference.element_kind(kind)
 
     local method_name = "to" .. target_simple_name:sub(1, 1):upper() .. target_simple_name:sub(2)
+    local source_name = parameter_name({
+        source_type = source_type,
+        source_property = source_property,
+        element_kind = element_kind,
+    })
     return {
         source_type = source_type,
         source_property = source_property,
         target_type = target_type,
         target_property = target_property,
         method_name = method_name,
-        signature = target_type .. " " .. method_name .. "(" .. source_type .. " " .. source_property .. ")",
+        signature = target_type .. " " .. method_name .. "(" .. source_type .. " " .. source_name .. ")",
+        element_kind = element_kind,
     }
 end
 
@@ -93,12 +108,7 @@ end
 ---@param signature string
 ---@return boolean
 local function method_exists(bufnr, signature)
-    for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
-        if line:find(signature, 1, true) then
-            return true
-        end
-    end
-    return false
+    return java_context.method_exists(bufnr, signature)
 end
 
 --- Insert an abstract nested mapping declaration into the owning mapper type.
@@ -123,7 +133,7 @@ local function insert_mapping_method(bufnr, diagnostic, mapping, resolved_types)
         .. "("
         .. references.source
         .. " "
-        .. mapping.source_property
+        .. parameter_name(mapping)
         .. ")"
     if method_exists(bufnr, signature) then
         vim.notify("[MapStruct] Nested mapping method already exists: " .. signature, vim.log.levels.INFO)

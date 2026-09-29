@@ -221,4 +221,113 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
             state.buffer_lines[1][11]
         )
     end)
+
+    it("parses a forged mapping with a dotted path", function()
+        -- given
+        local message = 'Unmapped target property: "rgb". Mapping from property '
+            .. '"Model.Color house.roof.color" to "Model.ColorDto house.roof.color".'
+
+        -- when
+        local mapping = resolver.parse_mapping(message)
+
+        -- then
+        assert.are.same({
+            unmapped_property = "rgb",
+            source_type = "Model.Color",
+            source_property = "house.roof.color",
+            target_type = "Model.ColorDto",
+            target_property = "house.roof.color",
+            method_name = "toColorDto",
+            signature = "Model.ColorDto toColorDto(Model.Color color)",
+        }, mapping)
+    end)
+
+    it("parses a forged collection element mapping", function()
+        -- given
+        local message = 'Unmapped target property: "color". Mapping from Collection element '
+            .. '"Model.Wheel car.wheels" to "Model.WheelDto car.wheels".'
+
+        -- when
+        local mapping = resolver.parse_mapping(message)
+
+        -- then
+        assert.are.same({
+            unmapped_property = "color",
+            source_type = "Model.Wheel",
+            source_property = "car.wheels",
+            target_type = "Model.WheelDto",
+            target_property = "car.wheels",
+            method_name = "toWheelDto",
+            signature = "Model.WheelDto toWheelDto(Model.Wheel wheel)",
+            element_kind = "Collection element",
+        }, mapping)
+    end)
+
+    it("generates the element mapping method for a forged collection element", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import example.Source;",
+            "import example.Target;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 6, 7)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 6,
+                col = 25,
+                message = 'Unmapped target property: "identification". Mapping from Collection element '
+                    .. '"ChargeCalculationRequest.ChargeAccount accounts" to "Account accounts".',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("accounts.first.", path_requests[1].path_expression)
+        assert.are.equal("request", path_requests[1].sources[1].name)
+        assert.are.equal("accounts.first.", path_requests[2].path_expression)
+        assert.are.equal("$target", path_requests[2].sources[1].name)
+        assert.are.equal(
+            "    Account toAccount(ChargeCalculationRequest.ChargeAccount chargeAccount);",
+            state.buffer_lines[1][11]
+        )
+    end)
+
+    it("explains an unsupported map mapping instead of editing the mapper", function()
+        -- given
+        local lines = {
+            "package example.mapper;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        state.buffer_lines[1] = vim.deepcopy(lines)
+        stub_java_tree("interface_declaration", 3, 4)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 3,
+                col = 25,
+                message = 'Unmapped target property: "pronunciation". Mapping from Map value '
+                    .. '"Model.Word wordMap{:value}" to "Model.WordDto wordMap{:value}".',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.same(lines, state.buffer_lines[1])
+        assert.are.equal(0, #path_requests)
+        assert.matches("not supported yet", state.notifications[1].message, nil, true)
+    end)
 end)

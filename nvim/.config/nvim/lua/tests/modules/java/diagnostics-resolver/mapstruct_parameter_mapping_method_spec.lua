@@ -217,4 +217,98 @@ describe("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method",
             { name = "$target", type = "ua.model.initiation.CardTransferInitiationResponse" },
         }, path_requests[1].sources)
     end)
+
+    it("resolves an element type that is not nested under the mapper target", function()
+        -- given
+        local message = 'Can\'t map parameter "CardTransferInitiation initiation" to '
+            .. '"Set<TransferDto> initiatedTransfers". '
+            .. "Consider to declare/implement a mapping method: "
+            .. '"Set<TransferDto> map(CardTransferInitiation value)"'
+        helper.stub_module("modules.java.mapstruct", {
+            get_method_types = function(_, callback)
+                callback({
+                    sources = { { name = "initiation", type = "ua.model.transfer.CardTransferInitiation" } },
+                    target_type = "ua.model.initiation.CardTransferInitiationResponse",
+                })
+            end,
+            resolve_path_type = function(params, callback)
+                path_requests[#path_requests + 1] = vim.deepcopy(params)
+                if params.path_expression == "initiatedTransfers.first." then
+                    callback({ className = "ua.dto.TransferDto", simpleName = "TransferDto", packageName = "ua.dto" })
+                else
+                    callback({ className = "java.util.Set", simpleName = "Set", packageName = "java.util" })
+                end
+            end,
+        })
+        resolver = helper.reload("modules.java.diagnostics-resolver.mapstruct-parameter-mapping-method")
+        state.buffer_lines[1] = {
+            "package ua.mapper;",
+            "",
+            "import org.mapstruct.Mapper;",
+            "import ua.model.initiation.CardTransferInitiationResponse;",
+            "import ua.model.transfer.CardTransferInitiation;",
+            "",
+            "public abstract class CardTransferInitiationMapper {",
+            "    public abstract CardTransferInitiationResponse toResponse(CardTransferInitiation initiation);",
+            "}",
+        }
+        stub_java_tree(7, 8)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = { lnum = 7, col = 10, message = message },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.same({
+            "package ua.mapper;",
+            "",
+            "import org.mapstruct.Mapper;",
+            "import ua.dto.TransferDto;",
+            "import ua.model.initiation.CardTransferInitiationResponse;",
+            "import ua.model.transfer.CardTransferInitiation;",
+            "",
+            "import java.util.Set;",
+            "",
+            "public abstract class CardTransferInitiationMapper {",
+            "    public abstract CardTransferInitiationResponse toResponse(CardTransferInitiation initiation);",
+            "",
+            "    protected Set<TransferDto> map(CardTransferInitiation value) {",
+            "        return ;",
+            "    }",
+            "}",
+        }, state.buffer_lines[1])
+        assert.are.equal(2, #path_requests)
+        assert.are.equal("initiatedTransfers.", path_requests[1].path_expression)
+        assert.are.equal("initiatedTransfers.first.", path_requests[2].path_expression)
+    end)
+
+    it("rejects an element type that disagrees with the collection", function()
+        -- given
+        local message = 'Can\'t map parameter "CardTransferInitiation initiation" to '
+            .. '"Set<TransferDto> initiatedTransfers". '
+            .. "Consider to declare/implement a mapping method: "
+            .. '"Set<TransferDto> map(CardTransferInitiation value)"'
+        local lines = {
+            "package ua.mapper;",
+            "",
+            "public abstract class CardTransferInitiationMapper {",
+            "    public abstract CardTransferInitiationResponse toResponse(CardTransferInitiation initiation);",
+            "}",
+        }
+        state.buffer_lines[1] = vim.deepcopy(lines)
+        stub_java_tree(3, 4)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = { lnum = 3, col = 10, message = message },
+        })
+
+        -- then
+        assert.are.same(lines, state.buffer_lines[1])
+        assert.matches("does not match diagnostic type 'TransferDto'", state.notifications[1].message, nil, true)
+    end)
 end)

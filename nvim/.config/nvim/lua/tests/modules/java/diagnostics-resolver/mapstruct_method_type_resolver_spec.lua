@@ -129,4 +129,74 @@ describe("modules.java.diagnostics-resolver.mapstruct-method-type-resolver", fun
         assert.are.equal("balances.first.", path_requests[2].path_expression)
         assert.are.equal("availableAmount.", path_requests[3].path_expression)
     end)
+
+    it("passes a nested path with its parameter name to the backend", function()
+        -- given
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Duration",
+            source_property = "second.config.ttl",
+            target_type = "long",
+            target_property = "ttl",
+        }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(resolution_error)
+        assert.are.equal("java.time.Duration", result.source.className)
+        assert.are.equal("second.config.ttl.", path_requests[1].path_expression)
+        assert.are.equal("second.config.ttl.", path_requests[2].path_expression)
+        assert.are.equal("ttl.", path_requests[3].path_expression)
+    end)
+
+    it("translates collection markers and element kinds into element paths", function()
+        -- given
+        target_result = { className = "java.time.Duration", simpleName = "Duration", packageName = "java.time" }
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Duration",
+            source_property = "box.parts[].ages",
+            target_type = "Duration",
+            target_property = "box.parts[].ages",
+            element_kind = "Collection element",
+        }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(resolution_error)
+        assert.are.equal("java.time.Duration", result.target.className)
+        assert.are.equal("box.parts.first.ages.first.", path_requests[1].path_expression)
+        assert.are.equal("box.parts.first.ages.first.", path_requests[#path_requests].path_expression)
+        assert.are.equal("$target", path_requests[#path_requests].sources[1].name)
+    end)
+
+    it("rejects map key and value paths before asking the backend", function()
+        -- given
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Word",
+            source_property = "wordMap{:key}",
+            target_type = "WordDto",
+            target_property = "wordMap{:key}",
+            element_kind = "Map key",
+        }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(result)
+        assert.matches("not supported yet", resolution_error, nil, true)
+        assert.are.equal(0, #path_requests)
+    end)
 end)
