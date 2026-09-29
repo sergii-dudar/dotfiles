@@ -34,6 +34,13 @@
 -- it only after the workspace settled. A match re-enters the settle → refresh
 -- cycle, up to MAX_APT_RETRIES extra rounds, before giving up with a warning.
 --
+-- Stale buffer diagnostics: buffers opened before the impls were generated
+-- keep "X cannot be resolved to a type" errors from the pre-refresh
+-- reconcile (jdtls never re-reconciles an unchanged open document). Once a
+-- cycle settles clean, such buffers get their jdtls document replayed
+-- (client detach + reattach — the automatic form of :e), clearing the
+-- errors without manual buffer reloads.
+--
 -- Idempotent: marks the client with _patched_workspace_watcher so subsequent
 -- calls (e.g. additional buffers attaching) are no-ops. Runs one
 -- verification-bounded refresh cycle per client lifetime.
@@ -58,6 +65,13 @@ local STALE_APT_DIAG_SIGNATURES = {
     -- wording as of MapStruct 1.x
     { "No implementation was created", "erroneous element" },
 }
+
+-- JDT reconciles an open buffer's working copy on didOpen/didChange. Buffers
+-- opened before APT (re)generated the impls keep their pre-refresh
+-- "X cannot be resolved to a type" errors until the document is replayed
+-- (what :e does manually). An ERROR diagnostic containing this substring
+-- marks the buffer for revalidation once the refresh cycle settles clean.
+local STALE_RESOLUTION_DIAG_SUBSTRING = "cannot be resolved"
 
 local log = require("utils.logging-util").new({
     name = "jdtls.status",
@@ -350,6 +364,45 @@ function M.setup(client, bufnr)
         return nil, nil
     end
 
+    --- Replay the jdtls document (didClose + didOpen via detach/reattach) for
+    --- attached buffers that still show "cannot be resolved" errors after the
+    --- workspace settled. Those diagnostics come from a working-copy reconcile
+    --- that ran before the generated sources existed; the replay makes jdtls
+    --- reconcile again — the automatic form of the manual :e fix, minus the
+    --- disk reload (so modified buffers are safe too).
+    ---@param why string
+    local function revalidate_stale_buffers(why)
+        local stale_bufs = {}
+        for bufnr in pairs(client.attached_buffers) do
+            if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr) then
+                for _, diag in ipairs(vim.diagnostic.get(bufnr, { severity = vim.diagnostic.severity.ERROR })) do
+                    if
+                        type(diag.message) == "string"
+                        and diag.message:find(STALE_RESOLUTION_DIAG_SUBSTRING, 1, true)
+                    then
+                        table.insert(stale_bufs, bufnr)
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Snapshot first: detach/attach mutates client.attached_buffers,
+        -- which must not happen while iterating it.
+        for _, bufnr in ipairs(stale_bufs) do
+            pcall(vim.lsp.buf_detach_client, bufnr, client.id)
+            pcall(vim.lsp.buf_attach_client, bufnr, client.id)
+        end
+        if #stale_bufs > 0 then
+            log.fmt_info(
+                "client_id=%d revalidated %d buffer(s) with stale resolution diagnostics (%s)",
+                client.id,
+                #stale_bufs,
+                why
+            )
+        end
+    end
+
     --- Re-enter the settle → refresh cycle because MapStruct APT skipped impl
     --- generation (stale "No implementation was created" diagnostic).
     ---@param why string
@@ -433,6 +486,10 @@ function M.setup(client, bufnr)
             dispose("stale APT diagnostic persisted after " .. MAX_APT_RETRIES .. " retries")
             return
         end
+
+        -- Impls verified present — clear stale resolution errors from buffers
+        -- that were reconciled before the impls existed.
+        revalidate_stale_buffers(why)
 
         if apt_retries > 0 then
             vim.notify("🧩 MapStruct impls resolved after project config re-refresh")
