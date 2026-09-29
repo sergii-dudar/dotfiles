@@ -49,7 +49,12 @@ return {
                 --     { "filename", format = "{file_icon} {filename} {count}" },
                 -- },
                 -- sort = { "severity", "filename", "pos", "message" },
-                sort = { { by = "none" } },
+                -- sort = { { by = "none" } },
+                -- Keep the quickfix list's own order. An EMPTY sort is the only real no-op:
+                -- `{ by = "none" }` still runs table.sort with a nil key for every item, and
+                -- that sort is not stable, so longer lists (e.g. a parsed stack trace opened
+                -- via `Trouble qflist`) came out shuffled.
+                sort = {},
                 -- format = "{severity_icon|item.type:DiagnosticSignWarn} {text:ts} {pos}",
             },
             -- Flat, exactly-ordered view of the quickfix list, used by the Java

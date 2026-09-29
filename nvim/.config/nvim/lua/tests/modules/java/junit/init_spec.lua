@@ -227,6 +227,48 @@ describe("modules.java.junit", function()
         assert.are.same({ "echo", "Could not resolve test classpath from jdtls" }, result.cmd)
     end)
 
+    it("runs the picked implementation of an abstract test class", function()
+        -- given
+        current_class = { fqn = "com.acme.AbstractFooIT", is_abstract = true }
+        require("utils.java.jdtls-util").jdt_find_implementations_nio = function()
+            return { "com.acme.FooOneIT", "com.acme.FooTwoIT" }
+        end
+        require("utils.nio-util").select = function(items)
+            return items[2]
+        end
+
+        -- when
+        local result = junit.build_run_test_cmd({ test_type = task.test_type.FILE_TESTS })
+
+        -- then
+        assert.is_true(vim.tbl_contains(result.cmd, "--select-class=com.acme.FooTwoIT"))
+    end)
+
+    it("returns an echo command when the implementation picker of an abstract class is dismissed", function()
+        -- given
+        current_class = { fqn = "com.acme.AbstractFooIT", is_abstract = true }
+        current_method = { fsignature = "com.acme.AbstractFooIT#works(int)", is_abstract = true }
+        require("utils.java.jdtls-util").jdt_find_implementations_nio = function()
+            return { "com.acme.FooOneIT", "com.acme.FooTwoIT" }
+        end
+        require("utils.nio-util").select = function()
+            return nil
+        end
+
+        -- when
+        local file_result = junit.build_run_test_cmd({ test_type = task.test_type.FILE_TESTS })
+        local method_result = junit.build_run_test_cmd({ test_type = task.test_type.CURRENT_TEST })
+
+        -- then
+        local expected = { "echo", "Test run cancelled: no implementation selected" }
+        assert.are.same(expected, file_result.cmd)
+        assert.are.same(expected, method_result.cmd)
+        local infos = vim.tbl_filter(function(n)
+            return n.message:match("no implementation selected") ~= nil
+        end, vim._test_state.notifications)
+        assert.are.equal(2, #infos)
+    end)
+
     it("loads the JMockit agent before byte-buddy when the jar is present", function()
         -- given
         local context = { test_type = task.test_type.ALL_TESTS }

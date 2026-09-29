@@ -133,6 +133,11 @@ function M.build_run_test_cmd(context)
     return build_junit_tests_cmd(context)
 end
 
+-- Second return value of a resolver when the user dismissed the implementation picker of an
+-- abstract test class: not a context error, just nothing to run.
+local PICK_CANCELLED = "Test run cancelled: no implementation selected"
+
+-- Each resolver returns the JUnit selector, or nil plus an optional abort reason.
 local test_selector_resolver = {
     [task.test_type.ALL_TESTS] = function()
         local module_path = java_util.get_buffer_project_path()
@@ -167,6 +172,9 @@ local test_selector_resolver = {
                 return "--select-class=" .. impls[1]
             end
             local picked_impl = nio_util.select(impls, "Select implementation to run")
+            if picked_impl == nil then
+                return nil, PICK_CANCELLED
+            end
             return "--select-class=" .. picked_impl
         end
         vim.notify("No any implementations found for: " .. current_class_fqn)
@@ -199,6 +207,9 @@ local test_selector_resolver = {
                 return "--select-method=" .. impls[1] .. "#" .. method_signature
             end
             local picked_impl = nio_util.select(impls, "Select implementation to run")
+            if picked_impl == nil then
+                return nil, PICK_CANCELLED
+            end
             return "--select-method=" .. picked_impl .. "#" .. method_signature
         end
         vim.notify("No any implementations found for: " .. current_class_fqn)
@@ -396,8 +407,12 @@ function build_junit_tests_cmd(context)
         vim.notify("Unsupported junit test type: " .. tostring(type), vim.log.levels.WARN)
         return { cmd = { "echo", "Unsupported junit test type: " .. tostring(type) } }
     end
-    local test_selector = resolver(context)
+    local test_selector, abort_reason = resolver(context)
     if test_selector == nil then
+        if abort_reason == PICK_CANCELLED then
+            vim.notify("junit: no implementation selected, test run cancelled", vim.log.levels.INFO)
+            return { cmd = { "echo", PICK_CANCELLED } }
+        end
         return { cmd = { "echo", "Wrong test selector context!" } }
     end
 

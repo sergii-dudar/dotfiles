@@ -18,6 +18,16 @@ local resolve_report_dir = function()
     return nil
 end
 
+--- Every runner signals "nothing to run" (cancelled picker, unresolved context, missing
+--- tool) with `{ cmd = { "echo", "<reason>" } }`. Such a task must not carry the report
+--- component: it would delete the previous run's reports on start and then warn about
+--- "no results" for a run that never happened.
+---@param cmd string|string[]
+---@return boolean
+local function is_abort_cmd(cmd)
+    return type(cmd) == "table" and cmd[1] == "echo"
+end
+
 ---@param params { context: task.lang.Context }
 ---@return task.lang.test.TestCmd
 local resolve_type_test_cmd = function(params)
@@ -41,7 +51,9 @@ function M.build_taks()
             local report_dir = test_cmd.report_dir or resolve_report_dir()
             local components = { "on_exit_set_status" }
             local report_component = report_component_for(vim.bo.filetype)
-            if report_dir and report_component then
+            if is_abort_cmd(result_cmd) then
+                -- Nothing ran: no report to parse, and nothing to clear or diagnose.
+            elseif report_dir and report_component then
                 table.insert(components, 1, {
                     report_component,
                     report_dir = report_dir,
@@ -79,7 +91,9 @@ function M.build_debug_taks()
                 { "debug.dap_ctrl_component", filetype = vim.bo.filetype },
             }
             local report_component = report_component_for(vim.bo.filetype)
-            if report_dir and report_component then
+            if is_abort_cmd(result_cmd) then
+                -- Nothing ran: no report to parse, and nothing to clear or diagnose.
+            elseif report_dir and report_component then
                 table.insert(components, 1, {
                     report_component,
                     report_dir = report_dir,

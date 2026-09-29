@@ -274,6 +274,10 @@ method of the same name share one line (last treesitter capture wins).
 `overseer-task-util.stop_all_prev_tasks()` disposes previous tasks before a new run; with
 `clear()` here, accumulated state would be lost on every rerun.
 
+A runner that has nothing to run (dismissed picker, unresolved context, missing tool) returns
+`{ cmd = { "echo", "<reason>" } }`; `plugins/overseer/tasks/run_tests.lua` attaches **no
+report component** to such a task, so it neither clears the previous reports nor parses them.
+
 ---
 
 ## Call flow

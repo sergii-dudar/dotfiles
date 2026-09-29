@@ -7,7 +7,8 @@
 ---@field is_debug boolean|nil
 
 ---@class task.lang.test.TestCmd
----@field cmd string|string[]
+---@field cmd string|string[]  `{ "echo", "<reason>" }` means "nothing to run": the task builders then
+---                            attach no report component (no report clearing, no parsing).
 ---@field report_dir? string|string[]
 ---@field cwd? string
 
