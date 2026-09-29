@@ -53,6 +53,9 @@ local signed_buffers = {}
 -- Accumulated state (merged across runs)
 local last_results = {} -- { [container_id#member] = TestResult }
 local last_positions = {} -- { [file_path] = { [member_name] = 0-indexed line } }
+-- { [file_path] = { ["<container display>#<member>"] = 0-indexed line } }: adapters that can
+-- tell same-named members of different containers in one file apart (Java @Nested) fill it.
+local last_qualified_positions = {}
 local last_container_files = {} -- { [container_id] = file_path }
 local last_filetype = nil -- filetype used to process results
 local output_bufnr = nil -- scratch buffer for test output
@@ -62,6 +65,42 @@ local output_method = nil -- key currently shown in output buffer (file#member)
 ---@return string|nil container_id, string|nil member
 local function split_id(id)
     return id:match("^(.+)#(.+)$")
+end
+
+--- Line of `member` in `container_id`: the container-qualified position when the adapter
+--- provides one, else the bare member position.
+---@param adapter test_report.LangAdapter
+---@param qualified table<string, number>
+---@param positions table<string, number>
+---@param container_id string
+---@param member string
+---@return number|nil
+local function member_line(adapter, qualified, positions, container_id, member)
+    local display = adapter.id_to_display(container_id .. "#" .. member)
+    local line = display and display.container and qualified[display.container .. "#" .. member]
+    if line ~= nil then
+        return line
+    end
+    return positions[member]
+end
+
+--- Called by the Overseer components before the test process spawns: lets the adapter drop
+--- the previous run's report files, so a run that dies before writing its own is reported
+--- as "no results" instead of the stale ones. Adapters without `clear_reports` are left alone.
+---@param report_dir string|string[]
+---@param filetype string
+function M.prepare_run(report_dir, filetype)
+    local adapter = registry.get(filetype)
+    if not adapter or not adapter.clear_reports then
+        return
+    end
+    local dirs = type(report_dir) == "table" and report_dir or { report_dir }
+    local ok, err = pcall(adapter.clear_reports, dirs)
+    if not ok then
+        log.error("clear_reports failed: " .. tostring(err))
+    else
+        log.info("prepare_run: cleared previous reports in " .. vim.inspect(dirs))
+    end
 end
 
 ---@param report_dir string|string[]
@@ -198,13 +237,18 @@ function M.process(report_dir, filetype)
                 local silent = not (config.load_buffers or (config.load_only_buffers_with_error and file_has_failure))
 
                 -- One treesitter pass per file (not per container).
-                local test_positions, container_line = adapter.find_test_positions(file_path, { silent = silent })
+                local test_positions, container_line, qualified_positions =
+                    adapter.find_test_positions(file_path, { silent = silent })
+                qualified_positions = qualified_positions or {}
                 last_positions[file_path] = test_positions
+                last_qualified_positions[file_path] = qualified_positions
 
-                local bufnr = vim.fn.bufnr(file_path)
-                if bufnr == -1 then
-                    log.error("buffer not found for: " .. file_path)
-                    vim.notify("test-report: buffer not found for: " .. file_path, vim.log.levels.ERROR)
+                -- bufadd() returns the buffer the adapter loaded (exact name, no pattern
+                -- matching like bufnr(name) does).
+                local bufnr = vim.fn.bufadd(file_path)
+                if not vim.api.nvim_buf_is_loaded(bufnr) then
+                    log.error("buffer not loaded for: " .. file_path)
+                    vim.notify("test-report: buffer not loaded for: " .. file_path, vim.log.levels.ERROR)
                     goto continue
                 end
 
@@ -212,14 +256,31 @@ function M.process(report_dir, filetype)
                 vim.diagnostic.reset(ns_diag, bufnr)
 
                 local line_count = vim.api.nvim_buf_line_count(bufnr)
-                local has_failure = false
+                -- The file-level sign reflects every result of the file, positioned or not
+                -- (a failing test inherited from a base class has no line here but still fails
+                -- this class).
+                local has_failure = file_has_failure
                 local diagnostics = {}
 
                 for container_id, members in pairs(containers) do
                     for member_name, result in pairs(members) do
-                        local line = test_positions[member_name]
+                        local line =
+                            member_line(adapter, qualified_positions, test_positions, container_id, member_name)
                         if line == nil then
                             log.warn("no treesitter position for member: " .. container_id .. "#" .. member_name)
+                            -- Not declared in this file (inherited from a base class): keep the
+                            -- failure visible by anchoring its diagnostics to the class line.
+                            if result.status == "failed" and result.errors then
+                                for _, e in ipairs(result.errors) do
+                                    diagnostics[#diagnostics + 1] = {
+                                        lnum = container_line or 0,
+                                        col = 0,
+                                        message = member_name .. ": " .. e.message,
+                                        severity = vim.diagnostic.severity.ERROR,
+                                        source = adapter.diagnostic_source,
+                                    }
+                                end
+                            end
                             goto next_member
                         end
 
@@ -391,6 +452,7 @@ function M.clear()
     vim.diagnostic.reset(ns_diag)
     last_results = {}
     last_positions = {}
+    last_qualified_positions = {}
     last_container_files = {}
     last_filetype = nil
     for _, adapter in pairs(loaded_adapters) do
@@ -440,44 +502,57 @@ local function close_output_win()
     return false
 end
 
+--- Closest test declared at or above `cursor_line`. Prefers the container-qualified
+--- positions (unambiguous across @Nested classes) and falls back to the bare ones.
+---@return string|nil member, string|nil container_display
 local function find_member_at_cursor(file_path, cursor_line)
-    local positions = last_positions[file_path]
-    if not positions then
-        return nil
+    local best_member, best_container, best_line = nil, nil, -1
+    for key, line in pairs(last_qualified_positions[file_path] or {}) do
+        if line <= cursor_line and line > best_line then
+            local container_display, member = split_id(key)
+            if member then
+                best_member, best_container, best_line = member, container_display, line
+            end
+        end
     end
-    local best_member, best_line = nil, -1
-    for member, line in pairs(positions) do
+    if best_member then
+        return best_member, best_container
+    end
+    for member, line in pairs(last_positions[file_path] or {}) do
         if line <= cursor_line and line > best_line then
             best_member = member
             best_line = line
         end
     end
-    return best_member
+    return best_member, nil
 end
 
-local function find_container_id_for_file(file_path)
+--- All containers whose source is `file_path` (several for a file with @Nested classes).
+---@return string[]
+local function find_container_ids_for_file(file_path)
+    local ids = {}
     for container_id, path in pairs(last_container_files) do
         if path == file_path then
-            return container_id
+            ids[#ids + 1] = container_id
         end
     end
-    return nil
+    table.sort(ids)
+    return ids
 end
 
-local function find_result_for_member(file_path, member_name)
-    -- Precise lookup: resolve container_id from file, then use full key
-    local container_id = find_container_id_for_file(file_path)
-    if container_id then
-        local key = container_id .. "#" .. member_name
-        if last_results[key] then
-            return last_results[key]
-        end
-    end
-    -- Fallback: match by member name only
-    for id, r in pairs(last_results) do
-        local _, member = split_id(id)
-        if member == member_name then
-            return r
+--- Result for `member_name` among the containers hosted by `file_path`; `container_display`
+--- (from a qualified position) pins the exact container. Deliberately no project-wide
+--- fallback by bare member name: "shouldReturnNull" exists in many classes and showing
+--- another class's output is worse than showing none.
+---@return test_report.TestResult|nil
+local function find_result_for_member(file_path, member_name, container_display)
+    local adapter = last_filetype and registry.get(last_filetype)
+    for _, container_id in ipairs(find_container_ids_for_file(file_path)) do
+        local id = container_id .. "#" .. member_name
+        local matches_container = container_display == nil
+            or (adapter ~= nil and adapter.id_to_display(id).container == container_display)
+        if matches_container and last_results[id] then
+            return last_results[id]
         end
     end
     return nil
@@ -556,7 +631,7 @@ function M.show_test_output()
     local file_path = vim.api.nvim_buf_get_name(0)
     local cursor_line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-indexed
 
-    local best_member = find_member_at_cursor(file_path, cursor_line)
+    local best_member, best_container = find_member_at_cursor(file_path, cursor_line)
 
     local output_key = file_path .. "#" .. (best_member or "")
     if close_output_win() and output_method == output_key then
@@ -573,7 +648,7 @@ function M.show_test_output()
         return
     end
 
-    local result = find_result_for_member(file_path, best_member)
+    local result = find_result_for_member(file_path, best_member, best_container)
     if not result then
         vim.notify("test-report: no output for " .. best_member, vim.log.levels.WARN)
         return
@@ -606,6 +681,7 @@ function M.get_report_snapshot()
     return {
         results = last_results,
         positions = last_positions,
+        qualified_positions = last_qualified_positions,
         container_files = last_container_files,
         filetype = last_filetype,
     }

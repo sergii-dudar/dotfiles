@@ -28,18 +28,43 @@ local byte_buddy_agent_jar = vim.fn.glob(byte_buddy_agent_dir .. "/*/byte-buddy-
 -- glob returns sorted, last entry is latest version
 byte_buddy_agent_jar = byte_buddy_agent_jar[#byte_buddy_agent_jar]
 
+local jmockit_jar = string.format("%s/tools/java-extensions/jmockit/jmockit.jar", home)
+local install_launcher_hint = "run ~/dotfiles/scripts/java/install_junit_console_launcher.sh"
+
 local setting = {
-    junit_jar = vim.fn.glob("$HOME/tools/java-extensions/junit/junit-platform-console-standalone.jar"),
+    -- Existence is checked per build (see build_junit_tests_cmd), not globbed at load: a jar
+    -- installed later in the session is picked up, and a missing one gets a clear message
+    -- instead of the JVM's "Error: Unable to access jarfile".
+    junit_jar = string.format("%s/tools/java-extensions/junit/junit-platform-console-standalone.jar", home),
     jvm_args = {
         "--enable-native-access=ALL-UNNAMED",
         "-Dspring.output.ansi.enabled=NEVER",
         -- "-Djavax.net.ssl.trustStore=~/serhii.home/tools/kafka-keys-new/*.jks",
         -- "-Djavax.net.ssl.trustStorePassword=secret",
-        string.format("-javaagent:%s/tools/java-extensions/jmockit/jmockit.jar", home),
     },
 }
-if byte_buddy_agent_jar then
-    table.insert(setting.jvm_args, "-javaagent:" .. byte_buddy_agent_jar)
+
+local warned_missing_jmockit = false
+
+--- Java agents, resolved per build. A missing agent jar makes the JVM refuse to start
+--- ("Error opening zip file or JAR manifest missing"), so JMockit is skipped with a one-time
+--- warning when absent, like byte-buddy-agent already is. Order matters: JMockit first.
+---@return string[]
+local function agent_args()
+    local args = {}
+    if vim.fn.filereadable(jmockit_jar) == 1 then
+        table.insert(args, "-javaagent:" .. jmockit_jar)
+    elseif not warned_missing_jmockit then
+        warned_missing_jmockit = true
+        vim.notify(
+            "junit: jmockit.jar not found at " .. jmockit_jar .. "; running tests without the JMockit agent",
+            vim.log.levels.WARN
+        )
+    end
+    if byte_buddy_agent_jar then
+        table.insert(args, "-javaagent:" .. byte_buddy_agent_jar)
+    end
+    return args
 end
 
 ---@param module_path string
@@ -211,6 +236,7 @@ local function build_single_module_cmd(opts)
         java_util.java_bin,
         debug_param,
         setting.jvm_args,
+        agent_args(),
         "-jar",
         setting.junit_jar,
         "execute",
@@ -300,6 +326,12 @@ function build_junit_tests_cmd(context)
     local type = context.test_type
     local is_debug = context.is_debug
     has_test_classes_cache = {}
+
+    if vim.fn.filereadable(setting.junit_jar) == 0 then
+        local msg = "JUnit console launcher not found at " .. setting.junit_jar .. " (" .. install_launcher_hint .. ")"
+        vim.notify(msg, vim.log.levels.ERROR)
+        return { cmd = { "echo", msg } }
+    end
 
     if type == task.test_type.ALL_MODULES_TESTS or type == task.test_type.SELECTED_MODULES_TESTS then
         local modules = jdtls_classpath.get_all_project_modules()

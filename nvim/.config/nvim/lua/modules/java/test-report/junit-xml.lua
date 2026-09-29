@@ -67,6 +67,23 @@ function M.parse_file(filepath)
     return results
 end
 
+--- Delete the report files of a previous run so a run that dies before writing its own
+--- (JVM crash, OOM) cannot be mistaken for fresh results.
+---@param report_dir string
+---@return integer deleted
+function M.clear_report_files(report_dir)
+    local deleted = 0
+    for _, filepath in ipairs(vim.fn.glob(report_dir .. "/TEST-*.xml", false, true)) do
+        if vim.fn.delete(filepath) == 0 then
+            deleted = deleted + 1
+        else
+            log.warn("could not delete stale report: " .. filepath)
+        end
+    end
+    log.debug("clear_report_files: " .. report_dir .. " deleted=" .. deleted)
+    return deleted
+end
+
 ---@param report_dir string
 ---@return table<string, test_report.TestResult>
 function M.parse_report_dir(report_dir)
@@ -131,11 +148,15 @@ function M._process_testsuite(testsuite, results)
                 time = time,
             }
 
-            -- Merge parameterized invocations into a single result
+            -- Merge parameterized invocations into a single result. Aggregate status is
+            -- failed > passed > skipped: one failing invocation fails the test, and a test
+            -- with a skipped invocation (assumption) but a passing one is passed, not skipped.
             local existing = results[id]
             if existing then
                 if status == "failed" then
                     existing.status = "failed"
+                elseif status == "passed" and existing.status == "skipped" then
+                    existing.status = "passed"
                 end
                 if errors then
                     existing.errors = existing.errors or {}

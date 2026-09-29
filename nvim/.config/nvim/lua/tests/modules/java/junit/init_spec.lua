@@ -34,6 +34,13 @@ describe("modules.java.junit", function()
             end
             return "/sdk/java/current"
         end
+        -- The launcher jar and the JMockit agent are checked per build; both present by default.
+        vim.fn.filereadable = function(path)
+            if path:match("junit%-platform%-console%-standalone%.jar$") or path:match("jmockit%.jar$") then
+                return 1
+            end
+            return 0
+        end
 
         helper.stub_module("utils.java.java-common", {
             java_bin = "/sdk/java/current/bin/java",
@@ -218,5 +225,62 @@ describe("modules.java.junit", function()
 
         -- then
         assert.are.same({ "echo", "Could not resolve test classpath from jdtls" }, result.cmd)
+    end)
+
+    it("loads the JMockit agent before byte-buddy when the jar is present", function()
+        -- given
+        local context = { test_type = task.test_type.ALL_TESTS }
+
+        -- when
+        local result = junit.build_run_test_cmd(context)
+
+        -- then
+        local agents = vim.tbl_filter(function(arg)
+            return arg:match("^%-javaagent:") ~= nil
+        end, result.cmd)
+        assert.are.equal(1, #agents)
+        assert.is_truthy(agents[1]:match("jmockit%.jar$"))
+    end)
+
+    it("runs without the JMockit agent and warns once when its jar is missing", function()
+        -- given
+        vim.fn.filereadable = function(path)
+            return path:match("junit%-platform%-console%-standalone%.jar$") and 1 or 0
+        end
+        local context = { test_type = task.test_type.ALL_TESTS }
+
+        -- when
+        local first = junit.build_run_test_cmd(context)
+        local second = junit.build_run_test_cmd(context)
+
+        -- then
+        for _, result in ipairs({ first, second }) do
+            assert.is_true(vim.tbl_contains(result.cmd, "-jar"))
+            for _, arg in ipairs(result.cmd) do
+                assert.is_nil(arg:match("jmockit"))
+            end
+        end
+        local warnings = vim.tbl_filter(function(n)
+            return n.message:match("jmockit%.jar not found") ~= nil
+        end, vim._test_state.notifications)
+        assert.are.equal(1, #warnings)
+    end)
+
+    it("returns an echo command with an install hint when the console launcher jar is missing", function()
+        -- given
+        vim.fn.filereadable = function()
+            return 0
+        end
+        local context = { test_type = task.test_type.ALL_TESTS }
+
+        -- when
+        local result = junit.build_run_test_cmd(context)
+
+        -- then
+        assert.are.equal("echo", result.cmd[1])
+        assert.is_truthy(
+            result.cmd[2]:match("^JUnit console launcher not found at .*junit%-platform%-console%-standalone%.jar")
+        )
+        assert.is_truthy(result.cmd[2]:match("install_junit_console_launcher%.sh"))
     end)
 end)

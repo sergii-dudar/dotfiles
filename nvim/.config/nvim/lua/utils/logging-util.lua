@@ -54,6 +54,10 @@ local config = {
     level = vim.log.levels.INFO,
     use_console = false,
     use_file = true,
+    -- A log file larger than this when a logger is created is rotated to "<file>.1"
+    -- (replacing the previous .1). Several loggers may share one file; the first one
+    -- created in a session rotates it, the others then see a small file.
+    max_file_size = 2 * 1024 * 1024,
 }
 
 -- Cache for loggers
@@ -83,6 +87,21 @@ local function write_to_file(filepath, msg)
     end
 end
 
+--- Rotate `filepath` to `filepath .. ".1"` when it exceeds `max_size` bytes.
+---@param filepath string
+---@param max_size integer
+local function rotate_if_large(filepath, max_size)
+    local stat = vim.uv.fs_stat(filepath)
+    if not stat or stat.type ~= "file" or stat.size <= max_size then
+        return
+    end
+    local ok, err = os.rename(filepath, filepath .. ".1")
+    if not ok then
+        -- Never let logging break the caller; a notify here would loop on every logger.
+        io.stderr:write(("logging-util: could not rotate %s: %s\n"):format(filepath, tostring(err)))
+    end
+end
+
 --- Create a logger for a specific module/component.
 function M.new(opts)
     opts = opts or {}
@@ -97,6 +116,9 @@ function M.new(opts)
 
     local log_dir = vim.fn.stdpath("log")
     local log_path = log_dir .. "/" .. filename
+    if config.use_file then
+        rotate_if_large(log_path, opts.max_file_size or config.max_file_size)
+    end
 
     local logger = {
         name = name,

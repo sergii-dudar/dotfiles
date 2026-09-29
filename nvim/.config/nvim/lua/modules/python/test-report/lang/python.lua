@@ -30,6 +30,18 @@ function M.clear_cache()
     junit_xml.clear_cache()
 end
 
+--- Remove the previous run's reports before a new run starts, so a run that dies before
+--- writing its own cannot be mistaken for fresh results. Only the files the parser would
+--- read are removed.
+---@param dirs string[]
+function M.clear_reports(dirs)
+    for _, dir in ipairs(dirs) do
+        for _, filepath in ipairs(junit_xml.list_report_files(dir)) do
+            vim.fn.delete(filepath)
+        end
+    end
+end
+
 ---@param dirs string[]
 ---@return table<string, test_report.TestResult>
 function M.parse_results(dirs)

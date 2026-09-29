@@ -726,6 +726,26 @@ local function member_pos_key(mem)
     return (mem.id and mem.id:match("#(.+)$")) or mem.name
 end
 
+--- 0-indexed line of a member line-info in its container's file: the container-qualified
+--- position when the adapter provides one (unambiguous across @Nested classes), else the
+--- bare one. Nil when the member is not declared in that file (inherited test).
+---@param info report_view.LineInfo
+---@return number|nil
+local function member_line(info)
+    local file_path = info.container_node and info.container_node.file_path
+    local key = info.node and member_pos_key(info.node)
+    if not file_path or not key or not state.snapshot then
+        return nil
+    end
+    local qualified = state.snapshot.qualified_positions and state.snapshot.qualified_positions[file_path]
+    local line = qualified and qualified[info.container_node.name .. "#" .. key]
+    if line == nil then
+        local positions = state.snapshot.positions and state.snapshot.positions[file_path]
+        line = positions and positions[key]
+    end
+    return line
+end
+
 local function action_goto()
     local info = get_cursor_node()
     if not info then
@@ -735,12 +755,7 @@ local function action_goto()
     local file_path, line
     if info.type == "member" then
         file_path = info.container_node.file_path
-        if file_path and state.snapshot.positions then
-            local positions = state.snapshot.positions[file_path]
-            if positions then
-                line = positions[member_pos_key(info.node)]
-            end
-        end
+        line = member_line(info)
     elseif info.type == "container" then
         file_path = info.node.file_path
     elseif info.type == "group" then
@@ -805,31 +820,10 @@ local function action_rerun(is_debug)
         return
     end
 
-    if info.type == "member" then
-        local file_path = info.container_node.file_path
-        if not file_path then
-            vim.notify("test-report: cannot resolve file for rerun", vim.log.levels.WARN)
-            return
-        end
-        vim.api.nvim_set_current_win(win)
-        vim.cmd("edit " .. vim.fn.fnameescape(file_path))
-        if state.snapshot.positions then
-            local positions = state.snapshot.positions[file_path]
-            local pos_key = member_pos_key(info.node)
-            if positions and pos_key and positions[pos_key] then
-                vim.api.nvim_win_set_cursor(0, { positions[pos_key] + 1, 0 })
-            end
-        end
-        nio_util.run(function()
-            require("plugins.overseer.overseer-util").run_test({
-                test_type = task.test_type.CURRENT_TEST,
-                is_debug = is_debug,
-            })
-        end)
-        state.running = { [info.node.id] = true }
-        refresh()
-    elseif info.type == "container" then
-        local file_path = info.node.file_path
+    --- Rerun every test of a container (FILE_TESTS on its source file).
+    ---@param container report_view.ContainerNode
+    local function rerun_container(container)
+        local file_path = container.file_path
         if not file_path then
             vim.notify("test-report: cannot resolve file for rerun", vim.log.levels.WARN)
             return
@@ -843,11 +837,43 @@ local function action_rerun(is_debug)
             })
         end)
         local ids = {}
-        for _, mem in ipairs(info.node.members) do
+        for _, mem in ipairs(container.members) do
             ids[mem.id] = true
         end
         state.running = ids
         refresh()
+    end
+
+    if info.type == "member" then
+        local file_path = info.container_node.file_path
+        if not file_path then
+            vim.notify("test-report: cannot resolve file for rerun", vim.log.levels.WARN)
+            return
+        end
+        local line = member_line(info)
+        if line == nil then
+            -- CURRENT_TEST resolves the test under the cursor, which cannot be placed on a
+            -- method this file does not declare (inherited from a base class): run the class.
+            vim.notify(
+                "test-report: " .. info.node.name .. " is not declared in this file, rerunning the whole class",
+                vim.log.levels.INFO
+            )
+            rerun_container(info.container_node)
+            return
+        end
+        vim.api.nvim_set_current_win(win)
+        vim.cmd("edit " .. vim.fn.fnameescape(file_path))
+        vim.api.nvim_win_set_cursor(0, { line + 1, 0 })
+        nio_util.run(function()
+            require("plugins.overseer.overseer-util").run_test({
+                test_type = task.test_type.CURRENT_TEST,
+                is_debug = is_debug,
+            })
+        end)
+        state.running = { [info.node.id] = true }
+        refresh()
+    elseif info.type == "container" then
+        rerun_container(info.node)
     elseif info.type == "group" then
         if info.node.full_path == "(default)" then
             vim.notify("test-report: the default group has no package to rerun", vim.log.levels.WARN)
@@ -890,6 +916,7 @@ local function action_full_refresh()
     state.snapshot = {
         results = vim.deepcopy(snapshot.results),
         positions = snapshot.positions,
+        qualified_positions = snapshot.qualified_positions or {},
         container_files = vim.deepcopy(snapshot.container_files),
         filetype = snapshot.filetype,
     }
@@ -1049,6 +1076,7 @@ function M.open(snapshot)
     state.snapshot = {
         results = vim.deepcopy(snapshot.results),
         positions = snapshot.positions,
+        qualified_positions = snapshot.qualified_positions or {},
         container_files = vim.deepcopy(snapshot.container_files),
         filetype = snapshot.filetype,
     }
@@ -1201,6 +1229,10 @@ function M.refresh_if_open(snapshot)
     for file_path, positions in pairs(snapshot.positions or {}) do
         state.snapshot.positions[file_path] = positions
     end
+    state.snapshot.qualified_positions = state.snapshot.qualified_positions or {}
+    for file_path, qualified in pairs(snapshot.qualified_positions or {}) do
+        state.snapshot.qualified_positions[file_path] = qualified
+    end
     state.running = nil
     state.tree = rebuild_tree(state.tree, state.snapshot, adapter)
     refresh()
@@ -1227,6 +1259,7 @@ function M.reset_if_open()
     state.snapshot = {
         results = {},
         positions = {},
+        qualified_positions = {},
         container_files = {},
         filetype = state.snapshot and state.snapshot.filetype,
     }

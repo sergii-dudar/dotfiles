@@ -166,6 +166,59 @@ describe("modules.java.test-report.junit-xml", function()
         })
     end)
 
+    it("marks a parameterized test passed when a skipped invocation is followed by a passing one", function()
+        -- given
+        local results = {}
+        local testsuite = {
+            testcase = {
+                {
+                    _attr = { classname = "com.acme.FooTest", name = "sample()[1]", time = "0.1" },
+                    skipped = { _attr = { message = "assumption failed" } },
+                },
+                {
+                    _attr = { classname = "com.acme.FooTest", name = "sample()[2]", time = "0.2" },
+                },
+                {
+                    _attr = { classname = "com.acme.FooTest", name = "sample()[3]", time = "0.1" },
+                    skipped = { _attr = { message = "assumption failed" } },
+                },
+            },
+        }
+
+        -- when
+        junit_xml._process_testsuite(testsuite, results)
+
+        -- then
+        local result = results["com.acme.FooTest#sample"]
+        assert.are.equal("passed", result.status)
+        assert.are.same({ "skipped", "passed", "skipped" }, {
+            result.invocations[1].status,
+            result.invocations[2].status,
+            result.invocations[3].status,
+        })
+    end)
+
+    it("deletes only the TEST-*.xml report files of a directory", function()
+        -- given
+        local deleted = {}
+        vim.fn.glob = function(pattern, _, list)
+            assert.are.equal("/repo/target/junit-report/TEST-*.xml", pattern)
+            assert.is_true(list)
+            return { "/repo/target/junit-report/TEST-junit-jupiter.xml" }
+        end
+        vim.fn.delete = function(path)
+            table.insert(deleted, path)
+            return 0
+        end
+
+        -- when
+        local count = junit_xml.clear_report_files("/repo/target/junit-report")
+
+        -- then
+        assert.are.equal(1, count)
+        assert.are.same({ "/repo/target/junit-report/TEST-junit-jupiter.xml" }, deleted)
+    end)
+
     it("recovers a failure message from stacktrace text when XML attributes are incomplete", function()
         -- given
         local failure = "org.opentest4j.AssertionFailedError: expected: <2> but was: <1>\n"

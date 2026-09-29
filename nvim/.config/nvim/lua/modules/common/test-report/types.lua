@@ -27,7 +27,10 @@
 ---@class test_report.LangAdapter
 ---@field parse_results       fun(dirs: string[]): table<string, test_report.TestResult>
 ---@field id_to_file          fun(container_id: string, report_dir: string): string|nil
----@field find_test_positions fun(file: string, opts?: test_report.FindOpts): table<string, number>, number|nil
+---@field find_test_positions fun(file: string, opts?: test_report.FindOpts): table<string, number>, number|nil, table<string, number>|nil
+---  Returns member -> 0-indexed line, the container declaration line, and optionally
+---  "<id_to_display(id).container>#<member>" -> line, which tells same-named members of different
+---  containers in one file apart (Java @Nested). The core prefers the qualified map when present.
 ---@field extract_error_line  fun(container_id: string, stacktrace: string): number|nil
 ---@field get_test_report_dir fun(): string|string[]
 ---@field id_to_display       fun(id: string): test_report.IdDisplay
@@ -36,10 +39,12 @@
 ---@field trouble_source?     string   Optional Trouble source key (e.g. "junit_diagnostics").
 ---@field display_name?       string   Human label for the tree-view header (e.g. "JUnit"); defaults to the filetype.
 ---@field clear_cache?        fun()
+---@field clear_reports?      fun(dirs: string[]) Delete the previous run's report files (called before a run starts).
 
 ---@class test_report.Snapshot
 ---@field results table<string, test_report.TestResult>
 ---@field positions table<string, table<string, number>>
+---@field qualified_positions? table<string, table<string, number>> file -> "<container>#<member>" -> line
 ---@field container_files table<string, string>
 ---@field filetype string|nil
 

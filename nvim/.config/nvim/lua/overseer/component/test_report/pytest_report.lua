@@ -22,6 +22,13 @@ return {
             "constructor: report_dir=" .. tostring(params.report_dir) .. " filetype=" .. tostring(params.filetype)
         )
         return {
+            -- Before the process spawns: drop the previous run's report files so a run that
+            -- dies before writing its own (crash, OOM) is reported as "no results", not as
+            -- the old results. Must not return false (that would veto the start).
+            on_pre_start = function(self, task)
+                test_report.prepare_run(params.report_dir, params.filetype)
+            end,
+
             on_complete = function(self, task, status)
                 log.debug("on_complete: status=" .. tostring(status) .. " report_dir=" .. tostring(params.report_dir))
                 if status == require("overseer").STATUS.CANCELED then

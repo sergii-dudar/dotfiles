@@ -215,6 +215,14 @@ function M.clear_cache()
     _test_query = nil
 end
 
+--- Remove the previous run's reports before a new run starts (see junit_xml.clear_report_files).
+---@param dirs string[]
+function M.clear_reports(dirs)
+    for _, dir in ipairs(dirs) do
+        junit_xml.clear_report_files(dir)
+    end
+end
+
 --- Resolve a container_id (fully-qualified Java class name) to a source file path.
 ---@param classname string Fully-qualified Java class name (e.g., "com.example.MyTest")
 ---@param report_dir string Path to report directory (used to derive project root)
@@ -240,12 +248,41 @@ function M.id_to_file(classname, report_dir)
     return nil
 end
 
+local CLASS_LIKE = {
+    class_declaration = true,
+    interface_declaration = true,
+    record_declaration = true,
+    enum_declaration = true,
+}
+
+--- Enclosing class chain of `node`, outermost first, joined with "$" exactly as JUnit
+--- names nested classes in the report ("OuterTest$Inner"), i.e. the container display name.
+---@param node TSNode
+---@param bufnr integer
+---@return string
+local function enclosing_class_chain(node, bufnr)
+    local names = {}
+    local cur = node:parent()
+    while cur do
+        if CLASS_LIKE[cur:type()] then
+            local name_node = cur:field("name")[1]
+            if name_node then
+                table.insert(names, 1, vim.treesitter.get_node_text(name_node, bufnr))
+            end
+        end
+        cur = cur:parent()
+    end
+    return table.concat(names, "$")
+end
+
 ---@param file_path string
 ---@param opts? test_report.FindOpts
----@return table<string, number> method_name -> 0-indexed line number
----@return number|nil class_line 0-indexed line of class declaration
+---@return table<string, number> positions method_name -> 0-indexed line (last declaration wins on duplicates)
+---@return number|nil class_line 0-indexed line of the outermost class declaration
+---@return table<string, number> qualified "Outer$Inner#method" -> 0-indexed line; unambiguous across @Nested classes
 function M.find_test_positions(file_path, opts)
     local positions = {}
+    local qualified = {}
     local class_line
     local silent = not opts or opts.silent ~= false
 
@@ -265,12 +302,12 @@ function M.find_test_positions(file_path, opts)
     if not ok or not parser then
         log.error("treesitter parser failed for bufnr=" .. bufnr .. " err=" .. tostring(parser))
         vim.notify("test-report: treesitter parser failed for " .. file_path, vim.log.levels.ERROR)
-        return positions, class_line
+        return positions, class_line, qualified
     end
 
     local tree = parser:parse()[1]
     if not tree then
-        return positions, class_line
+        return positions, class_line, qualified
     end
 
     local query = test_query()
@@ -284,11 +321,14 @@ function M.find_test_positions(file_path, opts)
                 class_line = row
             end
         elseif capture == "test.name" then
-            positions[vim.treesitter.get_node_text(node, bufnr)] = node:range()
+            local name = vim.treesitter.get_node_text(node, bufnr)
+            local row = node:range()
+            positions[name] = row
+            qualified[enclosing_class_chain(node, bufnr) .. "#" .. name] = row
         end
     end
 
-    return positions, class_line
+    return positions, class_line, qualified
 end
 
 ---@param classname string

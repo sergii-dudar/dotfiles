@@ -58,7 +58,8 @@ lua/lib/xml/                                   — XML parser used by all XML-ba
 ---@class test_report.LangAdapter
 ---@field parse_results       fun(dirs: string[]): table<string, TestResult>
 ---@field id_to_file          fun(container_id: string, report_dir: string): string|nil
----@field find_test_positions fun(file: string, opts?: FindOpts): table<string, number>, number|nil
+---@field find_test_positions fun(file: string, opts?: FindOpts): table<string, number>, number|nil, table<string, number>|nil
+---                          -- member -> line, container line, optional "<container display>#<member>" -> line
 ---@field extract_error_line  fun(container_id: string, stacktrace: string): number|nil
 ---@field get_test_report_dir fun(): string|string[]
 ---@field id_to_display       fun(id: string): { container: string, member: string, group?: string }
@@ -67,9 +68,11 @@ lua/lib/xml/                                   — XML parser used by all XML-ba
 ---@field trouble_source?     string    -- e.g. "junit_diagnostics"
 ---@field display_name?       string    -- tree-view header label ("JUnit")
 ---@field clear_cache?        fun()
+---@field clear_reports?      fun(dirs: string[])   -- delete the previous run's report files (pre-start)
 
 ---@class test_report.Snapshot   -- what the tree view consumes
 ---@field results table<string, TestResult>          -- accumulated, keyed "container#member"
+---@field qualified_positions? table<string, table<string, number>>  -- file -> "<container>#<member>" -> line
 ---@field positions table<string, table<string, number>>  -- file -> member key -> 0-based line
 ---@field container_files table<string, string>      -- container_id -> abs file path
 ---@field filetype string|nil
@@ -91,6 +94,7 @@ result is `failed` if any invocation failed. Nested classes keep the `$`:
 | `process_generation` | Monotonic counter; an in-flight `process()` aborts if a newer one started |
 | `last_results` | **Accumulated** results across runs (`{ [id] = TestResult }`) |
 | `last_positions` | `{ [file_path] = { [member_key] = 0-based line } }` from treesitter |
+| `last_qualified_positions` | `{ [file_path] = { ["<container display>#<member>"] = line } }` — Java fills it from the enclosing-class chain (`OuterTest$A#same`), so same-named methods of different `@Nested` classes get their own line; preferred over `last_positions` everywhere |
 | `last_container_files` | `{ [container_id] = abs file }` |
 | `last_filetype` | Filetype of the last processed run (adapter lookup) |
 | `signed_buffers` | Buffers holding our sign extmarks (for cleanup) |
@@ -111,9 +115,13 @@ result is `failed` if any invocation failed. Nested classes keep the `$`:
    one container must not erase its siblings' marks. Grouping by container (the previous
    design) cleared the whole buffer once per container, so only the last one survived.
 5. Per file: `find_test_positions` once, clear signs + diagnostics once, re-place every
-   member of every container, then one file-level sign on the outermost class line
-   (failed if any member failed). Error lines from stacktraces are clamped to the buffer;
-   outside → the method line.
+   member of every container (qualified position first, bare member second), then one
+   file-level sign on the outermost class line — failed if **any result of the file** failed,
+   positioned or not. Error lines from stacktraces are clamped to the buffer; outside → the
+   method line. A failed member with **no position** (test inherited from an abstract base
+   class, so not declared in this file) still gets its diagnostics, anchored to the class
+   line with the member name prefixed — otherwise the failure would be invisible in the
+   source and in Trouble.
 6. Close the Overseer output, open Trouble if **any accumulated** result failed, stop the
    spinner with the current run's counts, `report-view.refresh_if_open(snapshot)`.
 
@@ -142,6 +150,11 @@ rerun started from the view.
 JUnit metadata block, stdout, stderr, stacktrace, into a scratch split
 (`utils.buffer-util.open_scratch_split`). Calling `show_test_output()` again for the test
 already shown toggles the split closed.
+
+The cursor lookup prefers `last_qualified_positions` (exact container) and resolves the
+result only among the **containers hosted by that file**. There is deliberately no
+project-wide fallback by bare method name: `shouldReturnNull` exists in many classes and
+showing another class's output is worse than "no output".
 
 ---
 
@@ -254,6 +267,7 @@ method of the same name share one line (last treesitter capture wins).
 
 | Hook | Action |
 |---|---|
+| `on_pre_start` | `prepare_run(report_dir, filetype)` → `adapter.clear_reports(dirs)` when the adapter has it (java/python/bash delete the files their parser would read). Fires before the process spawns, so a run that dies before writing its own reports (JVM crash, OOM) ends as "No results from parser", not as the previous run's results. Must not return `false` (vetoes the start). |
 | `on_complete(status)` | `CANCELED` → `cancel()` and return (stale XML must not be shown as fresh); otherwise `vim.schedule(process(report_dir, filetype))` |
 | `on_reset` / `on_dispose` | `cancel()` — never `clear()` |
 
@@ -303,7 +317,14 @@ keymap / tree-view rerun
 3. **Snapshot ownership** — the view merges incrementally; `clear()` must call
    `reset_if_open()` or a clear+process shows the union of stale and fresh results.
 4. **Positions are keyed by the id's member part**, not the display name (jest uses `L<row>`);
-   goto/rerun/output in the view resolve through `member_pos_key()`.
+   goto/rerun/output in the view resolve through `member_pos_key()`, qualified map first
+   (`member_line(info)`). A member without any position (inherited test) makes `r` rerun
+   the whole class instead of `CURRENT_TEST` on whatever is under the cursor.
 5. **Nerd-font icons** are codepoints via `nr2char`; don't paste glyph literals.
 6. **`_G.task`** (`plugins/overseer/init.lua`) holds the `test_type` enum used by reruns.
 7. StyLua: `~/.local/share/nvim/mason/packages/stylua/stylua` with the repo `stylua.toml`.
+8. **`utils.ui.spinner` animates per notification id** (default id `"spinner"` for callers
+   that pass none); `stop`/`cancel` only touch their own id, so the test-report spinner and
+   e.g. the MapStruct server spinner never stop or hijack each other.
+9. **`utils.logging-util` rotates a log file above 2 MB** to `<file>.1` when a logger is
+   created; four loggers share `test-report.log` at DEBUG.

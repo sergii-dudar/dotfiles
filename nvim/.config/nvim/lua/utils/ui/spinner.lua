@@ -27,15 +27,25 @@ local spinner_frames = { "⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","
 -- Animation state: self-managed timer avoids Snacks.notifier `opts = function()`
 -- re-render-every-tick path that causes nvim__redraw({ flush = true }) every 50ms
 -- and disrupts Neovim's typeahead/keymap state machine (e.g., leader key).
-local anim_timer = nil
-local anim_frame = 0
-local anim_id = nil
-local anim_msg = nil
-local anim_title = nil
+--
+-- One animation per notification id, so concurrent spinners (e.g. the MapStruct server
+-- start and a test report) neither share a timer nor stop/hijack each other. Callers that
+-- pass no id share the default id, exactly as before.
+local DEFAULT_ID = "spinner"
 
-local function next_icon()
-    anim_frame = (anim_frame % #spinner_frames) + 1
-    return spinner_frames[anim_frame]
+---@class spinner.Anim
+---@field timer uv.uv_timer_t|nil
+---@field frame integer
+---@field msg string
+---@field title string
+
+---@type table<string, spinner.Anim>
+local anims = {}
+
+---@param anim spinner.Anim
+local function next_icon(anim)
+    anim.frame = (anim.frame % #spinner_frames) + 1
+    return spinner_frames[anim.frame]
 end
 
 -- Highlight for the optional dim tail of a stop message (e.g. " in 1.23s"): Comment's
@@ -69,11 +79,17 @@ local function dim_tail_style(tail)
     end
 end
 
-local function stop_animation()
-    if anim_timer then
-        anim_timer:stop()
-        anim_timer:close()
-        anim_timer = nil
+---@param id string
+local function stop_animation(id)
+    local anim = anims[id]
+    if not anim then
+        return
+    end
+    anims[id] = nil
+    if anim.timer then
+        anim.timer:stop()
+        anim.timer:close()
+        anim.timer = nil
     end
 end
 
@@ -81,31 +97,31 @@ end
 ---@param opts? { id?: string, title?: string }
 function M.start(msg, opts)
     opts = opts or {}
-    anim_id = opts.id or "spinner"
-    anim_title = opts.title or ""
-    anim_msg = msg
+    local id = opts.id or DEFAULT_ID
+    stop_animation(id)
+    local anim = { timer = nil, frame = 0, msg = msg, title = opts.title or "" }
+    anims[id] = anim
 
     Snacks.notifier.notify(msg, "info", {
-        id = anim_id,
-        title = anim_title,
+        id = id,
+        title = anim.title,
         timeout = false,
-        icon = next_icon(),
+        icon = next_icon(anim),
     })
 
-    stop_animation()
-    anim_timer = vim.uv.new_timer()
-    anim_timer:start(
+    anim.timer = vim.uv.new_timer()
+    anim.timer:start(
         200,
         200,
         vim.schedule_wrap(function()
-            if not anim_timer then
+            if anims[id] ~= anim then
                 return
             end
-            Snacks.notifier.notify(anim_msg, "info", {
-                id = anim_id,
-                title = anim_title,
+            Snacks.notifier.notify(anim.msg, "info", {
+                id = id,
+                title = anim.title,
                 timeout = false,
-                icon = next_icon(),
+                icon = next_icon(anim),
             })
         end)
     )
@@ -115,18 +131,19 @@ end
 ---@param opts? { id?: string, title?: string }
 function M.update(msg, opts)
     opts = opts or {}
-    anim_msg = msg
-    if opts.id then
-        anim_id = opts.id
-    end
-    if opts.title then
-        anim_title = opts.title
+    local id = opts.id or DEFAULT_ID
+    local anim = anims[id]
+    if anim then
+        anim.msg = msg
+        if opts.title then
+            anim.title = opts.title
+        end
     end
     Snacks.notifier.notify(msg, "info", {
-        id = anim_id,
-        title = anim_title,
+        id = id,
+        title = opts.title or (anim and anim.title) or "",
         timeout = false,
-        icon = next_icon(),
+        icon = anim and next_icon(anim) or spinner_frames[1],
     })
 end
 
@@ -135,16 +152,14 @@ end
 ---@param opts? { id?: string, title?: string, timeout?: number, dim_tail?: string }
 ---  dim_tail: trailing part of `msg` (e.g. " in 1.23s") rendered gray + italic.
 function M.stop(success, msg, opts)
-    stop_animation()
     opts = opts or {}
-    local id = opts.id or anim_id or "spinner"
-    local title = opts.title or ""
+    local id = opts.id or DEFAULT_ID
+    local anim = anims[id]
+    stop_animation(id)
+    local title = opts.title or (anim and anim.title) or ""
     local icon = success and "✅" or "❌"
     local level = success and "info" or "error"
     local text = msg or (success and "Done" or "Failed")
-    anim_id = nil
-    anim_msg = nil
-    anim_title = nil
     local style = nil
     if type(opts.dim_tail) == "string" and opts.dim_tail ~= "" then
         style = dim_tail_style(opts.dim_tail)
@@ -160,12 +175,9 @@ end
 
 ---@param opts? { id?: string }
 function M.cancel(opts)
-    stop_animation()
     opts = opts or {}
-    local id = opts.id or anim_id or "spinner"
-    anim_id = nil
-    anim_msg = nil
-    anim_title = nil
+    local id = opts.id or DEFAULT_ID
+    stop_animation(id)
     Snacks.notifier.hide(id)
 end
 
