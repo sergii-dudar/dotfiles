@@ -25,6 +25,9 @@ vim.keymap.set("n", "<leader>jlf", function() require("utils.java.jdtls-util").e
 -- ---------------------------- class <-> record conversion (treesitter based)
 vim.keymap.set("n", "<leader>jC", function() require("utils.java.class-record-converter").toggle() end, { desc = "[J]ava toggle [C]lass <-> record" })
 
+-- ---------------------------- jdtls clean up (java.cleanup.actions, on demand) ----------------------------
+vim.api.nvim_create_user_command("JavaCleanup", function() require("utils.java.jdtls-util").cleanup() end, { desc = "Run the configured jdtls clean-ups (java.cleanup.actions) on the current buffer" })
+
 -- ---------------------------- code actions & lsp based extensions
 -- vim.keymap.set("n", "<leader>cI", function() require("utils.java.java-import-util").import_class_and_replace() end, { desc = "[I]mport fqn class package and apply simple name" })
 -- -- { "<leader>ci", function() require("utils.lsp-util").code_action.apply("Add all missing imports") end, desc = "Add all missing imports [jdtls]", }),
@@ -115,6 +118,7 @@ return {
             { "<leader>jcc", ":JdtCompile<CR>", desc = "JDTLS Compile" },
             { "<leader>jcf", ":JdtCompile full<CR>", desc = "JDTLS [C]ompile [F]ull" },
             { "<leader>jci", ":JdtCompile incremental<CR>", desc = "JDTLS [C]ompile [I]ncremental" },
+            { "<leader>jcu", ":JavaCleanup<CR>", desc = "JDTLS Clean [U]p (java.cleanup.actions)" },
             -- In general, when something is not working, “:JdtRestart” might fix things.
             { "<leader>jdr", ":JdtRestart<CR>", desc = "JDTLS [R]estart" },
             { "<leader>jdt", ":JdtlsToggle<CR>", desc = "JDTLS [T]oggle" },

@@ -298,9 +298,31 @@ M.jdtls_settings = {
             -- The list of clean ups to be run on the current document when it's saved or when the cleanup command is issued.
             -- Clean ups can automatically fix code style or programming mistakes.
             -- https://github.com/redhat-developer/vscode-java/blob/HEAD/document/_java.learnMoreAboutCleanUps.md#java-clean-ups
+            -- Run on demand with :JavaCleanup (jdtls `java/cleanup` request); the on-save run additionally needs
+            -- saveActions.cleanup = true. Behaviour of every id below was verified against jdtls 1.61 (2026-09-30).
             actions = {
                 "renameFileToType",
                 -- "organizeImports",
+                -- simplifications
+                "redundantIfCondition", -- if (A) {..} else if (!A) {..}  ->  else {..}
+                "redundantComparisonStatement", -- if (x != C) return x; else return C;  ->  return x;
+                "redundantFallingThroughBlockEnd", -- drop a block tail that duplicates the code following the block
+                "lambdaExpression", -- (s) -> s.foo() -> String::foo, single-return block -> expression body
+                "lambdaExpressionFromAnonymousClass", -- anonymous functional-interface class -> lambda
+                "instanceofPatternMatch", -- if (o instanceof T) { T t = (T) o; }  ->  if (o instanceof T t)
+                "switchExpression", -- assigning/returning switch statement -> switch expression (arrow labels)
+                "useSwitchForInstanceofPattern", -- instanceof if/else-if chain -> pattern switch (Java 21)
+                "invertEquals", -- x.equals("C") -> "C".equals(x) (literal / constant / enum on the left)
+                "stringConcatToTextBlock", -- "a\n" + "b\n" + "c\n" -> text block (3+ literals)
+                "tryWithResource", -- R r = open(); try {..} finally { r.close(); }  ->  try (r) {..}
+                "redundantModifiers", -- public/abstract on interface members, static on nested enum/interface, ...
+                "redundantSuperCall", -- bare super(); in constructors
+                "addOverride", -- @Override on overriding/implementing methods
+                "addDeprecated", -- @Deprecated where the javadoc has @deprecated
+                "renameUnusedLocalVariables", -- unused for-each/lambda/try/pattern variable -> _ (Java 22)
+                -- "addFinalModifier", -- adds final to every private field, parameter and local it can; too noisy
+                -- "qualifyMembers", -- prefixes field/method accesses with this.
+                -- "qualifyStaticMembers", -- qualifies static member accesses with the declaring class
             },
         },
         -- ====================================================================

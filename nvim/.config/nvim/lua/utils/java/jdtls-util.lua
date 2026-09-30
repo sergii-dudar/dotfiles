@@ -920,4 +920,38 @@ end
     vim.bo[buf].modifiable = false
 end ]]
 
+--- Run the jdtls clean-ups configured in `java.cleanup.actions` on a buffer and apply the result.
+--- Uses the jdtls `java/cleanup` request, which is independent of `java.saveActions.cleanup`
+--- (the on-save path). jdtls answers with a single whole-document edit, so one `u` undoes the run.
+---@param bufnr? integer defaults to the current buffer
+function M.cleanup(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    local client = vim.lsp.get_clients({ bufnr = bufnr, name = "jdtls" })[1]
+    if not client then
+        vim.notify("jdtls is not attached to this buffer", vim.log.levels.WARN, { title = "Java clean up" })
+        return
+    end
+    local uri = vim.uri_from_bufnr(bufnr)
+    client:request("java/cleanup", { uri = uri }, function(err, result)
+        if err then
+            vim.notify(
+                "java/cleanup failed: " .. tostring(err.message or err),
+                vim.log.levels.ERROR,
+                { title = "Java clean up" }
+            )
+            return
+        end
+        local edit_count = 0
+        for _, edits in pairs(result and result.changes or {}) do
+            edit_count = edit_count + #edits
+        end
+        if edit_count == 0 then
+            vim.notify("Nothing to clean up", vim.log.levels.INFO, { title = "Java clean up" })
+            return
+        end
+        vim.lsp.util.apply_workspace_edit(result, client.offset_encoding)
+        vim.notify("Clean up applied (undo with u)", vim.log.levels.INFO, { title = "Java clean up" })
+    end, bufnr)
+end
+
 return M
