@@ -135,6 +135,11 @@ Java helpers under `utils/java/`:
 - `java-common.lua` — Java project detection (`is_java_project()`), class-to-path resolution, project type (Maven/Gradle), Java binary paths (SDKMAN)
 - `jdtls-util.lua` — JDTLS-specific: JDT link extraction/navigation, hover markdown link conversion, find implementations
 - `jdtls-classpath-util.lua` — Get classpath from running JDTLS instance
+- `jdtls-cleanup.lua` — on-demand jdtls clean-ups (`java.cleanup.actions` in `jdtls-config-util.lua`) via the
+  client-specific `java/cleanup` request: `:JavaCleanup` / `<leader>jcu` diff-preview picker (one item per hunk;
+  `<CR>` applies the current or `<Tab>`-marked hunks, the ALL row everything), `:JavaCleanup!` / `<leader>jcU`
+  applies directly, on-save notification of possible changes
+  (`:JavaCleanupNotifyToggle`). jdtls returns one merged edit, so clean-up names per hunk are not available
 - `java-ts-util.lua` — Treesitter queries for Java (class name, method signature, package)
 - `java-trace.lua` — Parse Java stack traces to quickfix list, highlight traces in buffers
 - `maven-util.lua`, `maven-compile.lua` — Maven build integration
