@@ -4,12 +4,16 @@
 --- `java.saveActions.cleanup` is on, and for the client-specific request `java/cleanup`, which returns a
 --- WorkspaceEdit without touching the buffer. This module uses the request to offer three things:
 ---
----   * `M.preview()`  - Snacks picker with one item per hunk (diff preview), <CR> applies all, <Esc> discards
+---   * `M.preview()`  - Snacks picker with one item per hunk (diff preview), <CR> applies current/marked/all
 ---   * `M.apply()`    - apply the clean-up straight away (one undo step)
----   * on save        - notification with the number of possible changes and a short summary per hunk
+---   * on save        - notification with the number of possible changes, and one HINT diagnostic per hunk
+---                      ("Clean-up: → ...") in the `java-cleanup` namespace; `<leader>cj`
+---                      (modules.java.diagnostics-resolver) applies the hunk under the cursor via
+---                      `M.resolve_diagnostic`, after re-requesting so a stale hint is never applied
 ---
 --- jdtls merges every enabled clean-up into a single edit, so the individual clean-up names are not available
---- per hunk; the summary shows the first changed line of each hunk instead.
+--- per hunk; the summary shows the first changed line of each hunk instead. Which clean-ups take part is
+--- controlled by the `java.cleanup.actions` list in jdtls-config-util.
 local M = {}
 
 local TITLE = "Java clean up"
@@ -17,6 +21,11 @@ local TITLE = "Java clean up"
 M.config = {
     -- Report possible clean-ups after every write of a Java buffer with jdtls attached.
     notify_on_save = true,
+    -- Publish one diagnostic per possible clean-up after every write (severity name from vim.diagnostic.severity).
+    hints_on_save = true,
+    hint_severity = "HINT",
+    -- Longest change preview inside a hint message.
+    hint_width = 60,
     -- Hunk summaries listed in the on-save notification.
     notify_max_hunks = 5,
     -- Context lines around each hunk in the diff preview.
@@ -45,6 +54,16 @@ M.config = {
 
 local in_flight = {} ---@type table<integer, boolean>
 
+--- Prefix of every hint message; the diagnostics-resolver registers its handler on it.
+M.MESSAGE_PREFIX = "Clean-up: "
+M.MESSAGE_PATTERN = "^Clean%-up: "
+
+local ns ---@type integer?
+local function namespace()
+    ns = ns or vim.api.nvim_create_namespace("java-cleanup")
+    return ns
+end
+
 local function notify(msg, level)
     vim.notify(msg, level or vim.log.levels.INFO, { title = TITLE })
 end
@@ -53,9 +72,9 @@ local function jdtls_client(bufnr)
     return vim.lsp.get_clients({ bufnr = bufnr, name = "jdtls" })[1]
 end
 
-local function trim_summary(line)
+local function trim_summary(line, width)
     line = vim.trim(line)
-    local width = M.config.summary_width
+    width = width or M.config.summary_width
     if vim.fn.strdisplaywidth(line) > width then
         line = vim.fn.strcharpart(line, 0, width - 1) .. "…"
     end
@@ -202,6 +221,79 @@ local function still_applicable(result)
     return true
 end
 
+--- Hint text for a hunk: the first replacement line, or the removed line for a pure deletion.
+---@param hunk JdtlsCleanupHunk
+---@param old_lines string[]
+---@return string
+local function hunk_message(hunk, old_lines)
+    if #hunk.replacement > 0 then
+        return M.MESSAGE_PREFIX .. "→ " .. trim_summary(hunk.replacement[1], M.config.hint_width)
+    end
+    return M.MESSAGE_PREFIX .. "remove " .. trim_summary(old_lines[hunk.old_first] or "", M.config.hint_width)
+end
+
+--- Publish one hint diagnostic per hunk. Skipped when the buffer moved on since the request, so a hint never
+--- points at text that is not the diagnosed one; the next save republishes.
+---@param result JdtlsCleanupResult
+function M.publish(result)
+    if not vim.api.nvim_buf_is_valid(result.bufnr) then
+        return
+    end
+    if
+        vim.api.nvim_buf_get_changedtick(result.bufnr) ~= result.changedtick
+        and not vim.deep_equal(vim.api.nvim_buf_get_lines(result.bufnr, 0, -1, false), result.old_lines)
+    then
+        return
+    end
+    local severity = vim.diagnostic.severity[M.config.hint_severity] or vim.diagnostic.severity.HINT
+    local diagnostics = {}
+    for index, hunk in ipairs(result.hunks) do
+        local lnum = hunk.old_first - 1
+        local end_lnum = math.min(lnum + math.max(hunk.old_count, 1) - 1, #result.old_lines - 1)
+        diagnostics[#diagnostics + 1] = {
+            lnum = lnum,
+            col = 0,
+            end_lnum = end_lnum,
+            end_col = #(result.old_lines[end_lnum + 1] or ""),
+            severity = severity,
+            source = "java-cleanup",
+            code = "cleanup",
+            message = hunk_message(hunk, result.old_lines),
+            user_data = { java_cleanup = { hunk = index } },
+        }
+    end
+    vim.diagnostic.set(namespace(), result.bufnr, diagnostics)
+end
+
+--- Remove the hints of one buffer, or of every buffer.
+---@param bufnr? integer
+function M.clear(bufnr)
+    vim.diagnostic.reset(namespace(), bufnr)
+end
+
+--- Recompute and republish the hints of a buffer (silent).
+---@param bufnr integer
+function M.refresh(bufnr)
+    if not M.config.hints_on_save or not vim.api.nvim_buf_is_valid(bufnr) or not jdtls_client(bufnr) then
+        return
+    end
+    M.request(bufnr, function(result, err)
+        if not err then
+            M.publish(result)
+        end
+    end)
+end
+
+--- After an edit the old hints are wrong; drop them and recompute once jdtls has received the change
+--- (didChange is debounced by the client, so the request must not race it).
+---@param bufnr integer
+local function after_apply(bufnr)
+    M.clear(bufnr)
+    vim.defer_fn(function()
+        M.refresh(bufnr)
+    end, 500)
+end
+
 --- Apply a previously requested result as a whole. Refuses when the buffer changed in between.
 ---@param result JdtlsCleanupResult
 ---@return boolean applied
@@ -211,6 +303,7 @@ function M.apply_result(result)
     end
     vim.lsp.util.apply_text_edits(result.edits, result.bufnr, result.offset_encoding)
     notify(("Applied %d change(s), undo with u"):format(#result.hunks))
+    after_apply(result.bufnr)
     return true
 end
 
@@ -264,6 +357,7 @@ function M.apply_hunks(result, hunks)
     end
     vim.lsp.util.apply_text_edits(edits, result.bufnr, result.offset_encoding)
     notify(("Applied %d of %d change(s), undo with u"):format(#hunks, #result.hunks))
+    after_apply(result.bufnr)
     return true
 end
 
@@ -339,19 +433,30 @@ function M.preview(bufnr)
     end)
 end
 
---- Report possible clean-ups after a write (silent when there are none or jdtls is not attached).
+--- Report possible clean-ups after a write: hint diagnostics and a notification, from one request
+--- (silent when there are none or jdtls is not attached).
 ---@param bufnr integer
-function M.notify_on_save(bufnr)
-    if not M.config.notify_on_save or in_flight[bufnr] or not jdtls_client(bufnr) then
+function M.on_save(bufnr)
+    if not (M.config.notify_on_save or M.config.hints_on_save) or in_flight[bufnr] or not jdtls_client(bufnr) then
         return
     end
     in_flight[bufnr] = true
     M.request(bufnr, function(result, err)
         in_flight[bufnr] = nil
-        if err or #result.hunks == 0 then
+        if err then
             return
         end
-        local lines = { ("%d possible change(s): <leader>jcu to review, <leader>jcU to apply"):format(#result.hunks) }
+        if M.config.hints_on_save then
+            M.publish(result)
+        end
+        if not M.config.notify_on_save or #result.hunks == 0 then
+            return
+        end
+        local lines = {
+            ("%d possible change(s): <leader>jcu to review, <leader>jcU to apply, <leader>cj on a hint"):format(
+                #result.hunks
+            ),
+        }
         local shown = math.min(#result.hunks, M.config.notify_max_hunks)
         for i = 1, shown do
             lines[#lines + 1] = ("L%-5d %s"):format(result.hunks[i].lnum, result.hunks[i].summary)
@@ -363,6 +468,36 @@ function M.notify_on_save(bufnr)
     end)
 end
 
+--- diagnostics-resolver handler for a hint: re-request the clean-up and apply the hunk that still covers the
+--- diagnosed lines. `ctx.diagnostic` carries the position where the hint is rendered now.
+---@param ctx { bufnr: integer, diagnostic: table }
+---@return boolean
+function M.resolve_diagnostic(ctx)
+    local bufnr, diagnostic = ctx.bufnr, ctx.diagnostic
+    local first = diagnostic.lnum
+    local last = diagnostic.end_lnum or diagnostic.lnum
+    M.request(bufnr, function(result, err)
+        if err then
+            return notify(err, vim.log.levels.WARN)
+        end
+        local matching = {}
+        for _, hunk in ipairs(result.hunks) do
+            local hunk_first = hunk.old_first - 1
+            local hunk_last = hunk_first + math.max(hunk.old_count, 1) - 1
+            if hunk_first <= last and hunk_last >= first then
+                matching[#matching + 1] = hunk
+            end
+        end
+        if #matching == 0 then
+            notify("No clean-up applies to these lines any more", vim.log.levels.WARN)
+            M.publish(result)
+            return
+        end
+        M.apply_hunks(result, matching)
+    end)
+    return true
+end
+
 --- User commands and the on-save autocmd. Called once from the Java plugin config.
 function M.setup()
     local group = vim.api.nvim_create_augroup("JavaCleanupOnSave", { clear = true })
@@ -371,7 +506,7 @@ function M.setup()
         pattern = "*.java",
         desc = "Java clean up: report possible changes",
         callback = function(args)
-            M.notify_on_save(args.buf)
+            M.on_save(args.buf)
         end,
     })
     vim.api.nvim_create_user_command("JavaCleanup", function(opts)
@@ -385,6 +520,13 @@ function M.setup()
         M.config.notify_on_save = not M.config.notify_on_save
         notify("On-save report " .. (M.config.notify_on_save and "enabled" or "disabled"))
     end, { desc = "Toggle the on-save report of possible jdtls clean-ups" })
+    vim.api.nvim_create_user_command("JavaCleanupHintsToggle", function()
+        M.config.hints_on_save = not M.config.hints_on_save
+        if not M.config.hints_on_save then
+            M.clear()
+        end
+        notify("Hint diagnostics " .. (M.config.hints_on_save and "enabled" or "disabled"))
+    end, { desc = "Toggle the hint diagnostics for possible jdtls clean-ups" })
 end
 
 return M

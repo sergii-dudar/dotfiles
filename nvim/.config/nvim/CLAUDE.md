@@ -138,8 +138,12 @@ Java helpers under `utils/java/`:
 - `jdtls-cleanup.lua` — on-demand jdtls clean-ups (`java.cleanup.actions` in `jdtls-config-util.lua`) via the
   client-specific `java/cleanup` request: `:JavaCleanup` / `<leader>jcu` diff-preview picker (one item per hunk;
   `<CR>` applies the current or `<Tab>`-marked hunks, the ALL row everything), `:JavaCleanup!` / `<leader>jcU`
-  applies directly, on-save notification of possible changes
-  (`:JavaCleanupNotifyToggle`). jdtls returns one merged edit, so clean-up names per hunk are not available
+  applies directly. On save it publishes one HINT diagnostic per hunk (`java-cleanup` namespace, message
+  `Clean-up: → <first new line>`) plus a notification (`:JavaCleanupHintsToggle`, `:JavaCleanupNotifyToggle`);
+  `<leader>cj` on a hint applies that hunk through `modules/java/diagnostics-resolver` (registered on the
+  `^Clean%-up: ` message pattern, re-requests before applying so a stale hint is never used). jdtls returns one
+  merged edit, so clean-up names per hunk are not available; which clean-ups take part is the
+  `java.cleanup.actions` list
 - `java-ts-util.lua` — Treesitter queries for Java (class name, method signature, package)
 - `java-trace.lua` — Parse Java stack traces to quickfix list, highlight traces in buffers
 - `maven-util.lua`, `maven-compile.lua` — Maven build integration

@@ -216,5 +216,10 @@ M.register(
     '^The following constants from the property ".*" enum have no corresponding constant in the ".*" enum and must .-mapped via adding additional mappings: .*',
     require("modules.java.diagnostics-resolver.mapstruct-enum-mapping-method").resolve
 )
+-- Hints published by utils.java.jdtls-cleanup after a save ("Clean-up: → ..."): apply the hunk under the
+-- cursor. Required lazily so this registry stays free of jdtls dependencies until a hint is resolved.
+M.register("^Clean%-up: ", function(ctx)
+    return require("utils.java.jdtls-cleanup").resolve_diagnostic(ctx)
+end)
 
 return M
