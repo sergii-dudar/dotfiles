@@ -27,6 +27,9 @@ vim.keymap.set("n", "<leader>jC", function() require("utils.java.class-record-co
 
 -- ---------------------------- jdtls clean up (java.cleanup.actions, on demand) ----------------------------
 -- :JavaCleanup (diff preview, <CR> applies) / :JavaCleanup! (apply) / :JavaCleanupNotifyToggle (on-save report)
+-- / :JavaCleanupHintsToggle (on-save hint diagnostics, <leader>cj applies the one under the cursor).
+-- Keep only the on-demand picker: setup({ notify_on_save = false, hints_on_save = false }).
+-- Switch the feature off entirely: comment this call and the <leader>jcu / <leader>jcU keys below.
 require("utils.java.jdtls-cleanup").setup()
 
 -- ---------------------------- code actions & lsp based extensions

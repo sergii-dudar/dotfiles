@@ -143,7 +143,9 @@ Java helpers under `utils/java/`:
   `<leader>cj` on a hint applies that hunk through `modules/java/diagnostics-resolver` (registered on the
   `^Clean%-up: ` message pattern, re-requests before applying so a stale hint is never used). jdtls returns one
   merged edit, so clean-up names per hunk are not available; which clean-ups take part is the
-  `java.cleanup.actions` list
+  `java.cleanup.actions` list. `setup(opts)` in `java-config.lua` overrides `M.config`
+  (`{ notify_on_save = false, hints_on_save = false }` keeps only the picker); dropping the call and the two
+  `<leader>jc[uU]` keys removes the feature
 - `java-ts-util.lua` — Treesitter queries for Java (class name, method signature, package)
 - `java-trace.lua` — Parse Java stack traces to quickfix list, highlight traces in buffers
 - `maven-util.lua`, `maven-compile.lua` — Maven build integration

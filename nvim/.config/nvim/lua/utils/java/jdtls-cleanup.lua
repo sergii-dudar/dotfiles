@@ -499,7 +499,11 @@ function M.resolve_diagnostic(ctx)
 end
 
 --- User commands and the on-save autocmd. Called once from the Java plugin config.
-function M.setup()
+--- `opts` overrides M.config: `{ notify_on_save = false, hints_on_save = false }` keeps only the on-demand
+--- :JavaCleanup; leaving the call out altogether removes the commands and the autocmd as well.
+---@param opts? table partial M.config
+function M.setup(opts)
+    M.config = vim.tbl_deep_extend("force", M.config, opts or {})
     local group = vim.api.nvim_create_augroup("JavaCleanupOnSave", { clear = true })
     vim.api.nvim_create_autocmd("BufWritePost", {
         group = group,
