@@ -164,6 +164,13 @@ M.jdtls_settings = {
             -- DOM completion requires java.jdt.ls.javac.enabled="on"; keep ECJ
             -- while Javac support is disabled to avoid fast empty completion lists.
             engine = "ecj", -- "ecj"|"dom"
+            -- IntelliJ-style postfix templates offered as completion items after a `.` on an expression. The 20
+            -- shipped in jdtls 1.61: var, par, cast, not, if, else, while, for, fori, forr, nnull, null, opt,
+            -- throw, assert, format, sysout, sysoutv, sysouf, syserr.
+            -- jdtls defaults this to true; set explicitly so it survives a default change.
+            postfix = {
+                enabled = true,
+            },
             -- matchCase = "off", -- "firstLetter" | "off"
             -- Defines a list of static members or types with static members. Content
             -- assist will propose those static members even if the import is missing.
@@ -293,6 +300,9 @@ M.jdtls_settings = {
             -- Setup automatical package import oranization on file save
             organizeImports = false, -- sometime anoying during working with raw code during complex development
             -- cleanup = true, -- little buggy in v1.57.0, disabled for now
+            -- Explicit: clean-ups stay on demand (:JavaCleanup). jdtls itself defaults this to false, but the
+            -- VS Code schema (mason-schemas/lsp.json) defaults it to true, so do not rely on the default.
+            cleanup = false,
         },
         cleanup = {
             -- The list of clean ups to be run on the current document when it's saved or when the cleanup command is issued.
