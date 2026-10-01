@@ -14,17 +14,17 @@ vim.filetype.add({
 --     (needs git, cc, curl) and downloads kulala-core from andycowan/kulala-core releases.
 --     That release has ONLY a macOS arm64 binary; on macOS 27 it is re-signed by the config hook below.
 --  2. Linux (or your own build): build kulala-core once, any target cross-compiles from one machine.
---        git clone https://github.com/andycowan/kulala-core ~/tools/tests/kulala-core && cd ~/tools/tests/kulala-core
---        VERSION=0.37.0-andycowan.1 bun install --frozen-lockfile
+--        >> git clone https://github.com/andycowan/kulala-core ~/tools/tests/kulala-core && cd ~/tools/tests/kulala-core
+--        >> VERSION=0.37.0-andycowan.1 bun install --frozen-lockfile
 --        # Corporate Mac only (Zscaler): Bun's own https can't verify anything without the corporate CAs.
 --        # Without this every build:* fails with "Could not resolve curl binary. Tried download to ...".
 --        mkdir -p ~/tools/certs
 --        security find-certificate -a -p /Library/Keychains/System.keychain > ~/tools/certs/corp-ca-bundle.pem
 --        export NODE_EXTRA_CA_CERTS=~/tools/certs/corp-ca-bundle.pem
 --        # Every machine: keep the vendored curl/jq the build downloads out of the runtime data dir.
---        export KULALA_CORE_DATA_DIR=/tmp/kulala-core-build
---        bun run build:darwin-arm64   # -> packages/core/dist/kulala-core-darwin-arm64
---        bun run build:linux-x64      # -> packages/core/dist/kulala-core-linux-x86_64 (linux-arm64, darwin-x64 too)
+--        >> export KULALA_CORE_DATA_DIR=/tmp/kulala-core-build
+--        >> bun run build:darwin-arm64   # -> packages/core/dist/kulala-core-darwin-arm64
+--        >> bun run build:linux-x64      # -> packages/core/dist/kulala-core-linux-x86_64 (linux-arm64, darwin-x64 too)
 --     Without the KULALA_CORE_DATA_DIR export the build caches a static curl in
 --     ~/Library/Application Support/kulala-core/cache (Linux: ~/.local/share/kulala-core/cache); kulala-core then
 --     prefers it over the OS curl and every request to an internal host fails TLS ("* Host ... was resolved."
@@ -37,6 +37,11 @@ vim.filetype.add({
 --        }
 --     Without it macOS uses the downloaded release; Linux has no release, so path is required there.
 --  4. Check: open a .http file, :checkhealth kulala, <CR> on a request.
+
+local kulala_core_bin = require("utils.constants").is_macos
+        and vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-darwin-arm64")
+    or vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-linux-x86_64")
+
 return {
     {
         -- "dont-be-evil-company/kulala.nvim",
@@ -160,7 +165,7 @@ return {
             global_keymaps = false,
             global_keymaps_prefix = "<leader>r",
             kulala_core = {
-                path = vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-darwin-arm64"),
+                path = kulala_core_bin,
             },
         },
     },
