@@ -32,15 +32,14 @@ vim.filetype.add({
 --     Without it macOS uses the downloaded release; Linux has no release, so path is required there.
 --  4. Check: open a .http file, :checkhealth kulala, <CR> on a request.
 
-local kulala_core_bin = require("utils.constants").is_macos
-        and vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-darwin-arm64")
-    or vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-linux-x86_64")
+-- local kulala_core_bin = require("utils.constants").is_macos
+--         and vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-darwin-arm64")
+--     or vim.fn.expand("~/tools/tests/kulala-core/packages/core/dist/kulala-core-linux-x86_64")
 
 return {
     {
-        -- "dont-be-evil-company/kulala.nvim",
-        -- "sergii-dudar/kulala.nvim",
-        "andycowan/kulala.nvim",
+        "dont-be-evil-company/kulala.nvim",
+        -- "andycowan/kulala.nvim", -- fork with isolated build of kulala-core, uncomment `kulala_core` to make working
         -- tag = "v6.14.0",
         ft = { "http", "rest" },
         -- ft = { "http", "rest", "javascript", "lua" },
@@ -158,9 +157,9 @@ return {
             },
             global_keymaps = false,
             global_keymaps_prefix = "<leader>r",
-            kulala_core = {
-                path = kulala_core_bin,
-            },
+            -- kulala_core = {
+            --     path = kulala_core_bin,
+            -- },
         },
     },
     {
