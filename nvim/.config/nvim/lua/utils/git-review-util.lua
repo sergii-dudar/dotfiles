@@ -88,6 +88,16 @@ function M.default_branch(dir)
     return nil
 end
 
+--- Fork point of ref and HEAD (the commit zdiff's `<ref>...HEAD` starts from); nil without a common ancestor or
+--- for an unknown ref.
+---@param dir string
+---@param ref string
+---@return string|nil commit
+function M.merge_base(dir, ref)
+    local out = git_in(dir, { "merge-base", ref, "HEAD" })
+    return out and out[1] ~= "" and out[1] or nil
+end
+
 --- Command-line completion for a git ref: local branches, remote branches and tags of the cwd repository that
 --- start with arglead.
 ---@param arglead string
@@ -190,8 +200,7 @@ function M.sync_signs_base(buf, ref)
         if not M.ref_exists(dir, ref) then
             return
         end
-        local out = git_in(dir, { "merge-base", ref, "HEAD" })
-        base = out and out[1] ~= "" and out[1] or ref -- no merge-base (unrelated histories): the ref itself
+        base = M.merge_base(dir, ref) or ref -- no merge-base (unrelated histories): the ref itself
     end
     if signs_base[buf] == base then
         return

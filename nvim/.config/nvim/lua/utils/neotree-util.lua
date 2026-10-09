@@ -5,7 +5,7 @@
 -- • open_explorer — open a Neo-tree source in the sidebar, revealing the current file
 -- • toggle_git_explorer — open_explorer bound to the git_status source
 -- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
---   does) without opening a closed sidebar
+--   does, but from the ref's fork point with HEAD so the list matches zdiff) without opening a closed sidebar
 -- • remember_git_base / restore_git_base — snapshot the bases and put them back (used by the zdiff panel)
 -- • show_git_base / toggle_git_base — `:NeotreeGitBase [ref]` / <leader>gE: Git explorer comparing against a ref
 --   (the toggle flips between uncommitted and the default branch: origin/HEAD, else main/master/…); gitsigns of
@@ -151,6 +151,13 @@ end
 ---@type table<table, string|false>|nil
 local remembered_git_base = nil
 
+--- Per worktree root, the ref name behind each commit set_git_base() stored. Neo-tree diffs `git diff <base> HEAD`,
+--- i.e. the tip of the ref; zdiff diffs `<ref>...HEAD`, from the fork point. Storing the fork point keeps both
+--- lists identical when the ref moved on after branching, and this map gives the name back for display and
+--- toggling (also after restore_git_base() puts a stored commit back).
+---@type table<string, table<string, string>>
+local base_names = {}
+
 --- Existing Neo-tree states of the current tab, each with its worktree root (no state is created here).
 ---@return {state: table, root: string}[]
 local function tab_states()
@@ -210,7 +217,8 @@ local function ensure_states()
     end
 end
 
---- Git ref the trees of this tab compare against; nil = Neo-tree's default (plain `git status`).
+--- Git ref the trees of this tab compare against, by the name it was asked for; nil = Neo-tree's default (plain
+--- `git status`). A base set by hand (`:Neotree <ref>`) is returned as stored.
 ---@return string|nil
 function M.git_base()
     if not package.loaded["neo-tree"] then
@@ -218,28 +226,36 @@ function M.git_base()
     end
     for _, entry in ipairs(tab_states()) do
         local lookup = entry.state.git_base_by_worktree
-        if lookup and lookup[entry.root] then
-            return lookup[entry.root]
+        local stored = lookup and lookup[entry.root]
+        if stored then
+            local names = base_names[entry.root]
+            return names and names[stored] or stored
         end
     end
     return nil
 end
 
---- Compare the Neo-tree sources of this tab against a git ref, like `:Neotree <ref>` does (`git diff <ref> HEAD`
---- status merged into the tree markers), without opening a closed sidebar. nil goes back to Neo-tree's default.
---- No-op while Neo-tree is not loaded.
+--- Compare the Neo-tree sources of this tab against a git ref, from its fork point with HEAD (the same range
+--- zdiff shows; `git diff <fork point> HEAD` status merged into the tree markers), without opening a closed
+--- sidebar. nil goes back to Neo-tree's default. No-op while Neo-tree is not loaded.
 ---@param ref string|nil
 function M.set_git_base(ref)
     if not package.loaded["neo-tree"] then
         return
     end
     ensure_states()
+    local review = require("utils.git-review-util")
     local changed = {}
     for _, entry in ipairs(tab_states()) do
         local state = entry.state
+        local base = ref and (review.merge_base(entry.root, ref) or ref) or nil
+        if base then
+            base_names[entry.root] = base_names[entry.root] or {}
+            base_names[entry.root][base] = ref
+        end
         state.git_base_by_worktree = state.git_base_by_worktree or {}
-        if state.git_base_by_worktree[entry.root] ~= ref then
-            state.git_base_by_worktree[entry.root] = ref
+        if state.git_base_by_worktree[entry.root] ~= base then
+            state.git_base_by_worktree[entry.root] = base
             changed[entry.root] = true
         end
     end
