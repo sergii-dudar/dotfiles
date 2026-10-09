@@ -1,11 +1,25 @@
 return {
     -- multi-buffer diff view
+    -- opened as a bottom panel through utils/zdiff-util.lua: <CR> sends the file to the editor window and keeps
+    -- the diff visible (a manually typed :Zdiff keeps the plugin's own in-window behaviour)
     {
         "martindur/zdiff.nvim",
         cmd = "Zdiff",
         keys = {
-            { "<leader>zd", "<cmd>Zdiff<cr>", desc = "Zdiff (uncommitted)" },
-            { "<leader>zD", "<cmd>Zdiff main<cr>", desc = "Zdiff (vs main)" },
+            {
+                "<leader>zd",
+                function()
+                    require("utils.zdiff-util").open()
+                end,
+                desc = "Zdiff panel (uncommitted)",
+            },
+            {
+                "<leader>zD",
+                function()
+                    require("utils.zdiff-util").open("main")
+                end,
+                desc = "Zdiff panel (vs main)",
+            },
         },
         opts = {},
     },
