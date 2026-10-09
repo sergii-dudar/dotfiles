@@ -8,6 +8,13 @@ return {
         { "<leader>e", neotree_util.toggle_context_explorer, desc = "Toggle Context Explorer" },
         { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
         { "<leader>ge", neotree_util.toggle_git_explorer, desc = "Git Explorer (changes)" },
+        {
+            "<leader>gE",
+            function()
+                neotree_util.toggle_git_base("main")
+            end,
+            desc = "Git Explorer (toggle changes vs main)",
+        },
     },
     opts = {
         source_selector = {

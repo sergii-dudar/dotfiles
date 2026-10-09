@@ -27,9 +27,10 @@
 --   in ref mode and left at its default (index, staged hunks have their own signs) in uncommitted mode; buffers
 --   whose base was changed are reverted when the zdiff buffer goes away (panel closed or ref switched). The
 --   change waits until gitsigns has attached the buffer, see sync_signs_base()
--- • Neo-tree follows the panel the way `:Neotree <ref>` does (utils/neotree-util set_git_base / reset_git_base):
---   the trees of this tab compare against the panel's ref while it is open, in ref mode only, and get their
---   previous base back when the panel closes. Updated on open, on the in-place `m` toggle and on close
+-- • Neo-tree follows the panel the way `:Neotree <ref>` does (utils/neotree-util remember_git_base / set_git_base /
+--   restore_git_base): while the panel is open the trees of this tab compare against its ref (Neo-tree's default
+--   in uncommitted mode) and get the bases they had before the panel back when it closes. Updated on open, on the
+--   in-place `m` toggle and on close
 
 local M = {}
 
@@ -289,7 +290,8 @@ local function reset_signs_bases()
     S.signs_base = {}
 end
 
---- Make the Neo-tree trees compare against the panel's ref (nil = uncommitted mode = Neo-tree's own base).
+--- Make the Neo-tree trees compare against the panel's ref (nil = uncommitted mode = Neo-tree's default). The
+--- bases in place when the panel first touches them are remembered for release_tree().
 ---@param ref string|nil
 local function sync_tree(ref)
     if not M.config.sync_neotree_base then
@@ -299,10 +301,18 @@ local function sync_tree(ref)
     if not ok then
         return
     end
-    if ref then
-        neotree.set_git_base(ref)
-    else
-        neotree.reset_git_base()
+    neotree.remember_git_base()
+    neotree.set_git_base(ref)
+end
+
+--- Give the Neo-tree trees the bases they had before the panel back.
+local function release_tree()
+    if not M.config.sync_neotree_base then
+        return
+    end
+    local ok, neotree = pcall(require, "utils.neotree-util")
+    if ok then
+        neotree.restore_git_base()
     end
 end
 
@@ -449,9 +459,7 @@ local function attach(buf)
             reset_signs_bases()
             if not S.switching then
                 -- the panel window is closing right now; let Neo-tree re-render once the layout has settled
-                vim.schedule(function()
-                    sync_tree(nil)
-                end)
+                vim.schedule(release_tree)
             end
         end,
     })

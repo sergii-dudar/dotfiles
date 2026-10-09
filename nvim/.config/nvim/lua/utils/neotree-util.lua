@@ -4,8 +4,10 @@
 --   Neo-tree source already on screen (file tree, git changes, …)
 -- • open_explorer — open a Neo-tree source in the sidebar, revealing the current file
 -- • toggle_git_explorer — open_explorer bound to the git_status source
--- • set_git_base / reset_git_base — compare the trees of this tab against a git ref (what `:Neotree <ref>`
---   does) without opening a closed sidebar, and go back to the base they had before
+-- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
+--   does) without opening a closed sidebar
+-- • remember_git_base / restore_git_base — snapshot the bases and put them back (used by the zdiff panel)
+-- • toggle_git_base — <leader>gE: Git explorer flipping between uncommitted changes and changes vs main
 -- • copy_to_shared_clipboard — copy file/dir to shared clipboard
 -- • paste_from_shared_clipboard — paste from shared clipboard into neo-tree target
 -- • shared_copy / shared_copy_visual — copy current/selected buffer lines to clipboard file
@@ -141,78 +143,149 @@ function M.toggle_git_explorer(opts)
     return M.open_explorer(vim.tbl_extend("keep", opts or {}, { source = "git_status" }))
 end
 
---- Git base each Neo-tree state had before set_git_base() touched it (false = Neo-tree's default).
----@type table<table, string|false>
-local saved_git_base = setmetatable({}, { __mode = "k" })
+--- Snapshot taken by remember_git_base(): the base each Neo-tree state had (false = Neo-tree's default).
+---@type table<table, string|false>|nil
+local remembered_git_base = nil
 
---- Existing Neo-tree states of the current tab that have been navigated (none is created here).
----@return table[] states
+--- Existing Neo-tree states of the current tab, each with its worktree root (no state is created here).
+---@return {state: table, root: string}[]
 local function tab_states()
     local tabid = vim.api.nvim_get_current_tabpage()
+    local git = require("neo-tree.git")
     local states = {}
     for _, state in ipairs(require("neo-tree.sources.manager")._get_all_states()) do
-        if state.tabid == tabid and state.path then
-            table.insert(states, state)
+        if state.tabid == tabid then
+            -- a state that has not been navigated yet will open on the cwd
+            local root = git.find_worktree_info(state.path or vim.uv.cwd())
+            if root then
+                table.insert(states, { state = state, root = root })
+            end
         end
     end
     return states
 end
 
---- Re-render the visible trees of this tab and mark the closed ones dirty so they re-navigate when shown.
-local function refresh_trees()
+--- Drop neo-tree's cached `git status` text for the given worktree roots. git.status() returns its cached result
+--- whenever that text is unchanged and then skips the diff against the base (git/init.lua,
+--- `raw_status_text_cache`), so a base change alone would leave the Git explorer's list stale. The cache is a
+--- local upvalue; if the lookup fails after an upstream rename, the trees still refresh and only the git_status
+--- list may lag until the working tree changes.
+---@param roots table<string, true>
+local function invalidate_status_cache(roots)
+    local status = require("neo-tree.git").status
+    local i = 1
+    while true do
+        local name, value = debug.getupvalue(status, i)
+        if not name then
+            return
+        end
+        if name == "raw_status_text_cache" and type(value) == "table" then
+            for root in pairs(roots) do
+                value[root] = nil
+            end
+            return
+        end
+        i = i + 1
+    end
+end
+
+--- Re-render the visible trees of this tab (recomputing git status for the given worktree roots) and mark the
+--- closed ones dirty so they re-navigate when shown.
+---@param roots table<string, true>
+local function refresh_trees(roots)
+    invalidate_status_cache(roots)
     require("neo-tree.sources.manager").refresh("git_base")
 end
 
+--- Git ref the trees of this tab compare against; nil = Neo-tree's default (plain `git status`).
+---@return string|nil
+function M.git_base()
+    if not package.loaded["neo-tree"] then
+        return nil
+    end
+    for _, entry in ipairs(tab_states()) do
+        local lookup = entry.state.git_base_by_worktree
+        if lookup and lookup[entry.root] then
+            return lookup[entry.root]
+        end
+    end
+    return nil
+end
+
 --- Compare the Neo-tree sources of this tab against a git ref, like `:Neotree <ref>` does (`git diff <ref> HEAD`
---- status merged into the tree markers), without opening a closed sidebar. The base a state had before the
---- first call is kept for reset_git_base(). No-op while Neo-tree is not loaded.
----@param ref string
+--- status merged into the tree markers), without opening a closed sidebar. nil goes back to Neo-tree's default.
+--- No-op while Neo-tree is not loaded.
+---@param ref string|nil
 function M.set_git_base(ref)
     if not package.loaded["neo-tree"] then
         return
     end
-    local git = require("neo-tree.git")
-    local changed = false
-    for _, state in ipairs(tab_states()) do
-        local root = git.find_worktree_info(state.path)
-        if root then
-            state.git_base_by_worktree = state.git_base_by_worktree or {}
-            if saved_git_base[state] == nil then
-                saved_git_base[state] = state.git_base_by_worktree[root] or false
-            end
-            if state.git_base_by_worktree[root] ~= ref then
-                state.git_base_by_worktree[root] = ref
-                changed = true
-            end
+    local changed = {}
+    for _, entry in ipairs(tab_states()) do
+        local state = entry.state
+        state.git_base_by_worktree = state.git_base_by_worktree or {}
+        if state.git_base_by_worktree[entry.root] ~= ref then
+            state.git_base_by_worktree[entry.root] = ref
+            changed[entry.root] = true
         end
     end
-    if changed then
-        refresh_trees()
+    if next(changed) then
+        refresh_trees(changed)
     end
 end
 
---- Undo set_git_base(): every touched state gets the base it had before (Neo-tree's default when none).
-function M.reset_git_base()
-    if not package.loaded["neo-tree"] then
+--- Remember the current base of every tree so restore_git_base() can put it back; a snapshot already held is
+--- kept (the first caller owns it).
+function M.remember_git_base()
+    if remembered_git_base or not package.loaded["neo-tree"] then
         return
     end
-    local git = require("neo-tree.git")
-    local changed = false
-    for state, previous in pairs(saved_git_base) do
-        local lookup = state.git_base_by_worktree
-        local root = lookup and state.path and git.find_worktree_info(state.path)
-        if root then
+    remembered_git_base = setmetatable({}, { __mode = "k" })
+    for _, entry in ipairs(tab_states()) do
+        local lookup = entry.state.git_base_by_worktree
+        remembered_git_base[entry.state] = lookup and lookup[entry.root] or false
+    end
+end
+
+--- Put back the bases remembered by remember_git_base() and drop the snapshot.
+function M.restore_git_base()
+    local snapshot = remembered_git_base
+    remembered_git_base = nil
+    if not snapshot or not package.loaded["neo-tree"] then
+        return
+    end
+    local changed = {}
+    for _, entry in ipairs(tab_states()) do
+        local previous = snapshot[entry.state]
+        if previous ~= nil then
+            local lookup = entry.state.git_base_by_worktree or {}
+            entry.state.git_base_by_worktree = lookup
             local want = previous or nil
-            if lookup[root] ~= want then
-                lookup[root] = want
-                changed = true
+            if lookup[entry.root] ~= want then
+                lookup[entry.root] = want
+                changed[entry.root] = true
             end
         end
-        saved_git_base[state] = nil
     end
-    if changed then
-        refresh_trees()
+    if next(changed) then
+        refresh_trees(changed)
     end
+end
+
+--- Flip the trees between uncommitted changes and changes against ref, showing the Git explorer when it is
+--- not on screen (bound to <leader>gE with "main").
+---@param ref string
+function M.toggle_git_base(ref)
+    require("neo-tree")
+    local base = M.git_base() ~= ref and ref or nil
+    -- the git_status source ignores a refresh while its first render is loading: make sure its state exists and
+    -- carries the base before the explorer is shown
+    require("neo-tree.sources.manager").get_state("git_status")
+    M.set_git_base(base)
+    if visible_explorer_source() ~= "git_status" then
+        M.toggle_git_explorer({ toggle = false })
+    end
+    vim.notify("Neo-tree: " .. (base and ("changes vs " .. base) or "uncommitted changes"))
 end
 
 --- Copy files or directories to the shared clipboard.
