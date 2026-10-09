@@ -200,6 +200,15 @@ local function refresh_trees(roots)
     require("neo-tree.sources.manager").refresh("git_base")
 end
 
+--- Make sure the file tree and the Git explorer have a state in this tab, so a base set now reaches a view that
+--- is shown for the first time later (states are created lazily by Neo-tree otherwise).
+local function ensure_states()
+    local manager = require("neo-tree.sources.manager")
+    for _, source in ipairs({ "filesystem", "git_status" }) do
+        manager.get_state(source)
+    end
+end
+
 --- Git ref the trees of this tab compare against; nil = Neo-tree's default (plain `git status`).
 ---@return string|nil
 function M.git_base()
@@ -223,6 +232,7 @@ function M.set_git_base(ref)
     if not package.loaded["neo-tree"] then
         return
     end
+    ensure_states()
     local changed = {}
     for _, entry in ipairs(tab_states()) do
         local state = entry.state
@@ -238,11 +248,13 @@ function M.set_git_base(ref)
 end
 
 --- Remember the current base of every tree so restore_git_base() can put it back; a snapshot already held is
---- kept (the first caller owns it).
+--- kept (the first caller owns it). toggle_git_base() updates a held snapshot, so an explicit toggle made while
+--- the owner (the zdiff panel) is open survives its close.
 function M.remember_git_base()
     if remembered_git_base or not package.loaded["neo-tree"] then
         return
     end
+    ensure_states()
     remembered_git_base = setmetatable({}, { __mode = "k" })
     for _, entry in ipairs(tab_states()) do
         local lookup = entry.state.git_base_by_worktree
@@ -305,10 +317,15 @@ function M.toggle_git_base(ref)
         return
     end
     local base = M.git_base() ~= ref and ref or nil
-    -- the git_status source ignores a refresh while its first render is loading: make sure its state exists and
-    -- carries the base before the explorer is shown
-    require("neo-tree.sources.manager").get_state("git_status")
+    -- the git_status source ignores a refresh while its first render is loading: set_git_base() creates its state
+    -- so it carries the base before the explorer is shown
     M.set_git_base(base)
+    if remembered_git_base then
+        -- the panel is open: this explicit choice is what it should leave behind when it closes
+        for _, entry in ipairs(tab_states()) do
+            remembered_git_base[entry.state] = base or false
+        end
+    end
     if base then
         review.sync_visible_signs(base)
     else

@@ -210,14 +210,19 @@ local function follow_mode(ref)
     end
 end
 
---- Give the Neo-tree trees the bases they had before the panel back.
+--- Give the Neo-tree trees the bases they had before the panel back, and let the file buffers on screen follow
+--- that base again (the panel's close reset every gitsigns base it or the Git explorer had changed).
 local function release_tree()
     if not M.config.sync_neotree_base then
         return
     end
     local ok, neotree = pcall(require, "utils.neotree-util")
-    if ok then
-        neotree.restore_git_base()
+    if not ok then
+        return
+    end
+    neotree.restore_git_base()
+    if M.config.sync_gitsigns_base then
+        review.sync_visible_signs(neotree.git_base())
     end
 end
 
@@ -412,10 +417,10 @@ function M.open(ref)
         return
     end
     attach(buf)
-    if ref then
-        -- zdiff's `m` toggles between uncommitted and config.default_branch: keep it on the ref reviewed here
-        require("zdiff").config.default_branch = ref
-    end
+    -- zdiff's `m` toggles between uncommitted and config.default_branch (the plugin ships "main"): keep it on the
+    -- ref reviewed here, or on this repository's default branch when the panel was opened in uncommitted mode
+    local zdiff = require("zdiff")
+    zdiff.config.default_branch = ref or review.default_branch(vim.uv.cwd()) or zdiff.config.default_branch
     follow_mode(ref)
 end
 
