@@ -1,7 +1,8 @@
 return {
     -- multi-buffer diff view
     -- opened as a bottom panel through utils/zdiff-util.lua: <CR> sends the file to the editor window and keeps
-    -- the diff visible (a manually typed :Zdiff keeps the plugin's own in-window behaviour)
+    -- the diff visible; `:ZdiffPanel [ref]` (config/autocmds.lua) is the command form, while the plugin's own
+    -- `:Zdiff` keeps its in-window behaviour
     {
         "martindur/zdiff.nvim",
         cmd = "Zdiff",

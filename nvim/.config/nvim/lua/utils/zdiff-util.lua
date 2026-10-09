@@ -42,7 +42,8 @@ M.config = {
     height = 0.4,
     -- <CR> on a file header line: land on the file's first change instead of line 1
     jump_to_first_change = true,
-    -- in ref mode, point gitsigns at the base zdiff compares against for files opened from the panel
+    -- in ref mode, point gitsigns at the base zdiff compares against: files opened from the panel and the files on
+    -- screen when the mode changes
     sync_gitsigns_base = true,
     -- in ref mode, compare the Neo-tree trees against the panel's ref while the panel is open (`:Neotree <ref>`)
     sync_neotree_base = true,

@@ -22,6 +22,18 @@ local M = {}
 ---@type table<integer, string> gitsigns base set per file buffer (absent = default)
 local signs_base = {}
 
+--- Drop a buffer's entry when the buffer is wiped: its number may be reused for another file.
+---@param buf integer
+local function forget_on_wipeout(buf)
+    vim.api.nvim_create_autocmd("BufWipeout", {
+        buffer = buf,
+        once = true,
+        callback = function()
+            signs_base[buf] = nil
+        end,
+    })
+end
+
 --- Run git in dir and return its stdout lines, or nil on failure.
 ---@param dir string
 ---@param args string[]
@@ -187,6 +199,9 @@ function M.sync_signs_base(buf, ref)
     gitsigns.attach({ bufnr = buf }, function() end)
     when_attached(gitsigns, buf, function()
         change_base(gitsigns, buf, base)
+        if base and signs_base[buf] == nil then
+            forget_on_wipeout(buf)
+        end
         signs_base[buf] = base
     end)
 end
