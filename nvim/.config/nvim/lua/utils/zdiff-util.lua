@@ -370,7 +370,7 @@ local function attach(buf)
     })
 end
 
---- Open zdiff in the bottom panel (creating it when needed) and focus it.
+--- Open zdiff in the bottom panel (creating it when needed) and focus it. <leader>zd, `:ZdiffPanel [ref]`.
 ---@param ref? string git ref to diff against; nil shows uncommitted changes
 function M.open(ref)
     local cur = vim.api.nvim_get_current_win()

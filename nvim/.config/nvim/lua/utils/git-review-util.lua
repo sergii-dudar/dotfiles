@@ -3,7 +3,8 @@
 -- Both views compare either the working tree against HEAD ("uncommitted", ref = nil) or the branch against a ref
 -- the way zdiff does (`<ref>...HEAD`, i.e. from the merge-base), and want the opened file to match that view:
 --
--- • default_branch / ref_exists — the branch to review against (origin/HEAD, then main/master/develop/trunk)
+-- • default_branch / ref_exists / complete_refs — the branch to review against (origin/HEAD, then
+--   main/master/develop/trunk), ref validation, command-line completion of branches and tags
 -- • first_changed_line / jump_to_first_change — first hunk of the file in that diff (`git diff -U0`, sync)
 -- • sync_signs_base — point gitsigns at the same base for the buffer: merge-base(ref, HEAD) in ref mode, its
 --   default (index; staged hunks have their own signs) in uncommitted mode. Per buffer, never global
@@ -73,6 +74,18 @@ function M.default_branch(dir)
         end
     end
     return nil
+end
+
+--- Command-line completion for a git ref: local branches, remote branches and tags of the cwd repository that
+--- start with arglead.
+---@param arglead string
+---@return string[]
+function M.complete_refs(arglead)
+    local out =
+        git_in(vim.uv.cwd(), { "for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes", "refs/tags" })
+    return vim.tbl_filter(function(ref)
+        return ref ~= "" and vim.startswith(ref, arglead)
+    end, out or {})
 end
 
 --- First changed line of file: `<ref>...HEAD` in ref mode, working tree vs HEAD otherwise.

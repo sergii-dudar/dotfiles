@@ -263,6 +263,27 @@ vim.api.nvim_create_user_command("WatchRun", function()
 end, {})
 
 -------------------------------------------------------
+------------- Git review (zdiff panel, Neo-tree) ------
+
+-- Same as <leader>zd / <leader>zD and <leader>ge / <leader>gE, with the ref chosen by hand (branch, tag, HEAD~2,
+-- …). No argument means uncommitted changes. Completion lists the branches and tags of the cwd repository.
+local function complete_git_refs(arglead)
+    return require("utils.git-review-util").complete_refs(arglead)
+end
+
+vim.api.nvim_create_user_command("ZdiffPanel", function(opts)
+    require("utils.zdiff-util").open(opts.args ~= "" and opts.args or nil)
+end, { nargs = "?", complete = complete_git_refs, desc = "zdiff panel against a git ref (none = uncommitted)" })
+
+vim.api.nvim_create_user_command(
+    "NeotreeGitBase",
+    function(opts)
+        require("utils.neotree-util").show_git_base(opts.args ~= "" and opts.args or nil)
+    end,
+    { nargs = "?", complete = complete_git_refs, desc = "Neo-tree Git explorer against a git ref (none = uncommitted)" }
+)
+
+-------------------------------------------------------
 ---------------- blink.cmp (cmp-dap) ------------------
 
 vim.api.nvim_create_autocmd("FileType", {

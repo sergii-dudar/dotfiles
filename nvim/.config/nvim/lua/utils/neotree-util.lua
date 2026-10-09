@@ -7,8 +7,9 @@
 -- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
 --   does) without opening a closed sidebar
 -- • remember_git_base / restore_git_base — snapshot the bases and put them back (used by the zdiff panel)
--- • toggle_git_base — <leader>gE: Git explorer flipping between uncommitted changes and changes vs the default
---   branch (origin/HEAD, else main/master/…); gitsigns of the files on screen follow
+-- • show_git_base / toggle_git_base — `:NeotreeGitBase [ref]` / <leader>gE: Git explorer comparing against a ref
+--   (the toggle flips between uncommitted and the default branch: origin/HEAD, else main/master/…); gitsigns of
+--   the files on screen follow
 -- • on_file_opened — `file_opened` handler: a file opened from the Git explorer lands on its first change and
 --   gets gitsigns' base aligned with the explorer (utils/git-review-util); other sources untouched
 -- • copy_to_shared_clipboard — copy file/dir to shared clipboard
@@ -299,24 +300,16 @@ local function tab_explorer_source()
     return nil
 end
 
---- Flip the trees between uncommitted changes and changes against ref (the repository's default branch when
---- nil, see git-review-util.default_branch), showing the Git explorer when it is not on screen. The file
---- buffers on screen get gitsigns' base aligned right away (bound to <leader>gE).
----@param ref? string
-function M.toggle_git_base(ref)
+--- Show the Git explorer comparing against base (nil = uncommitted changes), with the file buffers on screen
+--- getting gitsigns' base aligned right away. `:NeotreeGitBase [ref]`.
+---@param base string|nil an existing git ref
+function M.show_git_base(base)
     require("neo-tree")
     local review = require("utils.git-review-util")
-    local dir = vim.uv.cwd()
-    ref = ref or review.default_branch(dir)
-    if not ref then
-        vim.notify("Neo-tree: no default branch found (origin/HEAD, main, master, develop, trunk)", vim.log.levels.WARN)
+    if base and not review.ref_exists(vim.uv.cwd(), base) then
+        vim.notify("Neo-tree: unknown git ref " .. base, vim.log.levels.WARN)
         return
     end
-    if not review.ref_exists(dir, ref) then
-        vim.notify("Neo-tree: unknown git ref " .. ref, vim.log.levels.WARN)
-        return
-    end
-    local base = M.git_base() ~= ref and ref or nil
     -- the git_status source ignores a refresh while its first render is loading: set_git_base() creates its state
     -- so it carries the base before the explorer is shown
     M.set_git_base(base)
@@ -336,6 +329,18 @@ function M.toggle_git_base(ref)
         M.toggle_git_explorer({ toggle = false })
     end
     vim.notify("Neo-tree: " .. (base and ("changes vs " .. base) or "uncommitted changes"))
+end
+
+--- Flip the trees between uncommitted changes and changes against ref (the repository's default branch when
+--- nil, see git-review-util.default_branch), see show_git_base(). Bound to <leader>gE.
+---@param ref? string
+function M.toggle_git_base(ref)
+    ref = ref or require("utils.git-review-util").default_branch(vim.uv.cwd())
+    if not ref then
+        vim.notify("Neo-tree: no default branch found (origin/HEAD, main, master, develop, trunk)", vim.log.levels.WARN)
+        return
+    end
+    M.show_git_base(M.git_base() ~= ref and ref or nil)
 end
 
 --- Neo-tree `file_opened` handler: a file opened from the Git explorer lands on its first change and gets
