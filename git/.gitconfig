@@ -1,5 +1,6 @@
 [core]
 	excludesfile = ~/.gitignore_global
+	attributesfile = ~/.gitattributes_global
 	autocrlf = input
 	pager = delta
     editor = nvim
@@ -34,9 +35,18 @@
     # light = true
 
 # https://github.com/chojs23/ec
+# `git mergetool` and lazygit's `M` (conflicts panel) open ec; diffview.nvim is started from nvim (<leader>gm), not as a mergetool
 [merge]
     tool = ec # diffview|nvimdiff|vimdiff|ec
-    conflictstyle = diff3
+    conflictstyle = zdiff3 # like diff3, but lines common to both sides are moved out of the conflict block
+
+# https://codeberg.org/mergiraf/mergiraf - syntax-aware (tree-sitter) merge driver: resolves import / adjacent-method
+# conflicts git's line-based merge can't, falls back to the normal line-based merge + markers when it can't.
+# Enabled per path in ~/.gitattributes_global (`* merge=mergiraf`); `mergiraf solve <file>` retries an
+# already-conflicted file, `mergiraf languages` lists supported languages. Plays with rerere.
+[merge "mergiraf"]
+    name = mergiraf
+    driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
 
 [mergetool]
 	keepBackup = false
@@ -59,7 +69,7 @@
 [diff]
     algorithm = histogram
     colorMoved = default
-    tool = ec # nvimdiff
+    tool = nvimdiff # ec is a merge tool only (no difftool.ec.cmd); nvimdiff is built into git
 
 [pull]
     # rebase = false

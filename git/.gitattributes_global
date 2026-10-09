@@ -1,0 +1,3 @@
+# global git attributes (core.attributesfile); per-repo .gitattributes takes precedence
+# syntax-aware merge driver, see [merge "mergiraf"] in .gitconfig
+* merge=mergiraf
