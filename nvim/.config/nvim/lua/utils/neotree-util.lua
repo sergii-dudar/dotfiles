@@ -79,8 +79,20 @@ local function visible_explorer_source()
     return nil
 end
 
+local EXPLORER_GUARD_ID = "neotree_util_explorer_guard"
+
+--- Stop watching renders for the Git explorer (see guard_explorer_window()); every explicit explorer action
+--- cancels it so the guard never fights a deliberate switch.
+local function cancel_explorer_guard()
+    if package.loaded["neo-tree"] then
+        local events = require("neo-tree.events")
+        events.unsubscribe({ event = events.AFTER_RENDER, id = EXPLORER_GUARD_ID })
+    end
+end
+
 --- Toggle the explorer registered for the current buffer, or reveal it in Neo-tree.
 function M.toggle_context_explorer()
+    cancel_explorer_guard()
     local bufnr = vim.api.nvim_get_current_buf()
     local context = {
         bufnr = bufnr,
@@ -128,6 +140,7 @@ end
 ---@param opts { source: string?, position: string?, action: string?, toggle: boolean? }?
 ---       defaults: "filesystem" / "left" / "focus" / true
 function M.open_explorer(opts)
+    cancel_explorer_guard()
     opts = opts or {}
     local reveal_file = resolve_reveal_file()
 
@@ -235,14 +248,10 @@ function M.git_base()
     return nil
 end
 
---- Compare the Neo-tree sources of this tab against a git ref, from its fork point with HEAD (the same range
---- zdiff shows; `git diff <fork point> HEAD` status merged into the tree markers), without opening a closed
---- sidebar. nil goes back to Neo-tree's default. No-op while Neo-tree is not loaded.
+--- Write the base for ref (its fork point with HEAD) into every state of this tab without rendering anything.
 ---@param ref string|nil
-function M.set_git_base(ref)
-    if not package.loaded["neo-tree"] then
-        return
-    end
+---@return table<string, true> changed worktree roots
+local function store_git_base(ref)
     ensure_states()
     local review = require("utils.git-review-util")
     local changed = {}
@@ -259,6 +268,18 @@ function M.set_git_base(ref)
             changed[entry.root] = true
         end
     end
+    return changed
+end
+
+--- Compare the Neo-tree sources of this tab against a git ref, from its fork point with HEAD (the same range
+--- zdiff shows; `git diff <fork point> HEAD` status merged into the tree markers), without opening a closed
+--- sidebar. nil goes back to Neo-tree's default. No-op while Neo-tree is not loaded.
+---@param ref string|nil
+function M.set_git_base(ref)
+    if not package.loaded["neo-tree"] then
+        return
+    end
+    local changed = store_git_base(ref)
     if next(changed) then
         refresh_trees(changed)
     end
@@ -316,6 +337,34 @@ local function tab_explorer_source()
     return nil
 end
 
+--- A file-tree scan still running when the explorer took the sidebar paints the file tree over it when it
+--- finishes (Neo-tree renders into the window a state remembers, also after another source took it). For a
+--- few seconds after show_git_base() opened the explorer, hand the sidebar back to it when that happens; any
+--- explicit explorer action cancels the watch.
+local function guard_explorer_window()
+    cancel_explorer_guard()
+    local events = require("neo-tree.events")
+    local deadline = vim.uv.now() + 5000
+    events.subscribe({
+        event = events.AFTER_RENDER,
+        id = EXPLORER_GUARD_ID,
+        handler = function(state)
+            local name = type(state) == "table" and state.name or nil
+            -- a deliberate navigate (`:Neotree filesystem`) clears `dirty` before it renders; a scan that was
+            -- already running when show_git_base() marked the tree dirty renders with the flag still set
+            local lost = name ~= nil and name ~= "git_status" and state.dirty == true and tab_explorer_source() == name
+            if lost or vim.uv.now() > deadline then
+                cancel_explorer_guard()
+            end
+            if lost then
+                vim.schedule(function()
+                    M.toggle_git_explorer({ toggle = false })
+                end)
+            end
+        end,
+    })
+end
+
 --- Show the Git explorer comparing against base (nil = uncommitted changes), with the file buffers on screen
 --- getting gitsigns' base aligned right away. `:NeotreeGitBase [ref]`.
 ---@param base string|nil an existing git ref
@@ -326,9 +375,22 @@ function M.show_git_base(base)
         vim.notify("Neo-tree: unknown git ref " .. base, vim.log.levels.WARN)
         return
     end
-    -- the git_status source ignores a refresh while its first render is loading: set_git_base() creates its state
-    -- so it carries the base before the explorer is shown
-    M.set_git_base(base)
+    if tab_explorer_source() == "git_status" then
+        M.set_git_base(base)
+    else
+        -- The explorer is about to take the sidebar. Refreshing now would start an asynchronous scan of the file
+        -- tree that finishes after the switch and paints the file tree over the explorer, so only store the base
+        -- (the explorer's first draw uses it; the hidden trees re-navigate with it when shown again).
+        local changed = store_git_base(base)
+        if next(changed) then
+            invalidate_status_cache(changed)
+        end
+        -- hidden trees re-navigate with the base when shown again; the flag also lets guard_explorer_window()
+        -- recognise a render the user did not ask for
+        for _, entry in ipairs(tab_states()) do
+            entry.state.dirty = true
+        end
+    end
     if remembered_git_base then
         -- the panel is open: this explicit choice is what it should leave behind when it closes
         for _, entry in ipairs(tab_states()) do
@@ -343,6 +405,7 @@ function M.show_git_base(base)
     end
     if tab_explorer_source() ~= "git_status" then
         M.toggle_git_explorer({ toggle = false })
+        guard_explorer_window()
     end
     vim.notify("Neo-tree: " .. (base and ("changes vs " .. base) or "uncommitted changes"))
 end
