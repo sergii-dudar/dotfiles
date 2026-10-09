@@ -22,15 +22,17 @@
 -- • the mode is read from the panel's first line (" zdiff: Changes vs <ref>" / " zdiff: Uncommitted changes"),
 --   which also follows the in-place `m` toggle; a file header line is "<icon> <status> <path>  +N -N" while diff
 --   lines are indented by two spaces
--- • zdiff diffs `<ref>...HEAD` in ref mode and the working tree vs HEAD in uncommitted mode. The first change is
---   taken from `git diff -U0` with that same target. gitsigns' base is changed per buffer to merge-base(ref, HEAD)
---   in ref mode and left at its default (index, staged hunks have their own signs) in uncommitted mode; buffers
---   whose base was changed are reverted when the zdiff buffer goes away (panel closed or ref switched). The
---   change waits until gitsigns has attached the buffer, see sync_signs_base()
+-- • zdiff diffs `<ref>...HEAD` in ref mode and the working tree vs HEAD in uncommitted mode. The first-change jump
+--   and the per-buffer gitsigns base come from utils/git-review-util (shared with the Neo-tree changes view): a
+--   file opened with <CR> gets the base, the files already on screen get it when the mode changes (open, `m`),
+--   and every changed buffer is reverted when the zdiff buffer goes away (panel closed or ref switched).
+--   open_default_branch() (<leader>zD) resolves the branch per repository instead of assuming "main"
 -- • Neo-tree follows the panel the way `:Neotree <ref>` does (utils/neotree-util remember_git_base / set_git_base /
 --   restore_git_base): while the panel is open the trees of this tab compare against its ref (Neo-tree's default
 --   in uncommitted mode) and get the bases they had before the panel back when it closes. Updated on open, on the
 --   in-place `m` toggle and on close
+
+local review = require("utils.git-review-util")
 
 local M = {}
 
@@ -50,9 +52,8 @@ M.config = {
 ---@field editor_win integer|nil window that was active when the panel was opened
 ---@field orig table<integer, table<string, fun()>> zdiff's own callbacks per zdiff buffer, by keymap name
 ---@field wrapper table<integer, table<string, fun()>> the panel-aware callbacks per zdiff buffer, by keymap name
----@field signs_base table<integer, string> gitsigns base this module set per file buffer (absent = default)
 ---@field switching boolean true while open() replaces the zdiff buffer for another ref
-local S = { panel_win = nil, editor_win = nil, orig = {}, wrapper = {}, signs_base = {}, switching = false }
+local S = { panel_win = nil, editor_win = nil, orig = {}, wrapper = {}, switching = false }
 
 local AUGROUP = "zdiff_panel"
 local ZDIFF_AUGROUP = "zdiff" -- augroup zdiff.nvim registers its own autocmds in
@@ -184,112 +185,6 @@ local function is_file_header(line)
     return not line:find("^  ") and line:match("%+%d+ %-%d+$") ~= nil
 end
 
---- Run git in the directory of file and return its stdout lines, or nil on failure.
----@param file string
----@param args string[]
----@return string[]|nil
-local function git_lines(file, args)
-    local cmd = { "git", "-C", vim.fs.dirname(file) }
-    vim.list_extend(cmd, args)
-    local out = vim.fn.systemlist(cmd)
-    if vim.v.shell_error ~= 0 then
-        return nil
-    end
-    return out
-end
-
---- First changed line of file in the diff zdiff shows: `<ref>...HEAD` in ref mode, working tree vs HEAD otherwise.
----@param file string absolute path
----@param ref string|nil
----@return integer|nil
-local function first_changed_line(file, ref)
-    local target = ref and (ref .. "...HEAD") or "HEAD"
-    local out = git_lines(file, { "diff", "-U0", target, "--", file })
-    for _, line in ipairs(out or {}) do
-        local start = line:match("^@@ %-%d+,?%d* %+(%d+)")
-        if start then
-            return math.max(1, tonumber(start))
-        end
-    end
-    return nil
-end
-
---- Call fn once gitsigns is attached to buf (get_hunks() is nil until then); gives up after about five seconds
---- or when the buffer is gone.
----@param gitsigns table the gitsigns module
----@param buf integer file buffer
----@param fn fun()
----@param attempt? integer
-local function when_attached(gitsigns, buf, fn, attempt)
-    if not vim.api.nvim_buf_is_valid(buf) then
-        return
-    end
-    if gitsigns.get_hunks(buf) ~= nil then
-        fn()
-        return
-    end
-    attempt = attempt or 0
-    if attempt >= 100 then
-        return
-    end
-    vim.defer_fn(function()
-        when_attached(gitsigns, buf, fn, attempt + 1)
-    end, 50)
-end
-
---- Change the gitsigns base of a file buffer (per buffer, not global); errors only warn.
----@param gitsigns table the gitsigns module
----@param buf integer file buffer
----@param base string|nil nil = gitsigns' default base
-local function change_base(gitsigns, buf, base)
-    -- change_base() reads the current buffer synchronously before its first await
-    vim.api.nvim_buf_call(buf, function()
-        gitsigns.change_base(base, false, function(err)
-            if err then
-                vim.notify("[zdiff panel] gitsigns base: " .. tostring(err), vim.log.levels.WARN)
-            end
-        end)
-    end)
-end
-
---- Point gitsigns at the base zdiff compares against for a file buffer: merge-base(ref, HEAD) in ref mode, its
---- default otherwise. No-op when gitsigns is absent or the buffer already has that base.
----@param buf integer file buffer
----@param ref string|nil
-local function sync_signs_base(buf, ref)
-    local ok, gitsigns = pcall(require, "gitsigns")
-    if not ok then
-        return
-    end
-    local base = nil
-    if ref then
-        local out = git_lines(vim.api.nvim_buf_get_name(buf), { "merge-base", ref, "HEAD" })
-        base = out and out[1] ~= "" and out[1] or ref
-    end
-    if S.signs_base[buf] == base then
-        return
-    end
-    -- gitsigns throttles attach() per buffer: a call made while its own BufRead attach of a freshly opened file is
-    -- still running is dropped (not queued), and change_base() silently does nothing for a buffer that is not
-    -- attached yet. attach() here covers a buffer gitsigns never picked up; the base changes once it is attached.
-    gitsigns.attach({ bufnr = buf }, function() end)
-    when_attached(gitsigns, buf, function()
-        change_base(gitsigns, buf, base)
-        S.signs_base[buf] = base
-    end)
-end
-
---- Revert every buffer whose gitsigns base this module changed back to the default base.
-local function reset_signs_bases()
-    local ok, gitsigns = pcall(require, "gitsigns")
-    for buf, _ in pairs(S.signs_base) do
-        if ok and vim.api.nvim_buf_is_valid(buf) then
-            change_base(gitsigns, buf, nil)
-        end
-    end
-    S.signs_base = {}
-end
-
 --- Make the Neo-tree trees compare against the panel's ref (nil = uncommitted mode = Neo-tree's default). The
 --- bases in place when the panel first touches them are remembered for release_tree().
 ---@param ref string|nil
@@ -303,6 +198,16 @@ local function sync_tree(ref)
     end
     neotree.remember_git_base()
     neotree.set_git_base(ref)
+end
+
+--- Everything that follows the panel's mode: the Neo-tree trees and the gitsigns base of the file buffers on
+--- screen (files opened later get theirs in goto_file()).
+---@param ref string|nil
+local function follow_mode(ref)
+    sync_tree(ref)
+    if M.config.sync_gitsigns_base then
+        review.sync_visible_signs(ref)
+    end
 end
 
 --- Give the Neo-tree trees the bases they had before the panel back.
@@ -387,16 +292,11 @@ function M.goto_file(buf)
     end
 
     local file_buf = vim.api.nvim_get_current_buf()
-    local file = vim.api.nvim_buf_get_name(file_buf)
     if header and M.config.jump_to_first_change then
-        local first = first_changed_line(file, ref)
-        if first then
-            vim.api.nvim_win_set_cursor(0, { math.min(first, vim.api.nvim_buf_line_count(file_buf)), 0 })
-            vim.cmd("normal! zz")
-        end
+        review.jump_to_first_change(vim.api.nvim_get_current_win(), file_buf, ref)
     end
     if M.config.sync_gitsigns_base then
-        sync_signs_base(file_buf, ref)
+        review.sync_signs_base(file_buf, ref)
     end
 end
 
@@ -430,7 +330,7 @@ local function attach(buf)
         return function()
             orig()
             -- toggle_mode() re-renders the mode line synchronously before its async refresh
-            sync_tree(panel_ref(buf))
+            follow_mode(panel_ref(buf))
         end
     end)
 
@@ -456,7 +356,7 @@ local function attach(buf)
         callback = function()
             S.orig[buf] = nil
             S.wrapper[buf] = nil
-            reset_signs_bases()
+            review.reset_signs_bases()
             if not S.switching then
                 -- the panel window is closing right now; let Neo-tree re-render once the layout has settled
                 vim.schedule(release_tree)
@@ -512,7 +412,22 @@ function M.open(ref)
         return
     end
     attach(buf)
-    sync_tree(ref)
+    if ref then
+        -- zdiff's `m` toggles between uncommitted and config.default_branch: keep it on the ref reviewed here
+        require("zdiff").config.default_branch = ref
+    end
+    follow_mode(ref)
+end
+
+--- Open the panel against the repository's default branch (origin/HEAD, else main/master/…), see
+--- git-review-util.default_branch(); warns when none is found.
+function M.open_default_branch()
+    local branch = review.default_branch(vim.uv.cwd())
+    if not branch then
+        vim.notify("zdiff: no default branch found (origin/HEAD, main, master, develop, trunk)", vim.log.levels.WARN)
+        return
+    end
+    M.open(branch)
 end
 
 return M

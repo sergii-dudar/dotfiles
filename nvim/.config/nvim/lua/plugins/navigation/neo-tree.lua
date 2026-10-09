@@ -11,9 +11,9 @@ return {
         {
             "<leader>gE",
             function()
-                neotree_util.toggle_git_base("main")
+                neotree_util.toggle_git_base()
             end,
-            desc = "Git Explorer (toggle changes vs main)",
+            desc = "Git Explorer (toggle changes vs default branch)",
         },
     },
     opts = {
@@ -114,6 +114,11 @@ return {
                     vim.opt_local.relativenumber = true
                     vim.opt_local.number = true
                 end,
+            },
+            {
+                event = "file_opened",
+                --- Files opened from the Git explorer: jump to the first change and align gitsigns with its base.
+                handler = neotree_util.on_file_opened,
             },
             {
                 event = "neo_tree_popup_input_ready",

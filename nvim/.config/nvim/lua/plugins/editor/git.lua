@@ -16,9 +16,9 @@ return {
             {
                 "<leader>zD",
                 function()
-                    require("utils.zdiff-util").open("main")
+                    require("utils.zdiff-util").open_default_branch()
                 end,
-                desc = "Zdiff panel (vs main)",
+                desc = "Zdiff panel (vs default branch)",
             },
         },
         opts = {},

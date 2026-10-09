@@ -7,7 +7,10 @@
 -- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
 --   does) without opening a closed sidebar
 -- • remember_git_base / restore_git_base — snapshot the bases and put them back (used by the zdiff panel)
--- • toggle_git_base — <leader>gE: Git explorer flipping between uncommitted changes and changes vs main
+-- • toggle_git_base — <leader>gE: Git explorer flipping between uncommitted changes and changes vs the default
+--   branch (origin/HEAD, else main/master/…); gitsigns of the files on screen follow
+-- • on_file_opened — `file_opened` handler: a file opened from the Git explorer lands on its first change and
+--   gets gitsigns' base aligned with the explorer (utils/git-review-util); other sources untouched
 -- • copy_to_shared_clipboard — copy file/dir to shared clipboard
 -- • paste_from_shared_clipboard — paste from shared clipboard into neo-tree target
 -- • shared_copy / shared_copy_visual — copy current/selected buffer lines to clipboard file
@@ -272,20 +275,74 @@ function M.restore_git_base()
     end
 end
 
---- Flip the trees between uncommitted changes and changes against ref, showing the Git explorer when it is
---- not on screen (bound to <leader>gE with "main").
----@param ref string
+--- Source of the Neo-tree window in the current tab, if any (other tabs may show trees of their own).
+---@return string|nil
+local function tab_explorer_source()
+    for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local ok, source = pcall(vim.api.nvim_buf_get_var, vim.api.nvim_win_get_buf(winid), "neo_tree_source")
+        if ok and source then
+            return source
+        end
+    end
+    return nil
+end
+
+--- Flip the trees between uncommitted changes and changes against ref (the repository's default branch when
+--- nil, see git-review-util.default_branch), showing the Git explorer when it is not on screen. The file
+--- buffers on screen get gitsigns' base aligned right away (bound to <leader>gE).
+---@param ref? string
 function M.toggle_git_base(ref)
     require("neo-tree")
+    local review = require("utils.git-review-util")
+    local dir = vim.uv.cwd()
+    ref = ref or review.default_branch(dir)
+    if not ref then
+        vim.notify("Neo-tree: no default branch found (origin/HEAD, main, master, develop, trunk)", vim.log.levels.WARN)
+        return
+    end
+    if not review.ref_exists(dir, ref) then
+        vim.notify("Neo-tree: unknown git ref " .. ref, vim.log.levels.WARN)
+        return
+    end
     local base = M.git_base() ~= ref and ref or nil
     -- the git_status source ignores a refresh while its first render is loading: make sure its state exists and
     -- carries the base before the explorer is shown
     require("neo-tree.sources.manager").get_state("git_status")
     M.set_git_base(base)
-    if visible_explorer_source() ~= "git_status" then
+    if base then
+        review.sync_visible_signs(base)
+    else
+        -- files opened from the explorer in ref mode got gitsigns' base changed, see on_file_opened()
+        review.reset_signs_bases()
+    end
+    if tab_explorer_source() ~= "git_status" then
         M.toggle_git_explorer({ toggle = false })
     end
     vim.notify("Neo-tree: " .. (base and ("changes vs " .. base) or "uncommitted changes"))
+end
+
+--- Neo-tree `file_opened` handler: a file opened from the Git explorer lands on its first change and gets
+--- gitsigns' base aligned with what the explorer compares against (utils/git-review-util). Files opened from
+--- any other source are left alone.
+---@param path string
+function M.on_file_opened(path)
+    if tab_explorer_source() ~= "git_status" then
+        return
+    end
+    local buf = vim.api.nvim_get_current_buf()
+    if vim.api.nvim_buf_get_name(buf) ~= path then
+        buf = vim.fn.bufnr(path)
+        if buf == -1 then
+            return
+        end
+    end
+    local review = require("utils.git-review-util")
+    local ref = M.git_base()
+    local win = vim.fn.bufwinid(buf)
+    if win ~= -1 then
+        review.jump_to_first_change(win, buf, ref)
+    end
+    review.sync_signs_base(buf, ref)
 end
 
 --- Copy files or directories to the shared clipboard.
