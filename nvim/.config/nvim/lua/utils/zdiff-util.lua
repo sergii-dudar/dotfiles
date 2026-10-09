@@ -4,7 +4,8 @@
 -- `:edit` in that same window, so reviewing means bouncing between the diff and the file inside one window.
 --
 -- • open — show the diff in a dedicated bottom split (reuses the panel when it is already open) and focus it
--- • goto_file — <CR> in the panel: open the file in an editor window and focus it; the panel stays as it is.
+-- • goto_file — <CR> or a double click in the panel: open the file in an editor window and focus it; the panel
+--   stays as it is.
 --   On a file header line the cursor lands on the file's first change (zdiff itself goes to line 1); gitsigns
 --   is pointed at the base zdiff compares against, so the gutter shows the reviewed changes (`]h` / `[h` walk them)
 -- • editor_win — pick that window: previous window → window active when the panel was opened → largest regular
@@ -45,6 +46,8 @@ M.config = {
     sync_gitsigns_base = true,
     -- in ref mode, compare the Neo-tree trees against the panel's ref while the panel is open (`:Neotree <ref>`)
     sync_neotree_base = true,
+    -- a double click on a panel line does what <CR> does (the first click already moves the cursor there)
+    double_click_opens = true,
 }
 
 ---@class ZdiffPanelState
@@ -331,6 +334,14 @@ local function attach(buf)
             M.goto_file(buf)
         end
     end)
+    if M.config.double_click_opens and S.wrapper[buf].goto_file then
+        vim.keymap.set(
+            "n",
+            "<2-LeftMouse>",
+            S.wrapper[buf].goto_file,
+            { buffer = buf, silent = true, desc = "Open file in editor window" }
+        )
+    end
     wrap_key(buf, "toggle_mode", "Toggle uncommitted / branch mode", function(orig)
         return function()
             orig()
