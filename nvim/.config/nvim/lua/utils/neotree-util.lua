@@ -6,6 +6,8 @@
 -- • toggle_git_explorer — open_explorer bound to the git_status source
 -- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
 --   does, but from the ref's fork point with HEAD so the list matches zdiff) without opening a closed sidebar
+-- • apply_git_base — set_git_base plus the Git explorer in the sidebar (used by the zdiff panel: a sidebar that is
+--   open switches to the changes view, without taking focus)
 -- • remember_git_base / restore_git_base — snapshot the bases and put them back (used by the zdiff panel)
 -- • show_git_base / toggle_git_base — `:NeotreeGitBase [ref]` / <leader>gE: Git explorer comparing against a ref
 --   (the toggle flips between uncommitted and the default branch: origin/HEAD, else main/master/…); gitsigns of
@@ -365,6 +367,35 @@ local function guard_explorer_window()
     })
 end
 
+--- Set the base (nil = Neo-tree's default) and put the Git explorer in the sidebar: always with `opts.open`,
+--- otherwise only when a sidebar showing another source is on screen (a closed sidebar stays closed). The
+--- explorer is focused with `opts.focus`, shown without taking focus otherwise.
+---@param base string|nil
+---@param opts { open: boolean, focus: boolean }
+function M.apply_git_base(base, opts)
+    if not package.loaded["neo-tree"] then
+        return
+    end
+    local visible = tab_explorer_source()
+    if visible == "git_status" or (visible == nil and not opts.open) then
+        M.set_git_base(base)
+        return
+    end
+    -- The explorer is about to take the sidebar. Refreshing now would start an asynchronous scan of the file
+    -- tree that finishes after the switch and paints the file tree over the explorer, so only store the base
+    -- (the explorer's first draw uses it; the hidden trees re-navigate with it when shown again).
+    local changed = store_git_base(base)
+    if next(changed) then
+        invalidate_status_cache(changed)
+    end
+    -- the flag also lets guard_explorer_window() recognise a render the user did not ask for
+    for _, entry in ipairs(tab_states()) do
+        entry.state.dirty = true
+    end
+    M.toggle_git_explorer({ toggle = false, action = opts.focus and "focus" or "show" })
+    guard_explorer_window()
+end
+
 --- Show the Git explorer comparing against base (nil = uncommitted changes), with the file buffers on screen
 --- getting gitsigns' base aligned right away. `:NeotreeGitBase [ref]`.
 ---@param base string|nil an existing git ref
@@ -375,22 +406,7 @@ function M.show_git_base(base)
         vim.notify("Neo-tree: unknown git ref " .. base, vim.log.levels.WARN)
         return
     end
-    if tab_explorer_source() == "git_status" then
-        M.set_git_base(base)
-    else
-        -- The explorer is about to take the sidebar. Refreshing now would start an asynchronous scan of the file
-        -- tree that finishes after the switch and paints the file tree over the explorer, so only store the base
-        -- (the explorer's first draw uses it; the hidden trees re-navigate with it when shown again).
-        local changed = store_git_base(base)
-        if next(changed) then
-            invalidate_status_cache(changed)
-        end
-        -- hidden trees re-navigate with the base when shown again; the flag also lets guard_explorer_window()
-        -- recognise a render the user did not ask for
-        for _, entry in ipairs(tab_states()) do
-            entry.state.dirty = true
-        end
-    end
+    M.apply_git_base(base, { open = true, focus = true })
     if remembered_git_base then
         -- the panel is open: this explicit choice is what it should leave behind when it closes
         for _, entry in ipairs(tab_states()) do
@@ -402,10 +418,6 @@ function M.show_git_base(base)
     else
         -- files opened from the explorer in ref mode got gitsigns' base changed, see on_file_opened()
         review.reset_signs_bases()
-    end
-    if tab_explorer_source() ~= "git_status" then
-        M.toggle_git_explorer({ toggle = false })
-        guard_explorer_window()
     end
     vim.notify("Neo-tree: " .. (base and ("changes vs " .. base) or "uncommitted changes"))
 end

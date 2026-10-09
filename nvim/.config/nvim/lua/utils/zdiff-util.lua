@@ -28,10 +28,11 @@
 --   file opened with <CR> gets the base, the files already on screen get it when the mode changes (open, `m`),
 --   and every changed buffer is reverted when the zdiff buffer goes away (panel closed or ref switched).
 --   open_default_branch() (<leader>zD) resolves the branch per repository instead of assuming "main"
--- • Neo-tree follows the panel the way `:Neotree <ref>` does (utils/neotree-util remember_git_base / set_git_base /
+-- • Neo-tree follows the panel the way `:Neotree <ref>` does (utils/neotree-util remember_git_base / apply_git_base /
 --   restore_git_base): while the panel is open the trees of this tab compare against its ref (Neo-tree's default
---   in uncommitted mode) and get the bases they had before the panel back when it closes. Updated on open, on the
---   in-place `m` toggle and on close
+--   in uncommitted mode), an open sidebar switches to the Git explorer (`switch_neotree_to_changes`, otherwise
+--   only its markers follow), and the trees get the bases they had before the panel back when it closes (the
+--   sidebar keeps showing the explorer). Updated on open, on the in-place `m` toggle and on close
 
 local review = require("utils.git-review-util")
 
@@ -47,6 +48,9 @@ M.config = {
     sync_gitsigns_base = true,
     -- in ref mode, compare the Neo-tree trees against the panel's ref while the panel is open (`:Neotree <ref>`)
     sync_neotree_base = true,
+    -- also switch an open Neo-tree sidebar to the Git explorer (changes view) when the panel opens or changes
+    -- mode; off = the sidebar keeps its view and only its markers follow the panel
+    switch_neotree_to_changes = true,
     -- a double click on a panel line does what <CR> does (the first click already moves the cursor there)
     double_click_opens = true,
 }
@@ -189,8 +193,10 @@ local function is_file_header(line)
     return not line:find("^  ") and line:match("%+%d+ %-%d+$") ~= nil
 end
 
---- Make the Neo-tree trees compare against the panel's ref (nil = uncommitted mode = Neo-tree's default). The
---- bases in place when the panel first touches them are remembered for release_tree().
+--- Make the Neo-tree trees compare against the panel's ref (nil = uncommitted mode = Neo-tree's default) and,
+--- with `switch_neotree_to_changes`, show the Git explorer in a sidebar that is on screen (focus stays in the
+--- panel; a closed sidebar stays closed). The bases in place when the panel first touches them are remembered
+--- for release_tree().
 ---@param ref string|nil
 local function sync_tree(ref)
     if not M.config.sync_neotree_base then
@@ -201,7 +207,11 @@ local function sync_tree(ref)
         return
     end
     neotree.remember_git_base()
-    neotree.set_git_base(ref)
+    if M.config.switch_neotree_to_changes then
+        neotree.apply_git_base(ref, { open = false, focus = false })
+    else
+        neotree.set_git_base(ref)
+    end
 end
 
 --- Everything that follows the panel's mode: the Neo-tree trees and the gitsigns base of the file buffers on
