@@ -104,6 +104,8 @@ alias short='tldr'
 # alias vimdiff='nvim -d'
 alias lg="lazygit"
 alias ldr="lazydocker"
+# ec (easy-conflict) run by hand: `e` opens the file in nvim with diffview's merge view (see scripts/git/ec-editor.sh)
+ec() { EDITOR="$HOME/dotfiles/scripts/git/ec-editor.sh" command ec "$@"; }
 
 # alias fz="fzf --preview='bat {}'"
 

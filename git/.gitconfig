@@ -54,7 +54,8 @@
 
 [mergetool "ec"]
     # cmd = ec \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\"
-    cmd = ec "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
+    # `e` in ec opens the file in nvim with diffview's merge view (scripts/git/ec-editor.sh), not plain $EDITOR
+    cmd = EDITOR=$HOME/dotfiles/scripts/git/ec-editor.sh ec "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
     trustExitCode = true
 
 ; [mergetool "diffview"]
