@@ -57,10 +57,18 @@ return {
     -- https://github.com/sindrets/diffview.nvim
     -- merge tool: `<leader>gm` (:DiffviewOpen) during a merge/rebase lists the conflicted files in the file panel
     -- and opens each as OURS | RESULT | THEIRS (`diff3_horizontal`, the IntelliJ layout; `diff4_mixed` adds BASE).
-    -- `]x` / `[x` jump between conflicts, `<leader>co` / `ct` / `cb` / `ca` take ours / theirs / base / all for the
-    -- hunk under the cursor (`<leader>cO` / `cT` / `cB` / `cA` in the file panel: whole file), `dx` drops the conflict
-    -- region. Not wired as `git mergetool` (mergetool runs once per file, diffview handles the whole merge):
-    -- resolve, `q` / :DiffviewClose, then `git add` / continue. Also a plain diff view (`:DiffviewOpen <ref>`,
+    -- `diff3_mixed` (OURS | THEIRS over a full-width RESULT) was tried and dropped: RESULT is not diffed against the
+    -- sides there, so the changes are not visible. `g<C-x>` cycles layouts in an open view.
+    -- Conflict keys (buffer-local in the view and the file panel): `]x` / `[x` jump, `<M-o>` / `<M-t>` / `<M-b>` /
+    -- `<M-a>` take OURS / THEIRS / BASE / all for the conflict under the cursor, the same keys on a file in the file
+    -- panel take it for the whole file, `dx` drops the conflict region. The plugin's `<leader>co` / `ct` / `cb` / `ca`
+    -- (+ `cO` / `cT` / `cB` / `cA`) defaults are disabled: LSP keymaps (LazyVim defaults + server `keys`) are applied
+    -- per buffer by Snacks.keymap on attach and again on every capability registration, i.e. after diffview mapped the
+    -- RESULT buffer, so in a Java file `<leader>co` (organize imports), `<leader>ca` / `<leader>cA` (code / source
+    -- action) replaced them; and diffview deletes every lhs it knows on close, which took the LSP keys with it.
+    -- `<M-b>` shadows multicursor's "add cursor above" only inside diffview buffers.
+    -- Not wired as `git mergetool` (mergetool runs once per file, diffview handles the whole merge): resolve,
+    -- `q` / :DiffviewClose, then `git add` / continue. Also a plain diff view (`:DiffviewOpen <ref>`,
     -- `:DiffviewOpen HEAD~1`) and file history (`<leader>gM` / `:DiffviewFileHistory [%]`).
     -- Lightly maintained since 2024 but works on nvim 0.12.
     {
@@ -70,21 +78,45 @@ return {
             { "<leader>gm", "<cmd>DiffviewOpen<CR>", desc = "Diffview: merge conflicts / working tree" },
             { "<leader>gM", "<cmd>DiffviewFileHistory %<CR>", desc = "Diffview: current file history" },
         },
-        opts = {
-            enhanced_diff_hl = true,
-            view = {
-                merge_tool = {
-                    layout = "diff3_horizontal", -- OURS | RESULT | THEIRS
-                    disable_diagnostics = true,
-                    winbar_info = true, -- OURS / RESULT / THEIRS labels on top of each window
+        opts = function()
+            local actions = require("diffview.actions")
+            local close = { "n", "q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } }
+            local disabled_defaults = {
+                ["<leader>co"] = false,
+                ["<leader>ct"] = false,
+                ["<leader>cb"] = false,
+                ["<leader>ca"] = false,
+                ["<leader>cO"] = false,
+                ["<leader>cT"] = false,
+                ["<leader>cB"] = false,
+                ["<leader>cA"] = false,
+            }
+            local function conflict_keys(choose, scope)
+                return {
+                    { "n", "<M-o>", choose("ours"), { desc = "Conflict: take OURS " .. scope } },
+                    { "n", "<M-t>", choose("theirs"), { desc = "Conflict: take THEIRS " .. scope } },
+                    { "n", "<M-b>", choose("base"), { desc = "Conflict: take BASE " .. scope } },
+                    { "n", "<M-a>", choose("all"), { desc = "Conflict: take all " .. scope } },
+                }
+            end
+            local view = vim.list_extend({ close }, conflict_keys(actions.conflict_choose, "(hunk)"))
+            local file_panel = vim.list_extend({ close }, conflict_keys(actions.conflict_choose_all, "(whole file)"))
+            return {
+                enhanced_diff_hl = true,
+                view = {
+                    merge_tool = {
+                        layout = "diff3_horizontal", -- OURS | RESULT | THEIRS
+                        disable_diagnostics = true,
+                        winbar_info = true, -- OURS / RESULT / THEIRS labels on top of each window
+                    },
                 },
-            },
-            keymaps = {
-                view = { { "n", "q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } } },
-                file_panel = { { "n", "q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } } },
-                file_history_panel = { { "n", "q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } } },
-            },
-        },
+                keymaps = {
+                    view = vim.tbl_extend("error", disabled_defaults, view),
+                    file_panel = vim.tbl_extend("error", disabled_defaults, file_panel),
+                    file_history_panel = { close },
+                },
+            }
+        end,
     },
 
     -- {
