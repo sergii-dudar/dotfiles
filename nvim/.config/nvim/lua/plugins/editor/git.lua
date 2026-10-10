@@ -39,8 +39,9 @@ return {
             float = {
                 width = 1, -- 0.92,
                 height = 1, -- 0.86,
-                border = "rounded",
-                title = "ec",
+                border = "none", -- [ "rounded", "none" ] no frame around the full-size float (ec draws its own pane borders)
+                -- title = "ec",
+                title = "", -- nvim rejects a float title without a border
                 title_pos = "center",
                 zindex = 50,
             },
