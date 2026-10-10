@@ -109,10 +109,12 @@ run_script = [
     # { run = 'kitty --hold zsh -c %s1', desc = "run shell", for = "linux" },
     # yazi >= 26: "$1" is empty in openers, so rebuild it from %s1 (same trick as the edit opener above).
     # Executable -> run directly (shebang picks the interpreter); otherwise pick one by extension
-    # (.py -> python3, .lua -> lua, anything else -> bash). cwd = yazi's cwd.
-    { run = 'clear; set -- %s1; if [ -x "$1" ]; then "$1"; else case "$1" in *.py) i=python3;; *.lua) i=lua;; *) i=bash;; esac; "$i" "$1"; fi; st=$?; echo; echo "[exit $st] Press enter to exit"; read _', desc = "Run script [here]", block = true, for = "unix" },
+    
     # no --hold: the window would then only close via Cmd+W / WM close; instead wait for Enter inside the shell
     { run = '''set -- %s1; alacritty -e sh -c 'if [ -x "$1" ]; then "$1"; else case "$1" in *.py) i=python3;; *.lua) i=lua;; *) i=bash;; esac; "$i" "$1"; fi; st=$?; echo; echo "[exit $st] Press enter to exit"; read _' run "$1"''', orphan = true, desc = "Run script [new alacritty window]", for = "unix" },
+
+    # (.py -> python3, .lua -> lua, anything else -> bash). cwd = yazi's cwd.
+    { run = 'clear; set -- %s1; if [ -x "$1" ]; then "$1"; else case "$1" in *.py) i=python3;; *.lua) i=lua;; *) i=bash;; esac; "$i" "$1"; fi; st=$?; echo; echo "[exit $st] Press enter to exit"; read _', desc = "Run script [here]", block = true, for = "unix" },
 ]
 
 [open]

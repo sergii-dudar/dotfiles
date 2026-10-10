@@ -77,6 +77,8 @@ return {
     -- RESULT buffer, so in a Java file `<leader>co` (organize imports), `<leader>ca` / `<leader>cA` (code / source
     -- action) replaced them; and diffview deletes every lhs it knows on close, which took the LSP keys with it.
     -- `<M-b>` shadows multicursor's "add cursor above" only inside diffview buffers.
+    -- The file panel starts hidden (`view_opened` hook): `<leader>b` / :DiffviewToggleFiles shows it, `<leader>e`
+    -- focuses it, `<Tab>` / `<S-Tab>` switch files without it (conflicts come first in that order).
     -- Not wired as `git mergetool` (mergetool runs once per file, diffview handles the whole merge): resolve,
     -- `q` / :DiffviewClose, then `git add` / continue. Also a plain diff view (`:DiffviewOpen <ref>`,
     -- `:DiffviewOpen HEAD~1`) and file history (`<leader>gM` / `:DiffviewFileHistory [%]`).
@@ -115,6 +117,14 @@ return {
             local file_panel = vim.list_extend({ close }, conflict_keys(actions.conflict_choose_all, "(whole file)"))
             return {
                 enhanced_diff_hl = true,
+                hooks = {
+                    -- open with the file panel hidden (diff views only; the file-history panel stays)
+                    view_opened = function(view)
+                        if view.class:name() == "DiffView" and view.panel:is_open() then
+                            view.panel:close()
+                        end
+                    end,
+                },
                 view = {
                     merge_tool = {
                         layout = "diff3_horizontal", -- OURS | RESULT | THEIRS
