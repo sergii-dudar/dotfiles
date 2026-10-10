@@ -1,3 +1,13 @@
+-- External tools this git setup relies on (git side configured in ~/dotfiles/git/.gitconfig).
+-- Install: macOS `brew install <name>`; Arch `pacman -S <name>` (delta is `git-delta` there, ec comes from the AUR or
+-- the install script in its README):
+--   git >= 2.35   zdiff3 conflict markers (`merge.conflictstyle`), diffview needs >= 2.31
+--   mergiraf      syntax-aware merge driver (`* merge=mergiraf` in ~/.gitattributes_global): auto-resolves import /
+--                 adjacent-method conflicts before any UI sees them
+--   ec            TUI conflict resolver: `git mergetool`, `:Ec` / <leader>gr here, lazygit's `M`; its `e` opens nvim
+--                 with diffview (scripts/git/ec-editor.sh)
+--   lazygit       <leader>gg (snacks.lazygit): quick conflict picks, staging, commits
+--   delta         diff pager for git and lazygit (`core.pager`, lazygit/config.yml)
 return {
     -- multi-buffer diff view
     -- opened as a bottom panel through utils/zdiff-util.lua: <CR> sends the file to the editor window and keeps
@@ -84,8 +94,8 @@ return {
     -- `q` / :DiffviewClose, then `git add` / continue. Also a plain diff view (`:DiffviewOpen <ref>`,
     -- `:DiffviewOpen HEAD~1`) and file history (`<leader>gM` / `:DiffviewFileHistory [%]`).
     -- Lightly maintained since 2024 but works on nvim 0.12.
-    --   - ]c / [c are Neovim's own diff-hunk jumps, which move between all differences between the two windows, not just conflict blocks.
-    -- - Tab / Shift-Tab switch to the next or previous file, and the cursor lands on that file's first conflict.
+    -- `]c` / `[c` are Neovim's own diff-hunk jumps (every difference between two windows, not only conflict blocks);
+    -- `<Tab>` / `<S-Tab>` switch to the next / previous file and land on its first conflict.
     {
         "sindrets/diffview.nvim",
         cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "DiffviewToggleFiles", "DiffviewFocusFiles" },
