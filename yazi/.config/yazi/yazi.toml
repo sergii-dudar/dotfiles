@@ -104,9 +104,15 @@ image = [
     { run = 'set -- %s1; gsettings set org.gnome.desktop.background picture-uri-dark "file://$1"', orphan = true, desc = "Set as backgroupd", for = "linux" },
     { run = 'nautilus . %s1', orphan = true, desc = "Open in Nautilus", for = "linux" },
 ]
-run_sh = [
-    #{ run = '"$1"', desc = "run shell", for = "linux" },
-    { run = 'kitty --hold zsh -c %s1', desc = "run shell", for = "linux" },
+run_script = [
+    # { run = '"$1"', desc = "run shell", for = "linux" },
+    # { run = 'kitty --hold zsh -c %s1', desc = "run shell", for = "linux" },
+    # yazi >= 26: "$1" is empty in openers, so rebuild it from %s1 (same trick as the edit opener above).
+    # Executable -> run directly (shebang picks the interpreter); otherwise pick one by extension
+    # (.py -> python3, .lua -> lua, anything else -> bash). cwd = yazi's cwd.
+    { run = 'clear; set -- %s1; if [ -x "$1" ]; then "$1"; else case "$1" in *.py) i=python3;; *.lua) i=lua;; *) i=bash;; esac; "$i" "$1"; fi; st=$?; echo; echo "[exit $st] Press enter to exit"; read _', desc = "Run script [here]", block = true, for = "unix" },
+    # no --hold: the window would then only close via Cmd+W / WM close; instead wait for Enter inside the shell
+    { run = '''set -- %s1; alacritty -e sh -c 'if [ -x "$1" ]; then "$1"; else case "$1" in *.py) i=python3;; *.lua) i=lua;; *) i=bash;; esac; "$i" "$1"; fi; st=$?; echo; echo "[exit $st] Press enter to exit"; read _' run "$1"''', orphan = true, desc = "Run script [new alacritty window]", for = "unix" },
 ]
 
 [open]
@@ -114,8 +120,10 @@ rules = [
 	# Folder
 	{ url = "*/", use = [ "edit", "open", "reveal" ] },
     # Custom
-    { url = "{*.sh}", use = [ "edit", "develop", "run_sh" ] },
-    { url = "{*.java,*.lua,*.py,*.js,*.xml}", use = [ "edit", "develop" ] },
+    { url = "{*.sh,*.bash,*.py,*.lua}", use = [ "edit", "run_script" ] },
+    # shebang scripts without an extension (yazi strips `file`'s x- prefix: text/shellscript, text/script.python; lua is not detected)
+    { mime = "text/*{shellscript,python}", use = [ "edit", "run_script" ] },
+    { url = "{*.java,*.js,*.xml}", use = [ "edit", ] },
 	# Text
 	{ mime = "text/*", use = [ "edit", "reveal" ] },
 	# Image
