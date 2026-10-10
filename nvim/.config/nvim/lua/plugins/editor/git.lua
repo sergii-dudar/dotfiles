@@ -35,6 +35,16 @@ return {
     -- stays the `git mergetool` (and lazygit's `M` in the conflicts panel); diffview below is the in-editor 3-way view
     {
         "chojs23/ec",
+        opts = {
+            float = {
+                width = 1, -- 0.92,
+                height = 1, -- 0.86,
+                border = "rounded",
+                title = "ec",
+                title_pos = "center",
+                zindex = 50,
+            },
+        },
         keys = {
             { "<leader>gr", ":Ec<CR>", desc = "Open ec (easy-conflict)" },
         },
@@ -71,6 +81,8 @@ return {
     -- `q` / :DiffviewClose, then `git add` / continue. Also a plain diff view (`:DiffviewOpen <ref>`,
     -- `:DiffviewOpen HEAD~1`) and file history (`<leader>gM` / `:DiffviewFileHistory [%]`).
     -- Lightly maintained since 2024 but works on nvim 0.12.
+    --   - ]c / [c are Neovim's own diff-hunk jumps, which move between all differences between the two windows, not just conflict blocks.
+    -- - Tab / Shift-Tab switch to the next or previous file, and the cursor lands on that file's first conflict.
     {
         "sindrets/diffview.nvim",
         cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory", "DiffviewToggleFiles", "DiffviewFocusFiles" },
