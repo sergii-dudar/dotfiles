@@ -1,27 +1,29 @@
 local M = {}
 
 local get_color_scheme = function()
-    -- 'Monokai Remastered',
-    -- 'Elementary (Gogh)',
-    -- 'iTerm2 Tango Dark',
-    -- 'Summerfruit Dark (base16)',
-    -- 'Monokai Dark (Gogh)',
-    -- 'Pencil Dark (Gogh)',
-    -- 'Pro (Gogh)',
-    -- 'OneHalfDark',
-    -- 'Papercolor Dark (Gogh)',
-    -- 'Pandora',
-    -- 'Summerfruit Dark (base16)',
-    -- 'Aardvark Blue',
-    -- 'Andromeda',
-    -- 'Apple System Colors',
-    -- 'Calamity',
-    -- 'Chalk',
-    -- 'ChallengerDeep',
-    -- 'Catppuccin Mocha'
+    -- darker
+    -- return "TerminixDark (Gogh)"
 
-    --config.color_scheme = 'Elementary (Gogh)'
-    return "Andromeda"
+    -- good
+    -- return "Atelier Seaside (base16)"
+    -- return "Atelierseaside (dark) (terminal.sexy)"
+    -- return "AyuDark (Gogh)"
+    -- return "Breath Darker (Gogh)"
+    -- return "Brogrammer"
+    -- return "Cai (Gogh)"
+    -- return "Circus (base16)"
+    -- return "Floraverse"
+    -- return "Summerfruit Dark (base16)"
+
+    -- best
+    -- return "Brewer (base16)"
+    -- return "Colors (base16)"
+    -- return "duckbones"
+    -- return "Terminix Dark (Gogh)"
+
+    -- return "Ef-Dark"
+    -- return "Equilibrium Dark (base16)"
+    return "GitHub Dark"
 end
 
 function M.setup(config, wezterm)
