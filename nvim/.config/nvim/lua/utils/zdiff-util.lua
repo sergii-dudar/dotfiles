@@ -220,7 +220,12 @@ end
 local function follow_mode(ref)
     sync_tree(ref)
     if M.config.sync_gitsigns_base then
-        review.sync_visible_signs(ref)
+        review.set_active_base(vim.uv.cwd(), ref)
+        if ref then
+            review.sync_visible_signs(ref) -- hidden buffers follow when entered, see set_active_base()
+        else
+            review.reset_signs_bases()
+        end
     end
 end
 
@@ -236,7 +241,9 @@ local function release_tree()
     end
     neotree.restore_git_base()
     if M.config.sync_gitsigns_base then
-        review.sync_visible_signs(neotree.git_base())
+        local ref = neotree.git_base()
+        review.set_active_base(vim.uv.cwd(), ref)
+        review.sync_visible_signs(ref)
     end
 end
 
@@ -383,6 +390,7 @@ local function attach(buf)
         callback = function()
             S.orig[buf] = nil
             S.wrapper[buf] = nil
+            review.set_active_base(nil)
             review.reset_signs_bases()
             if not S.switching then
                 -- the panel window is closing right now; let Neo-tree re-render once the layout has settled

@@ -311,15 +311,14 @@ function M.restore_git_base()
     end
     local changed = {}
     for _, entry in ipairs(tab_states()) do
-        local previous = snapshot[entry.state]
-        if previous ~= nil then
-            local lookup = entry.state.git_base_by_worktree or {}
-            entry.state.git_base_by_worktree = lookup
-            local want = previous or nil
-            if lookup[entry.root] ~= want then
-                lookup[entry.root] = want
-                changed[entry.root] = true
-            end
+        -- a state Neo-tree created after the snapshot was taken had no base of its own: back to the default
+        local previous = snapshot[entry.state] or false
+        local lookup = entry.state.git_base_by_worktree or {}
+        entry.state.git_base_by_worktree = lookup
+        local want = previous or nil
+        if lookup[entry.root] ~= want then
+            lookup[entry.root] = want
+            changed[entry.root] = true
         end
     end
     if next(changed) then
@@ -413,6 +412,7 @@ function M.show_git_base(base)
             remembered_git_base[entry.state] = base or false
         end
     end
+    review.set_active_base(vim.uv.cwd(), base)
     if base then
         review.sync_visible_signs(base)
     else

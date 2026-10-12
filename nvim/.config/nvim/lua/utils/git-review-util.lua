@@ -10,6 +10,8 @@
 --   default (index; staged hunks have their own signs) in uncommitted mode. Per buffer, never global
 -- • sync_visible_signs — the same for every file buffer shown in the current tab (used when a view changes mode,
 --   so the file already on screen follows without being reopened)
+-- • set_active_base / active_ref — while a view is in ref mode, every buffer of that repository loaded or
+--   entered later (picker, gf, LSP jump, `:e`) gets the base as well
 -- • reset_signs_bases — give every buffer touched by sync_signs_base its default base back
 --
 -- gitsigns notes: change_base() is per *current* buffer and silently does nothing for a buffer that is not
@@ -185,6 +187,25 @@ local function change_base(gitsigns, buf, base)
     end)
 end
 
+--- Give a file buffer the gitsigns base (a commit, nil = default) once gitsigns has attached it; no-op when it
+--- already has that base.
+---@param gitsigns table the gitsigns module
+---@param buf integer file buffer
+---@param base string|nil
+local function apply_signs_base(gitsigns, buf, base)
+    if signs_base[buf] == base then
+        return
+    end
+    gitsigns.attach({ bufnr = buf }, function() end)
+    when_attached(gitsigns, buf, function()
+        change_base(gitsigns, buf, base)
+        if base and signs_base[buf] == nil then
+            forget_on_wipeout(buf)
+        end
+        signs_base[buf] = base
+    end)
+end
+
 --- Point gitsigns at the reviewed base for a file buffer: merge-base(ref, HEAD) in ref mode, its default
 --- otherwise. No-op when gitsigns is absent, the ref does not exist, or the buffer already has that base.
 ---@param buf integer file buffer
@@ -202,17 +223,66 @@ function M.sync_signs_base(buf, ref)
         end
         base = M.merge_base(dir, ref) or ref -- no merge-base (unrelated histories): the ref itself
     end
-    if signs_base[buf] == base then
+    apply_signs_base(gitsigns, buf, base)
+end
+
+---@class GitReviewActiveBase
+---@field root string worktree root the review runs in
+---@field ref string ref being reviewed
+---@field base string commit gitsigns compares against (fork point of ref and HEAD)
+
+--- The review in progress (a view is in ref mode), so that buffers loaded while it lasts get its base too.
+---@type GitReviewActiveBase|nil
+local active_base = nil
+
+local AUGROUP = "git_review_active_base"
+
+--- Give a freshly loaded buffer of the reviewed repository the active base.
+---@param buf integer
+local function follow_active_base(buf)
+    if not active_base or vim.bo[buf].buftype ~= "" then
         return
     end
-    gitsigns.attach({ bufnr = buf }, function() end)
-    when_attached(gitsigns, buf, function()
-        change_base(gitsigns, buf, base)
-        if base and signs_base[buf] == nil then
-            forget_on_wipeout(buf)
-        end
-        signs_base[buf] = base
-    end)
+    local name = vim.api.nvim_buf_get_name(buf)
+    if name == "" or not vim.startswith(name, active_base.root .. "/") then
+        return
+    end
+    local ok, gitsigns = pcall(require, "gitsigns")
+    if ok then
+        apply_signs_base(gitsigns, buf, active_base.base)
+    end
+end
+
+--- Declare the review in progress for the repository containing dir (nil ends it): every buffer of that
+--- repository loaded or entered from now on gets the base, like the ones opened from the views. Does not touch
+--- buffers already open (the views sync those) and does not reset anything on nil (the views do).
+---@param dir string|nil
+---@param ref string|nil
+function M.set_active_base(dir, ref)
+    active_base = nil
+    if not dir or not ref then
+        return
+    end
+    local out = git_in(dir, { "rev-parse", "--show-toplevel" })
+    local root = out and out[1] ~= "" and out[1] or nil
+    if not root or not M.ref_exists(root, ref) then
+        return
+    end
+    active_base = { root = root, ref = ref, base = M.merge_base(root, ref) or ref }
+    local group = vim.api.nvim_create_augroup(AUGROUP, { clear = true })
+    vim.api.nvim_create_autocmd({ "BufReadPost", "BufEnter" }, {
+        group = group,
+        desc = "git review: buffers of the reviewed repository follow the active gitsigns base",
+        callback = function(args)
+            follow_active_base(args.buf)
+        end,
+    })
+end
+
+--- The ref under review, when a view is in ref mode.
+---@return string|nil
+function M.active_ref()
+    return active_base and active_base.ref or nil
 end
 
 --- sync_signs_base() for every regular file buffer shown in a window of the current tab.
