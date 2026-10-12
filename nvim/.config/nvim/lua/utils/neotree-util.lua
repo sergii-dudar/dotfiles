@@ -346,6 +346,7 @@ local function guard_explorer_window()
     cancel_explorer_guard()
     local events = require("neo-tree.events")
     local deadline = vim.uv.now() + 5000
+    vim.defer_fn(cancel_explorer_guard, 5500) -- no lingering subscription when nothing renders any more
     events.subscribe({
         event = events.AFTER_RENDER,
         id = EXPLORER_GUARD_ID,
