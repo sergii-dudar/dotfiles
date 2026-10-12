@@ -37,7 +37,11 @@ function M.setup(config, wezterm)
     -- disable ligature globally
     config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
 
-    -- BACKGROUND IMAGE
+    -- BACKGROUND IMAGE -- disabled: alacritty and ghostty run a plain, slightly transparent background, so wezterm does
+    -- the same (window_background_opacity in wezterm.lua). To bring the image back, uncomment the block. Its two knobs:
+    -- hsb.brightness (0.04 = almost black, 1.0 = the photo as is) and a per-layer opacity = 0.0..1.0 (how much of the
+    -- colour-scheme background shows through the image, 1.0 = image fully covers it). `home` above is kept for the path.
+    --[[
     config.background = {
         {
             source = {
@@ -49,12 +53,14 @@ function M.setup(config, wezterm)
             -- it stretch across the display
             repeat_x = "Mirror",
             hsb = { brightness = 0.04 },
+            -- opacity = 0.9,
             -- When the viewport scrolls, move this layer 10% of the number of
             -- pixels moved by the main viewport. This makes it appear to be
             -- further behind the text.
             attachment = { Parallax = 0.1 },
         },
     }
+    ]]
 end
 
 return M

@@ -23,7 +23,9 @@ config.window_padding = { left = 0, right = 0, top = 0, bottom = 0 }
 -- Remove the title bar from the window
 --config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
 config.window_decorations = "RESIZE"
---config.window_background_opacity = 0.75
+-- Plain background with the same slight transparency as alacritty (0.98; ghostty sits at 0.95). Text stays opaque.
+-- The background image that used to replace this is commented out in appearance.lua.
+config.window_background_opacity = 0.98
 --config.macos_window_background_blur = 10
 
 -- Use zsh by default
