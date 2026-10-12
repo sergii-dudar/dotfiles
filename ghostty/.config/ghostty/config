@@ -52,17 +52,7 @@ keybind = global:super+\=toggle_quick_terminal
 # macos
 keybind = global:alt+\=toggle_quick_terminal
 
-# --- parity with alacritty.toml (see alacritty/.config/alacritty/alacritty.toml [keyboard]) ---
-# Same bytes alacritty's bindings send: CSI u for Ctrl+, / Ctrl+. (tmux root bindings forward them
-# raw to the pane), C0 for Ctrl+6 / Ctrl+/.
-keybind = ctrl+comma=text:\x1b[44;5u
-keybind = ctrl+period=text:\x1b[46;5u
-keybind = ctrl+digit_6=text:\x1e
-keybind = ctrl+slash=text:\x1f
-# ghostty turns alt+arrows into ESC b / ESC f by default; nvim then sees <M-b>/<M-f> instead of
-# <M-Left>/<M-Right> (what alacritty sends).
-keybind = alt+arrow_left=unbind
-keybind = alt+arrow_right=unbind
+# --- parity with alacritty.toml ---
 # translate the mouse selection -> tmux popup. No "run command" action in ghostty, so send the tmux
 # prefix (C-f) + C-t: copy-on-select already put the selection in the clipboard, and tmux's
 # `prefix + C-t` runs ~/dotfiles/scripts/tmux/translate.sh clipboard.
