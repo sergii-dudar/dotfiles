@@ -3,8 +3,8 @@
 -- Both views compare either the working tree against HEAD ("uncommitted", ref = nil) or the branch against a ref
 -- the way zdiff does (`<ref>...HEAD`, i.e. from the merge-base), and want the opened file to match that view:
 --
--- • default_branch / ref_exists / complete_refs — the branch to review against (origin/HEAD, then
---   main/master/develop/trunk), ref validation, command-line completion of branches and tags
+-- • default_branch / ref_exists / toplevel / complete_refs — the branch to review against (origin/HEAD, then
+--   main/master/develop/trunk), ref validation, repository root, command-line completion of branches and tags
 -- • first_changed_line / jump_to_first_change — first hunk of the file in that diff (`git diff -U0`, sync)
 -- • sync_signs_base — point gitsigns at the same base for the buffer: merge-base(ref, HEAD) in ref mode, its
 --   default (index; staged hunks have their own signs) in uncommitted mode. Per buffer, never global
@@ -78,6 +78,22 @@ end
 ---@return string[]|nil
 local function git_lines(file, args)
     return git_in(vim.fs.dirname(file), args)
+end
+
+---@type table<string, string|false> repository root per directory asked (false = not a repository)
+local toplevel_for_dir = {}
+
+--- Root of the repository containing dir, remembered per directory (a directory does not change repository).
+---@param dir string
+---@return string|nil
+function M.toplevel(dir)
+    local root = toplevel_for_dir[dir]
+    if root == nil then
+        local out = git_in(dir, { "rev-parse", "--show-toplevel" })
+        root = out and out[1] ~= "" and out[1] or false
+        toplevel_for_dir[dir] = root
+    end
+    return root or nil
 end
 
 --- Check that ref names an existing commit in the repository containing dir.
@@ -358,12 +374,19 @@ function M.set_active_base(dir, ref)
     if not dir or not ref then
         return
     end
-    local out = git_in(dir, { "rev-parse", "--show-toplevel" })
-    local root = out and out[1] ~= "" and out[1] or nil
-    if not root or not M.ref_exists(root, ref) then
+    local root = M.toplevel(dir)
+    if not root then
         return
     end
-    active_base = { root = root, ref = ref, base = M.merge_base(root, ref) or ref }
+    -- a fork point exists only for a known ref, so the explicit existence check is needed just for the fallback
+    local base = M.merge_base(root, ref)
+    if not base then
+        if not M.ref_exists(root, ref) then
+            return
+        end
+        base = ref -- unrelated histories: the ref itself
+    end
+    active_base = { root = root, ref = ref, base = base }
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufEnter" }, {
         group = group,
         desc = "git review: buffers of the reviewed repository follow the active gitsigns base",

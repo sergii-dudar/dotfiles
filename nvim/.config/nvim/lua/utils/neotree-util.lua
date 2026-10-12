@@ -173,6 +173,10 @@ local remembered_git_base = nil
 ---@type table<string, table<string, string>>
 local base_names = {}
 
+---@type table<string, string|false> worktree root per tree path (false = not in a repository); Neo-tree's own
+--- lookup runs `git rev-parse` every time for these paths and tab_states() is called several times per action
+local root_for_path = {}
+
 --- Existing Neo-tree states of the current tab, each with its worktree root (no state is created here).
 ---@return {state: table, root: string}[]
 local function tab_states()
@@ -182,7 +186,12 @@ local function tab_states()
     for _, state in ipairs(require("neo-tree.sources.manager")._get_all_states()) do
         if state.tabid == tabid then
             -- a state that has not been navigated yet will open on the cwd
-            local root = git.find_worktree_info(state.path or vim.uv.cwd())
+            local path = state.path or vim.uv.cwd()
+            local root = root_for_path[path]
+            if root == nil then
+                root = git.find_worktree_info(path) or false
+                root_for_path[path] = root
+            end
             if root then
                 table.insert(states, { state = state, root = root })
             end
@@ -257,9 +266,14 @@ local function store_git_base(ref)
     ensure_states()
     local review = require("utils.git-review-util")
     local changed = {}
+    local resolved = {} ---@type table<string, string> fork point per worktree root, one git call per root
     for _, entry in ipairs(tab_states()) do
         local state = entry.state
-        local base = ref and (review.merge_base(entry.root, ref) or ref) or nil
+        local base = nil
+        if ref then
+            resolved[entry.root] = resolved[entry.root] or review.merge_base(entry.root, ref) or ref
+            base = resolved[entry.root]
+        end
         if base then
             base_names[entry.root] = base_names[entry.root] or {}
             base_names[entry.root][base] = ref
