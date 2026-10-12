@@ -14,13 +14,20 @@ font-feature = -liga
 gtk-titlebar = false
 # custom-shader = /home/chris/bloom.glsl
 #custom-shader = /home/chris/crt.glsl
+# alacritty has the same: mouse.hide_when_typing = true
 mouse-hide-while-typing = true
+# window-decoration = none drops titlebar/borders (and tabs, enforced by macOS); macos-titlebar-style = hidden hides
+# the titlebar but keeps the native frame and rounded corners. The 1px rim seen on macOS 26 was NOT the frame but the
+# window shadow -- see macos-window-shadow below.
 window-decoration = none
 macos-titlebar-style = hidden
 # keybind = global:cmd+/=toggle_quick_terminal
 macos-option-as-alt = true
 confirm-close-surface = false
 background-opacity = 0.95
+# alacritty drops the macOS window shadow whenever opacity < 1 (its 0.98 => no shadow). Ghostty keeps it, and on
+# macOS 26+ the shadow draws a light 1px rim around the window -- the "border" that alacritty does not show.
+macos-window-shadow = false
 #background = #232634
 app-notifications = no-clipboard-copy
 
@@ -44,3 +51,30 @@ quick-terminal-animation-duration = 0
 keybind = global:super+\=toggle_quick_terminal
 # macos
 keybind = global:alt+\=toggle_quick_terminal
+
+# --- parity with alacritty.toml (see alacritty/.config/alacritty/alacritty.toml [keyboard]) ---
+# Same bytes alacritty's bindings send: CSI u for Ctrl+, / Ctrl+. (tmux root bindings forward them
+# raw to the pane), C0 for Ctrl+6 / Ctrl+/.
+keybind = ctrl+comma=text:\x1b[44;5u
+keybind = ctrl+period=text:\x1b[46;5u
+keybind = ctrl+digit_6=text:\x1e
+keybind = ctrl+slash=text:\x1f
+# ghostty turns alt+arrows into ESC b / ESC f by default; nvim then sees <M-b>/<M-f> instead of
+# <M-Left>/<M-Right> (what alacritty sends).
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
+# translate the mouse selection -> tmux popup. No "run command" action in ghostty, so send the tmux
+# prefix (C-f) + C-t: copy-on-select already put the selection in the clipboard, and tmux's
+# `prefix + C-t` runs ~/dotfiles/scripts/tmux/translate.sh clipboard.
+keybind = ctrl+shift+t=text:\x06\x14
+
+# cosmetics aligned with alacritty: no padding, allow OSC 52 paste, block cursor at the prompt (shell
+# integration would switch it to a bar). mouse-hide-while-typing is set near the top of the file.
+window-padding-x = 0
+window-padding-y = 0
+# One wheel notch = one reported wheel click, like alacritty (which forces its multiplier to 1 whenever an app
+# has mouse reporting on, i.e. always under tmux). Ghostty default is discrete:3, so nvim scrolled 3x per notch.
+# Trackpad (precision) stays at the default 1.
+mouse-scroll-multiplier = discrete:1
+clipboard-read = allow
+shell-integration-features = no-cursor

@@ -45,6 +45,7 @@ Output always lands in a tmux popup.
 | system clipboard | `prefix + C-t` | `clipboard` |
 | foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
 | alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
+| ghostty: mouse selection | `Control+Shift+t` | `clipboard` (keybind sends tmux prefix + `C-t`; `copy-on-select = clipboard`) |
 
 Requires only `python3` — the engine talks HTTP through the stdlib, so there is nothing to install
 on either platform (see the [engine README](../scripts/tmux/translator/README.md)). Stock macOS bash
