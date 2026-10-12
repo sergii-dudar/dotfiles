@@ -57,9 +57,9 @@ vim.opt.inccommand = "split"
 -- }
 
 vim.opt.showmode = false
---vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
+vim.opt.scrolloff = 10 -- number of lines to keep above/below cursor
 vim.opt.sidescrolloff = 2 -- number of columns to keep to the left/right of cursor
-vim.opt.scrolloff = 0
+-- vim.opt.scrolloff = 0
 vim.opt.signcolumn = "yes"
 vim.opt.smartindent = true -- enable smart indentation
 vim.opt.breakindent = true -- enable line breaking indentation

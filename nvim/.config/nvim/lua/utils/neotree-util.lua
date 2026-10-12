@@ -2,7 +2,8 @@
 --
 -- • toggle_context_explorer — route special buffers to their explorer, otherwise reveal them in the
 --   Neo-tree source already on screen (file tree, git changes, …)
--- • open_explorer — open a Neo-tree source in the sidebar, revealing the current file
+-- • open_explorer — open a Neo-tree source in the sidebar, revealing the current file; the Git explorer leaves
+--   deleted files out (`config.hide_deleted_in_git_status`)
 -- • toggle_git_explorer — open_explorer bound to the git_status source
 -- • git_base / set_git_base — read or set the git ref the trees of this tab compare against (what `:Neotree <ref>`
 --   does, but from the ref's fork point with HEAD so the list matches zdiff) without opening a closed sidebar
@@ -20,6 +21,11 @@
 -- • shared_paste — paste from clipboard file into current buffer
 
 local M = {}
+
+M.config = {
+    -- leave deleted files (and folders left empty by that) out of the Git explorer; Neo-tree has no option for it
+    hide_deleted_in_git_status = true,
+}
 
 ---@class NeoTreeExplorerContext
 ---@field bufnr integer
@@ -136,6 +142,61 @@ local function resolve_reveal_file()
     return path
 end
 
+--- Remove deleted files from a Git explorer item tree, in place, together with folders that end up empty.
+--- Statuses are two letters (index, worktree): "D.", ".D", "DD"; a deletion against a review base is "D." too.
+--- The status alone is not enough: Neo-tree applies the working-tree map and the base-diff map to the same item
+--- and the base one wins, so a file added on the branch and then deleted from the working tree reads "A." while
+--- it no longer exists, hence the check on disk.
+---@param items table[] children of a directory item
+local function prune_deleted(items)
+    local kept = {}
+    for _, item in ipairs(items) do
+        if item.type == "directory" then
+            prune_deleted(item.children or {})
+            if #(item.children or {}) > 0 then
+                kept[#kept + 1] = item
+            end
+        else
+            local status = item.extra and item.extra.git_status
+            local deleted = (type(status) == "string" and (status:sub(1, 1) == "D" or status:sub(2, 2) == "D"))
+                or (type(item.path) == "string" and vim.uv.fs_stat(item.path) == nil)
+            if not deleted then
+                kept[#kept + 1] = item
+            end
+        end
+    end
+    for i = #items, 1, -1 do
+        items[i] = nil
+    end
+    for i, item in ipairs(kept) do
+        items[i] = item
+    end
+end
+
+local show_nodes_patched = false
+
+--- The Git explorer builds its items from the status lookups and hands them to Neo-tree's single render entry
+--- point; filter them there when `hide_deleted_in_git_status` is on (Neo-tree fires `before_render` before the
+--- nodes are set, too early to prune the tree). Applied once, the first time an explorer is opened through here.
+local function patch_show_nodes()
+    if show_nodes_patched then
+        return
+    end
+    show_nodes_patched = true
+    local renderer = require("neo-tree.ui.renderer")
+    local original = renderer.show_nodes
+    renderer.show_nodes = function(items, state, ...)
+        if M.config.hide_deleted_in_git_status and type(items) == "table" and state and state.name == "git_status" then
+            for _, root in ipairs(items) do
+                if type(root) == "table" and root.children then
+                    prune_deleted(root.children)
+                end
+            end
+        end
+        return original(items, state, ...)
+    end
+end
+
 --- Open a Neo-tree source in the sidebar, revealing the current file when it is part of the cwd.
 --- With `action = "show"` the cursor stays in the current file and a repeated call re-reveals it
 --- (the reveal path forces a re-navigate), so leave `toggle` off for that variant.
@@ -143,6 +204,7 @@ end
 ---       defaults: "filesystem" / "left" / "focus" / true
 function M.open_explorer(opts)
     cancel_explorer_guard()
+    patch_show_nodes()
     opts = opts or {}
     local reveal_file = resolve_reveal_file()
 
@@ -205,9 +267,13 @@ end
 --- `raw_status_text_cache`), so a base change alone would leave the Git explorer's list stale. The cache is a
 --- local upvalue; if the lookup fails after an upstream rename, the trees still refresh and only the git_status
 --- list may lag until the working tree changes.
+---@type function|nil Neo-tree's own git.status(), kept when patch_status_over_base() wraps it: the cache below
+--- is an upvalue of the original, not of the wrapper
+local original_git_status = nil
+
 ---@param roots table<string, true>
 local function invalidate_status_cache(roots)
-    local status = require("neo-tree.git").status
+    local status = original_git_status or require("neo-tree.git").status
     local i = 1
     while true do
         local name, value = debug.getupvalue(status, i)
@@ -221,6 +287,32 @@ local function invalidate_status_cache(roots)
             return
         end
         i = i + 1
+    end
+end
+
+local status_patched = false
+
+--- Same cache, other symptom: on that early return git.status() yields only the plain status and drops the diff
+--- against the base it computed before, so every re-navigate of the Git explorer that is not ours (a reveal from
+--- <leader>e, Neo-tree's own refreshes) loses the files that differ against the base only. Neo-tree still holds
+--- that diff per worktree; hand it back on that path. A no-op once upstream returns it itself.
+local function patch_status_over_base()
+    if status_patched then
+        return
+    end
+    status_patched = true
+    local git = require("neo-tree.git")
+    local original = git.status
+    original_git_status = original
+    git.status = function(path, base_lookup, ...)
+        local status, root, over_base = original(path, base_lookup, ...)
+        if root and over_base == nil and base_lookup and base_lookup[root] then
+            local worktree = git.worktrees and git.worktrees[root]
+            if worktree and worktree.status_diff then
+                over_base = worktree.status_diff[base_lookup[root]]
+            end
+        end
+        return status, root, over_base
     end
 end
 
@@ -264,6 +356,9 @@ end
 ---@return table<string, true> changed worktree roots
 local function store_git_base(ref)
     ensure_states()
+    if ref then
+        patch_status_over_base()
+    end
     local review = require("utils.git-review-util")
     local changed = {}
     local resolved = {} ---@type table<string, string> fork point per worktree root, one git call per root
