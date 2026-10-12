@@ -1,6 +1,31 @@
-# deep, catppuccin-mocha, Abernathy, Argonaut, Brogrammer
-# duckbones, Firefly Traditional
-theme = Abernathy
+# themes: `ghostty +list-themes --plain | sed 's/ (resources)$//'`
+# -- darker
+# theme = Alien Blood
+# theme = Embers Dark
+# theme = GitHub Dark
+# theme = Shaman
+
+# -- good
+# theme = Abernathy
+# theme = Argonaut
+# theme = Hacktober
+# theme = iTerm2 Tango Dark
+# theme = Mathias
+# theme = Tomorrow Night
+# theme = Tomorrow Night Bright
+# theme = Twilight
+
+
+# -- best
+# theme = Deep
+# theme = ENCOM
+# theme = Flexoki Dark
+# theme = Floraverse
+# theme = Kitty Default
+ theme = Wez
+# theme = Zenbones Dark
+# theme = Zenwritten Dark
+
 # font-family = CaskaydiaMono Nerd Font
 font-family = CaskaydiaCove Nerd Font
 font-size = 23
