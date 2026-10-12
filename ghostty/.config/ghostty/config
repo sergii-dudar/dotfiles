@@ -22,13 +22,13 @@
 # theme = Flexoki Dark
 # theme = Floraverse
 # theme = Kitty Default
- theme = Wez
+theme = Wez
 # theme = Zenbones Dark
 # theme = Zenwritten Dark
 
 # font-family = CaskaydiaMono Nerd Font
 font-family = CaskaydiaCove Nerd Font
-font-size = 23
+font-size = 24
 
 # disable ligatures
 font-feature = -calt
@@ -49,7 +49,7 @@ macos-titlebar-style = hidden
 # keybind = global:cmd+/=toggle_quick_terminal
 macos-option-as-alt = true
 confirm-close-surface = false
-background-opacity = 0.95
+background-opacity = 0.90
 # alacritty drops the macOS window shadow whenever opacity < 1 (its 0.98 => no shadow). Ghostty keeps it, and on
 # macOS 26+ the shadow draws a light 1px rim around the window -- the "border" that alacritty does not show.
 macos-window-shadow = false
@@ -93,3 +93,7 @@ window-padding-y = 0
 mouse-scroll-multiplier = discrete:1
 clipboard-read = allow
 shell-integration-features = no-cursor
+cursor-color = #bbbbbb
+cursor-text = #181818
+selection-background = #444444
+selection-foreground = #dddddd

@@ -31,6 +31,14 @@ function M.setup(config, wezterm)
 
     config.color_scheme = get_color_scheme()
 
+    config.colors = {
+        cursor_bg = "#bbbbbb",
+        cursor_fg = "#181818",
+        cursor_border = "#bbbbbb",
+        selection_bg = "#444444",
+        selection_fg = "#dddddd",
+    }
+
     -- FONT
     --wezterm.gui.get_appearance()
     config.font = wezterm.font("CaskaydiaCove Nerd Font") --'Hack Nerd Font'

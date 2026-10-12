@@ -129,7 +129,7 @@ bright_foreground = "None"  # Default
 # text = "CellBackground"  # Default
 # cursor = "CellForeground"  # Default
 text = "#181818"   # Default
-cursor = "#d8d8d8" # Default
+cursor = "#bbbbbb" # was "#d8d8d8" (alacritty default); same cursor in ghostty/wezterm/foot
 
 # Vi mode cursor colors
 #[colors.vi_mode_cursor]
@@ -168,6 +168,9 @@ cursor = "#d8d8d8" # Default
 #[colors.selection]
 #text = "CellBackground"  # Default
 #background = "CellForeground"  # Default
+[colors.selection]
+text = "#dddddd"
+background = "#444444"
 
 # Normal colors
 [colors.normal]
