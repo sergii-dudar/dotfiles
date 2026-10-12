@@ -30,8 +30,8 @@ config.window_decorations = "RESIZE"
 --local util = require("util")
 --config.default_prog = { '/bin/zsh' } -- util.isMac() and { '/bin/zsh' } or { '/usr/bin/zsh' }
 
--- Don't hide cursor when typing
-config.hide_mouse_cursor_when_typing = false
+-- Hide the mouse pointer while typing: same as alacritty mouse.hide_when_typing, ghostty mouse-hide-while-typing, foot
+config.hide_mouse_cursor_when_typing = true
 
 -- disable cursor blinking
 config.cursor_blink_rate = 0
@@ -39,6 +39,14 @@ config.cursor_blink_rate = 0
 -- enable kitty keyboard protocol to support recognizing external keys, like `CMD` on macos
 --config.enable_kitty_keyboard = true
 --config.enable_csi_u_key_encoding = false
+
+-- Both Option keys act as Alt (ESC prefix), like alacritty option_as_alt = "Both" and ghostty macos-option-as-alt.
+-- The left one is already wezterm's default; the right one composes characters unless told otherwise. macOS only.
+config.send_composed_key_when_right_alt_is_pressed = false
+
+-- TERM stays at wezterm's default xterm-256color: tmux identifies wezterm from its XTVERSION reply and grants undercurl,
+-- strikethrough and hyperlinks itself (see terminal-features in tmux/.tmux.conf), nvim recognises TERM_PROGRAM=WezTerm,
+-- and `term = "wezterm"` would need the wezterm terminfo installed on every ssh target.
 
 config.window_close_confirmation = "NeverPrompt"
 

@@ -46,6 +46,7 @@ Output always lands in a tmux popup.
 | foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
 | alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
 | ghostty: mouse selection | `Control+Shift+t` | `clipboard` (keybind sends tmux prefix + `C-t`; `copy-on-select = clipboard`) |
+| wezterm: mouse selection | `Control+Shift+t` | `pipe` (`get_selection_text_for_pane` fed to the script's stdin) |
 
 Requires only `python3` — the engine talks HTTP through the stdlib, so there is nothing to install
 on either platform (see the [engine README](../scripts/tmux/translator/README.md)). Stock macOS bash
