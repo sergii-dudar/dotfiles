@@ -29,6 +29,8 @@ return {
         window = {
             mappings = {
                 --    e = 'none'
+                -- ["l"] = "noop",
+                -- ["h"] = "noop",
                 ["/"] = "noop",
                 ["<esc>"] = "noop",
                 ["Y"] = "shared_copy",
@@ -142,6 +144,12 @@ return {
             -- }
         },
         default_component_configs = {
+            container = {
+                -- The default "100%" clips every row to the window width (the clipped text is not in the buffer, so
+                -- `zl` has nothing to scroll to). Size the container to the row instead, but never narrower than the
+                -- window so right-aligned content (git status, last modified) keeps hugging the right edge.
+                width = neotree_util.container_width,
+            },
             type = {
                 enabled = false,
                 width = 10, -- width of the column

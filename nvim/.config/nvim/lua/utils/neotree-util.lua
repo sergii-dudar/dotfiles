@@ -656,4 +656,30 @@ function M.shared_paste(state)
     require("neo-tree.sources.manager").refresh("filesystem")
 end
 
+--- `container.width` for neo-tree rows: wide enough for the whole row, never narrower than the window.
+--- neo-tree's default ("100%") clips the row text to the window width, so a deep tree can only be read by
+--- resizing the window; with this the row overflows instead and `zl` / `<S-ScrollWheelDown>` scroll it.
+--- The row width is estimated (indent + expander + icon + name + room for git status / diagnostics /
+--- last-modified); an under-estimate would clip the row end again, so keep the slack generous.
+---@param node table neo-tree node
+---@param state table neo-tree state
+---@return integer
+function M.container_width(node, state)
+    local window_width = state.win_width
+    if not window_width and state.winid and vim.api.nvim_win_is_valid(state.winid) then
+        window_width = vim.api.nvim_win_get_width(state.winid)
+    end
+    window_width = window_width or 40
+
+    local depth = 0
+    if type(node.get_depth) == "function" then
+        depth = node:get_depth() or 0
+    elseif node.level then
+        depth = node.level
+    end
+    local name_width = vim.api.nvim_strwidth(node.name or "")
+    local wanted = depth * 2 + 4 + name_width + 30
+    return math.max(window_width, wanted)
+end
+
 return M
