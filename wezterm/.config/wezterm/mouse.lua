@@ -18,7 +18,9 @@ M.setup = function(config)
             mods = keys.mod,
             action = wezterm.action.CompleteSelectionOrOpenLinkAtMouseCursor("ClipboardAndPrimarySelection"),
         },]]
-        -- Open links by mouse left click with pressed CTRL modifier
+        -- Open links by mouse left click with pressed CTRL modifier (outside tmux: with mouse reporting on, wezterm
+        -- passes ctrl+click to the pane unless the bypass modifier above is held, and tmux opens the link itself:
+        -- .tmux.conf C-MouseDown1Pane -> scripts/tmux/open-url.sh, so the gesture is the same inside tmux)
         {
             event = { Up = { streak = 1, button = 'Left' } },
             mods = 'CTRL',

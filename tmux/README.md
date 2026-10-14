@@ -32,6 +32,24 @@ session manager have ability to:
 
 configs: [sesh.sessions.sh](../zsh/serhii.shell/util/sesh.sessions.sh), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
 
+##### Open links: Control + left click
+
+One gesture in every terminal, inside and outside tmux. Outside tmux each terminal opens the link itself; inside tmux
+(`mouse on`) the click never reaches the terminal's link code, so a root binding on `C-MouseDown1Pane` runs
+[open-url.sh](../scripts/tmux/open-url.sh): an OSC 8 hyperlink under the pointer (`#{mouse_hyperlink}`) is opened as
+is, otherwise the clicked row is scanned with alacritty's URL regex and post-processing. With no URL under the pointer
+the click is passed on to the pane (nvim keeps its `<C-LeftMouse>` multicursor binding).
+
+| terminal | outside tmux | inside tmux |
+| --- | --- | --- |
+| alacritty | `Control + click` (hint `mouse.mods = "Control"`, opener via `open-url.sh open`) | `Control + click` via tmux (alacritty only takes the click itself with Shift held) |
+| wezterm | `Control + click` (`OpenLinkAtMouseCursor`) | `Control + click` via tmux (bypass modifier is `SUPER`) |
+| ghostty | `Cmd + click` on macOS, `Control + click` on Linux (not configurable) | `Control + click` via tmux |
+| foot | no click: url mode `Control+Shift+o` | `Control + click` via tmux |
+
+Only the clicked row is scanned, so a URL wrapped onto the next row opens up to the end of the row. Test the matcher
+without a mouse: `printf 'see https://example.com/x). end\n' | ./scripts/tmux/open-url.sh find 9`.
+
 ##### Translation
 
 Self-contained, no tmux plugin: [translate.sh](../scripts/tmux/translate.sh) drives a vendored copy of

@@ -308,6 +308,21 @@ alphabet = "jfkdls;ahgurieowpq"  # Default: "jfkdls;ahgurieowpq"
 # binding = { key = "...", mods = "...", mode = "..." }
 # mouse = { mods = "...", enabled = true }
 
+# Alacritty's built-in URL hint spelled out so the mouse part can change: Control + left click opens the URL
+# (hover with Control held underlines it). The built-in hint opens on a plain click. Inside tmux (mouse mode)
+# alacritty additionally wants Shift, so there Control + click reaches tmux, which opens the URL itself
+# (.tmux.conf C-MouseDown1Pane -> scripts/tmux/open-url.sh): one gesture inside and outside tmux, in every terminal.
+# The opener goes through the same script (open on macOS, xdg-open elsewhere); alacritty appends the URL as the last
+# argument, hence "$0". Keyboard hints keep the default Control+Shift+o.
+[[hints.enabled]]
+regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`\\\\]+"
+hyperlinks = true
+post_processing = true
+persist = false
+command = { program = "sh", args = ["-c", "exec ~/dotfiles/scripts/tmux/open-url.sh open \"$0\""] }
+mouse = { enabled = true, mods = "Control" }
+binding = { key = "O", mods = "Control|Shift" }
+
 # KEYBOARD section of Alacritty configuration
 
 [keyboard]

@@ -97,3 +97,7 @@ cursor-color = #bbbbbb
 cursor-text = #181818
 selection-background = #444444
 selection-foreground = #dddddd
+
+# links: ghostty opens a URL on cmd+click (macOS) / ctrl+click (Linux); the modifier is not configurable and it only
+# works while no program captures the mouse. Inside tmux (mouse on) ctrl+click is handled by tmux instead
+# (.tmux.conf C-MouseDown1Pane -> scripts/tmux/open-url.sh), the same gesture as alacritty/wezterm there.
