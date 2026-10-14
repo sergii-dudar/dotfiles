@@ -22,7 +22,8 @@
 # theme = Flexoki Dark
 # theme = Floraverse
 # theme = Kitty Default
-theme = Wez
+# theme = Wez
+theme = Dark+
 # theme = Zenbones Dark
 # theme = Zenwritten Dark
 
@@ -49,7 +50,7 @@ macos-titlebar-style = hidden
 # keybind = global:cmd+/=toggle_quick_terminal
 macos-option-as-alt = true
 confirm-close-surface = false
-background-opacity = 0.85
+background-opacity = 0.90
 # alacritty drops the macOS window shadow whenever opacity < 1 (its 0.98 => no shadow). Ghostty keeps it, and on
 # macOS 26+ the shadow draws a light 1px rim around the window -- the "border" that alacritty does not show.
 macos-window-shadow = false
@@ -93,6 +94,9 @@ window-padding-y = 0
 mouse-scroll-multiplier = discrete:1
 clipboard-read = allow
 shell-integration-features = no-cursor
+# Dark+ is the vscode palette alacritty imports (themes/vscode.toml, same 16 colours and foreground), but alacritty.toml
+# overrides the theme background #1e1e1e with #181818; do the same here so both windows look the same.
+background = #181818
 cursor-color = #bbbbbb
 cursor-text = #181818
 selection-background = #444444
