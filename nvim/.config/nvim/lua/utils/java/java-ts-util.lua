@@ -8,6 +8,7 @@
 -- • get_enclosing_method_name_pos — method name pos + start row for a bufnr/position
 -- • is_type_symbol_at — symbol at a bufnr/position is a type name (not a member)
 -- • declared_type_names — simple names of every type declared in the current buffer
+-- • declared_member_names — simple names of every method / field declared in the current buffer, by kind
 -- • get_method_signature — method name with descriptor
 -- • get_full_method — package.Class.method
 -- • get_full_method_with_params — full method with parameter types
@@ -370,6 +371,60 @@ function M.declared_type_names()
     walk(tree:root())
 
     return names
+end
+
+--- Simple names of every member declared by a type in the current buffer, split
+--- into `methods` (method declarations) and `fields` (field and interface-constant
+--- declarations, enum constants, record components). Locals and parameters are
+--- not members and are left out. Inherited members are invisible here (resolving
+--- them needs jdtls). Returns empty sets when the buffer cannot be parsed as Java.
+---@return { methods: table<string, true>, fields: table<string, true> }
+function M.declared_member_names()
+    local members = { methods = {}, fields = {} }
+    local ok, parser = pcall(vim.treesitter.get_parser, 0, "java")
+    if not ok or not parser then
+        return members
+    end
+    local tree = parser:parse()[1]
+    if not tree then
+        return members
+    end
+
+    local function add(set, name_node)
+        if name_node then
+            set[vim.treesitter.get_node_text(name_node, 0)] = true
+        end
+    end
+
+    local function walk(node)
+        local kind = node:type()
+        if kind == "method_declaration" then
+            add(members.methods, node:field("name")[1])
+        elseif kind == "field_declaration" or kind == "constant_declaration" then
+            for c in node:iter_children() do
+                if c:type() == "variable_declarator" then
+                    add(members.fields, c:field("name")[1])
+                end
+            end
+        elseif kind == "enum_constant" then
+            add(members.fields, node:field("name")[1])
+        elseif kind == "record_declaration" then
+            local params = node:field("parameters")[1]
+            if params then
+                for c in params:iter_children() do
+                    if c:type() == "formal_parameter" then
+                        add(members.fields, c:field("name")[1])
+                    end
+                end
+            end
+        end
+        for c in node:iter_children() do
+            walk(c)
+        end
+    end
+    walk(tree:root())
+
+    return members
 end
 
 -- ---------------------------------------------------------

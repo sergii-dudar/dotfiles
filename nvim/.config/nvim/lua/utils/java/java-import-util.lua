@@ -97,8 +97,26 @@ local function replace_full_to_simple_class_name(full_class, simple_class)
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
 end
 
+--- Whether `ClassName.member` is used as a method call (`ClassName.member(`)
+--- anywhere in `lines`; otherwise the member is a field / constant access.
+---@param lines string[]
+---@param class_name string
+---@param member string
+---@return boolean
+local function used_as_call(lines, class_name, member)
+    local pattern = vim.pesc(class_name) .. "%." .. vim.pesc(member) .. "%s*%("
+    for _, line in ipairs(lines) do
+        if line:find(pattern) then
+            return true
+        end
+    end
+    return false
+end
+
 -- Import java class name under cursor, and apply simple class name in all buffer
 --- Import the class under the cursor and replace usages.
+--- A static member whose name is also declared by a type in this file stays
+--- qualified (see the shadowing note in the static-import branch).
 function M.import_class_and_replace()
     local simple_class_name = vim.fn.expand("<cword>")
     local full_name_under_cursor = vim.fn.expand("<cWORD>")
@@ -201,31 +219,69 @@ function M.import_class_and_replace()
             table.insert(members_in_order, simple_class_name)
         end
 
+        -- A member declared by a type in this file shadows a single-static-import
+        -- of the same name (JLS §6.4.1): a method shadows static-imported methods
+        -- of that name whatever their arity, a field shadows static-imported
+        -- fields. Dropping the qualifier from such a usage makes it resolve to the
+        -- local member and the file stops compiling, so it stays qualified and is
+        -- reported instead. Only members declared in this file are visible here;
+        -- an inherited member of the same name is not detected.
+        local declared = { methods = {}, fields = {} }
+        if not same_file_type then
+            declared = java_ts_util.declared_member_names()
+        end
+        local shadowed = {}
+
         for _, member in ipairs(members_in_order) do
             -- PascalCase member (starts upper, has lowercase) → nested class.
             -- Lowercase or ALL_CAPS member → static method / constant.
             local is_nested_class = member:match("^[A-Z]") and member:match("[a-z]") ~= nil
             local can_replace = not same_file_type or not is_nested_class or fqcn_for_static ~= nil
 
-            if can_replace then
-                -- Replace the complete FQCN first; otherwise replacing only the
-                -- `ClassName.member` suffix leaves a broken package-qualified member.
-                if fqcn_for_static then
-                    replace_full_to_simple_class_name(fqcn_for_static .. "." .. member, member)
+            local shadowed_by = nil
+            if not same_file_type and not is_nested_class then
+                if used_as_call(lines, class_name_for_static, member) then
+                    shadowed_by = declared.methods[member] and "method" or nil
+                else
+                    shadowed_by = declared.fields[member] and "field" or nil
                 end
-                replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
             end
 
-            -- Same-file static members need no import. A same-file nested type
-            -- does need one when its qualifier is removed from the class header.
-            if not same_file_type or (is_nested_class and fqcn_for_static ~= nil) then
-                local stmt = (is_nested_class and "import " or "import static ")
-                    .. fqcn_for_static
-                    .. "."
-                    .. member
-                    .. ";"
-                insert_import(stmt)
+            if shadowed_by then
+                table.insert(
+                    shadowed,
+                    ("'%s.%s' stays qualified: this file declares a %s '%s' that would shadow the static import"):format(
+                        class_name_for_static,
+                        member,
+                        shadowed_by,
+                        member
+                    )
+                )
+            else
+                if can_replace then
+                    -- Replace the complete FQCN first; otherwise replacing only the
+                    -- `ClassName.member` suffix leaves a broken package-qualified member.
+                    if fqcn_for_static then
+                        replace_full_to_simple_class_name(fqcn_for_static .. "." .. member, member)
+                    end
+                    replace_full_to_simple_class_name(class_name_for_static .. "." .. member, member)
+                end
+
+                -- Same-file static members need no import. A same-file nested type
+                -- does need one when its qualifier is removed from the class header.
+                if not same_file_type or (is_nested_class and fqcn_for_static ~= nil) then
+                    local stmt = (is_nested_class and "import " or "import static ")
+                        .. fqcn_for_static
+                        .. "."
+                        .. member
+                        .. ";"
+                    insert_import(stmt)
+                end
             end
+        end
+
+        if #shadowed > 0 then
+            vim.notify(table.concat(shadowed, "\n"), vim.log.levels.WARN)
         end
     else
         local full_class_name = remove_all_part .. "." .. simple_class_name
