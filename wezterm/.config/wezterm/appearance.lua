@@ -23,7 +23,11 @@ local get_color_scheme = function()
 
     -- return "Ef-Dark"
     -- return "Equilibrium Dark (base16)"
-    return "GitHub Dark"
+    -- return "GitHub Dark"
+
+    -- vscode palette, the same 16 colours + foreground as alacritty themes/vscode.toml and ghostty "Dark+" (NOT the two
+    -- "Vs Code Dark+ (Gogh)" schemes, those are a different palette with the same name). Background overridden below.
+    return "Dark+"
 end
 
 function M.setup(config, wezterm)
@@ -32,6 +36,8 @@ function M.setup(config, wezterm)
     config.color_scheme = get_color_scheme()
 
     config.colors = {
+        -- Dark+ ships #1e1e1e; alacritty.toml overrides its theme with #181818, ghostty too.
+        background = "#181818",
         cursor_bg = "#bbbbbb",
         cursor_fg = "#181818",
         cursor_border = "#bbbbbb",
