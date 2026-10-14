@@ -48,7 +48,7 @@ function M.setup(config, wezterm)
     -- FONT
     --wezterm.gui.get_appearance()
     config.font = wezterm.font("CaskaydiaCove Nerd Font") --'Hack Nerd Font'
-    config.font_size = 24.0
+    config.font_size = 23.0
 
     -- disable ligature globally
     config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }

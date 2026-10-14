@@ -29,7 +29,7 @@ theme = Dark+
 
 # font-family = CaskaydiaMono Nerd Font
 font-family = CaskaydiaCove Nerd Font
-font-size = 24
+font-size = 23
 
 # disable ligatures
 font-feature = -calt
