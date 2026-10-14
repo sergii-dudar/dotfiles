@@ -36,8 +36,8 @@ function M.setup(config, wezterm)
     config.color_scheme = get_color_scheme()
 
     config.colors = {
-        -- Dark+ ships #1e1e1e; alacritty.toml overrides its theme with #181818, ghostty too.
-        background = "#181818",
+        -- Dark+ ships #1e1e1e; alacritty.toml overrides its theme with this value, ghostty/foot too (was #181818).
+        background = "#121212",
         cursor_bg = "#bbbbbb",
         cursor_fg = "#181818",
         cursor_border = "#bbbbbb",

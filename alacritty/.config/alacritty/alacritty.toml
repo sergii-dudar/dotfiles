@@ -120,7 +120,7 @@ draw_bold_text_with_bright_colors = false  # Default
 # Primary colors
 [colors.primary]
 #foreground = "#d8d8d8"  # Default
-background = "#181818"  # Default
+background = "#121212"  # was "#181818" (default); the vscode theme ships "#1e1e1e"; same bg in ghostty/wezterm/foot
 dim_foreground = "#828482"  # Default
 bright_foreground = "None"  # Default
 

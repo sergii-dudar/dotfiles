@@ -1,12 +1,12 @@
 # -*- conf -*-
 # VS Code Dark+ (the vscode integrated-terminal palette): the same 16 colours and foreground as alacritty
 # themes/vscode.toml (alacritty-theme repo), ghostty theme "Dark+" and wezterm color_scheme "Dark+".
-# Themes ship background=1e1e1e; alacritty.toml overrides it with 181818 and ghostty/wezterm follow, so here too.
+# Themes ship background=1e1e1e; alacritty.toml overrides it (was 181818) and ghostty/wezterm follow, so here too.
 # cursor= and selection-* are set in foot.ini [colors-dark] (same in all terminals), not here.
 
 [colors-dark]
 foreground=cccccc
-background=181818
+background=121212
 regular0=000000  # black
 regular1=cd3131  # red
 regular2=0dbc79  # green
