@@ -46,6 +46,7 @@ the click is passed on to the pane (nvim keeps its `<C-LeftMouse>` multicursor b
 | wezterm | `Control + click` (`OpenLinkAtMouseCursor`) | `Control + click` via tmux (bypass modifier is `SUPER`) |
 | ghostty | `Cmd + click` on macOS, `Control + click` on Linux (not configurable) | `Control + click` via tmux |
 | foot | no click: url mode `Control+Shift+o` | `Control + click` via tmux |
+| kitty | `Control + click` (`mouse_map ctrl+left click ungrabbed mouse_handle_click link`; the default plain click no longer opens) | `Control + click` via tmux (kitty's own `Control+Shift + click` works there too) |
 
 Only the clicked row is scanned, so a URL wrapped onto the next row opens up to the end of the row. Test the matcher
 without a mouse: `printf 'see https://example.com/x). end\n' | ./scripts/tmux/open-url.sh find 9`.
