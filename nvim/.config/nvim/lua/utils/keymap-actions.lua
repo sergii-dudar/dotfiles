@@ -5,6 +5,7 @@
 -- • copy_* — copy current file paths/names to the system clipboard
 -- • search_clipboard — start a slash search from the clipboard
 -- • convert_* / normalize_* — visual JSON conversion helpers
+-- • decode_base64_or_jwt_selection — decode the selected base64 / JWT into a scratch split
 
 local M = {}
 
@@ -174,6 +175,12 @@ end
 function M.normalize_json_selection()
     exit_visual_mode()
     require("utils.json.normalize").normalize_selection()
+end
+
+--- Decode the selected base64 or JWT text into a scratch split below (`q` closes it).
+function M.decode_base64_or_jwt_selection()
+    exit_visual_mode()
+    require("utils.decode-util").decode_selection()
 end
 
 return M

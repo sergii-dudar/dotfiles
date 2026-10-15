@@ -107,4 +107,9 @@ function M.normalize_selection()
     vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, new_lines)
 end
 
+--- Format JSON content with jq when available (shared with utils.decode-util).
+---@param content string
+---@return string
+M.format_json = format_json
+
 return M

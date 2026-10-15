@@ -179,4 +179,5 @@ vim.keymap.set("v", "<leader>Cjj", keymap_actions.convert_java_tostring_to_json_
 vim.keymap.set("v", "<leader>Cjy", keymap_actions.convert_java_tostring_to_json_clipboard, { desc = "Convert Java toString to JSON (clipboard)" })
 vim.keymap.set("n", "<leader>Cjn", keymap_actions.normalize_json_buffer, { desc = "Convert json to normalized" })
 vim.keymap.set("v", "<leader>Cjn", keymap_actions.normalize_json_selection, { desc = "Convert selected json to normalized" })
+vim.keymap.set("v", "<leader>Cjb", keymap_actions.decode_base64_or_jwt_selection, { desc = "Decode selected base64 or JWT" })
 -- stylua: ignore end

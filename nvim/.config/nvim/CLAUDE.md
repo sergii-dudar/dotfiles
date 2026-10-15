@@ -128,6 +128,7 @@ helpers), `tests/` (test-runner utilities), `ui/` (UI helpers), `linter/`, `json
 - `indent-util.lua`, `buffer-util.lua`, `common-util.lua`, `string-util.lua`,
   `list-util.lua`, `diff-util.lua`, `envs-util.lua`, `neotree-util.lua` — general
 - `global-util.lua` — sets `_G.global` (loaded from `init.lua`)
+- `decode-util.lua` — `<leader>Cjb` (visual): decode the selection as a JWT (header, payload, `iat`/`nbf`/`exp` in UTC + relative, signature; JWE header only) or as base64 (JSON pretty-printed, text, binary as xxd hex dump) into a bottom scratch split closed with `q`. Lenient input: quotes, `Bearer `, URL-safe alphabet, missing padding, line wraps
 - `constants.lua` — shared constants
 
 Java helpers under `utils/java/`:
