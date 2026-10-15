@@ -100,8 +100,11 @@ shell-integration-features = no-cursor
 background = #121212
 cursor-color = #bbbbbb
 cursor-text = #181818
-selection-background = #444444
-selection-foreground = #dddddd
+# green mouse selection, same in alacritty/wezterm/foot (tmux copy-mode keeps its own yellow on purpose); was gray
+# selection-background = #444444
+# selection-foreground = #dddddd
+selection-background = #3b7a57
+selection-foreground = #f0f0f0
 
 # links: ghostty opens a URL on cmd+click (macOS) / ctrl+click (Linux); the modifier is not configurable and it only
 # works while no program captures the mouse. Inside tmux (mouse on) ctrl+click is handled by tmux instead

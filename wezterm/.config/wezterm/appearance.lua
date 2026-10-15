@@ -41,8 +41,9 @@ function M.setup(config, wezterm)
         cursor_bg = "#bbbbbb",
         cursor_fg = "#181818",
         cursor_border = "#bbbbbb",
-        selection_bg = "#444444",
-        selection_fg = "#dddddd",
+        -- green mouse selection, same in alacritty/ghostty/foot (tmux copy-mode stays yellow); was #444444 / #dddddd
+        selection_bg = "#3b7a57",
+        selection_fg = "#f0f0f0",
     }
 
     -- FONT

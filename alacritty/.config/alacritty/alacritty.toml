@@ -169,8 +169,10 @@ cursor = "#bbbbbb" # was "#d8d8d8" (alacritty default); same cursor in ghostty/w
 #text = "CellBackground"  # Default
 #background = "CellForeground"  # Default
 [colors.selection]
-text = "#dddddd"
-background = "#444444"
+# green mouse selection, same in ghostty/wezterm/foot (tmux copy-mode keeps its own yellow on purpose); was gray
+# text = "#dddddd" / background = "#444444"
+text = "#f0f0f0"
+background = "#3b7a57"
 
 # Normal colors
 [colors.normal]
