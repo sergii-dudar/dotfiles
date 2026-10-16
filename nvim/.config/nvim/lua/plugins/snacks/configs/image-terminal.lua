@@ -8,9 +8,8 @@
 -- terminal; restart it there.
 local M = {}
 
--- kitty and ghostty draw images inline (unicode placeholders); wezterm only in a float under the cursor and needs
--- `config.enable_kitty_graphics = true` (wezterm.lua)
-local GRAPHICS = { "kitty", "ghostty", "wezterm" }
+-- local GRAPHICS = { "kitty", "ghostty", "wezterm" }
+local GRAPHICS = { "kitty", "ghostty" }
 
 ---@return string terminal name in lower case, "" when unknown
 function M.name()
