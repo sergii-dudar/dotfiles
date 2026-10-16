@@ -47,6 +47,10 @@ config.cursor_blink_rate = 0
 --config.enable_kitty_keyboard = true
 --config.enable_csi_u_key_encoding = false
 
+-- kitty graphics protocol for snacks.image in nvim (images in markdown/javadoc). Off by default in wezterm, which then
+-- ignores every image snacks sends. wezterm has no unicode placeholders, so snacks cannot draw images inline in the buffer
+config.enable_kitty_graphics = true
+
 -- Both Option keys act as Alt (ESC prefix), like alacritty option_as_alt = "Both" and ghostty macos-option-as-alt.
 -- The left one is already wezterm's default; the right one composes characters unless told otherwise. macOS only.
 config.send_composed_key_when_right_alt_is_pressed = false
