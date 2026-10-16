@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Interactive theme picker for kitty: the themes are the *.conf colour files in ~/.config/kitty (vscode-dark.conf,
-# GitHub Dark.conf, ...) plus the kitty-themes repo once `kitten themes` has downloaded it to ~/.cache/kitty/themes.
+# GitHub Dark.conf, ...) plus the kitty-themes repo once `kitten themes` has downloaded it: kitty-themes.zip in kitty's
+# cache dir (~/Library/Caches/kitty on macOS, ~/.cache/kitty elsewhere), read in place with unzip. Repo themes are
+# listed by file name (Alabaster_Dark), not by their `## name:` (Alabaster Dark), so names stay unique.
 # Moving in the list points the active `include ...conf` line of kitty.conf at the theme (repo themes are copied to
 # current-theme.conf first, like `kitten themes` does) and sends SIGUSR1, on which kitty reloads its config in every
 # window, so the preview is exactly the end result: the cursor/selection lines kitty.conf sets after the include stay on
@@ -18,7 +20,15 @@
 tt_name=kitty
 tt_config="${TT_CONFIG:-$HOME/.config/kitty/kitty.conf}"
 tt_dir="$(dirname "$tt_config")"
-tt_cache="${XDG_CACHE_HOME:-$HOME/.cache}/kitty/themes"
+# kitty's own cache_dir(): KITTY_CACHE_DIRECTORY, else ~/Library/Caches/kitty on macOS, else $XDG_CACHE_HOME/kitty
+if [ -n "${KITTY_CACHE_DIRECTORY:-}" ]; then
+    tt_cache="$KITTY_CACHE_DIRECTORY"
+elif [ "$(uname -s)" = Darwin ]; then
+    tt_cache="$HOME/Library/Caches/kitty"
+else
+    tt_cache="${XDG_CACHE_HOME:-$HOME/.cache}/kitty"
+fi
+tt_zip="$tt_cache/kitty-themes.zip"
 tt_line='^include [^#]+\.conf[[:space:]]*$'
 
 tt_local() { # colour files next to kitty.conf, by name
@@ -26,21 +36,20 @@ tt_local() { # colour files next to kitty.conf, by name
         | sed 's|.*/||; s|\.conf$||'
 }
 
-tt_repo() { # kitty-themes files in the cache, by name (empty until `kitten themes` has fetched the repo)
-    [ -d "$tt_cache" ] && find -H "$tt_cache" -name '*.conf' -path '*/themes/*' 2>/dev/null | sed 's|.*/||; s|\.conf$||'
+tt_repo() { # kitty-themes files in the zip, by file name (empty until `kitten themes` has fetched the repo)
+    [ -f "$tt_zip" ] && unzip -Z1 "$tt_zip" '*/themes/*.conf' 2>/dev/null | sed 's|.*/||; s|\.conf$||'
     return 0
 }
 
-tt_path() { # a local file wins over a repo file of the same name
-    local f
-    [ -f "$tt_dir/$1.conf" ] && printf '%s\n' "$tt_dir/$1.conf" && return 0
-    f="$([ -d "$tt_cache" ] && find -H "$tt_cache" -name "$1.conf" -path '*/themes/*' 2>/dev/null | head -1)"
-    [ -n "$f" ] && printf '%s\n' "$f" && return 0
-    return 1
+tt_repo_cat() { # the repo theme $1 on stdout; fails when the zip has no such theme
+    local out
+    [ -f "$tt_zip" ] || return 1
+    out="$(unzip -p "$tt_zip" "*/themes/$1.conf" 2>/dev/null)" && [ -n "$out" ] || return 1
+    printf '%s\n' "$out"
 }
 
 tt_list() {
-    [ -n "$(tt_repo)" ] || printf '%s\n' 'kitty-themes repo not cached, local themes only (run "kitten themes" once to fetch it)' >&2
+    [ -n "$(tt_repo)" ] || printf '%s\n' "no $tt_zip, local themes only (run \"kitten themes\" once to fetch it)" >&2
     {
         tt_local
         tt_repo
@@ -59,20 +68,21 @@ tt_current() {
 tt_reload() { pkill -USR1 -x kitty 2>/dev/null || true; } # every kitty of this user re-reads its config
 
 tt_apply() {
-    local file inc
-    file="$(tt_path "$1")" || tt_die "no such theme: $1"
+    local inc theme
     case "$(tt_count "$tt_config" "$tt_line")" in
         1) ;;
         0) tt_die "no active 'include ...conf' line in $tt_config" ;;
         *) tt_die "more than one active 'include ...conf' line in $tt_config" ;;
     esac
-    if [ "$file" = "$tt_dir/$1.conf" ]; then
+    if [ -f "$tt_dir/$1.conf" ]; then # a local file wins over a repo theme of the same name
         inc="$1.conf"
     else
+        theme="$(tt_repo_cat "$1")" || tt_die "no such theme: $1"
         inc='current-theme.conf'
+        # `## name:` becomes the list name, so tt_current finds the entry again
         {
-            grep -q '^## name: ' "$file" || printf '## name: %s\n' "$1"
-            cat "$file"
+            printf '## name: %s\n' "$1"
+            printf '%s\n' "$theme" | grep -v '^## name: '
         } >"$tt_dir/current-theme.conf"
     fi
     # shellcheck disable=SC2016 # $ENV{TT_NEW} is for perl
