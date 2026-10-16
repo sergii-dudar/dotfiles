@@ -1,20 +1,35 @@
 ; extends
-; Reference-style markdown images for snacks.image: `![alt][label]` (full) and `![label][]` / `![label]` (collapsed,
-; shortcut) whose URL sits in a `[label]: url` definition elsewhere in the file. The definitions live in the block-level
-; markdown tree, which an inline query cannot see, so the label goes out as "mdref:<label>" and the snacks `resolve` hook
-; (lua/plugins/snacks/configs/image-refs.lua) looks it up in the buffer. Snacks' own query (link_destination, wikilink
-; shortcut_link) stays as is. A label without a definition falls back to the label as a path.
+; Reference-style markdown images for snacks.image, see lua/plugins/snacks/configs/image-refs.lua for the two helpers.
+; Snacks' own patterns (inline `![](url)`, `![[wikilink]]`) stay as they are.
 
+; ![alt][label]
 (image
   (image_description)
   (link_label) @image.src
-  (#gsub! @image.src "^%[(.*)%]$" "mdref:%1")) @image
+  (#md-ref-dest! @image.src)) @image
 
-; image_description as the only child: no (link_label), no (link_destination). The predicates sit outside the node so
-; the anchors hold. The node text has no outer brackets; ![[x]] wikilinks (text "[x]") are left to snacks' own pattern.
+; ![label][] and ![label]: image_description is the only child. The predicates sit outside the node so the anchors hold.
+; The node text has no outer brackets; ![[x]] wikilinks (text "[x]") are left to snacks.
 ((image
   .
   (image_description) @image.src
   .) @image
   (#not-lua-match? @image.src "^%[")
-  (#gsub! @image.src "^(.*)$" "mdref:%1"))
+  (#md-ref-dest! @image.src))
+
+; plain links whose definition is an image file: jdtls javadoc hovers render diagrams as `[1]` + `[1]: file:///...svg`
+((shortcut_link
+  (link_text) @image.src) @image
+  (#md-ref-is-image? @image.src)
+  (#md-ref-dest! @image.src))
+
+((full_reference_link
+  (link_text)
+  (link_label) @image.src) @image
+  (#md-ref-is-image? @image.src)
+  (#md-ref-dest! @image.src))
+
+((collapsed_reference_link
+  (link_text) @image.src) @image
+  (#md-ref-is-image? @image.src)
+  (#md-ref-dest! @image.src))

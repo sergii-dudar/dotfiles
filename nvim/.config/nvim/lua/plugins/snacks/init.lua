@@ -33,6 +33,8 @@ return {
             -- vim.schedule(function()
             --     vim.api.nvim_set_hl(0, "SnacksPickerPathHidden", { link = "SnacksPickerPathNormal" })
             -- end)
+            -- reference-style markdown images + jdtls javadoc diagrams (queries/markdown_inline/images.scm helpers)
+            require("plugins.snacks.configs.image-refs").setup()
             local pickers = require("plugins.snacks.configs.pickers")
             local dashboards = require("plugins.snacks.configs.dashboards")
             return vim.tbl_deep_extend("force", opts or {}, {
@@ -46,10 +48,6 @@ return {
                     enabled = true, -- disabled as using alacritty now
                     debug = { request = false, convert = false, placement = false },
                     math = { enabled = true },
-                    -- reference-style images `![alt][label]` + `[label]: url` (queries/markdown_inline/images.scm)
-                    resolve = function(file, src)
-                        return require("plugins.snacks.configs.image-refs").resolve(file, src)
-                    end,
                     doc = {
                         enabled = true,
                         inline = true,
