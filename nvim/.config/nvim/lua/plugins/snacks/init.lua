@@ -44,8 +44,10 @@ return {
                 picker = pickers.picker,
                 explorer = pickers.explorer,
                 image = {
-                    force = true,
-                    enabled = true, -- disabled as using alacritty now
+                    -- only in kitty, ghostty and wezterm (also under tmux); off in alacritty/foot, which have no kitty
+                    -- graphics and would get empty image floats. See configs/image-terminal.lua.
+                    enabled = require("plugins.snacks.configs.image-terminal").supports_images(),
+                    -- force = true,
                     debug = { request = false, convert = false, placement = false },
                     math = { enabled = true },
                     doc = {
