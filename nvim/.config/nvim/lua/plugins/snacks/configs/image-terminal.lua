@@ -8,13 +8,22 @@
 -- terminal; restart it there.
 local M = {}
 
+-- kitty and ghostty draw images inline (unicode placeholders). wezterm dropped after a trial on 2026-10-16: outside
+-- tmux only a float under the cursor (needs `config.enable_kitty_graphics = true` in wezterm.lua), inside tmux images
+-- land misplaced, go missing, or show as a row of placeholder characters (0000...).
 -- local GRAPHICS = { "kitty", "ghostty", "wezterm" }
 local GRAPHICS = { "kitty", "ghostty" }
 
 ---@return string terminal name in lower case, "" when unknown
 function M.name()
     if vim.env.TMUX then
-        local res = vim.system({ "tmux", "display-message", "-p", "#{client_termtype}" }, { text = true }):wait(1000)
+        -- -t this pane: without it tmux answers for the most recently active session, which may be attached from
+        -- another terminal
+        local cmd = { "tmux", "display-message", "-p", "#{client_termtype}" }
+        if vim.env.TMUX_PANE then
+            cmd = { "tmux", "display-message", "-p", "-t", vim.env.TMUX_PANE, "#{client_termtype}" }
+        end
+        local res = vim.system(cmd, { text = true }):wait(1000)
         return res.code == 0 and vim.trim(res.stdout or ""):lower() or ""
     end
     local term, program = (vim.env.TERM or ""):lower(), (vim.env.TERM_PROGRAM or ""):lower()
@@ -25,7 +34,7 @@ function M.name()
     elseif program == "wezterm" or vim.env.WEZTERM_PANE then
         return "wezterm"
     end
-    vim.notify(program ~= "" and program or term)
+    -- vim.notify(program ~= "" and program or term)
     return program ~= "" and program or term
 end
 
