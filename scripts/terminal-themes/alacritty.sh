@@ -20,7 +20,7 @@ tt_line='^[[:space:]]*"[^"]*/themes/[^"/]+\.toml"[[:space:]]*,?[[:space:]]*$'
 
 tt_list() {
     [ -d "$tt_dir" ] || tt_die "no themes in $tt_dir (git clone https://github.com/alacritty/alacritty-theme $(dirname "$tt_dir"))"
-    find "$tt_dir" -maxdepth 1 -name '*.toml' | sed 's|.*/||; s|\.toml$||' | sort
+    find -H "$tt_dir" -maxdepth 1 -name '*.toml' | sed 's|.*/||; s|\.toml$||' | sort
 }
 
 tt_current() {

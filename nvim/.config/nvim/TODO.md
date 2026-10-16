@@ -43,5 +43,5 @@
      investigate issue with duplicated diagnostics with jdtls (looks after jdtls recovery)
      continue testings mapstruct gr\gd
      add lua snippets for java suppress warnings (unuded, deprecated, unchecked)
-     jdtls, recovery - generated code by AI or any anoher not directly by nvim way, making not able to use this code by navigation (maybe completion), not critical but maybe good to investigate and provide some autocmd to resolve
-     implement jdtls-adaptive-formatter (using standrd jdtls formatter) to have more flexible formatting configuration that provided by jdtls by default (by /Users/iuada144/dotfiles/work/formatter/eclipse-java-intellij-style.xml). Main issue it's to be able to configure and have same formatting rules and formatter, that using in intellij. (in general - formatted file by intellij, should be formatted in save way in nvim)
+     jdtls, recovery - generated code by AI or any anoher not directly by nvim way, making not able to use this code by navigation (maybe completion), not critical but maybe good to investigate and provide some autocmd to resolve
+     implement jdtls-adaptive-formatter (using standrd jdtls formatter) to have more flexible formatting configuration that provided by jdtls by default (by /Users/iuada144/dotfiles/work/formatter/eclipse-java-intellij-style.xml). Main issue it's to be able to configure and have same formatting rules and formatter, that using in intellij. (in general - formatted file by intellij, should be formatted in save way in nvim)

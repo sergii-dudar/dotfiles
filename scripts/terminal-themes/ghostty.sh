@@ -40,7 +40,7 @@ tt_path() {
 tt_list() {
     local d
     while IFS= read -r d; do
-        find "$d" -mindepth 1 -maxdepth 1 -type f | sed 's|.*/||'
+        find -H "$d" -mindepth 1 -maxdepth 1 -type f | sed 's|.*/||'
     done < <(tt_dirs) | sort -u
 }
 

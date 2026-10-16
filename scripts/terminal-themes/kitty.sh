@@ -22,19 +22,19 @@ tt_cache="${XDG_CACHE_HOME:-$HOME/.cache}/kitty/themes"
 tt_line='^include [^#]+\.conf[[:space:]]*$'
 
 tt_local() { # colour files next to kitty.conf, by name
-    find "$tt_dir" -maxdepth 1 -name '*.conf' ! -name kitty.conf ! -name current-theme.conf -exec grep -l -E '^color0 ' {} + 2>/dev/null \
+    find -H "$tt_dir" -maxdepth 1 -name '*.conf' ! -name kitty.conf ! -name current-theme.conf -exec grep -l -E '^color0 ' {} + 2>/dev/null \
         | sed 's|.*/||; s|\.conf$||'
 }
 
 tt_repo() { # kitty-themes files in the cache, by name (empty until `kitten themes` has fetched the repo)
-    [ -d "$tt_cache" ] && find "$tt_cache" -name '*.conf' -path '*/themes/*' 2>/dev/null | sed 's|.*/||; s|\.conf$||'
+    [ -d "$tt_cache" ] && find -H "$tt_cache" -name '*.conf' -path '*/themes/*' 2>/dev/null | sed 's|.*/||; s|\.conf$||'
     return 0
 }
 
 tt_path() { # a local file wins over a repo file of the same name
     local f
     [ -f "$tt_dir/$1.conf" ] && printf '%s\n' "$tt_dir/$1.conf" && return 0
-    f="$([ -d "$tt_cache" ] && find "$tt_cache" -name "$1.conf" -path '*/themes/*' 2>/dev/null | head -1)"
+    f="$([ -d "$tt_cache" ] && find -H "$tt_cache" -name "$1.conf" -path '*/themes/*' 2>/dev/null | head -1)"
     [ -n "$f" ] && printf '%s\n' "$f" && return 0
     return 1
 }
