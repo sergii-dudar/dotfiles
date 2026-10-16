@@ -11,6 +11,10 @@
 #   - escape codes: ghostty and foot cannot reload from outside, so the preview sends OSC 4/10/11/12/17/19 (through
 #     tmux's passthrough when inside tmux) and Enter writes the config; Esc sends the OSC resets.
 #
+# A first argument `dark` (or `night`) / `light` (or `day`) narrows the list to themes with a dark / light background:
+# the terminal script then also defines tt_bgs, which prints "NAME<tab>background" for every theme (empty background
+# when the theme sets none, counted as dark like every terminal's default), and tt_themes filters on its brightness.
+#
 # Knobs, mainly for testing: TT_TERMINAL=<name> skips the detection, TT_CONFIG=<file> points a script at another config
 # (its themes directory is derived from the config's directory), TT_TTY=<file> receives the escape codes.
 
@@ -174,6 +178,72 @@ tt_count() {
     grep -c -E -- "$2" "$1" 2>/dev/null || true
 }
 
+# ---------------------------------------------------------------- dark / light ------------------------------------
+tt_mode='' # dark, light or empty (every theme), from the first argument
+
+# "NAME<tab>background" of theme files: the last six hex digits of the first `background` key of each file
+# (`background #hex`, `background = '#hex'`, `background=hex`), an empty value when there is none. TT_SECTIONS=REGEX
+# only takes it inside a matching [section] (alacritty's colors.primary, foot's colors), TT_EXT=.EXT is stripped from
+# the name, TT_ZIP=1 reads `unzip -c` output from stdin, where an "  inflating: PATH  " line (" extracting: " for a
+# stored file) starts the next file. Hex runs are spelled out: mawk has no {6}.
+tt_bg_scan() {
+    awk -v sections="${TT_SECTIONS:-}" -v ext="${TT_EXT:-}" -v zip="${TT_ZIP:-}" '
+        BEGIN { x = "[0-9a-fA-F]"; hex6 = x x x x x x }
+        function start(path, name) {
+            name = path
+            sub(/.*\//, "", name)
+            if (ext != "" && substr(name, length(name) - length(ext) + 1) == ext)
+                name = substr(name, 1, length(name) - length(ext))
+            names[++n] = name
+            section = ""
+        }
+        zip && /^ *(inflating|extracting): / {
+            p = $0
+            sub(/^ *[a-z]+: /, "", p)
+            sub(/[ \t]+$/, "", p)
+            start(p)
+            next
+        }
+        !zip && FNR == 1 { start(FILENAME) }
+        n == 0 { next }
+        /^[ \t]*\[.*\][ \t]*$/ { section = $0; gsub(/^[ \t]*\[|\][ \t]*$/, "", section); next }
+        /^[ \t]*background([ \t]|=)/ {
+            if (bg[n] != "" || (sections != "" && section !~ sections)) next
+            v = $0
+            sub(/#[^0-9a-fA-F].*$/, "", v) # a trailing comment, not the colour
+            if (match(v, hex6 "[^0-9a-fA-F]*$")) bg[n] = substr(v, RSTART, 6)
+        }
+        END { for (i = 1; i <= n; i++) printf "%s\t%s\n", names[i], bg[i] }
+    ' "$@"
+}
+
+# tt_bgs lines -> the names of the tt_mode themes, sorted; the first line of a name wins (user themes come first).
+# Dark = perceived brightness (0.299 R + 0.587 G + 0.114 B) of the background below half; no background = dark.
+tt_bg_filter() {
+    awk -F '\t' -v mode="$tt_mode" '
+        BEGIN { x = "[0-9a-fA-F]"; hex6 = "^" x x x x x x "$" }
+        function nibble(h, i) { return index("0123456789abcdef", substr(h, i, 1)) - 1 }
+        function byte(h, i) { return nibble(h, i) * 16 + nibble(h, i + 1) }
+        seen[$1]++ { next }
+        {
+            dark = 1
+            if ($2 ~ hex6) {
+                h = tolower($2)
+                dark = 0.299 * byte(h, 1) + 0.587 * byte(h, 3) + 0.114 * byte(h, 5) < 127.5
+            }
+            if (dark == (mode == "dark")) print $1
+        }
+    ' | sort
+}
+
+tt_themes() {
+    if [ -z "$tt_mode" ]; then
+        tt_list
+    else
+        tt_bgs | tt_bg_filter
+    fi
+}
+
 # ---------------------------------------------------------------- UI --------------------------------------------------
 # Preview pane: the palette as blocks plus a text sample. SGR 30-37/48;5;N use the terminal's own palette, which the
 # highlighted theme has just replaced, so the blocks show the real colours.
@@ -193,8 +263,8 @@ tt_pick() {
     local self="$1" list current idx choice orig
     command -v fzf >/dev/null 2>&1 || tt_die "fzf is required"
     tt_require "$tt_name"
-    list="$(tt_list)"
-    [ -n "$list" ] || tt_die "$tt_name: no themes found"
+    list="$(tt_themes)"
+    [ -n "$list" ] || tt_die "$tt_name: no ${tt_mode:+$tt_mode }themes found"
     current="$(tt_current)"
     idx="$(printf '%s\n' "$list" | grep -n -x -F -- "$current" | head -1 | cut -d: -f1)"
     : "${idx:=1}"
@@ -204,7 +274,7 @@ tt_pick() {
     trap "rm -f '$orig'" EXIT
     cat "$tt_config" >"$orig"
     choice="$(printf '%s\n' "$list" | fzf --sync --ansi --cycle --no-multi --layout=reverse \
-        --prompt="$tt_name theme > " \
+        --prompt="$tt_name ${tt_mode:+$tt_mode }theme > " \
         --header="now: ${current:-?}   move = preview   Enter = keep   Esc = back" \
         --bind "start:pos($idx)" \
         --bind "focus:execute-silent($self preview {})" \
@@ -223,13 +293,18 @@ tt_main() {
     local self
     self="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
     case "${1:-}" in
-        list) tt_list ;;
+        dark | night) tt_mode=dark && shift ;;
+        light | day) tt_mode=light && shift ;;
+    esac
+    case "${1:-}" in
+        list) tt_themes ;;
         current) tt_current ;;
         preview) tt_preview "${2:?theme name}" ;;
         apply) tt_apply "${2:?theme name}" ;;
         restore) tt_restore ;;
         swatch) tt_swatch "${2:?theme name}" ;;
         "") tt_pick "$self" ;;
-        *) tt_die "usage: $(basename "$0") [list | current | preview NAME | apply NAME | restore | swatch NAME]" ;;
+        *) tt_die "usage: $(basename "$0") [dark | light] [list] | current | preview NAME | apply NAME | restore |" \
+            "swatch NAME" ;;
     esac
 }

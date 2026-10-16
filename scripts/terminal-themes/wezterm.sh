@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Interactive theme picker for wezterm: the themes are wezterm's built-in colour schemes (wezterm.color.get_builtin_
-# schemes(), over a thousand; the list is dumped once per wezterm version into ~/.cache/terminal-themes). Moving in the
-# list rewrites the active `return "NAME"` line of get_color_scheme() in appearance.lua and wezterm reloads its config
-# at once, so the preview is exactly the end result: config.colors (background, cursor, selection) stays on top of every
-# scheme. Enter keeps the line, Esc restores the file. Works the same inside tmux.
+# schemes(), over a thousand; names and backgrounds are dumped once per wezterm version into ~/.cache/terminal-themes).
+# Moving in the list rewrites the active `return "NAME"` line of get_color_scheme() in appearance.lua and wezterm
+# reloads its config at once, so the preview is exactly the end result: config.colors (background, cursor, selection)
+# stays on top of every scheme. Enter keeps the line, Esc restores the file. Works the same inside tmux.
 #
 #   wezterm.sh                 pick interactively
+#   wezterm.sh dark|light      only themes with a dark / light background (also `wezterm.sh dark list`)
 #   wezterm.sh list|current    the names / the active scheme
 #   wezterm.sh apply NAME      set the scheme without the picker
 
@@ -18,19 +19,21 @@ tt_lua="$(dirname "$0")/wezterm-schemes.lua"
 # the one uncommented `return "..."` of get_color_scheme (the commented alternatives start with --)
 tt_line='^[[:space:]]*return "[^"]*"[[:space:]]*$'
 
-tt_list() {
+tt_bgs() { # "NAME<tab>rrggbb" of every scheme
     local cache ver
     command -v wezterm >/dev/null 2>&1 || tt_die "wezterm not on PATH"
     ver="$(wezterm --version | tr -c 'A-Za-z0-9.-' '_')"
-    cache="${XDG_CACHE_HOME:-$HOME/.cache}/terminal-themes/wezterm-schemes-$ver.txt"
+    cache="${XDG_CACHE_HOME:-$HOME/.cache}/terminal-themes/wezterm-schemes-bg-$ver.txt"
     if [ ! -s "$cache" ]; then
         mkdir -p "$(dirname "$cache")"
-        # show-keys just loads the Lua config and exits; the scheme names come out on the log channel
+        # show-keys just loads the Lua config and exits; the schemes come out on the log channel
         WEZTERM_LOG=error wezterm --config-file "$tt_lua" show-keys 2>&1 | sed -n 's/.*TT_SCHEME\t//p' | sort >"$cache"
         [ -s "$cache" ] || tt_die "could not list wezterm schemes (wezterm --config-file $tt_lua show-keys)"
     fi
     cat "$cache"
 }
+
+tt_list() { tt_bgs | cut -f1; }
 
 tt_current() {
     grep -E -- "$tt_line" "$tt_config" | head -1 | sed -E 's/^[[:space:]]*return "([^"]*)".*/\1/'

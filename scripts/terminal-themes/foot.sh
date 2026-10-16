@@ -7,6 +7,7 @@
 # Written on macOS without a foot to try it on: unverified.
 #
 #   foot.sh                 pick interactively
+#   foot.sh dark|light      only themes with a dark / light background (also `foot.sh dark list`)
 #   foot.sh list|current    the names / the active theme
 #   foot.sh preview NAME    only send the colours (this window, until foot restarts)
 #   foot.sh apply NAME      write the include line without the picker
@@ -39,6 +40,15 @@ tt_list() {
     while IFS= read -r d; do
         find -H "$d" -mindepth 1 -maxdepth 1 -type f | sed 's|.*/||'
     done < <(tt_dirs) | sort -u
+}
+
+tt_bgs() { # user themes first, so they win over a shipped theme of the same name
+    local d f
+    local -a files=()
+    while IFS= read -r d; do
+        while IFS= read -r f; do files+=("$f"); done < <(find -H "$d" -mindepth 1 -maxdepth 1 -type f)
+    done < <(tt_dirs)
+    [ ${#files[@]} -eq 0 ] || TT_SECTIONS='^colors(-dark)?$' tt_bg_scan "${files[@]}"
 }
 
 tt_current() {

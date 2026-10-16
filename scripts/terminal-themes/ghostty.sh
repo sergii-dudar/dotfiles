@@ -8,6 +8,7 @@
 # (cmd+shift+, on macOS, ctrl+shift+, on Linux); this window already shows it.
 #
 #   ghostty.sh                 pick interactively
+#   ghostty.sh dark|light      only themes with a dark / light background (also `ghostty.sh dark list`)
 #   ghostty.sh list|current    the names / the active theme
 #   ghostty.sh preview NAME    only send the colours (until the next reload)
 #   ghostty.sh apply NAME      write the theme line without the picker
@@ -42,6 +43,15 @@ tt_list() {
     while IFS= read -r d; do
         find -H "$d" -mindepth 1 -maxdepth 1 -type f | sed 's|.*/||'
     done < <(tt_dirs) | sort -u
+}
+
+tt_bgs() { # user themes first, so they win over a shipped theme of the same name
+    local d f
+    local -a files=()
+    while IFS= read -r d; do
+        while IFS= read -r f; do files+=("$f"); done < <(find -H "$d" -mindepth 1 -maxdepth 1 -type f)
+    done < <(tt_dirs)
+    [ ${#files[@]} -eq 0 ] || tt_bg_scan "${files[@]}"
 }
 
 tt_current() {

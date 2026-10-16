@@ -11,6 +11,7 @@
 # markers while the include that counts sits after them.
 #
 #   kitty.sh                 pick interactively
+#   kitty.sh dark|light      only themes with a dark / light background (also `kitty.sh dark list`)
 #   kitty.sh list|current    the names / the active theme
 #   kitty.sh apply NAME      set the theme without the picker
 
@@ -38,6 +39,15 @@ tt_local() { # colour files next to kitty.conf, by name
 
 tt_repo() { # kitty-themes files in the zip, by file name (empty until `kitten themes` has fetched the repo)
     [ -f "$tt_zip" ] && unzip -Z1 "$tt_zip" '*/themes/*.conf' 2>/dev/null | sed 's|.*/||; s|\.conf$||'
+    return 0
+}
+
+tt_bgs() { # local files first, so they win over a repo theme of the same name
+    local n
+    local -a files=()
+    while IFS= read -r n; do files+=("$tt_dir/$n.conf"); done < <(tt_local)
+    [ ${#files[@]} -eq 0 ] || TT_EXT=.conf tt_bg_scan "${files[@]}"
+    [ -f "$tt_zip" ] && unzip -c "$tt_zip" '*/themes/*.conf' 2>/dev/null | TT_EXT=.conf TT_ZIP=1 tt_bg_scan
     return 0
 }
 

@@ -6,6 +6,7 @@
 # of every theme. Enter keeps the line, Esc restores the file. Works the same inside tmux.
 #
 #   alacritty.sh                 pick interactively
+#   alacritty.sh dark|light      only themes with a dark / light background (also `alacritty.sh dark list`)
 #   alacritty.sh list|current    the names / the active theme
 #   alacritty.sh apply NAME      set the theme without the picker
 
@@ -21,6 +22,14 @@ tt_line='^[[:space:]]*"[^"]*/themes/[^"/]+\.toml"[[:space:]]*,?[[:space:]]*$'
 tt_list() {
     [ -d "$tt_dir" ] || tt_die "no themes in $tt_dir (git clone https://github.com/alacritty/alacritty-theme $(dirname "$tt_dir"))"
     find -H "$tt_dir" -maxdepth 1 -name '*.toml' | sed 's|.*/||; s|\.toml$||' | sort
+}
+
+tt_bgs() {
+    [ -d "$tt_dir" ] || tt_die "no themes in $tt_dir"
+    local -a files=()
+    local f
+    while IFS= read -r f; do files+=("$f"); done < <(find -H "$tt_dir" -maxdepth 1 -name '*.toml')
+    [ ${#files[@]} -eq 0 ] || TT_SECTIONS='^colors\.primary$' TT_EXT=.toml tt_bg_scan "${files[@]}"
 }
 
 tt_current() {
