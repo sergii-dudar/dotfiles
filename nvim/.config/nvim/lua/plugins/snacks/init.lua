@@ -43,9 +43,13 @@ return {
                 explorer = pickers.explorer,
                 image = {
                     force = true,
-                    enabled = false, -- disabled as using alacritty now
+                    enabled = true, -- disabled as using alacritty now
                     debug = { request = false, convert = false, placement = false },
                     math = { enabled = true },
+                    -- reference-style images `![alt][label]` + `[label]: url` (queries/markdown_inline/images.scm)
+                    resolve = function(file, src)
+                        return require("plugins.snacks.configs.image-refs").resolve(file, src)
+                    end,
                     doc = {
                         enabled = true,
                         inline = true,
