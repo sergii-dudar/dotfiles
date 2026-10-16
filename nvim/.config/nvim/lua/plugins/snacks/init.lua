@@ -46,7 +46,8 @@ return {
                 image = {
                     -- only in kitty and ghostty (also under tmux); off in wezterm/alacritty/foot, where images are
                     -- broken or there is no kitty graphics (empty image floats). See configs/image-terminal.lua.
-                    enabled = require("plugins.snacks.configs.image-terminal").supports_images(),
+                    -- enabled = require("plugins.snacks.configs.image-terminal").supports_images(),
+                    enabled = true,
                     -- force = true,
                     debug = { request = false, convert = false, placement = false },
                     math = { enabled = true },
