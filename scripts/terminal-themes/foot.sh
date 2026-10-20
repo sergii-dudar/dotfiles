@@ -48,7 +48,7 @@ tt_bgs() { # user themes first, so they win over a shipped theme of the same nam
     while IFS= read -r d; do
         while IFS= read -r f; do files+=("$f"); done < <(find -H "$d" -mindepth 1 -maxdepth 1 -type f)
     done < <(tt_dirs)
-    [ ${#files[@]} -eq 0 ] || TT_SECTIONS='^colors(-dark)?$' tt_bg_scan "${files[@]}"
+    [ ${#files[@]} -eq 0 ] || TT_SECTIONS='^colors(-dark|-light)?$' tt_bg_scan "${files[@]}"
 }
 
 tt_current() {

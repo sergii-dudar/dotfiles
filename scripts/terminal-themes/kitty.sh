@@ -84,7 +84,9 @@ tt_apply() {
         0) tt_die "no active 'include ...conf' line in $tt_config" ;;
         *) tt_die "more than one active 'include ...conf' line in $tt_config" ;;
     esac
-    if [ -f "$tt_dir/$1.conf" ]; then # a local file wins over a repo theme of the same name
+    # a local colour file wins over a repo theme of the same name; tt_local leaves out kitty.conf and
+    # current-theme.conf, which would include themselves
+    if tt_local | grep -q -x -F -- "$1"; then
         inc="$1.conf"
     else
         theme="$(tt_repo_cat "$1")" || tt_die "no such theme: $1"
