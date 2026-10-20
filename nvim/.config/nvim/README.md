@@ -68,3 +68,7 @@ diagnose. Remove with `cd ~/dotfiles && stow -D nvim`.
 - Per-language toolchains as needed: a JDK (e.g. via SDKMAN) for Java, `rustup` for
   Rust, `go`, Python, Node, … — test/debug extras are listed in each
   `lua/modules/<lang>/*.md`.
+
+The full list of external tools, with what each one is used for, is in
+[`DEPENDENCIES.md`](./DEPENDENCIES.md); `./install_dependencies.sh --check` reports what is
+missing and `./install_dependencies.sh` installs it (macOS / Homebrew, Arch / pacman).

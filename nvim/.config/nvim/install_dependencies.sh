@@ -26,6 +26,17 @@
 # Env:
 #   JAVA_VERSION   SDKMAN java identifier (e.g. 25.0.1-amzn); default: SDKMAN default candidate
 
+# macOS ships bash 3.2 (no associative arrays, empty arrays fail under set -u): re-exec with
+# Homebrew's bash when it is there, otherwise explain. Must run before anything bash-4-only.
+if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 4))); then
+    for newer_bash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+        [[ -x "$newer_bash" ]] && exec "$newer_bash" "$0" "$@"
+    done
+    printf 'bash >= 4.4 is required (this is %s): brew install bash, then run /opt/homebrew/bin/bash %s\n' \
+        "$BASH_VERSION" "$0" >&2
+    exit 1
+fi
+
 set -euo pipefail
 
 DOTFILES="$HOME/dotfiles"
@@ -54,7 +65,7 @@ declare -A GROUP_DESC=(
 # group|os|check|brew|pacman|description
 #   os:     all | mac | arch
 #   check:  comma separated alternatives; a command name, a path (~ allowed),
-#           glob:<pattern> or font:nerd
+#           glob:<pattern>, cmd:<command that must exit 0> or font:nerd
 #   brew:   formula | cask:<name> | @<function> | - (system provided / not available)
 #   pacman: package (falls back to the AUR when not in the repos) | @<function> | -
 DEPS="
@@ -98,17 +109,17 @@ java|all|~/tools/java-extensions/decompiler/fernflower.jar|@java_ext_fernflower|
 java|all|~/tools/java-extensions/mapstruct/mapstruct-path-explorer-repo/target/mapstruct-path-explorer.jar|@java_ext_mapstruct|@java_ext_mapstruct|MapStruct completion server
 java|all|glob:~/tools/java-extensions/lemminx/lemminx-maven/*.jar|@java_ext_lemminx|@java_ext_lemminx|lemminx + lemminx-maven (pom.xml LSP)
 rust|all|rustup,~/.cargo/bin/rustup,/opt/homebrew/opt/rustup/bin/rustup|rustup|rustup|Rust toolchain manager
-rust|all|cargo,~/.cargo/bin/cargo|@rust_toolchain|@rust_toolchain|stable toolchain (cargo, rust-analyzer component optional)
+rust|all|cmd:cargo --version,cmd:~/.cargo/bin/cargo --version|@rust_toolchain|@rust_toolchain|stable toolchain (Arch's rustup ships a cargo proxy, so the command must work)
 rust|all|cargo-nextest,~/.cargo/bin/cargo-nextest|cargo-nextest|cargo-nextest|Rust test runner (JUnit XML)
 go|all|dlv,~/go/bin/dlv|delve|delve|Go debug adapter
 python|all|python3.14|python@3.14|python|python runner (hardcoded python3.14)
 lua|all|lua|lua|lua|lua runner
-lua|all|busted,~/.luarocks/bin/busted|@busted|@busted|Lua test runner
+lua|all|busted,~/.luarocks/bin/busted|@install_busted|@install_busted|Lua test runner
 js|all|deno|deno|deno|JS/TS runner + debug
 cs|all|dotnet|cask:dotnet-sdk|dotnet-sdk|C# run / test
 cs|all|netcoredbg,${MASON_BIN}/netcoredbg|@mason_netcoredbg|netcoredbg|C# debug adapter
 bash|mac|/opt/homebrew/bin/bash|bash|-|bash runner (bash 5)
-bash|all|bashunit,~/.local/bin/bashunit|@bashunit|@bashunit|bash test runner
+bash|all|bashunit,~/.local/bin/bashunit|@install_bashunit|@install_bashunit|bash test runner
 c|all|gcc|@xcode_clt|gcc|C runner
 c|all|g++|@xcode_clt|gcc|C++ runner
 ai|all|copilot,~/.local/bin/copilot|@copilot_cli|@copilot_cli|sidekick.nvim CLI (current_ai = copilot)
@@ -240,17 +251,29 @@ has_nerd_font() {
 }
 
 # Return 0 when any of the comma separated alternatives is present.
+# `type -P` looks at PATH only, so a function defined in this script can never
+# shadow a command of the same name; `~` is expanded by hand (compgen -G does not).
 is_present() {
-    local alt
+    local alt kind
     local -a alts
     IFS=',' read -r -a alts <<<"$1"
     for alt in "${alts[@]}"; do
-        alt="${alt/#\~/$HOME}"
         case "$alt" in
-            font:nerd) has_nerd_font && return 0 ;;
-            glob:*) compgen -G "${alt#glob:}" >/dev/null && return 0 ;;
-            /*) [[ -e "$alt" ]] && return 0 ;;
-            *) command -v "$alt" >/dev/null 2>&1 && return 0 ;;
+            font:* | glob:* | cmd:*)
+                kind="${alt%%:*}"
+                alt="${alt#*:}"
+                ;;
+            /* | "~"/*) kind=path ;;
+            *) kind=exe ;;
+        esac
+        alt="${alt/#\~/$HOME}"
+        # shellcheck disable=SC2086 # cmd: is deliberately word-split (`cargo --version`)
+        case "$kind" in
+            font) has_nerd_font && return 0 ;;
+            glob) compgen -G "$alt" >/dev/null && return 0 ;;
+            cmd) $alt >/dev/null 2>&1 && return 0 ;;
+            path) [[ -e "$alt" ]] && return 0 ;;
+            exe) type -P "$alt" >/dev/null 2>&1 && return 0 ;;
         esac
     done
     return 1
@@ -258,38 +281,42 @@ is_present() {
 
 # ---------------------------------------------------------------- custom installers
 
-load_sdkman() {
-    # sdkman-init.sh references unset variables
-    set +u
-    # shellcheck source=/dev/null
-    source "$SDKMAN_DIR/bin/sdkman-init.sh"
-    # read by the `sdk` shell function sourced above: no "set as default?" prompts
-    # shellcheck disable=SC2034
-    sdkman_auto_answer=true
-    set -u
+ensure_sdkman() {
+    [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && return 0
+    info "installing SDKMAN (shell rc files are not modified)"
+    if ((DRY_RUN)); then
+        printf '    [dry-run] curl -s "https://get.sdkman.io?rcupdate=false" | bash\n'
+        return 0
+    fi
+    curl -s "https://get.sdkman.io?rcupdate=false" | bash
 }
 
-ensure_sdkman() {
-    if [[ ! -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
-        info "installing SDKMAN (shell rc files are not modified)"
-        if ((DRY_RUN)); then
-            printf '    [dry-run] curl -s "https://get.sdkman.io?rcupdate=false" | bash\n'
-            return 0
-        fi
-        curl -s "https://get.sdkman.io?rcupdate=false" | bash
+# `sdk` is a shell function that is not written for set -e / set -u: run it in a relaxed subshell.
+sdk_run() {
+    if ((DRY_RUN)); then
+        printf '    [dry-run] sdk %s\n' "$*"
+        return 0
     fi
-    ((DRY_RUN)) || load_sdkman
+    (
+        set +eu
+        # shellcheck source=/dev/null
+        source "$SDKMAN_DIR/bin/sdkman-init.sh"
+        # read by `sdk`: answers "set as default?" without a prompt
+        export sdkman_auto_answer=true
+        sdk "$@"
+    )
 }
 
 sdk_java() {
     ensure_sdkman
-    # shellcheck disable=SC2086 # JAVA_VERSION is optional: empty -> SDKMAN default candidate
-    run sdk install java ${JAVA_VERSION:-}
+    local -a args=(install java)
+    [[ -n "${JAVA_VERSION:-}" ]] && args+=("$JAVA_VERSION")
+    sdk_run "${args[@]}"
 }
 
 sdk_maven() {
     ensure_sdkman
-    run sdk install maven
+    sdk_run install maven
 }
 
 # Java extension installers live in ~/dotfiles/scripts/java and need java on PATH (mvnw / gradlew).
@@ -328,7 +355,8 @@ rust_toolchain() {
     local rustup
     rustup="$(command -v rustup || true)"
     [[ -z "$rustup" && -x "$HOME/.cargo/bin/rustup" ]] && rustup="$HOME/.cargo/bin/rustup"
-    [[ -z "$rustup" && "$OS" == mac ]] && rustup="$(brew --prefix rustup 2>/dev/null)/bin/rustup"
+    # Homebrew's rustup is keg-only: not on PATH until the user adds it
+    [[ -z "$rustup" && "$OS" == mac ]] && rustup="$(brew --prefix rustup 2>/dev/null || true)/bin/rustup"
     if [[ -z "$rustup" || ! -x "$rustup" ]] && ! ((DRY_RUN)); then
         warn "rustup not found, skipping the stable toolchain"
         return 0
@@ -336,7 +364,7 @@ rust_toolchain() {
     run "${rustup:-rustup}" default stable
 }
 
-busted() {
+install_busted() {
     if ! command -v luarocks >/dev/null 2>&1 && ! ((DRY_RUN)); then
         warn "luarocks not found, skipping busted"
         return 0
@@ -344,7 +372,7 @@ busted() {
     run luarocks install --local busted
 }
 
-bashunit() {
+install_bashunit() {
     mkdir -p "$HOME/.local/bin"
     if ((DRY_RUN)); then
         printf '    [dry-run] curl -s https://bashunit.typeddevs.com/install.sh | bash -s %s\n' "$HOME/.local/bin"
@@ -429,6 +457,7 @@ pacman_install() {
 label() {
     local l="${1%%,*}"
     l="${l#glob:}"
+    l="${l#cmd:}"
     [[ "$l" == */*\** ]] && l="${l%/*}"
     [[ "$l" == */* ]] && l="${l##*/}"
     printf '%s' "$l"

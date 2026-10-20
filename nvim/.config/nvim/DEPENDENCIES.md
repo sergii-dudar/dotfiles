@@ -5,7 +5,9 @@ toolchains and jars. Plugins (lazy.nvim) and the tools Mason manages are covered
 they install themselves, but they need the runtimes listed here.
 
 Install / check with [`install_dependencies.sh`](./install_dependencies.sh) (macOS + Homebrew,
-Arch-based Linux + pacman, with yay or paru for AUR packages). It only installs what is missing:
+Arch-based Linux + pacman; a package that is not in the repos goes through yay or paru). It only
+installs what is missing. On macOS it needs Homebrew first (the system bash 3.2 cannot run it, so it
+re-executes itself with Homebrew's bash when the system one is used):
 
 ```sh
 ./install_dependencies.sh --check            # report only
@@ -54,8 +56,8 @@ Paths the config resolves on its own need these directories on `PATH`: `~/.local
 | `bat` | class-file decompile previewer (`scripts/java/decompile_stdout.sh`, used by the Snacks pickers) | `bat` | `bat` |
 | `rsvg-convert` | snacks.image SVG → PNG for jdtls javadoc diagrams (`snacks/configs/image-refs.lua`) | `librsvg` | `librsvg` |
 | `magick` | snacks.image conversions (kitty / ghostty only) | `imagemagick` | `imagemagick` |
-| `plantuml` | plantuml.nvim preview server (`plantuml --http-server`) | `plantuml` | `plantuml` (AUR fallback) |
-| `mergiraf` | syntax-aware merge driver used with diffview conflict resolution | `mergiraf` | `mergiraf` (AUR fallback) |
+| `plantuml` | plantuml.nvim preview server (`plantuml --http-server`) | `plantuml` | `plantuml` |
+| `mergiraf` | syntax-aware merge driver used with diffview conflict resolution | `mergiraf` | `mergiraf` |
 | `stow` | symlinking the config (`stow nvim`) | `stow` | `stow` |
 | `kubectl` | yaml runner: `kubectl apply -f` (`overseer/tasks/lang/simple-runners.lua`) | `kubernetes-cli` | `kubectl` |
 
@@ -109,8 +111,10 @@ Nothing to do here beyond `core`: these appear on first start.
   gradle-language-server, rust-analyzer, bash-debug-adapter, local-lua-debugger-vscode,
   checkstyle, ktlint, shellcheck, ruff, luacheck, stylelint, xmlformatter,
   google-java-format, ktfmt, beautysh, stylua, shellharden, fourmolu, prettier, prettierd,
-  sqlfluff, tree-sitter-cli, lua-language-server (+ java-debug-adapter, java-test, codelldb,
-  debugpy, js-debug-adapter, … from the extras).
+  sqlfluff, tree-sitter-cli, lua-language-server; `java-debug-adapter` + `java-test` from
+  `editor/java/jdtls-config.lua`; `codelldb` and `debugpy` from the rust / clangd / python extras.
+  `js-debug-adapter` and `netcoredbg` are **not** ensured anywhere (the typescript / dotnet extras
+  are commented out): `:MasonInstall js-debug-adapter netcoredbg` when you need them.
   Runtimes they need: `node`/`npm`, `python3`, `go`, `luarocks`, JDK, `curl`/`wget`, `unzip`, `tar`, `gzip`.
   `beautysh` also needs `setuptools` in its venv:
   `~/.local/share/nvim/mason/packages/beautysh/venv/bin/python -m pip install setuptools`.
