@@ -83,11 +83,13 @@ local function mapstruct_references_handler()
     }
 end
 
---- Build a Lombok builder navigation handler for Java LSP go-to-definition.
+--- Build a Lombok navigation handler for Java LSP go-to-definition: redirects
+--- definitions that land on a Lombok annotation (builder setters, library getters,
+--- withers, fluent/prefixed accessors) to the matching source field.
 ---@return lang.LspNavigationHandler
 local function lombok_builder_handler()
     return {
-        name = "lombok-builder-field-definition",
+        name = "lombok-field-definition",
         navigate = function(ctx)
             return require("utils.java.lombok-builder-navigation").goto_definition(ctx)
         end,
