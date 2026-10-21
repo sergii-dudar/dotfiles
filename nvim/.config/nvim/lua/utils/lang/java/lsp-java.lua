@@ -87,11 +87,11 @@ end
 --- definitions that land on a Lombok annotation (builder setters, library getters,
 --- withers, fluent/prefixed accessors) to the matching source field.
 ---@return lang.LspNavigationHandler
-local function lombok_builder_handler()
+local function lombok_handler()
     return {
         name = "lombok-field-definition",
         navigate = function(ctx)
-            return require("utils.java.lombok-builder-navigation").goto_definition(ctx)
+            return require("utils.java.lombok-navigation").goto_definition(ctx)
         end,
     }
 end
@@ -118,7 +118,7 @@ end
 M.navigation = {
     definition = {
         mapstruct_path_handler(),
-        lombok_builder_handler(),
+        lombok_handler(),
     },
     declaration = {
         mapstruct_path_handler({ is_open_as_floating_win = true }),

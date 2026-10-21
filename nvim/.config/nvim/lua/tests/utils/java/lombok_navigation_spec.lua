@@ -1,6 +1,6 @@
 local helper = require("tests.utils.spec_helper")
 
-describe("utils.java.lombok-builder-navigation", function()
+describe("utils.java.lombok-navigation", function()
     local navigation
     local state
     local client
@@ -172,11 +172,11 @@ describe("utils.java.lombok-builder-navigation", function()
             end
             return items
         end
-        navigation = helper.reload("utils.java.lombok-builder-navigation")
+        navigation = helper.reload("utils.java.lombok-navigation")
     end)
 
     after_each(function()
-        helper.unload("utils.java.lombok-builder-navigation")
+        helper.unload("utils.java.lombok-navigation")
     end)
 
     describe("target detection", function()
