@@ -141,6 +141,11 @@ map("n", "<leader>yp", keymap_actions.copy_absolute_file_path_with_position, { d
 map("v", "<leader>yp", function()
     keymap_actions.copy_absolute_file_path_with_position(true)
 end, { desc = "Copy absolute file path with selection position" })
+map("n", "<leader>yP", keymap_actions.copy_relative_file_path_with_position, { desc = "Copy relative file path with position" })
+map("v", "<leader>yP", function()
+    keymap_actions.copy_relative_file_path_with_position(true)
+end, { desc = "Copy relative file path with selection position" })
+map("v", "<leader>yc", keymap_actions.copy_selection_with_reference, { desc = "Copy selection with reference (AI prompt)" })
 map("n", "<leader>yn", keymap_actions.copy_file_name_without_ext, { desc = "Copy file name without ext" })
 map("n", "<leader>yN", keymap_actions.copy_file_name, { desc = "Copy file name" })
 
