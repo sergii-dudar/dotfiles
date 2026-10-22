@@ -46,7 +46,7 @@ disable_startup_command = true
 
 [[session]]
 name = "work.explorer"
-path = "/Users/iuada144/serhii.home/work/git.work"
+path = "~/serhii.home/work/git.work"
 disable_startup_command = true
 
 [[session]]
