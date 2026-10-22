@@ -17,7 +17,7 @@ sort_order = [
 
 # looks some bugs with preview, as name taking as path
 [[session]]
-name = "Dotfiles  "
+name = "Dotfiles"
 path = "~/dotfiles"
 startup_command = "nvim"
 preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
@@ -32,13 +32,27 @@ preview_command = "eza --tree --icons --level=1 --color=always --group-directori
 # preview_command = "bat --color=always ~/dotfiles/tmux/.tmux.conf"
 
 [[session]]
-# name = "k9s  "
 name = "k9s"
 path = "~/serhii.home/work/docs"
 disable_startup_command = true
-windows = [ "explorer", "work.explorer" ]
+windows = [ "logs", "explorer", "k9s" ]
 # preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
 # preview_command = "eza --all --git --icons --color=always ~/dotfiles"
+
+[[session]]
+name = "test"
+path = "~/serhii.home/work/docs"
+disable_startup_command = true
+
+[[session]]
+name = "work.explorer"
+path = "/Users/iuada144/serhii.home/work/git.work"
+disable_startup_command = true
+
+[[session]]
+name = "ai_general"
+path = "~/serhii.home/work/docs/ai"
+disable_startup_command = true
 
 [[window]]
 name = "explorer"
@@ -46,4 +60,12 @@ disable_startup_command = true
 
 [[window]]
 name = "work.explorer"
+disable_startup_command = true
+
+[[window]]
+name = "logs"
+disable_startup_command = true
+
+[[window]]
+name = "k9s"
 disable_startup_command = true
