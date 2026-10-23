@@ -123,6 +123,21 @@ return {
     {
         "folke/flash.nvim",
         event = "VeryLazy",
+        keys = {
+            -- TEMP (substitute.nvim trial, see plugins/editor/substitute.lua): free `s`/`S` for substitute.nvim and
+            -- move flash jump to <CR>. Treesitter selection is still available on <C-Space> (LazyVim default).
+            -- Remove this `keys` block to get the LazyVim defaults (`s` jump, `S` treesitter) back.
+            { "s", mode = { "n", "x", "o" }, false },
+            { "S", mode = { "n", "o", "x" }, false },
+            {
+                "<CR>",
+                mode = { "n", "x", "o" },
+                function()
+                    require("flash").jump()
+                end,
+                desc = "Flash",
+            },
+        },
         opts = {
             modes = {
                 char = {
