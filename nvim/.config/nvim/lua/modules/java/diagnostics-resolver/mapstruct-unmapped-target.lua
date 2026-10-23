@@ -225,17 +225,29 @@ local function insert_annotations(bufnr, diagnostic, lines, imports)
 end
 
 --- Resolve a MapStruct unmapped target diagnostic.
+--- Properties of a forged nested mapping are annotated on the owning method through
+--- their nested target path (`target_prefix` such as `remittanceInformation.`).
 ---@param ctx { bufnr: integer, diagnostic: table }
+---@param opts? { target_prefix?: string }
 ---@return boolean|nil
-function M.resolve(ctx)
+function M.resolve(ctx, opts)
     local properties = M.parse_properties(ctx.diagnostic.message or "")
     if #properties == 0 then
         vim.notify("[MapStruct] Could not parse unmapped target properties", vim.log.levels.WARN)
         return false
     end
 
+    local target_prefix = opts and opts.target_prefix or ""
+    local prompt = "MapStruct unmapped target properties"
+    if target_prefix ~= "" then
+        properties = vim.tbl_map(function(property)
+            return target_prefix .. property
+        end, properties)
+        prompt = prompt .. " of " .. target_prefix:gsub("%.$", "")
+    end
+
     nio_util.run(function()
-        local selections = nio_util.multi_select(M.build_choices(properties), "MapStruct unmapped target properties")
+        local selections = nio_util.multi_select(M.build_choices(properties), prompt)
         if not selections then
             return
         end

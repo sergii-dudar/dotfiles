@@ -304,4 +304,91 @@ function M.method_rows_at(bufnr, row, col)
     return start_row, end_row
 end
 
+---@class JavaAnnotationArgument
+---@field key string|nil argument name, nil for a single unnamed value
+---@field value string string literal content without its quotes, otherwise the raw text
+---@field is_string boolean
+---@field start_row integer zero-based
+---@field start_col integer zero-based
+---@field end_row integer zero-based
+---@field end_col integer zero-based, exclusive
+
+---@class JavaAnnotation
+---@field name string annotation name as written, e.g. `Mapping` or `org.mapstruct.Mapping`
+---@field start_row integer zero-based
+---@field start_col integer zero-based
+---@field end_row integer zero-based
+---@field end_col integer zero-based, exclusive
+---@field arguments JavaAnnotationArgument[]
+
+--- Describe one annotation argument from its key and value nodes.
+---@param bufnr integer
+---@param key TSNode|nil
+---@param value TSNode
+---@return JavaAnnotationArgument
+local function annotation_argument(bufnr, key, value)
+    local raw = vim.treesitter.get_node_text(value, bufnr)
+    local is_string = value:type() == "string_literal"
+    local start_row, start_col, end_row, end_col = value:range()
+    return {
+        key = key and vim.treesitter.get_node_text(key, bufnr) or nil,
+        value = is_string and raw:sub(2, -2) or raw,
+        is_string = is_string,
+        start_row = start_row,
+        start_col = start_col,
+        end_row = end_row,
+        end_col = end_col,
+    }
+end
+
+--- Collect the annotations declared on a method together with their arguments.
+--- Returns an empty list when the syntax tree does not expose them.
+---@param bufnr integer
+---@param method TSNode
+---@return JavaAnnotation[]
+function M.method_annotations(bufnr, method)
+    local ok, annotations = pcall(function()
+        local result = {}
+        for child in method:iter_children() do
+            if child:type() == "modifiers" then
+                for node in child:iter_children() do
+                    local kind = node:type()
+                    if kind == "annotation" or kind == "marker_annotation" then
+                        local name_node = node:field("name")[1]
+                        local start_row, start_col, end_row, end_col = node:range()
+                        local annotation = {
+                            name = name_node and vim.treesitter.get_node_text(name_node, bufnr) or "",
+                            start_row = start_row,
+                            start_col = start_col,
+                            end_row = end_row,
+                            end_col = end_col,
+                            arguments = {},
+                        }
+
+                        local arguments_node = node:field("arguments")[1]
+                        if arguments_node then
+                            for item in arguments_node:iter_children() do
+                                if item:type() == "element_value_pair" then
+                                    annotation.arguments[#annotation.arguments + 1] =
+                                        annotation_argument(bufnr, item:field("key")[1], item:field("value")[1])
+                                elseif item:named() then
+                                    annotation.arguments[#annotation.arguments + 1] =
+                                        annotation_argument(bufnr, nil, item)
+                                end
+                            end
+                        end
+                        result[#result + 1] = annotation
+                    end
+                end
+            end
+        end
+        return result
+    end)
+
+    if not ok then
+        return {}
+    end
+    return annotations
+end
+
 return M

@@ -2,7 +2,8 @@
 ---
 --- The property list belongs to the forged target type, so resolving it on the
 --- owning mapper method would add annotations at the wrong level. This resolver
---- generates the explicit nested mapping declaration first.
+--- generates the explicit nested mapping declaration, or annotates the properties
+--- through their nested target path, as chosen by the user.
 
 local nested_mapping_method = require("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method")
 

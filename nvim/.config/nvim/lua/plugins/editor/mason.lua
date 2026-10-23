@@ -2,6 +2,9 @@ return {
     "mason-org/mason.nvim",
     opts = function(_, opts)
         opts.ensure_installed = opts.ensure_installed or {}
+        -- mason registry releases: https://github.com/mason-org/mason-registry/releases
+        -- downgraded to get jdtls 1.61.1 without conflict with latest lombok, issue to track before switch bask https://github.com/projectlombok/lombok/issues/4084
+        opts.registries = { "github:mason-org/mason-registry@2026-10-19-gaudy-tope" }
         vim.list_extend(opts.ensure_installed, {
             -- LSP
             "bash-language-server",

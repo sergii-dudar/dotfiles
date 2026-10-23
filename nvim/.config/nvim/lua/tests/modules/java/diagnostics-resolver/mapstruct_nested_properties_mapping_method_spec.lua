@@ -4,6 +4,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
     local resolver
     local state
     local path_requests
+    local chosen_index
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param method_row integer
@@ -61,6 +62,15 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
     before_each(function()
         _, state = helper.reset_vim()
         path_requests = {}
+        chosen_index = 1
+        vim.ui = {
+            select = function(items, _, on_choice)
+                on_choice(items[chosen_index])
+            end,
+        }
+        vim.schedule = function(callback)
+            callback()
+        end
         helper.stub_module("modules.java.mapstruct", {
             get_method_types = function(_, callback)
                 callback({
@@ -115,7 +125,10 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
             "modules.java.diagnostics-resolver.mapstruct-method-type-resolver",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
             "modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-nested-target-mappings",
+            "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
             "modules.java.mapstruct",
+            "utils.nio-util",
         })
     end)
 
@@ -257,5 +270,62 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-properties-mapping-
         assert.are.equal(2, #path_requests)
         assert.are.equal("transfers.first.", path_requests[1].path_expression)
         assert.are.equal("details.first.", path_requests[2].path_expression)
+    end)
+
+    it("ignores every nested target property on the owning method when chosen", function()
+        -- given
+        chosen_index = 2
+        helper.stub_module("utils.nio-util", {
+            run = function(callback)
+                callback()
+            end,
+            multi_select = function(items)
+                for _, item in ipairs(items) do
+                    if item.kind == "ignore_all" then
+                        return { item }
+                    end
+                end
+                return nil
+            end,
+        })
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import org.mapstruct.Mapping;",
+            "",
+            "public abstract class EnvelopeMapper {",
+            '    @Mapping(target = "cardTransferDetails", source = "transfer")',
+            "    public abstract Envelope toEnvelope(CardTransferInitiation transfer);",
+            "}",
+        }
+        stub_java_tree(5, 7)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 6,
+                col = 37,
+                message = 'Unmapped target properties: "merchantId, terminalId". '
+                    .. 'Mapping from property "CardTransferInitiation transfer" to '
+                    .. '"CardTransferDetails cardTransferDetails"',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(0, #path_requests)
+        assert.are.same({
+            "package example.mapper;",
+            "",
+            "import org.mapstruct.Mapping;",
+            "",
+            "public abstract class EnvelopeMapper {",
+            '    @Mapping(target = "cardTransferDetails.merchantId", ignore = true)',
+            '    @Mapping(target = "cardTransferDetails.terminalId", ignore = true)',
+            '    @Mapping(target = "cardTransferDetails", source = "transfer")',
+            "    public abstract Envelope toEnvelope(CardTransferInitiation transfer);",
+            "}",
+        }, state.buffer_lines[1])
     end)
 end)

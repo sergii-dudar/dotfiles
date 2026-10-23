@@ -4,6 +4,8 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
     local resolver
     local state
     local path_requests
+    local select_calls
+    local chosen_index
 
     --- Configure Java Tree-sitter test nodes for a mapper method and its owner.
     ---@param owner_kind string
@@ -59,9 +61,108 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         }
     end
 
+    --- Build a fake Tree-sitter node spanning one row.
+    ---@param kind string
+    ---@param row integer
+    ---@param start_col integer
+    ---@param end_col integer
+    ---@param fields? table<string, table>
+    ---@return table
+    local function fake_node(kind, row, start_col, end_col, fields)
+        return {
+            type = function()
+                return kind
+            end,
+            range = function()
+                return row, start_col, row, end_col
+            end,
+            named = function()
+                return true
+            end,
+            field = function(_, name)
+                return fields and fields[name] and { fields[name] } or {}
+            end,
+        }
+    end
+
+    --- Iterate a list the way Tree-sitter iterates children.
+    ---@param children table[]
+    ---@return fun(): table|nil
+    local function iterate(children)
+        local index = 0
+        return function()
+            index = index + 1
+            return children[index]
+        end
+    end
+
+    --- Build a fake `@Mapping(...)` annotation node from its buffer line.
+    --- Argument columns are located in the line, so `get_node_text` reads them back.
+    ---@param row integer
+    ---@param line string
+    ---@param arguments { key: string, value: string }[] values as written, quotes included
+    ---@return table
+    local function fake_annotation(row, line, arguments)
+        local start_col = line:find("@", 1, true) - 1
+        local name_node = fake_node("identifier", row, start_col + 1, start_col + 1 + #"Mapping")
+        local pairs = {}
+        for _, argument in ipairs(arguments) do
+            local pair_start = assert(line:find(argument.key .. " = " .. argument.value, 1, true))
+            local value_index = pair_start + #argument.key + 3
+            local value_kind = argument.value:sub(1, 1) == '"' and "string_literal" or "true"
+            pairs[#pairs + 1] =
+                fake_node("element_value_pair", row, pair_start - 1, value_index - 1 + #argument.value, {
+                    key = fake_node("identifier", row, pair_start - 1, pair_start - 1 + #argument.key),
+                    value = fake_node(value_kind, row, value_index - 1, value_index - 1 + #argument.value),
+                })
+        end
+        local arguments_node = fake_node("annotation_argument_list", row, start_col + 8, #line)
+        arguments_node.iter_children = function()
+            return iterate(pairs)
+        end
+        return fake_node("annotation", row, start_col, #line, { name = name_node, arguments = arguments_node })
+    end
+
+    --- Configure a Java Tree-sitter test tree whose mapper method carries annotations.
+    ---@param annotations table[] fake annotation nodes
+    ---@param method_start_row integer first annotation row
+    ---@param method_end_row integer declaration row
+    ---@param method_end_col integer
+    local function stub_annotated_java_tree(annotations, method_start_row, method_end_row, method_end_col)
+        stub_java_tree("interface_declaration", method_start_row, method_end_row + 1)
+        local parser = vim.treesitter.get_parser()
+        local method = parser:parse()[1]:root():named_descendant_for_range()
+        method.range = function()
+            return method_start_row, 4, method_end_row, method_end_col
+        end
+        local modifiers = fake_node("modifiers", method_start_row, 4, method_end_row - 1, 60)
+        modifiers.iter_children = function()
+            return iterate(annotations)
+        end
+        method.iter_children = function()
+            return iterate({ modifiers })
+        end
+        vim.treesitter.get_node_text = function(node, bufnr)
+            local start_row, start_col, _, end_col = node:range()
+            local line = state.buffer_lines[bufnr][start_row + 1] or ""
+            return line:sub(start_col + 1, end_col)
+        end
+    end
+
     before_each(function()
         _, state = helper.reset_vim()
         path_requests = {}
+        select_calls = {}
+        chosen_index = 1
+        vim.ui = {
+            select = function(items, opts, on_choice)
+                select_calls[#select_calls + 1] = { items = items, opts = opts }
+                on_choice(items[chosen_index])
+            end,
+        }
+        vim.schedule = function(callback)
+            callback()
+        end
         helper.stub_module("modules.java.mapstruct", {
             get_method_types = function(_, callback)
                 callback({
@@ -110,7 +211,10 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
             "modules.java.diagnostics-resolver.java-import-resolver",
             "modules.java.diagnostics-resolver.mapstruct-method-type-resolver",
             "modules.java.diagnostics-resolver.mapstruct-nested-mapping-method",
+            "modules.java.diagnostics-resolver.mapstruct-nested-target-mappings",
+            "modules.java.diagnostics-resolver.mapstruct-unmapped-target",
             "modules.java.mapstruct",
+            "utils.nio-util",
         })
     end)
 
@@ -290,6 +394,7 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
 
         -- then
         assert.is_true(resolved)
+        assert.are.equal(0, #select_calls)
         assert.are.equal(2, #path_requests)
         assert.are.equal("accounts.first.", path_requests[1].path_expression)
         assert.are.equal("request", path_requests[1].sources[1].name)
@@ -357,6 +462,330 @@ describe("modules.java.diagnostics-resolver.mapstruct-nested-mapping-method", fu
         assert.are.equal(
             "    Account toAccount(ChargeCalculationRequest.ChargeAccount chargeAccount);",
             state.buffer_lines[1][11]
+        )
+    end)
+
+    it("offers the mapping method and the nested target annotations", function()
+        -- given
+        local mapping = resolver.parse_mapping(
+            'Unmapped target property: "identification". Mapping from property '
+                .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"'
+        )
+
+        -- when
+        local choices = resolver.choices(mapping, nil)
+
+        -- then
+        assert.are.same({
+            {
+                kind = "generate",
+                label = "Generate mapping method: Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount)",
+            },
+            {
+                kind = "properties",
+                label = "Map or ignore nested target properties: debtorAccount.identification",
+            },
+        }, choices)
+    end)
+
+    it("mentions the nested annotations the mapping method takes over", function()
+        -- given
+        local mapping = resolver.parse_mapping(
+            'Unmapped target property: "identification". Mapping from property '
+                .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"'
+        )
+
+        -- when
+        local choices = resolver.choices(mapping, { property = "debtorAccount", mappings = { {}, {} } })
+
+        -- then
+        assert.are.equal(
+            "Generate mapping method: Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount)"
+                .. " (moves 2 nested @Mapping)",
+            choices[1].label
+        )
+    end)
+
+    it("asks before generating the method for a plain property", function()
+        -- given
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 3, 4)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 3,
+                col = 25,
+                message = 'Unmapped target property: "identification". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
+            },
+        })
+
+        -- then
+        assert.are.equal(1, #select_calls)
+        assert.are.equal("MapStruct nested mapping: debtorAccount", select_calls[1].opts.prompt)
+        assert.are.equal(2, #select_calls[1].items)
+        assert.are.equal("generate", select_calls[1].items[1].kind)
+        assert.are.equal("properties", select_calls[1].items[2].kind)
+    end)
+
+    it("annotates the nested target properties on the owning method when chosen", function()
+        -- given
+        chosen_index = 2
+        local picker_items, picker_prompt
+        helper.stub_module("utils.nio-util", {
+            run = function(callback)
+                callback()
+            end,
+            multi_select = function(items, prompt)
+                picker_items = items
+                picker_prompt = prompt
+                for _, item in ipairs(items) do
+                    if item.kind == "ignore_all" then
+                        return { item }
+                    end
+                end
+                return nil
+            end,
+        })
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import org.mapstruct.Mapping;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount", source = "request")',
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 5, 7)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 6,
+                col = 25,
+                message = 'Unmapped target property: "identification". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.equal(0, #path_requests)
+        assert.are.equal("MapStruct unmapped target properties of debtorAccount", picker_prompt)
+        assert.are.equal("Add unmapped target property: debtorAccount.identification", picker_items[2].name)
+        assert.are.same({
+            "package example.mapper;",
+            "",
+            "import org.mapstruct.Mapping;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount.identification", ignore = true)',
+            '    @Mapping(target = "debtorAccount", source = "request")',
+            "    Target toRequest(Source request);",
+            "}",
+        }, state.buffer_lines[1])
+    end)
+
+    it("does nothing when the choice is cancelled", function()
+        -- given
+        chosen_index = 3
+        state.buffer_lines[1] = {
+            "public interface ChargeCalculationAdapterMapper {",
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        stub_java_tree("interface_declaration", 1, 2)
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 1,
+                col = 25,
+                message = 'Unmapped target property: "identification". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
+            },
+        })
+
+        -- then
+        assert.are.equal(1, #select_calls)
+        assert.are.equal(0, #path_requests)
+        assert.are.equal(3, #state.buffer_lines[1])
+    end)
+
+    it("moves nested target annotations into the generated mapping method", function()
+        -- given
+        require("modules.java.mapstruct").resolve_path_type = function(params, callback)
+            path_requests[#path_requests + 1] = vim.deepcopy(params)
+            local path = params.path_expression
+            if params.sources[1].name == "$target" then
+                callback({ className = "api.Account", simpleName = "Account", packageName = "api" })
+            elseif path == "request.account." then
+                callback({
+                    className = "example.ChargeCalculationRequest$ChargeAccount",
+                    simpleName = "ChargeAccount",
+                    packageName = "example",
+                })
+            else
+                callback({ className = "java.lang.String", simpleName = "String", packageName = "java.lang" })
+            end
+        end
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import example.ChargeCalculationRequest;",
+            "import example.Source;",
+            "import example.Target;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount", source = "request")',
+            '    @Mapping(target = "debtorAccount.identification", source = "request.account.id")',
+            '    @Mapping(target = "debtorAccount.name", ignore = true)',
+            '    @Mapping(target = "creditor.name", source = "request.creditor")',
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        local lines = state.buffer_lines[1]
+        stub_annotated_java_tree({
+            fake_annotation(
+                7,
+                lines[8],
+                { { key = "target", value = '"debtorAccount"' }, { key = "source", value = '"request"' } }
+            ),
+            fake_annotation(8, lines[9], {
+                { key = "target", value = '"debtorAccount.identification"' },
+                { key = "source", value = '"request.account.id"' },
+            }),
+            fake_annotation(
+                9,
+                lines[10],
+                { { key = "target", value = '"debtorAccount.name"' }, { key = "ignore", value = "true" } }
+            ),
+            fake_annotation(
+                10,
+                lines[11],
+                { { key = "target", value = '"creditor.name"' }, { key = "source", value = '"request.creditor"' } }
+            ),
+        }, 7, 11, 37)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 11,
+                col = 11,
+                message = 'Unmapped target property: "currency". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount debtorAccount" to "Account debtorAccount"',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.matches("moves 2 nested @Mapping", select_calls[1].items[1].label, nil, true)
+        assert.are.same({
+            "package example.mapper;",
+            "",
+            "import api.Account;",
+            "import example.ChargeCalculationRequest;",
+            "import example.Source;",
+            "import example.Target;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount", source = "request.account")',
+            '    @Mapping(target = "creditor.name", source = "request.creditor")',
+            "    Target toRequest(Source request);",
+            "",
+            '    @Mapping(target = "identification", source = "id")',
+            '    @Mapping(target = "name", ignore = true)',
+            "    Account toAccount(ChargeCalculationRequest.ChargeAccount debtorAccount);",
+            "}",
+        }, state.buffer_lines[1])
+        assert.are.same({ 15, 12 }, state.cursor)
+        assert.are.same(
+            { "request.account.id.", "request.account.", "debtorAccount." },
+            vim.tbl_map(function(request)
+                return request.path_expression
+            end, path_requests)
+        )
+        assert.are.equal("$target", path_requests[3].sources[1].name)
+    end)
+
+    it("resolves the owning method's own source when the diagnostic names its last segment", function()
+        -- given
+        require("modules.java.mapstruct").resolve_path_type = function(params, callback)
+            path_requests[#path_requests + 1] = vim.deepcopy(params)
+            if params.sources[1].name == "$target" then
+                callback({ className = "api.Account", simpleName = "Account", packageName = "api" })
+            elseif params.path_expression == "request.header.account." then
+                callback({
+                    className = "example.ChargeCalculationRequest$ChargeAccount",
+                    simpleName = "ChargeAccount",
+                    packageName = "example",
+                })
+            else
+                callback(nil, "MapStruct did not resolve a type for path: " .. params.path_expression)
+            end
+        end
+        state.buffer_lines[1] = {
+            "package example.mapper;",
+            "",
+            "import api.Account;",
+            "import example.ChargeCalculationRequest;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount", source = "request.header.account")',
+            "    Target toRequest(Source request);",
+            "}",
+        }
+        local lines = state.buffer_lines[1]
+        stub_annotated_java_tree({
+            fake_annotation(6, lines[7], {
+                { key = "target", value = '"debtorAccount"' },
+                { key = "source", value = '"request.header.account"' },
+            }),
+        }, 6, 7, 37)
+
+        -- when
+        local resolved = resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 7,
+                col = 11,
+                message = 'Unmapped target property: "currency". Mapping from property '
+                    .. '"ChargeCalculationRequest.ChargeAccount account" to "Account debtorAccount"',
+            },
+        })
+
+        -- then
+        assert.is_true(resolved)
+        assert.are.same({
+            "package example.mapper;",
+            "",
+            "import api.Account;",
+            "import example.ChargeCalculationRequest;",
+            "",
+            "public interface ChargeCalculationAdapterMapper {",
+            '    @Mapping(target = "debtorAccount", source = "request.header.account")',
+            "    Target toRequest(Source request);",
+            "",
+            "    Account toAccount(ChargeCalculationRequest.ChargeAccount account);",
+            "}",
+        }, state.buffer_lines[1])
+        assert.are.same(
+            { "request.header.account.", "debtorAccount." },
+            vim.tbl_map(function(request)
+                return request.path_expression
+            end, path_requests)
         )
     end)
 end)

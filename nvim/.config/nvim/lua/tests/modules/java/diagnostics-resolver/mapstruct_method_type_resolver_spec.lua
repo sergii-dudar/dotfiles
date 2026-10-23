@@ -223,4 +223,68 @@ describe("modules.java.diagnostics-resolver.mapstruct-method-type-resolver", fun
         assert.matches("Unsupported MapStruct path", resolution_error, nil, true)
         assert.are.equal(0, #path_requests)
     end)
+
+    it("resolves a forged nested-target source through the shared source paths", function()
+        -- given
+        require("modules.java.mapstruct").resolve_path_type = function(params, callback)
+            path_requests[#path_requests + 1] = vim.deepcopy(params)
+            if params.sources[1].name == "$target" then
+                callback(target_result)
+            elseif params.path_expression == "second.config." then
+                callback({ className = "java.time.Duration", simpleName = "Duration", packageName = "java.time" })
+            else
+                callback({ className = "java.lang.String", simpleName = "String", packageName = "java.lang" })
+            end
+        end
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve_nested_target({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Duration",
+            source_property = "ttl",
+            target_type = "long",
+            target_property = "ttl",
+        }, { "second.config.ttl", "second.config", "second" }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(resolution_error)
+        assert.are.equal("second.config", result.source_path)
+        assert.are.equal("java.time.Duration", result.source.className)
+        assert.are.equal("long", result.target.className)
+        assert.are.same(
+            { "second.config.ttl.", "second.config.", "ttl." },
+            vim.tbl_map(function(request)
+                return request.path_expression
+            end, path_requests)
+        )
+        assert.are.equal(2, #path_requests[1].sources)
+        assert.are.equal("$target", path_requests[3].sources[1].name)
+    end)
+
+    it("reports when no shared source path has the diagnostic source type", function()
+        -- given
+        local result, resolution_error = nil, nil
+
+        -- when
+        resolver.resolve_nested_target({ bufnr = 1, diagnostic = { lnum = 4, col = 20 } }, {
+            source_type = "Duration",
+            source_property = "ttl",
+            target_type = "long",
+            target_property = "ttl",
+        }, { "first.config" }, function(value, err)
+            result = value
+            resolution_error = err
+        end)
+
+        -- then
+        assert.is_nil(result)
+        assert.are.equal(
+            "Resolved type for source path 'first.config' does not match diagnostic type 'Duration'",
+            resolution_error
+        )
+        assert.are.equal(1, #path_requests)
+    end)
 end)

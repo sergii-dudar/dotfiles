@@ -436,4 +436,101 @@ describe("modules.java.diagnostics-resolver.mapstruct-unmapped-target", function
             assert.are.equal(0, #state.commands)
         end)
     end)
+
+    it("annotates nested target properties through their nested target path", function()
+        -- given
+        local picker_prompt
+        require("utils.nio-util").multi_select = function(items, prompt)
+            picker_prompt = prompt
+            for _, item in ipairs(items) do
+                if item.kind == "ignore_all" then
+                    return { item }
+                end
+            end
+            return nil
+        end
+        state.buffer_lines[1] = {
+            "package com.acme;",
+            "",
+            "import org.mapstruct.Mapper;",
+            "import org.mapstruct.Mapping;",
+            "",
+            "@Mapper",
+            "public interface FooMapper {",
+            '    @Mapping(target = "remittanceInformation.unstructured", source = "document.text")',
+            "    Target map(Source document);",
+            "}",
+        }
+        vim.api.nvim_buf_get_lines = function(bufnr, start_row, end_row)
+            local lines = state.buffer_lines[bufnr] or {}
+            if end_row == -1 then
+                end_row = #lines
+            end
+
+            local result = {}
+            for index = start_row + 1, end_row do
+                result[#result + 1] = lines[index]
+            end
+            return result
+        end
+        local method = {
+            type = function()
+                return "method_declaration"
+            end,
+            start = function()
+                return 7, 4
+            end,
+            parent = function()
+                return nil
+            end,
+        }
+        vim.treesitter = {
+            get_parser = function()
+                return {
+                    parse = function()
+                        return {
+                            {
+                                root = function()
+                                    return {
+                                        named_descendant_for_range = function()
+                                            return method
+                                        end,
+                                    }
+                                end,
+                            },
+                        }
+                    end,
+                }
+            end,
+        }
+
+        -- when
+        resolver.resolve({
+            bufnr = 1,
+            diagnostic = {
+                lnum = 8,
+                col = 11,
+                message = 'Unmapped target properties: "additionalRemittance, taxRecords". Mapping from property '
+                    .. '"FIToFICustomerCreditTransferV08 remittanceInformation" to '
+                    .. '"TransactionInitiation.RemittanceInformation remittanceInformation".',
+            },
+        }, { target_prefix = "remittanceInformation." })
+
+        -- then
+        assert.are.equal("MapStruct unmapped target properties of remittanceInformation", picker_prompt)
+        assert.are.same({
+            "package com.acme;",
+            "",
+            "import org.mapstruct.Mapper;",
+            "import org.mapstruct.Mapping;",
+            "",
+            "@Mapper",
+            "public interface FooMapper {",
+            '    @Mapping(target = "remittanceInformation.additionalRemittance", ignore = true)',
+            '    @Mapping(target = "remittanceInformation.taxRecords", ignore = true)',
+            '    @Mapping(target = "remittanceInformation.unstructured", source = "document.text")',
+            "    Target map(Source document);",
+            "}",
+        }, state.buffer_lines[1])
+    end)
 end)

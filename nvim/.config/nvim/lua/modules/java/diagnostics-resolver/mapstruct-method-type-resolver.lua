@@ -207,4 +207,77 @@ function M.resolve(ctx, mapping, callback)
     end)
 end
 
+--- Resolve the types of a forged nested-target mapping method.
+--- MapStruct names its source after the target property, so the source type is found
+--- through the source paths the nested annotations share, longest prefix first.
+---@param ctx { bufnr: integer, diagnostic: table }
+---@param mapping MapStructDiagnosticMappingTypes
+---@param source_paths string[] candidate source paths, in order of preference
+---@param callback fun(result?: { source: JavaResolvedType, source_path: string, target: JavaResolvedType }, err?: string)
+function M.resolve_nested_target(ctx, mapping, source_paths, callback)
+    local target_path, target_path_error =
+        mapstruct_reference.backend_path(mapping.target_property, mapping.element_kind)
+    if not target_path then
+        callback(nil, target_path_error)
+        return
+    end
+
+    mapstruct.get_method_types({
+        bufnr = ctx.bufnr,
+        row = ctx.diagnostic.lnum,
+        col = ctx.diagnostic.col,
+    }, function(method_types, method_err)
+        if not method_types then
+            callback(nil, method_err)
+            return
+        end
+
+        local index = 1
+        local last_error = nil
+
+        local function try_next_path()
+            local source_path = source_paths[index]
+            if not source_path then
+                callback(nil, last_error or "No shared source path resolves to type: " .. mapping.source_type)
+                return
+            end
+            index = index + 1
+
+            mapstruct.resolve_path_type({
+                sources = method_types.sources,
+                path_expression = completed_path(source_path),
+            }, function(source, source_err)
+                if source and java_import_resolver.matches(source, mapping.source_type) then
+                    resolve_target_type(
+                        method_types.target_type,
+                        target_path,
+                        mapping.target_type,
+                        function(target_expression, target_err)
+                            if not target_expression then
+                                callback(nil, target_err)
+                                return
+                            end
+                            callback(
+                                { source = source, source_path = source_path, target = target_expression.type },
+                                nil
+                            )
+                        end
+                    )
+                    return
+                end
+
+                last_error = source_err
+                    or string.format(
+                        "Resolved type for source path '%s' does not match diagnostic type '%s'",
+                        source_path,
+                        mapping.source_type
+                    )
+                try_next_path()
+            end)
+        end
+
+        try_next_path()
+    end)
+end
+
 return M
