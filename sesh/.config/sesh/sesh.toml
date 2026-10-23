@@ -17,7 +17,7 @@ sort_order = [
 
 # looks some bugs with preview, as name taking as path
 [[session]]
-name = "Dotfiles"
+name = "dotfiles"
 path = "~/dotfiles"
 startup_command = "nvim"
 preview_command = "eza --tree --icons --level=1 --color=always --group-directories-first"
@@ -45,7 +45,7 @@ path = "~/serhii.home/work/docs"
 disable_startup_command = true
 
 [[session]]
-name = "work.explorer"
+name = "work_explorer"
 path = "~/serhii.home/work/git.work"
 disable_startup_command = true
 
