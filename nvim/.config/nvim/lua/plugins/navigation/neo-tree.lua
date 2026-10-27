@@ -86,7 +86,7 @@ return {
                     ".DS_Store",
                     "target",
                     "bin",
-                    "gradle",
+                    -- "gradle",
                     ".gradle",
                     "gradlew",
                     "gradlew.bat",

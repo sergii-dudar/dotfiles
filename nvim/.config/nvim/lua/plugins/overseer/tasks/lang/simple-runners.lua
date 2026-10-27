@@ -37,6 +37,7 @@ function M.register(type_to_resolver)
                 .. '" > /dev/null 2>&1',
         }
     end)
+    type_to_resolver["xhtml"] = type_to_resolver["html"]
 
     type_to_resolver["yaml"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")
