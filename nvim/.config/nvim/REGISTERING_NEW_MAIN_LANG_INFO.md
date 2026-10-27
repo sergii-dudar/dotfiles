@@ -72,7 +72,9 @@ mechanism, but is **not** gated/isolated, and has no dedicated editor config or
 **Supported (run / test / debug / report):**
 
 - **Go**, **Python**, **Bash**, **Lua**, **C#**, **JavaScript / TypeScript**, plus the
-  trivial run-only `simple-runners` (C, C++, …).
+  trivial run-only `simple-runners` (C, C++, …) and the run-only `markup` entry (html / xhtml /
+  markdown / asciidoc / svg: `<leader>rr` opens the browser live preview in-process through `run_direct`,
+  see `tasks/lang/markup-runner.lua`).
 
 > **Go is the worked example below** precisely because it already has the full
 > _supported_ infrastructure (test runner, report adapter, DAP, dispatcher entries,
@@ -305,7 +307,8 @@ as copy-paste templates):
 
 1. **Runner contract** — `lua/plugins/overseer/tasks/lang/<lang>-runner.lua`
    implementing `task.lang.Runner`: `build_run_cmd`, `build_run_test_cmd`,
-   `prepare_test_context?`, `dap_launch?`, `dap_launch_test?`, `get_test_report_dir?`.
+   `prepare_test_context?`, `dap_launch?`, `dap_launch_test?`, `get_test_report_dir?`,
+   `run_direct?` + `stop_direct?` (in-process run instead of an overseer task, like `dap_launch`; see `markup-runner.lua`).
    The shared annotation contract lives in `lua/plugins/overseer/tasks/lang/types.lua`.
 2. **Test runner** — `lua/modules/<lang>/<framework>-test/init.lua`: builds the test
    command + DAP launch and writes a machine-readable report (JUnit XML / JSON).

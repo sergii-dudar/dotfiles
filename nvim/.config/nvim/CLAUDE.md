@@ -45,7 +45,7 @@ per-language editor groups `plugins.editor.java` and `plugins.editor.rust` are i
 - `ui/` — colorscheme, lualine, bufferline, noice, which-key, yazi
 - `navigation/` — neo-tree, harpoon, buffers, tmux navigation
 - `snacks/` — Snacks.nvim config (picker, explorer, dashboard, zen mode, images, scratch)
-- `tools/` — standalone tool integrations (currently `kulala.lua`)
+- `tools/` — standalone tool integrations (`kulala.lua`; `live-preview.lua` — live-preview.nvim spec: Brave, `.xhtml`/`.htm` shim, replaces the markdown extra's markdown-preview.nvim. The preview itself is started with `<leader>rr` through `tasks/lang/markup-runner.lua` (`run_direct`, in-process like `dap_launch`), stopped with `<leader>rs`, no key of its own)
 - `overseer/` — Task runner, templates per language under `tasks/lang/`, plus `overseer-util.lua`, `overseer-task-util.lua`, `test-report-dispatcher.lua`
 - `luasnip/` — Snippet engine + custom snippets per language (heavy Java/Spring/MapStruct/JUnit snippets)
 - `fun/` — extra "fun" plugins (drop-nvim, hardtime, precognition, meow.yarn). **Currently commented out in `lazy.lua`** — not loaded

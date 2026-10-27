@@ -24,6 +24,8 @@
 ---@class task.lang.Runner
 ---@field get_envs? fun():table<string, string>
 ---@field build_run_cmd fun():string[]
+---@field run_direct? fun() - in-process run instead of a RUN_CURRENT overseer task (like dap_launch for debug); <leader>rl calls it again
+---@field stop_direct? fun():boolean - stop what run_direct started (<leader>rs, after tasks and DAP); true when something was stopped
 ---@field build_debug_cmd? fun():string[] - requires dap_attach_to_remote
 ---@field dap_attach_to_remote? fun()
 ---@field dap_launch? fun() - requires dap_launch_rerun for rerun support

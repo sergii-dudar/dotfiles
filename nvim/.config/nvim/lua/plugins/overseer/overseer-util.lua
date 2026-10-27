@@ -116,6 +116,14 @@ function M.run_current()
         return
     end
     require("utils.dap-util").reset()
+    if type_resolver.run_direct then
+        -- In-process run (e.g. the browser live preview server), no overseer task: like dap_launch for debug.
+        overseer_task_util.stop_all_prev_tasks()
+        write_run_info(task.run_type.RUN, false) -- before run_direct: it also ends the previous in-process run
+        type_resolver.run_direct()
+        last_run_info.stop_direct = type_resolver.stop_direct
+        return
+    end
     overseer_task_util.run_task({
         task_name = "RUN_CURRENT",
         is_open_output = true,
@@ -178,6 +186,11 @@ function write_run_info(runtype, is_debug)
     last_run_info.filetype = vim.bo.filetype
     last_run_info.runtype = runtype
     last_run_info.is_debug = is_debug
+    -- One run at a time (see stop_all_prev_tasks): a new run/test/debug also ends an in-process run (run_direct).
+    if last_run_info.stop_direct then
+        last_run_info.stop_direct()
+        last_run_info.stop_direct = nil
+    end
 end
 
 ---@param type_resolver task.lang.Runner
@@ -209,6 +222,11 @@ function restart_last_task(type_resolver)
                 return
             end
         else
+            if type_resolver.run_direct then
+                -- In-process run (no overseer task to restart): start it again for the current buffer.
+                M.run_current()
+                return
+            end
             overseer_task_util.run_last_task({ is_open_output = true })
         end
     elseif last_run_info.runtype == task.run_type.TEST then
@@ -275,6 +293,11 @@ function M.stop_all()
     local dap = require("dap")
     if dap.session() then
         dap.terminate()
+        return
+    end
+
+    -- Stop an in-process run (run_direct), e.g. the browser live preview server
+    if last_run_info.stop_direct and last_run_info.stop_direct() then
         return
     end
 

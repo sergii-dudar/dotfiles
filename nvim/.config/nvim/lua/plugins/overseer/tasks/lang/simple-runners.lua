@@ -19,25 +19,26 @@ function M.register(type_to_resolver)
     --     return { "python3.14", file }
     -- end)
 
-    type_to_resolver["html"] = build_run_cmd_only_resolver(function()
-        local dir = vim.fn.expand("%:p:h")
-        local fileName = vim.fn.expand("%:t")
-        return {
-            "sh",
-            "-c",
-            'brave "'
-                .. dir
-                .. "/"
-                .. fileName
-                .. '" > /dev/null 2>&1 '
-                .. '|| "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" "'
-                .. dir
-                .. "/"
-                .. fileName
-                .. '" > /dev/null 2>&1',
-        }
-    end)
-    type_to_resolver["xhtml"] = type_to_resolver["html"]
+    -- Pre-live-preview html runner: open the file once in Brave (file:// URL, no reload). Kept for reference;
+    -- html/xhtml/markdown/asciidoc/svg now run the browser live preview via `markup-runner.lua` (registry entry).
+    -- type_to_resolver["html"] = build_run_cmd_only_resolver(function()
+    --     local dir = vim.fn.expand("%:p:h")
+    --     local fileName = vim.fn.expand("%:t")
+    --     return {
+    --         "sh",
+    --         "-c",
+    --         'brave "'
+    --             .. dir
+    --             .. "/"
+    --             .. fileName
+    --             .. '" > /dev/null 2>&1 '
+    --             .. '|| "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" "'
+    --             .. dir
+    --             .. "/"
+    --             .. fileName
+    --             .. '" > /dev/null 2>&1',
+    --     }
+    -- end)
 
     type_to_resolver["yaml"] = build_run_cmd_only_resolver(function()
         local dir = vim.fn.expand("%:p:h")

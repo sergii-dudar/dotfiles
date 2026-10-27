@@ -141,6 +141,14 @@ local entries = {
             filetypes = { "c" },
         },
     },
+    {
+        -- html/xhtml/markdown/asciidoc/svg: <leader>rr opens the browser live preview (live-preview.nvim), run only
+        name = "markup",
+        runner = {
+            module = "plugins.overseer.tasks.lang.markup-runner",
+            filetypes = { "html", "xhtml", "markdown", "asciidoc", "svg" },
+        },
+    },
     --[[ {
         name = "cpp",
         runner = {

@@ -156,4 +156,4 @@ Some of my configurations (terminals etc) are using wallpapers that can be found
 [84]: rofi/.config/rofi/README.md
 [85]: yazi/.config/yazi/README.md
 [86]: ranger/.config/ranger/README.md
-[87]: foot/.config/foot
+[87]: foot/.config/foor
