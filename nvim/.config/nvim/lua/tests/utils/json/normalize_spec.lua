@@ -165,4 +165,129 @@ describe("utils.json.normalize", function()
             lines = { "{oops}" },
         }, state.set_text)
     end)
+
+    it("unescapes a stringified JSON body that lost its surrounding quotes and formats it", function()
+        -- given
+        state.buffer_lines[0] = { '{\\"name\\":\\"Ada\\",\\"age\\":42}' }
+        vim.json.decode = function(content)
+            if content == '"{\\"name\\":\\"Ada\\",\\"age\\":42}"' then
+                return '{"name":"Ada","age":42}'
+            end
+            if content == '{"name":"Ada","age":42}' then
+                return { name = "Ada", age = 42 }
+            end
+            error("invalid json")
+        end
+        vim.fn.executable = function(command)
+            return command == "jq" and 1 or 0
+        end
+        vim.fn.system = function(command, input)
+            assert.are.same({ "jq", "." }, command)
+            assert.are.equal('{"name":"Ada","age":42}', input)
+            vim.v.shell_error = 0
+            return table.concat({
+                "{",
+                '  "age": 42,',
+                '  "name": "Ada"',
+                "}",
+            }, "\n")
+        end
+
+        -- when
+        normalize.normalize_buffer()
+
+        -- then
+        assert.are.same({
+            "{",
+            '  "age": 42,',
+            '  "name": "Ada"',
+            "}",
+        }, state.buffer_lines[0])
+    end)
+
+    it("resolves backslash escapes of the stringified body instead of only replacing quotes", function()
+        -- given
+        state.buffer_lines[0] = { '{\\"msg\\":\\"l1\\\\nl2\\"}' }
+        vim.json.decode = function(content)
+            if content == '"{\\"msg\\":\\"l1\\\\nl2\\"}"' then
+                return '{"msg":"l1\\nl2"}'
+            end
+            if content == '{"msg":"l1\\nl2"}' then
+                return { msg = "l1\nl2" }
+            end
+            error("invalid json")
+        end
+        vim.fn.executable = function()
+            return 0
+        end
+
+        -- when
+        normalize.normalize_buffer()
+
+        -- then
+        assert.are.same({ '{"msg":"l1\\nl2"}' }, state.buffer_lines[0])
+    end)
+
+    it("falls back to replacing escaped quotes when the selection mixes escaped and plain quotes", function()
+        -- given
+        state.positions["'<"] = { 0, 1, 1, 0 }
+        state.positions["'>"] = { 0, 1, 2147483647, 0 }
+        state.buffer_lines[0] = { '{\\"a\\":"x"}' }
+        vim.json.decode = function(content)
+            if content == '{"a":"x"}' then
+                return { a = "x" }
+            end
+            error("invalid json")
+        end
+        vim.fn.executable = function(command)
+            return command == "jq" and 1 or 0
+        end
+        vim.fn.system = function(command, input)
+            assert.are.same({ "jq", "." }, command)
+            assert.are.equal('{"a":"x"}', input)
+            vim.v.shell_error = 0
+            return table.concat({
+                "{",
+                '  "a": "x"',
+                "}",
+            }, "\n")
+        end
+
+        -- when
+        normalize.normalize_selection()
+
+        -- then
+        assert.are.same({
+            bufnr = 0,
+            start_row = 0,
+            start_col = 0,
+            end_row = 0,
+            end_col = 11,
+            lines = {
+                "{",
+                '  "a": "x"',
+                "}",
+            },
+        }, state.set_text)
+    end)
+
+    it("keeps content with escaped quotes unchanged when unescaping yields no JSON", function()
+        -- given
+        state.buffer_lines[0] = { '{\\"oops}' }
+        vim.json.decode = function(content)
+            if content == '"{\\"oops}"' then
+                return '{"oops}'
+            end
+            error("invalid json")
+        end
+        vim.fn.executable = function()
+            return 0
+        end
+
+        -- when
+        normalize.normalize_buffer()
+
+        -- then
+        assert.are.same({ '{\\"oops}' }, state.buffer_lines[0])
+    end)
 end)

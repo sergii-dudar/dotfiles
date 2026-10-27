@@ -1,4 +1,6 @@
 -- JSON normalization: unwrap stringified JSON objects/arrays and format them.
+-- Both a quoted string literal (`"{\"a\":1}"`) and its bare escaped body
+-- (`{\"a\":1}`, e.g. copied out of a Java string literal or a log line) are unwrapped.
 --
 -- • normalize_buffer — unwrap and format JSON in current buffer
 -- • normalize_selection — unwrap and format JSON in visual selection
@@ -26,31 +28,67 @@ local function looks_like_json_container(content)
     return (first == "{" and last == "}") or (first == "[" and last == "]")
 end
 
---- Unwrap a top-level JSON string when it contains JSON object or array text.
----@param content string
----@return string
-local function unwrap_stringified_json(content)
-    local decoded = decode_json(content)
-    if type(decoded) ~= "string" then
-        return content
-    end
-
+--- Follow a decoded JSON string down to the JSON object or array text it holds.
+---@param decoded string
+---@return string|nil unwrapped JSON text, nil when the string holds no valid object or array
+local function unwrap_json_string(decoded)
     local candidate = vim.trim(decoded)
     for _ = 1, 5 do
         if not looks_like_json_container(candidate) then
-            return content
+            return nil
         end
 
         local nested = decode_json(candidate)
         if type(nested) ~= "string" then
-            return nested ~= nil and candidate or content
+            return nested ~= nil and candidate or nil
         end
 
         local next_candidate = vim.trim(nested)
         if next_candidate == candidate then
-            return content
+            return nil
         end
         candidate = next_candidate
+    end
+
+    return nil
+end
+
+--- Unescape stringified JSON that lost its surrounding quotes, e.g. `{\"name\":\"Ada\"}`.
+--- The text is decoded as the body of a JSON string literal first, so `\\`, `\n`, `\uXXXX`
+--- and nested `\\\"` resolve as well; a plain `\"` -> `"` replacement is the fallback for
+--- input that mixes escaped and plain quotes.
+---@param content string
+---@return string[] candidates in the order to try, empty when there is no `\"` to unescape
+local function unescape_candidates(content)
+    if not content:find('\\"', 1, true) then
+        return {}
+    end
+
+    local candidates = {}
+    local decoded = decode_json('"' .. content .. '"')
+    if type(decoded) == "string" then
+        table.insert(candidates, decoded)
+    end
+    table.insert(candidates, (content:gsub('\\"', '"')))
+    return candidates
+end
+
+--- Unwrap a top-level JSON string when it contains JSON object or array text. Handles both
+--- a proper string literal (`"{\"a\":1}"`) and its bare escaped body (`{\"a\":1}`).
+---@param content string
+---@return string
+local function unwrap_stringified_json(content)
+    local decoded = decode_json(content)
+    if decoded ~= nil and type(decoded) ~= "string" then
+        return content
+    end
+
+    local candidates = decoded ~= nil and { decoded } or unescape_candidates(content)
+    for _, candidate in ipairs(candidates) do
+        local unwrapped = unwrap_json_string(candidate)
+        if unwrapped then
+            return unwrapped
+        end
     end
 
     return content
