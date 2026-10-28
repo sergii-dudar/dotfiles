@@ -411,6 +411,10 @@ M.jdtls_settings = {
         --   all         = project sources + referenced projects + application libraries (+ JRE when inside it) - default
         --   main        = same as all, but test code (src/test) excluded
         --   projectOnly = project sources + referenced projects only (no libraries)
+        -- "project sources" = every source folder of every Java project in the jdtls workspace (m2e registers
+        -- src/main/java, src/test/java and target/generated-sources/* as source folders); "referenced projects" =
+        -- other workspace projects a project depends on through a project classpath entry (sibling modules of a
+        -- multi-module Maven build under workspace resolution); jars from ~/.m2 are "libraries".
         -- With `all`, a search for a common identifier (`name`, `type`) parses every library source
         -- (-sources.jar) that mentions it: minutes per request, and jetty-ee10-webapp's attached source
         -- crashes JDT (detectAPILeaks NPE -> "Internal error"). `projectOnly` answers in ~1 s.

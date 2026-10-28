@@ -87,12 +87,13 @@ emits diagnostics + signs into the buffer, opens Trouble view).
   `<C-o>` jdtls vs raw opener
 - `java/static-import-explorer/` — ripgrep + Snacks-picker fallback for
   `import static` when JDTLS doesn't surface the code action
-- `gr` scope — jdtls searches references with its `java.search.scope` preference
-  (`all` = + libraries + test code, the default | `main` = no test code | `projectOnly` =
-  no libraries). `all` parses every attached library source that mentions a common name
-  (minutes per search, and one Jetty source crashes JDT); `projectOnly` answers in ~1 s.
-  `gR` / `gM` (java-config.lua) run the same MapStruct-aware search with the scope forced
-  to `projectOnly` / `main` for one call: `reference_finder.find_references({ scope = … })`
+- `gr` scope — jdtls searches references with its `java.search.scope` preference,
+  set to `projectOnly` (project main + test sources, no libraries; ~1 s) in
+  `utils/java/jdtls-config-util.lua`. `all` (+ libraries + tests) parses every attached
+  library source that mentions a common name: minutes per search, and one Jetty source
+  crashes JDT; `main` = libraries but no test code. `gR` / `gM` (java-config.lua) run the
+  same MapStruct-aware search with the scope forced to `all` / `main` for one call:
+  `reference_finder.find_references({ scope = … })`
   switches the live setting via `workspace/didChangeConfiguration` and restores it
   explicitly afterwards. The former ripgrep+treesitter `gR` (`modules/java/project-references`)
   was removed 2026-10-28: methods only, blind to the gitignored `target/`
