@@ -46,7 +46,7 @@ session="$(
         --bind 'ctrl-d:execute(tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux kill-session -t $(echo {} | cut -c3-))+change-prompt( Tmux Kill: )+reload(sesh list -t -i)' \
         --bind 'ctrl-n:execute([ -n "{q}" ] && (tmux has-session -t {q} 2>/dev/null || tmux new-session -s {q} -n {q} -d))+change-prompt(  Tmux New: )+reload(sesh list -t -i)' \
         --bind 'ctrl-r:execute(old=$(echo {} | cut -c3-); tmux has-session -t "$old" 2>/dev/null && new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$old") && [ -n "$new" ] && tmux rename-session -t "$old" "$new")+change-prompt(󰑕  Tmux Rename: )+reload(sesh list -t -i)' \
-        --preview 'tmux has-session -t $(echo {} | cut -c3-) 2>/dev/null && tmux capture-pane -peJt $(echo {} | cut -c3-) || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo $(echo {} | cut -c3-))"' \
+        --preview 'n={}; n=${n#??}; tmux capture-pane -peJt "$n" 2>/dev/null || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo "$n")"' \
         --preview-window=down,65%
 )"
 

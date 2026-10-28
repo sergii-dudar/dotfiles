@@ -13,15 +13,16 @@ local M = {}
 --
 -- PERFORMANCE OPTIMIZATIONS:
 -- ✅ inlayHints: enabled (useful, low cost)
--- ❌ autobuild: disabled (HIGH COST - like IntelliJ, use :JdtCompile manually)
+-- ✅ autobuild: enabled (needed with many generated sources, see java.autobuild below)
 -- ❌ referencesCodeLens: disabled (HIGH COST - performance killer)
 -- ❌ downloadSources: disabled (HIGH COST - auto-download slows indexing)
--- ❌ includeDecompiledSources: disabled (HIGH COST - slow search in references)
+-- ✅ references.includeDecompiledSources: enabled (search scope is projectOnly, see java.search.scope)
 -- ❌ selectionRange: disabled (VERY LOW COST - safe to re-enable)
 -- ❌ format.comments: disabled (LOW COST - safe to re-enable)
 -- ❌ importHint: disabled (VERY LOW COST - safe to re-enable)
 -- ❌ foldingRange: disabled (LOW-MEDIUM COST - safe to re-enable if you use folding)
 -- NOTE: JDTLS still validates code in real-time without autobuild!
+-- Importers: `settings_for_root` below enables only the Maven/Gradle importer matching the root.
 -- ============================================================================
 
 --[[ M.jdtls_settings = {
@@ -47,8 +48,8 @@ M.jdtls_settings = {
                 lombokSupport = {
                     enabled = true,
                 },
-                -- Protocol Buffers support
-                protofBufSupport = {
+                -- Protocol Buffers support (jdtls generates sources with protoc for projects using it)
+                protobufSupport = {
                     enabled = true,
                 },
                 -- [Experimental] Specify whether to enable Javac-based compilation in the language server. Requires running this extension with Java 25
@@ -421,5 +422,48 @@ M.jdtls_settings = {
         search = { scope = "projectOnly" }, -- all | main | projectOnly
     },
 }
+
+-- Build-tool markers deciding which jdtls importers a workspace root needs.
+local GRADLE_MARKERS = { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradlew" }
+local MAVEN_MARKERS = { "pom.xml", "mvnw" }
+
+--- Return whether the directory holds any of the files.
+---@param dir string
+---@param names string[]
+---@return boolean
+local function has_any_file(dir, names)
+    for _, name in ipairs(names) do
+        if vim.uv.fs_stat(dir .. "/" .. name) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Return the jdtls settings for a workspace root: a deep copy of the base settings with the
+--- Maven and Gradle importers enabled only for the build tool present at the root. With both left
+--- on, Buildship boots inside jdtls for every Maven project and asks services.gradle.org for the
+--- Gradle version list at each start ("Could not load Gradle version information" in the workspace
+--- log). A root without any build file (plain sources, nested modules only) keeps both importers on.
+---@param root_dir string|nil
+---@param base table|nil defaults to M.jdtls_settings
+---@return table
+function M.settings_for_root(root_dir, base)
+    local settings = vim.deepcopy(base or M.jdtls_settings)
+    if type(root_dir) ~= "string" or root_dir == "" then
+        return settings
+    end
+    local gradle = has_any_file(root_dir, GRADLE_MARKERS)
+    local maven = has_any_file(root_dir, MAVEN_MARKERS)
+    if gradle or maven then
+        settings.java = settings.java or {}
+        settings.java.import = settings.java.import or {}
+        settings.java.import.gradle = settings.java.import.gradle or {}
+        settings.java.import.maven = settings.java.import.maven or {}
+        settings.java.import.gradle.enabled = gradle
+        settings.java.import.maven.enabled = maven
+    end
+    return settings
+end
 
 return M

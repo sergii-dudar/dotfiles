@@ -34,7 +34,7 @@ Disabled/replaced plugins live in `lua/plugins/archive/` — do **not** import f
 
 ## Other notable trees
 
-- `bin/` — helper scripts grouped by topic (`install/`, `java/`, `macos/`, `wmscripts/`, `tmux/`, etc.). Many are sourced/invoked by WM and shell configs; before renaming or moving one, grep for its basename across the repo.
+- `scripts/` — helper scripts grouped by topic (`install/`, `java/`, `macos/`, `wmscripts/`, `tmux/`, etc.). Many are sourced/invoked by WM and shell configs; before renaming or moving one, grep for its basename across the repo.
 - `tmux/` + `tmux-powerline/` + `sesh/` — tmux session/multiplexer stack. `sesh` has custom session-management built on top of the tmux API.
 - `keyboard/kanata/{linux,macos}/` — current keyboard remapping configs. `nonhome/keyd` and `nonhome/kmonad` are previous-generation configs kept for reference; `karabiner/` is the previous macOS setup.
 - `idea/.ideavimrc` — IntelliJ IdeaVim config, kept aligned with Neovim keymaps.

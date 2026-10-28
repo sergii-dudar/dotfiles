@@ -233,6 +233,17 @@ return {
                     end,
                     settings = {
                         -- options: ~/.local/share/nvim/mason/packages/vscode-spring-boot-tools/extension/package.json
+                        -- `boot-java` is merged over the plugin's defaults (spring_boot/settings.lua).
+                        ["boot-java"] = {
+                            validation = {
+                                java = {
+                                    -- Boot version validation GETs https://api.spring.io/projects at
+                                    -- every start (ProjectVersionDiagnosticProvider); it fails behind the
+                                    -- corporate proxy (PKIX) and only yields "newer Boot available" hints.
+                                    ["version-validation"] = "OFF",
+                                },
+                            },
+                        },
                         ["spring-boot"] = {
                             ls = {
                                 problem = {

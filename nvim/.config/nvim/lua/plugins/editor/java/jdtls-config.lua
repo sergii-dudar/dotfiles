@@ -70,6 +70,26 @@ local function jdtls_ships_same_bundle(jar)
     return vim.fn.filereadable(jdtls_plugin) == 1
 end
 
+--- Drop bundle paths that resolve (through symlinks) to a jar already in the list; order is kept.
+---@param jars string[]
+---@return string[]
+local function dedupe_bundles(jars)
+    local seen, out, dropped = {}, {}, {}
+    for _, jar in ipairs(jars) do
+        local real = vim.uv.fs_realpath(jar) or jar
+        if seen[real] then
+            table.insert(dropped, vim.fn.fnamemodify(jar, ":t"))
+        else
+            seen[real] = true
+            table.insert(out, jar)
+        end
+    end
+    if #dropped > 0 then
+        logger.fmt_info("dropped duplicate bundle paths: %s", table.concat(dropped, ", "))
+    end
+    return out
+end
+
 --- Return whether a Mason java-test jar should be passed as a JDTLS extension bundle.
 local function should_skip_java_test_bundle(jar, asm_version)
     local name = vim.fn.fnamemodify(jar, ":t")
@@ -167,28 +187,47 @@ return {
             end
 
             --==============================================================================
-            -- JVM Performance Tuning for Multiple Microservices (Java 25, 32GB RAM)
+            -- JVM tuning (Java 25, 32 GB RAM, one JDTLS instance per microservice)
             --==============================================================================
-            -- Strategy: Balance startup speed, memory efficiency, and runtime performance
-            -- Each microservice = separate JDTLS instance
+            -- Measured 2026-10-28 on payment-card-transfer: JVM + OSGi boot is ~1.5 s of a ~14 s
+            -- start-to-usable; the rest is the m2e import and the initial workspace build (CPU bound).
+            -- Keep the JVM defaults unless a flag has a measured reason to differ.
+            --
+            -- Removed on purpose (the default is better or equal on this machine):
+            --   -Xms4g                      the launcher already passes -Xms1G; 4g only delayed the first GC
+            --                               and left ~3 GB RSS of uncollected garbage per idle instance
+            --   -XX:+UseG1GC                default collector
+            --   -XX:MaxGCPauseMillis=100    default 200; a lower target shrinks the young gen and adds GC
+            --                               work in the build phase (an LSP does not need 100 ms pauses)
+            --   -XX:G1ReservePercent=10     default
+            --   -XX:+TieredCompilation      default
+            --   -XX:CICompilerCount=2       ergonomic default here is 4; 2 halves JIT throughput in the
+            --                               hottest phase (initial build / indexing)
+            --   -XX:MaxMetaspaceSize=1g     default unlimited; a cap only turns a big workspace into
+            --                               "OutOfMemoryError: Metaspace"
+            --   -Dsun.zip.disableMemoryMapping=true  ignored since JDK 9 (ZipFile reimplemented in Java)
+            --   -XX:TieredStopAtLevel=1     saved ~2 s startup but slowed workspace builds (no C2), widening
+            --                               the window where "Go to Implementation" fails for generated
+            --                               sources (MapStruct etc.)
+            --   Class Data Sharing (-XX:+AutoCreateSharedArchive): measured ~0.1 s of a 1.5 s boot, needs
+            --                               AllowArchivingWithJavaAgent because of Lombok and conflicts with
+            --                               the launcher's --add-modules / --add-opens. Not worth it.
 
-            -- Memory Settings (Per-instance allocation)
-            -- Lower initial, allow growth - better for multiple concurrent instances
-            table.insert(cmd, "--jvm-arg=-Xms4g") -- Initial heap (start smaller)
-            table.insert(cmd, "--jvm-arg=-Xmx8g") -- Maximum heap (grow as needed)
-
-            -- JAR/ZIP handling optimization
-            -- Disable memory-mapping to reduce memory pressure from many JARs in microservices
-            table.insert(cmd, "--jvm-arg=-Dsun.zip.disableMemoryMapping=true")
-
-            -- Garbage Collection Settings (G1GC - best balance for microservices)
-            -- Comment this block to use JVM defaults
-            do
-                table.insert(cmd, "--jvm-arg=-XX:+UseG1GC") -- Use G1 garbage collector
-                table.insert(cmd, "--jvm-arg=-XX:MaxGCPauseMillis=100") -- Target 100ms max pause (lower for responsiveness)
-                table.insert(cmd, "--jvm-arg=-XX:+UseStringDeduplication") -- Save memory (Spring Boot has many duplicate strings)
-                table.insert(cmd, "--jvm-arg=-XX:G1ReservePercent=10") -- Reserve 10% heap for G1 (default 10)
-            end
+            -- Heap cap. Equals the 25 % ergonomic default on a 32 GB machine; explicit so smaller
+            -- workstations get the same ceiling. The heap grows from the launcher's -Xms1G as needed.
+            table.insert(cmd, "--jvm-arg=-Xmx8g")
+            -- Spring Boot workspaces hold many duplicate strings; G1 string dedup saves memory at little cost.
+            table.insert(cmd, "--jvm-arg=-XX:+UseStringDeduplication")
+            -- Idle instances give committed heap back to the OS (JEP 346): a periodic concurrent cycle
+            -- every 5 minutes without other GC activity, so several open microservices do not pin
+            -- their peak RSS while the user works elsewhere.
+            table.insert(cmd, "--jvm-arg=-XX:G1PeriodicGCInterval=300000")
+            -- JDTLS loads several hundred MB of classes; a larger initial metaspace avoids the early
+            -- metaspace-triggered full GCs during startup (the default initial size is ~21 MB).
+            table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m")
+            -- Long-running with full C2: more room than the 240 MB default so the JIT never stops
+            -- compiling. Reserved address space, not committed memory, so it costs nothing until used.
+            table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=512m")
 
             -- Alternative: ZGC for ultra-low latency (Java 15+, great for Java 25)
             -- ZGC has lower pause times but uses more memory - good if responsiveness is critical
@@ -197,30 +236,28 @@ return {
             --     table.insert(cmd, "--jvm-arg=-XX:ZCollectionInterval=5")    -- Proactive GC every 5s
             --     table.insert(cmd, "--jvm-arg=-XX:ZUncommitDelay=300")       -- Return unused memory after 5min
             -- end
-
-            -- Performance Optimizations
-            -- JDTLS is long-running — allow full C2 JIT optimization for faster indexing.
-            -- TieredStopAtLevel=1 was removed: it saved ~2s startup but made workspace builds
-            -- significantly slower (no C2 optimization), widening the window where "Go to
-            -- Implementation" fails for generated sources (MapStruct etc.)
-            do
-                table.insert(cmd, "--jvm-arg=-XX:+TieredCompilation") -- Enable tiered compilation (full C1→C2)
-                table.insert(cmd, "--jvm-arg=-XX:CICompilerCount=2") -- Limit JIT threads (reduce CPU contention)
-            end
-
-            -- Metaspace & Code Cache
-            do
-                table.insert(cmd, "--jvm-arg=-XX:MetaspaceSize=256m") -- Lower initial (microservices are smaller)
-                table.insert(cmd, "--jvm-arg=-XX:MaxMetaspaceSize=1g") -- Lower max (microservices don't need 2g)
-                table.insert(cmd, "--jvm-arg=-XX:ReservedCodeCacheSize=512m") -- Increased: full tiered compilation needs more code cache
-            end
-
             --==============================================================================
-            -- End JVM Performance Tuning
+            -- End JVM tuning
             --==============================================================================
             return {
                 root_dir = function(path)
-                    return vim.fs.root(path, vim.lsp.config.jdtls.root_markers)
+                    -- `vim.lsp.config.jdtls` comes from nvim-lspconfig's lsp/jdtls.lua; when nvim-jdtls is
+                    -- loaded before it (e.g. an early require), root_markers is nil and vim.fs.root() finds
+                    -- nothing — the server would then start without -data in the launcher's default
+                    -- workspace (seen 2026-10-28). Fall back to the usual markers.
+                    local cfg = vim.lsp.config.jdtls
+                    local markers = cfg and cfg.root_markers
+                        or {
+                            "pom.xml",
+                            "mvnw",
+                            "build.gradle",
+                            "build.gradle.kts",
+                            "settings.gradle",
+                            "settings.gradle.kts",
+                            "gradlew",
+                            ".git",
+                        }
+                    return vim.fs.root(path, markers)
                 end,
 
                 -- How to find the project name for a given root dir.
@@ -347,6 +384,12 @@ return {
                 vim.list_extend(bundles, require("spring_boot").java_extensions())
             end
 
+            -- Mason ships some bundles twice under one directory: a versioned jar plus an unversioned
+            -- symlink to it (java-test's com.microsoft.java.test.plugin.jar). Passing both makes jdtls
+            -- install/uninstall the same bundle twice and refresh the bundle set on every start
+            -- ("Uninstalled … Installed …" pairs in the workspace .log). Keep one path per real file.
+            bundles = dedupe_bundles(bundles)
+
             -- Java refactor file manager integrations (neo-tree, oil.nvim, snacks rename)
             require("modules.java.refactor.integrations").setup()
 
@@ -390,13 +433,35 @@ return {
                 end
 
                 -- Configuration can be augmented and overridden by opts.jdtls
+                local root_dir = opts.root_dir(fname)
+                if not root_dir then
+                    -- Without a root there is no project name, hence no -configuration/-data: the launcher
+                    -- would pick a shared default workspace (~/Library/Caches/jdtls/jdtls-<sha1(cwd)>).
+                    logger.fmt_warn("jdtls: no project root found for %s — not starting", fname)
+                    return
+                end
+                -- Per-root copy of the settings: only the importer of the build tool present at
+                -- the root is enabled (Buildship otherwise boots on every Maven project and asks
+                -- services.gradle.org for its version list at each start).
+                local settings = require("utils.java.jdtls-config-util").settings_for_root(root_dir, opts.settings)
                 local config = extend_or_override({
                     cmd = opts.full_cmd(opts),
-                    root_dir = opts.root_dir(fname),
+                    root_dir = root_dir,
                     init_options = {
                         bundles = bundles,
+                        -- The same settings also travel in the initialization options. jdtls applies
+                        -- those in `initialize`, before it registers its preference listener; the
+                        -- `workspace/didChangeConfiguration` Neovim sends afterwards then carries no
+                        -- change. Sent only via didChangeConfiguration, `java.format.settings.url`
+                        -- counts as a formatter change (null -> url) and
+                        -- StandardProjectsManager.configureSettings(prefs, true) schedules the
+                        -- "Clean workspace..." CLEAN build at every start: every class file rewritten,
+                        -- every generated source deleted and regenerated (measured 2026-10-28/29 on a
+                        -- project copy: 596/596 class files rewritten and the clean job in the trace
+                        -- without this, no clean job with it).
+                        settings = settings,
                     },
-                    settings = opts.settings,
+                    settings = settings,
                     filetypes = { "java" }, -- need to plugins like pretty-hover
                     -- enable CMP capabilities
                     capabilities = LazyVim.has("blink.cmp") and require("blink.cmp").get_lsp_capabilities()
@@ -510,7 +575,11 @@ return {
                             then
                                 -- custom init for Java debugger
                                 require("jdtls").setup_dap(opts.dap)
-                                if opts.dap_main then
+                                -- The main-class discovery is a workspace scan (vscode.java.resolveMainClass);
+                                -- run it once per jdtls client, not on every Java buffer that attaches.
+                                if opts.dap_main and not client._dap_main_configs_done then
+                                    ---@diagnostic disable-next-line: inject-field
+                                    client._dap_main_configs_done = true
                                     require("jdtls.dap").setup_dap_main_class_configs(opts.dap_main)
                                 end
 

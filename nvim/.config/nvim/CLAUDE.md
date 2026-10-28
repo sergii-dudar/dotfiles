@@ -146,6 +146,23 @@ Java helpers under `utils/java/`:
 - `java-common.lua` — Java project detection (`is_java_project()`), class-to-path resolution, project type (Maven/Gradle), Java binary paths (SDKMAN)
 - `jdtls-util.lua` — JDTLS-specific: JDT link extraction/navigation, hover markdown link conversion, find implementations
 - `jdtls-classpath-util.lua` — Get classpath from running JDTLS instance
+- `jdtls-config-util.lua` — the `java.*` settings table; `settings_for_root(root_dir)` hands each client a copy
+  with only the Maven/Gradle importer of the build tool present at the root (no Buildship on Maven roots)
+- `jdtls-config.lua` passes the per-root settings both as `settings` and as `init_options.settings`: delivered only via
+  didChangeConfiguration, `java.format.settings.url` makes jdtls run a "Clean workspace..." CLEAN build at every start
+  (StandardProjectsManager.configureSettings(prefs, true)); keep both in sync. It also refuses to start without a project
+  root (no root means no `-data`, i.e. the launcher's shared default workspace).
+- `jdtls-workspace-watcher.lua` — per-client post-start watcher. After ServiceReady it waits for the initial
+  build through a synchronous `java/buildWorkspace` barrier, then verifies the generated sources (stale MapStruct
+  APT diagnostic, unresolved types with a WITHERROR build, `.classpath` generated folders present on disk,
+  every `@Mapper` has its `Impl`) and sends `java/projectConfigurationsUpdate` only on a hit; the refresh is
+  followed by jdtls' `language/status` ProjectStatus (end of the update job) and another build barrier, no idle
+  timers; `language/eventNotification` ClasspathUpdated (100) arrives inside the job and only caps the wait. The
+  first barrier waits for jdtls' "Register Watchers" progress / didChangeWatchedFiles registration (end of the
+  startup build jobs) plus idle quiet; verifications wait for the publishDiagnostics burst to settle and a healthy
+  verdict is re-checked once (`healthy_recheck`). Recovery restarts (`mark_recovery_refresh`) force the refresh plus a full build. The refresh itself
+  deletes and regenerates every generated source, so a healthy workspace skips it (`_workspace_watcher_state` on
+  the client shows the lifecycle; `M.config` holds timings and toggles)
 - `jdtls-cleanup.lua` — on-demand jdtls clean-ups (`java.cleanup.actions` in `jdtls-config-util.lua`) via the
   client-specific `java/cleanup` request: `:JavaCleanup` / `<leader>jcu` diff-preview picker (one item per hunk;
   `<CR>` applies the current or `<Tab>`-marked hunks, the ALL row everything), `:JavaCleanup!` / `<leader>jcU`
