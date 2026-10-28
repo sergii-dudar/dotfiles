@@ -64,6 +64,17 @@ return {
             -- unblevable/quick-scope
             vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
             vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
+
+            -- folke/flash.nvim (gruvbox-material ships no Flash* groups, so flash would link Label/Match/Current to
+            -- Substitute/Search/IncSearch: yellow, green and red boxes with the same dark text). Palette: hard/material.
+            vim.api.nvim_set_hl(0, "FlashBackdrop", { fg = "#7c6f64" }) -- grey0: dim the rest, no italic
+            vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#ddc7a1", bg = "#504945" }) -- fg1 on bg5: quiet box per match
+            vim.api.nvim_set_hl(0, "FlashCurrent", { fg = "#1d2021", bg = "#89b482" }) -- bg0 on aqua: match under cursor
+            vim.api.nvim_set_hl(
+                0,
+                "FlashLabel",
+                { fg = "#1d2021", bg = "#e78a4e", bold = true, underline = true, italic = true }
+            ) -- bg0 on orange: jump labels
             --
             -- INFO: undercurl needs the outer terminal to have the tmux `usstyle` feature. Ghostty is auto-detected;
             -- alacritty needs TERM=alacritty (terminfo installed) + the `alacritty*:usstyle` terminal-features line
