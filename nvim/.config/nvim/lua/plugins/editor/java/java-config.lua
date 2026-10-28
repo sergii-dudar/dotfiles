@@ -99,6 +99,9 @@ return {
                         { "<leader>ci", function() require("utils.lang.java.lsp-java").resolve_imports() end, desc = "Resolve imports [jdtls]" },
                         { "<leader>cj", function() require("modules.java.diagnostics-resolver").resolve_current() end, desc = "Resolve Java Diagnostic" },
                         { "<leader>jr", function() require("utils.java.method-reference-toggle").toggle() end, desc = "Toggle Java Method Reference [jdtls]" },
+                        -- `java.search.scope` - all | main | projectOnly (see jdtls config)
+                        { "gR", function() require("utils.lang.lsp-navigation").references({ scope = "all" }) end, desc = "References (project scope, no libraries)", nowait = true },
+                        { "gM", function() require("utils.lang.lsp-navigation").references({ scope = "main" }) end, desc = "References (main scope: + libraries, no tests)" },
                         { "<leader>cc", function()
                             local action_names = require("utils.lang.java.lsp-java").code_action_auto_resolve_match_names
                             require("utils.lsp-util").code_action.resolve_context(action_names)

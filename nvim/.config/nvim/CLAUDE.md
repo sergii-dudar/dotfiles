@@ -87,12 +87,15 @@ emits diagnostics + signs into the buffer, opens Trouble view).
   `<C-o>` jdtls vs raw opener
 - `java/static-import-explorer/` — ripgrep + Snacks-picker fallback for
   `import static` when JDTLS doesn't surface the code action
-- `java/project-references/` — `gR`: fast, cwd-only references of the method
-  under the cursor for *this* type only (no jdtls search). One ripgrep for
-  `.m(` / `::m` / `m(`, then each hit is verified with treesitter by resolving
-  the receiver's declared type. `<C-a>` toggles strict / all textual calls.
-  Wired through `utils.lang.lsp-navigation.project_references()` +
-  `utils/lang/java/lsp-java.lua`; non-Java falls back to `Snacks.picker.grep_word()`
+- `gr` scope — jdtls searches references with its `java.search.scope` preference
+  (`all` = + libraries + test code, the default | `main` = no test code | `projectOnly` =
+  no libraries). `all` parses every attached library source that mentions a common name
+  (minutes per search, and one Jetty source crashes JDT); `projectOnly` answers in ~1 s.
+  `gR` / `gM` (java-config.lua) run the same MapStruct-aware search with the scope forced
+  to `projectOnly` / `main` for one call: `reference_finder.find_references({ scope = … })`
+  switches the live setting via `workspace/didChangeConfiguration` and restores it
+  explicitly afterwards. The former ripgrep+treesitter `gR` (`modules/java/project-references`)
+  was removed 2026-10-28: methods only, blind to the gitignored `target/`
 - `bash/`, `go/`, `lua/`, `python/`, `rust/` — language adapters, each with
   a `<framework>-test/` runner + `test-report/` parser
   (bashunit / cargo / busted / pytest / go test). Per-language docs live in

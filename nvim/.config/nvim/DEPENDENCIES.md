@@ -33,7 +33,7 @@ Paths the config resolves on its own need these directories on `PATH`: `~/.local
 | `wget` | Java extension installers (`scripts/java/install_*.sh`), Mason fallback | `wget` | `wget` |
 | `unzip` | Mason, `-sources.jar` extraction (`modules/java/dependencies-search`), jdtls bundle MANIFEST read (`jdtls-config.lua`) | `unzip` | `unzip` |
 | `zip`, `tar`, `gzip` | SDKMAN, Mason archives | `zip` (tar/gzip ship with macOS) | `zip tar gzip` |
-| `rg` (ripgrep) | Snacks pickers, grug-far, Java refactor, static-import explorer, project references (`gR`) | `ripgrep` | `ripgrep` |
+| `rg` (ripgrep) | Snacks pickers, grug-far, Java refactor, static-import explorer | `ripgrep` | `ripgrep` |
 | `fd` | Snacks pickers, find-dir picker, Java refactor (`buffer-manager`, `mirror-sync`) | `fd` | `fd` |
 | `gsed` (GNU sed, macOS only) | Java refactor in-place rewrites (`modules/java/refactor/constants.lua`); BSD sed is incompatible | `gnu-sed` | (`sed` is GNU) |
 | `cc`, `make` | treesitter parsers, kulala.nvim tree-sitter grammar | Xcode Command Line Tools | `base-devel` |

@@ -414,7 +414,7 @@ M.jdtls_settings = {
         -- With `all`, a search for a common identifier (`name`, `type`) parses every library source
         -- (-sources.jar) that mentions it: minutes per request, and jetty-ee10-webapp's attached source
         -- crashes JDT (detectAPILeaks NPE -> "Internal error"). `projectOnly` answers in ~1 s.
-        -- search = { scope = "projectOnly" }, -- all | main | projectOnly
+        search = { scope = "projectOnly" }, -- all | main | projectOnly
     },
 }
 

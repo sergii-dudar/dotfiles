@@ -4,15 +4,14 @@
 --
 -- - definition - run custom `gd` navigation handlers with LSP fallback
 -- - declaration - run custom `gD` navigation handlers with LSP fallback
--- - references - run custom `gr` navigation handlers with LSP fallback
--- - project_references - run custom `gR` handlers (fast, cwd-only references) with grep-word fallback
+-- - references - run custom `gr` navigation handlers with LSP fallback (`opts.scope`: `gR` / `gM`)
 
 local lang_registry = require("utils.lang.registry")
 
 local M = {}
 local lsp_modules_by_lang = {}
 
----@alias lang.LspNavigationMethod "definition"|"declaration"|"references"|"project_references"
+---@alias lang.LspNavigationMethod "definition"|"declaration"|"references"
 
 ---@class lang.LspNavigationContext
 ---@field method lang.LspNavigationMethod LSP navigation method being invoked.
@@ -21,6 +20,7 @@ local lsp_modules_by_lang = {}
 ---@field row integer Current cursor row, 0-indexed.
 ---@field col integer Current cursor column, 0-indexed.
 ---@field fallback fun() Continue with the standard LSP navigation request.
+---@field opts table Extra per-call options forwarded to the handlers (e.g. `scope` for Java references).
 
 ---@class lang.LspNavigationHandler
 ---@field name? string Human-readable handler name used in error notifications.
@@ -35,11 +35,6 @@ local fallback_by_method = {
     end,
     references = function()
         Snacks.picker.lsp_references()
-    end,
-    -- no LSP at all here: `gR` is the "fast, current project only" variant, so the
-    -- generic fallback is a plain ripgrep of the word under the cursor across cwd
-    project_references = function()
-        Snacks.picker.grep_word()
     end,
 }
 
@@ -142,7 +137,8 @@ end
 
 --- Run custom handlers for a navigation method before the standard LSP request.
 ---@param method lang.LspNavigationMethod
-local function run(method)
+---@param opts? table per-call options exposed to the handlers as `ctx.opts`
+local function run(method, opts)
     local fallback = fallback_for(method)
     if not fallback then
         vim.notify("Unsupported LSP navigation method: " .. method, vim.log.levels.WARN)
@@ -170,6 +166,7 @@ local function run(method)
         row = cursor[1] - 1,
         col = cursor[2],
         fallback = continue_lsp,
+        opts = opts or {},
     }
 
     for _, handler in ipairs(get_handlers(ctx)) do
@@ -201,17 +198,11 @@ end
 --- Used by `gr` mappings; falls back to `Snacks.picker.lsp_references()` exactly
 --- once when no handler claims the request. A claiming handler owns the whole
 --- request (it may augment the standard references with synthetic locations).
-function M.references()
-    run("references")
-end
-
---- List references restricted to the current project (cwd) through registered
---- language-specific handlers. Used by `gR` mappings; falls back to
---- `Snacks.picker.grep_word()` exactly once when no handler claims the request.
---- Unlike `gr` this never asks the LSP for references: handlers are expected to be
---- ripgrep/treesitter based (see `modules.java.project-references`).
-function M.project_references()
-    run("project_references")
+--- `opts` reach the handlers as `ctx.opts` (Java: `scope` = "all"|"main"|"projectOnly"
+--- forces jdtls' `java.search.scope` for this one search; `gR` / `gM`).
+---@param opts? table
+function M.references(opts)
+    run("references", opts)
 end
 
 return M

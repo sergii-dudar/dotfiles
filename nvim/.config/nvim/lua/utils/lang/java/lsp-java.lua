@@ -3,7 +3,7 @@
 --
 -- - resolve_imports - auto-apply safe Java import/code actions with fallback
 -- - navigation - MapStruct and Lombok-aware definition/declaration handlers,
---   plus the ripgrep+treesitter project-scoped references handler for `gR`
+--   plus the MapStruct-aware references handler for `gr` (scoped by `gR` / `gM`)
 
 local lsp_lang_common = require("utils.lang.lsp-common")
 
@@ -62,7 +62,8 @@ end
 --- Always claims the request in Java buffers: it issues the standard references and
 --- augments them with the `@Mapping` declaration lines that reference the field. When
 --- there is nothing MapStruct-specific to add, the finder defers to `ctx.fallback`, so
---- non-mapper references behave exactly like the default picker.
+--- non-mapper references behave exactly like the default picker. `ctx.opts.scope`
+--- (`gR` / `gM`) forces jdtls' `java.search.scope` for this one search.
 ---@return lang.LspNavigationHandler
 local function mapstruct_references_handler()
     return {
@@ -77,6 +78,7 @@ local function mapstruct_references_handler()
                 row = ctx.row,
                 col = ctx.col,
                 fallback = ctx.fallback,
+                scope = ctx.opts and ctx.opts.scope or nil,
             })
             return true
         end,
@@ -96,25 +98,6 @@ local function lombok_handler()
     }
 end
 
---- Build the project-scoped references handler for Java LSP `gR`.
---- Claims the request whenever `modules.java.project-references` can name a
---- `<Type>#<method>` under the cursor (declaration or call site) and opens its
---- ripgrep+treesitter picker over cwd. On any other symbol it declines, so the
---- generic `Snacks.picker.grep_word()` fallback runs instead.
----@return lang.LspNavigationHandler
-local function project_references_handler()
-    return {
-        name = "java-project-references",
-        navigate = function(ctx)
-            if ctx.filetype ~= "java" then
-                return false
-            end
-
-            return require("modules.java.project-references").find({ row = ctx.row, col = ctx.col }) == true
-        end,
-    }
-end
-
 M.navigation = {
     definition = {
         mapstruct_path_handler(),
@@ -125,9 +108,6 @@ M.navigation = {
     },
     references = {
         mapstruct_references_handler(),
-    },
-    project_references = {
-        project_references_handler(),
     },
 }
 

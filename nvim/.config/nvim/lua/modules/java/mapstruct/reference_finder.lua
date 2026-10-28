@@ -34,7 +34,17 @@
 -- `include_current = false`) rather than composing the built-in async `lsp_references`
 -- finder, because re-running that finder on every <C-t> dropped the injected @Mapping
 -- items; a synchronous finder makes the toggle deterministic. We still reuse the
--- Snacks picker chrome (layout, previewer, jump, sort). Entry point:
+-- Snacks picker chrome (layout, previewer, jump, sort). A failed references request
+-- (jdtls `Internal error`, e.g. a JDT crash while resolving a library's attached sources)
+-- is reported, never folded into "No references found": an error notification replaces
+-- the spinner when nothing can be shown, a warning precedes the picker when the results
+-- are partial (see report_request_errors).
+--
+-- Scope — jdtls searches with its `java.search.scope` preference (`all` | `main` |
+-- `projectOnly`, see jdtls-config-util). `opts.scope` forces another value for ONE
+-- search: the live preference is switched through workspace/didChangeConfiguration
+-- right before the references requests and restored once they have all answered
+-- (override_search_scope). `gR` / `gM` in java-config.lua use this. Entry point:
 -- `M.find_references(opts)`, registered as the Java `references` navigation handler in
 -- `utils/lang/java/lsp-java.lua`; defers to `opts.fallback` when there is no jdtls
 -- client / no symbol under the cursor.
@@ -260,7 +270,8 @@ end
 --- instead and reuse only the Snacks picker chrome — layout, previewer, jump, sort.)
 ---@param mapping_items snacks.picker.finder.Item[] precomputed @Mapping lines (may be empty)
 ---@param native_items snacks.picker.finder.Item[] native references (declaration already filtered out)
-local function open_picker(mapping_items, native_items)
+---@param scope_tag? string " [scope]" suffix for the title / notice when a scope was forced
+local function open_picker(mapping_items, native_items, scope_tag)
     -- Same layout the standard lsp_references picker uses (see snacks/configs/pickers.lua).
     local layouts = require("plugins.snacks.configs.layouts")
 
@@ -276,14 +287,26 @@ local function open_picker(mapping_items, native_items)
     end
 
     if #mapping_items == 0 and #sources == 0 and #tests == 0 then
-        vim.notify("No references found", vim.log.levels.INFO)
+        vim.notify("No references found" .. (scope_tag or ""), vim.log.levels.INFO)
         return
     end
 
-    local title = #mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References"
+    local base_title = (#mapping_items > 0 and "Jdtls References (+@Mapping)" or "Jdtls References")
+        .. (scope_tag or "")
     -- Show tests when they are the only thing to show (else the picker would look
     -- empty), regardless of the persisted flag.
     local force_tests = #mapping_items == 0 and #sources == 0 and #tests > 0
+
+    --- Title with a "N test refs hidden <C-t>" hint while test references exist but
+    --- are hidden, so a hidden `src/test` usage is never mistaken for a missing one.
+    ---@return string
+    local function title_for()
+        local shown = M.settings.show_test_references or force_tests
+        if #tests > 0 and not shown then
+            return ("%s · %d test ref%s hidden <C-t>"):format(base_title, #tests, #tests == 1 and "" or "s")
+        end
+        return base_title
+    end
 
     -- Rank groups so order is preserved even while filtering: @Mapping (0), source
     -- refs (1), test refs (2). Test visibility follows the session-persistent flag
@@ -310,7 +333,7 @@ local function open_picker(mapping_items, native_items)
     end
 
     Snacks.picker.pick({
-        title = title,
+        title = title_for(),
         format = "file",
         auto_confirm = true,
         layout = layouts.custom_vertical,
@@ -332,10 +355,69 @@ local function open_picker(mapping_items, native_items)
                     "Test references " .. (M.settings.show_test_references and "shown" or "hidden") .. " (session)",
                     vim.log.levels.INFO
                 )
+                -- Re-render the title hint (`picker.title` feeds the `{title}` placeholder).
+                if picker.update_titles then
+                    picker.title = title_for()
+                    picker:update_titles()
+                end
                 picker:find()
             end,
         },
     })
+end
+
+--- Valid values of the jdtls `java.search.scope` preference (ReferencesHandler.createSearchScope):
+--- `all` = project sources + referenced projects + application libraries (+ JRE when inside it),
+--- `main` = the same minus test code, `projectOnly` = sources + referenced projects only.
+local SEARCH_SCOPES = { all = true, main = true, projectOnly = true }
+
+--- Force `java.search.scope` for ONE reference search. jdtls reads the preference when it
+--- starts processing a references request, so the switch is sent (a notification, handled
+--- by the server in order before the request) right before the requests, and the configured
+--- value is restored by the returned function once every request has answered or the
+--- watchdog fired. jdtls rebuilds its Preferences from the settings map of every
+--- didChangeConfiguration, hence the full `client.settings` is resent both times with only
+--- `java.search.scope` replaced; a client without a `java` settings table is left alone (a
+--- partial map would reset every other preference to its default). The restore sends the
+--- configured scope EXPLICITLY (`all` when the setting is absent): jdtls keeps the previous
+--- value of a key missing from the map, so resending the original settings without the key
+--- would leave the server on the overridden scope (verified live: a `gM` left `gr` on `main`).
+---@param client vim.lsp.Client
+---@param scope? "all"|"main"|"projectOnly"
+---@return fun() restore idempotent; no-op when nothing was switched
+local function override_search_scope(client, scope)
+    local noop = function() end
+    if not scope then
+        return noop
+    end
+    local settings = client.settings
+    if type(settings) ~= "table" or type(settings.java) ~= "table" then
+        vim.notify(
+            "[MapStruct] cannot switch java.search.scope: the jdtls client has no `java` settings",
+            vim.log.levels.WARN
+        )
+        return noop
+    end
+    local configured = vim.tbl_get(settings, "java", "search", "scope") or "all"
+    if configured == scope then
+        return noop
+    end
+    local function with_scope(value)
+        local copy = vim.deepcopy(settings)
+        copy.java.search = vim.tbl_extend("force", copy.java.search or {}, { scope = value })
+        return copy
+    end
+    client:notify("workspace/didChangeConfiguration", { settings = with_scope(scope) })
+    log.debug("java.search.scope:", configured, "->", scope)
+    local restored = false
+    return function()
+        if restored then
+            return
+        end
+        restored = true
+        client:notify("workspace/didChangeConfiguration", { settings = with_scope(configured) })
+        log.debug("java.search.scope: restored", configured)
+    end
 end
 
 --- @Mapping-augmented `gr` for the field under the cursor. Unions references for the
@@ -344,9 +426,19 @@ end
 --- picker over lists we own: `@Mapping` declarations on top, then source/test references
 --- (see `open_picker`). Defers to `opts.fallback` only when there is no jdtls client /
 --- no symbol under the cursor.
----@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun() }
+---@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun(), scope?: "all"|"main"|"projectOnly" }
 function M.find_references(opts)
     opts = opts or {}
+    -- Optional one-shot `java.search.scope` (see override_search_scope); unknown values are ignored.
+    local scope = opts.scope
+    if scope ~= nil and not SEARCH_SCOPES[scope] then
+        vim.notify(
+            ("[MapStruct] unknown java.search.scope %s (all | main | projectOnly)"):format(tostring(scope)),
+            vim.log.levels.WARN
+        )
+        scope = nil
+    end
+    local scope_tag = scope and (" [" .. scope .. "]") or nil
     local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
     local row = opts.row or (vim.api.nvim_win_get_cursor(0)[1] - 1)
     local col = opts.col or vim.api.nvim_win_get_cursor(0)[2]
@@ -365,11 +457,19 @@ function M.find_references(opts)
     -- `gr` on a *type* name (a class / record / interface / enum, or a reference to one)
     -- carries no MapStruct meaning — `@Mapping` paths address members, not types — so a
     -- type would otherwise drag in every mapper `@Mapping` line touching that type's fields.
-    -- Defer to the plain reference search instead of augmenting.
+    -- Defer to the plain reference search instead of augmenting. A scoped call must stay
+    -- here, though (the scope switch needs our completion hook to restore the setting), so
+    -- it runs the plain search itself: no sibling accessors, no @Mapping augmentation.
+    local augment = true
     if java_ts.is_type_symbol_at(bufnr, row, col) then
-        fallback()
-        return
+        if not scope then
+            fallback()
+            return
+        end
+        augment = false
     end
+
+    local restore_scope = override_search_scope(client, scope)
 
     local encoding = client.offset_encoding or "utf-16"
     local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
@@ -403,6 +503,8 @@ function M.find_references(opts)
             SPINNER_TIMEOUT_MS,
             0,
             vim.schedule_wrap(function()
+                -- The requests are still pending server-side; jdtls has read the scope by now.
+                restore_scope()
                 finish_spinner(function()
                     spinner.stop(false, "Reference search timed out", { id = SPINNER_ID, timeout = 3000 })
                 end)
@@ -417,7 +519,7 @@ function M.find_references(opts)
         finish_spinner(function()
             spinner.cancel({ id = SPINNER_ID })
         end)
-        open_picker(mapping_items, native_items)
+        open_picker(mapping_items, native_items, scope_tag)
     end
 
     -- Resolve the (unioned) reference locations: build the native items, then map each
@@ -460,8 +562,8 @@ function M.find_references(opts)
 
         log.debug("references:", #locations, "impl candidates:", #impl_uris, "field:", field_name)
 
-        -- No candidate impl usage: plain references, no @Mapping lines to add.
-        if #impl_uris == 0 then
+        -- No candidate impl usage (or augmentation off for a type symbol): plain references.
+        if #impl_uris == 0 or not augment then
             show({}, native_items)
             return
         end
@@ -576,7 +678,7 @@ function M.find_references(opts)
     -- Siblings are found only in the current buffer (the model class) and scoped to the
     -- enclosing type, so same-named members of sibling classes are never conflated.
     local names = reference_resolver.property_sibling_names(field_name)
-    local raw_positions = reference_resolver.sibling_declaration_positions(bufnr, row, col, names)
+    local raw_positions = augment and reference_resolver.sibling_declaration_positions(bufnr, row, col, names) or {}
     table.insert(raw_positions, 1, { line = row, character = col })
 
     local positions, seen_pos = {}, {}
@@ -591,6 +693,11 @@ function M.find_references(opts)
     local doc_params = vim.lsp.util.make_text_document_params(bufnr)
     local all_locations, seen_loc = {}, {}
     local pending_refs = #positions
+    -- Messages of failed `textDocument/references` requests (e.g. a jdtls `Internal
+    -- error` while it resolves a library's attached sources). A failed request simply
+    -- yields no locations, so without this the user would read "No references found"
+    -- for a search that actually broke; report_request_errors surfaces them instead.
+    local ref_errors = {}
 
     local function collect(locs)
         for _, loc in ipairs(locs or {}) do
@@ -606,7 +713,49 @@ function M.find_references(opts)
         end
     end
 
+    --- Surface failed references requests. With no location at all the failure replaces
+    --- the spinner (and the misleading "No references found"); with partial results a
+    --- warning is shown and the picker still opens.
+    ---@return boolean fatal true when there is nothing to show
+    local function report_request_errors()
+        if #ref_errors == 0 then
+            return false
+        end
+        local distinct, seen_err = {}, {}
+        for _, e in ipairs(ref_errors) do
+            if not seen_err[e] then
+                seen_err[e] = true
+                distinct[#distinct + 1] = e
+            end
+        end
+        local fatal = #all_locations == 0
+        local msg = ("[MapStruct] Reference search %s: jdtls failed %d of %d references request(s): %s\nServer trace: %s"):format(
+            fatal and "failed" or "incomplete",
+            #ref_errors,
+            #positions,
+            table.concat(distinct, "; "),
+            vim.fn.fnamemodify(vim.lsp.log.get_filename(), ":~")
+        )
+        if not fatal then
+            vim.notify(msg, vim.log.levels.WARN)
+            return false
+        end
+        if finished then
+            -- Watchdog already stopped the spinner (late answer): plain notification.
+            vim.notify(msg, vim.log.levels.ERROR)
+        else
+            finish_spinner(function()
+                spinner.stop(false, msg, { id = SPINNER_ID, timeout = 10000 })
+            end)
+        end
+        return true
+    end
+
     local function on_refs_done()
+        restore_scope()
+        if report_request_errors() then
+            return
+        end
         if #all_locations == 0 then
             show({}, {})
             return
@@ -632,13 +781,23 @@ function M.find_references(opts)
         }, function(err, locations)
             vim.schedule(function()
                 if err then
-                    log.warn("references request failed:", err.message or vim.inspect(err))
+                    local msg = err.message or vim.inspect(err)
+                    log.warn(
+                        "references request failed:",
+                        msg,
+                        "code:",
+                        tostring(err.code),
+                        "at",
+                        qp.line .. ":" .. qp.character
+                    )
+                    ref_errors[#ref_errors + 1] = msg
                 end
                 collect(locations)
                 step_ref()
             end)
         end, bufnr)
         if not sent then
+            ref_errors[#ref_errors + 1] = "request could not be sent to jdtls"
             vim.schedule(step_ref)
         end
     end
