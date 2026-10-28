@@ -407,6 +407,14 @@ M.jdtls_settings = {
         references = {
             includeDecompiledSources = true,
         },
+        -- Scope of textDocument/references (jdtls 1.61 ReferencesHandler.createSearchScope):
+        --   all         = project sources + referenced projects + application libraries (+ JRE when inside it) - default
+        --   main        = same as all, but test code (src/test) excluded
+        --   projectOnly = project sources + referenced projects only (no libraries)
+        -- With `all`, a search for a common identifier (`name`, `type`) parses every library source
+        -- (-sources.jar) that mentions it: minutes per request, and jetty-ee10-webapp's attached source
+        -- crashes JDT (detectAPILeaks NPE -> "Internal error"). `projectOnly` answers in ~1 s.
+        -- search = { scope = "projectOnly" }, -- all | main | projectOnly
     },
 }
 
