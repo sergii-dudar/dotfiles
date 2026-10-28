@@ -128,6 +128,12 @@ helpers), `tests/` (test-runner utilities), `ui/` (UI helpers), `linter/`, `json
 - `lsp-util.lua` — LSP client lookup (`get_client_by_name` / `get_clients_by_name`) + code-action helpers (apply by title, toggle between action pairs)
 - `dap-util.lua` — DAP helpers (clipboard copy of evaluated values, etc.)
 - `logging-util.lua`, `cache-util.lua`, `nio-util.lua` — infrastructure
+- `persistent-state-util.lua` — tiny persistent key/value store: `get(key, default)`,
+  `set(key, value)`, `toggle(key, default)` over one flat JSON object in
+  `persistant.state.json` at the config root (`vim.fn.json_encode`/`json_decode`; `get` reads
+  once into a cached table, `set` re-reads the file, changes the key, rewrites it whole and
+  refreshes the cache). Keys are dotted and prefixed with the
+  owning language/area, e.g. `java.references.show_tests` (the `gr` picker's <C-t> toggle)
 - `resource-cwd-resolver.lua` — resolve resources relative to project root
 - `indent-util.lua`, `buffer-util.lua`, `common-util.lua`, `string-util.lua`,
   `list-util.lua`, `diff-util.lua`, `envs-util.lua`, `neotree-util.lua` — general

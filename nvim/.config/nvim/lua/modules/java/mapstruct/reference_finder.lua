@@ -30,7 +30,7 @@
 --
 -- Presentation — a single SYNCHRONOUS finder over lists we own: @Mapping declarations
 -- on top, source references next, test references at the bottom (hidden by default,
--- <C-t> toggles). We build the native items ourselves (mirroring Snacks'
+-- <C-t> toggles; the choice is persisted via utils.persistent-state-util). We build the native items ourselves (mirroring Snacks'
 -- `include_current = false`) rather than composing the built-in async `lsp_references`
 -- finder, because re-running that finder on every <C-t> dropped the injected @Mapping
 -- items; a synchronous finder makes the toggle deterministic. We still reuse the
@@ -55,6 +55,7 @@ local picker_util = require("utils.snacks-pickers-util")
 local reference_resolver = require("modules.java.mapstruct.reference_resolver")
 local spinner = require("utils.ui.spinner")
 local logging_util = require("utils.logging-util")
+local state = require("utils.persistent-state-util")
 local log = logging_util.new({ name = "MapStructRefs", filename = "mapstruct-source.log" })
 
 -- Search-spinner notifier id + a watchdog timeout (ms) that force-stops it if a jdtls
@@ -64,13 +65,15 @@ local SPINNER_TIMEOUT_MS = 30000
 
 local M = {}
 
---- Session-persistent settings for the references picker. These live for the whole
---- Neovim session (not per-picker), so a toggle carries over to the next `gr`.
----@class MapStructRefsSettings
----@field show_test_references boolean Include `src/test` references in the picker. Toggle with <C-t>; carries to subsequent pickers this session. Useful while working on tests.
-M.settings = {
-    show_test_references = false,
-}
+--- Persisted setting (utils.persistent-state-util → `persistant.state.json` in the config
+--- root): include `src/test` references in the picker. <C-t> toggles it and the choice
+--- survives restarts and is shared by every Neovim instance. Useful while working on tests.
+M.SHOW_TESTS_KEY = "java.references.show_tests"
+
+---@return boolean
+local function show_tests_enabled()
+    return state.get(M.SHOW_TESTS_KEY, false) == true
+end
 
 --- Cheap URI prefilter for reference locations worth inspecting as a generated
 --- mapper impl. MapStruct names the generated class `<X>Impl` where the mapper type
@@ -311,7 +314,7 @@ local function open_picker(mapping_items, native_items, scope_tag)
         end
         return ("%s · <C-t> %s %d test ref%s"):format(
             base_title,
-            M.settings.show_test_references and "hide" or "show",
+            show_tests_enabled() and "hide" or "show",
             #tests,
             #tests == 1 and "" or "s"
         )
@@ -319,10 +322,10 @@ local function open_picker(mapping_items, native_items, scope_tag)
 
     -- Rank groups so order is preserved even while filtering: @Mapping (0), source
     -- refs (1), test refs (2). Test visibility follows the session-persistent flag
-    -- (M.settings.show_test_references), re-read on every finder run so <C-t> toggles
+    -- (persisted `java.references.show_tests`), re-read on every finder run so <C-t> toggles
     -- take effect and carry to the next picker.
     local function build()
-        local show_tests = M.settings.show_test_references or force_tests
+        local show_tests = show_tests_enabled() or force_tests
         local items = {}
         for _, it in ipairs(mapping_items) do
             it.rank = 0
@@ -359,11 +362,8 @@ local function open_picker(mapping_items, native_items, scope_tag)
             confirm = picker_util.confirm_with_reposition,
             -- Flip the session-persistent flag so the choice carries to later pickers.
             toggle_tests = function(picker)
-                M.settings.show_test_references = not M.settings.show_test_references
-                vim.notify(
-                    "Test references " .. (M.settings.show_test_references and "shown" or "hidden") .. " (session)",
-                    vim.log.levels.INFO
-                )
+                local shown = state.toggle(M.SHOW_TESTS_KEY, false)
+                vim.notify("Test references " .. (shown and "shown" or "hidden") .. " (persisted)", vim.log.levels.INFO)
                 -- Re-render the title hint (`picker.title` feeds the `{title}` placeholder).
                 if picker.update_titles then
                     picker.title = title_for()

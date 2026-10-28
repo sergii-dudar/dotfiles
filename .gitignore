@@ -48,6 +48,7 @@ zsh/serhii.shell/private.sh
 **/awesome/awesome-wm-widgets
 
 **/nvim/lazy-lock.json
+**/nvim/persistant.state.json
 
 # dwm
 suckless/dwm/*.o
