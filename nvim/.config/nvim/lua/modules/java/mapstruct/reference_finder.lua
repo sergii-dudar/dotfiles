@@ -297,15 +297,24 @@ local function open_picker(mapping_items, native_items, scope_tag)
     -- empty), regardless of the persisted flag.
     local force_tests = #mapping_items == 0 and #sources == 0 and #tests > 0
 
-    --- Title with a "N test refs hidden <C-t>" hint while test references exist but
-    --- are hidden, so a hidden `src/test` usage is never mistaken for a missing one.
+    --- Title with a `<C-t> show|hide N test refs` hint whenever test references exist,
+    --- so a hidden `src/test` usage is never mistaken for a missing one and the way back
+    --- is always visible. Tests that are forced (nothing else to show) cannot be hidden,
+    --- so they get a plain marker instead of a toggle hint.
     ---@return string
     local function title_for()
-        local shown = M.settings.show_test_references or force_tests
-        if #tests > 0 and not shown then
-            return ("%s · %d test ref%s hidden <C-t>"):format(base_title, #tests, #tests == 1 and "" or "s")
+        if #tests == 0 then
+            return base_title
         end
-        return base_title
+        if force_tests then
+            return base_title .. " · test refs only"
+        end
+        return ("%s · <C-t> %s %d test ref%s"):format(
+            base_title,
+            M.settings.show_test_references and "hide" or "show",
+            #tests,
+            #tests == 1 and "" or "s"
+        )
     end
 
     -- Rank groups so order is preserved even while filtering: @Mapping (0), source
