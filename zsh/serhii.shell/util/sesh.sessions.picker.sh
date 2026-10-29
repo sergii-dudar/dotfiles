@@ -5,7 +5,8 @@
 # - sources are fixed at launch: tmux sessions by default; extra sesh picker flags pass through
 #   (e.g. -z zoxide, -c config, -T tmuxinator, --preview; see `sesh picker --help` and [tui] in sesh.toml)
 # - no source switching, new-from-query, rename or find: use the fzf variants for those
-#   (sesh.sessions.fast.fzf.sh on prefix+t, sesh.sessions.full.fzf.sh on prefix+T)
+#   (sesh.sessions.fast.fzf.sh on zsh alt-s, sesh.sessions.full.fzf.sh on prefix+S)
+# Used by tmux (prefix+t).
 # Inside tmux it re-runs itself in a small popup; outside tmux it runs inline.
 
 if [ -n "$TMUX" ] && [ -z "$SESH_PICKER_POPUP" ]; then
