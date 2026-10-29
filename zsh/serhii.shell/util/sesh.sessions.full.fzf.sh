@@ -36,25 +36,25 @@ NUM="awk 'NR<=9{print NR\" \"\$0;next}{print \"  \"\$0}'"
 DIGITS='1,2,3,4,5,6,7,8,9'
 # digits jump by default: a digit picks that row if it exists and connects
 JUMP='transform:[ "$FZF_MATCH_COUNT" -ge "$FZF_KEY" ] && echo "pos($FZF_KEY)+accept"'
-# "#" toggles digit mode: jump (default, digits pick a row) <-> type (digits go to the filter, 󰌌 shown before the colon)
+# ctrl-d toggles digit mode: jump (default, digits pick a row) <-> type (digits go to the filter, 󰌌 shown before the colon)
 TOGGLE='transform:case "$FZF_PROMPT" in *󰌌*) echo "rebind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/ 󰌌 : /: })" ;; *) echo "unbind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/: / 󰌌 : })" ;; esac'
 session="$(
     sesh list -t -i | eval "$NUM" | fzf-tmux -x 100 -y 100 -p 100%,100% --height 100% \
         --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${itmux} Tmux: " \
-        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename} ${sep} [${b}${k}#${n}]:Digits" \
+        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴z${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴x${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename} ${sep} [${b}${k}󰘴d${n}]:Digits" \
         --bind 'tab:down,btab:up' \
         --bind "1:$JUMP" --bind "2:$JUMP" --bind "3:$JUMP" --bind "4:$JUMP" --bind "5:$JUMP" \
         --bind "6:$JUMP" --bind "7:$JUMP" --bind "8:$JUMP" --bind "9:$JUMP" \
-        --bind "#:$TOGGLE" \
+        --bind "ctrl-d:$TOGGLE" \
         --bind "ctrl-a:change-prompt(${y}⚡${n} Sesh All: )+rebind($DIGITS)+reload(sesh list -i | $NUM)" \
         --bind "ctrl-t:change-prompt(${itmux} Tmux: )+rebind($DIGITS)+reload(sesh list -t -i | $NUM)" \
-        --bind "ctrl-x:change-prompt(${izoxide} Zoxide: )+rebind($DIGITS)+reload(sesh list -z -i | $NUM)" \
+        --bind "ctrl-z:change-prompt(${izoxide} Zoxide: )+rebind($DIGITS)+reload(sesh list -z -i | $NUM)" \
         --bind "ctrl-g:change-prompt(${iconfigured}  Conf: )+rebind($DIGITS)+reload(sesh list -c -i | $NUM)" \
         --bind 'ctrl-f:change-prompt(  Find: )+reload((fd -H -d 5 -t d -E ".*" -E "*books*" . ~ | xargs -I folder printf " folder\n" ; \
                                                     fd -H -d 3 -t d -p ~/.tmux ~ | xargs -I folder printf " folder\n" ; \
                                                     fd -H -d 2 -t d -p ~/.config ~ | xargs -I folder printf " folder\n" ; \
                                                     fd -H -d 5 -t d -p ~/.local/share/nvim/lazy ~ | xargs -I folder printf " folder\n") | '"$NUM"')' \
-        --bind 'ctrl-d:execute(tmux has-session -t $(echo {} | cut -c5-) 2>/dev/null && tmux kill-session -t $(echo {} | cut -c5-))+change-prompt( Tmux Kill: )+reload(sesh list -t -i | '"$NUM"')' \
+        --bind 'ctrl-x:execute(tmux has-session -t $(echo {} | cut -c5-) 2>/dev/null && tmux kill-session -t $(echo {} | cut -c5-))+change-prompt( Tmux Kill: )+reload(sesh list -t -i | '"$NUM"')' \
         --bind 'ctrl-n:execute([ -n "{q}" ] && (tmux has-session -t {q} 2>/dev/null || tmux new-session -s {q} -n {q} -d))+change-prompt(  Tmux New: )+reload(sesh list -t -i | '"$NUM"')' \
         --bind 'ctrl-r:execute(old=$(echo {} | cut -c5-); tmux has-session -t "$old" 2>/dev/null && new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$old") && [ -n "$new" ] && tmux rename-session -t "$old" "$new")+change-prompt(󰑕  Tmux Rename: )+reload(sesh list -t -i | '"$NUM"')' \
         --preview 'n={}; n=${n#????}; tmux capture-pane -peJt "$n" 2>/dev/null || eza --tree --icons --level=1 --color=always --group-directories-first "$(eval echo "$n")"' \
