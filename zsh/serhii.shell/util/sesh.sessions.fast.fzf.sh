@@ -10,7 +10,7 @@
 # Used by tmux (prefix+t, via run-shell so the script sizes the popup) and zsh (alt-s / ctrl-f widget in tmux.scripts.sh).
 
 # popup width: 70% of the client, but never narrower than the one-line hints need
-MIN_W=92 # hints ~84 cells (⚡ is double-width) + fzf border 2 + gutter 2 + margin
+MIN_W=102 # hints 94 cells (⚡ is double-width) + fzf border 2 + gutter 2 + 2: fits from 100 (measured) + margin 2
 if [ -n "$TMUX" ] && [ -z "$SESH_FAST_POPUP" ]; then
     case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
     cw=$(tmux display-message -p '#{client_width}'); cw=${cw:-200}; w=$((cw * 70 / 100))
@@ -26,14 +26,14 @@ k=$'\033[32m'  # green
 bl=$'\033[34m' # blue
 y=$'\033[33m'  # yellow
 
-sep="${s}${n}"
+sep="${s}${n}"
 
-itmux=$'\033[38;5;4m\033[0m'
+itmux=$'\033[38;5;4m\033[0m'
 izoxide=$'\033[38;5;14m󱓞\033[0m'
-iconfigured=$'\033[38;5;110m\033[0m'
+iconfigured=$'\033[38;5;110m\033[0m'
 
-inew=$'\033[38;5;32m\033[0m'
-ikill=$'\033[38;5;1m\033[0m'
+inew=$'\033[38;5;32m\033[0m'
+ikill=$'\033[38;5;1m\033[0m'
 
 # marker shown in the title while digits are typed into the filter
 mtype='󰌌'
@@ -50,7 +50,7 @@ TOGGLE="transform:case \"\$FZF_PROMPT\" in *$mtype*) echo \"rebind($DIGITS)+chan
 session="$(
     sesh list -t -i | eval "$NUM" | fzf --height 100% --border --border-label " Tmux Session Manager " --no-sort --ansi \
         --prompt "${itmux} Tmux: " \
-        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}#${n}]:Digits" \
+        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴x${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}#${n}]:Digits" \
         --bind 'tab:down,btab:up' \
         --bind "1:$JUMP" --bind "2:$JUMP" --bind "3:$JUMP" --bind "4:$JUMP" --bind "5:$JUMP" \
         --bind "6:$JUMP" --bind "7:$JUMP" --bind "8:$JUMP" --bind "9:$JUMP" \
@@ -59,8 +59,8 @@ session="$(
         --bind "ctrl-t:change-prompt(${itmux} Tmux: )+rebind($DIGITS)+reload(sesh list -t -i | $NUM)" \
         --bind "ctrl-x:change-prompt(${izoxide} Zoxide: )+rebind($DIGITS)+reload(sesh list -z -i | $NUM)" \
         --bind "ctrl-g:change-prompt(${iconfigured}  Conf: )+rebind($DIGITS)+reload(sesh list -c -i | $NUM)" \
-        --bind 'ctrl-d:execute(n={}; tmux kill-session -t "${n#????}" 2>/dev/null)+change-prompt( Tmux Kill: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')' \
-        --bind 'ctrl-n:execute([ -n {q} ] && tmux new-session -d -s {q} -n {q} 2>/dev/null)+change-prompt(  Tmux New: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')'
+        --bind 'ctrl-d:execute(n={}; tmux kill-session -t "${n#????}" 2>/dev/null)+change-prompt( Tmux Kill: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')' \
+        --bind 'ctrl-n:execute([ -n {q} ] && tmux new-session -d -s {q} -n {q} 2>/dev/null)+change-prompt(  Tmux New: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')'
 )"
 
 [ -n "$session" ] && exec sesh connect "${session#??}"

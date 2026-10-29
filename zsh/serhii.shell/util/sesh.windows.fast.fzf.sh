@@ -5,7 +5,7 @@
 # triggered by tmux (prefix+w)
 
 # popup width: 70% of the client, but never narrower than the one-line hints need
-MIN_W=54 # hints fit from 52 cols (measured) + margin 2
+MIN_W=58 # hints fit from 56 cols (measured) + margin 2
 if [ -n "$TMUX" ] && [ -z "$SESH_FAST_POPUP" ]; then
     case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
     cw=$(tmux display-message -p '#{client_width}'); cw=${cw:-200}; w=$((cw * 70 / 100))
@@ -17,13 +17,13 @@ b=$'\033[1m'
 n=$'\033[0m'
 s=$'\033[35m'
 k=$'\033[32m'  # green
-sep="${s}${n}"
+sep="${s}${n}"
 
 iwin=$'\033[38;5;4m󱂬\033[0m'
 # action icons
-inew=$'\033[38;5;32m\033[0m'
-inewswitch=$'\033[38;5;32m 󰿄\033[0m'
-ikill=$'\033[38;5;1m\033[0m'
+inew=$'\033[38;5;32m\033[0m'
+inewswitch=$'\033[38;5;32m 󰿄\033[0m'
+ikill=$'\033[38;5;1m\033[0m'
 
 LIST_CMD='tmux list-windows -F "#{window_index}: #{window_name}"'
 PANE_PATH=$(tmux display-message -p '#{pane_current_path}')
