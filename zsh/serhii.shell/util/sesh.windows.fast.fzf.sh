@@ -6,14 +6,21 @@
 
 if [ -n "$TMUX" ] && [ -z "$SESH_FAST_POPUP" ]; then
 case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
-    exec tmux display-popup -E -B -w 40% -h 60% "SESH_FAST_POPUP=1 '$self'"
+    exec tmux display-popup -E -B -w 70% -h 60% "SESH_FAST_POPUP=1 '$self'"
 fi
 
 b=$'\033[1m'
 n=$'\033[0m'
+s=$'\033[35m'
 k=$'\033[32m'  # green
+sep="${s}${n}"
 
 iwin=$'\033[38;5;4m󱂬\033[0m'
+# action icons
+inew=$'\033[38;5;32m\033[0m'
+inewswitch=$'\033[38;5;32m 󰿄\033[0m'
+ikill=$'\033[38;5;1m\033[0m'
+ipreview=$'\033[38;5;245m󰈈\033[0m'
 
 LIST_CMD='tmux list-windows -F "#{window_index}: #{window_name}"'
 PANE_PATH=$(tmux display-message -p '#{pane_current_path}')
@@ -21,7 +28,7 @@ PANE_PATH=$(tmux display-message -p '#{pane_current_path}')
 window="$(
     eval "$LIST_CMD" | fzf --height 100% --border=none --no-sort --ansi \
         --prompt "${iwin} Windows: " \
-        --header "${b}${k}󰘴n${n} New  ${b}${k}󰘴g${n} New+Switch  ${b}${k}󰘴d${n} Kill  ${b}${k}󰘴p${n} Preview" \
+        --header "[${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴g${n}]:New & Switch ${inewswitch}  ${sep} [${b}${k}󰘴d${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴p${n}]:Preview ${ipreview}" \
         --bind 'tab:down,btab:up' \
         --bind 'ctrl-n:execute(name={q}; [ -z "$name" ] && printf "Window name: " && read name; [ -n "$name" ] && tmux new-window -n "$name" -c '"$PANE_PATH"')+clear-query+reload('"$LIST_CMD"')' \
         --bind 'ctrl-g:execute(name={q}; [ -z "$name" ] && printf "Window name: " && read name; [ -n "$name" ] && tmux new-window -n "$name" -c '"$PANE_PATH"')+abort' \
