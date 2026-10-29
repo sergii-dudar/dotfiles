@@ -7,13 +7,14 @@
 # - row numbering is a shell loop, not awk: no extra process at start or on reload
 # - rows 1-9 are numbered and a digit picks that row and connects (default);
 #   ctrl-d toggles to typing digits into the filter (shown as 󰌌 before the colon of the title, with a space so the terminal can draw it over two cells) and back,
-#   any source key (ctrl-a/t/z/g) or action (ctrl-n/x) returns to jump mode
+#   any source key (ctrl-a/t/z/g/f) or action (ctrl-n/x/r) returns to jump mode
 # - no preview: nothing is spawned while moving the cursor
-# - no find (ctrl-f) / rename (ctrl-r): use sesh.sessions.full.fzf.sh (prefix+S) for those
+# - find (ctrl-f) and rename (ctrl-r) as in the full version; find prefixes the folder icon in a shell loop instead of
+#   one xargs/printf process per folder, rename reads the name with ${n#????} instead of echo|cut
 # Used by tmux (prefix+t, sourced) and zsh (alt-s / ctrl-f widget in tmux.scripts.sh, executed). Keep it bash- and zsh-compatible.
 
 # popup width: 70% of the client, but never narrower than the one-line hints need (keep MIN_W in sync with .tmux.conf)
-MIN_W=103 # hints 95 cells (⚡ is double-width) + fzf border 2 + gutter 2 + 2: fits from 101 (measured) + margin 2
+MIN_W=134 # hints 126 cells (⚡ is double-width) + fzf border 2 + gutter 2 + 2: fits from 132 (measured) + margin 2
 if [ -n "$TMUX" ] && [ -z "$SESH_FAST_POPUP" ]; then
     case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
     # one tmux call: the width is a tmux format (70% of the client, at least MIN_W, at most 100%; the second threshold is
@@ -34,9 +35,11 @@ sep="${s}${n}"
 itmux=$'\033[38;5;4m\033[0m'
 izoxide=$'\033[38;5;14m󱓞\033[0m'
 iconfigured=$'\033[38;5;110m\033[0m'
+isearch=$'\033[38;5;141m\033[0m'
 
 inew=$'\033[38;5;32m\033[0m'
 ikill=$'\033[38;5;1m\033[0m'
+irename=$'\033[38;5;214m󰑕\033[0m'
 
 # marker shown in the title while digits are typed into the filter
 mtype='󰌌'
@@ -46,6 +49,8 @@ mtype='󰌌'
 # Strip 4 chars (${n#????}) to get the bare name; sesh connect strips the icon itself, so it gets ${session#??}.
 NUM='{ set -- 1 2 3 4 5 6 7 8 9; while IFS= read -r l; do if [ $# -gt 0 ]; then printf "%s %s\n" "$1" "$l"; shift; else printf "  %s\n" "$l"; fi; done; }'
 DIGITS='1,2,3,4,5,6,7,8,9'
+# find results get the folder icon the same way, in a loop (the full version runs one printf per folder through xargs)
+DIRICON='{ while IFS= read -r l; do printf " %s\n" "$l"; done; }'
 # a digit picks that row if it exists and connects
 JUMP='transform:[ "$FZF_MATCH_COUNT" -ge "$FZF_KEY" ] && echo "pos($FZF_KEY)+accept"'
 # ctrl-d toggles the digit mode: inserts/removes the marker before the colon of the title
@@ -54,7 +59,7 @@ TOGGLE="transform:case \"\$FZF_PROMPT\" in *$mtype*) echo \"rebind($DIGITS)+chan
 session="$(
     sesh list -t -i | eval "$NUM" | fzf --height 100% --border --border-label " Tmux Session Manager " --no-sort --ansi \
         --prompt "${itmux} Tmux: " \
-        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴z${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴x${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴d${n}]:Digits" \
+        --header "[${b}${k}󰘴a${n}]:All ${y}⚡${n} ${sep} [${b}${k}󰘴t${n}]:Tmux ${bl}${n}  ${sep} [${b}${k}󰘴z${n}]:Z ${izoxide} ${sep} [${b}${k}󰘴g${n}]:Conf ${iconfigured}  ${sep} [${b}${k}󰘴f${n}]:Find ${isearch}  ${sep} [${b}${k}󰘴n${n}]:New ${inew}  ${sep} [${b}${k}󰘴x${n}]:Kill ${ikill}  ${sep} [${b}${k}󰘴r${n}]:Rename ${irename} ${sep} [${b}${k}󰘴d${n}]:Digits" \
         --bind 'tab:down,btab:up' \
         --bind "1:$JUMP" --bind "2:$JUMP" --bind "3:$JUMP" --bind "4:$JUMP" --bind "5:$JUMP" \
         --bind "6:$JUMP" --bind "7:$JUMP" --bind "8:$JUMP" --bind "9:$JUMP" \
@@ -63,8 +68,10 @@ session="$(
         --bind "ctrl-t:change-prompt(${itmux} Tmux: )+rebind($DIGITS)+reload(sesh list -t -i | $NUM)" \
         --bind "ctrl-z:change-prompt(${izoxide} Zoxide: )+rebind($DIGITS)+reload(sesh list -z -i | $NUM)" \
         --bind "ctrl-g:change-prompt(${iconfigured}  Conf: )+rebind($DIGITS)+reload(sesh list -c -i | $NUM)" \
+        --bind 'ctrl-f:change-prompt(  Find: )+rebind('"$DIGITS"')+reload({ fd -H -d 5 -t d -E ".*" -E "*books*" . ~; fd -H -d 3 -t d -p ~/.tmux ~; fd -H -d 2 -t d -p ~/.config ~; fd -H -d 5 -t d -p ~/.local/share/nvim/lazy ~; } | '"$DIRICON"' | '"$NUM"')' \
         --bind 'ctrl-x:execute(n={}; tmux kill-session -t "${n#????}" 2>/dev/null)+change-prompt( Tmux Kill: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')' \
-        --bind 'ctrl-n:execute([ -n {q} ] && tmux new-session -d -s {q} -n {q} 2>/dev/null)+change-prompt(  Tmux New: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')'
+        --bind 'ctrl-n:execute([ -n {q} ] && tmux new-session -d -s {q} -n {q} 2>/dev/null)+change-prompt(  Tmux New: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')' \
+        --bind 'ctrl-r:execute(n={}; old=${n#????}; tmux has-session -t "$old" 2>/dev/null && new=$(bash -c "read -e -i \"\$1\" -p \"Rename to: \" n && printf %s \"\$n\"" _ "$old") && [ -n "$new" ] && tmux rename-session -t "$old" "$new")+change-prompt(󰑕  Tmux Rename: )+rebind('"$DIGITS"')+reload(sesh list -t -i | '"$NUM"')'
 )"
 
 [ -n "$session" ] && exec sesh connect "${session#??}"

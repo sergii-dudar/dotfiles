@@ -30,7 +30,7 @@ session manager have ability to:
 
 ![tmux-session-manager with ](../screenshots/tmux/tmux-session-manager-dirs-preview.png)
 
-configs: [sesh.sessions.fast.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.fast.fzf.sh) (`prefix+t`, `alt-s`; minimal spawns, no preview, `1`-`9` jump to a numbered row, `ctrl-d` toggles typing digits into the filter), [sesh.sessions.picker.sh](../zsh/serhii.shell/util/sesh.sessions.picker.sh) (unbound; sesh's built-in picker TUI, `#` then `1`-`9` jumps), [sesh.sessions.full.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.full.fzf.sh) (`prefix+S`; live preview, find, rename), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
+configs: [sesh.sessions.fast.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.fast.fzf.sh) (`prefix+t`, `alt-s`; minimal spawns, no preview, find and rename as in the full version, `1`-`9` jump to a numbered row, `ctrl-d` toggles typing digits into the filter), [sesh.sessions.picker.sh](../zsh/serhii.shell/util/sesh.sessions.picker.sh) (unbound; sesh's built-in picker TUI, `#` then `1`-`9` jumps), [sesh.sessions.full.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.full.fzf.sh) (`prefix+S`; live preview, find, rename), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
 
 ##### Open links: Control + left click
 
