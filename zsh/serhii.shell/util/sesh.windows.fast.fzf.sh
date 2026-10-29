@@ -5,8 +5,8 @@
 # triggered by tmux (prefix+w)
 
 if [ -n "$TMUX" ] && [ -z "$SESH_FAST_POPUP" ]; then
-    case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
-    exec tmux display-popup -E -B -w 30% -h 60% "SESH_FAST_POPUP=1 '$self'"
+case "$0" in /*) self="$0" ;; *) self="$PWD/$0" ;; esac
+    exec tmux display-popup -E -B -w 40% -h 60% "SESH_FAST_POPUP=1 '$self'"
 fi
 
 b=$'\033[1m'
