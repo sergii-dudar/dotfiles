@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Tmux Window Manager (fast variant): manages windows in the current session with minimal spawns.
-# - no fzf-tmux layer, no tput, no preview, #!/bin/bash (no env hop), pane path resolved by tmux only when a window is created
+# - no fzf-tmux layer, no tput, no preview, pane path resolved by tmux only when a window is created
 # - no rename (ctrl-r): use sesh.windows.full.fzf.sh (prefix+W) for that
 # triggered by tmux (prefix+w): .tmux.conf opens the popup itself and sources this file with SESH_FAST_POPUP=1;
 # the wrapper below only runs when the script is executed directly. Keep it bash- and zsh-compatible.

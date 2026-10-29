@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Tmux Session Manager (fast variant): minimal process spawns, same look as sesh.sessions.full.fzf.sh.
 # - no fzf-tmux layer: tmux prefix+t opens the popup itself (run-shell -C in .tmux.conf sizes it with a format) and
 #   sources this file into the popup shell with SESH_FAST_POPUP=1; the wrapper below is for the zsh widget (alt-s),
 #   which runs the script and lets it open and size the popup
-# - no tput calls: escape sequences inlined; #!/bin/bash instead of /usr/bin/env bash (one exec less)
+# - no tput calls: escape sequences inlined (the env shebang hop is paid only on the alt-s path; tmux sources the file)
 # - row numbering is a shell loop, not awk: no extra process at start or on reload
 # - rows 1-9 are numbered and a digit picks that row and connects (default);
 #   ctrl-d toggles to typing digits into the filter (shown as 󰌌 before the colon of the title, with a space so the terminal can draw it over two cells) and back,
