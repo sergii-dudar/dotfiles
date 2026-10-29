@@ -30,7 +30,7 @@ session manager have ability to:
 
 ![tmux-session-manager with ](../screenshots/tmux/tmux-session-manager-dirs-preview.png)
 
-configs: [sesh.sessions.sh](../zsh/serhii.shell/util/sesh.sessions.sh), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
+configs: [sesh.sessions.fast.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.fast.fzf.sh) (`prefix+t`, `alt-s`; minimal spawns, preview on `ctrl-p`), [sesh.sessions.full.fzf.sh](../zsh/serhii.shell/util/sesh.sessions.full.fzf.sh) (`prefix+T`; live preview, find, rename), [tmux.scripts.sh](../zsh/serhii.shell/tmux.scripts.sh)
 
 ##### Open links: Control + left click
 
