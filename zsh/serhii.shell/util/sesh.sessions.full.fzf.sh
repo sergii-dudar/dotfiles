@@ -37,7 +37,7 @@ DIGITS='1,2,3,4,5,6,7,8,9'
 # digits jump by default: a digit picks that row if it exists and connects
 JUMP='transform:[ "$FZF_MATCH_COUNT" -ge "$FZF_KEY" ] && echo "pos($FZF_KEY)+accept"'
 # "#" toggles digit mode: jump (default, digits pick a row) <-> type (digits go to the filter, 󰌌 shown before the colon)
-TOGGLE='transform:case "$FZF_PROMPT" in *󰌌*) echo "rebind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/ 󰌌: /: })" ;; *) echo "unbind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/: / 󰌌: })" ;; esac'
+TOGGLE='transform:case "$FZF_PROMPT" in *󰌌*) echo "rebind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/ 󰌌 : /: })" ;; *) echo "unbind(1,2,3,4,5,6,7,8,9)+change-prompt(${FZF_PROMPT/: / 󰌌 : })" ;; esac'
 session="$(
     sesh list -t -i | eval "$NUM" | fzf-tmux -x 100 -y 100 -p 100%,100% --height 100% \
         --no-sort --ansi --border-label " Tmux Session Manager " --prompt "${itmux} Tmux: " \

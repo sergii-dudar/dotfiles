@@ -3,7 +3,7 @@
 # - no fzf-tmux layer: inside tmux it re-runs itself directly in a tmux popup
 # - no tput calls: escape sequences inlined
 # - rows 1-9 are numbered and a digit picks that row and connects (default);
-#   "#" toggles to typing digits into the filter (shown as 󰌌 before the colon of the title) and back,
+#   "#" toggles to typing digits into the filter (shown as 󰌌 before the colon of the title, with a space so the terminal can draw it over two cells) and back,
 #   any source key (ctrl-a/t/x/g) or action (ctrl-n/d) returns to jump mode
 # - no preview: nothing is spawned while moving the cursor
 # - no find (ctrl-f) / rename (ctrl-r): use sesh.sessions.full.fzf.sh (prefix+S) for those
@@ -45,7 +45,7 @@ DIGITS='1,2,3,4,5,6,7,8,9'
 # a digit picks that row if it exists and connects
 JUMP='transform:[ "$FZF_MATCH_COUNT" -ge "$FZF_KEY" ] && echo "pos($FZF_KEY)+accept"'
 # "#" toggles the digit mode: inserts/removes the marker before the colon of the title
-TOGGLE="transform:case \"\$FZF_PROMPT\" in *$mtype*) echo \"rebind($DIGITS)+change-prompt(\${FZF_PROMPT/ $mtype: /: })\" ;; *) echo \"unbind($DIGITS)+change-prompt(\${FZF_PROMPT/: / $mtype: })\" ;; esac"
+TOGGLE="transform:case \"\$FZF_PROMPT\" in *$mtype*) echo \"rebind($DIGITS)+change-prompt(\${FZF_PROMPT/ $mtype : /: })\" ;; *) echo \"unbind($DIGITS)+change-prompt(\${FZF_PROMPT/: / $mtype : })\" ;; esac"
 
 session="$(
     sesh list -t -i | eval "$NUM" | fzf --height 100% --border --border-label " Tmux Session Manager " --no-sort --ansi \
