@@ -73,8 +73,8 @@ return {
             vim.api.nvim_set_hl(
                 0,
                 "FlashLabel",
-                { fg = "#1d2021", bg = "#e78a4e", bold = true, underline = true, italic = true }
-            ) -- bg0 on orange: jump labels
+                { fg = "#1d2021", bg = "#fabd2f", bold = true, underline = true, italic = true }
+            ) -- bg0 on bright gruvbox yellow: jump labels (palette yellow #d8a657 is the muted Substitute colour, orange #e78a4e the calmer option)
             --
             -- INFO: undercurl needs the outer terminal to have the tmux `usstyle` feature. Ghostty is auto-detected;
             -- alacritty needs TERM=alacritty (terminfo installed) + the `alacritty*:usstyle` terminal-features line
