@@ -260,17 +260,20 @@ return {
                     return vim.fs.root(path, markers)
                 end,
 
-                -- How to find the project name for a given root dir.
+                -- How to find the project name for a given root dir: `<basename>-<hash of the root path>`
+                -- (jdtls-config-util.cache_project_name). It keys the -configuration/-data dirs, and two
+                -- clones of one repository must not share a workspace: m2e then configures one clone's
+                -- module with the other clone's Maven model (seen 2026-10-30, ua-payments-common-infra).
                 project_name = function(root_dir)
-                    return root_dir and vim.fs.basename(root_dir)
+                    return require("utils.java.jdtls-config-util").cache_project_name(root_dir)
                 end,
 
                 -- Where are the config and workspace dirs for a project?
                 jdtls_config_dir = function(project_name)
-                    return vim.fn.stdpath("cache") .. "/jdtls/" .. project_name .. "/config"
+                    return require("utils.java.jdtls-config-util").cache_dir(project_name) .. "/config"
                 end,
                 jdtls_workspace_dir = function(project_name)
-                    return vim.fn.stdpath("cache") .. "/jdtls/" .. project_name .. "/workspace"
+                    return require("utils.java.jdtls-config-util").cache_dir(project_name) .. "/workspace"
                 end,
 
                 -- How to run jdtls. This can be overridden to a full java command-line
@@ -280,6 +283,21 @@ return {
                     local fname = vim.api.nvim_buf_get_name(0)
                     local root_dir = opts.root_dir(fname)
                     local project_name = opts.project_name(root_dir)
+                    if project_name then
+                        -- One-time move of a pre-hash `<basename>` cache dir that holds this root's projects
+                        -- (jdtls-config-util.migrate_legacy_cache_dir); a dir of another clone stays put.
+                        local util = require("utils.java.jdtls-config-util")
+                        local moved, reason = util.migrate_legacy_cache_dir(root_dir, project_name)
+                        if moved then
+                            logger.fmt_info("moved workspace cache %s -> %s", moved, util.cache_dir(project_name))
+                            vim.notify(
+                                "JDTLS: moved workspace cache to " .. util.cache_dir(project_name),
+                                vim.log.levels.INFO
+                            )
+                        elseif reason ~= "nothing to migrate" then
+                            logger.fmt_info("legacy workspace cache not migrated: %s", reason)
+                        end
+                    end
                     local cmd = vim.deepcopy(opts.cmd)
                     if project_name then
                         vim.list_extend(cmd, {

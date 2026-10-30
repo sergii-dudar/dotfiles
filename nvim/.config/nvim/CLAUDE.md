@@ -151,7 +151,12 @@ Java helpers under `utils/java/`:
 - `jdtls-config.lua` passes the per-root settings both as `settings` and as `init_options.settings`: delivered only via
   didChangeConfiguration, `java.format.settings.url` makes jdtls run a "Clean workspace..." CLEAN build at every start
   (StandardProjectsManager.configureSettings(prefs, true)); keep both in sync. It also refuses to start without a project
-  root (no root means no `-data`, i.e. the launcher's shared default workspace).
+  root (no root means no `-data`, i.e. the launcher's shared default workspace). The `-configuration`/`-data` dirs are
+  `~/.cache/nvim/jdtls/<basename>-<8 hex of sha256(root)>/{config,workspace}` (`jdtls-config-util.cache_project_name`,
+  also used by `jdtls-recovery` to wipe): two clones of one repo sharing a basename-keyed workspace made m2e configure
+  one clone's module with the other clone's Maven model (linked source folders + absolute APT output folder nested in
+  the module, every generated type "already defined", 2026-10-30); `migrate_legacy_cache_dir` renames a pre-hash dir
+  once when all its projects live under the root.
 - `jdtls-workspace-watcher.lua` — per-client post-start watcher. After ServiceReady it waits for the initial
   build through a synchronous `java/buildWorkspace` barrier, then verifies the generated sources (stale MapStruct
   APT diagnostic, unresolved types with a WITHERROR build, `.classpath` generated folders present on disk,

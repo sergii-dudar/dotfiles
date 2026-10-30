@@ -466,4 +466,93 @@ function M.settings_for_root(root_dir, base)
     return settings
 end
 
+-- ============================================================================
+-- Per-root jdtls cache directories (`-configuration` / `-data`)
+-- ============================================================================
+
+--- Return the cache project name of a workspace root: `<basename>-<8 hex of sha256(root)>`. The name keys
+--- `~/.cache/nvim/jdtls/<name>/{config,workspace}`, and two clones of one repository (e.g. `git.work/X` and
+--- `git.work.payments.all/X`) must never share a workspace: jdtls re-points the existing Eclipse projects at
+--- the new root while m2e keeps the cached Maven model of the other clone, so the module ends up with linked
+--- source folders into the other clone and an absolute APT output folder nested inside itself — every
+--- generated type then exists twice ("The type XImpl is already defined", 2026-10-30, ua-payments-common-infra).
+---@param root_dir string|nil
+---@return string|nil
+function M.cache_project_name(root_dir)
+    if type(root_dir) ~= "string" or root_dir == "" then
+        return nil
+    end
+    return vim.fs.basename(root_dir) .. "-" .. vim.fn.sha256(root_dir):sub(1, 8)
+end
+
+--- Return the cache directory holding a project's `config` and `workspace` dirs.
+---@param project_name string
+---@return string
+function M.cache_dir(project_name)
+    return vim.fn.stdpath("cache") .. "/jdtls/" .. project_name
+end
+
+--- Return the filesystem path an Eclipse project `.location` file points at, or nil for a project at its
+--- default location (no `.location` file or no URI in it).
+---@param location_file string
+---@return string|nil
+local function project_location(location_file)
+    local f = io.open(location_file, "rb")
+    if not f then
+        return nil
+    end
+    local content = f:read("a")
+    f:close()
+    -- A Java DataOutput.writeUTF string: two length bytes, then "URI//file:/…".
+    local s = content:find("URI//", 1, true)
+    if not s or s < 3 then
+        return nil
+    end
+    local len = content:byte(s - 2) * 256 + content:byte(s - 1)
+    local uri = content:sub(s + 5, s + len - 1)
+    if not uri:match("^file:") then
+        return nil
+    end
+    local path = vim.uri_decode((uri:gsub("^file:/*", "/")))
+    return (path:gsub("/+$", ""))
+end
+
+--- Move a pre-2026-10-30 `~/.cache/nvim/jdtls/<basename>/` cache dir to this root's hashed name so the
+--- workspace is not re-imported, but only when every project in it lives under this root — a dir holding
+--- another clone's projects is left alone (and ages out through scripts/java/jdtls_workspace_prune.sh).
+---@param root_dir string
+---@param project_name string the hashed name from M.cache_project_name
+---@return string|nil legacy the moved directory, nil when nothing was moved
+---@return string|nil reason why nothing was moved
+function M.migrate_legacy_cache_dir(root_dir, project_name)
+    local legacy = M.cache_dir(vim.fs.basename(root_dir))
+    local target = M.cache_dir(project_name)
+    if legacy == target or vim.uv.fs_stat(target) or not vim.uv.fs_stat(legacy) then
+        return nil, "nothing to migrate"
+    end
+    local projects = legacy .. "/workspace/.metadata/.plugins/org.eclipse.core.resources/.projects"
+    local matched = 0
+    root_dir = root_dir:gsub("/+$", "")
+    for name, kind in vim.fs.dir(projects) do
+        if kind == "directory" then
+            local location = project_location(projects .. "/" .. name .. "/.location")
+            if location and location:sub(1, #legacy) ~= legacy then
+                if location == root_dir or location:sub(1, #root_dir + 1) == root_dir .. "/" then
+                    matched = matched + 1
+                else
+                    return nil, ("project %s lives at %s"):format(name, location)
+                end
+            end
+        end
+    end
+    if matched == 0 then
+        return nil, "no project of this root in " .. legacy
+    end
+    local ok, err = vim.uv.fs_rename(legacy, target)
+    if not ok then
+        return nil, ("rename failed: %s"):format(err)
+    end
+    return legacy, nil
+end
+
 return M

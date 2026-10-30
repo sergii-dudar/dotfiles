@@ -1066,12 +1066,20 @@ local function reattach_java_buffers(ctx, reason, operation_id)
     end, RESTART_ATTACH_GRACE_MS)
 end
 
+--- Cache project name (`<basename>-<hash>`) of a root directory, the same jdtls-config.lua uses for the
+--- -configuration/-data dirs (jdtls-config-util.cache_project_name).
+---@param root_dir string|nil
+---@return string|nil
+local function cache_project_name(root_dir)
+    return require("utils.java.jdtls-config-util").cache_project_name(root_dir)
+end
+
 --- Extract JDTLS cache project names from client root directories.
 local function project_names_from_clients(clients)
     local names = {}
     for _, client in ipairs(clients) do
         if client.config and client.config.root_dir then
-            names[vim.fs.basename(client.config.root_dir)] = true
+            names[cache_project_name(client.config.root_dir)] = true
         end
     end
     return names
@@ -1082,7 +1090,7 @@ end
 ---@param configs table<string, vim.lsp.ClientConfig>|nil
 local function add_project_names_from_configs(names, configs)
     for root_dir in pairs(configs or {}) do
-        names[vim.fs.basename(root_dir)] = true
+        names[cache_project_name(root_dir)] = true
     end
 end
 
@@ -1098,7 +1106,7 @@ local function project_name_from_buffer(buf)
     local markers = jdtls_config and jdtls_config.root_markers
         or { ".git", "mvnw", "gradlew", "pom.xml", "build.gradle", "build.gradle.kts" }
     local root_dir = vim.fs.root(vim.api.nvim_buf_get_name(buf), markers)
-    return root_dir and vim.fs.basename(root_dir) or nil
+    return cache_project_name(root_dir)
 end
 
 --- Resolve only the cache project names owned by a restart context.
@@ -1123,11 +1131,11 @@ end
 
 --- Wipe JDTLS cache directories for the supplied project names.
 local function wipe_jdtls_cache(project_names)
-    local cache_dir = vim.fn.stdpath("cache") .. "/jdtls"
+    local util = require("utils.java.jdtls-config-util")
     local wiped = {}
 
     for project_name in pairs(project_names) do
-        local path = cache_dir .. "/" .. project_name
+        local path = util.cache_dir(project_name)
         if vim.fn.isdirectory(path) == 1 then
             vim.fn.delete(path, "rf")
             table.insert(wiped, project_name)

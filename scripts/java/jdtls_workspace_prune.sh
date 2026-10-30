@@ -2,7 +2,8 @@
 # Prune stale JDTLS workspaces created by the Neovim config.
 #
 # Every Java project gets its own `-data` workspace and `-configuration` dir under
-# ~/.cache/nvim/jdtls/<project>/ (see nvim/.config/nvim/lua/plugins/editor/java/jdtls-config.lua).
+# ~/.cache/nvim/jdtls/<project>-<hash>/ (see nvim/.config/nvim/lua/plugins/editor/java/jdtls-config.lua;
+# dirs from before 2026-10-30 are named <project> and age out like any other).
 # Each holds a JDT index of a few hundred MB, so dozens of projects add up to many GB.
 # A workspace's last use is the mtime of its `.metadata/.log` (jdtls rewrites it every session).
 #
