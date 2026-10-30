@@ -160,6 +160,10 @@
   tmuxpb (fork @tmuxptb @tmuxptm (lsft rsft)) ;; o - toggle bottom panel, shift+o - maximized
   ;; tmuxp (tap-hold $tap-time $hold-time @tmuxptb @tmuxptp)
   ;; tmuxp (macro C-f $tmux-delay o) ;; tmux toggle bottom panel
+
+  ;; - translate (scripts/tmux/translate.sh): hold t + y = prefix + C-t, the clipboard mode. Not a root C-t in
+  ;; tmux: that key is the fzf Files Manager in zsh and the <C-t> toggles in the nvim pickers.
+  tmuxtcl (macro C-f $tmux-delay C-t) ;; tmux translate the system clipboard
 )
 
 ;; --- Layer: Base ---
@@ -232,7 +236,7 @@
    ;;    a     s     d     f     g     h     j     k     l     ;     '           enter
    XX    XX    XX    XX    XX       XX    XX    XX    XX       XX    XX    XX    XX    XX    XX    XX     ;;F1
    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX    XX     ;;NUM
-   XX    XX    XX    XX    XX    XX    XX @tmuxsvi @tmuxsts @tmuxpb  @tmuxptp @tmuxslt2 @tmuxsnt2 XX    XX    XX    XX     ;;Q
+   XX    XX    XX    XX    XX    XX @tmuxtcl @tmuxsvi @tmuxsts @tmuxpb  @tmuxptp @tmuxslt2 @tmuxsnt2 XX    XX    XX    XX     ;;Q
    XX    XX    XX    XX    XX    XX    XX    XX    XX @tmuxs   XX    XX          XX                       ;;A
    lsft  XX    XX    XX    XX    XX @tmuxw   XX    XX    XX    XX                rsft        XX           ;;Z
    XX    XX    XX                            XX                      XX    XX    XX    XX    XX    XX     ;;MOD

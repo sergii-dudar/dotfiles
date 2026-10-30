@@ -62,6 +62,7 @@ Output always lands in a tmux popup.
 | tmux copy-mode | `t` | `pipe` |
 | nothing — just type | `prefix + T` | `prompt` |
 | system clipboard | `prefix + C-t` | `clipboard` |
+| system clipboard, no prefix | hold `t` + `y` (kanata `l_tmux` slot) | `clipboard` (sends prefix + `C-t`; a root `C-t` in tmux would take the key from fzf Ctrl-T in zsh and the `<C-t>` toggles in the nvim pickers) |
 | foot: mouse selection | `Control+Shift+t` | `pipe` (foot `pipe-selected`) |
 | alacritty: mouse selection | `Control+Shift+t` | `clipboard` (needs `selection.save_to_clipboard`) |
 | ghostty: mouse selection | `Control+Shift+t` | `clipboard` (keybind sends tmux prefix + `C-t`; `copy-on-select = clipboard`) |
