@@ -17,6 +17,7 @@ local M = {}
 -- ❌ referencesCodeLens: disabled (HIGH COST - performance killer)
 -- ❌ downloadSources: disabled (HIGH COST - auto-download slows indexing)
 -- ✅ references.includeDecompiledSources: enabled (search scope is projectOnly, see java.search.scope)
+-- ✅ edit.validateAllOpenBuffersOnChanges: disabled (only the changed buffer is re-validated, see java.edit below)
 -- ❌ selectionRange: disabled (VERY LOW COST - safe to re-enable)
 -- ❌ format.comments: disabled (LOW COST - safe to re-enable)
 -- ❌ importHint: disabled (VERY LOW COST - safe to re-enable)
@@ -155,6 +156,18 @@ M.jdtls_settings = {
             },
             -- [Experimental] Specifies how to select build configuration files to import. \nNote: Currently, `Gradle` projects cannot be partially imported.
             -- projectSelection = "automatic", -- "manual"|"automatic"
+        },
+        -- ====================================================================
+        -- EDITING
+        -- ====================================================================
+        edit = {
+            -- jdtls' default (true) re-validates EVERY open working copy on each change of one buffer. Measured
+            -- 2026-10-30 (A/B harness ~/tools/tests/jdtls-ab, 15 open buffers, 5 edits): 7.9 s / 7.2 s of server
+            -- CPU with the default vs 1.3 s / 1.4 s without, same or better latency for the edited buffer.
+            -- utils.java.jdtls-document-validation fills the gap like vscode-java: `java/validateDocument` for a
+            -- buffer on BufEnter (when something changed since) and for the other open buffers after a save.
+            -- jdtls honours that notification only while this is false.
+            validateAllOpenBuffersOnChanges = false,
         },
         -- ====================================================================
         -- CODE COMPLETION

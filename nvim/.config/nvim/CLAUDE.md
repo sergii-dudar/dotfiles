@@ -157,6 +157,21 @@ Java helpers under `utils/java/`:
   one clone's module with the other clone's Maven model (linked source folders + absolute APT output folder nested in
   the module, every generated type "already defined", 2026-10-30); `migrate_legacy_cache_dir` renames a pre-hash dir
   once when all its projects live under the root.
+- `jdtls-actionable-notification.lua` — handler for jdtls' `language/actionableNotification` (a message plus
+  command buttons; Neovim and nvim-jdtls drop the method). Registered in `jdtls-config.lua` as the client's
+  `handlers[...]` together with `commands` = the client commands the buttons invoke: `java.projectConfiguration.status`
+  ("A build file was modified. Do you want to synchronize ...?" Yes / Always / Never; Yes sends the plural
+  `java/projectConfigurationsUpdate` like `<leader>jdu`, Always/Never change `updateBuildConfiguration` for the running
+  client via a didChangeConfiguration carrying the FULL settings table, jdtls rebuilds all preferences from it) and
+  `java.compile.nullAnalysis.setMode` (Enable / Disable). Prompts go through `vim.ui.select`, one at a time, deduplicated
+  by message, only in normal mode; unknown command ids fall back to `workspace/executeCommand`. Spec:
+  `lua/tests/utils/java/jdtls_actionable_notification_spec.lua`.
+- `jdtls-document-validation.lua` — companion of `java.edit.validateAllOpenBuffersOnChanges = false`
+  (`jdtls-config-util.lua`): jdtls then re-validates only the changed buffer, and this module (set up from the
+  LspAttach handler in `jdtls-config.lua`) sends `java/validateDocument` for a buffer on BufEnter when any attached
+  buffer of the client changed since, and for the other open buffers shortly after a save. jdtls ignores the
+  notification while validate-all is on, so the setting and the module belong together. Measured 2026-10-30 with 15 open
+  buffers: 7.9 s vs 1.3 s server CPU per five edits. Spec: `lua/tests/utils/java/jdtls_document_validation_spec.lua`.
 - `jdtls-workspace-watcher.lua` — per-client post-start watcher. After ServiceReady it waits for the initial
   build through a synchronous `java/buildWorkspace` barrier, then verifies the generated sources (stale MapStruct
   APT diagnostic, unresolved types with a WITHERROR build, `.classpath` generated folders present on disk,

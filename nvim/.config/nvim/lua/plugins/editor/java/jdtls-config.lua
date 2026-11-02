@@ -462,9 +462,16 @@ return {
                 -- the root is enabled (Buildship otherwise boots on every Maven project and asks
                 -- services.gradle.org for its version list at each start).
                 local settings = require("utils.java.jdtls-config-util").settings_for_root(root_dir, opts.settings)
+                local actionable = require("utils.java.jdtls-actionable-notification")
                 local config = extend_or_override({
                     cmd = opts.full_cmd(opts),
                     root_dir = root_dir,
+                    -- jdtls' `language/actionableNotification` prompts ("A build file was modified. Do you want to
+                    -- synchronize ...?" Yes/Always/Never, null-analysis Enable/Disable) and the client commands
+                    -- their buttons run. Neither Neovim nor nvim-jdtls handle the method, so the prompts were
+                    -- dropped and a changed pom.xml never reached the classpath without <leader>jdu.
+                    handlers = { ["language/actionableNotification"] = actionable.handler },
+                    commands = actionable.client_commands,
                     init_options = {
                         bundles = bundles,
                         -- The same settings also travel in the initialization options. jdtls applies
@@ -530,6 +537,11 @@ return {
                         -- Auto-refresh project config once workspace settles, so APT-generated
                         -- sources (MapStruct impls etc.) wiped during m2e configure get regenerated.
                         require("utils.java.jdtls-workspace-watcher").setup(client, args.buf)
+
+                        -- jdtls re-validates only the changed buffer (java.edit.validateAllOpenBuffersOnChanges
+                        -- = false in jdtls-config-util.lua); this re-validates a buffer on BufEnter and the other
+                        -- open buffers after a save, as vscode-java does with java/validateDocument.
+                        require("utils.java.jdtls-document-validation").setup(client, args.buf)
                         vim.api.nvim_buf_create_user_command(
                             args.buf,
                             "JdtRestart",

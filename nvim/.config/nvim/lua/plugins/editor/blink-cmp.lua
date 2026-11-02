@@ -67,6 +67,14 @@ return {
                 return vim.bo.buftype ~= "prompt" or is_dap_buffer()
             end,
             completion = {
+                accept = {
+                    -- How long an accept waits for `completionItem/resolve` before inserting the item as it came
+                    -- in the list; on timeout blink inserts WITHOUT the resolved additionalTextEdits, i.e. without
+                    -- the import. jdtls (like most servers) defers imports and text edits to resolve; measured
+                    -- 2026-10-30 on a warm jdtls: 2-85 ms per resolve, 100-265 ms right after start, while the
+                    -- default here is 100 ms — an item accepted quickly after the server started lost its import.
+                    resolve_timeout_ms = 500,
+                },
                 menu = {
                     auto_show = true,
                     scrollbar = false,
