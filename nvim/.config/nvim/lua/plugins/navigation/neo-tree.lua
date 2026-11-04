@@ -32,7 +32,11 @@ return {
                 -- ["l"] = "noop",
                 -- ["h"] = "noop",
                 ["/"] = "noop",
+                ["\\"] = "open_vsplit",
                 ["<esc>"] = "noop",
+                -- No buffer-local mapping, so the global flash.nvim `s` jump works here too
+                ["s"] = "none",
+                ["|"] = "open_split",
                 ["Y"] = "shared_copy",
                 ["P"] = "shared_paste",
                 ["c"] = {
