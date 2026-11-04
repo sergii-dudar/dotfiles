@@ -72,7 +72,7 @@ return {
         opts = {
             popup_type = "horizontal", -- "popup" | "horizontal" | "vertical",
             -- provider = "anthropic", -- "anthropic" | "copilot" | "deepseek" | "gemini" | "grok" | "ollama" | "openai",
-            provider = "copilot", -- anthropic | copilot | openai
+            provider = "anthropic", -- anthropic | copilot | openai
             providers = {
                 -- anthropic = {
                 --     url = "https://genai-sbox.rbi.tech/v1/messages",
@@ -83,6 +83,35 @@ return {
                 --     -- model_id = "claude-opus-4-6",
                 --     model_id = "claude-sonnet-4-6",
                 -- },
+                anthropic = {
+                    url = "https://genai.rbi.tech/v1/messages",
+                    --- Fetch the short-lived (2h) token; minting a new one takes ~40s, so wait without blocking the UI.
+                    ---@return string token
+                    api_key = function()
+                        local co = coroutine.running()
+                        vim.system({ os.getenv("HOME") .. "/.rbi/bin/rbi-sl-token" }, { text = true }, function(result)
+                            vim.schedule(function()
+                                coroutine.resume(co, result)
+                            end)
+                        end)
+                        local result = coroutine.yield()
+                        if result.code ~= 0 then
+                            error("rbi-sl-token failed: " .. (result.stderr or ""))
+                        end
+                        return vim.trim(result.stdout)
+                    end,
+                    model_id = "claude-sonnet-5-5",
+                    --- Return the first text block: the plugin reads only content[1], which can be a thinking block.
+                    ---@param response table decoded Messages API response
+                    ---@return string|nil text
+                    format_response = function(response)
+                        for _, block in ipairs(response.content or {}) do
+                            if block.type == "text" then
+                                return block.text
+                            end
+                        end
+                    end,
+                },
                 copilot = {
                     url = "https://api.business.githubcopilot.com/chat/completions",
                     -- model_id = "gpt-5.1",

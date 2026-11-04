@@ -53,6 +53,20 @@ function M.snippets()
             t('@SuppressWarnings("unused")'),
         }),
         s({
+            trig = "@sresource",
+            dscr = '@SuppressWarnings("resource")',
+            docstring = '@SuppressWarnings("resource")',
+        }, {
+            t('@SuppressWarnings("resource")'),
+        }),
+        s({
+            trig = "@srawtypes",
+            dscr = '@SuppressWarnings("rawtypes")',
+            docstring = '@SuppressWarnings("rawtypes")',
+        }, {
+            t('@SuppressWarnings("rawtypes")'),
+        }),
+        s({
             trig = "@sdeprecated",
             dscr = '@SuppressWarnings("deprecation")',
             docstring = '@SuppressWarnings("deprecation")',
