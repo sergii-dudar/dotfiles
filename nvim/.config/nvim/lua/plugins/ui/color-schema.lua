@@ -57,6 +57,12 @@ return {
             --   bg0 = { "#1d2021", "234" },
             --   bg2 = { "#282828", "235" },
             -- }
+            -- Darker than "hard" (bg0 #1d2021, bg_dim #141617). bg0 = editor/float background, bg_dim = neo-tree
+            -- and other dimmed surfaces; keep bg_dim below bg0 so the side panel stays distinguishable.
+            vim.g.gruvbox_material_colors_override = {
+                bg0 = { "#141617", "233" },
+                bg_dim = { "#0d0e0f", "232" },
+            }
             -- vim.api.nvim_set_hl(0, 'CursorLineNr', { fg = '#FF0000', bg = 'NONE', bold = true })
             vim.cmd.colorscheme("gruvbox-material")
             vim.api.nvim_set_hl(0, "CursorLineNr", { link = "GreenBold" })
