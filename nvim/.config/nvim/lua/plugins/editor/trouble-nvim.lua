@@ -180,6 +180,28 @@ return {
         auto_jump = false, -- auto jump to the item when there's only one
         focus = true, -- Focus the window when opened
     },
+    -- `preview.type = "main"` draws the preview in a full-size floating window laid over the
+    -- main window (`winhighlight=Normal:Normal`, so it is indistinguishable from the window
+    -- below). The auto-preview is debounced by 100 ms (`throttle.preview`) and never checks
+    -- that Trouble is still focused: `j` + `<CR>` (or `o`) inside that window jumps first and
+    -- then drops the float on top of the window just jumped into. Neovim draws the cursor of a
+    -- window hidden behind a float as an underline, the float never scrolls and `<C-o>` does
+    -- not remove it — the "stuck `_` cursor" (reproduced 2026-11-04, trouble bd67efe; same
+    -- race when leaving Trouble with a window command within 100 ms of moving). The throttle
+    -- captures `View.preview` on mount, so wrapping it here makes every preview path
+    -- (auto-preview, `p`, `P`) a no-op unless the Trouble window is the current window.
+    config = function(_, opts)
+        require("trouble").setup(opts)
+        local View = require("trouble.view")
+        local preview = View.preview
+        ---@diagnostic disable-next-line: duplicate-set-field
+        function View:preview(item)
+            if not (self.win and self.win.win and vim.api.nvim_get_current_win() == self.win.win) then
+                return
+            end
+            return preview(self, item)
+        end
+    end,
     keys = {
         { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix List (Trouble)" },
         { "<leader>xl", "<cmd>Trouble loclist toggle<cr>", desc = "Location List (Trouble)" },
