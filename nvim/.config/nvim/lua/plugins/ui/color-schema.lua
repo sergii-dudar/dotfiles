@@ -39,6 +39,7 @@ return {
         "sainnhe/gruvbox-material",
         lazy = false,
         optional = false,
+        enabled = false,
         priority = 1000,
         config = function()
             -- Available values: 'hard', 'medium'(default), 'soft'
@@ -123,35 +124,36 @@ return {
             -- vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#f38ba8", bold = true })
         end,
     },
-    -- {
-    --     "sainnhe/everforest",
-    --     lazy = false,
-    --     optional = false,
-    --     priority = 1000,
-    --     config = function()
-    --         -- Everforest is a green based color scheme; it's designed to be warm and soft in order to protect developers' eyes.
-    --
-    --         -- Optionally configure and load the colorscheme
-    --         -- directly inside the plugin declaration.
-    --
-    --         vim.g.everforest_enable_italic = true
-    --         vim.g.everforest_background = "hard" -- `'hard'`, `'medium'`, `'soft'`
-    --         -- vim.cmd("set background=dark") -- dark,  light
-    --         vim.cmd.colorscheme("everforest")
-    --     end,
-    -- },
-    -- {
-    --     "sainnhe/sonokai",
-    --     lazy = false,
-    --     optional = false,
-    --     priority = 1000,
-    --     config = function()
-    --         vim.g.sonokai_enable_italic = true
-    --         -- Available values:   `'default'`, `'atlantis'`, `'andromeda'`, `'shusia'`, `'maia'`, `'espresso'`
-    --         vim.g.sonokai_style = "shusia" -- atlantis, andromeda, maia
-    --         vim.cmd.colorscheme("sonokai")
-    --     end,
-    -- },
+    {
+        "sainnhe/everforest",
+        lazy = false,
+        optional = false,
+        priority = 1000,
+        config = function()
+            -- Everforest is a green based color scheme; it's designed to be warm and soft in order to protect developers' eyes.
+
+            -- Optionally configure and load the colorscheme
+            -- directly inside the plugin declaration.
+
+            vim.g.everforest_enable_italic = true
+            vim.g.everforest_background = "hard" -- `'hard'`, `'medium'`, `'soft'`
+            -- vim.cmd("set background=dark") -- dark,  light
+            vim.cmd.colorscheme("everforest")
+        end,
+    },
+    {
+        "sainnhe/sonokai",
+        lazy = false,
+        enabled = false,
+        optional = false,
+        priority = 1000,
+        config = function()
+            vim.g.sonokai_enable_italic = true
+            -- Available values:   `'default'`, `'atlantis'`, `'andromeda'`, `'shusia'`, `'maia'`, `'espresso'`
+            vim.g.sonokai_style = "shusia" -- atlantis, andromeda, maia
+            vim.cmd.colorscheme("sonokai")
+        end,
+    },
     -- {
     --     "navarasu/onedark.nvim",
     --     priority = 1000,
