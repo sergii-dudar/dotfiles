@@ -67,6 +67,11 @@ return {
             vim.cmd.colorscheme("gruvbox-material")
             vim.api.nvim_set_hl(0, "CursorLineNr", { link = "GreenBold" })
 
+            -- nvim-treesitter/nvim-treesitter-context: the theme paints it bg3 (#3c3836), too bright on the darker bg0
+            -- override above. #1d2021 (stock hard bg0) sits between that bg0 and CursorLine (#282828); the same value
+            -- as CursorLine would merge the bar with the cursor line right below it.
+            vim.api.nvim_set_hl(0, "TreesitterContext", { fg = "#ddc7a1", bg = "#1d2021" }) -- fg1, as in the theme
+
             -- unblevable/quick-scope
             vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
             vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
