@@ -41,7 +41,10 @@ return {
             --codedark,ayu_dark,iceberg_dark,nightfly,palenight,
             --onedark, pywal
             -- theme = "iceberg_dark",
-            theme = "gruvbox-material",
+            -- theme = "gruvbox-material",
+            -- "auto" loads lualine.themes.<colors_name>, which gruvbox-material, everforest and sonokai all ship, so
+            -- the statusline follows whichever scheme is enabled in color-schema.lua.
+            theme = "auto",
             section_separators = "",
             component_separators = " ",
         },
