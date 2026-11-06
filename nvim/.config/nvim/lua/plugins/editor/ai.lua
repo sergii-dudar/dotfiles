@@ -100,7 +100,8 @@ return {
                         end
                         return vim.trim(result.stdout)
                     end,
-                    model_id = "claude-sonnet-5-5",
+                    -- model_id = "claude-sonnet-5-5",
+                    model_id = "claude-opus-5-5",
                     --- Return the first text block: the plugin reads only content[1], which can be a thinking block.
                     ---@param response table decoded Messages API response
                     ---@return string|nil text
@@ -119,7 +120,7 @@ return {
                     -- model_id = "gpt-5.4", -- not yet accessible by api
                     -- model_id = "claude-haiku-4.5",
                     -- model_id = "claude-sonnet-4.5",
-                    model_id = "claude-sonnet-4.6",
+                    -- model_id = "claude-sonnet-4.6",
                     -- model_id = "claude-opus-4.6",
                 },
                 -- openai = {

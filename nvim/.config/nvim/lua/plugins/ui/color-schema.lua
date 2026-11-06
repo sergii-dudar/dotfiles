@@ -247,42 +247,42 @@ return {
     --         vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#423f46" })
     --     end,
     -- },
-    -- {
-    --     "navarasu/onedark.nvim",
-    --     priority = 1000,
-    --     optional = false,
-    --     lazy = false,
-    --     config = function()
-    --         -- +++
-    --         -- https://github.com/navarasu/onedark.nvim
-    --         require("onedark").setup({
-    --             style = "warmer", -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer', 'light'
-    --         })
-    --         -- Enable theme
-    --         require("onedark").load()
-    --     end,
-    -- },
-    -- {
-    --     "tanvirtin/monokai.nvim",
-    --     priority = 1000,
-    --     optional = false,
-    --     lazy = false,
-    --     config = function()
-    --         require("monokai").setup({})
-    --         -- require("monokai").setup({ palette = require("monokai").pro })
-    --         -- require("monokai").setup({ palette = require("monokai").soda })
-    --         -- require("monokai").setup({ palette = require("monokai").ristretto })
-    --     end,
-    -- },
-    -- { -- very dark, gool to work at night ;)
-    --     "vague2k/vague.nvim",
-    --     lazy = false, -- make sure we load this during startup if it is your main colorscheme
-    --     priority = 1000, -- make sure to load this before all the other plugins
-    --     config = function()
-    --         require("vague").setup({
-    --             -- optional configuration here
-    --         })
-    --         vim.cmd("colorscheme vague")
-    --     end,
-    -- },
+    {
+        "navarasu/onedark.nvim",
+        priority = 1000,
+        optional = false,
+        lazy = false,
+        config = function()
+            -- +++
+            -- https://github.com/navarasu/onedark.nvim
+            require("onedark").setup({
+                style = "warmer", -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer', 'light'
+            })
+            -- Enable theme
+            require("onedark").load()
+        end,
+    },
+    {
+        "tanvirtin/monokai.nvim",
+        priority = 1000,
+        optional = false,
+        lazy = false,
+        config = function()
+            require("monokai").setup({})
+            -- require("monokai").setup({ palette = require("monokai").pro })
+            -- require("monokai").setup({ palette = require("monokai").soda })
+            -- require("monokai").setup({ palette = require("monokai").ristretto })
+        end,
+    },
+    { -- very dark, gool to work at night ;)
+        "vague2k/vague.nvim",
+        lazy = false, -- make sure we load this during startup if it is your main colorscheme
+        priority = 1000, -- make sure to load this before all the other plugins
+        config = function()
+            require("vague").setup({
+                -- optional configuration here
+            })
+            vim.cmd("colorscheme vague")
+        end,
+    },
 }
