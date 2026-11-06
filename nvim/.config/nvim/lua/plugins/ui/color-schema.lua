@@ -247,42 +247,184 @@ return {
     --         vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#423f46" })
     --     end,
     -- },
-    {
-        "navarasu/onedark.nvim",
-        priority = 1000,
-        optional = false,
-        lazy = false,
-        config = function()
-            -- +++
-            -- https://github.com/navarasu/onedark.nvim
-            require("onedark").setup({
-                style = "warmer", -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer', 'light'
-            })
-            -- Enable theme
-            require("onedark").load()
-        end,
-    },
-    {
-        "tanvirtin/monokai.nvim",
-        priority = 1000,
-        optional = false,
-        lazy = false,
-        config = function()
-            require("monokai").setup({})
-            -- require("monokai").setup({ palette = require("monokai").pro })
-            -- require("monokai").setup({ palette = require("monokai").soda })
-            -- require("monokai").setup({ palette = require("monokai").ristretto })
-        end,
-    },
-    { -- very dark, gool to work at night ;)
-        "vague2k/vague.nvim",
-        lazy = false, -- make sure we load this during startup if it is your main colorscheme
-        priority = 1000, -- make sure to load this before all the other plugins
-        config = function()
-            require("vague").setup({
-                -- optional configuration here
-            })
-            vim.cmd("colorscheme vague")
-        end,
-    },
+    -- {
+    --     "navarasu/onedark.nvim",
+    --     priority = 1000,
+    --     optional = false,
+    --     lazy = false,
+    --     config = function()
+    --         -- +++
+    --         -- https://github.com/navarasu/onedark.nvim
+    --         -- Same setup as the gruvbox-material block, with the onedark warmer palette.
+    --         require("onedark").setup({
+    --             style = "warmer", -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer', 'light'
+    --             -- Darker than stock warmer (bg0 #232326, bg_d #1b1c1e). bg0 = editor background, bg_d = neo-tree;
+    --             -- keep bg_d below bg0 so the side panel stays distinguishable.
+    --             colors = {
+    --                 bg0 = "#1b1c1e",
+    --                 bg_d = "#131416",
+    --             },
+    --         })
+    --         -- Enable theme
+    --         require("onedark").load()
+    --         -- floats on the editor background, what float_style = "blend" does in gruvbox-material (stock: bg1 #2c2d31)
+    --         vim.api.nvim_set_hl(0, "NormalFloat", { fg = "#a7aab0", bg = "#1b1c1e" })
+    --         vim.api.nvim_set_hl(0, "FloatBorder", { fg = "#5a5b5e", bg = "#1b1c1e" }) -- grey, as in the theme
+    --         vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#8fb573", bold = true }) -- green
+    --
+    --         -- nvim-treesitter/nvim-treesitter-context: the theme has no group for it, so it would follow NormalFloat and
+    --         -- vanish into the editor background. #252629 sits between bg0 and CursorLine (bg1 #2c2d31); the same value
+    --         -- as CursorLine would merge the bar with the cursor line right below it.
+    --         vim.api.nvim_set_hl(0, "TreesitterContext", { fg = "#a7aab0", bg = "#252629" })
+    --
+    --         -- unblevable/quick-scope
+    --         vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
+    --         vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
+    --
+    --         -- folke/flash.nvim (onedark ships no Flash* groups either, see the gruvbox-material block). The palette has
+    --         -- nothing between bg3 (the Visual colour) and grey, so the match box is one step above bg3.
+    --         vim.api.nvim_set_hl(0, "FlashBackdrop", { fg = "#5a5b5e" }) -- grey: dim the rest, no italic
+    --         vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#a7aab0", bg = "#45464b" }) -- fg: quiet box per match
+    --         vim.api.nvim_set_hl(0, "FlashCurrent", { fg = "#1b1c1e", bg = "#51a8b3" }) -- bg0 on cyan: match under cursor
+    --         vim.api.nvim_set_hl(
+    --             0,
+    --             "FlashLabel",
+    --             { fg = "#1b1c1e", bg = "#fabd2f", bold = true, underline = true, italic = true }
+    --         ) -- bg0 on the same bright yellow as the gruvbox block: jump labels (palette yellow #dbb671 is muted)
+    --
+    --         -- undercurl: see the INFO note in the gruvbox-material block
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#de5d68" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#dbb671" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#57a5e5" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#8fb573" })
+    --
+    --         vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#808080", bold = true, default = true, italic = true })
+    --         vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#de5d68", bold = true, default = true, italic = true })
+    --
+    --         vim.api.nvim_set_hl(0, "GrayBold", { fg = "#808080", bold = true, default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { fg = "#8fb573" })
+    --         vim.api.nvim_set_hl(0, "SnacksTitle", { link = "SnacksPickerTitle", default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#37383d" }) -- bg3, the theme's own Visual colour
+    --     end,
+    -- },
+    -- {
+    --     "tanvirtin/monokai.nvim",
+    --     priority = 1000,
+    --     optional = false,
+    --     lazy = false,
+    --     config = function()
+    --         -- Same setup as the gruvbox-material block, with the monokai classic palette.
+    --         local monokai = require("monokai")
+    --         monokai.setup({
+    --             -- Darker than stock classic: base2 (#26292C) is the editor, line number and sign column background.
+    --             palette = vim.tbl_extend("force", monokai.classic, { base2 = "#1c1e20" }),
+    --         })
+    --         -- require("monokai").setup({})
+    --         -- require("monokai").setup({ palette = require("monokai").pro })
+    --         -- require("monokai").setup({ palette = require("monokai").soda })
+    --         -- require("monokai").setup({ palette = require("monokai").ristretto })
+    --         -- floats on the editor background, what float_style = "blend" does in gruvbox-material (stock: base1)
+    --         vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#1c1e20" })
+    --         -- window separators: the theme only sets VertSplit (brown), so WinSeparator stays on the default white
+    --         vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#504945" })
+    --         -- neo-tree: the theme has no groups for it; darker side panel, what bg_dim gives in gruvbox-material
+    --         vim.api.nvim_set_hl(0, "NeoTreeNormal", { fg = "#f8f8f0", bg = "#141517" })
+    --         vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { fg = "#f8f8f0", bg = "#141517" })
+    --         vim.api.nvim_set_hl(0, "NeoTreeEndOfBuffer", { fg = "#141517", bg = "#141517" })
+    --         vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#a6e22e", bold = true }) -- green
+    --
+    --         -- nvim-treesitter/nvim-treesitter-context: the theme has no group for it, so it would follow NormalFloat and
+    --         -- vanish into the editor background. base1 (#272a30) sits between base2 and CursorLine (base3 #2E323C); the
+    --         -- same value as CursorLine would merge the bar with the cursor line right below it.
+    --         vim.api.nvim_set_hl(0, "TreesitterContext", { fg = "#f8f8f0", bg = "#272a30" })
+    --
+    --         -- unblevable/quick-scope
+    --         vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
+    --         vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
+    --
+    --         -- folke/flash.nvim (monokai ships no Flash* groups either, see the gruvbox-material block). Yellow is the
+    --         -- Search colour here, so the jump labels take orange.
+    --         vim.api.nvim_set_hl(0, "FlashBackdrop", { fg = "#8F908A" }) -- grey: dim the rest, no italic
+    --         vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#f8f8f0", bg = "#4d5154" }) -- white on base5: quiet box per match
+    --         vim.api.nvim_set_hl(0, "FlashCurrent", { fg = "#1c1e20", bg = "#66d9ef" }) -- base2 on aqua: match under cursor
+    --         vim.api.nvim_set_hl(
+    --             0,
+    --             "FlashLabel",
+    --             { fg = "#1c1e20", bg = "#fd971f", bold = true, underline = true, italic = true }
+    --         ) -- base2 on orange: jump labels
+    --
+    --         -- undercurl: see the INFO note in the gruvbox-material block
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#e95678" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#e6db74" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#66d9ef" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#a6e22e" })
+    --
+    --         vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#808080", bold = true, default = true, italic = true })
+    --         vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#e95678", bold = true, default = true, italic = true })
+    --
+    --         vim.api.nvim_set_hl(0, "GrayBold", { fg = "#808080", bold = true, default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { fg = "#a6e22e" })
+    --         vim.api.nvim_set_hl(0, "SnacksTitle", { link = "SnacksPickerTitle", default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#333842" }) -- base4, the theme's own Visual colour
+    --     end,
+    -- },
+    -- { -- very dark, gool to work at night ;)
+    --     "vague2k/vague.nvim",
+    --     lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    --     priority = 1000, -- make sure to load this before all the other plugins
+    --     config = function()
+    --         require("vague").setup({
+    --             -- optional configuration here
+    --         })
+    --         vim.cmd("colorscheme vague")
+    --         -- Same setup as the gruvbox-material block, with the vague palette. The stock background (#141415) is
+    --         -- already darker than the gruvbox one, so it stays.
+    --         -- floats on the editor background, what float_style = "blend" does in gruvbox-material (stock: inactiveBg)
+    --         vim.api.nvim_set_hl(0, "NormalFloat", { fg = "#cdcdcd", bg = "#141415" })
+    --         -- neo-tree: the theme leaves it on the editor background; darker side panel, what bg_dim gives in gruvbox-material
+    --         vim.api.nvim_set_hl(0, "NeoTreeNormal", { fg = "#cdcdcd", bg = "#0d0d0e" })
+    --         vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { fg = "#cdcdcd", bg = "#0d0d0e" })
+    --         vim.api.nvim_set_hl(0, "NeoTreeEndOfBuffer", { fg = "#0d0d0e", bg = "#0d0d0e" })
+    --         vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#7fa563", bold = true }) -- plus (green)
+    --
+    --         -- nvim-treesitter/nvim-treesitter-context: the theme has no group for it, so it would follow NormalFloat and
+    --         -- vanish into the editor background. inactiveBg (#1c1c24) sits between bg and CursorLine (line #252530); the
+    --         -- same value as CursorLine would merge the bar with the cursor line right below it.
+    --         vim.api.nvim_set_hl(0, "TreesitterContext", { fg = "#cdcdcd", bg = "#1c1c24" })
+    --
+    --         -- unblevable/quick-scope
+    --         vim.api.nvim_set_hl(0, "QuickScopePrimary", { fg = "#ff0000", underline = true, bold = true })
+    --         vim.api.nvim_set_hl(0, "QuickScopeSecondary", { fg = "aqua", underline = true, bold = true })
+    --
+    --         -- folke/flash.nvim (vague ships no Flash* groups either, see the gruvbox-material block).
+    --         vim.api.nvim_set_hl(0, "FlashBackdrop", { fg = "#606079" }) -- comment: dim the rest, no italic
+    --         vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#cdcdcd", bg = "#405065" }) -- fg on search: quiet box per match
+    --         vim.api.nvim_set_hl(0, "FlashCurrent", { fg = "#141415", bg = "#b4d4cf" }) -- bg on builtin: match under cursor
+    --         vim.api.nvim_set_hl(
+    --             0,
+    --             "FlashLabel",
+    --             { fg = "#141415", bg = "#f3be7c", bold = true, underline = true, italic = true }
+    --         ) -- bg on warning, the brightest yellow of the palette: jump labels
+    --
+    --         -- undercurl: see the INFO note in the gruvbox-material block
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#d8647e" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#f3be7c" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#7e98e8" })
+    --         vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#7fa563" })
+    --
+    --         vim.api.nvim_set_hl(0, "JavaFormatOk", { fg = "#808080", bold = true, default = true, italic = true })
+    --         vim.api.nvim_set_hl(0, "JavaFormatBad", { fg = "#d8647e", bold = true, default = true, italic = true })
+    --
+    --         vim.api.nvim_set_hl(0, "GrayBold", { fg = "#808080", bold = true, default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { fg = "#7fa563" })
+    --         vim.api.nvim_set_hl(0, "SnacksTitle", { link = "SnacksPickerTitle", default = true })
+    --
+    --         vim.api.nvim_set_hl(0, "Visual", { fg = "NONE", bg = "#333738" }) -- visual, the theme's own Visual colour
+    --     end,
+    -- },
 }
