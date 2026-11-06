@@ -113,6 +113,21 @@ return {
             vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { fg = "#a9b665" })
             vim.api.nvim_set_hl(0, "SnacksTitle", { link = "SnacksPickerTitle", default = true })
 
+            -- saghen/blink.cmp: the menu follows Pmenu (bg3 #3c3836), a grey slab on the darker bg0 override above,
+            -- next to a documentation window that already sits on NormalFloat. Menu, documentation and signature
+            -- now all look like the other floats (float_style = "blend"): editor background, grey border.
+            vim.api.nvim_set_hl(0, "BlinkCmpMenu", { link = "NormalFloat" })
+            vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { link = "FloatBorder" })
+            vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { link = "FloatBorder" })
+            vim.api.nvim_set_hl(0, "BlinkCmpDocSeparator", { link = "FloatBorder" })
+            vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpBorder", { link = "FloatBorder" })
+            -- these follow PmenuKind / PmenuExtra, which carry the bg3 background and would leave lighter patches
+            vim.api.nvim_set_hl(0, "BlinkCmpKind", { fg = "#a9b665" }) -- green
+            vim.api.nvim_set_hl(0, "BlinkCmpSource", { fg = "#a89984" }) -- grey2
+            vim.api.nvim_set_hl(0, "BlinkCmpLabelDetail", { fg = "#a89984" })
+            vim.api.nvim_set_hl(0, "BlinkCmpLabelDescription", { fg = "#a89984" })
+            vim.api.nvim_set_hl(0, "BlinkCmpLabelDeprecated", { fg = "#a89984" })
+
             -- 1. Define custom highlight group
             -- vim.api.nvim_set_hl(0, "YankHighlight", { bg = "#3b4261", fg = "#ff9e64" })
 
