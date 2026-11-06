@@ -470,6 +470,8 @@ return {
                     -- synchronize ...?" Yes/Always/Never, null-analysis Enable/Disable) and the client commands
                     -- their buttons run. Neither Neovim nor nvim-jdtls handle the method, so the prompts were
                     -- dropped and a changed pom.xml never reached the classpath without <leader>jdu.
+                    -- The build-file prompt is off by default now (updateBuildConfiguration = "disabled" in
+                    -- jdtls-config-util.lua, <leader>jdu syncs on demand); the handler serves `interactive`.
                     handlers = { ["language/actionableNotification"] = actionable.handler },
                     commands = actionable.client_commands,
                     init_options = {

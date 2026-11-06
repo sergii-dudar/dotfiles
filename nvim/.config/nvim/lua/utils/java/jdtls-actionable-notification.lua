@@ -4,6 +4,9 @@
 -- classpath/configuration?", sent after a pom.xml change while `java.configuration.updateBuildConfiguration`
 -- is `interactive` (the default): a dependency added to a pom never reached the classpath until <leader>jdu or a
 -- restart (seen 2026-10-28 with pom edits made by external tools).
+-- Since 2026-11-06 the config sets `updateBuildConfiguration = "disabled"` (the prompt at every pom save was
+-- more annoying than useful; <leader>jdu / utils.java.jdtls-project-config syncs on demand), so jdtls does not send
+-- that prompt at all; this handler is what makes `interactive` usable again when the setting is changed back.
 --
 -- Mirrors vscode-java (src/standardLanguageClient.ts, ActionableNotification handler): show the message with the
 -- command titles as choices and run the chosen command — a client command when one is registered

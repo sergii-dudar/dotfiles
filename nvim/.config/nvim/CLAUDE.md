@@ -166,6 +166,13 @@ Java helpers under `utils/java/`:
   `java.compile.nullAnalysis.setMode` (Enable / Disable). Prompts go through `vim.ui.select`, one at a time, deduplicated
   by message, only in normal mode; unknown command ids fall back to `workspace/executeCommand`. Spec:
   `lua/tests/utils/java/jdtls_actionable_notification_spec.lua`.
+- `jdtls-project-config.lua` — `<leader>jdu`: manual "reload the build configuration". `updateBuildConfiguration` is
+  `disabled` in `jdtls-config-util.lua` (no prompt, no auto re-import; jdtls only marks the changed build file with a
+  diagnostic), so this is the trigger: plural `java/projectConfigurationsUpdate` notification for the current buffer,
+  a Java file or the build file itself. jdtls is not attached to pom.xml buffers, so the client is found through its
+  workspace root (deepest root wins, symlinks resolved); an unsaved build file is written first. With the setting
+  on `interactive` the prompt of `jdtls-actionable-notification.lua` comes back. Spec:
+  `lua/tests/utils/java/jdtls_project_config_spec.lua`.
 - `jdtls-document-validation.lua` — companion of `java.edit.validateAllOpenBuffersOnChanges = false`
   (`jdtls-config-util.lua`): jdtls then re-validates only the changed buffer, and this module (set up from the
   LspAttach handler in `jdtls-config.lua`) sends `java/validateDocument` for a buffer on BufEnter when any attached

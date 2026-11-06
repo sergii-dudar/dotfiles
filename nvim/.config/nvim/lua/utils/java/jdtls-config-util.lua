@@ -109,6 +109,13 @@ M.jdtls_settings = {
             -- },
             -- -- If changes to the project will require the developer to update the projects configuration advise the developer before accepting the change
             -- updateBuildConfiguration = "interactive", -- disabled, interactive, automatic
+            -- disabled: a changed pom.xml / Gradle file is neither re-imported nor prompted for. jdtls only marks
+            -- the build file ("The build file has been changed and may need reload to make it effective");
+            -- <leader>jdu (utils.java.jdtls-project-config) re-reads it on demand, from a Java file or from the
+            -- build file itself. `interactive` asks Yes / Always / Never through
+            -- utils.java.jdtls-actionable-notification (a popup at every pom save), `automatic` re-imports
+            -- on every save.
+            updateBuildConfiguration = "disabled",
             maven = {
                 -- userSettings = home .. "/.m2/settings.xml",
                 -- globalSettings = home .. "/.m2/settings.xml",

@@ -141,12 +141,12 @@ return {
                 -- implements it as a @JsonNotification -> newer lsp4j throws
                 -- "Local endpoint returned null from its request method". Send the
                 -- non-deprecated plural method as a notification, scoped to this buffer.
-                local client = require("utils.lsp-util").get_client_by_name("jdtls", { bufnr = 0 })
-                if client then
-                    client:notify("java/projectConfigurationsUpdate", { identifiers = { { uri = vim.uri_from_bufnr(0) } } })
-                end
-                require("modules.java.dependencies-search").reset()
-            end, desc = "JDTLS Update Config [module of current buf]" },
+                -- Works from a Java file and from the build file itself (pom.xml, build.gradle): jdtls is not
+                -- attached to build files, so utils.java.jdtls-project-config finds the client through its
+                -- workspace root (and writes an unsaved build file first). Manual counterpart of
+                -- `java.configuration.updateBuildConfiguration = "disabled"`: no prompt on pom changes.
+                require("utils.java.jdtls-project-config").update(0)
+            end, desc = "JDTLS Update Config [module of current buf / pom.xml]" },
             { "<leader>jdU", function()
                 require("jdtls").update_projects_config({ select_mode = "all" })
                 require("modules.java.dependencies-search").reset()
