@@ -94,15 +94,12 @@ return {
             local core_util = require("utils.kulala-core-util")
             -- kulala-core 3.x always runs its bundled static curl (OpenSSL, trusts only /etc/ssl/cert.pem) and
             -- ignores KULALA_CURL_PATH, so internal hosts signed by the bank CA fail with curl (60). Give it a
-            -- bundle that also holds the keychain CAs. The detached daemon keeps the env it was started with:
-            -- after changing this, run `pkill -f "kulala-core --daemon"` and restart nvim.
-            -- (Re)create the bundle: public roots + System keychain (bank and Zscaler CAs):
-            --   { cat /etc/ssl/cert.pem; security find-certificate -a -p /Library/Keychains/System.keychain; } \
-            --       > ~/tools/certs/curl-ca-bundle.pem
-            local ca_bundle = vim.fn.expand("~/tools/certs/curl-ca-bundle.pem")
-            if not vim.env.CURL_CA_BUNDLE and vim.uv.fs_stat(ca_bundle) then
-                vim.env.CURL_CA_BUNDLE = ca_bundle
-            end
+            -- bundle that also holds the keychain CAs: CURL_CA_BUNDLE = ~/tools/certs/curl-ca-bundle.pem, i.e.
+            --   { cat /etc/ssl/cert.pem; security find-certificate -a -p /Library/Keychains/System.keychain; }
+            -- rebuilt automatically when either source is newer. Linux: CURL_CA_BUNDLE = the system CA file.
+            -- Must run before setup: the detached daemon keeps the env it was started with. A failed request
+            -- now shows curl's own reason, and :KulalaTrustRefresh refreshes the CA file and restarts the daemon.
+            core_util.setup_ca_trust()
             -- kulala-core is (re)downloaded asynchronously; "ready" fires once the binary is installed.
             -- macOS 27+ SIGKILLs the shipped binary until it is re-signed ad-hoc.
             require("kulala.api").on("ready", function()
