@@ -96,6 +96,9 @@ return {
             -- ignores KULALA_CURL_PATH, so internal hosts signed by the bank CA fail with curl (60). Give it a
             -- bundle that also holds the keychain CAs. The detached daemon keeps the env it was started with:
             -- after changing this, run `pkill -f "kulala-core --daemon"` and restart nvim.
+            -- (Re)create the bundle: public roots + System keychain (bank and Zscaler CAs):
+            --   { cat /etc/ssl/cert.pem; security find-certificate -a -p /Library/Keychains/System.keychain; } \
+            --       > ~/tools/certs/curl-ca-bundle.pem
             local ca_bundle = vim.fn.expand("~/tools/certs/curl-ca-bundle.pem")
             if not vim.env.CURL_CA_BUNDLE and vim.uv.fs_stat(ca_bundle) then
                 vim.env.CURL_CA_BUNDLE = ca_bundle
