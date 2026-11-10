@@ -87,15 +87,18 @@ emits diagnostics + signs into the buffer, opens Trouble view).
   `<C-o>` jdtls vs raw opener
 - `java/static-import-explorer/` — ripgrep + Snacks-picker fallback for
   `import static` when JDTLS doesn't surface the code action
-- `gr` scope — jdtls searches references with its `java.search.scope` preference,
-  set to `projectOnly` (project main + test sources, no libraries; ~1 s) in
-  `utils/java/jdtls-config-util.lua`. `all` (+ libraries + tests) parses every attached
-  library source that mentions a common name: minutes per search, and one Jetty source
-  crashes JDT; `main` = libraries but no test code. `gR` / `gM` (java-config.lua) run the
-  same MapStruct-aware search with the scope forced to `all` / `main` for one call:
-  `reference_finder.find_references({ scope = … })`
-  switches the live setting via `workspace/didChangeConfiguration` and restores it
-  explicitly afterwards. The former ripgrep+treesitter `gR` (`modules/java/project-references`)
+- `gr` scope — jdtls scopes references AND `workspace/symbol` with its `java.search.scope`
+  preference, configured as `all` in `utils/java/jdtls-config-util.lua`: on `projectOnly`
+  no library class is found by FQN (dependency-search opens, stack traces, workspace-symbols
+  picker). For references `all` (+ libraries + tests) parses every attached library source
+  that mentions a common name: minutes per search, and one Jetty source crashes JDT. So
+  plain `gr` in a file of the project (real file under the jdtls root) runs with
+  `projectOnly` (project main + test sources, no libraries; ~1 s) for that one search:
+  `reference_finder.find_references` switches the live setting via
+  `workspace/didChangeConfiguration` right before its requests and restores `all` explicitly
+  when they have answered. `gr` in library code (jdt:// class file, file outside the root)
+  stays on `all`. `gR` / `gM` (java-config.lua) force `all` / `main` (`main` = libraries but
+  no test code) the same way: `find_references({ scope = … })`. The former ripgrep+treesitter `gR` (`modules/java/project-references`)
   was removed 2026-10-28: methods only, blind to the gitignored `target/`
 - `bash/`, `go/`, `lua/`, `python/`, `rust/` — language adapters, each with
   a `<framework>-test/` runner + `test-report/` parser

@@ -63,7 +63,8 @@ end
 --- augments them with the `@Mapping` declaration lines that reference the field. When
 --- there is nothing MapStruct-specific to add, the finder defers to `ctx.fallback`, so
 --- non-mapper references behave exactly like the default picker. `ctx.opts.scope`
---- (`gR` / `gM`) forces jdtls' `java.search.scope` for this one search.
+--- (`gR` / `gM`) forces jdtls' `java.search.scope` for this one search; plain `gr` uses
+--- `projectOnly` in project files and the configured `all` in library code.
 ---@return lang.LspNavigationHandler
 local function mapstruct_references_handler()
     return {

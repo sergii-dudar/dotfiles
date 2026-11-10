@@ -41,10 +41,14 @@
 -- are partial (see report_request_errors).
 --
 -- Scope — jdtls searches with its `java.search.scope` preference (`all` | `main` |
--- `projectOnly`, see jdtls-config-util). `opts.scope` forces another value for ONE
--- search: the live preference is switched through workspace/didChangeConfiguration
--- right before the references requests and restored once they have all answered
--- (override_search_scope). `gR` / `gM` in java-config.lua use this. Entry point:
+-- `projectOnly`, see jdtls-config-util). The configured value is `all` (the preference also
+-- scopes workspace/symbol, which must see library classes); a search that needs another
+-- value gets it for ONE search: the live preference is switched through
+-- workspace/didChangeConfiguration right before the references requests and restored once
+-- they have all answered (override_search_scope). Plain `gr` in a file of the project uses
+-- PROJECT_SCOPE (fast, no libraries); `gr` in library code (jdt:// class file, a file outside
+-- the jdtls root) stays on the configured `all`; `opts.scope` (`gR` / `gM` in java-config.lua)
+-- names the scope explicitly. Entry point:
 -- `M.find_references(opts)`, registered as the Java `references` navigation handler in
 -- `utils/lang/java/lsp-java.lua`; defers to `opts.fallback` when there is no jdtls
 -- client / no symbol under the cursor.
@@ -429,6 +433,32 @@ local function override_search_scope(client, scope)
     end
 end
 
+--- `java.search.scope` of a plain `gr` in a project file: project main + test sources, no
+--- libraries (~1 s; `all` parses every library source mentioning the name: minutes).
+local PROJECT_SCOPE = "projectOnly"
+
+--- Whether `bufnr` is a file of the project the jdtls `client` serves: a real file under the
+--- client's root. jdt:// class files and files outside the root (extracted dependency
+--- sources) are library code, where a `projectOnly` search would hide the library's own usages.
+---@param client vim.lsp.Client
+---@param bufnr integer
+---@return boolean
+local function is_project_buffer(client, bufnr)
+    local name = vim.api.nvim_buf_get_name(bufnr)
+    if name == "" or name:match("^%a[%w+.-]*://") then
+        return false
+    end
+    local root = client.root_dir or (client.config and client.config.root_dir)
+    if type(root) ~= "string" or root == "" then
+        return false
+    end
+    local function is_under(path, dir)
+        path, dir = vim.fs.normalize(path), vim.fs.normalize(dir)
+        return path:sub(1, #dir + 1) == dir .. "/"
+    end
+    return is_under(name, root) or is_under(vim.uv.fs_realpath(name) or name, vim.uv.fs_realpath(root) or root)
+end
+
 --- @Mapping-augmented `gr` for the field under the cursor. Unions references for the
 --- symbol and its sibling accessors, resolves each generated-impl usage to the exact
 --- interface `@Mapping` (via its target sink), then opens a single SYNCHRONOUS Snacks
@@ -438,7 +468,8 @@ end
 ---@param opts { bufnr?: integer, row?: integer, col?: integer, fallback?: fun(), scope?: "all"|"main"|"projectOnly" }
 function M.find_references(opts)
     opts = opts or {}
-    -- Optional one-shot `java.search.scope` (see override_search_scope); unknown values are ignored.
+    -- Explicit one-shot `java.search.scope` (`gR` / `gM`, see override_search_scope); unknown
+    -- values are ignored.
     local scope = opts.scope
     if scope ~= nil and not SEARCH_SCOPES[scope] then
         vim.notify(
@@ -469,16 +500,19 @@ function M.find_references(opts)
     -- Defer to the plain reference search instead of augmenting. A scoped call must stay
     -- here, though (the scope switch needs our completion hook to restore the setting), so
     -- it runs the plain search itself: no sibling accessors, no @Mapping augmentation.
+    -- Plain `gr` in a project file is such a scoped call (PROJECT_SCOPE); in library code it
+    -- keeps the configured scope and defers.
+    local search_scope = scope or (is_project_buffer(client, bufnr) and PROJECT_SCOPE or nil)
     local augment = true
     if java_ts.is_type_symbol_at(bufnr, row, col) then
-        if not scope then
+        if not search_scope then
             fallback()
             return
         end
         augment = false
     end
 
-    local restore_scope = override_search_scope(client, scope)
+    local restore_scope = override_search_scope(client, search_scope)
 
     local encoding = client.offset_encoding or "utf-16"
     local cur_file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))

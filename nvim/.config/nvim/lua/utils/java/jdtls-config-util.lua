@@ -16,7 +16,7 @@ local M = {}
 -- ✅ autobuild: enabled (needed with many generated sources, see java.autobuild below)
 -- ❌ referencesCodeLens: disabled (HIGH COST - performance killer)
 -- ❌ downloadSources: disabled (HIGH COST - auto-download slows indexing)
--- ✅ references.includeDecompiledSources: enabled (search scope is projectOnly, see java.search.scope)
+-- ✅ references.includeDecompiledSources: enabled (gr in project files searches projectOnly, see java.search.scope)
 -- ✅ edit.validateAllOpenBuffersOnChanges: disabled (only the changed buffer is re-validated, see java.edit below)
 -- ❌ selectionRange: disabled (VERY LOW COST - safe to re-enable)
 -- ❌ format.comments: disabled (LOW COST - safe to re-enable)
@@ -428,7 +428,8 @@ M.jdtls_settings = {
         references = {
             includeDecompiledSources = true,
         },
-        -- Scope of textDocument/references (jdtls 1.61 ReferencesHandler.createSearchScope):
+        -- Scope of textDocument/references (jdtls 1.61 ReferencesHandler.createSearchScope) AND of
+        -- workspace/symbol (WorkspaceSymbolHandler.createSearchScope):
         --   all         = project sources + referenced projects + application libraries (+ JRE when inside it) - default
         --   main        = same as all, but test code (src/test) excluded
         --   projectOnly = project sources + referenced projects only (no libraries)
@@ -439,7 +440,11 @@ M.jdtls_settings = {
         -- With `all`, a search for a common identifier (`name`, `type`) parses every library source
         -- (-sources.jar) that mentions it: minutes per request, and jetty-ee10-webapp's attached source
         -- crashes JDT (detectAPILeaks NPE -> "Internal error"). `projectOnly` answers in ~1 s.
-        search = { scope = "projectOnly" }, -- all | main | projectOnly
+        -- Kept on `all` nevertheless: on `projectOnly` workspace/symbol finds no library class
+        -- (dependency-search opens, stack traces, the workspace-symbols picker: "Class not found").
+        -- `gr` in a project file switches to `projectOnly` for its own requests and restores `all`
+        -- (modules/java/mapstruct/reference_finder.lua); `gr` in library code searches on `all`.
+        search = { scope = "all" }, -- all | main | projectOnly
     },
 }
 
