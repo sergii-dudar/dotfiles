@@ -1,0 +1,19 @@
+{
+    "permissions": {
+        "allow": [],
+        "defaultMode": "auto"
+    },
+    "enableAllProjectMcpServers": true,
+    "statusLine": {
+        "type": "command",
+        "command": "bash ~/.claude/statusline-command.sh"
+    },
+    "effortLevel": "xhigh",
+    "modelSettings": {
+        "claude-fable-5-1": {
+            "effortLevel": "xhigh"
+        }
+    },
+    "editorMode": "vim",
+    "switchModelsOnFlag": false
+}
