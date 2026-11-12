@@ -34,7 +34,7 @@ if isMacOs; then
     export PATH=$HOME/.cargo/bin:$PATH
     export GOPATH=$HOME/go
     export PATH=$GOPATH/bin:$PATH
-    export PATH=/Users/iuada144/.sdkman/candidates/java/current/bin:$PATH
+    export PATH=$HOME/.sdkman/candidates/java/current/bin:$PATH
 
     # claude
     export PATH="$HOME/.claude/bin:$PATH"

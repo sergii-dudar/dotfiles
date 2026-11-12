@@ -133,13 +133,39 @@ clipboard_text() {
 }
 
 pause() {
-    printf '\n[Enter, Esc or q to close]'
+    local key seq mouse=0
+    # A right click closes the popup too: the tmux MouseDown3Pane binding opens it
+    # with one, so the hand is already on the mouse. tmux forwards clicks inside a
+    # popup only to a program that asked for mouse reports, and those start with
+    # Esc; telling them from a lone Esc takes a sub-second read timeout, which
+    # bash 3.2 (stock macOS) does not have -- there the mouse stays off.
+    if [ "${BASH_VERSINFO[0]}" -ge 4 ]; then
+        mouse=1
+        printf '\e[?1000h\e[?1006h'
+        printf '\n[Enter, Esc, q or right click to close]'
+    else
+        printf '\n[Enter, Esc or q to close]'
+    fi
     while IFS= read -rsn1 key; do
         # empty = Enter (read -n1 strips the newline); $'\e' = Esc
         case "$key" in
-            '' | $'\e' | q | Q) break ;;
+            '' | q | Q) break ;;
+            $'\e')
+                [ "$mouse" -eq 1 ] || break
+                # SGR mouse report: Esc [ < button ; col ; row M (press) or m (release)
+                seq=""
+                while IFS= read -rsn1 -t 0.05 key; do
+                    seq="$seq$key"
+                    case "$key" in [A-Za-z~]) break ;; esac
+                done
+                case "$seq" in
+                    '' | '[<2;'*M) break ;; # lone Esc, or right button pressed
+                esac
+                ;;
         esac
     done
+    [ "$mouse" -eq 1 ] && printf '\e[?1006l\e[?1000l'
+    return 0
 }
 
 # Reads one line into $LINE, but bails out if the line is opened with Esc.
