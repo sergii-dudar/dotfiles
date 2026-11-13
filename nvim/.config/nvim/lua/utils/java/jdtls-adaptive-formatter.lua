@@ -27,6 +27,13 @@
 --     method parameter or record component (`@Valid\n Foo foo`) is joined by
 --     Eclipse as well (its only alternative is to break after every annotation).
 --     The break is restored with the same extmark mechanism.
+--   * every other manual line break -- IntelliJ keeps a line break wherever the
+--     author put one; Eclipse only keeps it at its own wrap points and joins the
+--     rest (`cond ?\n a : b`, `Type name\n = value`, `builder().\n method()`,
+--     a leading `,`, a cast on its own line, ...). The first token of every line
+--     is tracked the same way and put back on its own line when the formatter
+--     joined it; the call-indentation pass then indents it. Breaks IntelliJ
+--     removes itself (`else`, `catch`, `finally`, an opening brace) stay joined.
 --   * switch arrows and line length -- global overrides (`WRAP_PRESERVE_OVERRIDES`)
 --     keep a manual break after `case X ->` and stop Eclipse from splitting
 --     lines that exceed the profile's `lineSplit`; IntelliJ does not hard-wrap.
@@ -99,6 +106,14 @@ local WRAP_PRESERVE_OVERRIDES = {
     ["org.eclipse.jdt.core.formatter.alignment_for_switch_case_with_arrow"] = "16",
     ["org.eclipse.jdt.core.formatter.alignment_for_expressions_in_switch_case_with_arrow"] = "16",
     ["org.eclipse.jdt.core.formatter.lineSplit"] = "9999",
+    -- Comments are not formatted (`java.format.comments.enabled = false`), but the
+    -- header region in front of the first type still is unless this is off too.
+    ["org.eclipse.jdt.core.formatter.comment.format_header"] = "false",
+    -- A comment in the first column (commented-out code) stays there.
+    ["org.eclipse.jdt.core.formatter.never_indent_line_comments_on_first_column"] = "true",
+    ["org.eclipse.jdt.core.formatter.never_indent_block_comments_on_first_column"] = "true",
+    -- 3 = preserve: the content of a text block keeps its indentation, as in IntelliJ.
+    ["org.eclipse.jdt.core.formatter.text_block_indentation"] = "3",
 }
 
 local FORMAT_TIMEOUT_MS = 3000
@@ -122,6 +137,17 @@ local PARAMETER_MODIFIERS_QUERY = [[
 local ANNOTATION_TYPES = { annotation = true, marker_annotation = true }
 local COMMENT_TYPES = { line_comment = true, block_comment = true }
 local CHAIN_TYPES = { method_invocation = true, field_access = true }
+local CLOSING_TYPES = { [")"] = true, ["]"] = true, ["}"] = true, [">"] = true }
+local BODY_TYPES = {
+    program = true,
+    block = true,
+    class_body = true,
+    interface_body = true,
+    enum_body_declarations = true,
+    constructor_body = true,
+    enum_body = true,
+    switch_block = true,
+}
 
 local lambda_namespace
 
@@ -391,6 +417,93 @@ local function get_parameter_annotation_breaks(bufnr, selection)
     return breaks
 end
 
+--- Check whether a position lies inside a multi-line string (text block) that started earlier.
+---@param node TSNode
+---@param row integer
+---@param col integer
+---@return boolean
+local function starts_inside_string(node, row, col)
+    -- A token of a string sits at most two levels below its `string_literal`.
+    for _ = 1, 3 do
+        if not node then
+            return false
+        end
+        if node:type() == "string_literal" then
+            local string_row, string_col = node:start()
+            if string_row ~= row or string_col ~= col then
+                return true
+            end
+        end
+        node = node:parent()
+    end
+    return false
+end
+
+--- Check whether IntelliJ itself moves a line-starting token up to the previous line.
+---@param leaf TSNode
+---@return boolean
+local function is_joined_by_intellij(leaf)
+    local leaf_type = leaf:type()
+    local parent = leaf:parent()
+    if leaf_type == "else" or leaf_type == "catch" or leaf_type == "finally" then
+        return true
+    end
+    if leaf_type == "{" then
+        -- Only the brace of a lambda block keeps a line of its own.
+        local owner = parent and parent:parent()
+        return not (parent and parent:type() == "block" and owner and owner:type() == "lambda_expression")
+    end
+    return false
+end
+
+--- Collect the first token of every line, so any line break the formatter removes can be restored.
+---@param bufnr integer
+---@param selection lsp.Range|nil
+---@param known { start: lsp.Position }[] breaks that are already tracked by a more specific rule
+---@return { kind: string, start: lsp.Position }[]
+local function get_line_start_breaks(bufnr, selection, known)
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    if not ok or not parser then
+        return {}
+    end
+    local trees = parser:parse()
+    local root = trees and trees[1] and trees[1]:root()
+    if not root or root:has_error() then
+        return {}
+    end
+
+    local tracked = {}
+    for _, item in ipairs(known) do
+        tracked[item.start.line] = true
+    end
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
+    local first_row = math.max(selection and selection.start.line + 1 or 1, 1)
+    local last_row = selection and math.min(selection["end"].line, #lines - 1) or #lines - 1
+    local breaks = {}
+    for row = first_row, last_row do
+        local line = lines[row + 1]
+        local col = #line:match("^%s*")
+        if col < #line and not tracked[row] then
+            local leaf = root:descendant_for_range(row, col, row, col + 1)
+            local leaf_row, leaf_col
+            if leaf then
+                leaf_row, leaf_col = leaf:start()
+            end
+            if
+                leaf
+                and leaf_row == row
+                and leaf_col == col
+                and not COMMENT_TYPES[leaf:type()]
+                and not starts_inside_string(leaf, row, col)
+                and not is_joined_by_intellij(leaf)
+            then
+                breaks[#breaks + 1] = { kind = "line", start = { line = row, character = col } }
+            end
+        end
+    end
+    return breaks
+end
+
 --- Track the collected line breaks with extmarks so they survive the formatter edits.
 ---@param bufnr integer
 ---@param breaks { kind: string, start: lsp.Position, finish: lsp.Position|nil, shift_rest: boolean|nil }[]
@@ -403,6 +516,7 @@ local function track_breaks(bufnr, breaks)
     end)
     local tracked = {}
     for _, item in ipairs(breaks) do
+        tracked.has_line_starts = tracked.has_line_starts or item.kind == "line"
         tracked[#tracked + 1] = {
             kind = item.kind,
             start_mark = vim.api.nvim_buf_set_extmark(bufnr, namespace, item.start.line, item.start.character, {
@@ -422,15 +536,36 @@ local function track_breaks(bufnr, breaks)
     return tracked
 end
 
---- Move tracked lambda bodies and parameter types that the formatter joined back to their own line.
+--- Move tracked lambda bodies, parameter types and other line starts that the formatter joined back to their own line.
 ---@param bufnr integer
 ---@param tracked { kind: string, start_mark: integer, end_mark: integer|nil, shift_rest: boolean|nil }[]
+---@return table<integer, boolean> restored rows whose indent is provisional and left to the re-indentation
 local function restore_breaks(bufnr, tracked)
+    local restored = {}
     local indent_unit = vim.bo[bufnr].expandtab
             and string.rep(" ", vim.lsp.util.get_effective_tabstop(bufnr) * CONTINUATION_INDENT_LEVELS)
         or string.rep("\t", CONTINUATION_INDENT_LEVELS)
     local namespace = get_lambda_namespace()
-    for _, item in ipairs(tracked) do
+
+    -- Nearly every tracked line start is still first on its line. Drop those with
+    -- one read of the buffer and its marks; a restored break never joins a line again.
+    local pending = tracked
+    if tracked.has_line_starts then
+        local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
+        local positions = {}
+        for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(bufnr, namespace, 0, -1, {})) do
+            positions[mark[1]] = mark
+        end
+        pending = {}
+        for _, item in ipairs(tracked) do
+            local mark = positions[item.start_mark]
+            if item.kind ~= "line" or (mark and (lines[mark[2] + 1] or ""):sub(1, mark[3]):match("%S")) then
+                pending[#pending + 1] = item
+            end
+        end
+    end
+
+    for _, item in ipairs(pending) do
         local start = vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, item.start_mark, {})
         local finish = item.end_mark and vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, item.end_mark, {}) or {}
         local row, col = start[1], start[2]
@@ -447,6 +582,11 @@ local function restore_breaks(bufnr, tracked)
                 local indent = anchor[2] and string.rep(" ", anchor[2]) or before:match("^%s*")
                 local text_end = #before:gsub("%s+$", "")
                 vim.api.nvim_buf_set_text(bufnr, row, text_end, row, col, { "", indent })
+            elseif item.kind == "line" and before:match("%S") then
+                -- Later breaks only add rows below this one, so the row number stays valid.
+                local text_end = #before:gsub("%s+$", "")
+                vim.api.nvim_buf_set_text(bufnr, row, text_end, row, col, { "", before:match("^%s*") .. indent_unit })
+                restored[row + 1] = true
             elseif arrow_end then
                 local indent = before:match("^%s*") .. indent_unit
                 vim.api.nvim_buf_set_text(bufnr, row, arrow_end - 1, row, col, { "", indent })
@@ -464,6 +604,7 @@ local function restore_breaks(bufnr, tracked)
         end
     end
     vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
+    return restored
 end
 
 --- Return the `object` (qualifier) of a method invocation or field access.
@@ -471,6 +612,13 @@ end
 ---@return TSNode|nil
 local function chain_object(node)
     return node:field("object")[1]
+end
+
+--- Return the name behind the `.` of a method invocation or field access.
+---@param node TSNode
+---@return TSNode|nil
+local function chain_name(node)
+    return node:field("name")[1] or node:field("field")[1]
 end
 
 --- Return the `.` token of a method invocation or field access.
@@ -533,11 +681,13 @@ end
 --- arguments, closing parentheses, chained calls, `?`/`:` of a ternary, lambda
 --- bodies and the content of lambda blocks and anonymous classes get their
 --- IntelliJ indent, every other line keeps the offset Eclipse gave it.
+--- A restored line break has no Eclipse offset: it gets one continuation indent.
 --- Lines inside text blocks are left alone. Only space-indented buffers without
 --- syntax errors are handled.
 ---@param bufnr integer
 ---@param selection lsp.Range|nil
-local function reindent_call_continuations(bufnr, selection)
+---@param restored table<integer, boolean> rows of restored line breaks: Eclipse never indented them
+local function reindent_call_continuations(bufnr, selection, restored)
     if not vim.bo[bufnr].expandtab then
         return
     end
@@ -587,12 +737,18 @@ local function reindent_call_continuations(bufnr, selection)
         return wrapping
     end
 
-    --- Check whether the last token of a node starts a line (`)` of a call on its own line).
+    --- Check whether a node ends with a closing token on a line of its own whose
+    --- opening token stands on the node's first line (`bar(\n a\n )`, `x -> {\n ...\n }`).
     local function ends_with_line_start(node)
-        while node:child_count() > 0 do
-            node = node:child(node:child_count() - 1)
+        local last = node
+        while last:child_count() > 0 do
+            last = last:child(last:child_count() - 1)
         end
-        return starts_line(node)
+        local closed = last:parent()
+        if not CLOSING_TYPES[last:type()] or not closed or not starts_line(last) then
+            return false
+        end
+        return (closed:start()) == (node:start())
     end
 
     --- Check whether an argument that does not start a line adds an indent to its content:
@@ -602,12 +758,27 @@ local function reindent_call_continuations(bufnr, selection)
         return wrapping == "argument" or (wrapping == "paren" and ends_with_line_start(node))
     end
 
-    --- Check whether any `.` of a call chain starts a line.
+    --- Return the row a chain link starts a line on: its `.`, or its name behind a trailing `.`.
+    local function link_line(node)
+        local dot = chain_dot(node)
+        if not dot then
+            return nil
+        end
+        if starts_line(dot) then
+            return (dot:start())
+        end
+        local name = chain_name(node)
+        if name and starts_line(name) then
+            return (name:start())
+        end
+        return nil
+    end
+
+    --- Check whether any link of a call chain starts a line.
     local function chain_wrapped(top)
         local node = top
         while node and CHAIN_TYPES[node:type()] do
-            local dot = chain_dot(node)
-            if dot and starts_line(dot) then
+            if link_line(node) then
                 return true
             end
             node = chain_object(node)
@@ -625,9 +796,9 @@ local function reindent_call_continuations(bufnr, selection)
             return nil
         end
         if call:type() == "method_invocation" and chain_object(call) then
-            local dot = chain_dot(call)
-            if dot and starts_line(dot) then
-                return (dot:start()), extra
+            local line = link_line(call)
+            if line then
+                return line, extra
             end
             local top = chain_top(call)
             if chain_wrapped(top) then
@@ -672,6 +843,19 @@ local function reindent_call_continuations(bufnr, selection)
         return nil
     end
 
+    --- Return the column parameters are aligned on when the first one stands behind `(` on an earlier row.
+    local function aligned_column(parameters, row)
+        local first = parameters:named_child(0)
+        if not first or starts_line(first) then
+            return nil
+        end
+        local first_row, first_col = first:start()
+        if first_row >= row then
+            return nil
+        end
+        return final_indent(first_row) + first_col - eclipse_indent(first_row)
+    end
+
     --- Compute the IntelliJ indent of the line starting at (row, col), or nil to keep it.
     local function target_indent(row, col)
         local leaf = root:descendant_for_range(row, col, row, col + 1)
@@ -679,15 +863,8 @@ local function reindent_call_continuations(bufnr, selection)
             return nil
         end
         -- A line that starts inside a text block is content, not indentation.
-        local ancestor = leaf
-        while ancestor do
-            if ancestor:type() == "string_literal" then
-                local string_row, string_col = ancestor:start()
-                if string_row ~= row or string_col ~= col then
-                    return nil
-                end
-            end
-            ancestor = ancestor:parent()
+        if starts_inside_string(leaf, row, col) then
+            return nil
         end
         local leaf_row, leaf_col = leaf:start()
         if leaf_row ~= row or leaf_col ~= col then
@@ -715,9 +892,18 @@ local function reindent_call_continuations(bufnr, selection)
         local parent_type, leaf_type = parent:type(), leaf:type()
 
         local anchor, extra, own_indent
-        if leaf_type == "." and CHAIN_TYPES[parent_type] then
+        local chain_link = CHAIN_TYPES[parent_type] and chain_object(parent) ~= nil
+        if chain_link and (leaf_type == "." or leaf:equal(chain_name(parent) or parent)) then
             anchor, extra = resolve(chain_top(parent), 0)
             own_indent = unit
+        elseif leaf_type == ";" then
+            -- A stray `;` stands like a statement of its own; the `;` of a statement goes under its first line.
+            if BODY_TYPES[parent_type] then
+                anchor, extra = resolve(parent, 0)
+                own_indent = parent_type == "program" and 0 or tabstop
+            else
+                anchor, extra, own_indent = (parent:start()), 0, 0
+            end
         elseif parent_type == "type_arguments" and own:named() then
             -- `extends Base<` + type arguments on their own lines: IntelliJ keeps them on the column of `extends`.
             local header = parent:parent()
@@ -732,9 +918,10 @@ local function reindent_call_continuations(bufnr, selection)
             anchor, extra = resolve(parent, 0)
             own_indent = unit
         elseif parent_type == "lambda_expression" and leaf_type ~= "->" then
-            -- An expression body on its own line, or a comment in front of it.
+            -- An expression body on its own line, or a comment in front of it. The
+            -- brace of a block body on its own line stays on the column of its anchor.
             anchor, extra = resolve(parent, 0)
-            own_indent = unit
+            own_indent = own:type() == "block" and 0 or unit
         elseif
             (parent_type == "block" and parent:parent() and parent:parent():type() == "lambda_expression")
             or (parent_type == "class_body" and parent:parent() and is_anonymous_class(parent:parent()))
@@ -748,10 +935,30 @@ local function reindent_call_continuations(bufnr, selection)
         elseif parent_type == "argument_list" and own:named() and not COMMENT_TYPES[own:type()] then
             anchor, extra = resolve_from_list(parent, 0)
             own_indent = unit
+        elseif
+            parent_type == "method_declaration"
+            and (own:equal(parent:field("name")[1] or parent) or own:equal(parent:field("type")[1] or parent))
+        then
+            -- A method name or return type on its own line stays on the column of the declaration.
+            anchor, extra, own_indent = (parent:start()), 0, 0
+        elseif leaf_type == "while" and parent_type == "do_statement" then
+            anchor, extra, own_indent = (parent:start()), 0, 0
+        elseif parent_type == "formal_parameters" and own:named() and aligned_column(parent, row) then
+            -- Parameters behind `(` are aligned on its column; a restored break above moves that column.
+            return aligned_column(parent, row)
+        elseif restored[row] then
+            anchor, extra = resolve(parent, 0)
+            own_indent = CLOSING_TYPES[leaf_type] and 0 or unit
         else
             anchor, extra = resolve(parent, 0)
+            -- Eclipse laid the line out before the breaks were restored: a restored
+            -- row stands for the line it was joined to.
             local parent_row = parent:start()
-            if anchor and parent_row ~= anchor and parent_row < row then
+            while restored[parent_row] do
+                parent_row = parent_row - 1
+            end
+            -- Statements and members are indented from their declaration, wherever its `{` stands.
+            if anchor and parent_row ~= anchor and parent_row < row and not BODY_TYPES[parent_type] then
                 -- Eclipse placed the line relative to the line its construct starts on: follow that line.
                 anchor, extra = parent_row, 0
             end
@@ -769,7 +976,8 @@ local function reindent_call_continuations(bufnr, selection)
     for row = first_row, last_row do
         local line = lines[row + 1]
         local col = #line:match("^%s*")
-        if col < #line and not line:sub(1, col):find("\t", 1, true) then
+        -- Column 0 holds top-level declarations and first-column comments: never indented.
+        if col > 0 and col < #line and not line:sub(1, col):find("\t", 1, true) then
             local target = target_indent(row, col)
             if target and target >= 0 and target ~= col then
                 final_indents[row] = target
@@ -897,6 +1105,7 @@ function M.format(bufnr)
     local adaptive_ranges = get_adaptive_ranges(bufnr, selection)
     local breaks = get_wrapped_lambda_bodies(bufnr, selection)
     vim.list_extend(breaks, get_parameter_annotation_breaks(bufnr, selection))
+    vim.list_extend(breaks, get_line_start_breaks(bufnr, selection, breaks))
     local base_method = selection and "textDocument/rangeFormatting" or "textDocument/formatting"
     local base_range = selection and to_lsp_range(bufnr, selection, client.offset_encoding) or nil
     -- Binary-expression wrapping is preserved through global overrides on every
@@ -925,6 +1134,7 @@ function M.format(bufnr)
     end
 
     local edits = merge_edits(base_edits, adaptive_edits)
+    local restored = {}
     if #edits > 0 then
         -- The formatter joins an expression lambda body onto its arrow line and a
         -- parameter onto its annotations; the extmarks follow them through the
@@ -932,12 +1142,12 @@ function M.format(bufnr)
         local tracked = #breaks > 0 and track_breaks(bufnr, breaks) or {}
         vim.lsp.util.apply_text_edits(edits, bufnr, client.offset_encoding)
         if #tracked > 0 then
-            restore_breaks(bufnr, tracked)
+            restored = restore_breaks(bufnr, tracked)
         end
     end
     -- Runs without formatter edits as well: a buffer that is already in Eclipse's
     -- shape still gets IntelliJ's call indentation.
-    reindent_call_continuations(bufnr, selection)
+    reindent_call_continuations(bufnr, selection, restored)
 end
 
 --- Report JDTLS as available only when both formatter requests are supported.
