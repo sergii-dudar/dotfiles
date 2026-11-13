@@ -7,7 +7,7 @@ describe("utils.java.jdtls-adaptive-formatter", function()
     local requests
 
     --- Build the minimal Tree-sitter node interface used by the formatter.
-    local function fake_node(node_type, range, first_child, parent)
+    local function fake_node(node_type, range, first_child, parent, prev_sibling)
         return {
             type = function()
                 return node_type
@@ -21,11 +21,17 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             parent = function()
                 return parent
             end,
+            prev_sibling = function()
+                return prev_sibling
+            end,
+            iter_children = function()
+                return function() end
+            end,
         }
     end
 
     --- Install a deterministic Java parser and query result for a test.
-    local function stub_tree(parameters)
+    local function stub_tree(parameters, lambda_bodies)
         vim.treesitter = {
             get_parser = function()
                 return {
@@ -41,14 +47,15 @@ describe("utils.java.jdtls-adaptive-formatter", function()
                 }
             end,
             query = {
-                parse = function()
+                parse = function(_, source)
+                    local captures = source:find("lambda_expression", 1, true) and (lambda_bodies or {}) or parameters
                     return {
                         iter_captures = function()
                             local index = 0
                             return function()
                                 index = index + 1
-                                if parameters[index] then
-                                    return 1, parameters[index]
+                                if captures[index] then
+                                    return 1, captures[index]
                                 end
                             end
                         end,
@@ -268,5 +275,78 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.equal(8, requests[1].params.range.start.line)
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(10, requests[2].params.range.start.line)
+    end)
+
+    it("restores the break after a lambda arrow that the formatter joined", function()
+        local lambda = fake_node("lambda_expression", { 1, 20, 3, 30 })
+        local arrow = fake_node("->", { 1, 29, 1, 31 })
+        local joined_body = fake_node("method_invocation", { 2, 16, 3, 30 }, nil, lambda, arrow)
+        local same_line_lambda = fake_node("lambda_expression", { 5, 20, 5, 40 })
+        local same_line_body =
+            fake_node("identifier", { 5, 30, 5, 40 }, nil, same_line_lambda, fake_node("->", { 5, 27, 5, 29 }))
+        local block_body = fake_node("block", { 8, 0, 9, 1 }, nil, lambda, fake_node("->", { 7, 26, 7, 28 }))
+        stub_tree({}, { joined_body, same_line_body, block_body })
+
+        local original = {
+            "class Demo {",
+            "    Supplier<Foo> s = bar(() -> ",
+            "                new Foo()",
+            "                        .baz());",
+            "}",
+        }
+        -- Buffer as the formatter leaves it: the body joined behind the arrow on row 1.
+        local formatted = {
+            "class Demo {",
+            "    Supplier<Foo> s = bar(() -> new Foo()",
+            "            .baz());",
+            "}",
+        }
+        local marks = {}
+        local set_text, set_lines
+        vim.api.nvim_create_namespace = function()
+            return 42
+        end
+        vim.api.nvim_buf_set_extmark = function(_, namespace, row, col, opts)
+            marks[#marks + 1] = { namespace = namespace, row = row, col = col, opts = opts }
+            return #marks
+        end
+        vim.api.nvim_buf_get_extmark_by_id = function(_, _, id)
+            -- Mark 1 = body start, now behind the arrow; mark 2 = body end on the next row.
+            return id == 1 and { 1, 32 } or { 2, 18 }
+        end
+        vim.api.nvim_buf_get_lines = function(_, first, last)
+            local source = state.applied_edits and formatted or original
+            local lines = {}
+            for row = first + 1, last do
+                lines[#lines + 1] = source[row]
+            end
+            return lines
+        end
+        vim.api.nvim_buf_set_text = function(_, start_row, start_col, end_row, end_col, lines)
+            set_text = { start_row, start_col, end_row, end_col, lines }
+            local line = formatted[start_row + 1]
+            formatted[start_row + 1] = line:sub(1, start_col)
+            table.insert(formatted, start_row + 2, lines[2] .. line:sub(end_col + 1))
+        end
+        vim.api.nvim_buf_set_lines = function(_, first, last, _, lines)
+            set_lines = { first, last, lines }
+        end
+        vim.api.nvim_buf_clear_namespace = function(_, namespace)
+            state.cleared_namespace = namespace
+        end
+
+        formatter.format(7)
+
+        -- Only the expression body that started on the line after its arrow is tracked.
+        assert.are.equal(2, #marks)
+        assert.are.same({ 2, 16 }, { marks[1].row, marks[1].col })
+        assert.is_true(marks[1].opts.right_gravity)
+        assert.are.same({ 3, 30 }, { marks[2].row, marks[2].col })
+        assert.is_false(marks[2].opts.right_gravity)
+        -- The trailing space after the arrow goes, the body gets the continuation indent.
+        assert.are.same({ 1, 31, 1, 32, { "", "            " } }, set_text)
+        -- The remaining body line follows by the same indent.
+        assert.are.same({ 3, 4, { "                    .baz());" } }, set_lines)
+        assert.are.equal(42, state.cleared_namespace)
     end)
 end)

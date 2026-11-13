@@ -1,5 +1,5 @@
 -- JDTLS formatter adapter: build on the base profile while overriding selected
--- Eclipse options so that manual wrapping is respected. Two rules are active:
+-- Eclipse options so that manual wrapping is respected. Three rules are active:
 --   * binary expressions -- the base profile joins manually wrapped arithmetic
 --     (`+ - * / %`), boolean (`&& || < > <= >= == !=`), bitwise/shift
 --     (`& | ^ << >> >>>`) and string-concatenation expressions back onto one
@@ -14,6 +14,14 @@
 --     parameter starts on the line after the opening parenthesis. This is
 --     conditional per declaration, so it still needs one range-formatting request
 --     per matched parameter list.
+--   * lambda expression bodies -- Eclipse has no wrap point after the arrow of
+--     a lambda with an expression body, so `() ->\n new Foo()` is always joined
+--     onto the arrow line, whatever the profile says. No formatter option can
+--     keep it, so the break is restored on the client: the body is tracked with
+--     extmarks across the formatter edits and, when it ended up behind its
+--     arrow, moved back to its own line with a continuation indent relative to
+--     the arrow line (like IntelliJ). The remaining lines of a multi-line body
+--     move by the same indent. This costs no formatter request.
 --
 -- Performance: formatting makes the normal JDTLS request, then one additional
 -- synchronous range-formatting request only for each parameter list that matches
@@ -71,6 +79,23 @@ local BINARY_PRESERVE_OVERRIDES = {
 }
 
 local FORMAT_TIMEOUT_MS = 3000
+
+-- Indent levels of a wrapped line relative to the line it continues; mirrors
+-- `org.eclipse.jdt.core.formatter.continuation_indentation` of the base profile.
+local CONTINUATION_INDENT_LEVELS = 2
+
+local LAMBDA_BODY_QUERY = [[
+    (lambda_expression body: (_) @body)
+]]
+
+local lambda_namespace
+
+--- Return the extmark namespace used to track lambda bodies across formatter edits.
+---@return integer
+local function get_lambda_namespace()
+    lambda_namespace = lambda_namespace or vim.api.nvim_create_namespace("jdtls-adaptive-formatter-lambda")
+    return lambda_namespace
+end
 
 local PARAMETERS_QUERY = [[
     [
@@ -215,6 +240,125 @@ local function get_adaptive_ranges(bufnr, selection)
     return ranges
 end
 
+--- Check whether a node contains a string literal spanning several lines (text block).
+---@param node TSNode
+---@return boolean
+local function has_multiline_string(node)
+    local start_row, _, end_row = node:range()
+    if start_row == end_row then
+        return false
+    end
+    if node:type() == "string_literal" then
+        return true
+    end
+    for child in node:iter_children() do
+        if has_multiline_string(child) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Collect expression lambda bodies that intentionally start on the line after `->`.
+---@param bufnr integer
+---@param selection lsp.Range|nil
+---@return { start: lsp.Position, finish: lsp.Position, shift_rest: boolean }[]
+local function get_wrapped_lambda_bodies(bufnr, selection)
+    local query = get_query(LAMBDA_BODY_QUERY)
+    local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "java")
+    if not query or not ok or not parser then
+        return {}
+    end
+
+    local trees = parser:parse()
+    if not trees or not trees[1] then
+        return {}
+    end
+
+    local bodies = {}
+    for _, body in query:iter_captures(trees[1]:root(), bufnr, 0, -1) do
+        local arrow = body:prev_sibling()
+        if body:type() ~= "block" and arrow and arrow:type() == "->" then
+            local _, _, arrow_row, arrow_col = arrow:range()
+            local start_row, start_col, end_row, end_col = body:range()
+            local lambda_row, lambda_col = body:parent():range()
+            local range = {
+                start = { line = lambda_row, character = lambda_col },
+                ["end"] = { line = end_row, character = end_col },
+            }
+            if start_row == arrow_row + 1 and is_in_selection(range, selection) then
+                -- Only whitespace may follow the arrow: a trailing comment there keeps the break anyway.
+                local arrow_line = vim.api.nvim_buf_get_lines(bufnr, arrow_row, arrow_row + 1, true)[1] or ""
+                if arrow_line:sub(arrow_col + 1):match("^%s*$") then
+                    bodies[#bodies + 1] = {
+                        start = { line = start_row, character = start_col },
+                        finish = { line = end_row, character = end_col },
+                        -- Re-indenting the lines of a text block would change its content.
+                        shift_rest = end_row > start_row and not has_multiline_string(body),
+                    }
+                end
+            end
+        end
+    end
+    return bodies
+end
+
+--- Track the collected lambda bodies with extmarks so they survive the formatter edits.
+---@param bufnr integer
+---@param bodies { start: lsp.Position, finish: lsp.Position, shift_rest: boolean }[]
+---@return { start_mark: integer, end_mark: integer, shift_rest: boolean }[]
+local function track_lambda_bodies(bufnr, bodies)
+    local namespace = get_lambda_namespace()
+    local tracked = {}
+    for _, body in ipairs(bodies) do
+        tracked[#tracked + 1] = {
+            start_mark = vim.api.nvim_buf_set_extmark(bufnr, namespace, body.start.line, body.start.character, {
+                right_gravity = true,
+            }),
+            end_mark = vim.api.nvim_buf_set_extmark(bufnr, namespace, body.finish.line, body.finish.character, {
+                right_gravity = false,
+            }),
+            shift_rest = body.shift_rest,
+        }
+    end
+    return tracked
+end
+
+--- Move tracked lambda bodies that the formatter joined behind `->` back to their own line.
+---@param bufnr integer
+---@param tracked { start_mark: integer, end_mark: integer, shift_rest: boolean }[]
+local function restore_lambda_breaks(bufnr, tracked)
+    local indent_unit = vim.bo[bufnr].expandtab
+            and string.rep(" ", vim.lsp.util.get_effective_tabstop(bufnr) * CONTINUATION_INDENT_LEVELS)
+        or string.rep("\t", CONTINUATION_INDENT_LEVELS)
+    local namespace = get_lambda_namespace()
+    for _, item in ipairs(tracked) do
+        local start = vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, item.start_mark, {})
+        local finish = vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, item.end_mark, {})
+        local row, col = start[1], start[2]
+        if row and col then
+            local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, true)[1] or ""
+            local before = line:sub(1, col)
+            local arrow_end = before:match("^.*%->()%s*$")
+            if arrow_end then
+                local indent = before:match("^%s*") .. indent_unit
+                vim.api.nvim_buf_set_text(bufnr, row, arrow_end - 1, row, col, { "", indent })
+                if item.shift_rest and finish[1] and finish[1] > row then
+                    -- The body moved one row down; its remaining lines follow the new indent.
+                    local rest = vim.api.nvim_buf_get_lines(bufnr, row + 2, finish[1] + 2, true)
+                    for index, rest_line in ipairs(rest) do
+                        if rest_line:match("%S") then
+                            rest[index] = indent_unit .. rest_line
+                        end
+                    end
+                    vim.api.nvim_buf_set_lines(bufnr, row + 2, finish[1] + 2, true, rest)
+                end
+            end
+        end
+    end
+    vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
+end
+
 --- Convert a byte-based Tree-sitter position to the JDTLS character encoding.
 ---@param bufnr integer
 ---@param position lsp.Position
@@ -317,7 +461,7 @@ local function merge_edits(base_edits, adaptive_edits)
     return merged
 end
 
---- Format Java with JDTLS, adapting only newline-first declaration parameter lists.
+--- Format Java with JDTLS, adapting newline-first declaration parameter lists and lambda bodies.
 ---@param bufnr integer
 function M.format(bufnr)
     bufnr = resolve_bufnr(bufnr)
@@ -328,6 +472,7 @@ function M.format(bufnr)
 
     local selection = get_visual_range(bufnr)
     local adaptive_ranges = get_adaptive_ranges(bufnr, selection)
+    local lambda_bodies = get_wrapped_lambda_bodies(bufnr, selection)
     local base_method = selection and "textDocument/rangeFormatting" or "textDocument/formatting"
     local base_range = selection and to_lsp_range(bufnr, selection, client.offset_encoding) or nil
     -- Binary-expression wrapping is preserved through global overrides on every
@@ -357,7 +502,13 @@ function M.format(bufnr)
 
     local edits = merge_edits(base_edits, adaptive_edits)
     if #edits > 0 then
+        -- The formatter joins an expression lambda body onto its arrow line; the
+        -- extmarks follow the body through the edits so the break can be restored.
+        local tracked = #lambda_bodies > 0 and track_lambda_bodies(bufnr, lambda_bodies) or {}
         vim.lsp.util.apply_text_edits(edits, bufnr, client.offset_encoding)
+        if #tracked > 0 then
+            restore_lambda_breaks(bufnr, tracked)
+        end
     end
 end
 
