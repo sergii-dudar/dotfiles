@@ -31,7 +31,7 @@ describe("utils.java.jdtls-adaptive-formatter", function()
     end
 
     --- Install a deterministic Java parser and query result for a test.
-    local function stub_tree(parameters, lambda_bodies)
+    local function stub_tree(parameters, lambda_bodies, modifiers)
         vim.treesitter = {
             get_parser = function()
                 return {
@@ -39,7 +39,12 @@ describe("utils.java.jdtls-adaptive-formatter", function()
                         return {
                             {
                                 root = function()
-                                    return {}
+                                    -- The call re-indentation needs a real tree; a tree with errors skips it.
+                                    return {
+                                        has_error = function()
+                                            return true
+                                        end,
+                                    }
                                 end,
                             },
                         }
@@ -48,7 +53,9 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             end,
             query = {
                 parse = function(_, source)
-                    local captures = source:find("lambda_expression", 1, true) and (lambda_bodies or {}) or parameters
+                    local captures = source:find("lambda_expression", 1, true) and (lambda_bodies or {})
+                        or source:find("(modifiers)", 1, true) and (modifiers or {})
+                        or parameters
                     return {
                         iter_captures = function()
                             local index = 0
@@ -212,6 +219,12 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             requests[1].params.options["org.eclipse.jdt.core.formatter.wrap_before_additive_operator"]
         )
         assert.are.equal("false", requests[1].params.options["org.eclipse.jdt.core.formatter.join_wrapped_lines"])
+        -- ... and the overrides that keep switch-arrow breaks and stop hard-wrapping of long lines.
+        assert.are.equal(
+            "16",
+            requests[1].params.options["org.eclipse.jdt.core.formatter.alignment_for_switch_case_with_arrow"]
+        )
+        assert.are.equal("9999", requests[1].params.options["org.eclipse.jdt.core.formatter.lineSplit"])
         assert.are.equal("textDocument/rangeFormatting", requests[2].method)
         assert.are.equal(10, requests[2].params.range.start.line)
         assert.are.equal(
@@ -302,7 +315,7 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             "}",
         }
         local marks = {}
-        local set_text, set_lines
+        local set_text = {}
         vim.api.nvim_create_namespace = function()
             return 42
         end
@@ -323,13 +336,12 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             return lines
         end
         vim.api.nvim_buf_set_text = function(_, start_row, start_col, end_row, end_col, lines)
-            set_text = { start_row, start_col, end_row, end_col, lines }
-            local line = formatted[start_row + 1]
-            formatted[start_row + 1] = line:sub(1, start_col)
-            table.insert(formatted, start_row + 2, lines[2] .. line:sub(end_col + 1))
-        end
-        vim.api.nvim_buf_set_lines = function(_, first, last, _, lines)
-            set_lines = { first, last, lines }
+            set_text[#set_text + 1] = { start_row, start_col, end_row, end_col, lines }
+            if #lines == 2 then
+                local line = formatted[start_row + 1]
+                formatted[start_row + 1] = line:sub(1, start_col)
+                table.insert(formatted, start_row + 2, lines[2] .. line:sub(end_col + 1))
+            end
         end
         vim.api.nvim_buf_clear_namespace = function(_, namespace)
             state.cleared_namespace = namespace
@@ -344,9 +356,68 @@ describe("utils.java.jdtls-adaptive-formatter", function()
         assert.are.same({ 3, 30 }, { marks[2].row, marks[2].col })
         assert.is_false(marks[2].opts.right_gravity)
         -- The trailing space after the arrow goes, the body gets the continuation indent.
-        assert.are.same({ 1, 31, 1, 32, { "", "            " } }, set_text)
-        -- The remaining body line follows by the same indent.
-        assert.are.same({ 3, 4, { "                    .baz());" } }, set_lines)
+        assert.are.same({ 1, 31, 1, 32, { "", "            " } }, set_text[1])
+        -- The remaining body line follows by the same indent, inserted in place to keep nested extmarks.
+        assert.are.same({ 3, 0, 3, 0, { "        " } }, set_text[2])
+        assert.are.equal(2, #set_text)
         assert.are.equal(42, state.cleared_namespace)
+    end)
+
+    it("restores the break between a parameter annotation and its type", function()
+        local parameter = fake_node("formal_parameter", { 2, 8, 3, 15 })
+        local annotation = fake_node("marker_annotation", { 2, 8, 2, 14 })
+        local parameter_type = fake_node("type_identifier", { 3, 8, 3, 11 })
+        local modifiers = fake_node("modifiers", { 2, 8, 2, 14 }, nil, parameter)
+        modifiers.iter_children = function()
+            local done = false
+            return function()
+                if not done then
+                    done = true
+                    return annotation
+                end
+            end
+        end
+        modifiers.next_sibling = function()
+            return parameter_type
+        end
+        stub_tree({}, {}, { modifiers })
+
+        -- Buffer as the formatter leaves it: the type joined behind its annotation.
+        local formatted = {
+            "class Demo {",
+            "    void run(",
+            "        @Valid Foo foo,",
+            "        Bar bar) {",
+        }
+        local marks = {}
+        local set_text = {}
+        vim.api.nvim_create_namespace = function()
+            return 42
+        end
+        vim.api.nvim_buf_set_extmark = function(_, _, row, col)
+            marks[#marks + 1] = { row, col }
+            return #marks
+        end
+        vim.api.nvim_buf_get_extmark_by_id = function(_, _, id)
+            -- Mark 1 = the type, now behind the annotation; mark 2 = the start of the parameter.
+            return id == 1 and { 2, 15 } or { 2, 8 }
+        end
+        vim.api.nvim_buf_get_lines = function(_, first, last)
+            local lines = {}
+            for row = first + 1, last do
+                lines[#lines + 1] = formatted[row]
+            end
+            return lines
+        end
+        vim.api.nvim_buf_set_text = function(_, start_row, start_col, end_row, end_col, lines)
+            set_text[#set_text + 1] = { start_row, start_col, end_row, end_col, lines }
+        end
+        vim.api.nvim_buf_clear_namespace = function() end
+
+        formatter.format(7)
+
+        assert.are.same({ { 3, 8 }, { 2, 8 } }, marks)
+        -- The type goes back on its own line, on the column of the parameter.
+        assert.are.same({ { 2, 14, 2, 15, { "", "        " } } }, set_text)
     end)
 end)
