@@ -269,7 +269,7 @@ M.jdtls_settings = {
                 "", -- Import all other imports
                 "java", -- java.*
                 "javax", -- javax.*
-                "jakarta", -- jakarta.*
+                -- "jakarta", -- jakarta.*
                 "#", -- Import static all other imports
             },
 
