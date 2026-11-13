@@ -44,9 +44,10 @@
 --
 -- Performance: formatting makes the normal JDTLS request, then one additional
 -- synchronous range-formatting request only for each parameter list that matches
--- the parameter rule -- typically none. Every request carries the binary
--- overrides. Add more adaptive rules only when their formatting benefit justifies
--- the extra latency.
+-- the parameter rule -- typically none. Every request carries the global
+-- overrides. The break tracking (one extmark per line) and the re-indentation run
+-- on the client and add a few milliseconds per 500 lines. Add more rules that
+-- need requests only when their formatting benefit justifies the extra latency.
 --
 -- Extension: further Eclipse formatter options can be overridden globally on
 -- every request, or layered on a Tree-sitter range like the parameter rule. Keep
@@ -149,13 +150,13 @@ local BODY_TYPES = {
     switch_block = true,
 }
 
-local lambda_namespace
+local break_namespace
 
 --- Return the extmark namespace used to track restored line breaks across formatter edits.
 ---@return integer
-local function get_lambda_namespace()
-    lambda_namespace = lambda_namespace or vim.api.nvim_create_namespace("jdtls-adaptive-formatter-lambda")
-    return lambda_namespace
+local function get_break_namespace()
+    break_namespace = break_namespace or vim.api.nvim_create_namespace("jdtls-adaptive-formatter-breaks")
+    return break_namespace
 end
 
 local PARAMETERS_QUERY = [[
@@ -509,7 +510,7 @@ end
 ---@param breaks { kind: string, start: lsp.Position, finish: lsp.Position|nil, shift_rest: boolean|nil }[]
 ---@return { kind: string, start_mark: integer, end_mark: integer|nil, shift_rest: boolean|nil }[]
 local function track_breaks(bufnr, breaks)
-    local namespace = get_lambda_namespace()
+    local namespace = get_break_namespace()
     -- Restoring walks the buffer top-down: a later break may sit on a line an earlier one created.
     table.sort(breaks, function(left, right)
         return compare_positions(left.start, right.start) < 0
@@ -545,7 +546,7 @@ local function restore_breaks(bufnr, tracked)
     local indent_unit = vim.bo[bufnr].expandtab
             and string.rep(" ", vim.lsp.util.get_effective_tabstop(bufnr) * CONTINUATION_INDENT_LEVELS)
         or string.rep("\t", CONTINUATION_INDENT_LEVELS)
-    local namespace = get_lambda_namespace()
+    local namespace = get_break_namespace()
 
     -- Nearly every tracked line start is still first on its line. Drop those with
     -- one read of the buffer and its marks; a restored break never joins a line again.
@@ -603,7 +604,6 @@ local function restore_breaks(bufnr, tracked)
             end
         end
     end
-    vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
     return restored
 end
 
@@ -685,9 +685,10 @@ end
 --- Lines inside text blocks are left alone. Only space-indented buffers without
 --- syntax errors are handled.
 ---@param bufnr integer
----@param selection lsp.Range|nil
+---@param first_row integer first row to re-indent (0-based)
+---@param last_row integer|nil last row to re-indent, nil for the end of the buffer
 ---@param restored table<integer, boolean> rows of restored line breaks: Eclipse never indented them
-local function reindent_call_continuations(bufnr, selection, restored)
+local function reindent_call_continuations(bufnr, first_row, last_row, restored)
     if not vim.bo[bufnr].expandtab then
         return
     end
@@ -908,7 +909,7 @@ local function reindent_call_continuations(bufnr, selection, restored)
             -- `extends Base<` + type arguments on their own lines: IntelliJ keeps them on the column of `extends`.
             local header = parent:parent()
             while header and header:type() ~= "superclass" and header:type() ~= "super_interfaces" do
-                header = CHAIN_TYPES[header:type()] and nil or header:parent()
+                header = header:parent()
             end
             if not header or not starts_line(header) then
                 return nil
@@ -970,8 +971,7 @@ local function reindent_call_continuations(bufnr, selection, restored)
         return final_indent(anchor) + own_indent + extra
     end
 
-    local first_row = selection and selection.start.line or 0
-    local last_row = selection and math.min(selection["end"].line, #lines - 1) or #lines - 1
+    last_row = math.min(last_row or #lines - 1, #lines - 1)
     local changes = {}
     for row = first_row, last_row do
         local line = lines[row + 1]
@@ -1135,19 +1135,37 @@ function M.format(bufnr)
 
     local edits = merge_edits(base_edits, adaptive_edits)
     local restored = {}
-    if #edits > 0 then
-        -- The formatter joins an expression lambda body onto its arrow line and a
-        -- parameter onto its annotations; the extmarks follow them through the
-        -- edits so the breaks can be restored.
-        local tracked = #breaks > 0 and track_breaks(bufnr, breaks) or {}
+    local first_row = selection and selection.start.line or 0
+    local last_row = selection and selection["end"].line or nil
+    if #edits > 0 and (selection or #breaks > 0) then
+        -- The formatter joins lines IntelliJ keeps apart (a lambda body behind its
+        -- arrow, a parameter behind its annotations, ...); the extmarks follow the
+        -- line starts through the edits so the breaks can be restored. The edits and
+        -- the restored breaks move the rows of a selection, so it is tracked as well.
+        local namespace = get_break_namespace()
+        local tracked = track_breaks(bufnr, breaks)
+        local selection_marks = selection
+            and {
+                vim.api.nvim_buf_set_extmark(bufnr, namespace, selection.start.line, selection.start.character, {
+                    right_gravity = false,
+                }),
+                vim.api.nvim_buf_set_extmark(bufnr, namespace, selection["end"].line, selection["end"].character, {
+                    right_gravity = false,
+                }),
+            }
         vim.lsp.util.apply_text_edits(edits, bufnr, client.offset_encoding)
-        if #tracked > 0 then
-            restored = restore_breaks(bufnr, tracked)
+        restored = restore_breaks(bufnr, tracked)
+        if selection_marks then
+            first_row = vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, selection_marks[1], {})[1] or first_row
+            last_row = vim.api.nvim_buf_get_extmark_by_id(bufnr, namespace, selection_marks[2], {})[1] or last_row
         end
+        vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
+    elseif #edits > 0 then
+        vim.lsp.util.apply_text_edits(edits, bufnr, client.offset_encoding)
     end
     -- Runs without formatter edits as well: a buffer that is already in Eclipse's
     -- shape still gets IntelliJ's call indentation.
-    reindent_call_continuations(bufnr, selection, restored)
+    reindent_call_continuations(bufnr, first_row, last_row, restored)
 end
 
 --- Report JDTLS as available only when both formatter requests are supported.

@@ -281,8 +281,27 @@ describe("utils.java.jdtls-adaptive-formatter", function()
             ),
         })
 
+        -- The selection is tracked through the edits with two extmarks.
+        local marks = {}
+        vim.api.nvim_create_namespace = function()
+            return 42
+        end
+        vim.api.nvim_buf_set_extmark = function(_, _, row, col)
+            marks[#marks + 1] = { row, col }
+            return #marks
+        end
+        vim.api.nvim_buf_get_extmark_by_id = function(_, _, id)
+            return marks[id]
+        end
+        vim.api.nvim_buf_clear_namespace = function(_, namespace)
+            state.cleared_namespace = namespace
+        end
+
         formatter.format(7)
 
+        assert.are.equal(8, marks[1][1])
+        assert.are.equal(16, marks[2][1])
+        assert.are.equal(42, state.cleared_namespace)
         assert.are.equal(2, #requests)
         assert.are.equal("textDocument/rangeFormatting", requests[1].method)
         assert.are.equal(8, requests[1].params.range.start.line)
