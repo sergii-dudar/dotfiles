@@ -21,6 +21,7 @@ alias lsraw='eza --oneline --color=never --icons=never'
 
 alias music="rmpc" # "ncmpcpp"
 alias top="btop"
+alias radio='pyradio --no-themes'
 
 alias yaziu="cargo install --locked yazi-fm yazi-cli"
 if isMacOs; then

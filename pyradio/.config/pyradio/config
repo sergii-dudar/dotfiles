@@ -45,7 +45,7 @@ continuous_playback = False
 # why it is disabled by default.
 #
 # Default value: False
-enable_mouse = False
+enable_mouse = True
 
 # When mouse support is enabled, the Wheel normally scrolls up and down within
 # the playlist, moving the selection, while Shift-Wheel adjusts the volume.
@@ -209,7 +209,7 @@ log_titles = False
 # desktop widgets and external tools (e.g. playerctl).
 #
 # Default value: False
-use_os_media_controls = False
+use_os_media_controls = True
 
 # Update Window Title
 # When enabled, PyRadio updates the window (terminal) title with playback
@@ -334,7 +334,7 @@ confirm_playlist_reload = True
 # needs saving
 #
 # Default value: True
-auto_save_playlist = False
+auto_save_playlist = True
 
 # Remote Control server
 # A simple http server that can accept remote connections and pass commands
