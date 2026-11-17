@@ -239,79 +239,99 @@ local function mark_signs_running(ids)
     end
 end
 
---- Running signs for the tests a starting run covers that carry no result sign yet (first
---- run, new test): the adapter's test positions of the loaded source buffers the scope names.
---- Without results the scope cannot be matched against ids, so it is matched against files:
---- no scope = every loaded buffer of the filetype, file / dir = the buffers there, container =
---- the file the run was started from (`scope.path`), narrowed to `scope.member` when set.
+--- Running signs for the tests of one loaded source buffer that a run in flight covers and
+--- that carry no sign yet (first run, new test), from the adapter's test positions. Without
+--- results the scope cannot be matched against ids, so it is matched against the file: no
+--- scope = every buffer of the filetype, file / dir = the buffers there, container = the file
+--- the run was started from (`scope.path`), narrowed to `scope.member` when set.
+---@param bufnr integer
 ---@param filetype string
 ---@param scope test_report.RunScope|nil
-local function mark_new_tests_running(filetype, scope)
+local function mark_buffer_tests_running(bufnr, filetype, scope)
     local adapter = registry.get(filetype)
-    if not adapter then
+    if not adapter or not vim.api.nvim_buf_is_loaded(bufnr) then
         return
     end
-    ---@param file string
-    local function in_scope(file)
-        if not scope then
-            return true
+    local file = vim.api.nvim_buf_get_name(bufnr)
+    if file == "" or vim.bo[bufnr].buftype ~= "" or vim.bo[bufnr].filetype ~= filetype then
+        return
+    end
+    if scope then
+        if scope.path == nil then
+            return
         elseif scope.kind == "dir" then
-            return scope.path ~= nil and vim.startswith(file, scope.path .. "/")
+            if not vim.startswith(file, scope.path .. "/") then
+                return
+            end
+        elseif file ~= scope.path then -- file, container
+            return
         end
-        return scope.path ~= nil and file == scope.path -- file, container
     end
     local member = scope and scope.kind == "container" and scope.member or nil
 
-    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-        local file = vim.api.nvim_buf_get_name(bufnr)
-        if
-            file ~= ""
-            and vim.api.nvim_buf_is_loaded(bufnr)
-            and vim.bo[bufnr].buftype == ""
-            and vim.bo[bufnr].filetype == filetype
-            and in_scope(file)
-        then
-            local ok, positions, container_line, qualified = pcall(adapter.find_test_positions, file, { silent = true })
-            if not ok then
-                log.warn("find_test_positions failed for " .. file .. ": " .. tostring(positions))
-            else
-                local lines = {} -- 0-indexed line -> true
-                for key, line in pairs(qualified or {}) do
-                    if not member or key:match("#(.+)$") == member then
-                        lines[line] = true
-                    end
-                end
-                for name, line in pairs(positions or {}) do
-                    if not member or name == member then
-                        lines[line] = true
-                    end
-                end
-                if next(lines) and container_line then
-                    lines[container_line] = true
-                end
-                -- Lines that already carry a result sign were handled by mark_signs_running().
-                for _, mark in pairs(sign_marks[bufnr] or {}) do
-                    local pos = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_signs, mark.id, {})
-                    if pos[1] then
-                        lines[pos[1]] = nil
-                    end
-                end
-                local line_count = vim.api.nvim_buf_line_count(bufnr)
-                for line in pairs(lines) do
-                    if line < line_count then
-                        local id = set_sign(bufnr, line, sign_config.running)
-                        temp_running_signs[#temp_running_signs + 1] = { bufnr = bufnr, id = id }
-                        signed_buffers[bufnr] = true
-                    end
-                end
-            end
+    local ok, positions, container_line, qualified = pcall(adapter.find_test_positions, file, { silent = true })
+    if not ok then
+        log.warn("find_test_positions failed for " .. file .. ": " .. tostring(positions))
+        return
+    end
+    local lines = {} -- 0-indexed line -> true
+    for key, line in pairs(qualified or {}) do
+        if not member or key:match("#(.+)$") == member then
+            lines[line] = true
         end
     end
+    for name, line in pairs(positions or {}) do
+        if not member or name == member then
+            lines[line] = true
+        end
+    end
+    if next(lines) and container_line then
+        lines[container_line] = true
+    end
+    -- Lines that already carry a sign: result signs were handled by mark_signs_running(),
+    -- running ones were placed by an earlier pass over this buffer.
+    for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(bufnr, ns_signs, 0, -1, {})) do
+        lines[mark[2]] = nil
+    end
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+    for line in pairs(lines) do
+        if line < line_count then
+            local id = set_sign(bufnr, line, sign_config.running)
+            temp_running_signs[#temp_running_signs + 1] = { bufnr = bufnr, id = id }
+            signed_buffers[bufnr] = true
+        end
+    end
+end
+
+local running_signs_group = vim.api.nvim_create_augroup("TestReportRunningSigns", { clear = true })
+
+--- Running signs for the covered tests without a sign yet, in every loaded source buffer now
+--- and in the ones opened while the run is in flight (FileType; removed by restore_signs()).
+---@param filetype string
+---@param scope test_report.RunScope|nil
+local function mark_new_tests_running(filetype, scope)
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        mark_buffer_tests_running(bufnr, filetype, scope)
+    end
+    vim.api.nvim_clear_autocmds({ group = running_signs_group })
+    vim.api.nvim_create_autocmd("FileType", {
+        group = running_signs_group,
+        pattern = filetype,
+        callback = function(args)
+            -- After the buffer finished loading (treesitter needs its text).
+            vim.schedule(function()
+                if running_task_id ~= nil and vim.api.nvim_buf_is_valid(args.buf) then
+                    mark_buffer_tests_running(args.buf, filetype, running_scope)
+                end
+            end)
+        end,
+    })
 end
 
 --- Turn every running sign back into its last result (the run ended; process() re-places
 --- the signs of the files it has results for afterwards).
 local function restore_signs()
+    vim.api.nvim_clear_autocmds({ group = running_signs_group })
     for _, temp in ipairs(temp_running_signs) do
         if vim.api.nvim_buf_is_valid(temp.bufnr) then
             pcall(vim.api.nvim_buf_del_extmark, temp.bufnr, ns_signs, temp.id)
@@ -347,7 +367,11 @@ function M.run_started(task_id, filetype, scope)
     running_scope = scope
     running_ids = scope_ids(scope)
     restore_signs() -- a run replacing one still in flight
-    mark_signs_running(running_ids)
+    -- A scope that matches no known result (a file run for the first time) leaves the result
+    -- signs of other files alone: its own tests get their signs from mark_new_tests_running().
+    if scope == nil or running_ids ~= nil then
+        mark_signs_running(running_ids)
+    end
     mark_new_tests_running(filetype, scope)
     log.info(
         "run_started: task="

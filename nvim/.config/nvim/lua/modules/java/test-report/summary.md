@@ -271,7 +271,10 @@ the adapter's `find_test_positions()` of the LOADED source buffers the scope nam
 there are no ids to match: no scope = every loaded buffer of the filetype, `file` / `dir` =
 the buffers there, `container` = the file the run was started from (`scope.path`, added to a
 runner's exact scope by `run_scope()` in `run_tests.lua`), narrowed to `scope.member`. The
-class line is marked with them. Files that are not loaded are never opened for this.
+class line is marked with them. Files that are not loaded are never opened for this; a
+`FileType` autocmd (group `TestReportRunningSigns`, alive while the run is) marks a covered
+buffer that is opened during the run. A scope that matches no known result does not restyle
+the result signs of other files (the tree view still marks everything in that case).
 
 ---
 
