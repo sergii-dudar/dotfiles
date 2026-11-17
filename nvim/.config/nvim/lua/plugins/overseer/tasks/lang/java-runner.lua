@@ -87,6 +87,14 @@ function M.build_run_test_cmd(context)
     return require("modules.java.junit.init").build_run_test_cmd(context)
 end
 
+--- Before any test run: make jdtls bring the class files up to date (full build when an output
+--- folder was wiped, e.g. target/test-classes after `mvn clean compile`).
+---@param context task.lang.Context
+---@return boolean, string|nil
+function M.prepare_test_context(context)
+    return require("utils.java.jdtls-test-build").ensure_built()
+end
+
 function M.get_test_report_dir()
     local java_util = require("utils.java.java-common")
     return java_util.get_build_layout(java_util.get_buffer_project_path()).report_dir

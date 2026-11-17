@@ -193,6 +193,12 @@ Java helpers under `utils/java/`:
   verdict is re-checked once (`healthy_recheck`). Recovery restarts (`mark_recovery_refresh`) force the refresh plus a full build. The refresh itself
   deletes and regenerates every generated source, so a healthy workspace skips it (`_workspace_watcher_state` on
   the client shows the lifecycle; `M.config` holds timings and toggles)
+- `jdtls-test-build.lua` — build barrier in front of every Java test run (`prepare_test_context` of
+  `tasks/lang/java-runner.lua`; the JUnit runner only executes what jdtls compiled). A class output folder of a
+  workspace project's `.classpath` that is missing or empty while its source folder holds Java sources
+  (`mvn clean compile` before nvim leaves no `target/test-classes`, jdtls' saved build state says "built") gets a
+  full `java/buildWorkspace`; otherwise an incremental one waits for a pending autobuild. Not done at start-up on
+  purpose (most sessions run no test). Never blocks the run; `M.config.enabled` / `incremental` switch it off
 - `jdtls-cleanup.lua` — on-demand jdtls clean-ups (`java.cleanup.actions` in `jdtls-config-util.lua`) via the
   client-specific `java/cleanup` request: `:JavaCleanup` / `<leader>jcu` diff-preview picker (one item per hunk;
   `<CR>` applies the current or `<Tab>`-marked hunks, the ALL row everything), `:JavaCleanup!` / `<leader>jcU`
