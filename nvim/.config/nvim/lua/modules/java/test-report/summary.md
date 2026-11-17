@@ -220,7 +220,7 @@ re-render, so failed-first re-sorting doesn't move the cursor to another test.
 | `<Tab>` / middle mouse | Toggle fold |
 | `<leader>G` | Full refresh from the core's live state |
 | `]d` / `[d` | Next / previous failed member (visible lines only) |
-| `<leader>?` | Keybinding help float |
+| `<leader>?` / `g?` | Keybinding help float |
 | `q` | Close |
 
 ### Running marks

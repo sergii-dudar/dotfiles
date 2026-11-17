@@ -970,6 +970,7 @@ local help_entries = {
     { "]d",       "Next failed test" },
     { "[d",       "Prev failed test" },
     { "<leader>?","Show this help" },
+    { "g?",       "Show this help" },
     { "q",        "Close" },
 }
 -- stylua: ignore end
@@ -1043,6 +1044,7 @@ local function setup_keymaps(buf)
         action_jump_failed(-1)
     end, "Prev failed test")
     map("<leader>?", action_show_help, "Show keybindings")
+    map("g?", action_show_help, "Show keybindings")
     map("q", function()
         M.close()
     end, "Close")
