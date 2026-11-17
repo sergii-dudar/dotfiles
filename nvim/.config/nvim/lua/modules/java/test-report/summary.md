@@ -265,7 +265,13 @@ covered tests to the running icon in place (`mark_signs_running()`; the file-lev
 when any test of the buffer is covered), by extmark id, so signs moved by edits are still hit.
 `finish_run()` (report processed, canceled, reset, disposed) turns them back to the last result
 (`restore_signs()`); `process()` then re-places the signs of the files it has results for.
-Tests without a previous result have no sign and therefore show nothing while running.
+Tests without a result sign yet (first run, new test) get a temporary running sign
+(`mark_new_tests_running()`, tracked in `temp_running_signs`, deleted by `restore_signs()`):
+the adapter's `find_test_positions()` of the LOADED source buffers the scope names, since
+there are no ids to match: no scope = every loaded buffer of the filetype, `file` / `dir` =
+the buffers there, `container` = the file the run was started from (`scope.path`, added to a
+runner's exact scope by `run_scope()` in `run_tests.lua`), narrowed to `scope.member`. The
+class line is marked with them. Files that are not loaded are never opened for this.
 
 ---
 

@@ -45,7 +45,8 @@
 --- the view holds; a scope that matches nothing there marks every test.
 ---@class test_report.RunScope
 ---@field kind "file"|"dir"|"container"
----@field path? string       file: source file of the containers; dir: directory they live under (recursive)
+---@field path? string       file: source file of the containers; dir: directory they live under (recursive);
+---                          container: the source file the run was started from (hint for tests without a result)
 ---@field container? string  container: container id; containers nested in it (`<id>$Inner`) match too
 ---@field member? string     container: only this member (the id's member part)
 

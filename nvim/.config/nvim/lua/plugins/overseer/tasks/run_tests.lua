@@ -28,6 +28,24 @@ local function is_abort_cmd(cmd)
     return type(cmd) == "table" and cmd[1] == "echo"
 end
 
+--- Test-report scope of a run: the runner's exact one when it has one, else the generic one
+--- from the key press. An exact scope keeps the generic one's file as its `path`, the hint for
+--- tests that have no result yet.
+---@param test_cmd task.lang.test.TestCmd
+---@param params { context: task.lang.Context }
+---@return test_report.RunScope|nil
+local function run_scope(test_cmd, params)
+    local generic = params.context and params.context.report_scope
+    local scope = test_cmd.scope
+    if not scope then
+        return generic
+    end
+    if scope.path == nil and generic and generic.kind == "file" then
+        scope = vim.tbl_extend("force", scope, { path = generic.path })
+    end
+    return scope
+end
+
 ---@param params { context: task.lang.Context }
 ---@return task.lang.test.TestCmd
 local resolve_type_test_cmd = function(params)
@@ -58,7 +76,7 @@ function M.build_taks()
                     report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
-                    scope = test_cmd.scope or (params.context and params.context.report_scope),
+                    scope = run_scope(test_cmd, params),
                 })
             else
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
@@ -99,7 +117,7 @@ function M.build_debug_taks()
                     report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
-                    scope = test_cmd.scope or (params.context and params.context.report_scope),
+                    scope = run_scope(test_cmd, params),
                 })
             else
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
