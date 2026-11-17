@@ -226,10 +226,31 @@ return {
         opts = {
             colorcolumn = "150",
             disabled_filetypes = { "help", "text", "markdown" },
-            custom_colorcolumn = {},
+            -- custom_colorcolumn = {},
+            -- special buffers (lazy UI, overseer output/list, terminals, pickers, ...) never get a colorcolumn:
+            -- the plugin only knows disabled_filetypes, so they get a limit no line can exceed
+            custom_colorcolumn = function()
+                if vim.bo.buftype ~= "" then
+                    return "100000"
+                end
+                return "150"
+            end,
             scope = "file",
             editorconfig = true,
         },
+        config = function(_, opts)
+            require("smartcolumn").setup(opts)
+            -- a split inherits colorcolumn from the window it was opened from, and the plugin skips the
+            -- window when the buffer's state did not change (vim.b.prev_state), so clear it here
+            vim.api.nvim_create_autocmd({ "BufWinEnter", "TermOpen" }, {
+                group = vim.api.nvim_create_augroup("SmartColumnSpecialBuffers", {}),
+                callback = function(args)
+                    if vim.bo[args.buf].buftype ~= "" and vim.api.nvim_get_current_buf() == args.buf then
+                        vim.wo.colorcolumn = ""
+                    end
+                end,
+            })
+        end,
     },
     -- { "skywind3000/asyncrun.vim" },
     -- { "b0o/schemastore.nvim" }
