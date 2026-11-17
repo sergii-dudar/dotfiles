@@ -198,7 +198,9 @@ Java helpers under `utils/java/`:
   workspace project's `.classpath` that is missing or empty while its source folder holds Java sources
   (`mvn clean compile` before nvim leaves no `target/test-classes`, jdtls' saved build state says "built") gets a
   full `java/buildWorkspace`; otherwise an incremental one waits for a pending autobuild. Not done at start-up on
-  purpose (most sessions run no test). Never blocks the run; `M.config.enabled` / `incremental` switch it off
+  purpose (most sessions run no test). Never blocks the run: requests time out (`*_timeout_ms`), a failed build only
+  warns, an output folder still empty after a full build is not retried in the session; `M.config.enabled` /
+  `incremental` switch it off
 - `jdtls-cleanup.lua` — on-demand jdtls clean-ups (`java.cleanup.actions` in `jdtls-config-util.lua`) via the
   client-specific `java/cleanup` request: `:JavaCleanup` / `<leader>jcu` diff-preview picker (one item per hunk;
   `<CR>` applies the current or `<Tab>`-marked hunks, the ALL row everything), `:JavaCleanup!` / `<leader>jcU`

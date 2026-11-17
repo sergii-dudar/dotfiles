@@ -172,9 +172,9 @@ function M.prepare_run(report_dir, filetype)
     end
 end
 
---- Member ids of the accumulated results covered by `scope`. Nil = every test: no scope, or
---- nothing matches it (tests the report does not know yet, a path spelled differently), which
---- is imprecise but never points at the wrong test.
+--- Member ids of the accumulated results covered by `scope`. Nil without a scope (= every
+--- test) and when nothing matches it (tests the report does not know yet, a path spelled
+--- differently): callers tell the two apart by the scope and mark no known test for the latter.
 ---@param scope test_report.RunScope|nil
 ---@return table<string, boolean>|nil
 local function scope_ids(scope)
@@ -404,7 +404,7 @@ function M.run_scope()
 end
 
 --- Member ids the run in flight covers (its scope resolved against the accumulated results
---- when it started); nil = no run, or every test.
+--- when it started); nil = no run, every test (no `run_scope()`), or a scope matching none.
 ---@return table<string, boolean>|nil
 function M.running_ids()
     return running_ids

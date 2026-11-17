@@ -513,13 +513,17 @@ local function render()
         end
         total_time = total_time + (result.time or 0)
     end
-    -- Per-test marks: the view's own (rerun started here), else the scope of a run started
-    -- elsewhere; `run_all` when such a run has no scope the report can be matched against.
+    -- Per-test marks: the view's own (rerun started here), else the tests covered by a run
+    -- started elsewhere. `run_all`: that run has no scope (all tests). A scoped run that
+    -- covers nothing of the shown report (a file run for the first time) marks no test, only
+    -- the header says a run is in flight, like the source buffer signs.
+    local core = require("modules.common.test-report")
     local marks = state.running
-    local run_all = all_running()
-    if run_all then
-        marks = require("modules.common.test-report").running_ids()
-        run_all = marks == nil
+    local external_run = all_running()
+    local run_all = false
+    if external_run then
+        marks = core.running_ids()
+        run_all = marks == nil and core.run_scope() == nil
     end
     local running = run_all and total or (marks and vim.tbl_count(marks) or 0)
 
@@ -534,6 +538,8 @@ local function render()
     }
     if running > 0 then
         table.insert(header_parts, { "  " .. icon.running .. " " .. running, hl.running })
+    elseif external_run and total > 0 then
+        table.insert(header_parts, { "  " .. icon.running, hl.running })
     end
     local header_text, header_hls = format_line(header_parts)
     header_text, header_hls =
@@ -541,7 +547,7 @@ local function render()
     add_line(header_text, { type = "header" }, header_hls)
 
     if total == 0 then
-        if run_all then
+        if external_run then
             -- Opened during the first run: nothing to show yet, process() fills the tree.
             local text = INITIAL_INDENT .. icon.running .. " tests running"
             add_line(text, { type = "blank" }, { { 0, #text, hl.running } })

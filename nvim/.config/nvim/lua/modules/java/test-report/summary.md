@@ -255,8 +255,8 @@ yet) opens the view with a `tests running` line; `process()` fills it through
 to the report component as its `scope` param (so a task restart keeps it), the component
 passes it to `run_started()`, where the core resolves it once against the accumulated
 results (`scope_ids()` → `running_ids()`, which the view reads at render time): nested
-containers (`<id>$Inner`) are covered, and a scope that matches nothing marks every test
-instead of guessing.
+containers (`<id>$Inner`) are covered, and a scope that matches nothing marks no test
+instead of guessing (the view header still shows the running icon).
 
 **Running signs in source buffers.** The core remembers every result sign it places
 (`sign_marks[bufnr][<id> | "#file"] = { id, status, running }`; both the gutter sign and the
@@ -274,7 +274,8 @@ runner's exact scope by `run_scope()` in `run_tests.lua`), narrowed to `scope.me
 class line is marked with them. Files that are not loaded are never opened for this; a
 `FileType` autocmd (group `TestReportRunningSigns`, alive while the run is) marks a covered
 buffer that is opened during the run. A scope that matches no known result does not restyle
-the result signs of other files (the tree view still marks everything in that case).
+the result signs of other files; the tree view then marks no test either and only shows the
+running icon in its header (everything is marked only for a run without a scope).
 
 ---
 

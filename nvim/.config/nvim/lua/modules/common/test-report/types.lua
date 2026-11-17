@@ -42,7 +42,7 @@
 ---@field clear_reports?      fun(dirs: string[]) Delete the previous run's report files (called before a run starts).
 
 --- What a test run covers, for the tree view's running marks. Resolved against the report
---- the view holds; a scope that matches nothing there marks every test.
+--- the view holds; a scope that matches nothing there marks no test (only "a run is in flight").
 ---@class test_report.RunScope
 ---@field kind "file"|"dir"|"container"
 ---@field path? string       file: source file of the containers; dir: directory they live under (recursive);

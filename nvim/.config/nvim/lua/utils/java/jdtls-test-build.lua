@@ -37,12 +37,18 @@ local BUILD_STATUS = { [0] = "FAILED", [1] = "SUCCEED", [2] = "WITHERROR", [3] =
 
 local sp = { id = "jdtls_test_build", title = "JDTLS" }
 
+-- Output folders that were still empty after a full build of this session (sources that
+-- produce no class file, a module jdtls cannot build): not a reason for another full build
+-- in front of every later test run.
+local unrecoverable = {}
+
 --- First source folder of a project's `.classpath` that holds Java sources while its class
 --- output folder (the entry's `output`, else the default `kind="output"` entry) is missing or
 --- empty. Entries that exclude everything (resource folders) are skipped.
 ---@param root string module directory
+---@param skip? table<string, boolean> output folders (absolute) not to report
 ---@return string|nil output absolute path of the missing output folder
-function M.missing_class_output_dir(root)
+function M.missing_class_output_dir(root, skip)
     local file = io.open(root .. "/.classpath", "r")
     if not file then
         return nil
@@ -75,7 +81,7 @@ function M.missing_class_output_dir(root)
                 local has_java = vim.fs.find(function(name)
                     return name:sub(-5) == ".java"
                 end, { path = root .. "/" .. src.path, type = "file", limit = 1 })[1]
-                if has_java then
+                if has_java and not (skip and skip[out_dir]) then
                     return out_dir
                 end
             end
@@ -155,7 +161,7 @@ function M.ensure_built()
 
     local missing
     for _, root in ipairs(project_roots(client)) do
-        missing = M.missing_class_output_dir(root)
+        missing = M.missing_class_output_dir(root, unrecoverable)
         if missing then
             break
         end
@@ -194,6 +200,13 @@ function M.ensure_built()
         end
     elseif full then
         spinner.stop(true, "Compiled", sp)
+    end
+    if full and err ~= "timeout" then
+        local handle = vim.uv.fs_scandir(missing)
+        if handle == nil or vim.uv.fs_scandir_next(handle) == nil then
+            unrecoverable[missing] = true
+            log.fmt_warn("%s is still empty after a full build, not retried in this session", missing)
+        end
     end
     return true
 end
