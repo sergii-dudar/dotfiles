@@ -47,6 +47,11 @@ function M.run_test(context)
     if not passes_run_guard(type_resolver, "test", context) then
         return
     end
+    -- End the previous run now, before anything can yield (prompts, the Java build barrier).
+    -- Disposing a task makes the test-report core clear the tree view's "running" marks, and
+    -- the view sets the marks of a rerun as soon as this function first yields: a dispose
+    -- left to run_task() below would wipe them while the new run is still starting.
+    overseer_task_util.stop_all_prev_tasks()
     -- Opt-in: language runners can pre-populate context fields that require
     -- async prompts (e.g. multi-select). We're still in the caller's nio.run
     -- context here. By the time overseer's builder runs, the nio context may
