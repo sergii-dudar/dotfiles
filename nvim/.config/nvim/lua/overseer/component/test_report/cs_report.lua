@@ -16,6 +16,11 @@ return {
             type = "string",
             desc = "Filetype used to resolve the language adapter",
         },
+        scope = {
+            type = "opaque",
+            optional = true,
+            desc = "What the run covers (test_report.RunScope); nil = the whole report",
+        },
     },
     constructor = function(params)
         log.debug(
@@ -29,26 +34,32 @@ return {
                 test_report.prepare_run(params.report_dir, params.filetype)
             end,
 
+            -- The process is spawned: the tree view shows the run as in flight until this task
+            -- completes, is canceled, reset or disposed.
+            on_start = function(self, task)
+                test_report.run_started(task.id, params.filetype, params.scope)
+            end,
+
             on_complete = function(self, task, status)
                 log.debug("on_complete: status=" .. tostring(status) .. " report_dir=" .. tostring(params.report_dir))
                 if status == require("overseer").STATUS.CANCELED then
                     -- A stopped run leaves stale (or partial) reports on disk; don't present
                     -- them as fresh results. cancel() also clears the tree view's running marks.
                     log.debug("on_complete: run canceled, skipping report processing")
-                    test_report.cancel()
+                    test_report.cancel(task.id)
                     return
                 end
                 vim.schedule(function()
-                    test_report.process(params.report_dir, params.filetype)
+                    test_report.process(params.report_dir, params.filetype, task.id)
                 end)
             end,
 
             on_reset = function(self, task)
-                test_report.cancel()
+                test_report.cancel(task.id)
             end,
 
             on_dispose = function(self, task)
-                test_report.cancel()
+                test_report.cancel(task.id)
             end,
         }
     end,

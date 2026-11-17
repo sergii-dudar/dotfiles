@@ -58,6 +58,7 @@ function M.build_taks()
                     report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
+                    scope = test_cmd.scope or (params.context and params.context.report_scope),
                 })
             else
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })
@@ -98,6 +99,7 @@ function M.build_debug_taks()
                     report_component,
                     report_dir = report_dir,
                     filetype = vim.bo.filetype,
+                    scope = test_cmd.scope or (params.context and params.context.report_scope),
                 })
             else
                 table.insert(components, 1, { "on_output_quickfix", set_diagnostics = true })

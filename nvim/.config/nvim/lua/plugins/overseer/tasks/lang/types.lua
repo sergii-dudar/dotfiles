@@ -5,12 +5,16 @@
 ---@class task.lang.Context
 ---@field test_type? task.test_type|integer
 ---@field is_debug boolean|nil
+---@field report_scope? test_report.RunScope  What the run covers, taken from the buffer/cursor when the key was
+---                                           pressed (`run_test`); the tree view marks only that as running.
 
 ---@class task.lang.test.TestCmd
 ---@field cmd string|string[]  `{ "echo", "<reason>" }` means "nothing to run": the task builders then
 ---                            attach no report component (no report clearing, no parsing).
 ---@field report_dir? string|string[]
 ---@field cwd? string
+---@field scope? test_report.RunScope  Exact scope known to the runner (e.g. from the JUnit selector);
+---                                    wins over the context's `report_scope`.
 
 ---@class task.lang.DapOutputAttacher
 ---@field name string                          Identifier for logging.

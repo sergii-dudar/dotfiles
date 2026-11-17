@@ -41,6 +41,14 @@
 ---@field clear_cache?        fun()
 ---@field clear_reports?      fun(dirs: string[]) Delete the previous run's report files (called before a run starts).
 
+--- What a test run covers, for the tree view's running marks. Resolved against the report
+--- the view holds; a scope that matches nothing there marks every test.
+---@class test_report.RunScope
+---@field kind "file"|"dir"|"container"
+---@field path? string       file: source file of the containers; dir: directory they live under (recursive)
+---@field container? string  container: container id; containers nested in it (`<id>$Inner`) match too
+---@field member? string     container: only this member (the id's member part)
+
 ---@class test_report.Snapshot
 ---@field results table<string, test_report.TestResult>
 ---@field positions table<string, table<string, number>>

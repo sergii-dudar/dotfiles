@@ -237,6 +237,36 @@ re-render, so failed-first re-sorting doesn't move the cursor to another test.
 icon bubbling up to container/group. Cleared by `refresh_if_open()` (results arrived),
 `clear_running()` (no report / canceled / processing error) and `action_full_refresh()`.
 
+**Run in flight.** The core tracks the running Overseer task: the components call
+`run_started(task.id, filetype)` from `on_start` and pass `task.id` to `process()` / `cancel()`,
+which end the run only when the id is the tracked one (a late event of an older task, e.g. its
+dispose, changes nothing). `is_running()` is the single source of truth; the view reads it at
+render time (`all_running()`): with no per-test marks of its own (run started outside the
+view) every test shows the running icon. `open_tree_view()` during the first run (no results
+yet) opens the view with a `tests running` line; `process()` fills it through
+`refresh_if_open()`. Direct debug launches without an Overseer task are not tracked.
+
+**Run scope.** A run started outside the view marks only what it covers
+(`test_report.RunScope`, `types.lua`). `overseer-util.run_test` records a generic scope in
+`context.report_scope` from the buffer at key press: `file` for file / current-test runs,
+`dir` for directory runs, nil (= whole report) otherwise. A runner may return an exact
+`scope` in its `TestCmd`, which wins: the JUnit runner derives `container` (+ `member`) from
+`--select-method` / `--select-iteration` / `--select-class`. `run_tests.lua` hands the scope
+to the report component as its `scope` param (so a task restart keeps it), the component
+passes it to `run_started()`, where the core resolves it once against the accumulated
+results (`scope_ids()` → `running_ids()`, which the view reads at render time): nested
+containers (`<id>$Inner`) are covered, and a scope that matches nothing marks every test
+instead of guessing.
+
+**Running signs in source buffers.** The core remembers every result sign it places
+(`sign_marks[bufnr][<id> | "#file"] = { id, status, running }`; both the gutter sign and the
+end-of-line icon are one extmark, `set_sign()`). `run_started()` restyles the extmarks of the
+covered tests to the running icon in place (`mark_signs_running()`; the file-level sign follows
+when any test of the buffer is covered), by extmark id, so signs moved by edits are still hit.
+`finish_run()` (report processed, canceled, reset, disposed) turns them back to the last result
+(`restore_signs()`); `process()` then re-places the signs of the files it has results for.
+Tests without a previous result have no sign and therefore show nothing while running.
+
 ---
 
 ## `junit-xml.lua` — XML parser

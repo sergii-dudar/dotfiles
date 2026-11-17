@@ -465,6 +465,13 @@ local function status_icon(status, running)
     return icon[status] or icon.skipped, hl[status] or hl.skipped
 end
 
+--- True while a test run is in flight that this view holds no per-test marks for (started
+--- outside the view): every test then counts as running.
+---@return boolean
+local function all_running()
+    return state.running == nil and require("modules.common.test-report").is_running()
+end
+
 local function render()
     local tree = state.tree
     if not tree then
@@ -506,7 +513,15 @@ local function render()
         end
         total_time = total_time + (result.time or 0)
     end
-    local running = state.running and vim.tbl_count(state.running) or 0
+    -- Per-test marks: the view's own (rerun started here), else the scope of a run started
+    -- elsewhere; `run_all` when such a run has no scope the report can be matched against.
+    local marks = state.running
+    local run_all = all_running()
+    if run_all then
+        marks = require("modules.common.test-report").running_ids()
+        run_all = marks == nil
+    end
+    local running = run_all and total or (marks and vim.tbl_count(marks) or 0)
 
     -- Header: "<label>  <total> <passed> <failed> <skipped> [<running>]        <time>"
     local label = (state.adapter and state.adapter.display_name) or state.snapshot.filetype or "tests"
@@ -526,6 +541,12 @@ local function render()
     add_line(header_text, { type = "header" }, header_hls)
 
     if total == 0 then
+        if run_all then
+            -- Opened during the first run: nothing to show yet, process() fills the tree.
+            local text = INITIAL_INDENT .. icon.running .. " tests running"
+            add_line(text, { type = "blank" }, { { 0, #text, hl.running } })
+            return lines, line_map, all_hls
+        end
         add_line(INITIAL_INDENT .. "No test results", { type = "blank" }, { { 0, #INITIAL_INDENT + 15, hl.dim } })
         return lines, line_map, all_hls
     end
@@ -533,13 +554,13 @@ local function render()
     -- Pre-compute running state for containers and groups (bubbles up from member IDs)
     local is_running_cnt = {}
     local is_running_grp = {}
-    if state.running then
+    if marks then
         local function compute_running(groups)
             for _, group in ipairs(groups) do
                 local grp_running = false
                 for _, cont in ipairs(group.containers) do
                     for _, mem in ipairs(cont.members) do
-                        if state.running[mem.id] then
+                        if marks[mem.id] then
                             is_running_cnt[cont.container_id] = true
                             grp_running = true
                             break
@@ -567,7 +588,7 @@ local function render()
     ---@param group report_view.GroupNode
     local function render_container(cont, prefix, branch, child_pfx, group)
         local marker = cont.expanded and glyph.expanded or glyph.collapsed
-        local cnt_icon, cnt_icon_hl = status_icon(cont.status, is_running_cnt[cont.container_id])
+        local cnt_icon, cnt_icon_hl = status_icon(cont.status, run_all or is_running_cnt[cont.container_id])
         local parts = {
             { prefix .. branch .. marker, hl.indent },
             { " " .. cnt_icon .. " ", cnt_icon_hl },
@@ -583,7 +604,7 @@ local function render()
         if cont.expanded then
             for mem_idx, mem in ipairs(cont.members) do
                 local mem_branch = (mem_idx == #cont.members) and glyph.last_child or glyph.child
-                local mem_running = state.running and state.running[mem.id]
+                local mem_running = run_all or (marks and marks[mem.id])
                 local mem_icon, mem_icon_hl = status_icon(mem.status, mem_running)
                 local mem_name_hl = mem.status == "failed" and hl.member_failed or nil
                 local mem_text, mem_hls = format_line({
@@ -605,7 +626,7 @@ local function render()
     ---@param child_pfx string
     local function render_group(group, prefix, branch, child_pfx)
         local marker = group.expanded and glyph.expanded or glyph.collapsed
-        local grp_icon, grp_icon_hl = status_icon(group.status, is_running_grp[group.full_path])
+        local grp_icon, grp_icon_hl = status_icon(group.status, run_all or is_running_grp[group.full_path])
         local parts = {
             { prefix .. branch .. marker, hl.indent },
             { " " .. grp_icon .. " ", grp_icon_hl },
@@ -1222,6 +1243,8 @@ end
 
 ---@param snapshot test_report.Snapshot
 function M.refresh_if_open(snapshot)
+    -- Also with the view closed: marks of a rerun must not survive until it is reopened.
+    state.running = nil
     if not is_open() then
         return
     end
@@ -1265,10 +1288,14 @@ end
 
 --- Drop the "running" marks (rerun finished without a report, or was canceled).
 function M.clear_running()
-    if not state.running then
-        return
-    end
     state.running = nil
+    if is_open() then
+        refresh()
+    end
+end
+
+--- Re-render after the core's "run in flight" state changed (a run started).
+function M.refresh_running()
     if is_open() then
         refresh()
     end

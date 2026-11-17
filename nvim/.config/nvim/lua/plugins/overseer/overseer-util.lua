@@ -36,6 +36,32 @@ local function passes_run_guard(type_resolver, which, context)
     return true
 end
 
+--- What a test run started now covers, for the test-report tree view's running marks: taken
+--- from the current buffer before any prompt can move the focus. Only scopes that cannot be
+--- wrong: a single test is reported as its file (the runner may refine it, see
+--- `task.lang.test.TestCmd.scope`), everything else as nil = the whole report.
+---@param context task.lang.Context
+---@return test_report.RunScope|nil
+local function test_run_scope(context)
+    local file = vim.api.nvim_buf_get_name(0)
+    if file == "" then
+        return nil
+    end
+    local t = context.test_type
+    if
+        t == task.test_type.FILE_TESTS
+        or t == task.test_type.CURRENT_TEST
+        or t == task.test_type.CURRENT_PARAMETRIZED_NUM_TEST
+    then
+        return { kind = "file", path = file }
+    end
+    -- An explicit package (tree view group rerun) is not the directory of the current file.
+    if t == task.test_type.ALL_DIR_TESTS and not context.package_name then
+        return { kind = "dir", path = vim.fs.dirname(file) }
+    end
+    return nil
+end
+
 ---@param context task.lang.Context
 function M.run_test(context)
     local type_resolver = lang_runner_resolver.resolve(vim.bo.filetype)
@@ -47,6 +73,7 @@ function M.run_test(context)
     if not passes_run_guard(type_resolver, "test", context) then
         return
     end
+    context.report_scope = test_run_scope(context)
     -- End the previous run now, before anything can yield (prompts, the Java build barrier).
     -- Disposing a task makes the test-report core clear the tree view's "running" marks, and
     -- the view sets the marks of a rerun as soon as this function first yields: a dispose

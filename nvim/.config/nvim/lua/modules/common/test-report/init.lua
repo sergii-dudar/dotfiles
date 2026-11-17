@@ -63,10 +63,52 @@ local sign_config = {
     passed = { text = "", hl = "DiagnosticOk" },
     failed = { text = "", hl = "DiagnosticError" },
     skipped = { text = "", hl = "DiagnosticWarn" },
+    -- shown instead of the last result while a run covering the test is in flight
+    running = { text = vim.fn.nr2char(0xEB37), hl = "DiagnosticInfo" }, -- codicon debug-rerun, as in the tree view
 }
 
 -- Track buffers where we placed signs for efficient cleanup
 local signed_buffers = {}
+
+-- The sign extmarks placed per buffer, so a starting run can turn the ones it covers into
+-- the running icon and a run that ends without a report can turn them back:
+-- { [bufnr] = { [key] = { id = extmark id, status = last result, running = boolean } } },
+-- key = "<container_id>#<member>" for a test, FILE_SIGN_KEY for the file-level (class) sign.
+local sign_marks = {}
+local FILE_SIGN_KEY = "#file"
+
+--- Place (or, with `id`, restyle in place) a result sign: gutter sign plus the same icon at
+--- the end of the line.
+---@param bufnr integer
+---@param line integer 0-indexed
+---@param sign { text: string, hl: string }
+---@param id? integer extmark to update
+---@return integer id
+local function set_sign(bufnr, line, sign, id)
+    return vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
+        id = id,
+        sign_text = sign.text,
+        sign_hl_group = sign.hl,
+        virt_text = { { " " .. sign.text, sign.hl } },
+        virt_text_pos = "eol",
+        priority = 20,
+    })
+end
+
+--- Restyle a tracked sign where the extmark is now (it follows edits). False when the
+--- extmark is gone (lines deleted, namespace cleared).
+---@param bufnr integer
+---@param mark { id: integer, status: string, running: boolean }
+---@param sign { text: string, hl: string }
+---@return boolean
+local function restyle_sign(bufnr, mark, sign)
+    local pos = vim.api.nvim_buf_get_extmark_by_id(bufnr, ns_signs, mark.id, {})
+    if not pos[1] then
+        return false
+    end
+    set_sign(bufnr, pos[1], sign, mark.id)
+    return true
+end
 
 -- Accumulated state (merged across runs)
 local last_results = {} -- { [container_id#member] = TestResult }
@@ -78,6 +120,13 @@ local last_container_files = {} -- { [container_id] = file_path }
 local last_filetype = nil -- filetype used to process results
 local output_bufnr = nil -- scratch buffer for test output
 local output_method = nil -- key currently shown in output buffer (file#member)
+
+-- Test run in flight, tracked from the Overseer components' lifecycle hooks: the task id
+-- (nil = no run) and the filetype it runs for. Events of any other task leave it alone.
+local running_task_id = nil
+local running_filetype = nil
+local running_scope = nil ---@type test_report.RunScope|nil nil = the whole report
+local running_ids = nil ---@type table<string, boolean>|nil the scope's member ids; nil = every test
 
 ---@param id string
 ---@return string|nil container_id, string|nil member
@@ -121,9 +170,159 @@ function M.prepare_run(report_dir, filetype)
     end
 end
 
+--- Member ids of the accumulated results covered by `scope`. Nil = every test: no scope, or
+--- nothing matches it (tests the report does not know yet, a path spelled differently), which
+--- is imprecise but never points at the wrong test.
+---@param scope test_report.RunScope|nil
+---@return table<string, boolean>|nil
+local function scope_ids(scope)
+    if not scope then
+        return nil
+    end
+    ---@param container_id string
+    local function covers(container_id)
+        local file_path = last_container_files[container_id]
+        if scope.kind == "file" then
+            return file_path ~= nil and file_path == scope.path
+        elseif scope.kind == "dir" then
+            return file_path ~= nil and scope.path ~= nil and vim.startswith(file_path, scope.path .. "/")
+        elseif scope.kind == "container" and scope.container then
+            if container_id == scope.container then
+                return true
+            end
+            -- A container nested in the scope's one: "<id>$Inner", never "<id>Other".
+            return vim.startswith(container_id, scope.container)
+                and container_id:sub(#scope.container + 1, #scope.container + 1) == "$"
+        end
+        return false
+    end
+    local ids, found = {}, false
+    local covered = {} -- container_id -> boolean
+    for id in pairs(last_results) do
+        local container_id, member = split_id(id)
+        if container_id and member then
+            if covered[container_id] == nil then
+                covered[container_id] = covers(container_id)
+            end
+            if covered[container_id] and (scope.member == nil or member == scope.member) then
+                ids[id] = true
+                found = true
+            end
+        end
+    end
+    return found and ids or nil
+end
+
+--- Turn the result signs of the tests a starting run covers into the running icon, in the
+--- buffers that carry signs (tests without a previous result have no sign to turn). The
+--- file-level sign follows when any test of the buffer is covered.
+---@param ids table<string, boolean>|nil nil = every test
+local function mark_signs_running(ids)
+    for bufnr, marks in pairs(sign_marks) do
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+            sign_marks[bufnr] = nil
+        else
+            local any = false
+            for key, mark in pairs(marks) do
+                if key ~= FILE_SIGN_KEY and (ids == nil or ids[key]) then
+                    mark.running = restyle_sign(bufnr, mark, sign_config.running)
+                    any = any or mark.running
+                end
+            end
+            local file_mark = marks[FILE_SIGN_KEY]
+            if any and file_mark then
+                file_mark.running = restyle_sign(bufnr, file_mark, sign_config.running)
+            end
+        end
+    end
+end
+
+--- Turn every running sign back into its last result (the run ended; process() re-places
+--- the signs of the files it has results for afterwards).
+local function restore_signs()
+    for bufnr, marks in pairs(sign_marks) do
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+            sign_marks[bufnr] = nil
+        else
+            for _, mark in pairs(marks) do
+                if mark.running then
+                    mark.running = false
+                    local sign = sign_config[mark.status]
+                    if sign then
+                        restyle_sign(bufnr, mark, sign)
+                    end
+                end
+            end
+        end
+    end
+end
+
+--- Called by the Overseer components once the test process is spawned. Until that task
+--- completes, is canceled, reset or disposed, the tree view and the source buffer signs show
+--- the tests it covers as running.
+---@param task_id integer
+---@param filetype string
+---@param scope? test_report.RunScope What the run covers; nil = the whole report
+function M.run_started(task_id, filetype, scope)
+    running_task_id = task_id
+    running_filetype = filetype
+    running_scope = scope
+    running_ids = scope_ids(scope)
+    restore_signs() -- a run replacing one still in flight
+    mark_signs_running(running_ids)
+    log.info(
+        "run_started: task="
+            .. tostring(task_id)
+            .. " ft="
+            .. tostring(filetype)
+            .. " scope="
+            .. vim.inspect(scope, { newline = " ", indent = "" })
+    )
+    view().refresh_running()
+end
+
+--- Whether a test run is in flight.
+---@return boolean
+function M.is_running()
+    return running_task_id ~= nil
+end
+
+--- Scope of the run in flight; nil = no run, or a run covering the whole report.
+---@return test_report.RunScope|nil
+function M.run_scope()
+    return running_scope
+end
+
+--- Member ids the run in flight covers (its scope resolved against the accumulated results
+--- when it started); nil = no run, or every test.
+---@return table<string, boolean>|nil
+function M.running_ids()
+    return running_ids
+end
+
+--- Forget the run in flight, unless `task_id` names another task than the tracked one
+--- (a late event of an older task must not end the current run).
+---@param task_id integer|nil nil = whichever run is tracked
+---@return boolean ended false when the event belongs to an older task
+local function finish_run(task_id)
+    if task_id ~= nil and running_task_id ~= nil and task_id ~= running_task_id then
+        return false
+    end
+    running_task_id = nil
+    running_filetype = nil
+    running_scope = nil
+    running_ids = nil
+    restore_signs()
+    return true
+end
+
 ---@param report_dir string|string[]
 ---@param filetype string
-function M.process(report_dir, filetype)
+---@param task_id? integer Overseer task whose run produced the report (ends the tracked run)
+function M.process(report_dir, filetype, task_id)
+    if task_id ~= nil then
+        finish_run(task_id)
+    end
     -- Cancel any in-flight processing but don't wipe accumulated state
     process_generation = process_generation + 1
     spinner.cancel({ id = "test_report" })
@@ -272,6 +471,8 @@ function M.process(report_dir, filetype)
 
                 vim.api.nvim_buf_clear_namespace(bufnr, ns_signs, 0, -1)
                 vim.diagnostic.reset(ns_diag, bufnr)
+                local marks = {}
+                sign_marks[bufnr] = marks
 
                 local line_count = vim.api.nvim_buf_line_count(bufnr)
                 -- The file-level sign reflects every result of the file, positioned or not
@@ -308,13 +509,8 @@ function M.process(report_dir, filetype)
 
                         local sign = sign_config[result.status]
                         if sign then
-                            vim.api.nvim_buf_set_extmark(bufnr, ns_signs, line, 0, {
-                                sign_text = sign.text,
-                                sign_hl_group = sign.hl,
-                                virt_text = { { " " .. sign.text, sign.hl } },
-                                virt_text_pos = "eol",
-                                priority = 20,
-                            })
+                            marks[container_id .. "#" .. member_name] =
+                                { id = set_sign(bufnr, line, sign), status = result.status, running = false }
                             signed_buffers[bufnr] = true
                         end
 
@@ -347,13 +543,11 @@ function M.process(report_dir, filetype)
                 if container_line ~= nil then
                     local container_sign = sign_config[has_failure and "failed" or "passed"]
                     if container_sign then
-                        vim.api.nvim_buf_set_extmark(bufnr, ns_signs, container_line, 0, {
-                            sign_text = container_sign.text,
-                            sign_hl_group = container_sign.hl,
-                            virt_text = { { " " .. container_sign.text, container_sign.hl } },
-                            virt_text_pos = "eol",
-                            priority = 20,
-                        })
+                        marks[FILE_SIGN_KEY] = {
+                            id = set_sign(bufnr, container_line, container_sign),
+                            status = has_failure and "failed" or "passed",
+                            running = false,
+                        }
                         signed_buffers[bufnr] = true
                     end
                 end
@@ -470,6 +664,7 @@ function M.clear()
         end
     end
     signed_buffers = {}
+    sign_marks = {}
     vim.diagnostic.reset(ns_diag)
     last_results = {}
     last_positions = {}
@@ -494,7 +689,9 @@ function M.clear()
 end
 
 --- Cancel in-flight processing without wiping accumulated state.
-function M.cancel()
+---@param task_id? integer Overseer task the event belongs to
+function M.cancel(task_id)
+    local run_ended = finish_run(task_id)
     process_generation = process_generation + 1
     spinner.cancel({ id = "test_report" })
     -- Close any test-related Trouble views at test start; the right one (if any)
@@ -507,7 +704,10 @@ function M.cancel()
     -- A canceled/stopped run never reaches process(), so the view's "running" marks
     -- would stick. (A rerun started from the view sets them only AFTER the previous
     -- task was disposed - nio.run executes synchronously up to the first yield.)
-    view().clear_running()
+    -- An event of an older task (e.g. its dispose) keeps the marks of the run in flight.
+    if run_ended then
+        view().clear_running()
+    end
     log.info("cancel (preserving accumulated state)")
 end
 
@@ -712,8 +912,13 @@ end
 function M.open_tree_view()
     local snapshot = M.get_report_snapshot()
     if vim.tbl_isempty(snapshot.results) then
-        vim.notify("test-report: no test results available. Run tests first.", vim.log.levels.WARN)
-        return
+        if not M.is_running() then
+            vim.notify("test-report: no test results available. Run tests first.", vim.log.levels.WARN)
+            return
+        end
+        -- First run still in flight: the view opens with a "tests running" line and is
+        -- filled by process() through refresh_if_open().
+        snapshot.filetype = snapshot.filetype or running_filetype
     end
     require("modules.common.test-report.report-view").toggle(snapshot)
 end

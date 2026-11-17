@@ -238,6 +238,26 @@ local test_selector_resolver = {
     end,
 }
 
+--- Test-report scope of a JUnit selector, for the tree view's running marks: the method or
+--- class it names. Report ids are "<classname>#<method>" with parameter lists and iteration
+--- indexes stripped. Nil (= no exact scope) for packages and class-path scans.
+---@param selector string
+---@return test_report.RunScope|nil
+local function selector_scope(selector)
+    local class, method = selector:match("^%-%-select%-method=([^#]+)#([^%(%)%[%]]+)")
+    if not class then
+        class, method = selector:match("^%-%-select%-iteration=method:([^#]+)#([^%(%)%[%]]+)")
+    end
+    if class then
+        return { kind = "container", container = class, member = method }
+    end
+    class = selector:match("^%-%-select%-class=(.+)$")
+    if class then
+        return { kind = "container", container = class }
+    end
+    return nil
+end
+
 ---@param opts { classpath: string, report_dir: string, test_selector: string, is_debug?: boolean }
 ---@return string[]
 local function build_single_module_cmd(opts)
@@ -396,6 +416,7 @@ function build_junit_tests_cmd(context)
                     is_debug = task.last_test.is_debug,
                 }),
                 report_dir = current_report_dir,
+                scope = selector_scope(task.last_test.test_selector),
             }
         end
         vim.notify(tostring(type) .. " is not supported to toggle last run cmd", vim.log.levels.WARN)
@@ -440,6 +461,7 @@ function build_junit_tests_cmd(context)
             is_debug = is_debug,
         }),
         report_dir = current_report_dir,
+        scope = selector_scope(test_selector),
     }
 end
 
