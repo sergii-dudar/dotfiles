@@ -26,6 +26,10 @@ M.config = {
     enabled = true,
     -- incremental barrier when no output folder is missing; false = only the full-build recovery
     incremental = true,
+    -- a jdtls that does not answer (hung, stopped mid-request) must not hold the tests back forever
+    incremental_timeout_ms = 30 * 1000,
+    full_timeout_ms = 10 * 60 * 1000,
+    projects_timeout_ms = 5 * 1000,
 }
 
 -- org.eclipse.jdt.ls.core.internal.BuildWorkspaceStatus
@@ -80,15 +84,41 @@ function M.missing_class_output_dir(root)
     return nil
 end
 
----@type fun(client: vim.lsp.Client, method: string, params: any): any, any
-local request = nio.wrap(function(client, method, params, cb)
-    local ok = client:request(method, params, function(err, result)
+--- LSP request for a nio task: answers `err, result`, with err = "timeout" when the server
+--- did not answer in `timeout_ms` (the request is then canceled; a late answer is ignored).
+---@type fun(client: vim.lsp.Client, method: string, params: any, timeout_ms: integer): any, any
+local request = nio.wrap(function(client, method, params, timeout_ms, cb)
+    local done = false
+    local timer = vim.uv.new_timer()
+    local function finish(err, result)
+        if done then
+            return
+        end
+        done = true
+        if timer then
+            timer:stop()
+            timer:close()
+        end
         cb(err, result)
-    end)
-    if not ok then
-        cb("request not sent", nil)
     end
-end, 4)
+    local ok, request_id = client:request(method, params, finish)
+    if not ok then
+        finish("request not sent", nil)
+        return
+    end
+    if timer then
+        timer:start(
+            timeout_ms,
+            0,
+            vim.schedule_wrap(function()
+                if not done and request_id then
+                    pcall(client.cancel_request, client, request_id)
+                end
+                finish("timeout", nil)
+            end)
+        )
+    end
+end, 5)
 
 --- Module directories of the client's workspace projects (java.project.getAll), the client
 --- root when they cannot be listed.
@@ -96,7 +126,8 @@ end, 4)
 ---@return string[]
 local function project_roots(client)
     local roots = {}
-    local err, uris = request(client, "workspace/executeCommand", { command = "java.project.getAll" })
+    local err, uris =
+        request(client, "workspace/executeCommand", { command = "java.project.getAll" }, M.config.projects_timeout_ms)
     if not err and type(uris) == "table" then
         for _, uri in ipairs(uris) do
             local path = vim.uri_to_fname(uri):gsub("/$", "")
@@ -140,7 +171,8 @@ function M.ensure_built()
         spinner.start("Compiling: " .. vim.fn.fnamemodify(missing, ":~:.") .. " is missing…", sp)
     end
 
-    local err, status = request(client, "java/buildWorkspace", full)
+    local timeout_ms = full and M.config.full_timeout_ms or M.config.incremental_timeout_ms
+    local err, status = request(client, "java/buildWorkspace", full, timeout_ms)
     nio.scheduler()
     local status_name = BUILD_STATUS[status] or tostring(status)
     log.fmt_info(
@@ -152,7 +184,9 @@ function M.ensure_built()
     )
 
     if err or status ~= 1 then
-        local msg = err and "Build before the tests failed" or ("Build before the tests: " .. status_name)
+        local msg = err == "timeout" and "Build before the tests did not finish in time"
+            or err and "Build before the tests failed"
+            or ("Build before the tests: " .. status_name)
         if full then
             spinner.stop(false, msg, sp)
         else

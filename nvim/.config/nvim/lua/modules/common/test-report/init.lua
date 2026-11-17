@@ -366,13 +366,20 @@ function M.run_started(task_id, filetype, scope)
     running_filetype = filetype
     running_scope = scope
     running_ids = scope_ids(scope)
-    restore_signs() -- a run replacing one still in flight
-    -- A scope that matches no known result (a file run for the first time) leaves the result
-    -- signs of other files alone: its own tests get their signs from mark_new_tests_running().
-    if scope == nil or running_ids ~= nil then
-        mark_signs_running(running_ids)
+    -- The signs are decoration: a failure there must not cost the run its tracking.
+    local ok, err = pcall(function()
+        restore_signs() -- a run replacing one still in flight
+        -- A scope that matches no known result (a file run for the first time) leaves the
+        -- result signs of other files alone: its own tests get their signs from
+        -- mark_new_tests_running().
+        if scope == nil or running_ids ~= nil then
+            mark_signs_running(running_ids)
+        end
+        mark_new_tests_running(filetype, scope)
+    end)
+    if not ok then
+        log.error("run_started: running signs failed: " .. tostring(err))
     end
-    mark_new_tests_running(filetype, scope)
     log.info(
         "run_started: task="
             .. tostring(task_id)
@@ -415,7 +422,10 @@ local function finish_run(task_id)
     running_filetype = nil
     running_scope = nil
     running_ids = nil
-    restore_signs()
+    local ok, err = pcall(restore_signs)
+    if not ok then
+        log.error("finish_run: restoring signs failed: " .. tostring(err))
+    end
     return true
 end
 
