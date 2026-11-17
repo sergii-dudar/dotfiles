@@ -18,8 +18,10 @@
 #                Skipped silently for repos with no upstream configured.
 #
 # Options:
-#   --no-color   Disable ANSI colors
+#   --no-color   Disable ANSI colors (and delta rendering)
 #   -h, --help   Show this help
+#
+# Diffs are rendered with delta when it is installed and colors are on.
 
 set -euo pipefail
 
@@ -27,7 +29,7 @@ MODE=local        # local | all | committed
 ROOT="$PWD"
 USE_COLOR=auto
 
-usage() { sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; }
 
 while (($#)); do
   case "$1" in
@@ -56,6 +58,20 @@ else
   GIT_COLOR=always
 fi
 
+USE_DELTA=0
+if [[ "$GIT_COLOR" == "always" ]] && command -v delta >/dev/null 2>&1; then
+  USE_DELTA=1
+fi
+
+# Run a diff-producing git command, rendered by delta when available.
+show_diff() {
+  if (( USE_DELTA )); then
+    git -c color.ui=never --no-pager "$@" | delta --paging=never
+  else
+    git -c color.ui="$GIT_COLOR" "$@"
+  fi
+}
+
 # Returns 0 if the current repo has any uncommitted change or untracked file.
 has_local_changes() {
   if ! git diff --quiet HEAD 2>/dev/null; then return 0; fi
@@ -66,7 +82,7 @@ has_local_changes() {
 # Print full local diff (working tree + index vs HEAD), then list untracked files.
 print_local() {
   if ! git diff --quiet HEAD 2>/dev/null || ! git diff --quiet --cached HEAD 2>/dev/null; then
-    git -c color.ui="$GIT_COLOR" diff HEAD
+    show_diff diff HEAD
   fi
   local untracked
   untracked=$(git ls-files --others --exclude-standard 2>/dev/null || true)
@@ -90,7 +106,7 @@ has_committed_changes() {
 print_committed() {
   local upstream
   upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null) || return 0
-  git -c color.ui="$GIT_COLOR" log -p --no-merges "$upstream"..HEAD
+  show_diff log -p --no-merges "$upstream"..HEAD
 }
 
 shopt -s nullglob
