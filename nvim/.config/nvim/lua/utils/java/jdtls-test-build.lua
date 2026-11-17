@@ -201,7 +201,9 @@ function M.ensure_built()
     elseif full then
         spinner.stop(true, "Compiled", sp)
     end
-    if full and err ~= "timeout" then
+    -- Only a build that ran to its end proves the folder cannot be filled; a failed, canceled
+    -- or timed-out one is tried again at the next test run.
+    if full and not err and (status == 1 or status == 2) then
         local handle = vim.uv.fs_scandir(missing)
         if handle == nil or vim.uv.fs_scandir_next(handle) == nil then
             unrecoverable[missing] = true

@@ -740,8 +740,11 @@ local function reveal(chain, cont, target)
     for i, info in ipairs(state.line_map or {}) do
         if info.node == target then
             vim.api.nvim_win_set_cursor(state.winid, { i, 0 })
+            -- Centre the line through the view state, not `normal! zz`: this also runs while
+            -- the user types in another window (a run finishing in Insert mode).
+            local height = vim.api.nvim_win_get_height(state.winid)
             vim.api.nvim_win_call(state.winid, function()
-                vim.cmd("normal! zz")
+                vim.fn.winrestview({ topline = math.max(1, i - math.floor(height / 2)) })
             end)
             return true
         end
