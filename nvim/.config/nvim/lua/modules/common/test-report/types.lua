@@ -51,5 +51,6 @@
 ---@class test_report.Config
 ---@field load_buffers boolean Load every test container buffer with full autocmds.
 ---@field load_only_buffers_with_error boolean Load only buffers containing failed tests with full autocmds.
+---@field open_tree_view_on_finish boolean Open the tree view (without focusing it) when a report was processed.
 
 return {}

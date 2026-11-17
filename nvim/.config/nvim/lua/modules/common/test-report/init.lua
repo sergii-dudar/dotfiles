@@ -31,11 +31,29 @@ local loaded_adapters = {}
 local config = {
     load_buffers = false,
     load_only_buffers_with_error = false,
+    open_tree_view_on_finish = true,
 }
 
 ---@param opts? test_report.Config
 function M.setup(opts)
     config = vim.tbl_extend("force", config, opts or {})
+end
+
+-- persistent-state-util key of the `open_tree_view_on_finish` toggle; once toggled, the stored
+-- value wins over the config default (also in later sessions).
+local OPEN_ON_FINISH_KEY = "test-report.open_tree_view_on_finish"
+
+---@return boolean
+local function open_tree_view_on_finish()
+    return require("utils.persistent-state-util").get(OPEN_ON_FINISH_KEY, config.open_tree_view_on_finish) == true
+end
+
+--- Flip "open the tree view when a run finishes" (`<leader>tV`, `V` in the tree view); persisted.
+---@return boolean enabled the new value
+function M.toggle_open_tree_view_on_finish()
+    local enabled = require("utils.persistent-state-util").toggle(OPEN_ON_FINISH_KEY, config.open_tree_view_on_finish)
+    vim.notify("test-report: open the tree view after a test run: " .. (enabled and "ON" or "OFF"))
+    return enabled
 end
 
 local ns_diag = vim.api.nvim_create_namespace("test_report_diag")
@@ -384,6 +402,9 @@ function M.process(report_dir, filetype)
             spinner_resolved = true
 
             require("modules.common.test-report.report-view").refresh_if_open(M.get_report_snapshot())
+            if open_tree_view_on_finish() then
+                view().open_unfocused(M.get_report_snapshot())
+            end
 
             log.info(
                 string.format(

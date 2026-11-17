@@ -101,6 +101,7 @@ return {
             { "<leader>tO", function() require("plugins.overseer.test-report-dispatcher").hide_output() end, desc = "Hide Test Output" },
             { "<leader>tL", function() require("plugins.overseer.test-report-dispatcher").load_existing() end, desc = "Load Last Test Report" },
             { "<leader>tv", function() require("plugins.overseer.test-report-dispatcher").open_tree_view() end, desc = "Test Report Tree View" },
+            { "<leader>tV", function() require("modules.common.test-report").toggle_open_tree_view_on_finish() end, desc = "Toggle Tree View Auto-Open After Run" },
             { "<leader>txx", function() require("plugins.overseer.test-report-dispatcher").trouble_toggle() end, desc = "Tests diagnostics trouble" },
             { "<leader>txd", function() require("plugins.overseer.test-report-dispatcher").picker_diagnostics() end, desc = "Tests diagnostics picker" },
         },

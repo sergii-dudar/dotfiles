@@ -127,6 +127,12 @@ result is `failed` if any invocation failed. Nested classes keep the `$`:
 
 `config.load_buffers` / `config.load_only_buffers_with_error` decide whether buffers are
 loaded silently (`noautocmd bufload`, no JDTLS attach) or fully.
+`config.open_tree_view_on_finish` (default `true`) opens the tree view after a processed
+report through `report-view.open_unfocused()`: the focus stays where it was, an open view is
+only refreshed. A run without results does not open it. `<leader>tV` (and `V` in the tree
+view) flips it through `toggle_open_tree_view_on_finish()`; the toggle is stored in
+`persistent-state-util` under `test-report.open_tree_view_on_finish` and from then on wins
+over the config default, also in later sessions.
 
 ### `cancel()` vs `clear()`
 
@@ -217,6 +223,7 @@ re-render, so failed-first re-sorting doesn't move the cursor to another test.
 | `<CR>` / `o` / `gd` | Go to source (member → its line, via the id's member key) |
 | `O` | Show test output |
 | `<leader>O` | Full overseer logs (task list, same as `<leader>ro`) |
+| `V` | Toggle auto-open of the view after a run (same as `<leader>tV`) |
 | `r` / `R` | Re-run / debug at cursor level (member → `CURRENT_TEST`, container → `FILE_TESTS`, group → `ALL_DIR_TESTS` with `package_name`) |
 | `<Tab>` / middle mouse | Toggle fold |
 | `<leader>G` | Full refresh from the core's live state |

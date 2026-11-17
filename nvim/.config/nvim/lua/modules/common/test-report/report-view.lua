@@ -964,6 +964,7 @@ local help_entries = {
     { "o / gd",   "Go to test source" },
     { "O",        "Show test output" },
     { "<leader>O","Full overseer logs" },
+    { "V",        "Toggle auto-open after a run" },
     { "r",        "Re-run test" },
     { "R",        "Debug test" },
     { "Tab / MMB","Toggle fold" },
@@ -1039,6 +1040,9 @@ local function setup_keymaps(buf)
     map("R", function()
         action_rerun(true)
     end, "Debug test")
+    map("V", function()
+        require("modules.common.test-report").toggle_open_tree_view_on_finish()
+    end, "Toggle auto-open after a run")
     map("<Tab>", action_toggle_fold, "Toggle fold")
     map("<leader>G", action_full_refresh, "Full refresh")
     map("]d", function()
@@ -1243,6 +1247,20 @@ function M.refresh_if_open(snapshot)
     state.tree = rebuild_tree(state.tree, state.snapshot, adapter)
     refresh()
     log.info("tree view refreshed (incremental)")
+end
+
+--- Open the view next to the current window without taking the focus; no-op when it is
+--- already open (`test_report.Config.open_tree_view_on_finish`).
+---@param snapshot test_report.Snapshot
+function M.open_unfocused(snapshot)
+    if is_open() then
+        return
+    end
+    local win = vim.api.nvim_get_current_win()
+    M.open(snapshot)
+    if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_set_current_win(win)
+    end
 end
 
 --- Drop the "running" marks (rerun finished without a report, or was canceled).
