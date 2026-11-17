@@ -723,6 +723,81 @@ local function refresh()
     end
 end
 
+--- Put the view's cursor on a test or class line and centre it, expanding the groups (and,
+--- for a test, the class) on the way. Works on the view window without focusing it.
+---@param chain report_view.GroupNode[] groups from the root down to the class
+---@param cont report_view.ContainerNode
+---@param target report_view.ContainerNode|report_view.MemberNode `cont` or one of its members
+---@return boolean focused
+local function reveal(chain, cont, target)
+    for _, group in ipairs(chain) do
+        group.expanded = true
+    end
+    if target ~= cont then
+        cont.expanded = true
+    end
+    refresh()
+    for i, info in ipairs(state.line_map or {}) do
+        if info.node == target then
+            vim.api.nvim_win_set_cursor(state.winid, { i, 0 })
+            vim.api.nvim_win_call(state.winid, function()
+                vim.cmd("normal! zz")
+            end)
+            return true
+        end
+    end
+    return false
+end
+
+--- Put the view's cursor on what the last run executed, so an opened or refreshed view shows
+--- it: the test when the run was a single one, its class when the run stayed within one
+--- class (nested classes included: the outermost), nothing for wider runs. The nodes on the
+--- way are expanded. Works on the view window without focusing it.
+---@return boolean focused
+local function focus_last_run()
+    local ids = require("modules.common.test-report").last_run_ids()
+    if not ids or not state.tree or not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
+        return false
+    end
+    -- containers holding a test of the run, with their group chain
+    local hits = {} ---@type { cont: report_view.ContainerNode, chain: report_view.GroupNode[], members: report_view.MemberNode[] }[]
+    local function walk(groups, chain)
+        for _, group in ipairs(groups) do
+            local here = vim.list_extend({}, chain)
+            here[#here + 1] = group
+            for _, cont in ipairs(group.containers) do
+                local members = {}
+                for _, mem in ipairs(cont.members) do
+                    if ids[mem.id] then
+                        members[#members + 1] = mem
+                    end
+                end
+                if #members > 0 then
+                    hits[#hits + 1] = { cont = cont, chain = here, members = members }
+                end
+            end
+            walk(group.children, here)
+        end
+    end
+    walk(state.tree, {})
+    if #hits == 0 then
+        return false
+    end
+
+    local hit = hits[1]
+    for _, other in ipairs(hits) do
+        if other.cont.file_path == nil or other.cont.file_path ~= hit.cont.file_path then
+            if #hits > 1 then
+                return false -- several classes: no single place to point at
+            end
+        elseif #other.cont.container_id < #hit.cont.container_id then
+            hit = other -- the outermost class of the file
+        end
+    end
+    local target = (#hits == 1 and #hit.members == 1) and hit.members[1] or hit.cont
+    return reveal(hit.chain, hit.cont, target)
+end
+
 local function get_target_win()
     if state.prev_winid and vim.api.nvim_win_is_valid(state.prev_winid) then
         return state.prev_winid
@@ -832,6 +907,47 @@ local function action_toggle_fold()
         info.node.expanded = not info.node.expanded
         refresh()
     end
+end
+
+--- Put the view's cursor on the place in the report that a source position belongs to (the
+--- view was opened from a test file): the closest test declared at or above `line`, else the
+--- file's class (the outermost one). False when the report has nothing for that file.
+---@param file string absolute path of the source buffer
+---@param line integer 0-indexed cursor line
+---@return boolean focused
+local function focus_source(file, line)
+    if not state.tree or not (state.winid and vim.api.nvim_win_is_valid(state.winid)) then
+        return false
+    end
+    local best_mem, best_line, best_cont, best_chain
+    local outer_cont, outer_chain
+    local function walk(groups, chain)
+        for _, group in ipairs(groups) do
+            local here = vim.list_extend({}, chain)
+            here[#here + 1] = group
+            for _, cont in ipairs(group.containers) do
+                if cont.file_path == file then
+                    if not outer_cont or #cont.container_id < #outer_cont.container_id then
+                        outer_cont, outer_chain = cont, here
+                    end
+                    for _, mem in ipairs(cont.members) do
+                        local mem_line = member_line({ node = mem, container_node = cont })
+                        if mem_line and mem_line <= line and (not best_line or mem_line > best_line) then
+                            best_mem, best_line, best_cont, best_chain = mem, mem_line, cont, here
+                        end
+                    end
+                end
+            end
+            walk(group.children, here)
+        end
+    end
+    walk(state.tree, {})
+    if best_mem then
+        return reveal(best_chain, best_cont, best_mem)
+    elseif outer_cont then
+        return reveal(outer_chain, outer_cont, outer_cont)
+    end
+    return false
 end
 
 ---@param is_debug boolean|nil
@@ -1103,7 +1219,8 @@ function M.close()
 end
 
 ---@param snapshot test_report.Snapshot
-function M.open(snapshot)
+---@param from? { file: string, line: integer } source position the view is opened from (0-indexed line)
+function M.open(snapshot, from)
     local adapter = registry.get(snapshot.filetype)
     if not adapter then
         vim.notify("test-report: no adapter for filetype: " .. tostring(snapshot.filetype), vim.log.levels.WARN)
@@ -1221,7 +1338,9 @@ function M.open(snapshot)
         end,
     })
 
-    if state.line_map then
+    -- Cursor: where the view was opened from, else what the last run executed, else the top.
+    local focused = (from ~= nil and focus_source(from.file, from.line)) or focus_last_run()
+    if not focused and state.line_map then
         for i, info in ipairs(state.line_map) do
             if info.type == "group" then
                 vim.api.nvim_win_set_cursor(state.winid, { i, 0 })
@@ -1234,12 +1353,13 @@ function M.open(snapshot)
 end
 
 ---@param snapshot test_report.Snapshot
-function M.toggle(snapshot)
+---@param from? { file: string, line: integer } see M.open
+function M.toggle(snapshot, from)
     if state.bufnr and vim.api.nvim_buf_is_valid(state.bufnr) then
         M.close()
         return
     end
-    M.open(snapshot)
+    M.open(snapshot, from)
 end
 
 ---@return boolean
@@ -1275,6 +1395,11 @@ function M.refresh_if_open(snapshot)
     state.running = nil
     state.tree = rebuild_tree(state.tree, state.snapshot, adapter)
     refresh()
+    -- A run started elsewhere: show what it ran. With the cursor in the view (rerun from
+    -- here) it stays on the node it is on.
+    if vim.api.nvim_get_current_win() ~= state.winid then
+        focus_last_run()
+    end
     log.info("tree view refreshed (incremental)")
 end
 

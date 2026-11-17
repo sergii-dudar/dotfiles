@@ -231,6 +231,21 @@ re-render, so failed-first re-sorting doesn't move the cursor to another test.
 | `<leader>?` / `g?` | Keybinding help float |
 | `q` | Close |
 
+### Cursor on the last run
+
+`process()` records the ids of the report it parsed (`last_run_ids()`: the report files are
+cleared before every run, so that is what the run executed). `focus_last_run()` puts the
+view's cursor there and centres it: on the test for a single-test run, on the class when the
+run stayed within one class (the outermost when nested classes ran too), nowhere for wider
+runs; groups and the class on the way are expanded. Used by `open()` (manual and auto-open;
+falls back to the first group) and by `refresh_if_open()` unless the cursor is in the view
+(a rerun from the tree keeps its node).
+
+A manual open (`open_tree_view()` → `toggle(snapshot, from)`) passes the buffer file and
+cursor line; `focus_source()` wins over the last run: the closest test declared at or above
+the cursor among the containers of that file, else the file's outermost class; a buffer the
+report knows nothing about falls through to the last run. Both go through `reveal()`.
+
 ### Running marks
 
 `action_rerun()` sets `state.running` (set of member ids) and re-renders with the running

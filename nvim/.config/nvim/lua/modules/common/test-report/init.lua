@@ -129,6 +129,9 @@ local running_task_id = nil
 local running_filetype = nil
 local running_scope = nil ---@type test_report.RunScope|nil nil = the whole report
 local running_ids = nil ---@type table<string, boolean>|nil the scope's member ids; nil = every test
+-- Ids of the results the last processed report held, i.e. what the last run executed (the
+-- report files are cleared before every run). The tree view puts its cursor there.
+local last_run_ids = nil ---@type table<string, boolean>|nil
 
 ---@param id string
 ---@return string|nil container_id, string|nil member
@@ -410,6 +413,12 @@ function M.running_ids()
     return running_ids
 end
 
+--- Ids of the tests the last processed run executed; nil before the first report.
+---@return table<string, boolean>|nil
+function M.last_run_ids()
+    return last_run_ids
+end
+
 --- Forget the run in flight, unless `task_id` names another task than the tracked one
 --- (a late event of an older task must not end the current run).
 ---@param task_id integer|nil nil = whichever run is tracked
@@ -486,6 +495,10 @@ function M.process(report_dir, filetype, task_id)
             end
 
             log.info("parsed " .. vim.tbl_count(results) .. " test results")
+            last_run_ids = {}
+            for id in pairs(results) do
+                last_run_ids[id] = true
+            end
             for id, r in pairs(results) do
                 last_results[id] = r
             end
@@ -777,6 +790,7 @@ function M.clear()
         end
     end
     signed_buffers = {}
+    last_run_ids = nil
     sign_marks = {}
     temp_running_signs = {}
     vim.diagnostic.reset(ns_diag)
@@ -1034,7 +1048,9 @@ function M.open_tree_view()
         -- filled by process() through refresh_if_open().
         snapshot.filetype = snapshot.filetype or running_filetype
     end
-    require("modules.common.test-report.report-view").toggle(snapshot)
+    -- The view puts its cursor on the test / class the current buffer position belongs to.
+    local from = { file = vim.api.nvim_buf_get_name(0), line = vim.api.nvim_win_get_cursor(0)[1] - 1 }
+    require("modules.common.test-report.report-view").toggle(snapshot, from)
 end
 
 return M
