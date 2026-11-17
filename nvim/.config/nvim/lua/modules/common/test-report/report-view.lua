@@ -963,6 +963,7 @@ local help_entries = {
     { "cr",       "Go to test source" },
     { "o / gd",   "Go to test source" },
     { "O",        "Show test output" },
+    { "<leader>O","Full overseer logs" },
     { "r",        "Re-run test" },
     { "R",        "Debug test" },
     { "Tab / MMB","Toggle fold" },
@@ -1029,6 +1030,9 @@ local function setup_keymaps(buf)
     map("gd", action_goto, "Go to test source")
     map("o", action_goto, "Go to test source")
     map("O", action_output, "Show test output")
+    map("<leader>O", function()
+        require("utils.nvim.window-util").overseer_open()
+    end, "Full overseer logs")
     map("r", function()
         action_rerun(false)
     end, "Re-run test")

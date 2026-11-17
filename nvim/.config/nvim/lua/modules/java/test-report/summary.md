@@ -216,6 +216,7 @@ re-render, so failed-first re-sorting doesn't move the cursor to another test.
 |---|---|
 | `<CR>` / `o` / `gd` | Go to source (member → its line, via the id's member key) |
 | `O` | Show test output |
+| `<leader>O` | Full overseer logs (task list, same as `<leader>ro`) |
 | `r` / `R` | Re-run / debug at cursor level (member → `CURRENT_TEST`, container → `FILE_TESTS`, group → `ALL_DIR_TESTS` with `package_name`) |
 | `<Tab>` / middle mouse | Toggle fold |
 | `<leader>G` | Full refresh from the core's live state |
